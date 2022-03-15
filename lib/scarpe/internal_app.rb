@@ -1,7 +1,5 @@
 module Scarpe
   class InternalApp
-    include Scarpe::Container
-
     attr_reader :window
     attr_accessor :current_id
     def initialize(window)

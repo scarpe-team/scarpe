@@ -7,7 +7,8 @@ module Scarpe
     end
 
     def render
-      "<img id=#{object_id} src=\"#{@url}\">"
+      puts "<img id=#{object_id} src=\"#{@url}\">"
+      "<img id=#{object_id} src='#{@url}'>"
     end
   end
 end
