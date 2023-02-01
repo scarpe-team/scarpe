@@ -46,8 +46,28 @@ From the button example:
 ## Shoes Parity Roadmap
 
 ### `para`
- - [x] Initialize within the gem
- - [ ] Migrate `def render` to phlex
+  - [x] Initialize within the gem
+  - [ ] Migrate `def render` to phlex
+  - [ ] Support a collection of arguments, joined into one string.
+    * e.g. `para 'this', 'is', 'a', 'string'
+  - #### Methods to add
+    - [ ] `banner`; 48px
+    - [ ] `title`; 34px
+    - [ ] `subtitle`; 26px;
+    - [ ] `tagline`; 18px;
+    - [ ] `caption`; 14px;
+    - [ ] `para`; 12px;
+    - [ ] `inscription`; 10px;
+      - [ ] Alias `ins` for `inscription`
+  - #### Options
+    - [ ] `size`
+      * Manually resize this text: e.g. `para 'hi', size: 34`
+    * Like their HTML counterparts
+    * e.g. `para "hello", strong("dude"), em("how's it going?")`
+    - [ ] `strong`
+    - [ ] `em`
+    - [ ] `code`
+
 
 ### `stack`
   - [x] Initialize within the gem
@@ -55,12 +75,21 @@ From the button example:
   - [ ] negative width
   - [ ] margin
   - [ ] unit testing
+  - [ ] `margin`
+  - [ ] `width`
+    - [ ] floating point width (1.0 == 100%)
+    - [ ] pixel width
+    - [ ] negative pixel width (e.g. -80 == 100%-80)
+  - [ ] nest inside flow
+
+
 
 ### `flow`
   - [x] Initialize within the gem
   - [ ] Migrate `def render` to phlex
   - [ ] unit testing
-
+  - [ ] nest inside stack
+  - [ ] should flow all the way to the end
 
 ### `button`
   - [x] Initialize within the gem
@@ -115,8 +144,12 @@ From the button example:
 
 
 ### Misc
-  - [ ] append
-  - [ ] prepend
+  - [ ] `append`
+  - [ ] `prepend`
+  - [ ] `oval`
+      - [ ] `top`, `left`, `radius`
+      - [ ] `move`
+  - [ ] `motion`
 
 ## Larger technical points
 
@@ -150,6 +183,9 @@ Scarpe is not intended to be a perfect replica of every element of Shoes. It is,
   - [wiki](https://github.com/shoes/shoes3/wiki)
   * [Blog covering shoes3 history](https://web.archive.org/web/20190731215758/https://walkabout.mvmanila.com/)
 * [shoes4 (JRuby, incomplete)](https://github.com/shoes/shoes4)
+
+## More reading
+
 
 ## Contributing
 
