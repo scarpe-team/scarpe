@@ -168,7 +168,8 @@ Scarpe is not intended to be a perfect replica of every element of Shoes. It is,
 
 * [Parity with the Nobody Knows Shoes manual](https://github.com/whymirror/why-archive/raw/master/shoes/nobody-knows-shoes.pdf)
   * This is our top priority
-* Able to run various existing Shoes apps.
+* Most of our measurement will come from manually running the `examples/examples/examples_that_do_not_yet_work` directory, and moving them out into working as we pass them.
+* Able to run various external existing Shoes apps.
   * [Shoes' native splash app](https://github.com/shoes/shoes-deprecated/blob/develop/lib/shoes.rb#L124-L176)
   * [Example directory](https://github.com/shoes/shoes-deprecated/tree/develop/samples)
   * [Found shoes apps](https://gist.github.com/search?l=Ruby&q=shoes.rb)
