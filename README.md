@@ -43,238 +43,41 @@ From the button example:
 
 ![button](https://user-images.githubusercontent.com/9624267/158566011-0372d0c7-fbeb-4ed6-a082-73908f04a0b6.gif)
 
-## Shoes Parity Roadmap
+## Shoes DSL Parity Tracker
 
-### distribution
-  - [ ] Should ship with a splash page scarpe app that lets you see all of your shoes apps
+### Core DSL
 
-### `para`
-  - [x] Initialize within the gem
-  - [ ] Migrate `def render` to phlex
-  - [ ] Support a collection of arguments, joined into one string.
-    * e.g. `para 'this', 'is', 'a', 'string'
-  - [ ] `stroke` kwarg to add color
-  - #### Methods to add
-    - [ ] `banner`; 48px
-    - [ ] `title`; 34px
-    - [ ] `subtitle`; 26px;
-    - [ ] `tagline`; 18px;
-    - [ ] `caption`; 14px;
-    - [ ] `para`; 12px;
-    - [ ] `inscription`; 10px;
-      - [ ] Alias `ins` for `inscription`
-  - #### Options
-    - [ ] `size`
-      * Manually resize this text: e.g. `para 'hi', size: 34`
-    * Like their HTML counterparts
-    * e.g. `para "hello", strong("dude"), em("how's it going?")`
-    - [ ] `strong`
-    - [ ] `em`
-    - [ ] `code`
+| Syntax  | Status | PRs   |
+| ------- | ------ | ------- |
+| [para](https://github.com/Schwad/scarpe/issues/1) |    |       |
+| [stack](https://github.com/Schwad/scarpe/issues/2) |    |       |
+| [flow](https://github.com/Schwad/scarpe/issues/3) |    |       |
+| [button](https://github.com/Schwad/scarpe/issues/4) |    |       |
+| [image](https://github.com/Schwad/scarpe/issues/5) |    |       |
+| [edit_line](https://github.com/Schwad/scarpe/issues/6) |    |       |
+| [edit_box](https://github.com/Schwad/scarpe/issues/7) |    |       |
+| [link](https://github.com/Schwad/scarpe/issues/8) |    |       |
+| [background](https://github.com/Schwad/scarpe/issues/9) |    |       |
+| [Shoes.url](https://github.com/Schwad/scarpe/issues/10) |    |       |
+| [visibility](https://github.com/Schwad/scarpe/issues/11) |    |       |
+| [Scarpe.app methods](https://github.com/Schwad/scarpe/issues/13) |    |       |
+| [para](https://github.com/Schwad/scarpe/issues/1) |    |       |
 
 
-### `stack`
-  - [x] Initialize within the gem
-  - [ ] Migrate `def render` to phlex
-  - [ ] negative width
-  - [ ] margin
-  - [ ] unit testing
-  - [ ] `margin`
-  - [ ] `width`
-    - [ ] floating point width (1.0 == 100%)
-    - [ ] pixel width
-    - [ ] negative pixel width (e.g. -80 == 100%-80)
-  - [ ] nest inside flow
-  - [ ] `contents`, returns an array of what's inside
+### Secondary DSL && Functionality
 
+| Subject | Status | PRs   |
+| ------- | ------ | ------- |
+| [Misc Meta Issue](https://github.com/Schwad/scarpe/issues/14) |    |       |
+| [style](https://github.com/Schwad/scarpe/issues/15) |    |       |
+| [parents and children](https://github.com/Schwad/scarpe/issues/16) |    |       |
 
+### Future
 
-### `flow`
-  - [x] Initialize within the gem
-  - [ ] Migrate `def render` to phlex
-  - [ ] unit testing
-  - [ ] nest inside stack
-  - [ ] should flow all the way to the end
-
-### `button`
-  - [x] Initialize within the gem
-  - [ ] Migrate `def render` to phlex
-  - [ ] unit testing
-  - [ ] `alert`
-  - [x] accepts and runs a block of ruby code
-  - [ ] coordinates
-    - [ ] `top`
-    - [ ] `left`
-  - [ ] size
-    - [ ] `width`
-    - [ ] `height`
-
-
-### `image`
-  - [x] Initialize within the gem
-  - [ ] Accepts path to render the image
-  - [ ] Migrate `def render` to phlex
-  - [ ] unit testing
-  - [ ] size
-    - [ ] `top`
-    - [ ] `left`
-    - [ ] `width`
-    - [ ] `height`
-  - [ ] `image.size`
-    - [ ] Returns an array with original size. e.g. `w,h=image.size`
-  - [ ] Is clickable `:click` can send to a url
-
-
-### `edit_line`
-  - [x] Initialize within the gem
-  - [ ] Accept text argument for default pre-filled data
-  - [ ] Migrate `def render` to phlex
-  - [ ] unit testing
-  - [ ] `width`
-  - [ ] returns an object with a text property, like so:
-    * `@e = edit_line width: 400; @e.text #=> 'huzzah!'`
-    * This object can be used elsewhere and reset with `@e.text =`
-
-### `edit_box`
-  * Similar to `edit_line` but with height and a scrollbar it might deploy.
-  - [ ] Accept text argument for default pre-filled data
-  - [ ] Initialize within the gem
-  - [ ] unit testing
-  - [ ] `width`
-  - [ ] `height`
-  - [ ] returns an object with a text property, like so:
-    * `@e = edit_line width: 400; @e.text #=> 'huzzah!'`
-    * This object can be used elsewhere and reset with `@e.text =`
-
-
-
-### `link`
-  - [ ] Initialize within the gem
-  - [ ] Accept text argument for link name
-  - [ ] must _only_ work inside of a text block (`para`, `banner`, etc.)
-  - [ ] Accepts and runs a block
-  - [ ] `:click` kwarg navigates to a web page or a shoes link
-  - [ ] Migrate `def render` to phlex
-  - [ ] unit testing
-
-### `style`
-  - [ ] Initialize within the gem
-  - [ ] This isn't entirely clear, but support styling against objects like `Link` and `LinkHover`, e.g. `style(Link, underline: false, stroke: green); style(LinkHover, underline: true, stroke: red)` for styling links and linkhovers
-  - [ ] I think it might be okay to support style generally.
-
-
-### `background`
-  * Instead of inheriting from HTML background this might be able to inherit from image
-  - [ ] Initialize within the gem
-  - [ ] unit testing
-  - [ ] can fit many within a shoes box
-  - [ ] can be a color, gradiant or an image
-  - [ ] `background('image.png'), background('#FF9900'), background(rgb(192,128,0)), background(red)`
-  - [ ] `radius: x` (rounded corners. good for rounding stacks and flows)
-  - [ ] size and location
-     - [ ] `top, right, bottom, left`
-     - [ ] `width, height`
-
-### `border`
-  - [ ] first argument optionally color
-  - [ ] `strokewidth: x` pixels
-  * There is an option referring to passing an image file link instead of a color that I don't quite understand
-
-
-### `Shoes.url`
-  * This is the key magic of shoes. Instead of having one flat page for folks to see we can have _many_
-  * It may help to look at example usages to put this together
-  - [ ] Initialize within the gem
-  - [ ] `def render` to phlex
-  - [ ] unit testing
-  - [ ] invoked multiple times
-  - [ ] first arg is a path, second is a symbol linking to the method name
-  - [ ] supports regex and passes along to method ala `url '/(\w+)', :my_method; def my_method(string)= para(string)`
-  - [ ] `visit` takes you to these urls
-
-
-### `clear`
-  - [ ] Initialize within the gem
-  - [ ] unit testing
-  - [ ] wipes a box. e.g. `@box = stack { ... }; @box.clear`
-  - [ ] you can specify what you want to replace it with `@box.clear { para "hello rats!" }`
-  * do not use this to hide and show boxes! You do that with the following methods:
-
-### `hide`
-  - [ ] Initialize within the gem
-  - [ ] unit testing
-  - [ ] hides the box with `@box.hide`
-
-### `show`
-  - [ ] Initialize within the gem
-  - [ ] unit testing
-  - [ ] shows the box with `@box.show`
-
-### `append`
-  - [ ] Initialize within the gem
-  - [ ] unit testing
-  - [ ] adds to the end of the box
-
-### `prepend`
-  - [ ] Initialize within the gem
-  - [ ] unit testing
-  - [ ] adds to the beginning of the box
-
-### `before`
-  - [ ] Initialize within the gem
-  - [ ] unit testing
-  - [ ] adds to the beginning of a box before its child element `@box.before(element) { ... }`
-
-### `after`
-  - [ ] Initialize within the gem
-  - [ ] unit testing
-  - [ ] adds to the beginning of a box immediately after its child element `@box.after(element) { ... }`
-
-### `remove`
-  - [ ] Initialize within the gem
-  - [ ] unit testing
-  - [ ] Removes any element that isn't cleared. Alias for `clear` (I think!)
-
-### parents and children
-  - [ ] elements should have access to their parents and children. e.g. `para 'hi', link("delete) { x.parent.remove }`
-
-
-### ivars
-  - [ ] Should be accessible anywhere within `app`
-
-### Built-in gems, runtime dependencies.
-  - Documented [here](https://github.com/shoes/shoes-deprecated/wiki/A-Developer%27s-Tour-Through-Shoes)
-  - We may be able to treat these like runtime dependencies _for now_. But if we explore more packaging this up we may need to vendor these directly ala [here](https://github.com/shoes/shoes-deprecated/tree/develop/req).
-  - [ ] binject, one-click installer
-  - [ ] [bloopsaphone, supports audio and chiptunes](https://github.com/whymirror/bloopsaphone)
-  - [ ] chipmunk, [chipmunk physics support](https://github.com/ashbb/shoes_hack_note/blob/master/md/hack029.md)
-  - [ ] ftsearch
-  - [ ] Nokogiri, HTML parsing
-  - [ ] JSON
-  - [ ] sqlite3, simple database support
-
-
-### Misc
-  - [ ] `oval`
-      - [ ] `top`, `left`, `radius`
-      - [ ] `move`
-  - [ ] `motion`
-  * The following can be found referenced [here](http://shoesrb.com/manual/Progress.html)
-    - [ ] `check`
-    - [ ] `list_box`
-    - [ ] `progress`
-    - [ ] `radio`
-    - [ ] `shape`
-    - [ ] `text_block`
-    - [ ] `timers`
-    - [ ] `video`
-    - [ ] `mouse`
-    - [ ] `clipboard`
-    - [ ] `exit`
-
-## Larger technical points
-
-* Instead of using raw html we want to utilize [Phlex]() where possible
+| Subject | Status | PRs   |
+| ------- | ------ | ------- |
+| [Splash App](https://github.com/Schwad/scarpe/issues/19) |    |       |
+| [Packaging](https://github.com/Schwad/scarpe/issues/20) |    |       |
 
 ## Core Values
 
@@ -296,8 +99,9 @@ Scarpe is not intended to be a perfect replica of every element of Shoes. It is,
   * [Found shoes apps](https://gist.github.com/search?l=Ruby&q=shoes.rb)
 * The ultimate test would be to run, functionally, [HacketyHack](https://github.com/whymirror/hacketyhack)
 
-## All the shoes
+## More info
 
+* Great cheatsheet on pages 48-50 of [Nobody Knows Shoes](https://github.com/whymirror/why-archive/raw/master/shoes/nobody-knows-shoes.pdf)
 * [Original shoes (archived)](https://github.com/shoes/shoes-deprecated)
   - For now we are aiming towards _original shoes_, but I believe later can learn from Shoes3.
   - [wiki](https://github.com/shoes/shoes-deprecated/wiki)
@@ -305,10 +109,6 @@ Scarpe is not intended to be a perfect replica of every element of Shoes. It is,
   - [wiki](https://github.com/shoes/shoes3/wiki)
   * [Blog covering shoes3 history](https://web.archive.org/web/20190731215758/https://walkabout.mvmanila.com/)
 * [shoes4 (JRuby, incomplete)](https://github.com/shoes/shoes4)
-
-## More reading
-
-* Great cheatsheet on pages 48-50 of [Nobody Knows Shoes](https://github.com/whymirror/why-archive/raw/master/shoes/nobody-knows-shoes.pdf)
 
 ## Contributing
 
