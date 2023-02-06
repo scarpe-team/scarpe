@@ -21,7 +21,7 @@ module Scarpe
     end
 
     def append(el)
-      @window.eval("document.getElementById(#{current_id}).insertAdjacentHTML('beforeend', \"#{el}\")")
+      @window.eval("document.getElementById(#{current_id}).insertAdjacentHTML('beforeend', \`#{el}\`)")
     end
 
     def para(text)

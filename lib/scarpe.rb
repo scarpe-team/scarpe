@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 require "webview_ruby"
-require 'securerandom'
+require "securerandom"
 
+require_relative "scarpe/html"
 require_relative "scarpe/container"
 require_relative "scarpe/version"
 require_relative "scarpe/para"
@@ -12,7 +13,6 @@ require_relative "scarpe/button"
 require_relative "scarpe/image"
 require_relative "scarpe/edit_line"
 require_relative "scarpe/internal_app"
-
 
 module Scarpe
   def self.app(opts = {}, &blk)
