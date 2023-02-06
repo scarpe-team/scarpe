@@ -52,7 +52,7 @@ From the button example:
 | [para](https://github.com/Schwad/scarpe/issues/1) |    |       |
 | [stack](https://github.com/Schwad/scarpe/issues/2) |    |       |
 | [flow](https://github.com/Schwad/scarpe/issues/3) |    |       |
-| [button](https://github.com/Schwad/scarpe/issues/4) |    |       |
+| [button](https://github.com/Schwad/scarpe/issues/4) |    |  #21     |
 | [image](https://github.com/Schwad/scarpe/issues/5) |    |       |
 | [edit_line](https://github.com/Schwad/scarpe/issues/6) |    |       |
 | [edit_box](https://github.com/Schwad/scarpe/issues/7) |    |       |
