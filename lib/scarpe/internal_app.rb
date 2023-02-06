@@ -33,8 +33,8 @@ module Scarpe
     def flow(&block)
       Scarpe::Flow.new(self, &block)
     end
-    def button(text, &block)
-      Scarpe::Button.new(self, text, &block)
+    def button(text, width: nil, height: nil, &block)
+      Scarpe::Button.new(self, text, width:, height:, &block)
     end
     def image(url)
       Scarpe::Image.new(self, url)
