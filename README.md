@@ -50,9 +50,15 @@ From the button example:
 
 First, clone the [main GitHub repository](https://github.com/schwad/scarpe).
 
-"Bundle install" dependencies like webview from the cloned directory in your Ruby of choice.
+`bundle install` dependencies like webview from the cloned directory in your Ruby of choice.
 
 You can run without Scarpe being installed by including its directory. For instance, from the "examples" directory you can run `ruby -I../lib hello_world.rb`. You can also install Scarpe locally (`gem build scarpe.gemspec && gem install scarpe-0.1.0.gem`) or using a Gemfile with the "path" option for local Scarpe.
+
+If you want to be really slick we have a helper development command, for example:
+
+`./exe/scarpe examples/button.rb --dev`
+
+The `--dev` flag points to your local scarpe. Also, it has a helper that allows it to _attempt_ to run existing `Shoes.rb` apps. If you want to turn this off add the flag `--no-shoes`.
 
 It's very early in the development process (as of February 2023, as I write this.) If you'd like to help develop Scarpe, great! It would be useful to drop us a message/issue/PR on GitHub early on, so we know you're working in a particular area, and we can warn you if anybody else is currently doing so.
 
