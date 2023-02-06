@@ -1,0 +1,7 @@
+name: scarpe
+
+type: ruby
+
+up:
+  - ruby: 3.2.0
+  - bundler
