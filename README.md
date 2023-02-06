@@ -1,7 +1,8 @@
 # Scarpe
 
-Scarpe is me trying to rebuild shoes using ruby but also new web technology, like using HTML and your browser as the UI backend. The name `scarpe` just means shoes in
-italian, so I thought it would be a fitting name. This is REALLY incomplete and it's not close to be feature complete with shoes (any version) in any way.
+"Scarpe" means shoes in Italian. "Scarpe" also means [Shoes](https://github.com/shoes/shoes-deprecated) in modern Ruby and webview!
+
+Scarpe isn't feature complete with any version of Shoes (yet?). We're initially targetting Shoes Classic.
 
 ## Installation
 
@@ -20,6 +21,8 @@ Or install it yourself as:
     $ gem install scarpe
 
 ## Usage
+
+Note: you'll probably want the "Scarpe in Development" instructions below in most cases! Scarpe isn't ready for "just install the released version" production usage yet.
 
 Create an hello world application with:
 
@@ -42,6 +45,18 @@ From the hello world example:
 From the button example:
 
 ![button](https://user-images.githubusercontent.com/9624267/158566011-0372d0c7-fbeb-4ed6-a082-73908f04a0b6.gif)
+
+## Scarpe in Development
+
+First, clone the [main GitHub repository](https://github.com/schwad/scarpe).
+
+"Bundle install" dependencies like webview from the cloned directory in your Ruby of choice.
+
+You can run without Scarpe being installed by including its directory. For instance, from the "examples" directory you can run `ruby -I../lib hello_world.rb`. You can also install Scarpe locally (`gem build scarpe.gemspec && gem install scarpe-0.1.0.gem`) or using a Gemfile with the "path" option for local Scarpe.
+
+It's very early in the development process (as of February 2023, as I write this.) If you'd like to help develop Scarpe, great! It would be useful to drop us a message/issue/PR on GitHub early on, so we know you're working in a particular area, and we can warn you if anybody else is currently doing so.
+
+We'd love the help!
 
 ## Shoes DSL Parity Tracker
 
