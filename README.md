@@ -70,8 +70,8 @@ We'd love the help!
 
 | Syntax  | Status | PRs   |
 | ------- | ------ | ------- |
-| [para](https://github.com/Schwad/scarpe/issues/1) |    |       |
-| [stack](https://github.com/Schwad/scarpe/issues/2) |    |       |
+| [para](https://github.com/Schwad/scarpe/issues/1) |  🛠️  |       |
+| [stack](https://github.com/Schwad/scarpe/issues/2) |  🛠️ |    [#26](https://github.com/Schwad/scarpe/pull/26)   |
 | [flow](https://github.com/Schwad/scarpe/issues/3) |    |       |
 | [button](https://github.com/Schwad/scarpe/issues/4) | 🛠️ |  [#21](https://github.com/Schwad/scarpe/pull/21)     |
 | [image](https://github.com/Schwad/scarpe/issues/5) |    |       |
