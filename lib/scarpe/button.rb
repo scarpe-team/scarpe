@@ -1,6 +1,6 @@
 module Scarpe
   class Button
-    def initialize(app, text, width:, height:, top:, left: , &block)
+    def initialize(app, text, width:, height:, top:, left:, &block)
       @app = app
       @text = text
       @width = width
@@ -23,14 +23,19 @@ module Scarpe
       @app.bind(function_name) do
         @block.call if @block
       end
-      "<button id=#{object_id} onclick='scarpeHandler(#{function_name})' style='#{style}'>#{@text}</button>"
+
+      HTML.render do |h|
+        h.button(id: function_name, onclick: "scarpeHandler(#{function_name})", style: style) do
+          @text
+        end
+      end
     end
 
     private
 
     def style
       styles = {}
-      
+
       styles[:width] = "#{@width}px" if @width
       styles[:height] = "#{@height}px" if @height
 
@@ -38,7 +43,7 @@ module Scarpe
       styles[:left] = "#{@left}px" if @left
       styles[:position] = "absolute" if @top || @left
 
-      styles.map { |k, v| "#{k}:#{v}" }.join(";")
+      styles
     end
   end
 end
