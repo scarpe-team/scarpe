@@ -52,8 +52,8 @@ module Scarpe
     def image(url)
       Scarpe::Image.new(self, url)
     end
-    def edit_line(&block)
-      Scarpe::EditLine.new(self, &block)
+    def edit_line(text = "", width: nil, &block)
+      Scarpe::EditLine.new(self, text, width:, &block)
     end
     def alert(text)
       Scarpe::Alert.new(self, text)

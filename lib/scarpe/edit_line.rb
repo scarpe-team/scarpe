@@ -1,9 +1,10 @@
 module Scarpe
   class EditLine
-    def initialize(app, &block)
+    def initialize(app, text = "", width: nil, &block)
       @app = app
       @block = block
-      @text = ""
+      @text = text
+      @width = width
       @app.append(render)
     end
 
@@ -14,7 +15,7 @@ module Scarpe
     def change(&block)
       @block = block
     end
-    
+
     def text
       @text
     end
@@ -33,7 +34,22 @@ module Scarpe
           @block.call(text)
         end
       end
-      "<input id=#{object_id} oninput='scarpeHandler(#{function_name}, this.value)' value='#{@text}'></input>"
+
+      oninput = "scarpeHandler(#{function_name}, this.value)"
+
+      HTML.render do |h|
+        h.input(id: object_id, oninput: oninput, value: @text, style: style)
+      end
+    end
+
+    private
+
+    def style
+      styles = {}
+
+      styles[:width] = Dimensions.length(@width) if @width
+
+      styles
     end
   end
 end
