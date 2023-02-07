@@ -1,6 +1,6 @@
 module Scarpe
   class HTML
-    CONTENT_TAGS = %i[div p button ul li].freeze
+    CONTENT_TAGS = %i[div p button ul li textarea].freeze
     VOID_TAGS = %i[input].freeze
     TAGS = (CONTENT_TAGS + VOID_TAGS).freeze
 
@@ -55,6 +55,9 @@ module Scarpe
       return "" if attributes.empty?
 
       attributes[:style] = render_style(attributes[:style]) if attributes[:style]
+      attributes.compact!
+
+      return "" if attributes.empty?
 
       result = attributes.map { |k, v| "#{k}=\"#{v}\"" }.join(" ")
       " #{result}"
@@ -62,6 +65,7 @@ module Scarpe
 
     def render_style(style)
       return style unless style.is_a?(Hash)
+      return if style.empty?
 
       style.map { |k, v| "#{k}:#{v}" }.join(";")
     end

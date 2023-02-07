@@ -61,5 +61,9 @@ module Scarpe
     def js_eval(js_code)
       Scarpe::JSEval.new(self, js_code)
     end
+
+    def edit_box(text = nil, width: nil, height: nil, &block)
+      Scarpe::EditBox.new(self, text, width: width, height: height, &block)
+    end
   end
 end
