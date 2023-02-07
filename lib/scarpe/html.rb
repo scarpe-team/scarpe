@@ -1,6 +1,8 @@
 module Scarpe
   class HTML
-    TAGS = %i[div p button ul li]
+    CONTENT_TAGS = %i[div p button ul li].freeze
+    VOID_TAGS = %i[input].freeze
+    TAGS = (CONTENT_TAGS + VOID_TAGS).freeze
 
     def self.render(&block)
       new(&block).value
@@ -26,16 +28,23 @@ module Scarpe
     def method_missing(name, *args, &block)
       raise NoMethodError, "no method #{name} for #{self.class.name}" unless TAGS.include?(name)
 
-      @buffer += "<#{name}#{render_attributes(*args)}>"
 
-      if block_given?
-        result = block.call(self)
-        @buffer += result if result.is_a?(String)
+
+      if VOID_TAGS.include?(name)
+        @buffer += "<#{name}#{render_attributes(*args)} />"
       else
-        @buffer += args.first
-      end
+        @buffer += "<#{name}#{render_attributes(*args)}>"
 
-      @buffer += "</#{name}>"
+        if block_given?
+          result = block.call(self)
+          @buffer += result if result.is_a?(String)
+        else
+          result = args.first
+          @buffer += result if result.is_a?(String)
+        end
+
+        @buffer += "</#{name}>"
+      end
 
       nil
     end
