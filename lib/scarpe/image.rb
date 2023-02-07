@@ -1,4 +1,4 @@
-module Scarpe
+class Scarpe
   class Image
     def initialize(app, url)
       @app = app

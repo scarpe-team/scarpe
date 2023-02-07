@@ -1,4 +1,4 @@
-module Scarpe
+class Scarpe
   class Alert
     def initialize(app, text)
       @app = app

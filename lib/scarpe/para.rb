@@ -1,4 +1,4 @@
-module Scarpe
+class Scarpe
   class Para
     def initialize(app, text)
       @app = app
