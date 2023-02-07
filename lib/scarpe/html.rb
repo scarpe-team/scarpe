@@ -1,6 +1,6 @@
 module Scarpe
   class HTML
-    TAGS = %i[div p button ul li]
+    TAGS = %i[div p button ul li input]
 
     def self.render(&block)
       new(&block).value
