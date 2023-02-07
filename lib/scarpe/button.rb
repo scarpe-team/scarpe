@@ -36,11 +36,11 @@ module Scarpe
     def style
       styles = {}
 
-      styles[:width] = ::Scarpe::Dimensions.length(@width) if @width
-      styles[:height] = ::Scarpe::Dimensions.length(@height) if @height
+      styles[:width] = Dimensions.length(@width) if @width
+      styles[:height] = Dimensions.length(@height) if @height
 
-      styles[:top] = ::Scarpe::Dimensions.length(@top) if @top
-      styles[:left] = ::Scarpe::Dimensions.length(@left) if @left
+      styles[:top] = Dimensions.length(@top) if @top
+      styles[:left] = Dimensions.length(@left) if @left
       styles[:position] = "absolute" if @top || @left
 
       styles

@@ -47,7 +47,7 @@ module Scarpe
     def style
       styles = {}
 
-      styles[:width] = ::Scarpe::Dimensions.length(@width) if @width
+      styles[:width] = Dimensions.length(@width) if @width
 
       styles
     end
