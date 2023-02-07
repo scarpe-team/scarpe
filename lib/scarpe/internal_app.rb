@@ -1,11 +1,15 @@
 module Scarpe
   class InternalApp
     attr_reader :window
+    attr_reader :debug
     attr_accessor :current_id
-    def initialize(window)
+
+    def initialize(window, opts = {})
       @window = window
       @current_id = object_id
       @callbacks = {}
+      @opts = opts
+      @debug = opts[:debug] ? true : false
     end
 
     def bind(name, &block)
@@ -17,7 +21,11 @@ module Scarpe
     end
 
     def render(&block)
-      instance_eval &block
+      instance_eval(&block)
+    end
+
+    def do_js_eval(js)
+      @window.eval(js + ";")
     end
 
     def append(el)
@@ -49,6 +57,9 @@ module Scarpe
     end
     def alert(text)
       Scarpe::Alert.new(self, text)
+    end
+    def js_eval(js_code)
+      Scarpe::JSEval.new(self, js_code)
     end
   end
 end
