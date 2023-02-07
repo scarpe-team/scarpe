@@ -22,9 +22,13 @@ module Scarpe
     internal_app = Scarpe::InternalApp.new(w)
     w.bind("scarpeInit") do
       internal_app.render(&blk)
+      monkey_patch_console(w)
     end
     w.bind("scarpeHandler") do |*args|
       internal_app.handle_callback(*args)
+    end
+    w.bind("puts") do |*args|
+      puts(*args)
     end
     w.init("scarpeInit();")
     w.set_title("example")
@@ -32,5 +36,25 @@ module Scarpe
     w.navigate("data:text/html, <body id=#{internal_app.object_id}></body>")
     w.run
     w.destroy
+  end
+
+  private
+
+  def self.monkey_patch_console(window)
+    # this forwards all console.log/info/error/warn calls also
+    # to the terminal that is running the scarpe app
+    window.eval <<~JS
+    function patchConsole(fn) {
+      const original = console[fn];
+      console[fn] = function(...args) {
+        original(...args);
+        puts(...args);
+      }
+    };
+    patchConsole('log');
+    patchConsole('info');
+    patchConsole('error');
+    patchConsole('warn');
+    JS
   end
 end
