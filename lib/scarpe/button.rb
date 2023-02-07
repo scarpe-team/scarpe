@@ -1,4 +1,4 @@
-module Scarpe
+class Scarpe
   class Button
     def initialize(app, text, width:, height:, top:, left:, &block)
       @app = app

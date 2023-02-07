@@ -1,4 +1,4 @@
-module Scarpe
+class Scarpe
   class EditLine
     def initialize(app, text = "", width: nil, &block)
       @app = app

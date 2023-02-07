@@ -1,7 +1,7 @@
-module Scarpe
+class Scarpe
   class Stack
     include Scarpe::Container
-    
+
     attr_reader :app
     def initialize(app, width:, margin:, &block)
       @app = app

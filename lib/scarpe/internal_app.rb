@@ -1,4 +1,4 @@
-module Scarpe
+class Scarpe
   class InternalApp
     attr_reader :window
     attr_reader :debug
