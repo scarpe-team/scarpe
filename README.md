@@ -1,5 +1,7 @@
 # Scarpe
 
+## _Scarpe Diem: Seize the Shoes_
+
 "Scarpe" means shoes in Italian. "Scarpe" also means [Shoes](https://github.com/shoes/shoes-deprecated) in modern Ruby and webview!
 
 Scarpe isn't feature complete with any version of Shoes (yet?). We're initially targetting Shoes Classic.
