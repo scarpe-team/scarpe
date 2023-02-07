@@ -1,22 +1,23 @@
-module Scarpe
+class Scarpe
   class Link
     def initialize(app, text, &block)
       @app = app
       @text = text
       @block = block
-      @app.append(render)
     end
 
     def function_name
-      object_id
+      object_idg
     end
 
-    def render
+    def render(parent)
+      raise "Links must be rendered with a para" unless parent.is_a? Para
+
       @app.bind(function_name) do
         @block&.call
       end
 
-      HTML.render do |h|
+      html = HTML.render do |h|
         h.u(id: function_name, onclick: "scarpeHandler(#{function_name})") do
           @text
         end

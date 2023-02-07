@@ -11,13 +11,18 @@ class Scarpe
     def render
       HTML.render do |h|
         h.p(**options) do
-          text.join
+          render_text
         end
       end
     end
 
+    def render_text
+      text
+        .map { |t| t.is_a?(Link) ? t.render(self) : t }
+        .join
+    end
+
     def replace(new_text)
-      text = new_text
       app.window.eval("document.getElementById(#{object_id}).innerText = \"#{new_text}\"")
     end
 
