@@ -32,7 +32,8 @@ module Scarpe
         result = block.call(self)
         @buffer += result if result.is_a?(String)
       else
-        @buffer += args.first
+        result = args.first
+        @buffer += result if result.is_a?(String)
       end
 
       @buffer += "</#{name}>"
