@@ -24,6 +24,10 @@ module Scarpe
       @window.eval("document.getElementById(#{current_id}).insertAdjacentHTML('beforeend', \`#{el}\`)")
     end
 
+    def remove(id)
+      @window.eval("document.getElementById(#{id}).remove()")
+    end
+
     def para(*text)
       Scarpe::Para.new(self, text)
     end
@@ -42,6 +46,9 @@ module Scarpe
     end
     def edit_line(&block)
       Scarpe::EditLine.new(self, &block)
+    end
+    def alert(text)
+      Scarpe::Alert.new(self, text)
     end
   end
 end
