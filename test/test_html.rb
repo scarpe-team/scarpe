@@ -42,6 +42,5 @@ class TestHTML < Minitest::Test
     subject = ::Scarpe::HTML.render { |h| h.input(type: "text") }
 
     assert_equal '<input type="text" />', subject
-
   end
 end
