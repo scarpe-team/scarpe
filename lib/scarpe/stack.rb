@@ -3,8 +3,9 @@ module Scarpe
     include Scarpe::Container
     
     attr_reader :app
-    def initialize(app, margin:, &block)
+    def initialize(app, width:, margin:, &block)
       @app = app
+      @width = width
       @margin = margin
       @app.append(render)
       append(&block)
@@ -24,6 +25,7 @@ module Scarpe
       styles[:display] = "flex"
       styles["flex-direction"] = "column"
       styles[:margin] = Dimensions.length(@margin) if @margin
+      styles[:width] = Dimensions.length(@width) if @width
 
       styles
     end
