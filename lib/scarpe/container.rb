@@ -1,4 +1,4 @@
-module Scarpe
+class Scarpe
   module Container
     def append(&block)
       prev_id = @app.current_id

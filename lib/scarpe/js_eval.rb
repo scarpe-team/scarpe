@@ -1,4 +1,4 @@
-module Scarpe
+class Scarpe
   class JSEval
     def initialize(app, js_code)
       @app = app

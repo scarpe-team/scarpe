@@ -1,4 +1,4 @@
-module Scarpe
+class Scarpe
   class HTML
     CONTENT_TAGS = %i[div p button ul li].freeze
     VOID_TAGS = %i[input img].freeze

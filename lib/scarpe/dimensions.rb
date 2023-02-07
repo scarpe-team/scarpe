@@ -1,4 +1,4 @@
-module Scarpe
+class Scarpe
   class Dimensions
     def self.length(value)
       case value
