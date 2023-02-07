@@ -3,6 +3,12 @@
 require "test_helper"
 
 class TestHTML < Minitest::Test
+  def test_works_without_content
+    subject = ::Scarpe::HTML.render { |h| h.div }
+
+    assert_equal "<div></div>", subject
+  end
+
   def test_works_for_pure_tags
     subject = Scarpe::HTML.render { |h| h.div { "foo" } }
 

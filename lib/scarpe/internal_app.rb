@@ -40,8 +40,8 @@ module Scarpe
       Scarpe::Para.new(self, text)
     end
 
-    def stack(&block)
-      Scarpe::Stack.new(self, &block)
+    def stack(width: nil, margin: nil, &block)
+      Scarpe::Stack.new(self, width:, margin:, &block)
     end
     def flow(&block)
       Scarpe::Flow.new(self, &block)
