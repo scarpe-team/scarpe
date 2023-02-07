@@ -24,9 +24,10 @@ module Scarpe
       @window.eval("document.getElementById(#{current_id}).insertAdjacentHTML('beforeend', \`#{el}\`)")
     end
 
-    def para(text)
+    def para(*text)
       Scarpe::Para.new(self, text)
     end
+
     def stack(&block)
       Scarpe::Stack.new(self, &block)
     end
