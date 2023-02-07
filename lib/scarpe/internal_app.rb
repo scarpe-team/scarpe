@@ -36,8 +36,8 @@ class Scarpe
       @window.eval("document.getElementById(#{id}).remove()")
     end
 
-    def para(*text)
-      Scarpe::Para.new(self, text)
+    def para(*text, **kwargs)
+      Scarpe::Para.new(self, text, **kwargs)
     end
 
     def stack(width: nil, margin: nil, &block)

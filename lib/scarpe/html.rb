@@ -56,6 +56,9 @@ class Scarpe
       return "" if attributes.empty?
 
       attributes[:style] = render_style(attributes[:style]) if attributes[:style]
+      attributes.compact!
+
+      return if attributes.empty?
 
       result = attributes.map { |k, v| "#{k}=\"#{v}\"" }.join(" ")
       " #{result}"
@@ -63,6 +66,7 @@ class Scarpe
 
     def render_style(style)
       return style unless style.is_a?(Hash)
+      return if style.empty?
 
       style.map { |k, v| "#{k}:#{v}" }.join(";")
     end
