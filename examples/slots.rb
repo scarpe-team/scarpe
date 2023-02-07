@@ -5,7 +5,7 @@ Scarpe.app do
     button "Click"
     button "Clickaty"
   end
-  stack do
+  stack margin: 20 do
     button "Boop"
     button "Bip"
   end
