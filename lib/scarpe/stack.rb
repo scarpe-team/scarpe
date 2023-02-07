@@ -10,7 +10,9 @@ module Scarpe
     end
 
     def render
-      "<div style='display: flex; flex-direction: column' id=#{object_id}></div>"
+      HTML.render do |h|
+        h.div(id: object_id, style: {display: "flex", "flex-direction": "column"})
+      end
     end
   end
 end
