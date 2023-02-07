@@ -48,7 +48,7 @@ module Scarpe
     def modal_style
       {
         "min-width": "200px",
-        "min-height": "100px",
+        "min-height": "50px",
         padding: "10px",
         display: "flex",
         background: "#fefefe",
