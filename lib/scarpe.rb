@@ -3,6 +3,7 @@
 require "webview_ruby"
 require "securerandom"
 
+require_relative "scarpe/dimensions"
 require_relative "scarpe/html"
 require_relative "scarpe/container"
 require_relative "scarpe/version"
