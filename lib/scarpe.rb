@@ -36,7 +36,7 @@ module Scarpe
       puts "INIT APP" if do_debug
 
       @w = WebviewRuby::Webview.new debug: do_debug
-      @internal_app = Scarpe::InternalApp.new(@w, { debug: do_debug})
+      @internal_app = Scarpe::InternalApp.new(@w, { debug: do_debug })
       scarpe_app = self
 
       @w.bind("scarpeInit") do
