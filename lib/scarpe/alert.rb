@@ -53,7 +53,8 @@ module Scarpe
         display: "flex",
         background: "#fefefe",
         "flex-direction": "column",
-        "justify-content": "space-between"
+        "justify-content": "space-between",
+        "border-radius": "9px"
       }
     end
 
