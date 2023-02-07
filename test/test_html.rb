@@ -37,4 +37,11 @@ class TestHTML < Minitest::Test
 
     assert_equal "<ul><li>one</li><li>two</li></ul>", subject
   end
+
+  def test_works_with_void_tag
+    subject = ::Scarpe::HTML.render { |h| h.input(type: "text") }
+
+    assert_equal '<input type="text" />', subject
+
+  end
 end
