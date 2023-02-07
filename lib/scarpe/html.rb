@@ -31,6 +31,7 @@ module Scarpe
 
 
       if VOID_TAGS.include?(name)
+        raise ArgumentError, "void tag #{name} cannot have content" if block_given?
         @buffer += "<#{name}#{render_attributes(*args)} />"
       else
         @buffer += "<#{name}#{render_attributes(*args)}>"
