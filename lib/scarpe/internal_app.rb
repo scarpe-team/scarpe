@@ -43,23 +43,33 @@ class Scarpe
     def stack(width: nil, margin: nil, &block)
       Scarpe::Stack.new(self, width:, margin:, &block)
     end
+
     def flow(&block)
       Scarpe::Flow.new(self, &block)
     end
+
     def button(text, width: nil, height: nil, top: nil, left: nil, &block)
       Scarpe::Button.new(self, text, width:, height:, top:, left:, &block)
     end
+
     def image(url)
       Scarpe::Image.new(self, url)
     end
+
     def edit_line(text = "", width: nil, &block)
       Scarpe::EditLine.new(self, text, width:, &block)
     end
+
     def alert(text)
       Scarpe::Alert.new(self, text)
     end
+
     def js_eval(js_code)
       Scarpe::JSEval.new(self, js_code)
+    end
+
+    def link(text, &block)
+      Scarpe::Link.new(self, text, &block)
     end
   end
 end

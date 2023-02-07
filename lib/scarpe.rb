@@ -18,6 +18,7 @@ require_relative "scarpe/edit_line"
 require_relative "scarpe/alert"
 require_relative "scarpe/js_eval"
 require_relative "scarpe/internal_app"
+require_relative "scarpe/link"
 
 class Scarpe
   class << self
