@@ -13,6 +13,7 @@ require_relative "scarpe/flow"
 require_relative "scarpe/button"
 require_relative "scarpe/image"
 require_relative "scarpe/edit_line"
+require_relative "scarpe/alert"
 require_relative "scarpe/internal_app"
 
 module Scarpe
