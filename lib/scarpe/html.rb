@@ -8,7 +8,7 @@ module Scarpe
 
     def initialize(&block)
       @buffer = ""
-      @buffer += block.call(self)
+      block.call(self)
     end
 
     def value
@@ -26,16 +26,15 @@ module Scarpe
     def method_missing(name, *args, &block)
       raise NoMethodError, "no method #{name} for #{self.class.name}" unless TAGS.include?(name)
 
-      buffer = "<#{name} #{render_attributes(*args)}>"
-      buffer += if block_given?
-                  block.call(self)
-                else
-                  args.first
-                end
+      @buffer += "<#{name} #{render_attributes(*args)}>"
+      if block_given?
+        result = block.call(self)
+        @buffer += result if result.is_a?(String)
+      else
+        @buffer += args.first
+      end
 
-      buffer += "</#{name}>"
-
-      buffer
+      @buffer += "</#{name}>"
     end
 
     private
