@@ -1,6 +1,7 @@
 # Scarpe
 
 ## _Scarpe Diem: Seize the Shoes_
+![DALL·E 2023-02-07 15 32 25 - a italian medieval knight conquering a shoe](https://user-images.githubusercontent.com/7865030/217309905-7f25e3cf-1850-481d-811b-dfddea2df54a.png)
 
 "Scarpe" means shoes in Italian. "Scarpe" also means [Shoes](https://github.com/shoes/shoes-deprecated) in modern Ruby and webview!
 
@@ -70,22 +71,21 @@ We'd love the help!
 
 ### Core DSL
 
-| Syntax  | Status | PRs   |
-| ------- | ------ | ------- |
-| [para](https://github.com/Schwad/scarpe/issues/1) |  🛠️  |       |
-| [stack](https://github.com/Schwad/scarpe/issues/2) |  🛠️ |    [#26](https://github.com/Schwad/scarpe/pull/26)   |
-| [flow](https://github.com/Schwad/scarpe/issues/3) |    |       |
-| [button](https://github.com/Schwad/scarpe/issues/4) | 🛠️ |  [#21](https://github.com/Schwad/scarpe/pull/21)     |
-| [image](https://github.com/Schwad/scarpe/issues/5) |    |       |
-| [edit_line](https://github.com/Schwad/scarpe/issues/6) |    |       |
-| [edit_box](https://github.com/Schwad/scarpe/issues/7) |    |       |
-| [link](https://github.com/Schwad/scarpe/issues/8) |    |       |
-| [background](https://github.com/Schwad/scarpe/issues/9) |    |       |
-| [Shoes.url](https://github.com/Schwad/scarpe/issues/10) |    |       |
-| [visibility](https://github.com/Schwad/scarpe/issues/11) |    |       |
-| [Scarpe.app methods](https://github.com/Schwad/scarpe/issues/13) |    |       |
-| [para](https://github.com/Schwad/scarpe/issues/1) |    |       |
-
+| Syntax  | Status |
+| ------- | ------ |
+| [para](https://github.com/Schwad/scarpe/issues/1) |  🛠️  |
+| [stack](https://github.com/Schwad/scarpe/issues/2) |  🛠️ |
+| [flow](https://github.com/Schwad/scarpe/issues/3) |    |
+| [button](https://github.com/Schwad/scarpe/issues/4) | 🛠️ |
+| [image](https://github.com/Schwad/scarpe/issues/5) |  🛠️  |
+| [edit_line](https://github.com/Schwad/scarpe/issues/6) | 🛠️ |
+| [edit_box](https://github.com/Schwad/scarpe/issues/7) |   🛠️ |
+| [link](https://github.com/Schwad/scarpe/issues/8) |   🛠️ |
+| [background](https://github.com/Schwad/scarpe/issues/9) |    |
+| [Shoes.url](https://github.com/Schwad/scarpe/issues/10) |    |
+| [visibility](https://github.com/Schwad/scarpe/issues/11) |    |
+| [Scarpe.app methods](https://github.com/Schwad/scarpe/issues/13) |    |
+| [Widgets](https://github.com/Schwad/scarpe/issues/43) | 🛠️   |
 
 ### Secondary DSL && Functionality
 
