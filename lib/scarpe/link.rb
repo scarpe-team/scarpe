@@ -1,5 +1,7 @@
 class Scarpe
   class Link
+    InvalidParentError = Class.new(StandardError)
+
     def initialize(app, text, &block)
       @app = app
       @text = text
@@ -7,17 +9,21 @@ class Scarpe
     end
 
     def function_name
-      object_idg
+      object_id
+    end
+
+    def click
+      @block&.call
     end
 
     def render(parent)
-      raise "Links must be rendered with a para" unless parent.is_a? Para
+      raise InvalidParentError unless parent.is_a? Para
 
       @app.bind(function_name) do
-        @block&.call
+        self&.click
       end
 
-      html = HTML.render do |h|
+      HTML.render do |h|
         h.u(id: function_name, onclick: "scarpeHandler(#{function_name})") do
           @text
         end
