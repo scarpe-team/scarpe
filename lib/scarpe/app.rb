@@ -18,16 +18,18 @@ class Scarpe
       puts "INIT APP" if do_debug
 
       @w = WebviewRuby::Webview.new debug: do_debug
-      @internal_app = Scarpe::InternalApp.new(@w, { debug: do_debug })
+      @document_root = Scarpe::DocumentRoot.new(@w, { debug: do_debug })
       scarpe_app = self
 
       @w.bind("scarpeInit") do
-        @internal_app.render(&@app_code_body)
         monkey_patch_console(@w)
+        @document_root.instance_eval(&@app_code_body)
+        @document_root.append(@document_root.to_html)
+        @document_root.end_of_frame
       end
 
       @w.bind("scarpeHandler") do |*args|
-        @internal_app.handle_callback(*args)
+        @document_root.handle_callback(*args)
       end
 
       @w.bind("puts") do |*args|
@@ -70,7 +72,7 @@ class Scarpe
       @w.init("scarpeInit(); setInterval(scarpePeriodicCallback, #{js_interval}) #{init_code};")
       @w.set_title("example")
       @w.set_size(480, 320)
-      @w.navigate("data:text/html, <body id=#{@internal_app.object_id}></body>")
+      @w.navigate("data:text/html, <body id='#{@document_root.html_id}'></body>")
 
       # This takes control of the main thread and never returns. And it *must* be run from
       # the main thread. And it stops any Ruby background threads.
@@ -92,8 +94,8 @@ class Scarpe
 
     def destroy
       puts "DESTROY APP" if @opts[:debug]
-      puts "  (but app was already inactive or destroyed)" if @opts[:debug] && @w == nil && @internal_app == nil
-      @internal_app = nil
+      puts "  (but app was already inactive or destroyed)" if @opts[:debug] && @w == nil && @document_root == nil
+      @document_root = nil
       if @w
         @w.terminate
         @w.destroy

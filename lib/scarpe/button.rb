@@ -1,31 +1,26 @@
 class Scarpe
-  class Button
-    def initialize(app, text, width:, height:, top:, left:, &block)
-      @app = app
+  class Button < Scarpe::Widget
+    def initialize(text, width:nil, height:nil, top:nil, left:nil, &block)
       @text = text
       @width = width
       @height = height
       @top = top
       @left = left
       @block = block
-      @app.append(render)
-    end
 
-    def function_name
-      object_id
+      # Bind to a handler named "click"
+      bind("click") do
+        @block.call if @block
+      end
     end
 
     def click(&block)
       @block = block
     end
 
-    def render
-      @app.bind(function_name) do
-        @block.call if @block
-      end
-
+    def element
       HTML.render do |h|
-        h.button(id: function_name, onclick: "scarpeHandler(#{function_name})", style: style) do
+        h.button(id: html_id, onclick: handler_js_code("click"), style: style) do
           @text
         end
       end
