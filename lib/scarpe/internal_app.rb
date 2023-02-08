@@ -1,4 +1,4 @@
-module Scarpe
+class Scarpe
   class InternalApp
     attr_reader :window
     attr_reader :debug
@@ -36,12 +36,12 @@ module Scarpe
       @window.eval("document.getElementById(#{id}).remove()")
     end
 
-    def para(*text)
-      Scarpe::Para.new(self, text)
+    def para(*text, **kwargs)
+      Scarpe::Para.new(self, text, **kwargs)
     end
 
-    def stack(&block)
-      Scarpe::Stack.new(self, &block)
+    def stack(width: nil, margin: nil, &block)
+      Scarpe::Stack.new(self, width:, margin:, &block)
     end
     def flow(&block)
       Scarpe::Flow.new(self, &block)

@@ -1,7 +1,7 @@
-module Scarpe
+class Scarpe
   class HTML
     CONTENT_TAGS = %i[div p button ul li textarea].freeze
-    VOID_TAGS = %i[input].freeze
+    VOID_TAGS = %i[input img].freeze
     TAGS = (CONTENT_TAGS + VOID_TAGS).freeze
 
     def self.render(&block)
@@ -31,6 +31,7 @@ module Scarpe
 
 
       if VOID_TAGS.include?(name)
+        raise ArgumentError, "void tag #{name} cannot have content" if block_given?
         @buffer += "<#{name}#{render_attributes(*args)} />"
       else
         @buffer += "<#{name}#{render_attributes(*args)}>"
@@ -57,7 +58,7 @@ module Scarpe
       attributes[:style] = render_style(attributes[:style]) if attributes[:style]
       attributes.compact!
 
-      return "" if attributes.empty?
+      return if attributes.empty?
 
       result = attributes.map { |k, v| "#{k}=\"#{v}\"" }.join(" ")
       " #{result}"

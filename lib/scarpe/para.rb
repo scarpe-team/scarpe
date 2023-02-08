@@ -1,13 +1,19 @@
-module Scarpe
+class Scarpe
   class Para
-    def initialize(app, text)
+    def initialize(app, text, stroke: nil, **html_attributes)
       @app = app
       @text = Array(text)
+      @stroke = stroke
+      @html_attributes = html_attributes
       @app.append(render)
     end
 
     def render
-      "<p id=#{object_id}>#{text.join}</p>"
+      HTML.render do |h|
+        h.p(**options) do
+          text.join
+        end
+      end
     end
 
     def replace(new_text)
@@ -17,7 +23,17 @@ module Scarpe
 
     private
 
+    def options
+      html_attributes.merge(id: object_id, style: style)
+    end
+
+    def style
+      {
+        color: stroke
+      }.compact
+    end
+
     attr_accessor :text
-    attr_reader :app
+    attr_reader :app, :stroke, :html_attributes
   end
 end

@@ -1,4 +1,4 @@
-module Scarpe
+class Scarpe
   class Image
     def initialize(app, url)
       @app = app
@@ -7,8 +7,9 @@ module Scarpe
     end
 
     def render
-      puts "<img id=#{object_id} src=\"#{@url}\">"
-      "<img id=#{object_id} src='#{@url}'>"
+      HTML.render do |h|
+        h.img(id: object_id, src: @url)
+      end
     end
   end
 end
