@@ -12,11 +12,17 @@ require "minitest/autorun"
 
 SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
 
-def test_scarpe_app(body_code)
+TEST_OPTS = [:timeout, :allow_fail, :debug]
+def test_scarpe_app(body_code, opts = {})
+  bad_opts = opts.keys - TEST_OPTS
+  raise "Bad options passed to test_scarpe_app: #{bad_opts.inspect}!" unless bad_opts.empty?
+
   out = Tempfile.new("scarpe_test_results.json")
   out_path = File.expand_path out.path
   Tempfile.open("scarpe_test") do |f|
-    f.write("Scarpe.app(debug:true, die_after: 1.0, result_filename: #{out_path.inspect}) do\n")
+    do_debug = opts[:debug] ? true : false
+    die_after = opts[:timeout] ? opts[:timeout].to_f : 1.0
+    f.write("Scarpe.app(test_assertions: true, debug:#{do_debug.inspect}, die_after: #{die_after}, result_filename: #{out_path.inspect}) do\n")
     f.write(body_code)
     f.write("\nend\n")
     f.flush # Make sure the code is written out
@@ -25,6 +31,9 @@ def test_scarpe_app(body_code)
     system("ruby #{SCARPE_EXE} --dev #{script_location}")
     f.unlink
   end
+
+  # If failure is okay, don't check for status or assertions
+  return if opts[:allow_fail]
 
   unless File.exist?(out_path)
     assert(false, "Scarpe app returned no status code!")

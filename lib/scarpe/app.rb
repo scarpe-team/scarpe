@@ -3,7 +3,7 @@
 class Scarpe
   # Scarpe::App should only be used from the main thread, due to GTK+ limitations.
   class App
-    VALID_OPTS = [:debug, :init_code, :result_filename, :periodic_time, :die_after]
+    VALID_OPTS = [:debug, :test_assertions, :init_code, :result_filename, :periodic_time, :die_after]
 
     def initialize(opts = {}, &app_code_body)
       bad_opts = opts.keys - VALID_OPTS
@@ -34,24 +34,29 @@ class Scarpe
         puts(*args)
       end
 
-      # Used to make sure Ruby code can periodically run.
-      @w.bind("scarpePeriodicCallback") do |*args|
-        if @opts[:die_after]
-          if (Time.now - @t_start).to_f > @opts[:die_after]
-            scarpe_app.destroy
-          end
-        end
-      end
-
       @w.bind("scarpeExit") do
         scarpe_app.destroy
       end
 
-      result_file = @opts[:result_filename] || "./scarpe_results.txt"
-      @w.bind("scarpeStatusAndExit") do |*results|
-        puts "Writing results file #{result_file.inspect} to disk!" if @opts[:debug]
-        File.open(result_file, "w") { |f| f.write(JSON.pretty_generate results) }
-        scarpe_app.destroy
+      # We want a timer if timer/timeout options are specified, or if we need to ensure timeouts for tests
+      if @opts[:test_assertions] || @opts[:die_after] || @opts[:periodic_time]
+        # Used to make sure Ruby code can periodically run.
+        @w.bind("scarpePeriodicCallback") do |*args|
+          if @opts[:die_after]
+            if (Time.now - @t_start).to_f > @opts[:die_after]
+              scarpe_app.destroy
+            end
+          end
+        end
+      end
+
+      if @opts[:test_assertions]
+        result_file = @opts[:result_filename] || "./scarpe_results.txt"
+        @w.bind("scarpeStatusAndExit") do |*results|
+          puts "Writing results file #{result_file.inspect} to disk!" if @opts[:debug]
+          File.open(result_file, "w") { |f| f.write(JSON.pretty_generate results) }
+          scarpe_app.destroy
+        end
       end
     end
 
