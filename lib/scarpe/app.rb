@@ -5,7 +5,7 @@ class Scarpe
   class App
     VALID_OPTS = [:debug, :test_assertions, :init_code, :result_filename, :periodic_time, :die_after]
 
-    def initialize(title: "Shoes!", width: 480, height: 420, **opts, &app_code_body)
+    def initialize(title: "Scarpe!", width: 480, height: 420, **opts, &app_code_body)
       bad_opts = opts.keys - VALID_OPTS
       raise "Illegal options to Scarpe::App.initialize! #{bad_opts.inspect}" unless bad_opts.empty?
       @title = title
