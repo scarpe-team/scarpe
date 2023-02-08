@@ -4,49 +4,48 @@ require "test_helper"
 
 class TestEditBox < Minitest::Test
   def setup
-    @app = Minitest::Mock.new
-    @app.expect :append, nil, [String]
-    @app.expect :bind, nil, [Object]
-    @app.expect :bind, nil, [Object]
+    app = Minitest::Mock.new
+    Scarpe::Widget.set_document_root(app)
+    app.expect :bind, nil, [Object]
   end
 
   def test_renders_textarea
-    edit_box = Scarpe::EditBox.new(app, "Hello, World!")
-    object_id = edit_box.object_id
+    edit_box = Scarpe::EditBox.new("Hello, World!")
+    html_id = edit_box.html_id
 
     assert_equal(
-      "<textarea id=\"#{object_id}\" oninput=\"scarpeHandler(#{object_id}, this.value)\">Hello, World!</textarea>",
-      edit_box.render
+      "<textarea id=\"#{html_id}\" oninput=\"scarpeHandler('#{html_id}-change', this.value)\">Hello, World!</textarea>",
+      edit_box.to_html
     )
   end
 
   def test_renders_textarea_content_block
-    edit_box = Scarpe::EditBox.new(app) { "Hello, World!" }
-    object_id = edit_box.object_id
+    edit_box = Scarpe::EditBox.new { "Hello, World!" }
+    html_id = edit_box.html_id
 
     assert_equal(
-      "<textarea id=\"#{object_id}\" oninput=\"scarpeHandler(#{object_id}, this.value)\">Hello, World!</textarea>",
-      edit_box.render
+      "<textarea id=\"#{html_id}\" oninput=\"scarpeHandler('#{html_id}-change', this.value)\">Hello, World!</textarea>",
+      edit_box.to_html
     )
   end
 
   def test_textarea_width
-    edit_box = Scarpe::EditBox.new(app, "Hello, World!", width: 100)
-    object_id = edit_box.object_id
+    edit_box = Scarpe::EditBox.new("Hello, World!", width: 100)
+    html_id = edit_box.html_id
 
     assert_equal(
-      "<textarea id=\"#{object_id}\" oninput=\"scarpeHandler(#{object_id}, this.value)\" style=\"width:100px\">Hello, World!</textarea>",
-      edit_box.render
+      "<textarea id=\"#{html_id}\" oninput=\"scarpeHandler('#{html_id}-change', this.value)\" style=\"width:100px\">Hello, World!</textarea>",
+      edit_box.to_html
     )
   end
 
   def test_textarea_height
-    edit_box = Scarpe::EditBox.new(app, "Hello, World!", height: 100)
-    object_id = edit_box.object_id
+    edit_box = Scarpe::EditBox.new("Hello, World!", height: 100)
+    html_id = edit_box.html_id
 
     assert_equal(
-      "<textarea id=\"#{object_id}\" oninput=\"scarpeHandler(#{object_id}, this.value)\" style=\"height:100px\">Hello, World!</textarea>",
-      edit_box.render
+      "<textarea id=\"#{html_id}\" oninput=\"scarpeHandler('#{html_id}-change', this.value)\" style=\"height:100px\">Hello, World!</textarea>",
+      edit_box.to_html
     )
   end
 
