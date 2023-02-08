@@ -5,9 +5,12 @@ class Scarpe
   class App
     VALID_OPTS = [:debug, :test_assertions, :init_code, :result_filename, :periodic_time, :die_after]
 
-    def initialize(opts = {}, &app_code_body)
+    def initialize(title: "Scarpe!", width: 480, height: 420, **opts, &app_code_body)
       bad_opts = opts.keys - VALID_OPTS
       raise "Illegal options to Scarpe::App.initialize! #{bad_opts.inspect}" unless bad_opts.empty?
+      @title = title
+      @width = width
+      @height = height
       @opts = opts
       @app_code_body = app_code_body
     end
@@ -70,8 +73,8 @@ class Scarpe
       t_interval = @opts[:periodic_time] || 0.1
       js_interval = (t_interval.to_f * 1_000.0).to_i
       @w.init("scarpeInit(); setInterval(scarpePeriodicCallback, #{js_interval}) #{init_code};")
-      @w.set_title("example")
-      @w.set_size(480, 320)
+      @w.set_title(@title)
+      @w.set_size(@width, @height)
       @w.navigate("data:text/html, <body id='#{@document_root.html_id}'></body>")
 
       # This takes control of the main thread and never returns. And it *must* be run from
