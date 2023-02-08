@@ -33,6 +33,12 @@ class TestHTML < Minitest::Test
     assert_equal '<div style="display:block;width:100px">foo</div>', subject
   end
 
+  def test_no_style_if_style_empty
+    subject = ::Scarpe::HTML.render { |h| h.div(style: {}) { "foo" } }
+
+    assert_equal '<div>foo</div>', subject
+  end
+
   def test_works_with_multiple_children
     subject = Scarpe::HTML.render do |h|
       h.ul do

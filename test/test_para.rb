@@ -12,7 +12,7 @@ class TestPara < Minitest::Test
     para = Scarpe::Para.new(app, "Hello World")
     object_id = para.object_id
 
-    assert_equal "<p id=#{object_id}>Hello World</p>", para.render
+    assert_equal "<p id=\"#{object_id}\">Hello World</p>", para.render
   end
 
   def test_renders_paragraph_with_collection_of_arguments
@@ -27,7 +27,21 @@ class TestPara < Minitest::Test
     para = Scarpe::Para.new(app, text_collection)
     object_id = para.object_id
 
-    assert_equal "<p id=#{object_id}>Testing test test. Breadsticks. Breadsticks. Breadsticks. Very good.</p>", para.render
+    assert_equal "<p id=\"#{object_id}\">Testing test test. Breadsticks. Breadsticks. Breadsticks. Very good.</p>", para.render
+  end
+
+  def test_renders_a_magenta_paragraph
+    para = Scarpe::Para.new(app, "Hello World", stroke: :magenta)
+    object_id = para.object_id
+
+    assert_equal "<p id=\"#{object_id}\" style=\"color:magenta\">Hello World</p>", para.render
+  end
+
+  def test_renders_a_blue_paragraph_with_class_attribute
+    para = Scarpe::Para.new(app, "Hello World", class: :sea, stroke: :blue)
+    object_id = para.object_id
+
+    assert_equal "<p class=\"sea\" id=\"#{object_id}\" style=\"color:blue\">Hello World</p>", para.render
   end
 
   private
