@@ -1,16 +1,23 @@
 class Scarpe
   class Image < Scarpe::Widget
-    def initialize(url, width: nil, height: nil, top: nil, left: nil)
+    def initialize(url, width: nil, height: nil, top: nil, left: nil, click: nil)
       @url = url
       @width = width
       @height = height
       @top = top
       @left = left
+      @click = click
     end
 
     def element
-      HTML.render do |h|
-        h.img(id: html_id, src: @url, style: style)
+      if @click
+        HTML.render do |h|
+          h.a(id: html_id, href: @click) { h.img(id: html_id, src: @url, style: style) }
+        end
+      else
+        HTML.render do |h|
+          h.img(id: html_id, src: @url, style: style)
+        end
       end
     end
 
