@@ -7,7 +7,9 @@ class TestPara < Minitest::Test
     para = Scarpe::Para.new("Hello World")
     html_id = para.html_id
 
-    assert_equal "<p id=\"#{html_id}\" style=\"font-size:12px\">Hello World</p>", para.to_html
+    assert_html para.to_html, :p, id: html_id, style: "font-size:12px" do
+      "Hello World"
+    end
   end
 
   def test_renders_paragraph_with_collection_of_arguments
@@ -20,40 +22,41 @@ class TestPara < Minitest::Test
     ]
 
     para = Scarpe::Para.new(text_collection)
-    html_id = para.html_id
 
-    assert_equal(
-      "<p id=\"#{html_id}\" style=\"font-size:12px\">Testing test test. Breadsticks. Breadsticks. Breadsticks. Very good.</p>",
-      para.to_html
-    )
+    assert_html para.to_html, :p, id: para.html_id, style: "font-size:12px" do
+      "Testing test test. Breadsticks. Breadsticks. Breadsticks. Very good."
+    end
   end
 
   def test_renders_a_magenta_paragraph
     para = Scarpe::Para.new("Hello World", stroke: :magenta)
-    html_id = para.html_id
 
-    assert_equal "<p id=\"#{html_id}\" style=\"color:magenta;font-size:12px\">Hello World</p>", para.to_html
+    assert_html para.to_html, :p, id: para.html_id, style: "color:magenta;font-size:12px" do
+      "Hello World"
+    end
   end
 
   def test_renders_a_blue_paragraph_with_class_attribute
     para = Scarpe::Para.new("Hello World", class: :sea, stroke: :blue)
-    html_id = para.html_id
 
-    assert_equal "<p class=\"sea\" id=\"#{html_id}\" style=\"color:blue;font-size:12px\">Hello World</p>", para.to_html
+    assert_html para.to_html, :p, class: "sea", id: para.html_id, style: "color:blue;font-size:12px" do
+      "Hello World"
+    end
   end
 
   def test_renders_paragraph_with_size_number
     para = Scarpe::Para.new("Oh, to fling and be flung", size: 48)
-    html_id = para.html_id
 
-    assert_equal "<p id=\"#{html_id}\" style=\"font-size:48px\">Oh, to fling and be flung</p>", para.to_html
+    assert_html para.to_html, :p, id: para.html_id, style: "font-size:48px" do
+      "Oh, to fling and be flung"
+    end
   end
 
   def test_renders_paragraph_with_size_symbol
     para = Scarpe::Para.new("Oh, to fling and be flung", size: :banner)
-    html_id = para.html_id
 
-    assert_equal "<p id=\"#{html_id}\" style=\"font-size:48px\">Oh, to fling and be flung</p>", para.to_html
+    assert_html para.to_html, :p, id: para.html_id, style: "font-size:48px" do
+      "Oh, to fling and be flung"
+    end
   end
-
 end

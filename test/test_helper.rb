@@ -50,3 +50,11 @@ def test_scarpe_app(body_code, opts = {})
     raise
   end
 end
+
+def assert_html(actual_html, expected_tag, **opts, &block)
+  expected_html = Scarpe::HTML.render do |h|
+    h.public_send(expected_tag, opts, &block)
+  end
+
+  assert_equal expected_html, actual_html
+end
