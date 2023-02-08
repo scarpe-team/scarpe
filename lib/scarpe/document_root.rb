@@ -2,6 +2,7 @@ class Scarpe
   class DocumentRoot < Scarpe::Widget
     attr_reader :window
     attr_reader :debug
+    attr_reader :children
 
     def initialize(window, opts = {})
       @callbacks = {}
@@ -23,14 +24,6 @@ class Scarpe
 
     def do_js_eval(js)
       @@window.eval(js + ";")
-    end
-
-    def append(el)
-      @@window.eval("document.getElementById(#{html_id}).insertAdjacentHTML('beforeend', \`#{el}\`)")
-    end
-
-    def remove(id)
-      @@window.eval("document.getElementById(#{id}).remove()")
     end
 
     def after_frame(&block)

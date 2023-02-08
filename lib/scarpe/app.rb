@@ -27,7 +27,7 @@ class Scarpe
       @w.bind("scarpeInit") do
         monkey_patch_console(@w)
         @document_root.instance_eval(&@app_code_body)
-        @document_root.append(@document_root.to_html)
+        @document_root.render
         @document_root.end_of_frame
       end
 

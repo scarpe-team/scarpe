@@ -36,7 +36,9 @@ class Scarpe
 
         @children ||= []
         @children << widget_instance
-  
+
+        render
+
         widget_instance
       end
       self.send(name, *args, **kwargs, &block)
@@ -56,6 +58,10 @@ class Scarpe
       end
     end
 
+    def render
+      @@window.eval("document.getElementById(#{html_id}).innerHTML = `#{to_html}`")
+    end
+
     def bind(handler_function_name, &block)
       @@document_root.bind(html_id + "-" + handler_function_name, &block)
     end
@@ -69,6 +75,7 @@ class Scarpe
     end
 
     def remove_self
+      @@document_root.children.delete(self)
       @@window.eval("document.getElementById(#{html_id}).remove()")
     end
 
