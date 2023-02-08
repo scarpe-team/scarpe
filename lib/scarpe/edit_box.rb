@@ -1,15 +1,16 @@
 class Scarpe
-  class EditBox
+  class EditBox < Scarpe::Widget
     attr_reader :text, :height, :width
 
-    alias_method :function_name, :object_id
-
-    def initialize(app, text = nil, height: nil, width: nil, &block)
-      @app = app
+    def initialize(text = nil, height: nil, width: nil, &block)
       @text = text || block.call
       @height = height
       @width = width
-      @app.append(render)
+
+      bind("change") do |text|
+        @text = text
+        @callback&.call(text)
+      end
     end
 
     def change(&block)
@@ -18,19 +19,14 @@ class Scarpe
 
     def text=(text)
       @text = text
-      update_element if @app.window.is_running
+      self.inner_text = text
     end
 
-    def render
-      @app.bind(function_name) do |text|
-        @text = text
-        @callback&.call(text)
-      end
-
-      oninput = "scarpeHandler(#{function_name}, this.value)"
+    def element
+      oninput = handler_js_code("change", "this.value")
 
       HTML.render do |h|
-        h.textarea(id: object_id, oninput: oninput, style: style) { text }
+        h.textarea(id: html_id, oninput: oninput, style: style) { text }
       end
     end
 
@@ -43,10 +39,6 @@ class Scarpe
       styles[:width] = Dimensions.length(width)
 
       styles.compact
-    end
-
-    def update_element
-      @app.window.eval("document.getElementById(#{object_id}).value = \"#{text}\";")
     end
   end
 end
