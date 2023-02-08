@@ -1,19 +1,14 @@
 class Scarpe
-  class Stack
-    include Scarpe::Container
-
-    attr_reader :app
-    def initialize(app, width:, margin:, &block)
-      @app = app
+  class Stack < Scarpe::Widget
+    def initialize(width:nil, margin:nil, &block)
       @width = width
       @margin = margin
-      @app.append(render)
-      append(&block)
+      instance_eval(&block)
     end
 
-    def render
+    def element
       HTML.render do |h|
-        h.div(id: object_id, style: style)
+        h.div(id: html_id, style: style) { yield }
       end
     end
 
