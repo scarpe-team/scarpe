@@ -1,0 +1,14 @@
+Shoes.app do
+  class Messenger
+    def initialize(stack)
+      @stack = stack
+    end
+    def add(msg)
+      @stack.app do
+        @stack.append do
+          para msg
+        end 
+      end
+    end
+  end
+end
