@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Scarpe
   class Image < Scarpe::Widget
     def initialize(url, width: nil, height: nil, top: nil, left: nil, click: nil)
@@ -12,11 +14,11 @@ class Scarpe
     def element
       if @click
         HTML.render do |h|
-          h.a(id: html_id, href: @click) { h.img(id: html_id, src: @url, style: style) }
+          h.a(id: html_id, href: @click) { h.img(id: html_id, src: @url, style:) }
         end
       else
         HTML.render do |h|
-          h.img(id: html_id, src: @url, style: style)
+          h.img(id: html_id, src: @url, style:)
         end
       end
     end
