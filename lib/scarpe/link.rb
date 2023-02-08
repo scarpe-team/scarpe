@@ -2,9 +2,10 @@ class Scarpe
   class Link
     InvalidParentError = Class.new(StandardError)
 
-    def initialize(app, text, &block)
+    def initialize(app, text, click: nil, &block)
       @app = app
       @text = text
+      @click = click
       @block = block
     end
 
@@ -23,9 +24,15 @@ class Scarpe
         self&.click
       end
 
-      HTML.render do |h|
-        h.u(id: function_name, onclick: "scarpeHandler(#{function_name})") do
-          @text
+      if @click
+        HTML.render do |h|
+          h.a(id: function_name, href: @click) { @text }
+        end
+      else
+        HTML.render do |h|
+          h.u(id: function_name, onclick: "scarpeHandler(#{function_name})") do
+            @text
+          end
         end
       end
     end

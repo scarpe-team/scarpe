@@ -15,7 +15,17 @@ class TestPara < Minitest::Test
 
     result = link.render(para)
 
-    assert_equal"<u id=\"#{link.object_id}\" onclick=\"scarpeHandler(#{link.function_name})\">Click me</u>", result
+    assert_equal "<u id=\"#{link.object_id}\" onclick=\"scarpeHandler(#{link.function_name})\">Click me</u>", result
+  end
+  g
+  def test_renders_a_link_with_a_url
+    my_website = "http://github.com/schwad/scarpe"
+    para = Scarpe::Para.new(@app, "Hello")
+    link = Scarpe::Link.new(@app, "Click me", click: my_website)
+
+    result = link.render(para)
+
+    assert_equal "<a id=\"#{link.object_id}\" href=\"#{my_website}\">Click me</a>", result
   end
 
   def test_rendering_a_link_outside_a_paragraph_raises_exception

@@ -68,8 +68,8 @@ class Scarpe
       Scarpe::JSEval.new(self, js_code)
     end
 
-    def link(text, &block)
-      Scarpe::Link.new(self, text, &block)
+    def link(text, click: nil, &block)
+      Scarpe::Link.new(self, text, click: click, &block)
     end
   end
 end
