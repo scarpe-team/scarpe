@@ -1,8 +1,21 @@
 class Scarpe
   class Para < Scarpe::Widget
-    def initialize(text, stroke: nil, **html_attributes)
+    SIZES = {
+      inscription: 10,
+      ins: 10,
+      para: 12,
+      caption: 14,
+      tagline: 18,
+      subtitle: 26,
+      title: 34,
+      banner: 48
+    }.freeze
+    private_constant :SIZES
+
+    def initialize(text, stroke: nil, size: :para, **html_attributes)
       @text = Array(text)
       @stroke = stroke
+      @size = size
       @html_attributes = html_attributes
     end
 
@@ -27,11 +40,18 @@ class Scarpe
 
     def style
       {
-        color: stroke
+        "color" => stroke,
+        "font-size" => font_size
       }.compact
     end
 
+    def font_size
+      font_size = size.is_a?(Symbol) ? SIZES[size] : size
+
+      Dimensions.length(font_size)
+    end
+
     attr_accessor :text
-    attr_reader :stroke, :html_attributes
+    attr_reader :stroke, :size, :html_attributes
   end
 end
