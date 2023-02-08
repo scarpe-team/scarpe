@@ -1,14 +1,12 @@
 class Scarpe
-  class Para
-    def initialize(app, text, stroke: nil, **html_attributes)
-      @app = app
+  class Para < Scarpe::Widget
+    def initialize(text, stroke: nil, **html_attributes)
       @text = Array(text)
       @stroke = stroke
       @html_attributes = html_attributes
-      @app.append(render)
     end
 
-    def render
+    def element
       HTML.render do |h|
         h.p(**options) do
           text.join
@@ -18,13 +16,13 @@ class Scarpe
 
     def replace(new_text)
       text = new_text
-      app.window.eval("document.getElementById(#{object_id}).innerText = \"#{new_text}\"")
+      self.inner_text = new_text
     end
 
     private
 
     def options
-      html_attributes.merge(id: object_id, style: style)
+      html_attributes.merge(id: html_id, style: style)
     end
 
     def style
@@ -34,6 +32,6 @@ class Scarpe
     end
 
     attr_accessor :text
-    attr_reader :app, :stroke, :html_attributes
+    attr_reader :stroke, :html_attributes
   end
 end

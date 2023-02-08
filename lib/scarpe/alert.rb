@@ -1,24 +1,17 @@
 class Scarpe
-  class Alert
-    def initialize(app, text)
-      @app = app
+  class Alert < Scarpe::Widget
+    def initialize(text)
       @text = text
-      @app.append(render)
-    end
-
-    def function_name
-      object_id
-    end
-
-    def render
-      @app.bind(function_name) do
-        @app.remove(object_id)
+      bind("click") do
+        remove_self
       end
+    end
 
-      onclick = "scarpeHandler(#{function_name})"
+    def element
+      onclick = handler_js_code('click')
 
       HTML.render do |h|
-        h.div(id: object_id, style: overlay_style) do
+        h.div(id: html_id, style: overlay_style) do
           h.div(style: modal_style) do
             h.div(style: text_style) { @text }
             h.button(style: button_style, onclick: onclick) { "OK" }
