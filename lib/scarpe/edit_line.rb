@@ -1,44 +1,35 @@
 class Scarpe
-  class EditLine
-    def initialize(app, text = "", width: nil, &block)
-      @app = app
+  class EditLine < Scarpe::Widget
+    attr_reader :text
+
+    def initialize(text = "", width: nil, &block)
       @block = block
       @text = text
       @width = width
-      @app.append(render)
-    end
 
-    def function_name
-      object_id
+      bind("change") do |text|
+        @text = text
+        if @block
+          @block.call(text)
+        end
+      end
     end
 
     def change(&block)
       @block = block
     end
 
-    def text
-      @text
-    end
-
     def text=(text)
       @text = text
-      if @app.window.is_running
-        @app.window.eval("document.getElementById(#{object_id}).value = \"#{@text}\";")
-      end
+
+      self.value = text
     end
 
-    def render
-      @app.bind(function_name) do |text|
-        @text = text
-        if @block
-          @block.call(text)
-        end
-      end
-
-      oninput = "scarpeHandler(#{function_name}, this.value)"
+    def element
+      oninput = handler_js_code("change", "this.value")
 
       HTML.render do |h|
-        h.input(id: object_id, oninput: oninput, value: @text, style: style)
+        h.input(id: html_id, oninput: oninput, value: @text, style: style)
       end
     end
 
