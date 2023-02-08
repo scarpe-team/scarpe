@@ -1,4 +1,4 @@
-module Scarpe
+class Scarpe
   class EditBox
     attr_reader :text, :height, :width
 
