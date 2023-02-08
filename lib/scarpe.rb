@@ -20,8 +20,8 @@ require_relative "scarpe/document_root"
 
 class Scarpe
   class << self
-    def app(opts = {}, &blk)
-      app = Scarpe::App.new(opts, &blk)
+    def app(...)
+      app = Scarpe::App.new(...)
       app.init
       app.run
       app.destroy
