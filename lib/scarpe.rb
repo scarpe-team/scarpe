@@ -32,6 +32,7 @@ require_relative "scarpe/em"
 require_relative "scarpe/code"
 
 require_relative "scarpe/document_root"
+require_relative "scarpe/link"
 
 class Scarpe
   class << self
