@@ -34,4 +34,11 @@ class TestScarpe < Minitest::Test
       js_eval "scarpeStatusAndExit(true);"
     SCARPE_APP
   end
+
+  def test_button_args_optional
+    test_scarpe_app(<<-'SCARPE_APP')
+      button "Push me"
+      js_eval "scarpeStatusAndExit(true);"
+    SCARPE_APP
+  end
 end

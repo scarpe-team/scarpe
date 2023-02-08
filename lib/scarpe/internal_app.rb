@@ -10,6 +10,9 @@ class Scarpe
       @callbacks = {}
       @opts = opts
       @debug = opts[:debug] ? true : false
+
+      Scarpe::Widget.set_window(@window)
+      Scarpe::Widget.set_internal_app(self)
     end
 
     def bind(name, &block)
@@ -46,8 +49,10 @@ class Scarpe
     def flow(&block)
       Scarpe::Flow.new(self, &block)
     end
-    def button(text, width: nil, height: nil, top: nil, left: nil, &block)
-      Scarpe::Button.new(self, text, width:, height:, top:, left:, &block)
+    def button(...)
+      b = Scarpe::Button.new(...)
+      self.append(b.to_html)
+      b
     end
     def image(url)
       Scarpe::Image.new(self, url)

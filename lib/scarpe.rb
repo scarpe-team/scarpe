@@ -5,6 +5,7 @@ require "securerandom"
 require "json"
 
 require_relative "scarpe/app"
+require_relative "scarpe/widget"
 require_relative "scarpe/dimensions"
 require_relative "scarpe/html"
 require_relative "scarpe/container"
