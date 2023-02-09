@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Scarpe
   module Colors
     COLORS = {
@@ -143,10 +145,12 @@ class Scarpe
     }
     private_constant :COLORS
 
-    def self.included(base)
-      COLORS.each do |color, rgb|
-        define_method(color) do |alpha = 1.0|
-          rgb + [alpha]
+    class << self
+      def included(base)
+        COLORS.each do |color, rgb|
+          define_method(color) do |alpha = 1.0|
+            rgb + [alpha]
+          end
         end
       end
     end

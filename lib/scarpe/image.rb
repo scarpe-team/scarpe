@@ -9,6 +9,7 @@ class Scarpe
       @top = top
       @left = left
       @click = click
+      super
     end
 
     def element

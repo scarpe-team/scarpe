@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Scarpe
   module Background
     def background(color, options = {})

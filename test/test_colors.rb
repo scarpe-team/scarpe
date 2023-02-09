@@ -3,7 +3,6 @@
 require "test_helper"
 
 class TestColors < Minitest::Test
-
   class Dummy
     include Scarpe::Colors
   end

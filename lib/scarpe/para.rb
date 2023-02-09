@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Scarpe
   class Para < Scarpe::Widget
     SIZES = {
@@ -8,13 +10,16 @@ class Scarpe
       tagline: 18,
       subtitle: 26,
       title: 34,
-      banner: 48
+      banner: 48,
     }.freeze
     private_constant :SIZES
 
-    def self.inherited(subclass)
-      Scarpe::Widget.widget_classes ||= []
-      Scarpe::Widget.widget_classes << subclass
+    class << self
+      def inherited(subclass)
+        Scarpe::Widget.widget_classes ||= []
+        Scarpe::Widget.widget_classes << subclass
+        super
+      end
     end
 
     def initialize(*args, stroke: nil, size: :para, **html_attributes)
@@ -22,11 +27,12 @@ class Scarpe
       @stroke = stroke
       @size = size
       @html_attributes = html_attributes
+      super
     end
 
-    def element
+    def element(&block)
       HTML.render do |h|
-        h.p(**options) { yield }
+        h.p(**options, &block)
       end
     end
 
@@ -44,9 +50,9 @@ class Scarpe
       element { child_markup }
     end
 
-    def replace(new_text)
-      text = new_text
-      self.inner_text = new_text
+    def replace(*args)
+      @text_children = args || []
+      self.inner_text = to_html
     end
 
     private
@@ -58,7 +64,7 @@ class Scarpe
     def style
       {
         "color" => stroke,
-        "font-size" => font_size
+        "font-size" => font_size,
       }.compact
     end
 

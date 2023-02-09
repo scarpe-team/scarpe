@@ -12,6 +12,7 @@ class Scarpe
       @margin_left = margin_left
       @margin_top = margin_top
       instance_eval(&block)
+      super
     end
 
     def element(&block)

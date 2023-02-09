@@ -36,7 +36,11 @@ class TestImage < Minitest::Test
     left = 5
     img = Scarpe::Image.new(@url, width:, height:, top:, left:)
 
-    assert_html img.to_html, :img, id: img.html_id, src: @url, style: "width:#{width}px;height:#{height}px;top:#{top}px;left:#{left}px;position:absolute"
+    assert_html img.to_html,
+      :img,
+      id: img.html_id,
+      src: @url,
+      style: "width:#{width}px;height:#{height}px;top:#{top}px;left:#{left}px;position:absolute"
   end
 
   def test_renders_clickable_image
@@ -44,7 +48,8 @@ class TestImage < Minitest::Test
     img = Scarpe::Image.new(@url, click: target_url)
 
     assert_equal "<a id=\"#{img.html_id}\" href=\"#{target_url}\">"\
-                   "<img id=\"#{img.html_id}\" src=\"#{@url}\" />"\
-                 "</a>", img.to_html
+      "<img id=\"#{img.html_id}\" src=\"#{@url}\" />"\
+      "</a>",
+      img.to_html
   end
 end
