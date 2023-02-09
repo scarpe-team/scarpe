@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Scarpe
   class Link < Scarpe::TextWidget
     def initialize(text, click: nil, &block)
@@ -6,15 +8,16 @@ class Scarpe
       @block = block
 
       bind("click") do
-        @block.call if @block
+        @block&.call
       end
+      super
     end
 
     def element
       if @click
         HTML.render do |h|
           h.a(
-            href: @click
+            href: @click,
           ) do
             @text
           end
@@ -26,7 +29,7 @@ class Scarpe
             style: { color: "blue" },
             onmouseover: "this.style.color='darkblue'",
             onmouseout: "this.style.color='blue';",
-            onclick: handler_js_code("click")
+            onclick: handler_js_code("click"),
           ) do
             @text
           end

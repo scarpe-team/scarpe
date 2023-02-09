@@ -16,7 +16,7 @@ class TestEditBox < Minitest::Test
       style: "color:blue",
       onmouseover: "this.style.color='darkblue'",
       onmouseout: "this.style.color='blue';",
-      onclick: link.handler_js_code("click")
+      onclick: link.handler_js_code("click"),
     }
 
     assert_html link.to_html, :u, **expected_attributes do
