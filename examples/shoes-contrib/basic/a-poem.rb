@@ -10,7 +10,7 @@ Shoes.app :width => 280, :height => 350 do
 
     stack :width => "-90px" do
       para "the sun\n",
-        "a lemon.\n", 
+        "a lemon.\n",
         "the goalie.\n",
         "a fireplace.\n\n",
         "i want to write\n",

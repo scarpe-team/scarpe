@@ -12,6 +12,7 @@ require_relative "scarpe/html"
 
 require_relative "scarpe/widget"
 require_relative "scarpe/para"
+require_relative "scarpe/banner"
 require_relative "scarpe/background"
 require_relative "scarpe/border"
 require_relative "scarpe/stack"

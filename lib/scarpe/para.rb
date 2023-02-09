@@ -12,6 +12,11 @@ class Scarpe
     }.freeze
     private_constant :SIZES
 
+    def self.inherited(subclass)
+      Scarpe::Widget.widget_classes ||= []
+      Scarpe::Widget.widget_classes << subclass
+    end
+
     def initialize(*args, stroke: nil, size: :para, **html_attributes)
       @text_children = args || []
       @stroke = stroke
