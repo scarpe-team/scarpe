@@ -5,7 +5,7 @@ class Scarpe
     include Scarpe::Background
     include Scarpe::Border
 
-    def initialize(width: nil, height: nil, margin: nil, margin_left: nil, margin_top: nil, &block)
+    def initialize(width: nil, height: nil, top: nil, margin: nil, margin_left: nil, margin_top: nil, &block)
       @width = width
       @height = height
       @margin = margin
@@ -29,13 +29,23 @@ class Scarpe
       styles[:display] = "flex"
       styles["flex-direction"] = "row"
       styles["flex-wrap"] = "wrap"
+
+      styles[:position] = positioning? ? "absolute" : "relative"
+
       styles[:margin] = Dimensions.length(@margin) if @margin
       styles["margin-left"] = Dimensions.length(@margin_left) if @margin_left
       styles["margin-top"] = Dimensions.length(@margin_top) if @margin_top
       styles[:width] = Dimensions.length(@width) if @width
       styles[:height] = Dimensions.length(@height) if @height
 
+      styles[:top] = Dimensions.length(@top) if @top
+      styles[:left] = Dimensions.length(@left) if @left
+
       styles
+    end
+
+    def positioning?
+      @top || @left
     end
   end
 end

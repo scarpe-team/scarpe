@@ -4,6 +4,7 @@ class Scarpe
   # Scarpe::App must only be used from the main thread, due to GTK+ limitations.
   class App
     VALID_OPTS = [:debug, :test_assertions, :init_code, :result_filename, :periodic_time, :die_after]
+    TITLE_BAR_HEIGHT_PX = 28
 
     def initialize(title: "Scarpe!", width: 480, height: 420, **opts, &app_code_body)
       bad_opts = opts.keys - VALID_OPTS
@@ -11,7 +12,7 @@ class Scarpe
 
       @title = title
       @width = width
-      @height = height
+      @height = height + TITLE_BAR_HEIGHT_PX
       @opts = opts
       @app_code_body = app_code_body
     end

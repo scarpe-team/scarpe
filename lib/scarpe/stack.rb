@@ -5,9 +5,11 @@ class Scarpe
     include Scarpe::Background
     include Scarpe::Border
 
-    def initialize(width: nil, height: nil, margin: nil, &block)
+    def initialize(width: nil, height: nil, top: nil, left: nil, margin: nil, &block)
       @width = width
       @height = height
+      @top = top
+      @left = left
       @margin = margin
       instance_eval(&block)
       super
@@ -26,11 +28,22 @@ class Scarpe
 
       styles[:display] = "flex"
       styles["flex-direction"] = "column"
-      styles[:margin] = Dimensions.length(@margin) if @margin
+
+      styles[:position] = positioning? ? "absolute" : "relative"
+
       styles[:width] = Dimensions.length(@width) if @width
       styles[:height] = Dimensions.length(@height) if @height
 
+      styles[:top] = Dimensions.length(@top) if @top
+      styles[:left] = Dimensions.length(@left) if @left
+
+      styles[:margin] = Dimensions.length(@margin) if @margin
+
       styles
+    end
+
+    def positioning?
+      @top || @left
     end
   end
 end

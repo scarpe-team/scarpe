@@ -30,7 +30,7 @@ class Scarpe
     end
 
     def empty
-      "<body id='body-#{html_id}'><div id='wrapper-#{html_id}'></div></body>"
+      "<body id='body-#{html_id}' style='border:0;margin:0;'><div id='wrapper-#{html_id}'></div></body>"
     end
 
     def replace(el)
