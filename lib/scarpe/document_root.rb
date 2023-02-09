@@ -56,5 +56,6 @@ class Scarpe
       @redraw_requested = false
       @after_frame_actions.each { |block| instance_eval(&block) }
     end
+    alias_method :info, :puts
   end
 end
