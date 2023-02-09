@@ -1,5 +1,8 @@
 class Scarpe
   class Stack < Scarpe::Widget
+    include Scarpe::Background
+    include Scarpe::Border
+
     def initialize(width: nil, height: nil, margin: nil, &block)
       @width = width
       @height = height
@@ -16,7 +19,7 @@ class Scarpe
     private
 
     def style
-      styles = {}
+      styles = super
 
       styles[:display] = "flex"
       styles["flex-direction"] = "column"

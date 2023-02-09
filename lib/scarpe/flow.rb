@@ -2,6 +2,9 @@
 
 class Scarpe
   class Flow < Scarpe::Widget
+    include Scarpe::Background
+    include Scarpe::Border
+
     def initialize(width: nil, height: nil, margin: nil, margin_left: nil, margin_top: nil, &block)
       @width = width
       @height = height
@@ -20,7 +23,7 @@ class Scarpe
     private
 
     def style
-      styles = {}
+      styles = super
 
       styles[:display] = "flex"
       styles["flex-direction"] = "row"
