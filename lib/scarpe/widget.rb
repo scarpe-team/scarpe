@@ -8,22 +8,24 @@ class Scarpe
   class Widget
     class << self
       attr_accessor :widget_classes
+
       def set_window(w)
         @@window = w
       end
+
       def set_document_root(app)
         @@document_root = app
       end
-    end
 
-    def self.inherited(subclass)
-      self.widget_classes ||= []
-      self.widget_classes << subclass
-    end
+      def inherited(subclass)
+        self.widget_classes ||= []
+        self.widget_classes << subclass
+      end
 
-    def self.dsl_name
-      n = self.name.split("::").last.chomp("Widget")
-      n.gsub(/(.)([A-Z])/,'\1_\2').downcase
+      def dsl_name
+        n = self.name.split("::").last.chomp("Widget")
+        n.gsub(/(.)([A-Z])/,'\1_\2').downcase
+      end
     end
 
     def method_missing(name, *args, **kwargs, &block)
@@ -34,11 +36,14 @@ class Scarpe
       ::Scarpe::Widget.define_method(name) do |*args, **kwargs, &block|
         widget_instance = klass.new(*args, **kwargs, &block)
 
-        @children ||= []
-        @children << widget_instance
-  
+        unless klass.ancestors.include?(Scarpe::TextWidget)
+          @children ||= []
+          @children << widget_instance
+        end
+
         widget_instance
       end
+
       self.send(name, *args, **kwargs, &block)
     end
 
@@ -78,4 +83,3 @@ class Scarpe
     end
   end
 end
-  
