@@ -5,10 +5,11 @@ class Scarpe
     include Scarpe::Background
     include Scarpe::Border
 
-    def initialize(width: nil, height: nil, margin: nil, &block)
+    def initialize(width: nil, height: nil, margin: nil, scroll: false, &block)
       @width = width
       @height = height
       @margin = margin
+      @scroll = scroll
       instance_eval(&block)
       super
     end
@@ -29,6 +30,7 @@ class Scarpe
       styles[:margin] = Dimensions.length(@margin) if @margin
       styles[:width] = Dimensions.length(@width) if @width
       styles[:height] = Dimensions.length(@height) if @height
+      styles["overflow"] = "auto" if @scroll
 
       styles
     end
