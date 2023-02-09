@@ -20,7 +20,7 @@ class Scarpe
           styles["#{attribute}-#{direction}"] = Dimensions.length(value)
         end
       when Array
-        DIRECTIONS.zip(values).to_h.each do |direction, value|
+        DIRECTIONS.zip(values).to_h.compact.each do |direction, value|
           styles["#{attribute}-#{direction}"] = Dimensions.length(value)
         end
       else
