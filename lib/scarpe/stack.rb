@@ -1,7 +1,8 @@
 class Scarpe
   class Stack < Scarpe::Widget
-    def initialize(width:nil, margin:nil, &block)
+    def initialize(width: nil, height: nil, margin: nil, &block)
       @width = width
+      @height = height
       @margin = margin
       instance_eval(&block)
     end
@@ -21,6 +22,7 @@ class Scarpe
       styles["flex-direction"] = "column"
       styles[:margin] = Dimensions.length(@margin) if @margin
       styles[:width] = Dimensions.length(@width) if @width
+      styles[:height] = Dimensions.length(@height) if @height
 
       styles
     end
