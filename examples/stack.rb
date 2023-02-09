@@ -1,6 +1,6 @@
 require "scarpe"
 
-Scarpe.app(debug: true) do
+Scarpe.app do
   stack margin: 50 do
     button "with 50px margin"
   end

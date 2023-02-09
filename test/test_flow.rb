@@ -8,8 +8,6 @@ class TestFlow < Minitest::Test
       "fishes that flop"
     end
 
-    puts flow.to_html
-
     assert(flow.to_html.include?("height:25px"))
   end
 end
