@@ -3,7 +3,7 @@ class Scarpe
     def initialize(text)
       @text = text
       bind("click") do
-        remove_self
+        destroy_self
       end
     end
 

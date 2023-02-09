@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  # Scarpe::App should only be used from the main thread, due to GTK+ limitations.
+  # Scarpe::App must only be used from the main thread, due to GTK+ limitations.
   class App
     VALID_OPTS = [:debug, :test_assertions, :init_code, :result_filename, :periodic_time, :die_after]
 
@@ -27,9 +27,9 @@ class Scarpe
       @w.bind("scarpeInit") do
         monkey_patch_console(@w)
         @document_root.instance_eval(&@app_code_body)
-        @document_root.append(@document_root.to_html)
-        @document_root.end_of_frame
+        redraw_frame
       end
+      @w.init("scarpeInit();")
 
       @w.bind("scarpeHandler") do |*args|
         @document_root.handle_callback(*args)
@@ -43,16 +43,26 @@ class Scarpe
         scarpe_app.destroy
       end
 
+      @w.bind("scarpeRedrawCallback") do
+        puts("Redraw!") if do_debug
+        redraw_frame if @document_root.redraw_requested
+      end
+
       # We want a timer if timer/timeout options are specified, or if we need to ensure timeouts for tests
       if @opts[:test_assertions] || @opts[:die_after] || @opts[:periodic_time]
         # Used to make sure Ruby code can periodically run.
         @w.bind("scarpePeriodicCallback") do |*args|
           if @opts[:die_after]
+            # @t_start is set on run()
             if (Time.now - @t_start).to_f > @opts[:die_after]
               scarpe_app.destroy
             end
           end
         end
+
+        t_interval = @opts[:periodic_time] || 0.1
+        js_interval = (t_interval.to_f * 1_000.0).to_i
+        @w.init("setInterval(scarpePeriodicCallback, #{js_interval});")
       end
 
       if @opts[:test_assertions]
@@ -63,29 +73,39 @@ class Scarpe
           scarpe_app.destroy
         end
       end
+
+      if @opts[:init_code]
+        @w.init(@opts[:init_code] + ";")
+      end
+    end
+
+    # Draw a frame, call the per-frame callback(s)
+    def redraw_frame
+      @document_root.replace(@document_root.to_html)
+      @document_root.clear_needs_update! # We've updated, we don't need to again
+      @document_root.end_of_frame
     end
 
     def run
       puts "RUN APP" if @opts[:debug]
 
-      init_code = @opts[:init_code] || ""
       @t_start = Time.now
-      t_interval = @opts[:periodic_time] || 0.1
-      js_interval = (t_interval.to_f * 1_000.0).to_i
-      @w.init("scarpeInit(); setInterval(scarpePeriodicCallback, #{js_interval}) #{init_code};")
       @w.set_title(@title)
       @w.set_size(@width, @height)
-      @w.navigate("data:text/html, <body id='#{@document_root.html_id}'></body>")
+      @document_root.needs_update!
+      @w.navigate("data:text/html, #{@document_root.empty}")
 
       # This takes control of the main thread and never returns. And it *must* be run from
       # the main thread. And it stops any Ruby background threads.
       # That's totally cool and normal, right?
+      @is_running = true
       @w.run
+      @is_running = false
     end
 
-    # Uses init() internally, so it won't work once run() is called
     def js_bind(name, &code)
       raise "Cannot js_bind on closed or inactive Scarpe::App!" unless @w
+      raise "App is running, js_bind no longer works because it uses WebView init!" if @is_running
       @w.bind(name, &code)
     end
 
