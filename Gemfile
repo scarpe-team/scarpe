@@ -9,4 +9,8 @@ gem "rake", "~> 13.0"
 
 gem "minitest", "~> 5.0"
 
-gem "standard", "~> 1.23", group: [:development, :test]
+gem "rubocop", "~> 1.21"
+
+gem "ruby-lsp", "~> 0.3.8", group: :development
+
+gem "rubocop-shopify", group: :development
