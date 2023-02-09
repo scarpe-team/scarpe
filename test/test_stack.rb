@@ -4,7 +4,7 @@ require "test_helper"
 
 class TestStack < Minitest::Test
   def test_it_accepts_a_height
-    stack = Scarpe::Stack.new(width: "10px", height: "25px") do
+    stack = Scarpe::Stack.new(height: 25) do
       "fishes that flop"
     end
 
