@@ -3,17 +3,14 @@ require "scarpe"
 Scarpe.app do
   stack width: 0.33 do
     background "purple"
-    border "red", strokewidth: 5, curve: 12
-    button "a button"
-  end
-  stack width: 0.34 do
-    background "purple"
-    border "green", strokewidth: 6
     button "a button"
   end
   stack width: 0.33 do
+    background "red".."green"
+    para "Red to green gradient"
+  end
+  stack width: 0.33 do
     background "purple"
-    border "yellow", strokewidth: 5, curve: 12
     button "a button"
     flow do
       background "purple"

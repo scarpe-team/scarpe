@@ -3,14 +3,20 @@
 class Scarpe
   module Background
     def background(color, options = {})
-      @background = color
+      @background_color = color
     end
 
     def style
       styles = (super if defined?(super)) || {}
-      return styles unless @background
+      return styles unless @background_color
 
-      styles.merge({ background: @background })
+      color = if @background_color.is_a?(Range)
+        "linear-gradient(45deg, #{@background_color.first}, #{@background_color.last})"
+      else
+        @background_color
+      end
+
+      styles.merge(background: color)
     end
   end
 end
