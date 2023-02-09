@@ -13,15 +13,13 @@ class TestPara < Minitest::Test
   end
 
   def test_renders_paragraph_with_collection_of_arguments
-    text_collection = [
+    para = Scarpe::Para.new(
       "Testing test test. ",
       "Breadsticks. ",
       "Breadsticks. ",
       "Breadsticks. ",
       "Very good."
-    ]
-
-    para = Scarpe::Para.new(text_collection)
+    )
 
     assert_html para.to_html, :p, id: para.html_id, style: "font-size:12px" do
       "Testing test test. Breadsticks. Breadsticks. Breadsticks. Very good."

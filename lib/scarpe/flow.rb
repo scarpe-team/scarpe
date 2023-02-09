@@ -5,8 +5,9 @@ class Scarpe
     include Scarpe::Background
     include Scarpe::Border
 
-    def initialize(width: nil, margin: nil, margin_left: nil, margin_top: nil, &block)
+    def initialize(width: nil, height: nil, margin: nil, margin_left: nil, margin_top: nil, &block)
       @width = width
+      @height = height
       @margin = margin
       @margin_left = margin_left
       @margin_top = margin_top
@@ -31,6 +32,7 @@ class Scarpe
       styles["margin-left"] = Dimensions.length(@margin_left) if @margin_left
       styles["margin-top"] = Dimensions.length(@margin_top) if @margin_top
       styles[:width] = Dimensions.length(@width) if @width
+      styles[:height] = Dimensions.length(@height) if @height
 
       styles
     end

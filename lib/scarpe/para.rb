@@ -12,7 +12,7 @@ class Scarpe
     }.freeze
     private_constant :SIZES
 
-    def initialize(text, stroke: nil, size: :para, **html_attributes)
+    def initialize(*text, stroke: nil, size: :para, **html_attributes)
       @text = Array(text)
       @stroke = stroke
       @size = size
