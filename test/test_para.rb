@@ -57,4 +57,45 @@ class TestPara < Minitest::Test
       "Oh, to fling and be flung"
     end
   end
+
+  def test_replace_children
+    stub_window
+    para = Scarpe::Para.new("Oh, to fling and be flung", size: :banner)
+
+    para.replace("Oh, to be flung and to fling")
+
+    assert_html para.to_html, :p, id: para.html_id, style: "font-size:48px" do
+      "Oh, to be flung and to fling"
+    end
+  end
+
+  def test_children_can_be_text_widgets
+    strong = Scarpe::Strong.new("I am strong")
+    para = Scarpe::Para.new(strong)
+
+    assert_html para.to_html, :p, id: para.html_id, style: "font-size:12px" do
+      strong.to_html
+    end
+  end
+
+  def test_can_replace_widgets_with_other_widgets
+    stub_window
+    strong = Scarpe::Strong.new("I am strong")
+    em = Scarpe::Strong.new("I am em")
+    para = Scarpe::Para.new(strong)
+
+    para.replace(em)
+
+    assert_html para.to_html, :p, id: para.html_id, style: "font-size:12px" do
+      em.to_html
+    end
+  end
+
+  private
+
+  def stub_window
+    window = Minitest::Mock.new
+    Scarpe::Widget.window = window
+    window.expect :eval, nil, [String]
+  end
 end
