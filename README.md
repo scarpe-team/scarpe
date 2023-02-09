@@ -109,6 +109,14 @@ We'd love the help!
 * **Whimsy** - We're not here to make money or be corporate. We're here to have fun! Even if we do end up building something amazing.
 * **Empathy** - Let's help one another, and adhere to good contributor standards while doing so.
 
+## Documentation
+
+We have a collection of primary and secondary sources currently serving as documentation. Long-term we would like to compose a "pickaxe-book"-style specification for Shoes that collates this knowledge into one place.
+
+1. [Nobody Knows Shoes - _why's Manual](https://github.com/whymirror/why-archive/raw/master/shoes/nobody-knows-shoes.pdf)
+1. [Known examples](examples)
+1. [shoes-original manual](docs/static/manual.md)
+
 ## Definition of Done
 
 Scarpe is not intended to be a perfect replica of every element of Shoes. It is, however, intended to be functionally Shoes-compliant on mordern tooling. Certain benchmarks for this include:
