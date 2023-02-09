@@ -11,6 +11,7 @@ class Scarpe
       # Bind to a handler named "click"
       bind("click") do
         @block.call if @block
+        @@document_root.end_of_frame
       end
     end
 

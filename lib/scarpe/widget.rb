@@ -37,7 +37,7 @@ class Scarpe
         @children ||= []
         @children << widget_instance
 
-        render
+        @@document_root.changed!
 
         widget_instance
       end
@@ -56,10 +56,6 @@ class Scarpe
       else
         child_markup
       end
-    end
-
-    def render
-      @@window.eval("document.getElementById(#{html_id}).innerHTML = `#{to_html}`")
     end
 
     def bind(handler_function_name, &block)
