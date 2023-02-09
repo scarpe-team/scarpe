@@ -102,6 +102,10 @@ class Scarpe
       @@window.eval("document.getElementById(#{html_id}).innerText = \"#{new_text}\"")
     end
 
+    def inner_html=(new_html)
+      @@window.eval("document.getElementById(#{html_id}).innerHTML = `#{new_html}`")
+    end
+
     def value_text=(new_text)
       @@window.eval("document.getElementById(#{html_id}).value = #{new_text}")
     end
