@@ -12,8 +12,8 @@ class Scarpe
     }.freeze
     private_constant :SIZES
 
-    def initialize(*text, stroke: nil, size: :para, **html_attributes)
-      @text = Array(text)
+    def initialize(*args, stroke: nil, size: :para, **html_attributes)
+      @text_children = args || []
       @stroke = stroke
       @size = size
       @html_attributes = html_attributes
@@ -21,10 +21,22 @@ class Scarpe
 
     def element
       HTML.render do |h|
-        h.p(**options) do
-          text.join
-        end
+        h.p(**options) { yield }
       end
+    end
+
+    def to_html
+      @children ||= []
+
+      child_markup = @text_children.map do |child|
+        if child.respond_to?(:to_html)
+          child.to_html
+        else
+          child
+        end
+      end.join
+
+      element { child_markup }
     end
 
     def replace(new_text)

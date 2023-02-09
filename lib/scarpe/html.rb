@@ -1,6 +1,6 @@
 class Scarpe
   class HTML
-    CONTENT_TAGS = %i[div p button ul li textarea a].freeze
+    CONTENT_TAGS = %i[div p button ul li textarea a strong em code].freeze
     VOID_TAGS = %i[input img].freeze
     TAGS = (CONTENT_TAGS + VOID_TAGS).freeze
 
