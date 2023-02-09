@@ -11,7 +11,7 @@
 
 Scarpe isn't feature complete with any version of Shoes (yet?). We're initially targetting Shoes Classic.
 
-## Get it
+## Installation
 
 Add this line to your application's Gemfile:
 
@@ -27,7 +27,7 @@ Or install it yourself as:
 
     $ gem install scarpe
 
-## Use it
+## Usage
 
 Note: you'll probably want the "Scarpe in Development" instructions below in most cases! Scarpe isn't ready for "just install the released version" production usage yet.
 
