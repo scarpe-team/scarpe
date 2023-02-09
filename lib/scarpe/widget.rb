@@ -71,7 +71,7 @@ class Scarpe
         puts "remove_child: no such child(#{child.inspect}) for parent(#{parent.inspect})!"
       end
       @children.delete(child)
-      child.parent(nil)
+      child.parent = nil
     end
 
     def add_child(child)
