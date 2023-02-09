@@ -1,5 +1,5 @@
 require "scarpe"
 
-Scarpe.app do
+Shoes.app do
   para "Hello world"
 end

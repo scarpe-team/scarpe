@@ -1,6 +1,6 @@
 require "scarpe"
 
-Scarpe.app do
+Shoes.app do
   flow do
     button "Click"
     button "Clickaty"

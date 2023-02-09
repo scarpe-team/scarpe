@@ -1,6 +1,6 @@
 require "scarpe"
 
-Scarpe.app do
+Shoes.app do
   para "Testing test test. ",
    "Breadsticks. ",
    "Breadsticks. ",

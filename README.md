@@ -11,7 +11,7 @@
 
 Scarpe isn't feature complete with any version of Shoes (yet?). We're initially targetting Shoes Classic.
 
-## Installation
+## Get it
 
 Add this line to your application's Gemfile:
 
@@ -27,7 +27,7 @@ Or install it yourself as:
 
     $ gem install scarpe
 
-## Usage
+## Use it
 
 Note: you'll probably want the "Scarpe in Development" instructions below in most cases! Scarpe isn't ready for "just install the released version" production usage yet.
 
@@ -36,7 +36,7 @@ Create an hello world application with:
 ```ruby
 require "scarpe"
 
-Scarpe.app do
+Shoes.app do
   para "Hello World"
 end
 ```
@@ -93,18 +93,18 @@ We'd love the help!
 
 ### Secondary DSL && Functionality
 
-| Subject | Status | PRs   |
-| ------- | ------ | ------- |
-| [Misc Meta Issue](https://github.com/Schwad/scarpe/issues/14) |    |       |
-| [style](https://github.com/Schwad/scarpe/issues/15) |    |       |
-| [parents and children](https://github.com/Schwad/scarpe/issues/16) |    |       |
+| Subject | Status |
+| ------- | ------ |
+| [Misc Meta Issue](https://github.com/Schwad/scarpe/issues/14) |    |
+| [style](https://github.com/Schwad/scarpe/issues/15) |    |
+| [parents and children](https://github.com/Schwad/scarpe/issues/16) |    |
 
 ### Future
 
-| Subject | Status | PRs   |
-| ------- | ------ | ------- |
-| [Splash App](https://github.com/Schwad/scarpe/issues/19) |    |       |
-| [Packaging](https://github.com/Schwad/scarpe/issues/20) |    |       |
+| Subject | Status |
+| ------- | ------ |
+| [Splash App](https://github.com/Schwad/scarpe/issues/19) |    |
+| [Packaging](https://github.com/Schwad/scarpe/issues/20) |    |
 
 ## Core Values
 
