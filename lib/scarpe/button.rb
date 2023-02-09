@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 class Scarpe
   class Button < Scarpe::Widget
-    def initialize(text, width:nil, height:nil, top:nil, left:nil, &block)
+    def initialize(text, width: nil, height: nil, top: nil, left: nil, &block)
       @text = text
       @width = width
       @height = height
@@ -10,8 +12,10 @@ class Scarpe
 
       # Bind to a handler named "click"
       bind("click") do
-        @block.call if @block
+        @block&.call
       end
+
+      super
     end
 
     def click(&block)

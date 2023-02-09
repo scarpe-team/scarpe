@@ -11,6 +11,7 @@ class Scarpe
       @margin = margin
       @padding = padding
       instance_eval(&block)
+      super
     end
 
     def element(&block)

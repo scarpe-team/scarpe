@@ -18,7 +18,7 @@ class TestPara < Minitest::Test
       "Breadsticks. ",
       "Breadsticks. ",
       "Breadsticks. ",
-      "Very good."
+      "Very good.",
     )
 
     assert_html para.to_html, :p, id: para.html_id, style: "font-size:12px" do

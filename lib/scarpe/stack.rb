@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Scarpe
   class Stack < Scarpe::Widget
     include Scarpe::Background
@@ -11,11 +13,12 @@ class Scarpe
       @padding = padding
       @options = options
       instance_eval(&block)
+      super
     end
 
-    def element
+    def element(&block)
       HTML.render do |h|
-        h.div(id: html_id, style: style) { yield }
+        h.div(id: html_id, style: style, &block)
       end
     end
 

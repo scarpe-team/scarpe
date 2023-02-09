@@ -1,11 +1,15 @@
+# frozen_string_literal: true
+
 class Scarpe
   class HTML
-    CONTENT_TAGS = %i[div p button ul li textarea a strong em code].freeze
-    VOID_TAGS = %i[input img].freeze
+    CONTENT_TAGS = [:div, :p, :button, :ul, :li, :textarea, :a, :strong, :em, :code, :u].freeze
+    VOID_TAGS = [:input, :img].freeze
     TAGS = (CONTENT_TAGS + VOID_TAGS).freeze
 
-    def self.render(&block)
-      new(&block).value
+    class << self
+      def render(&block)
+        new(&block).value
+      end
     end
 
     def initialize(&block)
@@ -28,21 +32,20 @@ class Scarpe
     def method_missing(name, *args, &block)
       raise NoMethodError, "no method #{name} for #{self.class.name}" unless TAGS.include?(name)
 
-
-
       if VOID_TAGS.include?(name)
         raise ArgumentError, "void tag #{name} cannot have content" if block_given?
+
         @buffer += "<#{name}#{render_attributes(*args)} />"
       else
         @buffer += "<#{name}#{render_attributes(*args)}>"
 
         if block_given?
           result = block.call(self)
-          @buffer += result if result.is_a?(String)
         else
           result = args.first
           @buffer += result if result.is_a?(String)
         end
+        @buffer += result if result.is_a?(String)
 
         @buffer += "</#{name}>"
       end

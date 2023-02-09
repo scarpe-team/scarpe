@@ -8,6 +8,7 @@ class Scarpe
     def initialize(title: "Scarpe!", width: 480, height: 420, **opts, &app_code_body)
       bad_opts = opts.keys - VALID_OPTS
       raise "Illegal options to Scarpe::App.initialize! #{bad_opts.inspect}" unless bad_opts.empty?
+
       @title = title
       @width = width
       @height = height
@@ -51,7 +52,7 @@ class Scarpe
       # We want a timer if timer/timeout options are specified, or if we need to ensure timeouts for tests
       if @opts[:test_assertions] || @opts[:die_after] || @opts[:periodic_time]
         # Used to make sure Ruby code can periodically run.
-        @w.bind("scarpePeriodicCallback") do |*args|
+        @w.bind("scarpePeriodicCallback") do |*_args|
           if @opts[:die_after]
             # @t_start is set on run()
             if (Time.now - @t_start).to_f > @opts[:die_after]
@@ -69,7 +70,7 @@ class Scarpe
         result_file = @opts[:result_filename] || "./scarpe_results.txt"
         @w.bind("scarpeStatusAndExit") do |*results|
           puts "Writing results file #{result_file.inspect} to disk!" if @opts[:debug]
-          File.open(result_file, "w") { |f| f.write(JSON.pretty_generate results) }
+          File.open(result_file, "w") { |f| f.write(JSON.pretty_generate(results)) }
           scarpe_app.destroy
         end
       end
@@ -106,18 +107,20 @@ class Scarpe
     def js_bind(name, &code)
       raise "Cannot js_bind on closed or inactive Scarpe::App!" unless @w
       raise "App is running, js_bind no longer works because it uses WebView init!" if @is_running
+
       @w.bind(name, &code)
     end
 
     def js_eval(code)
       raise "Cannot js_eval on closed or inactive Scarpe::App!" unless @w
+
       puts "JS EVAL: #{code.inspect}" if @opts[:debug]
       @w.eval(code)
     end
 
     def destroy
       puts "DESTROY APP" if @opts[:debug]
-      puts "  (but app was already inactive or destroyed)" if @opts[:debug] && @w == nil && @document_root == nil
+      puts "  (but app was already inactive or destroyed)" if @opts[:debug] && @w.nil? && @document_root.nil?
       @document_root = nil
       if @w
         @w.terminate
@@ -132,17 +135,17 @@ class Scarpe
       # this forwards all console.log/info/error/warn calls also
       # to the terminal that is running the scarpe app
       window.eval <<~JS
-      function patchConsole(fn) {
-        const original = console[fn];
-        console[fn] = function(...args) {
-          original(...args);
-          puts(...args);
-        }
-      };
-      patchConsole('log');
-      patchConsole('info');
-      patchConsole('error');
-      patchConsole('warn');
+        function patchConsole(fn) {
+          const original = console[fn];
+          console[fn] = function(...args) {
+            original(...args);
+            puts(...args);
+          }
+        };
+        patchConsole('log');
+        patchConsole('info');
+        patchConsole('error');
+        patchConsole('warn');
       JS
     end
   end
