@@ -1,5 +1,3 @@
-require "scarpe"
-
 Shoes.app do
   para "Manuscript:"
   @manuscript = edit_box(width: "100%") do

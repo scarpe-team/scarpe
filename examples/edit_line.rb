@@ -1,5 +1,3 @@
-require "scarpe"
-
 Shoes.app do
   para "Name:"
   @name = edit_line("John", width: "100%")

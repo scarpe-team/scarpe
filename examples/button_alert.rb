@@ -1,5 +1,3 @@
-require "scarpe"
-
 Shoes.app do
   @push = button "Push me"
   @push.click {

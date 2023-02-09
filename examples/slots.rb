@@ -1,5 +1,3 @@
-require "scarpe"
-
 Shoes.app do
   flow do
     button "Click"

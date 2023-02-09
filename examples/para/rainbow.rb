@@ -1,4 +1,4 @@
-require "scarpe"
+
 
 Shoes.app do
   para "Paint", stroke: :red
