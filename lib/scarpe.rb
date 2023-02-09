@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "webview_ruby"
 require "securerandom"
 require "json"
 
 require_relative "scarpe/version"
 require_relative "scarpe/app"
+require_relative "scarpe/web_wrangler"
 require_relative "scarpe/colors"
 require_relative "scarpe/dimensions"
 require_relative "scarpe/html"

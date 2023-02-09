@@ -12,10 +12,6 @@ class Scarpe
       attr_accessor :widget_classes
 
       # rubocop:disable Style/ClassVars
-      def window=(w)
-        @@window = w
-      end
-
       def document_root=(app)
         @@document_root = app
       end
@@ -80,10 +76,17 @@ class Scarpe
       child.parent = self
     end
 
+    # This gets a mini-webview for just this element and its children, if any
+    def webview
+      @elt_wrangler ||= @@document_root.get_element_wrangler(html_id)
+    end
+
     def html_id
       object_id.to_s
     end
 
+    # to_html is intended to get the HTML DOM rendering of this object and its children.
+    # Calling it should be side-effect-free and NOT update the webview.
     def to_html
       @children ||= []
       child_markup = @children.map(&:to_html).join
@@ -94,25 +97,26 @@ class Scarpe
       end
     end
 
+    # This binds a Scarpe callback, handled via a single dispatch point in the document root
     def bind(handler_function_name, &block)
       @@document_root.bind(html_id + "-" + handler_function_name, &block)
     end
 
-    def inner_text=(new_text)
-      @@window.eval("document.getElementById(#{html_id}).innerText = \"#{new_text}\"")
+    def html_inner_text=(new_text)
+      webview.inner_text = new_text
     end
 
-    def inner_html=(new_html)
-      @@window.eval("document.getElementById(#{html_id}).innerHTML = `#{new_html}`")
+    def html_inner_html=(new_html)
+      webview.inner_html = new_html
     end
 
-    def value_text=(new_text)
-      @@window.eval("document.getElementById(#{html_id}).value = #{new_text}")
+    def html_value=(new_value)
+      webview.value = new_value
     end
 
     # Removes us from the JS DOM only, not the Ruby DOM
     def remove_self
-      @@window.eval("document.getElementById(#{html_id}).remove()")
+      webview.remove
     end
 
     def destroy_self

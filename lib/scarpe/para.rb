@@ -44,10 +44,8 @@ class Scarpe
 
     def replace(*args)
       @text_children = args || []
-      self.inner_html = child_markup
+      self.html_inner_html = child_markup
     end
-
-    private
 
     def child_markup
       @text_children.map do |child|
