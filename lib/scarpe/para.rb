@@ -39,23 +39,25 @@ class Scarpe
     def to_html
       @children ||= []
 
-      child_markup = @text_children.map do |child|
+      element { child_markup }
+    end
+
+    def replace(*args)
+      @text_children = args || []
+      self.inner_html = child_markup
+    end
+
+    private
+
+    def child_markup
+      @text_children.map do |child|
         if child.respond_to?(:to_html)
           child.to_html
         else
           child
         end
       end.join
-
-      element { child_markup }
     end
-
-    def replace(*args)
-      @text_children = args || []
-      self.inner_text = to_html
-    end
-
-    private
 
     def options
       html_attributes.merge(id: html_id, style: style)
