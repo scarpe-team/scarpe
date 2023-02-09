@@ -28,6 +28,8 @@ class Scarpe
       end
     end
 
+    attr_reader :parent
+
     def method_missing(name, *args, **kwargs, &block)
       klass = Widget.widget_classes.detect { |k| k.dsl_name == name.to_s }
 
@@ -37,14 +39,31 @@ class Scarpe
         widget_instance = klass.new(*args, **kwargs, &block)
 
         unless klass.ancestors.include?(Scarpe::TextWidget)
-          @children ||= []
-          @children << widget_instance
+          add_child(widget_instance)
+          # If we add a child, we need to redraw ourselves
+          needs_update!
         end
 
         widget_instance
       end
 
       self.send(name, *args, **kwargs, &block)
+    end
+
+    def set_parent(parent)
+      @parent = parent
+    end
+
+    def remove_child(child)
+      puts "remove_child: no such child(#{child.inspect}) for parent(#{parent.inspect})!" unless @children.include?(child)
+      @children.delete(child)
+      child.set_parent(nil)
+    end
+
+    def add_child(child)
+      @children ||= []
+      @children << child
+      child.set_parent(self)
     end
 
     def html_id
@@ -73,8 +92,31 @@ class Scarpe
       @@window.eval("document.getElementById(#{html_id}).value = #{new_text}")
     end
 
+    # Removes us from the JS DOM only, not the Ruby DOM
     def remove_self
       @@window.eval("document.getElementById(#{html_id}).remove()")
+    end
+
+    def destroy_self
+      remove_self
+      @parent.remove_child(self) if @parent
+    end
+
+    # In theory, this can record which specific widgets need update and only update them.
+    # Right now we're not carefully tracking which widget made which changes, so it's not
+    # really safe to do limited partial redraws. The performance isn't going to be a
+    # problem until we have some larger apps.
+    def needs_update!
+      return if @dirty # Already dirty - nothing changed, so do nothing
+
+      @dirty = true
+      @@document_root.request_redraw!
+    end
+
+    # When we do an update, we need to not redraw until we see another change
+    def clear_needs_update!
+      @dirty = false
+      @children.each { |c| c.clear_needs_update! }
     end
 
     def handler_js_code(handler_function_name, *args)
