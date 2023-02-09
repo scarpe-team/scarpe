@@ -5,9 +5,12 @@ class Scarpe
   class App
     VALID_OPTS = [:debug, :test_assertions, :init_code, :result_filename, :periodic_time, :die_after]
 
-    def initialize(opts = {}, &app_code_body)
+    def initialize(title: "Scarpe!", width: 480, height: 420, **opts, &app_code_body)
       bad_opts = opts.keys - VALID_OPTS
       raise "Illegal options to Scarpe::App.initialize! #{bad_opts.inspect}" unless bad_opts.empty?
+      @title = title
+      @width = width
+      @height = height
       @opts = opts
       @app_code_body = app_code_body
     end
@@ -18,16 +21,18 @@ class Scarpe
       puts "INIT APP" if do_debug
 
       @w = WebviewRuby::Webview.new debug: do_debug
-      @internal_app = Scarpe::InternalApp.new(@w, { debug: do_debug })
+      @document_root = Scarpe::DocumentRoot.new(@w, { debug: do_debug })
       scarpe_app = self
 
       @w.bind("scarpeInit") do
-        @internal_app.render(&@app_code_body)
         monkey_patch_console(@w)
+        @document_root.instance_eval(&@app_code_body)
+        @document_root.append(@document_root.to_html)
+        @document_root.end_of_frame
       end
 
       @w.bind("scarpeHandler") do |*args|
-        @internal_app.handle_callback(*args)
+        @document_root.handle_callback(*args)
       end
 
       @w.bind("puts") do |*args|
@@ -68,9 +73,9 @@ class Scarpe
       t_interval = @opts[:periodic_time] || 0.1
       js_interval = (t_interval.to_f * 1_000.0).to_i
       @w.init("scarpeInit(); setInterval(scarpePeriodicCallback, #{js_interval}) #{init_code};")
-      @w.set_title("example")
-      @w.set_size(480, 320)
-      @w.navigate("data:text/html, <body id=#{@internal_app.object_id}></body>")
+      @w.set_title(@title)
+      @w.set_size(@width, @height)
+      @w.navigate("data:text/html, <body id='#{@document_root.html_id}'></body>")
 
       # This takes control of the main thread and never returns. And it *must* be run from
       # the main thread. And it stops any Ruby background threads.
@@ -92,8 +97,8 @@ class Scarpe
 
     def destroy
       puts "DESTROY APP" if @opts[:debug]
-      puts "  (but app was already inactive or destroyed)" if @opts[:debug] && @w == nil && @internal_app == nil
-      @internal_app = nil
+      puts "  (but app was already inactive or destroyed)" if @opts[:debug] && @w == nil && @document_root == nil
+      @document_root = nil
       if @w
         @w.terminate
         @w.destroy
