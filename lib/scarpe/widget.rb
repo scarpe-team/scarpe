@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Scarpe::Widget
 #
 # Interface:
@@ -9,26 +11,32 @@ class Scarpe
     class << self
       attr_accessor :widget_classes
 
-      def set_window(w)
+      # rubocop:disable Style/ClassVars
+      def window=(w)
         @@window = w
       end
 
-      def set_document_root(app)
+      def document_root=(app)
         @@document_root = app
       end
+      # rubocop:enable Style/ClassVars
 
       def inherited(subclass)
         self.widget_classes ||= []
         self.widget_classes << subclass
+        super
       end
 
       def dsl_name
-        n = self.name.split("::").last.chomp("Widget")
-        n.gsub(/(.)([A-Z])/,'\1_\2').downcase
+        n = name.split("::").last.chomp("Widget")
+        n.gsub(/(.)([A-Z])/, '\1_\2').downcase
       end
     end
 
     attr_reader :parent
+
+    def initialize(*args)
+    end
 
     def method_missing(name, *args, **kwargs, &block)
       klass = Widget.widget_classes.detect { |k| k.dsl_name == name.to_s }
@@ -47,23 +55,29 @@ class Scarpe
         widget_instance
       end
 
-      self.send(name, *args, **kwargs, &block)
+      send(name, *args, **kwargs, &block)
     end
 
-    def set_parent(parent)
-      @parent = parent
+    def respond_to_missing?(name, include_all = false)
+      klass = Widget.widget_classes.detect { |k| k.dsl_name == name.to_s }
+
+      !klass.nil? || super(name, include_all)
     end
+
+    attr_writer :parent
 
     def remove_child(child)
-      puts "remove_child: no such child(#{child.inspect}) for parent(#{parent.inspect})!" unless @children.include?(child)
+      unless @children.include?(child)
+        puts "remove_child: no such child(#{child.inspect}) for parent(#{parent.inspect})!"
+      end
       @children.delete(child)
-      child.set_parent(nil)
+      child.parent(nil)
     end
 
     def add_child(child)
       @children ||= []
       @children << child
-      child.set_parent(self)
+      child.parent = self
     end
 
     def html_id
@@ -73,7 +87,7 @@ class Scarpe
     def to_html
       @children ||= []
       child_markup = @children.map(&:to_html).join
-      if self.respond_to?(:element)
+      if respond_to?(:element)
         element { child_markup }
       else
         child_markup
@@ -99,7 +113,7 @@ class Scarpe
 
     def destroy_self
       remove_self
-      @parent.remove_child(self) if @parent
+      @parent&.remove_child(self)
     end
 
     # In theory, this can record which specific widgets need update and only update them.
@@ -116,7 +130,7 @@ class Scarpe
     # When we do an update, we need to not redraw until we see another change
     def clear_needs_update!
       @dirty = false
-      @children.each { |c| c.clear_needs_update! }
+      @children.each(&:clear_needs_update!)
     end
 
     def handler_js_code(handler_function_name, *args)

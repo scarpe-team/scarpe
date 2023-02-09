@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Scarpe
   class EditLine < Scarpe::Widget
     attr_reader :text
@@ -9,10 +11,9 @@ class Scarpe
 
       bind("change") do |text|
         @text = text
-        if @block
-          @block.call(text)
-        end
+        @block&.call(text)
       end
+      super
     end
 
     def change(&block)

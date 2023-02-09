@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Scarpe
   class DocumentRoot < Scarpe::Widget
     attr_reader :window
@@ -10,8 +12,9 @@ class Scarpe
       @debug = opts[:debug] ? true : false
       @after_frame_actions = []
 
-      Scarpe::Widget.set_window(window)
-      Scarpe::Widget.set_document_root(self)
+      Scarpe::Widget.window = window
+      Scarpe::Widget.document_root = self
+      super
     end
 
     def bind(name, &block)
@@ -26,16 +29,16 @@ class Scarpe
       @@window.eval(js + ";")
     end
 
-    def empty()
+    def empty
       "<body id='body-#{html_id}'><div id='wrapper-#{html_id}'></div></body>"
     end
 
     def replace(el)
-      @@window.eval("document.getElementById('wrapper-#{html_id}').innerHTML = \`#{el}\`;")
+      @@window.eval("document.getElementById('wrapper-#{html_id}').innerHTML = `#{el}`;")
     end
 
     def append(el)
-      @@window.eval("document.getElementById(#{html_id}).insertAdjacentHTML('beforeend', \`#{el}\`)")
+      @@window.eval("document.getElementById(#{html_id}).insertAdjacentHTML('beforeend', `#{el}`)")
     end
 
     def remove(id)
@@ -44,6 +47,7 @@ class Scarpe
 
     def request_redraw!
       return if @redraw_requested
+
       @@window.eval("setTimeout(scarpeRedrawCallback,0)")
       @redraw_requested = true
     end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Scarpe
   module Border
     # Considering a signature like this:

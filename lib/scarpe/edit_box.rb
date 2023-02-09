@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Scarpe
   class EditBox < Scarpe::Widget
     attr_reader :text, :height, :width
@@ -11,6 +13,7 @@ class Scarpe
         @text = text
         @callback&.call(text)
       end
+      super
     end
 
     def change(&block)

@@ -6,4 +6,10 @@ AllCops:
   Exclude:
     - 'bin/**/*'
     - 'exe/**/*'
-    - 'examples/examples_that_do_not_yet_work/**/*'
+    - 'examples/**/*'
+
+Style/MethodCallWithArgsParentheses:
+  Enabled: false
+
+Style/CommandLiteral:
+  Enabled: false

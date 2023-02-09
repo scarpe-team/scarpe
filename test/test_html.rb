@@ -4,7 +4,7 @@ require "test_helper"
 
 class TestHTML < Minitest::Test
   def test_works_without_content
-    subject = ::Scarpe::HTML.render { |h| h.div }
+    subject = ::Scarpe::HTML.render(&:div)
 
     assert_equal "<div></div>", subject
   end
@@ -36,7 +36,7 @@ class TestHTML < Minitest::Test
   def test_no_style_if_style_empty
     subject = ::Scarpe::HTML.render { |h| h.div(style: {}) { "foo" } }
 
-    assert_equal '<div>foo</div>', subject
+    assert_equal "<div>foo</div>", subject
   end
 
   def test_works_with_multiple_children

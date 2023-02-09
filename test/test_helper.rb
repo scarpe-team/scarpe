@@ -22,7 +22,10 @@ def test_scarpe_app(body_code, opts = {})
   Tempfile.open("scarpe_test") do |f|
     do_debug = opts[:debug] ? true : false
     die_after = opts[:timeout] ? opts[:timeout].to_f : 1.0
-    f.write("Scarpe.app(test_assertions: true, debug:#{do_debug.inspect}, die_after: #{die_after}, result_filename: #{out_path.inspect}) do\n")
+    f.write(
+      "Scarpe.app(test_assertions: true, debug:#{do_debug.inspect}, die_after: #{die_after}, " \
+        "result_filename: #{out_path.inspect}) do\n",
+    )
     f.write(body_code)
     f.write("\nend\n")
     f.flush # Make sure the code is written out
@@ -41,12 +44,19 @@ def test_scarpe_app(body_code, opts = {})
   end
 
   begin
-    out_data = JSON.load File.read(out_path)
-    out.unlink rescue nil # Probably never written
+    out_data = JSON.parse File.read(out_path)
+    begin
+      out.unlink
+    rescue
+      nil
+    end # Probably never written
 
-    assert(out_data.respond_to?(:each) && out_data[0], "Scarpe app returned a non-Arrayish or non-truthy status! #{out_data.inspect}")
+    assert(
+      out_data.respond_to?(:each) && out_data[0],
+      "Scarpe app returned a non-Arrayish or non-truthy status! #{out_data.inspect}",
+    )
   rescue
-    STDERR.puts "Error parsing JSON data for Scarpe test status!"
+    $stderr.puts "Error parsing JSON data for Scarpe test status!"
     raise
   end
 end

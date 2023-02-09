@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Scarpe
   class Alert < Scarpe::Widget
     def initialize(text)
@@ -5,10 +7,11 @@ class Scarpe
       bind("click") do
         destroy_self
       end
+      super
     end
 
     def element
-      onclick = handler_js_code('click')
+      onclick = handler_js_code("click")
 
       HTML.render do |h|
         h.div(id: html_id, style: overlay_style) do
@@ -34,7 +37,7 @@ class Scarpe
         background: "rgba(0,0,0,0.4)",
         display: "flex",
         "align-items": "center",
-        "justify-content": "center"
+        "justify-content": "center",
       }
     end
 
@@ -47,7 +50,7 @@ class Scarpe
         background: "#fefefe",
         "flex-direction": "column",
         "justify-content": "space-between",
-        "border-radius": "9px"
+        "border-radius": "9px",
       }
     end
 
