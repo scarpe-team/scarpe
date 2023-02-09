@@ -32,4 +32,4 @@ jobs:
         with:
           bundler-cache: true
       - name: Run linter
-        run: bundle exec standardrb --no-fix
+        run: bundle exec rubocop
