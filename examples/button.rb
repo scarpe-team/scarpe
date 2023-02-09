@@ -1,6 +1,4 @@
-require "scarpe"
-
-Scarpe.app do
+Shoes.app do
   @push = button "Push me"
   @note = para "Nothing pushed so far"
   @push.click {

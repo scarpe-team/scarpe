@@ -1,6 +1,6 @@
-require "scarpe"
 
-Scarpe.app do
+
+Shoes.app do
   para "Banner", size: :banner
   para "Title", size: :title
   para "Subtitle", size: :subtitle

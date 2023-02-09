@@ -1,6 +1,6 @@
-require "scarpe"
 
-Scarpe.app do
+
+Shoes.app do
   para "Paint", stroke: :red
   para "the", stroke: :orange
   para "Whole", stroke: :yellow

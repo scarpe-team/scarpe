@@ -1,6 +1,4 @@
-require "scarpe"
-
-Scarpe.app do
+Shoes.app do
   @push = button "Push me"
   @push.click {
     alert "Aha! Click!"
