@@ -10,7 +10,7 @@ class TestImage < Minitest::Test
   def test_renders_image
     img = Scarpe::Image.new(@url)
 
-    assert_equal "<img id=\"#{img.html_id}\" src=\"#{@url}\" />", img.to_html
+    assert_html img.to_html, :img, id: img.html_id, src: @url
   end
 
   def test_renders_image_with_specified_size
@@ -18,7 +18,7 @@ class TestImage < Minitest::Test
     height = 50
     img = Scarpe::Image.new(@url, width:, height:)
 
-    assert_equal "<img id=\"#{img.html_id}\" src=\"#{@url}\" style=\"width:#{width}px;height:#{height}px\" />", img.to_html
+    assert_html img.to_html, :img, id: img.html_id, src: @url, style: "width:#{width}px;height:#{height}px"
   end
 
   def test_renders_image_with_specified_position
@@ -26,7 +26,7 @@ class TestImage < Minitest::Test
     left = 5
     img = Scarpe::Image.new(@url, top:, left:)
 
-    assert_equal "<img id=\"#{img.html_id}\" src=\"#{@url}\" style=\"top:#{top}px;left:#{left}px;position:absolute\" />", img.to_html
+    assert_html img.to_html, :img, id: img.html_id, src: @url, style: "top:#{top}px;left:#{left}px;position:absolute"
   end
 
   def test_renders_image_with_specified_size_and_position
@@ -36,7 +36,7 @@ class TestImage < Minitest::Test
     left = 5
     img = Scarpe::Image.new(@url, width:, height:, top:, left:)
 
-    assert_equal "<img id=\"#{img.html_id}\" src=\"#{@url}\" style=\"width:#{width}px;height:#{height}px;top:#{top}px;left:#{left}px;position:absolute\" />", img.to_html
+    assert_html img.to_html, :img, id: img.html_id, src: @url, style: "width:#{width}px;height:#{height}px;top:#{top}px;left:#{left}px;position:absolute"
   end
 
   def test_renders_clickable_image
