@@ -2,6 +2,8 @@
 
 class Scarpe
   class DocumentRoot < Scarpe::Widget
+    include Scarpe::Background
+
     attr_reader :debug
     attr_reader :redraw_requested
 
@@ -14,6 +16,12 @@ class Scarpe
 
       Scarpe::Widget.document_root = self
       super
+    end
+
+    def element(&blck)
+      HTML.render do |h|
+        h.div(style:, &blck)
+      end
     end
 
     # Bind a Scarpe callback name; see Scarpe::Widget for how the naming is set up
