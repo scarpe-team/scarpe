@@ -47,7 +47,7 @@ class Scarpe
 
     # Running callbacks
 
-    def eval(code)
+    def js_eval(code)
       @webview.eval(code)
     end
 
