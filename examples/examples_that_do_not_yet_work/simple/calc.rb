@@ -6,9 +6,9 @@ class Calc
   end
 
   def to_s
-    @number.to_s
+    @number&.to_s || @previous.to_s
   end
-  
+
   (0..9).each do |n|
     define_method "press_#{n}" do
       @number = @number.to_i * 10 + n
@@ -17,6 +17,7 @@ class Calc
 
   def press_clear
     @number = 0
+    @previous = 0
   end
 
   {'add' => '+', 'sub' => '-', 'times' => '*', 'div' => '/'}.each do |meth, op|
@@ -59,7 +60,7 @@ Shoes.app :height => 250, :width => 200, :resizable => false do
             when '*'; 'press_times'
             when '/'; 'press_div'
           end
-          
+
           number.send(method)
           number_field.replace strong(number)
         end

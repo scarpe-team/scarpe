@@ -3,7 +3,9 @@
 class Scarpe
   # Scarpe::App must only be used from the main thread, due to GTK+ limitations.
   class App
-    VALID_OPTS = [:debug, :test_assertions, :init_code, :result_filename, :periodic_time, :die_after]
+    # TODO: Do something with resizable in the future.
+    # For now, we accept it as a valid option so it doesn't crash examples.
+    VALID_OPTS = [:debug, :test_assertions, :init_code, :result_filename, :periodic_time, :die_after, :resizable]
 
     attr_reader :do_debug
 

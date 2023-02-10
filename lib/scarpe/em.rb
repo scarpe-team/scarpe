@@ -2,15 +2,6 @@
 
 class Scarpe
   class Em < Scarpe::TextWidget
-    def initialize(text)
-      @text = text
-      super
-    end
-
-    def element
-      HTML.render do |h|
-        h.em { @text }
-      end
-    end
+    default_text_widget_with(:em)
   end
 end

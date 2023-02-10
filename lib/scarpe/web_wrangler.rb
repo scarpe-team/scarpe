@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "webview_ruby"
+require "cgi"
 
 # WebWrangler operates in multiple phases: setup and running.
 
@@ -102,7 +103,29 @@ class Scarpe
     end
 
     def empty
-      "<body id='body-wvroot'><div id='wrapper-wvroot'></div></body>"
+      html = <<~HTML
+        <html>
+          <head id='head-wvroot'>
+            <style id='style-wvroot'>
+              /** Style resets **/
+              body {
+                margin: 0;
+                height: 100%;
+                overflow: hidden;
+              }
+
+              p {
+                margin: 0;
+              }
+            </style>
+          </head>
+          <body id='body-wvroot'>
+            <div id='wrapper-wvroot'></div>
+          </body>
+        </html>
+      HTML
+
+      CGI.escape(html)
     end
 
     public
