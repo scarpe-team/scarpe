@@ -158,11 +158,11 @@ class Scarpe
       end
 
       def inner_text=(new_text)
-        @webview.eval("document.getElementById(#{html_id}).inner_text = '#{new_text}'")
+        @webview.eval("document.getElementById(#{html_id}).innerText = '#{new_text}'")
       end
 
       def inner_html=(new_html)
-        @webview.eval("document.getElementById(#{html_id}).inner_html = `#{new_html}`")
+        @webview.eval("document.getElementById(#{html_id}).innerHTML = `#{new_html}`")
       end
 
       def remove
