@@ -148,25 +148,25 @@ class Scarpe
     class ElementWrangler
       attr_reader :html_id
 
-      def initialize(webview, html_id)
-        @webview = webview
+      def initialize(webwrangler, html_id)
+        @webwrangler = webwrangler
         @html_id = html_id
       end
 
       def value=(new_value)
-        @webview.eval("document.getElementById(#{html_id}).value = #{new_value}")
+        @webwrangler.js_eval("document.getElementById(#{html_id}).value = #{new_value}")
       end
 
       def inner_text=(new_text)
-        @webview.eval("document.getElementById(#{html_id}).innerText = '#{new_text}'")
+        @webwrangler.js_eval("document.getElementById(#{html_id}).innerText = '#{new_text}'")
       end
 
       def inner_html=(new_html)
-        @webview.eval("document.getElementById(#{html_id}).innerHTML = `#{new_html}`")
+        @webwrangler.js_eval("document.getElementById(#{html_id}).innerHTML = `#{new_html}`")
       end
 
       def remove
-        @webview.eval("document.getElementById(#{html_id}).remove()")
+        @webwrangler.js_eval("document.getElementById(#{html_id}).remove()")
       end
     end
   end

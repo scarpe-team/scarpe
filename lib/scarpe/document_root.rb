@@ -7,11 +7,11 @@ class Scarpe
     attr_reader :debug
     attr_reader :redraw_requested
 
-    def initialize(webview, opts = {})
+    def initialize(webwrangler, opts = {})
       @callbacks = {}
       @opts = opts
       @debug = opts[:debug] ? true : false
-      @webview = webview
+      @webwrangler = webwrangler
 
       Scarpe::Widget.document_root = self
       super
@@ -41,7 +41,7 @@ class Scarpe
     def request_redraw!
       return if @redraw_requested
 
-      @webview.js_eval("setTimeout(scarpeRedrawCallback,0)")
+      @webwrangler.js_eval("setTimeout(scarpeRedrawCallback,0)")
       @redraw_requested = true
     end
 
@@ -56,7 +56,7 @@ class Scarpe
 
     # A Widget can request one or more of these as insertion points in the DOM
     def get_element_wrangler(html_id)
-      Scarpe::WebWrangler::ElementWrangler.new(@webview, html_id)
+      Scarpe::WebWrangler::ElementWrangler.new(@webwrangler, html_id)
     end
   end
 end
