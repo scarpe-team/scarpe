@@ -9,8 +9,6 @@ require "webview_ruby"
 
 class Scarpe
   class WebWrangler
-    attr_reader :webview
-
     def initialize(title:, width:, height:, debug:)
       # For now, always allow inspect element
       @webview = WebviewRuby::Webview.new debug: true
@@ -141,7 +139,7 @@ class Scarpe
       end
 
       def inner_html=(new_html)
-        @webview.eval("document.getElementById(#{html_id}).inner_text = `#{new_html}`")
+        @webview.eval("document.getElementById(#{html_id}).inner_html = `#{new_html}`")
       end
 
       def remove
