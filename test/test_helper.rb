@@ -62,9 +62,7 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
     scarpe_test_code += test_code
 
     with_tempfile("scarpe_control.rb", scarpe_test_code) do |control_file_path|
-
       system("SCARPE_TEST_CONTROL=#{control_file_path} ruby #{SCARPE_EXE} --dev #{test_app_location}")
-
     end
 
     # If failure is okay, don't check for status or assertions
@@ -81,7 +79,7 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
       assert(
         out_data.respond_to?(:each) && out_data[0],
         "Scarpe app returned a non-Arrayish or non-truthy status! #{out_data.inspect}",
-        )
+      )
     rescue
       $stderr.puts "Error parsing JSON data for Scarpe test status!"
       raise
