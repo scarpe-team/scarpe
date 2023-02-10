@@ -77,7 +77,7 @@ class Scarpe
     end
 
     # This gets a mini-webview for just this element and its children, if any
-    def webview
+    def html_element
       @elt_wrangler ||= @@document_root.get_element_wrangler(html_id)
     end
 
@@ -102,25 +102,9 @@ class Scarpe
       @@document_root.bind(html_id + "-" + handler_function_name, &block)
     end
 
-    def html_inner_text=(new_text)
-      webview.inner_text = new_text
-    end
-
-    def html_inner_html=(new_html)
-      webview.inner_html = new_html
-    end
-
-    def html_value=(new_value)
-      webview.value = new_value
-    end
-
-    # Removes us from the JS DOM only, not the Ruby DOM
-    def remove_self
-      webview.remove
-    end
-
+    # Removes the element from both the Ruby Widget tree and the HTML DOM
     def destroy_self
-      remove_self
+      html_element.remove
       @parent&.remove_child(self)
     end
 

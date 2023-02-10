@@ -23,7 +23,7 @@ class Scarpe
     def text=(text)
       @text = text
 
-      self.html_value = text
+      html_element.value = text
     end
 
     def element

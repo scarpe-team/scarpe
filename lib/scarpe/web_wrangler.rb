@@ -122,7 +122,7 @@ end
 # after initial render.
 class Scarpe
   class WebWrangler
-    class Element
+    class ElementWrangler
       attr_reader :html_id
 
       def initialize(webview, html_id)

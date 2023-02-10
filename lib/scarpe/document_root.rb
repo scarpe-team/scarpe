@@ -61,7 +61,7 @@ class Scarpe
 
     # A Widget can request one or more of these as insertion points in the DOM
     def get_element_wrangler(html_id)
-      Scarpe::WebWrangler::Element.new(@webview, html_id)
+      Scarpe::WebWrangler::ElementWrangler.new(@webview, html_id)
     end
   end
 end
