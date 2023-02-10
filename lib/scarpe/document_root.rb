@@ -11,7 +11,6 @@ class Scarpe
       @callbacks = {}
       @opts = opts
       @debug = opts[:debug] ? true : false
-      @after_frame_actions = []
       @webview = webview
 
       Scarpe::Widget.document_root = self
@@ -42,26 +41,14 @@ class Scarpe
     def request_redraw!
       return if @redraw_requested
 
-      @webview.eval("setTimeout(scarpeRedrawCallback,0)")
+      @webview.js_eval("setTimeout(scarpeRedrawCallback,0)")
       @redraw_requested = true
-    end
-
-    def after_frame(&block)
-      @after_frame_actions << block
     end
 
     def end_of_frame
       @redraw_requested = false
-      @after_frame_actions.each { |block| instance_eval(&block) }
     end
     alias_method :info, :puts
-
-    # This is a bad thing for the document root to know how to do.
-    # It is only used for after-frame testing callbacks. This method
-    # should be removed when the test infrastructure improves.
-    def do_js_eval(js)
-      @webview.eval(js + ";")
-    end
 
     # The document root manages the connection between widgets and the WebviewWrangler.
     # By centralising this and wrapping in API functions, we can keep from executing
