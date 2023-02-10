@@ -44,7 +44,7 @@ class Scarpe
 
     def replace(*args)
       @text_children = args || []
-      self.inner_html = child_markup
+      html_element.inner_html = child_markup
     end
 
     private
