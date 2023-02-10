@@ -11,7 +11,6 @@ class TestScarpe < Minitest::Test
     puts "Testing #{examples_to_test.count} examples"
 
     examples_to_test.each do |example|
-      puts "Testing #{example}"
       test_scarpe_app(example, exit_immediately: true)
     end
   end

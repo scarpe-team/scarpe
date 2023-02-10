@@ -14,6 +14,10 @@ class Scarpe
   class ControlInterface
     EVENTS = [:init, :shutdown, :frame]
 
+    attr_reader :app
+    attr_reader :doc_root
+    attr_reader :wrangler
+
     # The control interface needs to see major system components to hook into their events
     def initialize
       @event_handlers = {}
