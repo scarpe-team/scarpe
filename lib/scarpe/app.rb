@@ -65,7 +65,7 @@ class Scarpe
       end
 
       if @opts[:init_code]
-        @view.init("scarpeUserInitCode", @opts[:init_code] + ";")
+        @view.init_code("scarpeUserInitCode", @opts[:init_code] + ";")
       end
     end
 
