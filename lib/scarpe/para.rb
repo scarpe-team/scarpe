@@ -47,6 +47,8 @@ class Scarpe
       html_element.inner_html = child_markup
     end
 
+    private
+
     def child_markup
       @text_children.map do |child|
         if child.respond_to?(:to_html)
