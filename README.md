@@ -77,7 +77,7 @@ We'd love the help!
 
 | Syntax  | Status |
 | ------- | ------ |
-| [para](https://github.com/Schwad/scarpe/issues/1) |  🛠️  |
+| [para](https://github.com/Schwad/scarpe/issues/1) |  ✅  |
 | [stack](https://github.com/Schwad/scarpe/issues/2) |  🛠️ |
 | [flow](https://github.com/Schwad/scarpe/issues/3) |    |
 | [button](https://github.com/Schwad/scarpe/issues/4) | 🛠️ |
