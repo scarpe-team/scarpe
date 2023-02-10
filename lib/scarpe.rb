@@ -25,6 +25,7 @@ require_relative "scarpe/image"
 require_relative "scarpe/edit_box"
 require_relative "scarpe/edit_line"
 require_relative "scarpe/alert"
+require_relative "scarpe/inscription"
 
 require_relative "scarpe/text_widget"
 require_relative "scarpe/link"
