@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class Banner < Para
+  class Inscription < Para
+    alias_as :ins
+
     def initialize(*args, stroke: nil, **html_attributes)
       super
-      @size = :banner
+      @size = :inscription
     end
   end
 end

@@ -9,7 +9,11 @@
 class Scarpe
   class Widget
     class << self
-      attr_accessor :widget_classes
+      attr_accessor :widget_classes, :alias_name
+
+      def alias_as(name)
+        self.alias_name = name
+      end
 
       # rubocop:disable Style/ClassVars
       def document_root=(app)
@@ -27,6 +31,10 @@ class Scarpe
         n = name.split("::").last.chomp("Widget")
         n.gsub(/(.)([A-Z])/, '\1_\2').downcase
       end
+
+      def find_by_name(name)
+        widget_classes.detect { |k| k.dsl_name == name.to_s || k.alias_name.to_s == name.to_s }
+      end
     end
 
     attr_reader :parent
@@ -35,7 +43,7 @@ class Scarpe
     end
 
     def method_missing(name, *args, **kwargs, &block)
-      klass = Widget.widget_classes.detect { |k| k.dsl_name == name.to_s }
+      klass = Widget.find_by_name(name.to_s)
 
       super unless klass
 
@@ -55,7 +63,7 @@ class Scarpe
     end
 
     def respond_to_missing?(name, include_all = false)
-      klass = Widget.widget_classes.detect { |k| k.dsl_name == name.to_s }
+      klass = Widget.find_by_name(name.to_s)
 
       !klass.nil? || super(name, include_all)
     end
