@@ -11,6 +11,19 @@ class Scarpe
         Scarpe::Widget.widget_classes << subclass
       end
       # rubocop:enable Lint/MissingSuper
+
+      def default_text_widget_with(element)
+        define_method(:initialize) do |content|
+          @content = content
+          super(content)
+        end
+
+        define_method(:element) do
+          HTML.render do |h|
+            h.send(element) { @content.to_s }
+          end
+        end
+      end
     end
   end
 end
