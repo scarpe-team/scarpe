@@ -59,7 +59,8 @@ class TestPara < Minitest::Test
   end
 
   def test_replace_children
-    stub_window
+    stub_document_root
+
     para = Scarpe::Para.new("Oh, to fling and be flung", size: :banner)
 
     para.replace("Oh, to be flung and to fling")
@@ -79,7 +80,8 @@ class TestPara < Minitest::Test
   end
 
   def test_can_replace_widgets_with_other_widgets
-    stub_window
+    stub_document_root
+
     strong = Scarpe::Strong.new("I am strong")
     em = Scarpe::Strong.new("I am em")
     para = Scarpe::Para.new(strong)
@@ -93,9 +95,11 @@ class TestPara < Minitest::Test
 
   private
 
-  def stub_window
-    window = Minitest::Mock.new
-    Scarpe::Widget.window = window
-    window.expect :eval, nil, [String]
+  def stub_document_root
+    doc_root = Minitest::Mock.new
+    wrangler = Minitest::Mock.new
+    doc_root.expect :get_element_wrangler, wrangler, [String]
+    wrangler.expect :inner_html=, nil, [String]
+    Scarpe::Widget.document_root = doc_root
   end
 end

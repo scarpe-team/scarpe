@@ -6,11 +6,12 @@ class Scarpe
     include Scarpe::Border
     include Scarpe::Spacing
 
-    def initialize(width: nil, height: nil, margin: nil, padding: nil, **options, &block)
+    def initialize(width: nil, height: nil, margin: nil, padding: nil, scroll: false, **options, &block)
       @width = width
       @height = height
       @margin = margin
       @padding = padding
+      @scroll = scroll
       @options = options
       instance_eval(&block)
       super
@@ -31,6 +32,7 @@ class Scarpe
       styles["flex-direction"] = "column"
       styles[:width] = Dimensions.length(@width) if @width
       styles[:height] = Dimensions.length(@height) if @height
+      styles["overflow"] = "auto" if @scroll
 
       styles
     end
