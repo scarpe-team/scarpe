@@ -10,11 +10,6 @@ class Scarpe
     # For now, we accept it as a valid option so it doesn't crash examples.
     VALID_OPTS = [
       :debug,           # print out debug statements
-      :test_assertions, # install additional code used by tests
-      :init_code,       # run the specified JS code at init time
-      :result_filename, # with test assertions, write JSON results to this path
-      :periodic_time,   # for the periodic timeout-check timer, check this often
-      :die_after,       # time out and die after this number of seconds
       :resizable,       # the app is resizable (currently ignored)
       :no_control,      # do not run a test-control file, even if one is specified in SCARPE_TEST_CONTROL
     ]
@@ -79,29 +74,7 @@ class Scarpe
         redraw_frame if @document_root.redraw_requested
       end
 
-      # We want a timer if timer/timeout options are specified, or if we need to ensure timeouts for tests
-      if @opts[:test_assertions] || @opts[:die_after] || @opts[:periodic_time]
-        # Used to make sure Ruby code can periodically run.
-        @view.periodic_code("scarpePeriodicCallback", @opts[:periodic_time] || 0.1) do |*_args|
-          # @t_start is set on run()
-          if @opts[:die_after] && ((Time.now - @t_start).to_f > @opts[:die_after])
-            scarpe_app.destroy
-          end
-        end
-      end
-
-      if @opts[:test_assertions]
-        result_file = @opts[:result_filename] || "./scarpe_results.txt"
-        @view.bind("scarpeStatusAndExit") do |*results|
-          puts "Writing results file #{result_file.inspect} to disk!" if @opts[:debug]
-          File.open(result_file, "w") { |f| f.write(JSON.pretty_generate(results)) }
-          scarpe_app.destroy
-        end
-      end
-
-      if @opts[:init_code]
-        @view.init_code("scarpeUserInitCode", @opts[:init_code] + ";")
-      end
+      @control_interface.dispatch_event(:init)
     end
 
     # Draw a frame, call the per-frame callback(s)
@@ -113,10 +86,7 @@ class Scarpe
     end
 
     def run
-      @t_start = Time.now
       @document_root.needs_update!
-
-      @control_interface.dispatch_event(:init)
 
       # This takes control of the main thread and never returns. And it *must* be run from
       # the main thread. And it stops any Ruby background threads.

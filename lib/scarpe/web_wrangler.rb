@@ -42,7 +42,8 @@ class Scarpe
 
       @webview.bind(name, &block)
       js_interval = (interval.to_f * 1_000.0).to_i
-      @webview.init("setInterval(scarpePeriodicCallback, #{js_interval});")
+      puts "setInterval(#{name}, #{js_interval});"
+      @webview.init("setInterval(#{name}, #{js_interval});")
     end
 
     # Running callbacks

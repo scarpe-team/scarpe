@@ -27,8 +27,6 @@ def test_scarpe_app(body_code, test_code: "", **opts)
   bad_opts = opts.keys - TEST_OPTS
   raise "Bad options passed to test_scarpe_app: #{bad_opts.inspect}!" unless bad_opts.empty?
 
-  do_debug = opts[:debug] ? true : false
-  die_after = opts[:timeout] ? opts[:timeout].to_f : 1.0
   scarpe_app_code = <<~SCARPE_APP_CODE
     Scarpe.app do
       #{body_code}
@@ -36,17 +34,39 @@ def test_scarpe_app(body_code, test_code: "", **opts)
   SCARPE_APP_CODE
 
   with_tempfile("scarpe_test_results.json", "") do |result_path|
+    do_debug = opts[:debug] ? true : false
+    die_after = opts[:die_after] || 0.1
     scarpe_test_code = <<~SCARPE_TEST_CODE
-      override_app_opts test_assertions: true, debug: #{do_debug}, die_after: #{die_after}, result_filename: #{result_path.inspect}
+      override_app_opts debug: #{do_debug}
     SCARPE_TEST_CODE
     if opts[:exit_immediately]
       scarpe_test_code += <<~TEST_EXIT_IMMEDIATELY
+        on_event(:init) {
+          t_start = Time.now
+          wrangler.periodic_code("scarpePeriodicCallback", 0.1) do |*_args|
+            STDERR.puts "PERIODIC!"
+            if ((Time.now - t_start).to_f > #{die_after})
+              app.destroy
+            end
+          end
+
+          result_file = #{result_path.inspect}
+          wrangler.bind("scarpeStatusAndExit") do |*results|
+            puts "Writing results file \#{result_file.inspect} to disk!" if #{do_debug}
+            File.open(result_file, "w") { |f| f.write(JSON.pretty_generate(results)) }
+            app.destroy
+          end
+        }
+
         on_event(:frame) {
           js_eval "scarpeStatusAndExit(true);"
         }
       TEST_EXIT_IMMEDIATELY
     end
     scarpe_test_code += test_code
+
+    # No results until we write them
+    File.unlink(result_path)
 
     with_tempfile("scarpe_test.rb", scarpe_app_code) do |shoes_app_location|
       with_tempfile("scarpe_control.rb", scarpe_test_code) do |control_file_path|
