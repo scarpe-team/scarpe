@@ -3,8 +3,8 @@
 class Scarpe
   class Banner < Para
     def initialize(*args, stroke: nil, **html_attributes)
-      @size = :banner
       super
+      @size = :banner
     end
   end
 end
