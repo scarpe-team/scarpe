@@ -19,6 +19,8 @@ class Scarpe
       @width = width
       @height = height
       @debug = debug
+
+      puts "Creating WebWrangler..." if debug
     end
 
     ### Setup-mode Callbacks
@@ -26,14 +28,12 @@ class Scarpe
     def bind(name, &block)
       raise "App is running, javascript binding no longer works because it uses WebView init!" if @is_running
 
-      puts "Binding #{name} to #{block.inspect}" if @debug
       @webview.bind(name, &block)
     end
 
     def init_code(name, &block)
       raise "App is running, javascript init no longer works!" if @is_running
 
-      puts "Init code #{name}" if @debug
       @webview.bind(name, &block)
       @webview.init("#{name}();")
     end
@@ -41,7 +41,6 @@ class Scarpe
     def periodic_code(name, interval, &block)
       raise "App is running, javascript periodic-code init no longer works!" if @is_running
 
-      puts "Periodic callback #{name}" if @debug
       @webview.bind(name, &block)
       js_interval = (interval.to_f * 1_000.0).to_i
       @webview.init("setInterval(scarpePeriodicCallback, #{js_interval});")
@@ -50,7 +49,6 @@ class Scarpe
     # Running callbacks
 
     def eval(code)
-      puts "Eval code: #{code.inspect}" if @debug
       @webview.eval(code)
     end
 
@@ -75,9 +73,13 @@ class Scarpe
     end
 
     def destroy
-      @webview.terminate
-      @webview.destroy
-      @webview = nil
+      puts "Destroying WebWrangler..." if @debug
+      puts "  (But WebWrangler was already inactive)" if @debug && !@webview
+      if @webview
+        @webview.terminate
+        @webview.destroy
+        @webview = nil
+      end
     end
 
     private

@@ -100,8 +100,6 @@ class Scarpe
     end
 
     def destroy
-      puts "DESTROY APP" if @opts[:debug]
-      puts "  (but app was already inactive or destroyed)" if @opts[:debug] && @view.nil? && @document_root.nil?
       @document_root = nil
       if @view
         @view.destroy
