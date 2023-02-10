@@ -10,13 +10,14 @@ require "cgi"
 
 class Scarpe
   class WebWrangler
-    def initialize(title:, width:, height:, debug:)
+    def initialize(title:, width:, height:, resizable:, debug:)
       # For now, always allow inspect element
       @webview = WebviewRuby::Webview.new debug: true
 
       @title = title
       @width = width
       @height = height
+      @resizable = resizable
       @debug = debug
 
       puts "Creating WebWrangler..." if debug
@@ -60,8 +61,15 @@ class Scarpe
         puts(*args)
       end
 
+      # From webview:
+      # 0 - Width and height are default size
+      # 1 - Width and height are minimum bonds
+      # 2 - Width and height are maximum bonds
+      # 3 - Window size can not be changed by a user
+      hint = @resizable ? 0 : 3
+
       @webview.set_title(@title)
-      @webview.set_size(@width, @height)
+      @webview.set_size(@width, @height, hint)
       @webview.navigate("data:text/html, #{empty}")
 
       monkey_patch_console(@webview)
