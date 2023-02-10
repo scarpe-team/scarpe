@@ -33,7 +33,7 @@ class Scarpe
       end
 
       def find_by_name(name)
-        widget_classes.detect { |k| k.dsl_name == name.to_s || k.alias_name == name.to_sym }
+        widget_classes.detect { |k| k.dsl_name == name.to_s || k.alias_name.to_s == name.to_s }
       end
     end
 
