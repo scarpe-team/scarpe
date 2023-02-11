@@ -15,14 +15,14 @@ class Scarpe
       :result_filename, # with test assertions, write JSON results to this path
       :periodic_time,   # for the periodic timeout-check timer, check this often
       :die_after,       # time out and die after this number of seconds
-      :resizable,       # the app is resizable (currently ignored)
+      :resizable,       # the app is resizable
       :no_control,      # do not run a test-control file, even if one is specified in SCARPE_TEST_CONTROL
     ]
 
     attr_reader :do_debug
     attr_reader :control_interface
 
-    def initialize(title: "Scarpe!", width: 480, height: 420, **opts, &app_code_body)
+    def initialize(title: "Scarpe!", width: 480, height: 420, resizable: true, **opts, &app_code_body)
       bad_opts = opts.keys - VALID_OPTS
       raise "Illegal options to Scarpe::App.initialize! #{bad_opts.inspect}" unless bad_opts.empty?
 
@@ -41,12 +41,8 @@ class Scarpe
 
       opts = @control_interface.app_opts_get_override(opts)
 
-      @title = title
-      @width = width
-      @height = height
-
       @do_debug = opts[:debug] ? true : false
-      @view = Scarpe::WebWrangler.new title: title, width: width, height: height, debug: do_debug
+      @view = Scarpe::WebWrangler.new title:, width:, height:, resizable:, debug: do_debug
       @document_root = Scarpe::DocumentRoot.new(@view, { debug: do_debug })
 
       # The control interface has to exist to get callbacks like "override Scarpe app opts".
