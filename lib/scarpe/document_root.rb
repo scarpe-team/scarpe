@@ -19,7 +19,10 @@ class Scarpe
 
     def element(&blck)
       HTML.render do |h|
-        h.div(style:, &blck)
+        h.body do
+          h.style { "body { font-family:arial }" }
+          h.div(style:, &blck)
+        end
       end
     end
 

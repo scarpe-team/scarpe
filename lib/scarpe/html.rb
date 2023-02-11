@@ -2,7 +2,7 @@
 
 class Scarpe
   class HTML
-    CONTENT_TAGS = [:div, :p, :button, :ul, :li, :textarea, :a, :strong, :em, :code, :u].freeze
+    CONTENT_TAGS = [:a, :body, :button, :code, :div, :em, :li, :p, :strong, :style, :textarea, :u, :ul].freeze
     VOID_TAGS = [:input, :img].freeze
     TAGS = (CONTENT_TAGS + VOID_TAGS).freeze
 
