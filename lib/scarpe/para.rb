@@ -22,6 +22,8 @@ class Scarpe
       end
     end
 
+    styles :size, :stroke
+
     def initialize(*args, stroke: nil, size: :para, **html_attributes)
       @text_children = args || []
       @stroke = stroke
@@ -64,10 +66,7 @@ class Scarpe
     end
 
     def style
-      {
-        "color" => stroke,
-        "font-size" => font_size,
-      }.compact
+      @styler.style
     end
 
     def font_size

@@ -35,11 +35,22 @@ class Scarpe
       def find_by_name(name)
         widget_classes.detect { |k| k.dsl_name == name.to_s || k.alias_name.to_s == name.to_s }
       end
+
+      def styles(*styles)
+        @allowed_styles ||= []
+        @allowed_styles.push(*styles)
+      end
     end
 
     attr_reader :parent
 
-    def initialize(*args)
+    def initialize(*args, **kwargs)
+      valid_styles = kwargs.select { |k, _| allowed_styles.include?(k) }
+      @styler = Styler.new(valid_styles.compact)
+    end
+
+    def allowed_styles
+      self.class.instance_variable_get(:@allowed_styles) || {}
     end
 
     def method_missing(name, *args, **kwargs, &block)
