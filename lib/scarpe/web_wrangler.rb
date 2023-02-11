@@ -109,6 +109,7 @@ class Scarpe
             <style id='style-wvroot'>
               /** Style resets **/
               body {
+                font-family: Arial, Helvetica, sans-serif;
                 margin: 0;
                 height: 100%;
                 overflow: hidden;

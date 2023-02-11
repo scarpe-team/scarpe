@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "deep_merge"
+
 # Scarpe::Widget
 #
 # Interface:
@@ -37,9 +39,41 @@ class Scarpe
       end
     end
 
-    attr_reader :parent
+    include Scarpe::Hooks::Width
+    include Scarpe::Hooks::Height
 
-    def initialize(*args)
+    include Scarpe::Hooks::Top
+    include Scarpe::Hooks::Left
+    include Scarpe::Hooks::Bottom
+    include Scarpe::Hooks::Right
+
+    include Scarpe::Hooks::Margin # todo
+    include Scarpe::Hooks::MarginBottom # todo
+    include Scarpe::Hooks::MarginLeft # todo
+    include Scarpe::Hooks::MarginRight # todo
+    include Scarpe::Hooks::MarginTop # todo
+
+    include Scarpe::Hooks::DisplaceLeft # todo
+    include Scarpe::Hooks::DisplaceTop # todo
+
+    include Scarpe::Hooks::Hidden # todo
+
+    attr_accessor :parent
+
+    def initialize(*args, **keywords, &block)
+      @args = args
+      @keywords = keywords
+      @block = block
+
+      @attribute_hooks = []
+      @style_hooks = []
+
+      initializer_methods = methods.select { |m| m.start_with?("initializer_for") }
+      initializer_methods.each { |initializer_method| send(initializer_method) }
+
+      # Once everything is converted to hooks we could enable this
+      # return if keywords.keys.none?
+      # raise ArgumentError, "Argument #{keywords.keys.first} is not supported by #{self.class}"
     end
 
     def method_missing(name, *args, **kwargs, &block)
@@ -68,7 +102,33 @@ class Scarpe
       !klass.nil? || super(name, include_all)
     end
 
-    attr_writer :parent
+    def styles
+      style_hash = { container: {} }
+
+      style_methods = methods.select { |m| m.start_with?("styles_for") }
+
+      style_methods.each do |style_method|
+        result = send(style_method) || {}
+        style_hash.deep_merge!(result)
+      end
+
+      style_hash
+    end
+
+    def attributes
+      attribute_hash = { container: { id: html_id, style: styles[:container] } }
+
+      atttribute_methods = methods.select { |m| m.start_with?("attributes_for") }
+
+      atttribute_methods.each do |attribute_method|
+        result = send(attribute_method) || {}
+        attribute_hash.deep_merge!(result)
+      end
+
+      puts attribute_hash
+
+      attribute_hash
+    end
 
     def remove_child(child)
       unless @children.include?(child)
