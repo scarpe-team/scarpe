@@ -65,16 +65,6 @@ class Scarpe
       html_attributes.merge(id: html_id, style: style)
     end
 
-    def style(**kwargs)
-      if kwargs.empty?
-        @styler.style
-      else
-        valid_styles = kwargs.select { |k, _| allowed_styles.include?(k) }
-        @styler.update_style(**valid_styles)
-        needs_update!
-      end
-    end
-
     def font_size
       font_size = size.is_a?(Symbol) ? SIZES[size] : size
 

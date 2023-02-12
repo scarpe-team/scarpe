@@ -93,6 +93,13 @@ class TestPara < Minitest::Test
     end
   end
 
+  def test_background
+    para = Scarpe::Para.new
+    para.background "green"
+
+    assert_html para.to_html, :p, id: para.html_id, style: "font-size:12px;background:green"
+  end
+
   private
 
   def stub_document_root

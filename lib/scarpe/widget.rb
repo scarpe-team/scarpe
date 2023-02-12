@@ -144,6 +144,22 @@ class Scarpe
       @children.each(&:clear_needs_update!)
     end
 
+    def style(**kwargs)
+      if kwargs.empty?
+        @styler.style
+      else
+        valid_styles = kwargs.select { |k, _| allowed_styles.include?(k) }
+        @styler.update_style(**valid_styles)
+        needs_update!
+      end
+    end
+
+    def background(color)
+      return unless allowed_styles.include?(:background)
+
+      @styler.update_style(background: color)
+    end
+
     def handler_js_code(handler_function_name, *args)
       js_args = ["'#{html_id}-#{handler_function_name}'", *args].join(", ")
       "scarpeHandler(#{js_args})"

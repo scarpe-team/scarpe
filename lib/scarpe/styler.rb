@@ -22,7 +22,7 @@ class Scarpe
     end
 
     def update_style(**styles)
-      @raw.merge(styles)
+      @raw.merge!(styles)
       @style = nil
     end
 
@@ -35,11 +35,20 @@ class Scarpe
       { "color" => value }
     end
 
-    def font_size(value)
+    def size(value)
       font_size = value.is_a?(Symbol) ? FONT_SIZES[value] : value
 
       { "font-size" => Dimensions.length(font_size) }
     end
-    alias_method :size, :font_size
+
+    def background(value)
+      color = if value.is_a?(Range)
+          "linear-gradient(45deg, #{value.first}, #{value.last})"
+        else
+          value
+        end
+
+      { background: color }
+    end
   end
 end
