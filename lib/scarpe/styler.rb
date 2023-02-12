@@ -15,21 +15,20 @@ class Scarpe
       @raw = styles
     end
 
-    def style(new = {})
-      if new.any?
-        @raw = @raw.merge(new)
-        @styles = nil
-      end
+    def style
+      @style = @raw.map do |style, value|
+        send(style, value)
+      end.inject(:merge)
+    end
 
-      styles
+    def update_style(**styles)
+      @raw.merge(styles)
+      @style = nil
     end
 
     private
 
     def styles
-      @styles = @raw.map do |style, value|
-        send(style, value)
-      end.inject(:merge)
     end
 
     def stroke(value)

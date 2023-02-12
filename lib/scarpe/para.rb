@@ -22,7 +22,7 @@ class Scarpe
       end
     end
 
-    styles :size, :stroke
+    styles :size, :stroke, :background
 
     def initialize(*args, stroke: nil, size: :para, **html_attributes)
       @text_children = args || []
@@ -65,8 +65,14 @@ class Scarpe
       html_attributes.merge(id: html_id, style: style)
     end
 
-    def style
-      @styler.style
+    def style(**kwargs)
+      if kwargs.empty?
+        @styler.style
+      else
+        valid_styles = kwargs.select { |k, _| allowed_styles.include?(k) }
+        @styler.update_style(**valid_styles)
+        needs_update!
+      end
     end
 
     def font_size
