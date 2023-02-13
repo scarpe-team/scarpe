@@ -24,17 +24,11 @@ end
 SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
 TEST_OPTS = [:timeout, :allow_fail, :debug, :exit_immediately]
 
-def test_scarpe_code(body_code, test_code: "", **opts)
+def test_scarpe_code(scarpe_app_code, test_code: "", **opts)
   bad_opts = opts.keys - TEST_OPTS
-  raise "Bad options passed to test_scarpe_app: #{bad_opts.inspect}!" unless bad_opts.empty?
+  raise "Bad options passed to test_scarpe_code: #{bad_opts.inspect}!" unless bad_opts.empty?
 
-  scarpe_app_code = <<~SCARPE_APP_CODE
-    Scarpe.app do
-      #{body_code}
-    end
-  SCARPE_APP_CODE
-
-  with_tempfile("test_app.rb", scarpe_app_code) do |test_app_location|
+  with_tempfile("scarpe_test_app.rb", scarpe_app_code) do |test_app_location|
     test_scarpe_app(test_app_location, test_code: test_code, **opts)
   end
 end
