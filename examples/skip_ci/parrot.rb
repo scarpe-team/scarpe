@@ -1,5 +1,7 @@
 require "scarpe"
 
+# This example is skipped on CI because it makes system calls
+
 Scarpe.app do
   para "What do you want me to say?"
   @phrase = edit_line("Soon it was a comet and, soon, a blazing monstrosity.", width: "100%")

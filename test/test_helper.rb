@@ -23,22 +23,34 @@ end
 
 SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
 TEST_OPTS = [:timeout, :allow_fail, :debug, :exit_immediately]
-def test_scarpe_app(body_code, test_code: "", **opts)
+
+def test_scarpe_code(body_code, test_code: "", **opts)
   bad_opts = opts.keys - TEST_OPTS
   raise "Bad options passed to test_scarpe_app: #{bad_opts.inspect}!" unless bad_opts.empty?
 
-  do_debug = opts[:debug] ? true : false
-  die_after = opts[:timeout] ? opts[:timeout].to_f : 1.0
   scarpe_app_code = <<~SCARPE_APP_CODE
     Scarpe.app do
       #{body_code}
     end
   SCARPE_APP_CODE
 
+  with_tempfile("test_app.rb", scarpe_app_code) do |test_app_location|
+    test_scarpe_app(test_app_location, test_code: test_code, **opts)
+  end
+end
+
+def test_scarpe_app(test_app_location, test_code: "", **opts)
+  bad_opts = opts.keys - TEST_OPTS
+  raise "Bad options passed to test_scarpe_app: #{bad_opts.inspect}!" unless bad_opts.empty?
+
   with_tempfile("scarpe_test_results.json", "") do |result_path|
+    do_debug = opts[:debug] ? true : false
+    die_after = opts[:timeout] ? opts[:timeout].to_f : 1.0
+
     scarpe_test_code = <<~SCARPE_TEST_CODE
       override_app_opts test_assertions: true, debug: #{do_debug}, die_after: #{die_after}, result_filename: #{result_path.inspect}
     SCARPE_TEST_CODE
+
     if opts[:exit_immediately]
       scarpe_test_code += <<~TEST_EXIT_IMMEDIATELY
         on_event(:frame) {
@@ -46,12 +58,11 @@ def test_scarpe_app(body_code, test_code: "", **opts)
         }
       TEST_EXIT_IMMEDIATELY
     end
+
     scarpe_test_code += test_code
 
-    with_tempfile("scarpe_test.rb", scarpe_app_code) do |shoes_app_location|
-      with_tempfile("scarpe_control.rb", scarpe_test_code) do |control_file_path|
-        system("SCARPE_TEST_CONTROL=#{control_file_path} ruby #{SCARPE_EXE} --dev #{shoes_app_location}")
-      end
+    with_tempfile("scarpe_control.rb", scarpe_test_code) do |control_file_path|
+      system("SCARPE_TEST_CONTROL=#{control_file_path} ruby #{SCARPE_EXE} --dev #{test_app_location}")
     end
 
     # If failure is okay, don't check for status or assertions

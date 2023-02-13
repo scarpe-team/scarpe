@@ -20,7 +20,7 @@ jobs:
         with:
           bundler-cache: true
       - name: Run tests
-        run: bundle exec rake test
+        run: CI_RUN='true' bundle exec rake test
   linter:
     name: Linter
     runs-on: macos-latest
