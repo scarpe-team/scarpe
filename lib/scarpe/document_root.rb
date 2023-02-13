@@ -5,7 +5,6 @@ class Scarpe
     include Scarpe::Background
 
     attr_reader :debug
-    attr_reader :redraw_requested
 
     def initialize(webwrangler, opts = {})
       @callbacks = {}
@@ -13,6 +12,7 @@ class Scarpe
       @debug = opts[:debug] ? true : false
       @webwrangler = webwrangler
 
+      Scarpe::Widget.web_wrangler = webwrangler
       Scarpe::Widget.document_root = self
       super
     end
@@ -35,19 +35,13 @@ class Scarpe
     end
 
     # The document root knows when a frame has finished. It registers end-of-frame callbacks and calls them
-    # when requested. It also tracks when a redraw has been requested. Note that often frames will be
+    # when requested. It also tracks when a redraw has been requested. Note that often redraws will be
     # very rare if nothing is changing, with seconds or minutes passing in between them.
 
-    def request_redraw!
-      return if @redraw_requested
-
-      @webwrangler.js_eval("setTimeout(scarpeRedrawCallback,0)")
-      @redraw_requested = true
+    def request_full_redraw!
+      @webwrangler.replace(self.to_html)
     end
 
-    def end_of_frame
-      @redraw_requested = false
-    end
     alias_method :info, :puts
 
     # The document root manages the connection between widgets and the WebviewWrangler.

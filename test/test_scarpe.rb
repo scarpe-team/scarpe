@@ -24,7 +24,7 @@ class TestScarpe < Minitest::Test
   end
 
   def test_button_app
-    test_scarpe_code(<<-'SCARPE_APP', debug: true, exit_immediately: true)
+    test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Scarpe.app do
         @push = button "Push me", width: 200, height: 50, top: 109, left: 132
         @note = para "Nothing pushed so far"

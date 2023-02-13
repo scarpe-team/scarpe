@@ -97,9 +97,15 @@ class TestPara < Minitest::Test
 
   def stub_document_root
     doc_root = Minitest::Mock.new
-    wrangler = Minitest::Mock.new
-    doc_root.expect :get_element_wrangler, wrangler, [String]
-    wrangler.expect :inner_html=, nil, [String]
+    elt_wrangler = Minitest::Mock.new
+    web_wrangler = Minitest::Mock.new
+    doc_root.expect :get_element_wrangler, elt_wrangler, [String]
+    doc_root.expect :request_full_redraw!, nil
+    elt_wrangler.expect :inner_html=, nil, [String]
+    web_wrangler.expect :dom_change, nil, [String]
+    web_wrangler.expect :dom_promise_redraw, nil
+
     Scarpe::Widget.document_root = doc_root
+    Scarpe::Widget.web_wrangler = web_wrangler
   end
 end

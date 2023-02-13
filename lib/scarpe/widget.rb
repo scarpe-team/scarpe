@@ -16,8 +16,12 @@ class Scarpe
       end
 
       # rubocop:disable Style/ClassVars
-      def document_root=(app)
-        @@document_root = app
+      def document_root=(wr)
+        @@document_root = wr
+      end
+
+      def web_wrangler=(wr)
+        @@web_wrangler = wr
       end
       # rubocop:enable Style/ClassVars
 
@@ -38,6 +42,7 @@ class Scarpe
     end
 
     attr_reader :parent
+    attr_reader :children
 
     def initialize(*args)
     end
@@ -86,7 +91,11 @@ class Scarpe
 
     # This gets a mini-webview for just this element and its children, if any
     def html_element
-      @elt_wrangler ||= @@document_root.get_element_wrangler(html_id)
+      @elt_wrangler ||= Scarpe::WebWrangler::ElementWrangler.new(@@web_wrangler, html_id, widget: self)
+    end
+
+    def promise_update
+      html_element.promise_update
     end
 
     def html_id
@@ -110,27 +119,18 @@ class Scarpe
       @@document_root.bind(html_id + "-" + handler_function_name, &block)
     end
 
-    # Removes the element from both the Ruby Widget tree and the HTML DOM
+    # Removes the element from both the Ruby Widget tree and the HTML DOM.
+    # Return a promise for when that HTML change will be visible.
     def destroy_self
-      html_element.remove
       @parent&.remove_child(self)
+      html_element.remove
     end
 
-    # In theory, this can record which specific widgets need update and only update them.
-    # Right now we're not carefully tracking which widget made which changes, so it's not
-    # really safe to do limited partial redraws. The performance isn't going to be a
-    # problem until we have some larger apps.
+    # It's really hard to do dirty-tracking here because the redraws are fully asynchronous.
+    # And so we can't easily cancel one "in flight," and we can't easily pick up the latest
+    # changes... And we probably don't want to, because we may be halfway through a batch.
     def needs_update!
-      return if @dirty # Already dirty - nothing changed, so do nothing
-
-      @dirty = true
-      @@document_root.request_redraw!
-    end
-
-    # When we do an update, we need to not redraw until we see another change
-    def clear_needs_update!
-      @dirty = false
-      @children.each(&:clear_needs_update!)
+      @@document_root.request_full_redraw!
     end
 
     def handler_js_code(handler_function_name, *args)

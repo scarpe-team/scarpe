@@ -8,20 +8,17 @@
 # created or called, Scarpe apps should run fine with no modifications.
 #
 # And if you depend on this from the framework, I'll add a check-mode that
-# doesn't even create one of these. Do NOT test me on this.
+# never dispatches any events to any handlers. Do NOT test me on this.
 
 class Scarpe
   class ControlInterface
-    EVENTS = [:init, :shutdown, :frame]
-
-    attr_reader :app
-    attr_reader :doc_root
-    attr_reader :wrangler
+    SUBSCRIBE_EVENTS = [:init, :shutdown, :next_redraw, :every_redraw, :next_heartbeat, :every_heartbeat]
+    DISPATCH_EVENTS = [:init, :shutdown, :redraw, :heartbeat]
 
     # The control interface needs to see major system components to hook into their events
     def initialize
       @event_handlers = {}
-      EVENTS.each { |e| @event_handlers[e] = [] }
+      (SUBSCRIBE_EVENTS | DISPATCH_EVENTS).each { |e| @event_handlers[e] = [] }
     end
 
     # This should get called once, from Scarpe::App
@@ -29,6 +26,29 @@ class Scarpe
       @app = app
       @doc_root = doc_root
       @wrangler = wrangler
+
+      wrangler.set_control_interface(self)
+    end
+
+    def app
+      unless @app
+        raise "ControlInterface code needs to be wrapped in handlers like on_event(:init) to make sure they have access to app, doc_root, wrangler, etc!"
+      end
+      @app
+    end
+
+    def doc_root
+      unless @doc_root
+        raise "ControlInterface code needs to be wrapped in handlers like on_event(:init) to make sure they have access to app, doc_root, wrangler, etc!"
+      end
+      @doc_root
+    end
+
+    def wrangler
+      unless @wrangler
+        raise "ControlInterface code needs to be wrapped in handlers like on_event(:init) to make sure they have access to app, doc_root, wrangler, etc!"
+      end
+      @wrangler
     end
 
     # The control interface has overrides for certain settings. If the override has been specified,
@@ -46,23 +66,49 @@ class Scarpe
 
     # On recognised events, this sets a handler for that event
     def on_event(event, &block)
-      unless EVENTS.include?(event)
-        raise "Illegal event #{event.inspect}! Valid values are: #{EVENTS.inspect}"
+      unless SUBSCRIBE_EVENTS.include?(event)
+        raise "Illegal subscribe to event #{event.inspect}! Valid values are: #{SUBSCRIBE_EVENTS.inspect}"
       end
 
       @event_handlers[event] << block
     end
 
-    def js_eval(code)
-      @wrangler.js_eval(code)
-    end
-
     # Send out the specified event
     def dispatch_event(event, *args, **keywords)
-      unless EVENTS.include?(event)
-        raise "Illegal event #{event.inspect}! Valid values are: #{EVENTS.inspect}"
+      unless DISPATCH_EVENTS.include?(event)
+        raise "Illegal dispatch of event #{event.inspect}! Valid values are: #{DISPATCH_EVENTS.inspect}"
       end
 
+      if event == :redraw
+        dumb_dispatch_event(:every_redraw, *args, **keywords)
+
+        # Next redraw is interesting. We can add new handlers
+        # when dispatching a next_redraw handler. But we want
+        # each handler to run only once.
+        handlers = @event_handlers[:next_redraw]
+        dumb_dispatch_event(:next_redraw, *args, **keywords)
+        @event_handlers[:next_redraw] -= handlers
+        return
+      end
+
+      if event == :heartbeat
+        dumb_dispatch_event(:every_heartbeat, *args, **keywords)
+
+        # Next heartbeat is interesting. We can add new handlers
+        # when dispatching a next_heartbeat handler. But we want
+        # each handler to run only once.
+        handlers = @event_handlers[:next_heartbeat]
+        dumb_dispatch_event(:next_heartbeat, *args, **keywords)
+        @event_handlers[:next_heartbeat] -= handlers
+        return
+      end
+
+      dumb_dispatch_event(event, *args, **keywords)
+    end
+
+    private
+
+    def dumb_dispatch_event(event, *args, **keywords)
       @event_handlers[event].each do |handler|
         instance_eval(*args, **keywords, &handler)
       end

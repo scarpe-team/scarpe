@@ -40,6 +40,10 @@ class Scarpe
       @view = Scarpe::WebWrangler.new title:, width:, height:, resizable:, debug: do_debug
       @document_root = Scarpe::DocumentRoot.new(@view, { debug: do_debug })
 
+      @view.on_every_redraw {
+        @control_interface.dispatch_event(:redraw)
+      }
+
       # The control interface has to exist to get callbacks like "override Scarpe app opts".
       # But the Scarpe App needs those options to be created. So we can't pass these to
       # ControlInterface.new.
@@ -53,8 +57,8 @@ class Scarpe
       scarpe_app = self
 
       @view.init_code("scarpeInit") do
+        # This will cause the initial needs_update!, which will cause the redraw
         @document_root.instance_eval(&@app_code_body)
-        redraw_frame
       end
 
       @view.bind("scarpeHandler") do |*args|
@@ -64,43 +68,15 @@ class Scarpe
       @view.bind("scarpeExit") do
         scarpe_app.destroy
       end
-
-      @view.bind("scarpeRedrawCallback") do
-        puts("Redraw!") if do_debug
-        redraw_frame if @document_root.redraw_requested
-      end
-    end
-
-    # Draw a frame, call the per-frame callback(s)
-    def redraw_frame
-      @view.replace(@document_root.to_html)
-      @document_root.clear_needs_update! # We've updated, we don't need to again
-      @document_root.end_of_frame
-      @control_interface.dispatch_event(:frame)
     end
 
     def run
-      @document_root.needs_update!
-
       @control_interface.dispatch_event(:init)
 
       # This takes control of the main thread and never returns. And it *must* be run from
       # the main thread. And it stops any Ruby background threads.
       # That's totally cool and normal, right?
       @view.run
-    end
-
-    def js_bind(name, &code)
-      raise "Cannot js_bind on closed or inactive Scarpe::App!" unless @view
-
-      @view.bind(name, &code)
-    end
-
-    def js_eval(code)
-      raise "Cannot js_eval on closed or inactive Scarpe::App!" unless @view
-
-      puts "JS EVAL: #{code.inspect}" if @opts[:debug]
-      @view.eval(code)
     end
 
     def destroy

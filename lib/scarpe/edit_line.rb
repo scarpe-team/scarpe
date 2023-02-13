@@ -24,6 +24,7 @@ class Scarpe
       @text = text
 
       html_element.value = text
+      # Note: text= can't return random objects, so we can't do html_element.promise_update here :-(
     end
 
     def element

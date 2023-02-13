@@ -23,6 +23,7 @@ class Scarpe
     def text=(text)
       @text = text
       html_element.inner_text = text
+      # Note: text= can't return random objects, so we can't do html_element.promise_update here :-(
     end
 
     def element
