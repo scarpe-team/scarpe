@@ -21,6 +21,10 @@ class Scarpe
       @debug = debug
 
       puts "Creating WebWrangler..." if debug
+
+      @webview.bind("puts") do |*args|
+        puts(*args)
+      end
     end
 
     ### Setup-mode Callbacks
@@ -43,7 +47,7 @@ class Scarpe
 
       @webview.bind(name, &block)
       js_interval = (interval.to_f * 1_000.0).to_i
-      @webview.init("setInterval(scarpePeriodicCallback, #{js_interval});")
+      @webview.init("setInterval(#{name}, #{js_interval});")
     end
 
     # Running callbacks
@@ -57,9 +61,6 @@ class Scarpe
 
     def run
       puts "Run..." if @debug
-      @webview.bind("puts") do |*args|
-        puts(*args)
-      end
 
       # From webview:
       # 0 - Width and height are default size

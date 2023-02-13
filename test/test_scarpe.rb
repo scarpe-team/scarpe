@@ -9,47 +9,59 @@ class TestScarpe < Minitest::Test
 
   def test_hello_world_app
     test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
-      para "Hello World"
+      Scarpe.app do
+        para "Hello World"
+      end
     SCARPE_APP
   end
 
   def test_app_timeout
     test_scarpe_code(<<-'SCARPE_APP', timeout: 0.1, allow_fail: true)
-      para "Just waiting for this to time out"
+      Scarpe.app do
+        para "Just waiting for this to time out"
+      end
     SCARPE_APP
   end
 
   def test_button_app
     test_scarpe_code(<<-'SCARPE_APP', debug: true, exit_immediately: true)
-      @push = button "Push me", width: 200, height: 50, top: 109, left: 132
-      @note = para "Nothing pushed so far"
-      @push.click { @note.replace "Aha! Click!" }
-      button_id = @push.object_id
+      Scarpe.app do
+        @push = button "Push me", width: 200, height: 50, top: 109, left: 132
+        @note = para "Nothing pushed so far"
+        @push.click { @note.replace "Aha! Click!" }
+        button_id = @push.object_id
+      end
     SCARPE_APP
   end
 
   def test_button_args_optional
     test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
-      button "Push me"
+      Scarpe.app do
+        button "Push me"
+      end
     SCARPE_APP
   end
 
   def test_stack_args_optional
     test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
-      stack do
-        button "Push me"
+      Scarpe.app do
+        stack do
+          button "Push me"
+        end
       end
     SCARPE_APP
   end
 
   def test_widgets_exist
     test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
-      stack do
-        para "Here I am"
-        button "Push me"
-        alert "I am an alert!"
-        edit_line "edit_line here", width: 450
-        image "http://shoesrb.com/manual/static/shoes-icon.png"
+      Scarpe.app do
+        stack do
+          para "Here I am"
+          button "Push me"
+          alert "I am an alert!"
+          edit_line "edit_line here", width: 450
+          image "http://shoesrb.com/manual/static/shoes-icon.png"
+        end
       end
     SCARPE_APP
   end

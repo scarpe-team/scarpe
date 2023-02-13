@@ -24,17 +24,11 @@ end
 SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
 TEST_OPTS = [:timeout, :allow_fail, :debug, :exit_immediately]
 
-def test_scarpe_code(body_code, test_code: "", **opts)
+def test_scarpe_code(scarpe_app_code, test_code: "", **opts)
   bad_opts = opts.keys - TEST_OPTS
-  raise "Bad options passed to test_scarpe_app: #{bad_opts.inspect}!" unless bad_opts.empty?
+  raise "Bad options passed to test_scarpe_code: #{bad_opts.inspect}!" unless bad_opts.empty?
 
-  scarpe_app_code = <<~SCARPE_APP_CODE
-    Scarpe.app do
-      #{body_code}
-    end
-  SCARPE_APP_CODE
-
-  with_tempfile("test_app.rb", scarpe_app_code) do |test_app_location|
+  with_tempfile("scarpe_test_app.rb", scarpe_app_code) do |test_app_location|
     test_scarpe_app(test_app_location, test_code: test_code, **opts)
   end
 end
@@ -45,21 +39,39 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
 
   with_tempfile("scarpe_test_results.json", "") do |result_path|
     do_debug = opts[:debug] ? true : false
-    die_after = opts[:timeout] ? opts[:timeout].to_f : 1.0
-
+    die_after = opts[:timeout] ? opts[:timeout].to_f : 0.1
     scarpe_test_code = <<~SCARPE_TEST_CODE
-      override_app_opts test_assertions: true, debug: #{do_debug}, die_after: #{die_after}, result_filename: #{result_path.inspect}
+      override_app_opts debug: #{do_debug}
+
+      on_event(:init) do
+        t_start = Time.now
+        wrangler.periodic_code("scarpePeriodicCallback", 0.1) do |*_args|
+          if ((Time.now - t_start).to_f > #{die_after})
+            app.destroy
+          end
+        end
+
+        result_file = #{result_path.inspect}
+        wrangler.bind("scarpeStatusAndExit") do |*results|
+          puts "Writing results file \#{result_file.inspect} to disk!" if #{do_debug}
+          File.open(result_file, "w") { |f| f.write(JSON.pretty_generate(results)) }
+          app.destroy
+        end
+      end
     SCARPE_TEST_CODE
 
     if opts[:exit_immediately]
       scarpe_test_code += <<~TEST_EXIT_IMMEDIATELY
-        on_event(:frame) {
+        on_event(:frame) do
           js_eval "scarpeStatusAndExit(true);"
-        }
+        end
       TEST_EXIT_IMMEDIATELY
     end
 
     scarpe_test_code += test_code
+
+    # No results until we write them
+    File.unlink(result_path)
 
     with_tempfile("scarpe_control.rb", scarpe_test_code) do |control_file_path|
       system("SCARPE_TEST_CONTROL=#{control_file_path} ruby #{SCARPE_EXE} --dev #{test_app_location}")
