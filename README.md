@@ -78,14 +78,14 @@ We'd love the help!
 | Syntax  | Status |
 | ------- | ------ |
 | [para](https://github.com/Schwad/scarpe/issues/1) |  ✅  |
-| [stack](https://github.com/Schwad/scarpe/issues/2) |  🛠️ |
-| [flow](https://github.com/Schwad/scarpe/issues/3) |    |
-| [button](https://github.com/Schwad/scarpe/issues/4) | 🛠️ |
-| [image](https://github.com/Schwad/scarpe/issues/5) |  🛠️  |
-| [edit_line](https://github.com/Schwad/scarpe/issues/6) | 🛠️ |
-| [edit_box](https://github.com/Schwad/scarpe/issues/7) |   🛠️ |
+| [stack](https://github.com/Schwad/scarpe/issues/2) |  ✅ |
+| [flow](https://github.com/Schwad/scarpe/issues/3) |   ✅ |
+| [button](https://github.com/Schwad/scarpe/issues/4) | ✅ |
+| [image](https://github.com/Schwad/scarpe/issues/5) |   ✅ |
+| [edit_line](https://github.com/Schwad/scarpe/issues/6) | ✅ |
+| [edit_box](https://github.com/Schwad/scarpe/issues/7) |   ✅ |
 | [link](https://github.com/Schwad/scarpe/issues/8) |   🛠️ |
-| [background](https://github.com/Schwad/scarpe/issues/9) |    |
+| [background](https://github.com/Schwad/scarpe/issues/9) |  ✅ |
 | [Shoes.url](https://github.com/Schwad/scarpe/issues/10) |    |
 | [visibility](https://github.com/Schwad/scarpe/issues/11) |    |
 | [Scarpe.app methods](https://github.com/Schwad/scarpe/issues/13) |    |
@@ -96,7 +96,7 @@ We'd love the help!
 | Subject | Status |
 | ------- | ------ |
 | [Misc Meta Issue](https://github.com/Schwad/scarpe/issues/14) |    |
-| [style](https://github.com/Schwad/scarpe/issues/15) |    |
+| [style](https://github.com/Schwad/scarpe/issues/15) |  🛠️ |
 | [parents and children](https://github.com/Schwad/scarpe/issues/16) |    |
 
 ### Future
