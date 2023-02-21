@@ -10,6 +10,8 @@ require "cgi"
 
 class Scarpe
   class WebWrangler
+    attr_reader :is_running
+
     def initialize(title:, width:, height:, resizable:, debug:)
       # For now, always allow inspect element
       @webview = WebviewRuby::Webview.new debug: true
@@ -53,6 +55,7 @@ class Scarpe
     # Running callbacks
 
     def js_eval(code)
+      raise "App isn't running, eval won't work!" unless @is_running
       @webview.eval(code)
     end
 
@@ -146,6 +149,7 @@ class Scarpe
 
     # Replace the entire DOM
     def replace(el)
+      STDERR.puts "Replacing DOM with #{el.inspect}"
       @webview.eval("document.getElementById('wrapper-wvroot').innerHTML = `#{el}`;")
     end
   end
@@ -158,8 +162,8 @@ class Scarpe
     class ElementWrangler
       attr_reader :html_id
 
-      def initialize(webwrangler, html_id)
-        @webwrangler = webwrangler
+      def initialize(html_id)
+        @webwrangler = WebviewDisplayService.instance.wrangler
         @html_id = html_id
       end
 

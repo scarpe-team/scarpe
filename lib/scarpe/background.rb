@@ -5,6 +5,12 @@ class Scarpe
     def background(color, options = {})
       @background_color = color
     end
+  end
+
+  module WebviewBackground
+    def background(color, options = {})
+      @background_color = color
+    end
 
     def style
       styles = (super if defined?(super)) || {}

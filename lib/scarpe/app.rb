@@ -4,22 +4,58 @@ require_relative "control_interface"
 require_relative "web_wrangler"
 
 class Scarpe
-  # Scarpe::App must only be used from the main thread, due to GTK+ limitations.
-  class App
-    # TODO: Do something with resizable in the future.
-    # For now, we accept it as a valid option so it doesn't crash examples.
-    VALID_OPTS = [
-      :debug,           # print out debug statements
-      :resizable,       # the app is resizable
-      :no_control,      # do not run a test-control file, even if one is specified in SCARPE_TEST_CONTROL
-    ]
+  APP_VALID_OPTS = [
+    :debug,           # print out debug statements
+    :resizable,       # the app is resizable
+    :no_control,      # do not run a test-control file, even if one is specified in SCARPE_TEST_CONTROL
+  ]
+  class App < DisplayService::Linkable
+    def initialize(title: "Scarpe!", width: 480, height: 420, resizable: true, **opts, &app_code_body)
+      bad_opts = opts.keys - APP_VALID_OPTS
+      raise "Illegal options to Scarpe::App.initialize! #{bad_opts.inspect}" unless bad_opts.empty?
 
-    attr_reader :do_debug
+      super()
+
+      # This creates the DocumentRoot, including its corresponding display widget
+      @document_root = Scarpe::DocumentRoot.new({ debug: opts[:debug] })
+
+      display_widget_properties(title:, width:, height:, resizable:, **opts)
+
+      @app_code_body = app_code_body
+    end
+
+    def init
+      send_display_event(event_name: "init")
+
+      @document_root.instance_eval(&@app_code_body)
+    end
+
+    # This isn't guaranteed to be able to return. For Webview in particular, this takes control
+    # of the main thread ***and*** stops any background threads. TODO: fix that with a second
+    # process for Webview.
+    def run
+      send_display_event(event_name: "run")
+    end
+
+    def destroy
+      send_display_event(event_name: "destroy")
+    end
+  end
+
+  # Scarpe::WebviewApp must only be used from the main thread, due to GTK+ limitations.
+  class WebviewApp < DisplayService::Linkable
+    attr_reader :debug
     attr_reader :control_interface
 
-    def initialize(title: "Scarpe!", width: 480, height: 420, resizable: true, **opts, &app_code_body)
-      bad_opts = opts.keys - VALID_OPTS
-      raise "Illegal options to Scarpe::App.initialize! #{bad_opts.inspect}" unless bad_opts.empty?
+    def shoes_linkable_id=(shoes_app_id)
+      @shoes_linkable_id = shoes_app_id
+    end
+
+    def initialize(title:, width:, height:, resizable:, shoes_linkable_id:, document_root:, **opts)
+      bad_opts = opts.keys - APP_VALID_OPTS
+      raise "Illegal options to Scarpe::WebviewApp.initialize! #{bad_opts.inspect}" unless bad_opts.empty?
+
+      @document_root = document_root
 
       # It's possible to provide a Ruby script by setting
       # SCARPE_TEST_CONTROL to its file path. This can
@@ -36,9 +72,8 @@ class Scarpe
 
       opts = @control_interface.app_opts_get_override(opts)
 
-      @do_debug = opts[:debug] ? true : false
-      @view = Scarpe::WebWrangler.new title:, width:, height:, resizable:, debug: do_debug
-      @document_root = Scarpe::DocumentRoot.new(@view, { debug: do_debug })
+      # TODO: rename @view
+      @view = Scarpe::WebWrangler.new title:, width:, height:, resizable:, debug: debug
 
       # The control interface has to exist to get callbacks like "override Scarpe app opts".
       # But the Scarpe App needs those options to be created. So we can't pass these to
@@ -46,14 +81,18 @@ class Scarpe
       @control_interface.set_system_components app: self, doc_root: @document_root, wrangler: @view
 
       @opts = opts
-      @app_code_body = app_code_body
+
+      bind_display_event(event_name: "init") { init }
+      bind_display_event(event_name: "run") { run }
+      bind_display_event(event_name: "destroy") { destroy }
+
+      super()
     end
 
     def init
       scarpe_app = self
 
       @view.init_code("scarpeInit") do
-        @document_root.instance_eval(&@app_code_body)
         redraw_frame
       end
 
@@ -66,7 +105,7 @@ class Scarpe
       end
 
       @view.bind("scarpeRedrawCallback") do
-        puts("Redraw!") if do_debug
+        puts("Redraw!") if debug
         redraw_frame if @document_root.redraw_requested
       end
     end
@@ -80,8 +119,6 @@ class Scarpe
     end
 
     def run
-      @document_root.needs_update!
-
       @control_interface.dispatch_event(:init)
 
       # This takes control of the main thread and never returns. And it *must* be run from

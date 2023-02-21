@@ -10,16 +10,36 @@ class Scarpe
       @left = left
       @block = block
 
+      super
+
       # Bind to a handler named "click"
-      bind("click") do
+      bind_display_event(event_name: "click", target: self.linkable_id) do
         @block&.call
       end
 
-      super
+      display_widget_properties(text, width:, height:, top:, left:)
     end
 
+    # Set the click handler
     def click(&block)
       @block = block
+    end
+  end
+
+  class WebviewButton < WebviewWidget
+    def initialize(text, width:, height:, top:, left:, shoes_linkable_id:)
+      @text = text
+      @width = width
+      @height = height
+      @top = top
+      @left = left
+
+      super
+
+      # Bind to display-side handler for "click"
+      bind("click") do
+        send_display_event(event_name: "click", target: shoes_linkable_id)
+      end
     end
 
     def element

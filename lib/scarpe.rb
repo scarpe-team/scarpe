@@ -1,9 +1,17 @@
 # frozen_string_literal: true
 
+if RUBY_VERSION[0..2] < "3.2"
+  STDERR.puts "Scarpe requires Ruby 3.2 or higher!"
+  exit -1
+end
+
 require "securerandom"
 require "json"
 
 require_relative "scarpe/version"
+
+require_relative "scarpe/display_service"
+
 require_relative "scarpe/app"
 require_relative "scarpe/colors"
 require_relative "scarpe/dimensions"
