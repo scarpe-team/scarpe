@@ -186,8 +186,12 @@ class Scarpe
       @display_widget_for[widget.linkable_id] = display_widget
     end
 
-    def query_display_widget_for(id)
-      @display_widget_for[id]
+    def query_display_widget_for(id, nil_ok: false)
+      display_widget = @display_widget_for[id]
+      unless display_widget || nil_ok
+        raise "Could not find display widget for linkable ID #{id.inspect}!"
+      end
+      display_widget
     end
   end
 end

@@ -13,7 +13,7 @@ class Scarpe
       super
 
       # Bind to a handler named "click"
-      bind_display_event(event_name: "click", target: self.linkable_id) do
+      bind_self_event("click") do
         @block&.call
       end
 

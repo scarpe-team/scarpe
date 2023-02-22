@@ -35,8 +35,13 @@ class Scarpe
       super() # Can specify linkable_id, but no reason to
     end
 
-    def bind(event_name, &block)
-      bind_display_event(event_name, &block)
+    def bind_self_event(event_name, &block)
+      raise("Widget has no linkable_id! #{self.inspect}") unless linkable_id
+      bind_display_event(event_name: event_name, target: linkable_id, &block)
+    end
+
+    def bind_no_target_event(event_name, &block)
+      bind_display_event(event_name:, &block)
     end
 
     attr_reader :parent
@@ -180,8 +185,9 @@ class Scarpe
       end
     end
 
-    # This binds a Scarpe callback, handled via a single dispatch point in the document root
+    # This binds a Scarpe JS callback, handled via a single dispatch point in the document root
     def bind(event, &block)
+      raise("Widget has no linkable_id! #{self.inspect}") unless linkable_id
       WebviewDisplayService.instance.doc_root.bind("#{linkable_id}-#{event}", &block)
     end
 
@@ -209,6 +215,7 @@ class Scarpe
     end
 
     def handler_js_code(handler_function_name, *args)
+      raise("Widget has no linkable_id! #{self.inspect}") unless linkable_id
       js_args = ["'#{linkable_id}-#{handler_function_name}'", *args].join(", ")
       "scarpeHandler(#{js_args})"
     end

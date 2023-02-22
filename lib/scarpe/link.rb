@@ -7,10 +7,27 @@ class Scarpe
       @click = click || "#"
       @block = block
 
-      bind("click") do
+      super
+
+      bind_self_event("click") do
         @block&.call
       end
+
+      display_widget_properties(text, !block.nil?, click:)
+    end
+  end
+
+  class WebviewLink < WebviewWidget
+    def initialize(text, has_block, click:, shoes_linkable_id:)
+      @text = text
+      @has_block = has_block
+      @click = click
+
       super
+
+      bind("click") do
+        send_display_event(event_name: "click", target: shoes_linkable_id)
+      end
     end
 
     def element
@@ -25,7 +42,7 @@ class Scarpe
       {
         id: html_id,
         href: @click,
-        onclick: (handler_js_code("click") if @block),
+        onclick: (handler_js_code("click") if @has_block),
       }.compact
     end
   end
