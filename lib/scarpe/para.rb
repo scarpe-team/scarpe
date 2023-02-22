@@ -112,4 +112,32 @@ class Scarpe
 
     attr_reader :stroke, :size, :html_attributes
   end
+
+  class Widget
+    def banner(*args, **kwargs)
+      para(*args, **({size: :banner}.merge(kwargs)))
+    end
+
+    def title(*args, **kwargs)
+      para(*args, **({size: :title}.merge(kwargs)))
+    end
+
+    def subtitle(*args, **kwargs)
+      para(*args, **({size: :subtitle}.merge(kwargs)))
+    end
+
+    def tagline(*args, **kwargs)
+      para(*args, **({size: :tagline}.merge(kwargs)))
+    end
+
+    def caption(*args, **kwargs)
+      para(*args, **({size: :caption}.merge(kwargs)))
+    end
+
+    def inscription(*args, **kwargs)
+      para(*args, **({size: :inscription}.merge(kwargs)))
+    end
+
+    alias ins inscription
+  end
 end

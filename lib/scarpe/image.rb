@@ -9,6 +9,22 @@ class Scarpe
       @top = top
       @left = left
       @click = click
+
+      super
+
+      display_widget_properties(url, width:, height:, top:, left:, click:)
+    end
+  end
+
+  class WebviewImage < WebviewWidget
+    def initialize(url, width:, height:, top:, left:, click:, shoes_linkable_id:)
+      @url = url
+      @width = width
+      @height = height
+      @top = top
+      @left = left
+      @click = click
+
       super
     end
 

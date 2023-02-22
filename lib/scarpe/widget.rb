@@ -74,6 +74,8 @@ class Scarpe
       send_shoes_event(event_name: "destroy", target: self.linkable_id)
     end
 
+    alias destroy_self destroy
+
     def method_missing(name, *args, **kwargs, &block)
       klass = Widget.widget_class_by_name(name.to_s)
       return super unless klass
