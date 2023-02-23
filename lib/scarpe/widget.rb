@@ -36,7 +36,8 @@ class Scarpe
     end
 
     def bind_self_event(event_name, &block)
-      raise("Widget has no linkable_id! #{self.inspect}") unless linkable_id
+      raise("Widget has no linkable_id! #{inspect}") unless linkable_id
+
       bind_display_event(event_name: event_name, target: linkable_id, &block)
     end
 
@@ -50,7 +51,7 @@ class Scarpe
       @parent.remove_child(self) if @parent
       new_parent.add_child(self) if new_parent
       @parent = new_parent
-      send_shoes_event(new_parent.linkable_id, event_name: "parent", target: self.linkable_id)
+      send_shoes_event(new_parent.linkable_id, event_name: "parent", target: linkable_id)
     end
 
     # Do not call directly, use set_parent
@@ -71,10 +72,10 @@ class Scarpe
     # Removes the element from the Scarpe::Widget tree
     def destroy
       @parent&.remove_child(self)
-      send_shoes_event(event_name: "destroy", target: self.linkable_id)
+      send_shoes_event(event_name: "destroy", target: linkable_id)
     end
 
-    alias destroy_self destroy
+    alias_method :destroy_self, :destroy
 
     def method_missing(name, *args, **kwargs, &block)
       klass = Widget.widget_class_by_name(name.to_s)
@@ -109,10 +110,12 @@ class Scarpe
         unless scarpe_class.ancestors.include?(Scarpe::DisplayService::Linkable)
           raise "Scarpe Webview can only get display classes for Scarpe linkable widgets, not #{scarpe_class.inspect}!"
         end
+
         klass = Scarpe.const_get("Webview" + scarpe_class.name.split("::")[-1])
         if klass.nil?
           raise "Couldn't find corresponding Scarpe Webview class for #{scarpe_class.inspect}!"
         end
+
         klass
       end
     end
@@ -127,12 +130,12 @@ class Scarpe
       bind_shoes_event(event_name: "parent", target: shoes_linkable_id) do |new_parent_id|
         display_parent = WebviewDisplayService.instance.query_display_widget_for(new_parent_id)
         if @parent != display_parent
-          self.set_parent(display_parent)
+          set_parent(display_parent)
         end
       end
 
       bind_shoes_event(event_name: "destroy", target: shoes_linkable_id) do
-        destroy_self()
+        destroy_self
       end
 
       super()
@@ -189,7 +192,8 @@ class Scarpe
 
     # This binds a Scarpe JS callback, handled via a single dispatch point in the document root
     def bind(event, &block)
-      raise("Widget has no linkable_id! #{self.inspect}") unless linkable_id
+      raise("Widget has no linkable_id! #{inspect}") unless linkable_id
+
       WebviewDisplayService.instance.doc_root.bind("#{linkable_id}-#{event}", &block)
     end
 
@@ -217,7 +221,8 @@ class Scarpe
     end
 
     def handler_js_code(handler_function_name, *args)
-      raise("Widget has no linkable_id! #{self.inspect}") unless linkable_id
+      raise("Widget has no linkable_id! #{inspect}") unless linkable_id
+
       js_args = ["'#{linkable_id}-#{handler_function_name}'", *args].join(", ")
       "scarpeHandler(#{js_args})"
     end

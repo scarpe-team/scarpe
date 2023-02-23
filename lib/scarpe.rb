@@ -2,7 +2,7 @@
 
 if RUBY_VERSION[0..2] < "3.2"
   STDERR.puts "Scarpe requires Ruby 3.2 or higher!"
-  exit -1
+  exit(-1)
 end
 
 require "securerandom"

@@ -56,6 +56,7 @@ class Scarpe
 
     def js_eval(code)
       raise "App isn't running, eval won't work!" unless @is_running
+
       @webview.eval(code)
     end
 

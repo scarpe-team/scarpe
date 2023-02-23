@@ -2,7 +2,7 @@
 
 class Scarpe
   module Background
-    # Note: this needs to be passed through in order for the styling to work
+    # NOTE: this needs to be passed through in order for the styling to work
     def background(color, options = {})
       @background_color = color
     end

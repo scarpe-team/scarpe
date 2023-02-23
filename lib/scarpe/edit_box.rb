@@ -27,7 +27,7 @@ class Scarpe
     def text=(text)
       @text = text
       html_element.inner_text = text
-      send_display_event(text, event_name: "set_text", target: self.linkable_id)
+      send_display_event(text, event_name: "set_text", target: linkable_id)
     end
   end
 

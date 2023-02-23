@@ -26,7 +26,7 @@ class Scarpe
     def text=(new_text)
       @text = new_text
 
-      send_display_event(text, event_name: "set_text", target: self.linkable_id)
+      send_display_event(text, event_name: "set_text", target: linkable_id)
     end
   end
 

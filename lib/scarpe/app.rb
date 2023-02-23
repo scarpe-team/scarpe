@@ -47,9 +47,7 @@ class Scarpe
     attr_reader :debug
     attr_reader :control_interface
 
-    def shoes_linkable_id=(shoes_app_id)
-      @shoes_linkable_id = shoes_app_id
-    end
+    attr_writer :shoes_linkable_id
 
     def initialize(title:, width:, height:, resizable:, shoes_linkable_id:, document_root:, **opts)
       bad_opts = opts.keys - APP_VALID_OPTS

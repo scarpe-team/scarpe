@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Scarpe Shoes apps operate in multiple layers. A Shoes widget tree exists as fairly
 # plain, simple Ruby objects. And then a display-service widget tree integrates with
 # the display technology, initially Webview. This lets us use Ruby as our API while
@@ -25,7 +27,7 @@
 #
 class Scarpe
   class DisplayService
-    DS_EVENT_TYPES = [ :shoes, :display ]
+    DS_EVENT_TYPES = [:shoes, :display]
 
     class << self
       # An event_target may be nil, to indicate there is no target.
@@ -78,14 +80,14 @@ class Scarpe
 
       # TODO: add more display service types, use an env var to switch
       def display_services
-        @service_list ||= [ WebviewDisplayService.new ]
+        @service_list ||= [WebviewDisplayService.new]
       end
     end
 
     class Linkable
       attr_reader :linkable_id
 
-      def initialize(linkable_id: self.object_id)
+      def initialize(linkable_id: object_id)
         @linkable_id = linkable_id
       end
 
@@ -141,6 +143,7 @@ class Scarpe
       if WebviewDisplayService.instance
         raise "ERROR! This is meant to be a singleton!"
       end
+
       WebviewDisplayService.instance = self
 
       @display_widget_for = {}
@@ -154,7 +157,13 @@ class Scarpe
         unless @doc_root
           raise "WebviewDocumentRoot is supposed to be created before WebviewApp!"
         end
-        display_app = Scarpe::WebviewApp.new(*args, shoes_linkable_id: widget.linkable_id, document_root: @doc_root, **kwargs)
+
+        display_app = Scarpe::WebviewApp.new(
+          *args,
+          shoes_linkable_id: widget.linkable_id,
+          document_root: @doc_root,
+**kwargs,
+        )
         @control_interface = display_app.control_interface
         @app = @control_interface.app
         @wrangler = @control_interface.wrangler
@@ -191,6 +200,7 @@ class Scarpe
       unless display_widget || nil_ok
         raise "Could not find display widget for linkable ID #{id.inspect}!"
       end
+
       display_widget
     end
   end
