@@ -113,7 +113,7 @@ We'd love the help!
 * **Whimsy** - We're not here to make money or be corporate. We're here to have fun! Even if we do end up building something amazing.
 * **Empathy** - Let's help one another, and adhere to good contributor standards while doing so.
 
-## Documentation
+## Documentation
 
 We have a collection of primary and secondary sources currently serving as documentation. Long-term we would like to compose a "pickaxe-book"-style specification for Shoes that collates this knowledge into one place.
 
