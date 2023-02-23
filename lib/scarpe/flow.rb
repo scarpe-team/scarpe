@@ -5,16 +5,13 @@ class Scarpe
     include Scarpe::Background
     include Scarpe::Border
 
-    def initialize(width: nil, height: nil, margin: nil, padding: nil, &block)
-      @width = width
-      @height = height
-      @margin = margin
-      @padding = padding
+    display_properties :width, :height, :margin, :padding
 
+    def initialize(width: nil, height: nil, margin: nil, padding: nil, &block)
       super
 
       # Create the display-side widget *before* instance_eval, which will add child widgets with their display widgets
-      display_widget_properties(width:, height:, margin:, padding:)
+      create_display_widget
 
       instance_eval(&block)
     end
@@ -24,12 +21,7 @@ class Scarpe
     include Scarpe::Background
     include Scarpe::Border
 
-    def initialize(width:, height:, margin:, padding:, shoes_linkable_id:)
-      @width = width
-      @height = height
-      @margin = margin
-      @padding = padding
-
+    def initialize(properties)
       super
     end
 

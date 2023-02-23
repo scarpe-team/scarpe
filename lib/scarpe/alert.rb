@@ -2,6 +2,8 @@
 
 class Scarpe
   class Alert < Scarpe::Widget
+    display_property :text
+
     def initialize(text)
       @text = text
 
@@ -11,14 +13,12 @@ class Scarpe
         destroy_self
       end
 
-      display_widget_properties(text)
+      create_display_widget
     end
   end
 
   class WebviewAlert < WebviewWidget
-    def initialize(text, shoes_linkable_id:)
-      @text = text
-
+    def initialize(properties)
       super
 
       bind("click") do

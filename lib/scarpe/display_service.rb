@@ -91,25 +91,6 @@ class Scarpe
         @linkable_id = linkable_id
       end
 
-      # A Scarpe::Widget can filter out non-display properties, or set default values, before they get
-      # sent to the display side. That way there's no need to update two sets of default values for
-      # a field -- the Shoes-side values can have defaults and options, while the display side
-      # property list is complete and final.
-      def display_widget_properties(*args, **kwargs)
-        if block_given?
-          raise "display_widget_properties does not take a block!" +
-            " Shoes-side blocks run in Shoes, not the display service!"
-        end
-
-        # We want to support multiple, or zero, display services later. Thus, we link via events and
-        # DisplayService objects.
-        DisplayService.display_services.each do |display_service|
-          # We DO NOT save a reference to our display widget(s). If they just disappear later, we'll cheerfully
-          # keep ticking along and not complain.
-          display_service.create_display_widget_for(self, *args, **kwargs)
-        end
-      end
-
       def send_shoes_event(*args, event_name:, target: nil, **kwargs)
         DisplayService.dispatch_event(:shoes, event_name, target, *args, **kwargs)
       end
@@ -150,21 +131,16 @@ class Scarpe
       @display_widget_for = {}
     end
 
-    def create_display_widget_for(widget, *args, **kwargs)
+    def create_display_widget_for(widget, properties)
       klass = widget.class
-      # Initial app creation seems like a mess of special cases right now. It would be nice to clean it up.
 
       if klass == Scarpe::App
         unless @doc_root
           raise "WebviewDocumentRoot is supposed to be created before WebviewApp!"
         end
 
-        display_app = Scarpe::WebviewApp.new(
-          *args,
-          shoes_linkable_id: widget.linkable_id,
-          document_root: @doc_root,
-**kwargs,
-        )
+        display_app = Scarpe::WebviewApp.new(properties)
+        display_app.document_root = @doc_root
         @control_interface = display_app.control_interface
         @app = @control_interface.app
         @wrangler = @control_interface.wrangler
@@ -176,11 +152,11 @@ class Scarpe
 
       # Create a corresponding display widget
       display_class = Scarpe::WebviewWidget.display_class_for(klass)
-      display_widget = display_class.new(*args, shoes_linkable_id: widget.linkable_id, **kwargs)
+      display_widget = display_class.new(properties)
       set_widget_pairing(widget, display_widget)
 
       if widget.parent
-        $stderr.puts "We assumed there was no widget parent yet. Fix this?"
+        $stderr.puts "WebviewDisplayService: We assumed there was no widget parent yet. Fix this?"
       end
 
       if klass == Scarpe::DocumentRoot

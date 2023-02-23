@@ -10,17 +10,18 @@ class Scarpe
       end
     end
 
-    attr_reader :stroke, :size, :html_attributes
+    display_properties :text_items, :stroke, :size, :html_attributes
 
     def initialize(*args, stroke: nil, size: :para, **html_attributes)
       @text_children = args || []
-      @stroke = stroke
-      @size = size
-      @html_attributes = html_attributes
+      # Text_children alternates strings and TextWidgets, so we can't just pass it as a display property. It won't serialize.
+      @text_items = text_children_to_items(@text_children)
+
+      @html_attributes = html_attributes || {}
 
       super
 
-      display_widget_properties(text_children_to_items(args), stroke:, size:, **html_attributes)
+      create_display_widget
     end
 
     def text_children_to_items(text_children)
@@ -28,7 +29,10 @@ class Scarpe
     end
 
     def replace(*children)
-      send_shoes_event(text_children_to_items(children), event_name: "replace", target: linkable_id)
+      @text_children = children
+
+      # This should signal the display widget to change
+      self.text_items = text_children_to_items(@text_children)
     end
   end
 
@@ -45,18 +49,18 @@ class Scarpe
     }.freeze
     private_constant :SIZES
 
-    def initialize(items, stroke:, size:, shoes_linkable_id:, **html_attributes)
-      @text_children = items_to_display_children(items)
-      @stroke = stroke
-      @size = size
-      @html_attributes = html_attributes
+    def initialize(properties)
+      super
+    end
+
+    def properties_changed(changes)
+      items = changes.delete("text_items")
+      if items
+        html_element.inner_html = to_html
+        return
+      end
 
       super
-
-      bind_shoes_event(event_name: "replace", target: shoes_linkable_id) do |items|
-        @text_children = items_to_display_children(items)
-        html_element.inner_html = child_markup
-      end
     end
 
     def items_to_display_children(items)
@@ -86,7 +90,7 @@ class Scarpe
     private
 
     def child_markup
-      @text_children.map do |child|
+      items_to_display_children(@text_items).map do |child|
         if child.respond_to?(:to_html)
           child.to_html
         else
@@ -96,23 +100,21 @@ class Scarpe
     end
 
     def options
-      html_attributes.merge(id: html_id, style: style)
+      @html_attributes.merge(id: html_id, style: style)
     end
 
     def style
       {
-        "color" => stroke,
+        "color" => @stroke,
         "font-size" => font_size,
       }.compact
     end
 
     def font_size
-      font_size = size.is_a?(Symbol) ? SIZES[size] : size
+      font_size = @size.is_a?(Symbol) ? SIZES[@size] : @size
 
       Dimensions.length(font_size)
     end
-
-    attr_reader :stroke, :size, :html_attributes
   end
 
   class Widget
