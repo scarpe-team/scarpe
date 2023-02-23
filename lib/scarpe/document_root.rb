@@ -13,6 +13,8 @@ class Scarpe
 
       display_widget_properties(opts)
     end
+
+    alias_method :info, :puts
   end
 
   class WebviewDocumentRoot < Scarpe::WebviewWidget
@@ -63,7 +65,6 @@ class Scarpe
     def end_of_frame
       @redraw_requested = false
     end
-    alias_method :info, :puts
 
     # The document root manages the connection between widgets and the WebviewWrangler.
     # By centralising this and wrapping in API functions, we can keep from executing

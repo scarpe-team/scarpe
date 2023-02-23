@@ -149,7 +149,6 @@ class Scarpe
 
     # Replace the entire DOM
     def replace(el)
-      STDERR.puts "Replacing DOM with #{el.inspect}"
       @webview.eval("document.getElementById('wrapper-wvroot').innerHTML = `#{el}`;")
     end
   end
