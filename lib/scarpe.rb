@@ -32,9 +32,6 @@ require_relative "scarpe/alert"
 
 require_relative "scarpe/text_widget"
 require_relative "scarpe/link"
-require_relative "scarpe/strong"
-require_relative "scarpe/em"
-require_relative "scarpe/code"
 
 require_relative "scarpe/document_root"
 

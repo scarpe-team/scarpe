@@ -17,6 +17,7 @@ class Scarpe
       @stroke = stroke
       @size = size
       @html_attributes = html_attributes
+
       super
 
       display_widget_properties(text_children_to_items(args), stroke:, size:, **html_attributes)
