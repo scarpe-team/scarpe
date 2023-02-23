@@ -2,29 +2,19 @@
 
 class Scarpe
   class Image < Scarpe::Widget
+    display_properties :url, :width, :height, :top, :left, :click
+
     def initialize(url, width: nil, height: nil, top: nil, left: nil, click: nil)
       @url = url
-      @width = width
-      @height = height
-      @top = top
-      @left = left
-      @click = click
 
       super
 
-      display_widget_properties(url, width:, height:, top:, left:, click:)
+      create_display_widget
     end
   end
 
   class WebviewImage < WebviewWidget
-    def initialize(url, width:, height:, top:, left:, click:, shoes_linkable_id:)
-      @url = url
-      @width = width
-      @height = height
-      @top = top
-      @left = left
-      @click = click
-
+    def initialize(properties)
       super
     end
 

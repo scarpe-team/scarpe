@@ -23,19 +23,23 @@ class Scarpe
       webview_class_name = "Webview#{class_name}"
 
       widget_class = Class.new(Scarpe::TextWidget) do
+        display_property :content
+
         def initialize(content)
           @content = content
 
-          super(content)
+          super
 
-          display_widget_properties(content)
+          create_display_widget
         end
       end
       Scarpe.const_set class_name, widget_class
+      widget_class.class_eval do
+        display_property :content
+      end
 
       webview_widget_class = Class.new(Scarpe::WebviewTextWidget) do
-        def initialize(content, shoes_linkable_id:)
-          @content = content
+        def initialize(properties)
           class_name = self.class.name.split("::")[-1]
           @html_tag = class_name.delete_prefix("Webview").downcase
           super

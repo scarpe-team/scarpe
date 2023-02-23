@@ -2,12 +2,11 @@
 
 class Scarpe
   class Button < Scarpe::Widget
+    display_properties :text, :width, :height, :top, :left
+
     def initialize(text, width: nil, height: nil, top: nil, left: nil, &block)
+      # Properties passed as positional args, not keywords, don't get auto-set
       @text = text
-      @width = width
-      @height = height
-      @top = top
-      @left = left
       @block = block
 
       super
@@ -17,7 +16,7 @@ class Scarpe
         @block&.call
       end
 
-      display_widget_properties(text, width:, height:, top:, left:)
+      create_display_widget
     end
 
     # Set the click handler
@@ -27,13 +26,7 @@ class Scarpe
   end
 
   class WebviewButton < WebviewWidget
-    def initialize(text, width:, height:, top:, left:, shoes_linkable_id:)
-      @text = text
-      @width = width
-      @height = height
-      @top = top
-      @left = left
-
+    def initialize(properties)
       super
 
       # Bind to display-side handler for "click"

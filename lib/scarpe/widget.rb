@@ -9,7 +9,7 @@
 class Scarpe
   class Widget < DisplayService::Linkable
     class << self
-      attr_accessor :widget_classes, :alias_name
+      attr_accessor :widget_classes, :alias_name, :linkable_properties, :linkable_properties_hash
 
       def alias_as(name)
         self.alias_name = name
@@ -29,9 +29,37 @@ class Scarpe
       def widget_class_by_name(name)
         widget_classes.detect { |k| k.dsl_name == name.to_s || k.alias_name.to_s == name.to_s }
       end
+
+      # Display properties in Shoes Linkables are automatically sync'd with the display side objects.
+      # TODO: do we want types or other modifiers on specific properties?
+      def display_property(name)
+        name = name.to_s
+        @linkable_properties ||= []
+        @linkable_properties << { name: name }
+        @linkable_properties_hash ||= {}
+        @linkable_properties_hash[name] = true
+      end
+
+      def display_properties(*names)
+        names.each { |n| display_property(n) }
+      end
+
+      def display_property_names
+        @linkable_properties.map { |prop| prop[:name] }
+      end
+
+      def display_property_name?(name)
+        @linkable_properties_hash[name.to_s]
+      end
     end
 
-    def initialize(*args)
+    def initialize(*args, **kwargs)
+      self.class.display_property_names.each do |prop|
+        if kwargs[prop.to_sym]
+          instance_variable_set("@" + prop, kwargs[prop.to_sym])
+        end
+      end
+
       super() # Can specify linkable_id, but no reason to
     end
 
@@ -43,6 +71,25 @@ class Scarpe
 
     def bind_no_target_event(event_name, &block)
       bind_display_event(event_name:, &block)
+    end
+
+    def display_properties
+      properties = {}
+      self.class.display_property_names.each do |prop|
+        properties[prop] = instance_variable_get("@" + prop)
+      end
+      properties["shoes_linkable_id"] = self.linkable_id
+      properties
+    end
+
+    def create_display_widget
+      # We want to support multiple, or zero, display services later. Thus, we link via events and
+      # DisplayService objects.
+      DisplayService.display_services.each do |display_service|
+        # We DO NOT save a reference to our display widget(s). If they just disappear later, we'll cheerfully
+        # keep ticking along and not complain.
+        display_service.create_display_widget_for(self, display_properties)
+      end
     end
 
     attr_reader :parent
@@ -77,11 +124,37 @@ class Scarpe
 
     alias_method :destroy_self, :destroy
 
+    # We use method_missing for widget-creating methods like "button",
+    # and also to auto-create display-property getters and setters.
     def method_missing(name, *args, **kwargs, &block)
-      klass = Widget.widget_class_by_name(name.to_s)
-      return super unless klass
+      name_s = name.to_s
 
-      super unless klass
+      if name_s[-1] == "="
+        prop_name = name_s[0..-2]
+        if self.class.display_property_name?(prop_name)
+          self.class.define_method(name) do |new_value|
+            raise "Trying to set display properties in an object with no linkable ID!" unless linkable_id
+
+            instance_variable_set("@" + prop_name, new_value)
+            send_shoes_event({ prop_name => new_value }, event_name: "prop_change", target: linkable_id)
+          end
+
+          return self.send(name, *args, **kwargs, &block)
+        end
+      end
+
+      if self.class.display_property_name?(name_s)
+        self.class.define_method(name) do
+          raise "Trying to get display properties in an object with no linkable ID!" unless linkable_id
+
+          instance_variable_get("@" + name_s)
+        end
+
+        return self.send(name, *args, **kwargs, &block)
+      end
+
+      klass = Widget.widget_class_by_name(name)
+      return super unless klass
 
       ::Scarpe::Widget.define_method(name) do |*args, **kwargs, &block|
         # Look up the Shoes widget and create it...
@@ -97,10 +170,13 @@ class Scarpe
       send(name, *args, **kwargs, &block)
     end
 
-    def respond_to_missing?(name, include_all = false)
-      klass = Widget.find_by_name(name.to_s)
+    def respond_to_missing?(name, include_private = false)
+      name_s = name.to_s
+      return true if self.class.display_property_name?(name_s)
+      return true if self.class.display_property_name?(name_s[0..-2]) && name_s[-1] == "="
+      return true if Widget.widget_class_by_name(name_s)
 
-      !klass.nil? || super(name, include_all)
+      super
     end
   end
 
@@ -123,10 +199,21 @@ class Scarpe
     attr_reader :shoes_linkable_id
     attr_reader :parent
 
-    def initialize(*args, shoes_linkable_id:, **kwargs)
+    def initialize(properties)
       # Call method, which looks up the parent
-      shoes_linkable_id = shoes_linkable_id
+      @shoes_linkable_id = properties["shoes_linkable_id"]
+      unless @shoes_linkable_id
+        raise "Could not find property shoes_linkable_id in #{properties.inspect}!"
+      end
 
+      # Set the display properties
+      properties.each do |k, v|
+        next if k == "shoes_linkable_id"
+
+        instance_variable_set("@" + k, v)
+      end
+
+      # The parent field is *almost* simple enough that a typed display property would handle it.
       bind_shoes_event(event_name: "parent", target: shoes_linkable_id) do |new_parent_id|
         display_parent = WebviewDisplayService.instance.query_display_widget_for(new_parent_id)
         if @parent != display_parent
@@ -134,11 +221,24 @@ class Scarpe
         end
       end
 
+      # When Shoes widgets change properties, we get a change notification here
+      bind_shoes_event(event_name: "prop_change", target: shoes_linkable_id) do |prop_changes|
+        prop_changes.each do |k, v|
+          instance_variable_set("@" + k, v)
+        end
+        properties_changed(prop_changes)
+      end
+
       bind_shoes_event(event_name: "destroy", target: shoes_linkable_id) do
         destroy_self
       end
 
       super()
+    end
+
+    # This exists to be overridden by children watching for changes
+    def properties_changed(changes)
+      needs_update! unless changes.empty?
     end
 
     def set_parent(new_parent)

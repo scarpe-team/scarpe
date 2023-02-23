@@ -6,18 +6,16 @@ class Scarpe
     include Scarpe::Border
     include Scarpe::Spacing
 
+    display_properties :width, :height, :margin, :padding, :scroll, :options
+
     def initialize(width: nil, height: nil, margin: nil, padding: nil, scroll: false, **options, &block)
-      @width = width
-      @height = height
-      @margin = margin
-      @padding = padding
-      @scroll = scroll
+      # TODO: what are these options? Are they guaranteed serializable?
       @options = options
 
       super
 
       # Create the display-side widget *before* instance_eval, which will add child widgets with their display widgets
-      display_widget_properties(width:, height:, margin:, padding:, scroll:, options:)
+      create_display_widget
 
       instance_eval(&block)
     end
@@ -28,14 +26,7 @@ class Scarpe
     include Scarpe::Border
     include Scarpe::Spacing
 
-    def initialize(width:, height:, margin:, padding:, scroll:, options:, shoes_linkable_id:)
-      @width = width
-      @height = height
-      @margin = margin
-      @padding = padding
-      @scroll = scroll
-      @options = options
-
+    def initialize(properties)
       super
     end
 

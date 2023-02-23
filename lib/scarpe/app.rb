@@ -4,22 +4,16 @@ require_relative "control_interface"
 require_relative "web_wrangler"
 
 class Scarpe
-  APP_VALID_OPTS = [
-    :debug,           # print out debug statements
-    :resizable,       # the app is resizable
-    :no_control,      # do not run a test-control file, even if one is specified in SCARPE_TEST_CONTROL
-  ]
-  class App < DisplayService::Linkable
-    def initialize(title: "Scarpe!", width: 480, height: 420, resizable: true, **opts, &app_code_body)
-      bad_opts = opts.keys - APP_VALID_OPTS
-      raise "Illegal options to Scarpe::App.initialize! #{bad_opts.inspect}" unless bad_opts.empty?
+  class App < Scarpe::Widget
+    display_properties :title, :width, :height, :resizable, :debug
 
-      super()
+    def initialize(title: "Scarpe!", width: 480, height: 420, resizable: true, debug: false, &app_code_body)
+      super
 
       # This creates the DocumentRoot, including its corresponding display widget
-      @document_root = Scarpe::DocumentRoot.new({ debug: opts[:debug] })
+      @document_root = Scarpe::DocumentRoot.new(debug: @debug)
 
-      display_widget_properties(title:, width:, height:, resizable:, **opts)
+      create_display_widget
 
       @app_code_body = app_code_body
     end
@@ -43,17 +37,17 @@ class Scarpe
   end
 
   # Scarpe::WebviewApp must only be used from the main thread, due to GTK+ limitations.
-  class WebviewApp < DisplayService::Linkable
+  class WebviewApp < WebviewWidget
     attr_reader :debug
     attr_reader :control_interface
 
     attr_writer :shoes_linkable_id
 
-    def initialize(title:, width:, height:, resizable:, shoes_linkable_id:, document_root:, **opts)
-      bad_opts = opts.keys - APP_VALID_OPTS
-      raise "Illegal options to Scarpe::WebviewApp.initialize! #{bad_opts.inspect}" unless bad_opts.empty?
+    def initialize(properties)
+      # Is this a thing? Do we care about this?
+      # opts = @control_interface.app_opts_get_override(opts)
 
-      @document_root = document_root
+      super
 
       # It's possible to provide a Ruby script by setting
       # SCARPE_TEST_CONTROL to its file path. This can
@@ -64,28 +58,28 @@ class Scarpe
       # The control interface is what lets these files see
       # events, specify overrides and so on.
       @control_interface = ControlInterface.new
-      if ENV["SCARPE_TEST_CONTROL"] && !opts[:no_control]
+      if ENV["SCARPE_TEST_CONTROL"]
         @control_interface.instance_eval File.read(ENV["SCARPE_TEST_CONTROL"])
       end
 
-      opts = @control_interface.app_opts_get_override(opts)
-
       # TODO: rename @view
-      @view = Scarpe::WebWrangler.new title:, width:, height:, resizable:, debug: debug
+      @view = Scarpe::WebWrangler.new title: @title,
+        width: @width,
+        height: @height,
+        resizable: @resizable,
+        debug: @debug
 
       # The control interface has to exist to get callbacks like "override Scarpe app opts".
       # But the Scarpe App needs those options to be created. So we can't pass these to
       # ControlInterface.new.
       @control_interface.set_system_components app: self, doc_root: @document_root, wrangler: @view
 
-      @opts = opts
-
       bind_display_event(event_name: "init") { init }
       bind_display_event(event_name: "run") { run }
       bind_display_event(event_name: "destroy") { destroy }
-
-      super()
     end
+
+    attr_writer :document_root
 
     def init
       scarpe_app = self
@@ -129,13 +123,6 @@ class Scarpe
       raise "Cannot js_bind on closed or inactive Scarpe::App!" unless @view
 
       @view.bind(name, &code)
-    end
-
-    def js_eval(code)
-      raise "Cannot js_eval on closed or inactive Scarpe::App!" unless @view
-
-      puts "JS EVAL: #{code.inspect}" if @opts[:debug]
-      @view.eval(code)
     end
 
     def destroy
