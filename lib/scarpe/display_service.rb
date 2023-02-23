@@ -97,7 +97,8 @@ class Scarpe
       # property list is complete and final.
       def display_widget_properties(*args, **kwargs)
         if block_given?
-          raise "display_widget_properties does not take a block! Shoes-side blocks run in Shoes, not the display service!"
+          raise "display_widget_properties does not take a block!" +
+            " Shoes-side blocks run in Shoes, not the display service!"
         end
 
         # We want to support multiple, or zero, display services later. Thus, we link via events and
@@ -105,7 +106,7 @@ class Scarpe
         DisplayService.display_services.each do |display_service|
           # We DO NOT save a reference to our display widget(s). If they just disappear later, we'll cheerfully
           # keep ticking along and not complain.
-          display_widget = display_service.create_display_widget_for(self, *args, **kwargs)
+          display_service.create_display_widget_for(self, *args, **kwargs)
         end
       end
 
@@ -179,7 +180,7 @@ class Scarpe
       set_widget_pairing(widget, display_widget)
 
       if widget.parent
-        STDERR.puts "We assumed there was no widget parent yet. Fix this?"
+        $stderr.puts "We assumed there was no widget parent yet. Fix this?"
       end
 
       if klass == Scarpe::DocumentRoot

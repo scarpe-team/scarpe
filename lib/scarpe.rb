@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 if RUBY_VERSION[0..2] < "3.2"
-  STDERR.puts "Scarpe requires Ruby 3.2 or higher!"
+  $stderr.puts "Scarpe requires Ruby 3.2 or higher!"
   exit(-1)
 end
 

@@ -48,8 +48,8 @@ class Scarpe
     attr_reader :parent
 
     def set_parent(new_parent)
-      @parent.remove_child(self) if @parent
-      new_parent.add_child(self) if new_parent
+      @parent&.remove_child(self)
+      new_parent&.add_child(self)
       @parent = new_parent
       send_shoes_event(new_parent.linkable_id, event_name: "parent", target: linkable_id)
     end
@@ -142,8 +142,8 @@ class Scarpe
     end
 
     def set_parent(new_parent)
-      @parent.remove_child(self) if @parent
-      new_parent.add_child(self) if new_parent
+      @parent&.remove_child(self)
+      new_parent&.add_child(self)
       @parent = new_parent
     end
 
