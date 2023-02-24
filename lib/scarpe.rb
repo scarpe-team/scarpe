@@ -9,8 +9,8 @@ require "securerandom"
 require "json"
 
 require_relative "scarpe/version"
+require_relative "scarpe/promises"
 require_relative "scarpe/display_service"
-require_relative "scarpe/wv/widget" # REMOVE THIS LINE LATER
 require_relative "scarpe/widgets"
 
 # WebView Display Service
