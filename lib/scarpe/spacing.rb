@@ -2,7 +2,13 @@
 
 class Scarpe
   module Spacing
-    DIRECTIONS = [:left, :right, :top, :bottom]
+    def self.included(includer)
+      includer.display_properties :margin, :padding
+    end
+  end
+
+  module WebviewSpacing
+    SPACING_DIRECTIONS = [:left, :right, :top, :bottom]
 
     def style
       styles = (super if defined?(super)) || {}
@@ -22,7 +28,7 @@ class Scarpe
           styles["#{attribute}-#{direction}"] = Dimensions.length(value)
         end
       when Array
-        DIRECTIONS.zip(values).to_h.compact.each do |direction, value|
+        SPACING_DIRECTIONS.zip(values).to_h.compact.each do |direction, value|
           styles["#{attribute}-#{direction}"] = Dimensions.length(value)
         end
       else
@@ -33,7 +39,7 @@ class Scarpe
     end
 
     def spacing_values_from_options(attribute)
-      DIRECTIONS.map do |direction|
+      SPACING_DIRECTIONS.map do |direction|
         @options.delete("#{attribute}_#{direction}".to_sym)
       end
     end

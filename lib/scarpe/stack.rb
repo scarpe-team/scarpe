@@ -22,9 +22,9 @@ class Scarpe
   end
 
   class WebviewStack < Scarpe::WebviewWidget
-    include Scarpe::Background
-    include Scarpe::Border
-    include Scarpe::Spacing
+    include Scarpe::WebviewBackground
+    include Scarpe::WebviewBorder
+    include Scarpe::WebviewSpacing
 
     def initialize(properties)
       super
