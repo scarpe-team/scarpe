@@ -26,3 +26,6 @@ Naming/AccessorMethodName:
 
 Style/RedundantSelf:
   Enabled: false
+
+Style/ClassMethodsDefinitions:
+  Enabled: false

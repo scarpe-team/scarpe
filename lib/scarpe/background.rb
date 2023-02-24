@@ -2,17 +2,17 @@
 
 class Scarpe
   module Background
+    def self.included(includer)
+      includer.display_property(:background_color)
+    end
+
     # NOTE: this needs to be passed through in order for the styling to work
     def background(color, options = {})
-      @background_color = color
+      self.background_color = color
     end
   end
 
   module WebviewBackground
-    def background(color, options = {})
-      @background_color = color
-    end
-
     def style
       styles = (super if defined?(super)) || {}
       return styles unless @background_color

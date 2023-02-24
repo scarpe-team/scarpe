@@ -18,8 +18,8 @@ class Scarpe
   end
 
   class WebviewFlow < Scarpe::WebviewWidget
-    include Scarpe::Background
-    include Scarpe::Border
+    include Scarpe::WebviewBackground
+    include Scarpe::WebviewBorder
 
     def initialize(properties)
       super

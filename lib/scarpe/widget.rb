@@ -35,8 +35,11 @@ class Scarpe
       def display_property(name)
         name = name.to_s
         @linkable_properties ||= []
-        @linkable_properties << { name: name }
         @linkable_properties_hash ||= {}
+
+        return if @linkable_properties_hash[name]
+
+        @linkable_properties << { name: name }
         @linkable_properties_hash[name] = true
       end
 
