@@ -4,14 +4,12 @@ class Scarpe
   class DocumentRoot < Scarpe::Widget
     include Scarpe::Background
 
-    attr_reader :debug
+    display_property :debug
 
-    def initialize(opts = {})
-      @opts = opts
-      @debug = opts[:debug] ? true : false
+    def initialize(debug: false)
       super
 
-      display_widget_properties(opts)
+      create_display_widget
     end
 
     alias_method :info, :puts
@@ -23,10 +21,8 @@ class Scarpe
     attr_reader :debug
     attr_reader :redraw_requested
 
-    def initialize(opts = {}, shoes_linkable_id:)
+    def initialize(properties)
       @callbacks = {}
-      @opts = opts
-      @debug = opts[:debug] ? true : false
 
       super
     end

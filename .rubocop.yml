@@ -23,3 +23,6 @@ Style/ClassVars:
 
 Naming/AccessorMethodName:
   Enabled: false
+
+Style/RedundantSelf:
+  Enabled: false
