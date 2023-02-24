@@ -2,6 +2,13 @@
 
 class Scarpe
   module Background
+    # NOTE: this needs to be passed through in order for the styling to work
+    def background(color, options = {})
+      @background_color = color
+    end
+  end
+
+  module WebviewBackground
     def background(color, options = {})
       @background_color = color
     end

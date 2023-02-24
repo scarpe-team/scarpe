@@ -2,6 +2,9 @@
 
 require "test_helper"
 
+# Going to need to rewrite this, or at a minimum heavily modify it :-(
+__END__
+
 class TestImage < Minitest::Test
   def setup
     @url = "http://shoesrb.com/manual/static/shoes-icon.png"

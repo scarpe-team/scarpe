@@ -2,6 +2,9 @@
 
 require "test_helper"
 
+# Going to need to rewrite this, or at a minimum heavily modify it :-(
+__END__
+
 class TestStack < Minitest::Test
   def test_it_accepts_a_height
     stack = Scarpe::Stack.new(height: 25) do

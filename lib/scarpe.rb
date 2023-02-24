@@ -1,9 +1,17 @@
 # frozen_string_literal: true
 
+if RUBY_VERSION[0..2] < "3.2"
+  $stderr.puts "Scarpe requires Ruby 3.2 or higher!"
+  exit(-1)
+end
+
 require "securerandom"
 require "json"
 
 require_relative "scarpe/version"
+
+require_relative "scarpe/display_service"
+
 require_relative "scarpe/app"
 require_relative "scarpe/colors"
 require_relative "scarpe/dimensions"
@@ -12,10 +20,6 @@ require_relative "scarpe/html"
 require_relative "scarpe/spacing"
 require_relative "scarpe/widget"
 require_relative "scarpe/para"
-require_relative "scarpe/banner"
-require_relative "scarpe/caption"
-require_relative "scarpe/subtitle"
-require_relative "scarpe/title"
 require_relative "scarpe/background"
 require_relative "scarpe/border"
 require_relative "scarpe/stack"
@@ -25,14 +29,9 @@ require_relative "scarpe/image"
 require_relative "scarpe/edit_box"
 require_relative "scarpe/edit_line"
 require_relative "scarpe/alert"
-require_relative "scarpe/inscription"
-require_relative "scarpe/tagline"
 
 require_relative "scarpe/text_widget"
 require_relative "scarpe/link"
-require_relative "scarpe/strong"
-require_relative "scarpe/em"
-require_relative "scarpe/code"
 
 require_relative "scarpe/document_root"
 

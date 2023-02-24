@@ -34,6 +34,15 @@ class TestScarpe < Minitest::Test
     SCARPE_APP
   end
 
+  def test_text_widgets
+    test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+      Scarpe.app do
+        para "This is plain."
+        para "This has ", em("emphasis"), " and great ", strong("strength"), " and ", code("coolness"), "."
+      end
+    SCARPE_APP
+  end
+
   def test_button_args_optional
     test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Scarpe.app do

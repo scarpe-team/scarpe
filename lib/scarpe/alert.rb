@@ -4,10 +4,26 @@ class Scarpe
   class Alert < Scarpe::Widget
     def initialize(text)
       @text = text
-      bind("click") do
+
+      super
+
+      bind_self_event("click") do
         destroy_self
       end
+
+      display_widget_properties(text)
+    end
+  end
+
+  class WebviewAlert < WebviewWidget
+    def initialize(text, shoes_linkable_id:)
+      @text = text
+
       super
+
+      bind("click") do
+        send_display_event(event_name: "click", target: shoes_linkable_id)
+      end
     end
 
     def element

@@ -10,7 +10,26 @@ class Scarpe
       @height = height
       @margin = margin
       @padding = padding
+
+      super
+
+      # Create the display-side widget *before* instance_eval, which will add child widgets with their display widgets
+      display_widget_properties(width:, height:, margin:, padding:)
+
       instance_eval(&block)
+    end
+  end
+
+  class WebviewFlow < Scarpe::WebviewWidget
+    include Scarpe::Background
+    include Scarpe::Border
+
+    def initialize(width:, height:, margin:, padding:, shoes_linkable_id:)
+      @width = width
+      @height = height
+      @margin = margin
+      @padding = padding
+
       super
     end
 

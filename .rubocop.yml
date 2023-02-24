@@ -3,6 +3,7 @@ inherit_gem:
 
 AllCops:
   TargetRubyVersion: 3.2
+  SuggestExtensions: false
   Exclude:
     - 'bin/**/*'
     - 'exe/**/*'
@@ -12,4 +13,13 @@ Style/MethodCallWithArgsParentheses:
   Enabled: false
 
 Style/CommandLiteral:
+  Enabled: false
+
+Style/LineEndConcatenation:
+  Enabled: false
+
+Style/ClassVars:
+  Enabled: false
+
+Naming/AccessorMethodName:
   Enabled: false
