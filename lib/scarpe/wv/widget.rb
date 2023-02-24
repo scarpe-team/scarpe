@@ -3,14 +3,16 @@
 class Scarpe
   class WebviewWidget < DisplayService::Linkable
     class << self
-      def display_class_for(scarpe_class)
+      def display_class_for(scarpe_class_name)
+        scarpe_class = Object.const_get(scarpe_class_name)
         unless scarpe_class.ancestors.include?(Scarpe::DisplayService::Linkable)
-          raise "Scarpe Webview can only get display classes for Scarpe linkable widgets, not #{scarpe_class.inspect}!"
+          raise "Scarpe Webview can only get display classes for Scarpe " +
+            "linkable widgets, not #{scarpe_class_name.inspect}!"
         end
 
-        klass = Scarpe.const_get("Webview" + scarpe_class.name.split("::")[-1])
+        klass = Scarpe.const_get("Webview" + scarpe_class_name.split("::")[-1])
         if klass.nil?
-          raise "Couldn't find corresponding Scarpe Webview class for #{scarpe_class.inspect}!"
+          raise "Couldn't find corresponding Scarpe Webview class for #{scarpe_class_name.inspect}!"
         end
 
         klass

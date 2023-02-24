@@ -29,3 +29,6 @@ Style/RedundantSelf:
 
 Style/ClassMethodsDefinitions:
   Enabled: false
+
+Style/SpecialGlobalVars:
+  Enabled: false

@@ -15,6 +15,7 @@ class Scarpe
     def initialize(title:, width:, height:, resizable:, debug:)
       # For now, always allow inspect element
       @webview = WebviewRuby::Webview.new debug: true
+      @evals = {} # This is a temporary measure, until I re-merge better evals with tracking
 
       @title = title
       @width = width
@@ -24,7 +25,7 @@ class Scarpe
 
       puts "Creating WebWrangler..." if debug
 
-      @webview.bind("puts") do |*args|
+      bind("puts") do |*args|
         puts(*args)
       end
     end
@@ -40,14 +41,14 @@ class Scarpe
     def init_code(name, &block)
       raise "App is running, javascript init no longer works!" if @is_running
 
-      @webview.bind(name, &block)
+      bind(name, &block)
       @webview.init("#{name}();")
     end
 
     def periodic_code(name, interval, &block)
       raise "App is running, javascript periodic-code init no longer works!" if @is_running
 
-      @webview.bind(name, &block)
+      bind(name, &block)
       js_interval = (interval.to_f * 1_000.0).to_i
       @webview.init("setInterval(#{name}, #{js_interval});")
     end
@@ -56,6 +57,8 @@ class Scarpe
 
     def js_eval(code)
       raise "App isn't running, eval won't work!" unless @is_running
+
+      @evals[code] = true # Guarantee a reference to the eval'd code when it later executes
 
       @webview.eval(code)
     end
@@ -88,6 +91,8 @@ class Scarpe
       puts "Destroying WebWrangler..." if @debug
       puts "  (But WebWrangler was already inactive)" if @debug && !@webview
       if @webview
+        @bindings = {}
+        @evals = {}
         @webview.terminate
         @webview.destroy
         @webview = nil
@@ -150,7 +155,7 @@ class Scarpe
 
     # Replace the entire DOM
     def replace(el)
-      @webview.eval("document.getElementById('wrapper-wvroot').innerHTML = `#{el}`;")
+      js_eval("document.getElementById('wrapper-wvroot').innerHTML = `#{el}`;")
     end
   end
 end

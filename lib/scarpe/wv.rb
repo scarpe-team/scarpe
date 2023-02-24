@@ -2,7 +2,12 @@
 
 # Scarpe Webview Display Service
 
+require_relative "wv/web_wrangler"
+require_relative "wv/control_interface"
+
 require_relative "wv/widget"
+require_relative "wv/webview_local_display"
+require_relative "wv/webview_relay_display"
 
 require_relative "wv/colors"
 require_relative "wv/dimensions"
