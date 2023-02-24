@@ -14,13 +14,9 @@ class Scarpe
     end
   end
 
-  class WebviewTextWidget < Scarpe::WebviewWidget
-  end
-
   class << self
     def default_text_widget_with(element)
       class_name = element.capitalize
-      webview_class_name = "Webview#{class_name}"
 
       widget_class = Class.new(Scarpe::TextWidget) do
         display_property :content
@@ -37,21 +33,6 @@ class Scarpe
       widget_class.class_eval do
         display_property :content
       end
-
-      webview_widget_class = Class.new(Scarpe::WebviewTextWidget) do
-        def initialize(properties)
-          class_name = self.class.name.split("::")[-1]
-          @html_tag = class_name.delete_prefix("Webview").downcase
-          super
-        end
-
-        def element
-          HTML.render do |h|
-            h.send(@html_tag) { @content.to_s }
-          end
-        end
-      end
-      Scarpe.const_set webview_class_name, webview_widget_class
     end
   end
 end
