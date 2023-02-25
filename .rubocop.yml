@@ -9,10 +9,16 @@ AllCops:
     - 'exe/**/*'
     - 'examples/**/*'
 
+Layout/LineLength:
+  Max: 150
+
 Style/MethodCallWithArgsParentheses:
   Enabled: false
 
 Style/CommandLiteral:
+  Enabled: false
+
+Security/Eval:
   Enabled: false
 
 Style/LineEndConcatenation:

@@ -13,8 +13,9 @@ require_relative "scarpe/promises"
 require_relative "scarpe/display_service"
 require_relative "scarpe/widgets"
 
-# WebView Display Service
+# Display services
 require_relative "scarpe/wv"
+require_relative "scarpe/glibui" if ENV["SCARPE_DISPLAY_SERVICES"] == "Scarpe::GlimmerLibUIDisplayService"
 
 class Scarpe
   class << self

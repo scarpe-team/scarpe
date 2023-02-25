@@ -125,7 +125,6 @@ class Scarpe
           @service_list = [].freeze
           return @service_list
         end
-
         @service_list = service_spec.split(";").map do |svc|
           klass = Object.const_get(svc)
           raise "Cannot find class #{svc.inspect} to create display service!" unless klass
