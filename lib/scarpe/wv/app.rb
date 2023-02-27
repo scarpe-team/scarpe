@@ -72,7 +72,7 @@ class Scarpe
       @view.replace(@document_root.to_html)
       @document_root.clear_needs_update! # We've updated, we don't need to again
       @document_root.end_of_frame
-      @control_interface.dispatch_event(:frame)
+      @control_interface.dispatch_event(:redraw)
     end
 
     def run

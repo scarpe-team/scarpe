@@ -39,7 +39,7 @@ ensure
 end
 
 SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
-TEST_OPTS = [:timeout, :allow_fail, :debug, :exit_immediately]
+TEST_OPTS = [:timeout, :allow_fail, :allow_timeout, :debug, :exit_immediately]
 
 def test_scarpe_code(scarpe_app_code, test_code: "", **opts)
   bad_opts = opts.keys - TEST_OPTS
@@ -56,43 +56,41 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
 
   with_tempfile("scarpe_test_results.json", "") do |result_path|
     do_debug = opts[:debug] ? true : false
-    die_after = opts[:timeout] ? opts[:timeout].to_f : 1.5
+    timeout = opts[:timeout] ? opts[:timeout].to_f : 1.5
     scarpe_test_code = <<~SCARPE_TEST_CODE
+      require "scarpe/wv/control_interface_test"
+
       override_app_opts debug: #{do_debug}
 
       on_event(:init) do
-        t_start = Time.now
-        wrangler.periodic_code("scarpePeriodicCallback", 0.1) do |*_args|
-          if ((Time.now - t_start).to_f > #{die_after})
-            app.destroy
-          end
-        end
+        die_after #{timeout}
 
-        result_file = #{result_path.inspect}
+        # scarpeStatusAndExit is barbaric, and ignores all pending assertions and other subtleties.
         wrangler.bind("scarpeStatusAndExit") do |*results|
-          puts "Writing results file \#{result_file.inspect} to disk!" if #{do_debug}
-          File.open(result_file, "w") { |f| f.write(JSON.pretty_generate(results)) }
+          return_results(results)
           app.destroy
         end
       end
     SCARPE_TEST_CODE
 
+    scarpe_test_code += test_code
+
     if opts[:exit_immediately]
       scarpe_test_code += <<~TEST_EXIT_IMMEDIATELY
-        on_event(:frame) do
-          js_eventually "scarpeStatusAndExit(true);"
+        # Doing this on next_heartbeat is fine, but doing it on next_redraw crashes Ruby.
+        # Why? Argh, Webview. (NOTE: still true, or no?)
+        on_event(:next_heartbeat) do
+          app.destroy
         end
       TEST_EXIT_IMMEDIATELY
     end
-
-    scarpe_test_code += test_code
 
     # No results until we write them
     File.unlink(result_path)
 
     with_tempfile("scarpe_control.rb", scarpe_test_code) do |control_file_path|
       # Start the application using the exe/scarpe utility
-      system("SCARPE_TEST_CONTROL=#{control_file_path} ruby #{SCARPE_EXE} --dev #{test_app_location}")
+      system("SCARPE_TEST_CONTROL=#{control_file_path} SCARPE_TEST_RESULTS=#{result_path} ruby #{SCARPE_EXE} --dev #{test_app_location}")
 
       # Check if the process exited normally or crashed (segfault)
       if $?.exitstatus != 0
@@ -104,6 +102,10 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
     # If failure is okay, don't check for status or assertions
     return if opts[:allow_fail]
 
+    # If we exit immediately with no result written, that's fine.
+    # But if we wrote a result, make sure it says pass, not fail.
+    return if opts[:exit_immediately] && !File.exist?(result_path)
+
     unless File.exist?(result_path)
       assert(false, "Scarpe app returned no status code!")
       return
@@ -112,10 +114,21 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
     begin
       out_data = JSON.parse File.read(result_path)
 
-      assert(
-        out_data.respond_to?(:each) && out_data[0],
-        "Scarpe app returned a non-Arrayish or non-truthy status! #{out_data.inspect}",
-      )
+      unless out_data.respond_to?(:each) && out_data.length > 1
+        raise "Scarpe app returned an unexpected data format! #{out_data.inspect}"
+      end
+
+      unless out_data[0]
+        puts JSON.pretty_generate(out_data[1])
+        assert false, "Some Scarpe tests failed..."
+      end
+
+      if out_data[1].is_a?(Hash)
+        test_data = out_data[1]
+        test_data["succeeded"].times { assert true } # Add to the number of assertions
+        test_data["failures"].each { |failure| assert false, "Failed Scarpe app test: #{failure}" }
+        assert_equal 0, test_data["still_pending"], "Some tests were still pending!"
+      end
     rescue
       $stderr.puts "Error parsing JSON data for Scarpe test status!"
       raise
