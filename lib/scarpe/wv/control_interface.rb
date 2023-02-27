@@ -14,10 +14,6 @@ class Scarpe
   class ControlInterface
     EVENTS = [:init, :shutdown, :frame]
 
-    attr_reader :app
-    attr_reader :doc_root
-    attr_reader :wrangler
-
     # The control interface needs to see major system components to hook into their events
     def initialize
       @event_handlers = {}
@@ -29,6 +25,27 @@ class Scarpe
       @app = app
       @doc_root = doc_root
       @wrangler = wrangler
+    end
+
+    def app
+      unless @app
+        raise "ControlInterface code needs to be wrapped in handlers like on_event(:init) to make sure they have access to app, doc_root, wrangler, etc!"
+      end
+      @app
+    end
+
+    def doc_root
+      unless @doc_root
+        raise "ControlInterface code needs to be wrapped in handlers like on_event(:init) to make sure they have access to app, doc_root, wrangler, etc!"
+      end
+      @doc_root
+    end
+
+    def wrangler
+      unless @wrangler
+        raise "ControlInterface code needs to be wrapped in handlers like on_event(:init) to make sure they have access to app, doc_root, wrangler, etc!"
+      end
+      @wrangler
     end
 
     # The control interface has overrides for certain settings. If the override has been specified,
