@@ -75,7 +75,7 @@ class Scarpe
       @webview.bind("scarpeHeartbeat") do
         periodic_js_callback
         @heartbeat_handlers.each(&:call)
-        # @control_interface.dispatch_event(:heartbeat)
+        @control_interface.dispatch_event(:heartbeat)
       end
       js_interval = (heartbeat.to_f * 1_000.0).to_i
       @webview.init("setInterval(scarpeHeartbeat,#{js_interval})")

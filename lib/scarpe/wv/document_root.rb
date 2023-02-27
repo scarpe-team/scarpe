@@ -5,7 +5,6 @@ class Scarpe
     include Scarpe::WebviewBackground
 
     attr_reader :debug
-    attr_reader :redraw_requested
 
     def initialize(properties)
       @callbacks = {}
@@ -35,17 +34,10 @@ class Scarpe
     # very rare if nothing is changing, with seconds or minutes passing in between them.
 
     def request_redraw!
-      return if @redraw_requested
-
       wrangler = WebviewDisplayService.instance.wrangler
       if wrangler.is_running
-        wrangler.js_eventually("scarpeRedrawCallback())")
+        wrangler.replace(self.to_html)
       end
-      @redraw_requested = true
-    end
-
-    def end_of_frame
-      @redraw_requested = false
     end
 
     # The document root manages the connection between widgets and the WebviewWrangler.

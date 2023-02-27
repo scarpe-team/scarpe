@@ -50,7 +50,7 @@ class Scarpe
       scarpe_app = self
 
       @view.init_code("scarpeInit") do
-        redraw_frame
+        @document_root.request_redraw!
       end
 
       @view.bind("scarpeHandler") do |*args|
@@ -60,19 +60,6 @@ class Scarpe
       @view.bind("scarpeExit") do
         scarpe_app.destroy
       end
-
-      @view.bind("scarpeRedrawCallback") do
-        puts("Redraw!") if debug
-        redraw_frame if @document_root.redraw_requested
-      end
-    end
-
-    # Draw a frame, call the per-frame callback(s)
-    def redraw_frame
-      @view.replace(@document_root.to_html)
-      @document_root.clear_needs_update! # We've updated, we don't need to again
-      @document_root.end_of_frame
-      @control_interface.dispatch_event(:frame)
     end
 
     def run

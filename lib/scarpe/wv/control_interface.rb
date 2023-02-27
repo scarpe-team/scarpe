@@ -12,12 +12,13 @@
 
 class Scarpe
   class ControlInterface
-    EVENTS = [:init, :shutdown, :frame]
+    SUBSCRIBE_EVENTS = [:init, :shutdown, :next_redraw, :every_redraw, :next_heartbeat, :every_heartbeat]
+    DISPATCH_EVENTS = [:init, :shutdown, :redraw, :heartbeat]
 
     # The control interface needs to see major system components to hook into their events
     def initialize
       @event_handlers = {}
-      EVENTS.each { |e| @event_handlers[e] = [] }
+      (SUBSCRIBE_EVENTS | DISPATCH_EVENTS).each { |e| @event_handlers[e] = [] }
     end
 
     # This should get called once, from Scarpe::App
@@ -25,6 +26,10 @@ class Scarpe
       @app = app
       @doc_root = doc_root
       @wrangler = wrangler
+
+      @wrangler.control_interface = self
+
+      @wrangler.on_every_redraw { self.dispatch_event(:redraw) }
     end
 
     def app
@@ -69,25 +74,49 @@ class Scarpe
 
     # On recognised events, this sets a handler for that event
     def on_event(event, &block)
-      unless EVENTS.include?(event)
-        raise "Illegal event #{event.inspect}! Valid values are: #{EVENTS.inspect}"
+      unless SUBSCRIBE_EVENTS.include?(event)
+        raise "Illegal subscribe to event #{event.inspect}! Valid values are: #{SUBSCRIBE_EVENTS.inspect}"
       end
 
       @event_handlers[event] << block
     end
 
-    # This is generally a terrible idea. You get no control over when it runs, no notification
-    # when it does, no timeout if it doesn't, and no error codes.
-    def js_eventually(code)
-      @wrangler.js_eventually(code)
-    end
-
     # Send out the specified event
     def dispatch_event(event, *args, **keywords)
-      unless EVENTS.include?(event)
-        raise "Illegal event #{event.inspect}! Valid values are: #{EVENTS.inspect}"
+      unless DISPATCH_EVENTS.include?(event)
+        raise "Illegal dispatch of event #{event.inspect}! Valid values are: #{DISPATCH_EVENTS.inspect}"
       end
 
+      if event == :redraw
+        dumb_dispatch_event(:every_redraw, *args, **keywords)
+
+        # Next redraw is interesting. We can add new handlers
+        # when dispatching a next_redraw handler. But we want
+        # each handler to run only once.
+        handlers = @event_handlers[:next_redraw]
+        dumb_dispatch_event(:next_redraw, *args, **keywords)
+        @event_handlers[:next_redraw] -= handlers
+        return
+      end
+
+      if event == :heartbeat
+        dumb_dispatch_event(:every_heartbeat, *args, **keywords)
+
+        # Next heartbeat is interesting. We can add new handlers
+        # when dispatching a next_heartbeat handler. But we want
+        # each handler to run only once.
+        handlers = @event_handlers[:next_heartbeat]
+        dumb_dispatch_event(:next_heartbeat, *args, **keywords)
+        @event_handlers[:next_heartbeat] -= handlers
+        return
+      end
+
+      dumb_dispatch_event(event, *args, **keywords)
+    end
+
+    private
+
+    def dumb_dispatch_event(event, *args, **keywords)
       @event_handlers[event].each do |handler|
         instance_eval(*args, **keywords, &handler)
       end
