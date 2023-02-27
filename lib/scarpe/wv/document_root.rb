@@ -39,7 +39,7 @@ class Scarpe
 
       wrangler = WebviewDisplayService.instance.wrangler
       if wrangler.is_running
-        wrangler.js_eval("setTimeout(scarpeRedrawCallback,0)")
+        wrangler.js_eventually("scarpeRedrawCallback())")
       end
       @redraw_requested = true
     end

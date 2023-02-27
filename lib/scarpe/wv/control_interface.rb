@@ -8,7 +8,7 @@
 # created or called, Scarpe apps should run fine with no modifications.
 #
 # And if you depend on this from the framework, I'll add a check-mode that
-# doesn't even create one of these. Do NOT test me on this.
+# never dispatches any events to any handlers. Do NOT test me on this.
 
 class Scarpe
   class ControlInterface
@@ -70,8 +70,10 @@ class Scarpe
       @event_handlers[event] << block
     end
 
-    def js_eval(code)
-      @wrangler.js_eval(code)
+    # This is generally a terrible idea. You get no control over when it runs, no notification
+    # when it does, no timeout if it doesn't, and no error codes.
+    def js_eventually(code)
+      @wrangler.js_eventually(code)
     end
 
     # Send out the specified event

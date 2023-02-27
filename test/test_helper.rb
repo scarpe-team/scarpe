@@ -63,7 +63,7 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
     if opts[:exit_immediately]
       scarpe_test_code += <<~TEST_EXIT_IMMEDIATELY
         on_event(:frame) do
-          js_eval "scarpeStatusAndExit(true);"
+          js_eventually "scarpeStatusAndExit(true);"
         end
       TEST_EXIT_IMMEDIATELY
     end

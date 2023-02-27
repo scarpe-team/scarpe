@@ -97,6 +97,11 @@ class Scarpe
       @elt_wrangler ||= WebviewDisplayService.instance.doc_root.get_element_wrangler(html_id)
     end
 
+    # Return a promise that guarantees all currently-requested changes have completed
+    def promise_update
+      html_element.promise_update
+    end
+
     def html_id
       object_id.to_s
     end
@@ -120,16 +125,16 @@ class Scarpe
       WebviewDisplayService.instance.doc_root.bind("#{linkable_id}-#{event}", &block)
     end
 
-    # Removes the element from both the Ruby Widget tree and the HTML DOM
+    # Removes the element from both the Ruby Widget tree and the HTML DOM.
+    # Return a promise for when that HTML change will be visible.
     def destroy_self
-      html_element.remove
       @parent&.remove_child(self)
+      html_element.remove
     end
 
-    # In theory, this can record which specific widgets need update and only update them.
-    # Right now we're not carefully tracking which widget made which changes, so it's not
-    # really safe to do limited partial redraws. The performance isn't going to be a
-    # problem until we have some larger apps.
+    # It's really hard to do dirty-tracking here because the redraws are fully asynchronous.
+    # And so we can't easily cancel one "in flight," and we can't easily pick up the latest
+    # changes... And we probably don't want to, because we may be halfway through a batch.
     def needs_update!
       return if @dirty # Already dirty - nothing changed, so do nothing
 
