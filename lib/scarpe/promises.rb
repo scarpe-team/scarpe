@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Funny thing... We need promises as an API concept since we have a JS event
 # loop doing its thing, and we need to respond to actions that it takes.
 # But there's not really a Ruby implementation of Promises *without* an
@@ -26,12 +28,8 @@ class Scarpe
   class Promise
     PROMISE_STATES = [:unscheduled, :pending, :fulfilled, :rejected]
 
-    def self.debug
-      @debug
-    end
-
-    def self.debug=(val)
-      @debug = val
+    class << self
+      attr_accessor :debug
     end
 
     attr_reader :state
@@ -53,20 +51,10 @@ class Scarpe
     def self.rejected(reason = nil, parents: [])
       p = Promise.new(parents: parents)
       p.rejected!(reason)
+      p
     end
 
     # Instance methods
-
-    # This is one way to return a value directly from a schedule block,
-    # which also fulfills the promise.
-    #
-    # This syntax is somewhat awkward, to work around the fact that
-    # we're often not scheduling Ruby, so return values from a
-    # scheduling block aren't usually what we want. When the scheduling
-    # block is run, the calculation has started, not finished.
-    #def return_final_value(val)
-    #  fulfilled!(val)
-    #end
 
     def fulfilled!(value = nil)
       set_state(:fulfilled, value)
@@ -111,6 +99,10 @@ class Scarpe
         # or anything.
         @waiting_on = []
         @scheduler = nil
+      elsif @parents.any? { |p| p.state == :rejected }
+        @state = :rejected
+        @waiting_on = []
+        @scheduler =  nil
       elsif @state == :pending
         # Did we get an explicit :pending? Then we don't need
         # to schedule ourselves, or care about the scheduler
@@ -182,9 +174,12 @@ class Scarpe
       unless PROMISE_STATES.include?(old_state)
         raise "Internal Promise error! Internal state was #{old_state.inspect}! Legal states: #{PROMISE_STATES.inspect}"
       end
+
       unless PROMISE_STATES.include?(new_state)
-        raise "Internal Promise error! Internal state was set to #{new_state.inspect}! Legal states: #{PROMISE_STATES.inspect}"
+        raise "Internal Promise error! Internal state was set to #{new_state.inspect}! " +
+          "Legal states: #{PROMISE_STATES.inspect}"
       end
+
       if new_state != :fulfilled && new_state != :rejected && !value_or_reason.nil?
         raise "Internal promise error! Non-completed state transitions should not specify a value or reason!"
       end
@@ -275,7 +270,7 @@ class Scarpe
       when :fulfilled
         @on_scheduled.each { |h| h.call(*@parents.map(&:returned_value)) }
         @on_fulfilled.each { |h| h.call(*@parents.map(&:returned_value)) }
-        @on_fulfilled = @on_rejected = @on_fulfilled = []
+        @on_scheduled = @on_rejected = @on_fulfilled = []
         @scheduler = @executor = nil
       when :rejected
         @on_rejected.each { |h| h.call(*@parents.map(&:returned_value)) }
@@ -334,9 +329,7 @@ class Scarpe
           puts "Error running executor! #{e.full_message}"
         end
         rejected!(e)
-        return
       end
-
     ensure
       @executor = nil
     end
@@ -347,6 +340,7 @@ class Scarpe
       unless handler
         raise "You must pass a block to on_fulfilled!"
       end
+
       case @state
       when :fulfilled
         handler.call(*@parents.map(&:returned_value))

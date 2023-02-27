@@ -84,12 +84,6 @@ class Scarpe
       @view.run
     end
 
-    def js_bind(name, &code)
-      raise "Cannot js_bind on closed or inactive Scarpe::App!" unless @view
-
-      @view.bind(name, &code)
-    end
-
     def destroy
       if @document_root || @view
         @control_interface.dispatch_event :shutdown

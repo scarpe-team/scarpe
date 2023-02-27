@@ -38,3 +38,12 @@ Style/CaseEquality:
 
 Style/RedundantConstantBase:
   Enabled: false
+
+Style/EmptyElse:
+  Enabled: false
+
+Metrics/BlockNesting:
+  Enabled: false
+
+Layout/EmptyLinesAroundExceptionHandlingKeywords:
+  Enabled: false

@@ -4,7 +4,7 @@ require "test_helper"
 
 class TestPromises < Minitest::Test
   Promise = Scarpe::Promise
-  #Promise.debug = true
+  # Promise.debug = true
 
   def empty_promise_with_checker(state: nil, parents: [])
     # Initially, no handlers have been called
@@ -76,6 +76,18 @@ class TestPromises < Minitest::Test
     # After the parent is rejected, it will be rejected
     assert_equal :rejected, promise.state
     assert_equal false, called[:scheduled]
+    assert_equal true, called[:rejected]
+  end
+
+  def test_promise_with_initial_rejected_parent
+    parent1_promise = Promise.new
+    parent2_promise = Promise.rejected
+    promise, called = empty_promise_with_checker(parents: [parent1_promise, parent2_promise])
+
+    assert_equal :rejected, promise.state
+
+    assert_equal false, called[:scheduled]
+    assert_equal false, called[:fulfilled]
     assert_equal true, called[:rejected]
   end
 
