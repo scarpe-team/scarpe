@@ -96,6 +96,7 @@ class Scarpe
     end
 
     attr_reader :parent
+    attr_reader :children
 
     def set_parent(new_parent)
       @parent&.remove_child(self)

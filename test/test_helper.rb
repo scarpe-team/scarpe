@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+RUBY_MAIN_OBJ = self
+
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "scarpe"
 
@@ -7,6 +9,9 @@ require "tempfile"
 require "json"
 
 require "minitest/autorun"
+
+# We're going to be passing a fair bit of data back and forth across eval boundaries.
+TEST_DATA = {}
 
 # Docs for our Webview lib: https://github.com/Maaarcocr/webview_ruby
 
@@ -19,6 +24,15 @@ def with_tempfile(prefix, contents)
 ensure
   t.close
   t.unlink
+end
+
+# Temporarily set env vars for the block of code inside
+def with_env_vars(envs)
+  old_env = {}
+  envs.each { |k, v| old_env[k] = ENV[k]; ENV[k] = v }
+  yield
+ensure
+  old_env.each { |k, v| ENV[k] = v }
 end
 
 SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
@@ -74,6 +88,7 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
     File.unlink(result_path)
 
     with_tempfile("scarpe_control.rb", scarpe_test_code) do |control_file_path|
+      # Start the application using the exe/scarpe utility
       system("SCARPE_TEST_CONTROL=#{control_file_path} ruby #{SCARPE_EXE} --dev #{test_app_location}")
     end
 
@@ -105,4 +120,19 @@ def assert_html(actual_html, expected_tag, **opts, &block)
   end
 
   assert_equal expected_html, actual_html
+end
+
+# This doesn't have to happen in a different process...
+def test_scarpe_code_no_display(app_code, test_code_str, **opts)
+  with_env_vars("SCARPE_DISPLAY_SERVICES" => "-") do
+    test_code = proc do |app|
+      class << app
+        include ::Scarpe::DisplayService::LinkableTest
+        include ::Scarpe::AppTest
+      end
+      app.instance_eval test_code_str
+    end
+    Scarpe::App.next_test_code = test_code
+    RUBY_MAIN_OBJ.send(:eval, app_code)
+  end
 end
