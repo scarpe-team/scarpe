@@ -8,7 +8,15 @@ class Scarpe
 
     display_properties :title, :width, :height, :resizable, :debug, :do_shutdown
 
-    def initialize(title: "Scarpe!", width: 480, height: 420, resizable: true, debug: false, test_code: nil, &app_code_body)
+    def initialize(
+      title: "Scarpe!",
+      width: 480,
+      height: 420,
+      resizable: true,
+      debug: false,
+      test_code: nil,
+      &app_code_body
+    )
       @do_shutdown = false
 
       if Scarpe::App.next_test_code
@@ -31,6 +39,7 @@ class Scarpe
     def init
       send_display_event(event_name: "init")
       return if @do_shutdown
+
       @document_root.instance_eval(&@app_code_body)
     end
 

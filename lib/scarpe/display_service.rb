@@ -50,7 +50,7 @@ class Scarpe
         if DisplayService.json_debug_serialize
           args = JSON.parse JSON.dump(args)
           new_kw = {}
-          kwargs.each do |k,v|
+          kwargs.each do |k, v|
             new_kw[k] = JSON.parse JSON.dump(v)
           end
           kwargs = new_kw
@@ -102,6 +102,7 @@ class Scarpe
 
       def unsub_from_events(unsub_id)
         raise "Must provide an unsubscribe ID!" if unsub_id.nil?
+
         @@display_event_handlers.each do |_type, e_name_hash|
           e_name_hash.each do |_e_name, target_hash|
             target_hash.each do |_target, h_list|

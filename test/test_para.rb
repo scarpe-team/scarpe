@@ -31,7 +31,8 @@ class TestNoDisplayPara < Minitest::Test
         the_app.destroy
       end
     TEST_CODE
-    assert_equal ["Testing test test. ", "Breadsticks. ", "Breadsticks. ", "Breadsticks. ", "Very good."], TestNoDisplayPara.ret_val
+    assert_equal ["Testing test test. ", "Breadsticks. ", "Breadsticks. ", "Breadsticks. ", "Very good."],
+      TestNoDisplayPara.ret_val
   end
 
   def test_para_replace
@@ -107,16 +108,19 @@ class TestWebviewPara < Minitest::Test
   end
 
   # What do we do about HTML class attributes? I'm assuming that's not Shoes-standard...
-  #def test_renders_a_blue_paragraph_with_class_attribute
-  #  para = Scarpe::WebviewPara.new(@default_properties.merge("class" => "sea", "stroke" => "blue"))
+  # def test_renders_a_blue_paragraph_with_class_attribute
+  #   para = Scarpe::WebviewPara.new(@default_properties.merge("class" => "sea", "stroke" => "blue"))
   #
-  #  assert_html para.to_html, :p, class: "sea", id: para.html_id, style: "color:blue;font-size:12px" do
-  #    "Hello World"
-  #  end
-  #end
+  #   assert_html para.to_html, :p, class: "sea", id: para.html_id, style: "color:blue;font-size:12px" do
+  #     "Hello World"
+  #   end
+  # end
 
   def test_renders_paragraph_with_size_number
-    para = Scarpe::WebviewPara.new(@default_properties.merge("text_items" => ["Oh, to fling and be flung"], "size" => 48))
+    para = Scarpe::WebviewPara.new(@default_properties.merge(
+      "text_items" => ["Oh, to fling and be flung"],
+      "size" => 48,
+    ))
 
     assert_html para.to_html, :p, id: para.html_id, style: "font-size:48px" do
       "Oh, to fling and be flung"
@@ -124,7 +128,10 @@ class TestWebviewPara < Minitest::Test
   end
 
   def test_renders_paragraph_with_size_symbol
-    para = Scarpe::WebviewPara.new(@default_properties.merge("text_items" => ["Oh, to fling and be flung"], "size" => :banner))
+    para = Scarpe::WebviewPara.new(@default_properties.merge(
+      "text_items" => ["Oh, to fling and be flung"],
+      "size" => :banner,
+    ))
 
     assert_html para.to_html, :p, id: para.html_id, style: "font-size:48px" do
       "Oh, to fling and be flung"
@@ -132,12 +139,19 @@ class TestWebviewPara < Minitest::Test
   end
 
   def test_replace_children
-    para = Scarpe::WebviewPara.new(@default_properties.merge("text_items" => ["Oh, to fling and be flung"], "size" => :banner))
+    para = Scarpe::WebviewPara.new(@default_properties.merge(
+      "text_items" => ["Oh, to fling and be flung"],
+      "size" => :banner,
+    ))
     mocked_html_element = Minitest::Mock.new
     mocked_html_element.expect :inner_html=, nil, [String]
     para.stub :html_element, mocked_html_element do
       # We used 1 as the shoes_linkable_id in the properties data above
-      para.send_shoes_event({ "text_items" => [ "Oh, to be flung and to fling" ] }, event_name: "prop_change", target: 1)
+      para.send_shoes_event(
+        { "text_items" => ["Oh, to be flung and to fling"] },
+        event_name: "prop_change",
+        target: 1,
+      )
 
       assert_html para.to_html, :p, id: para.html_id, style: "font-size:48px" do
         "Oh, to be flung and to fling"
@@ -166,7 +180,7 @@ class TestWebviewPara < Minitest::Test
     para.stub :html_element, mocked_html_element do
       para.stub :items_to_display_children, [em], [3] do
         # Linkable id 3 is em
-        para.send_shoes_event({ "text_items" => [ 3 ] }, event_name: "prop_change", target: 1)
+        para.send_shoes_event({ "text_items" => [3] }, event_name: "prop_change", target: 1)
         assert_html para.to_html, :p, id: para.html_id, style: "font-size:12px" do
           em.to_html
         end

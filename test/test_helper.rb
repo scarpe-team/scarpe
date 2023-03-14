@@ -29,7 +29,10 @@ end
 # Temporarily set env vars for the block of code inside
 def with_env_vars(envs)
   old_env = {}
-  envs.each { |k, v| old_env[k] = ENV[k]; ENV[k] = v }
+  envs.each do |k, v|
+    old_env[k] = ENV[k]
+    ENV[k] = v
+  end
   yield
 ensure
   old_env.each { |k, v| ENV[k] = v }
