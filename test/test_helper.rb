@@ -39,7 +39,7 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
 
   with_tempfile("scarpe_test_results.json", "") do |result_path|
     do_debug = opts[:debug] ? true : false
-    die_after = opts[:timeout] ? opts[:timeout].to_f : 0.1
+    die_after = opts[:timeout] ? opts[:timeout].to_f : 1.5
     scarpe_test_code = <<~SCARPE_TEST_CODE
       override_app_opts debug: #{do_debug}
 

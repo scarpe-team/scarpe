@@ -34,8 +34,6 @@ Note: you'll probably want the "Scarpe in Development" instructions below in mos
 Create an hello world application with:
 
 ```ruby
-require "scarpe"
-
 Shoes.app do
   para "Hello World"
 end
@@ -55,7 +53,7 @@ From the button example:
 
 ## Scarpe in Development
 
-First, clone the [main GitHub repository](https://github.com/schwad/scarpe).
+First, clone the [main GitHub repository](https://github.com/scarpe-team/scarpe).
 
 `bundle install` dependencies like webview from the cloned directory in your Ruby of choice.
 
@@ -65,7 +63,7 @@ If you want to be really slick we have a helper development command, for example
 
 `./exe/scarpe examples/button.rb --dev`
 
-The `--dev` flag points to your local scarpe. Also, it has a helper that allows it to _attempt_ to run existing `Shoes.rb` apps. If you want to turn this off add the flag `--no-shoes`.
+The `--dev` flag points to your local scarpe rather than an installed Scarpe gem.
 
 It's very early in the development process (as of February 2023, as I write this.) If you'd like to help develop Scarpe, great! It would be useful to drop us a message/issue/PR on GitHub early on, so we know you're working in a particular area, and we can warn you if anybody else is currently doing so.
 
@@ -120,6 +118,14 @@ We have a collection of primary and secondary sources currently serving as docum
 1. [Nobody Knows Shoes - _why's Manual](https://github.com/whymirror/why-archive/raw/master/shoes/nobody-knows-shoes.pdf)
 1. [Known examples](examples)
 1. [shoes-original manual](docs/static/manual.md)
+
+## Environment Variables
+
+Scarpe allows you to modify the app's behaviour outside of the normal Shoes API with environment variables.
+
+The SCARPE_DISPLAY_SERVICES environment variable allows you to choose one or more display services, from the default Webview service, to no service at all, to potentially other experimental or incomplete services. This may be important if you're developing a new display method for Scarpe. Normally ScarpeDisplayServices will contain a semicolon-delimited list of class names for display services (which can be just the name of a single display service). For no display service at all, set it to a single dash.
+
+The SCARPE_TEST_CONTROL environment variable can contain a path to a test-control-interface script for the Webview display service. If you look at test_helper, it gives some examples of how to use it.
 
 ## Definition of Done
 

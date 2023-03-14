@@ -25,6 +25,12 @@
 # you want both. But internally they're immediately dispatched as events
 # rather than keeping a literal array of items.
 #
+# ## Choosing Display Services
+#
+# Before running a Scarpe app, you can set SCARPE_DISPLAY_SERVICES. A single
+# dash means no display service. A list of class names will cause Scarpe
+# to instantiate that class or those classes as the display service(s).
+# Leaving the variable unset is equivalent to "Scarpe::WebviewDisplayService".
 class Scarpe
   class DisplayService
     DS_EVENT_TYPES = [:shoes, :display]
@@ -58,13 +64,16 @@ class Scarpe
           any_name_handlers[event_target],    # Any name, same target
         ].compact.inject([], &:+)
 
-        handlers.each { |h| h.call(*args, **kwargs) }
+        kwargs[:event_name] = event_name
+        kwargs[:event_target] = event_target if event_target
+        handlers.each { |h| h[:handler].call(*args, **kwargs) }
       end
 
       # It's permitted to subscribe to event_name :any for all event names, and event_target :any for all targets.
       # An event_target of nil means "no target", and only matches events dispatched with a nil target.
       def subscribe_to_event(event_type, event_name, event_target, &handler)
         @@display_event_handlers ||= {}
+        @@display_event_unsub_id ||= 0
         unless DS_EVENT_TYPES.include?(event_type)
           raise("Unknown event type #{event_type.inspect}! Known types are #{DS_EVENT_TYPES.inspect}!")
         end
@@ -72,15 +81,44 @@ class Scarpe
           raise "Must pass a block as a handler to DisplayService.subscribe_to_event!"
         end
 
+        id = @@display_event_unsub_id
+        @@display_event_unsub_id += 1
+
         @@display_event_handlers[event_type] ||= {}
         @@display_event_handlers[event_type][event_name] ||= {}
         @@display_event_handlers[event_type][event_name][event_target] ||= []
-        @@display_event_handlers[event_type][event_name][event_target] << handler
+        @@display_event_handlers[event_type][event_name][event_target] << { handler:, unsub_id: id }
+
+        id
       end
 
-      # TODO: add more display service types, use an env var to switch
+      def unsub_from_events(unsub_id)
+        @@display_event_handlers.each do |_type, e_name_hash|
+          e_name_hash.each do |_e_name, target_hash|
+            target_hash.delete_if { |_target, h_hash| h_hash[:unsub_id] == unsub_id }
+          end
+        end
+      end
+
+      def full_reset!
+        @@display_event_handlers = {}
+      end
+
       def display_services
-        @service_list ||= [WebviewDisplayService.new]
+        return @service_list if @service_list
+
+        service_spec = (ENV["SCARPE_DISPLAY_SERVICES"] || "Scarpe::WebviewDisplayService").strip
+        if service_spec == "-"
+          @service_list = [].freeze
+          return @service_list
+        end
+
+        @service_list = service_spec.split(";").map do |svc|
+          klass = Object.const_get(svc)
+          raise "Cannot find class #{svc.inspect} to create display service!" unless klass
+
+          klass.new
+        end
       end
     end
 
@@ -106,79 +144,6 @@ class Scarpe
       def bind_display_event(event_name:, target: nil, &handler)
         DisplayService.subscribe_to_event(:display, event_name, target, &handler)
       end
-    end
-  end
-
-  class WebviewDisplayService
-    class << self
-      attr_accessor :instance
-    end
-
-    # TODO: re-think the list of top-level singleton objects.
-    attr_reader :control_interface
-    attr_reader :app
-    attr_reader :doc_root
-    attr_reader :wrangler
-
-    # This is called before any of the various WebviewWidgets are created.
-    def initialize
-      if WebviewDisplayService.instance
-        raise "ERROR! This is meant to be a singleton!"
-      end
-
-      WebviewDisplayService.instance = self
-
-      @display_widget_for = {}
-    end
-
-    def create_display_widget_for(widget, properties)
-      klass = widget.class
-
-      if klass == Scarpe::App
-        unless @doc_root
-          raise "WebviewDocumentRoot is supposed to be created before WebviewApp!"
-        end
-
-        display_app = Scarpe::WebviewApp.new(properties)
-        display_app.document_root = @doc_root
-        @control_interface = display_app.control_interface
-        @app = @control_interface.app
-        @wrangler = @control_interface.wrangler
-
-        set_widget_pairing(widget, display_app)
-
-        return display_app
-      end
-
-      # Create a corresponding display widget
-      display_class = Scarpe::WebviewWidget.display_class_for(klass)
-      display_widget = display_class.new(properties)
-      set_widget_pairing(widget, display_widget)
-
-      if widget.parent
-        $stderr.puts "WebviewDisplayService: We assumed there was no widget parent yet. Fix this?"
-      end
-
-      if klass == Scarpe::DocumentRoot
-        # WebviewDocumentRoot is created before WebviewApp. Mostly doc_root is just like any other widget,
-        # but we'll want a reference to it when we create WebviewApp.
-        @doc_root = display_widget
-      end
-
-      display_widget
-    end
-
-    def set_widget_pairing(widget, display_widget)
-      @display_widget_for[widget.linkable_id] = display_widget
-    end
-
-    def query_display_widget_for(id, nil_ok: false)
-      display_widget = @display_widget_for[id]
-      unless display_widget || nil_ok
-        raise "Could not find display widget for linkable ID #{id.inspect}!"
-      end
-
-      display_widget
     end
   end
 end

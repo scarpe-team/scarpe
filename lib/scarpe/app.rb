@@ -1,13 +1,12 @@
 # frozen_string_literal: true
 
-require_relative "control_interface"
-require_relative "web_wrangler"
-
 class Scarpe
   class App < Scarpe::Widget
-    display_properties :title, :width, :height, :resizable, :debug
+    display_properties :title, :width, :height, :resizable, :debug, :do_shutdown
 
     def initialize(title: "Scarpe!", width: 480, height: 420, resizable: true, debug: false, &app_code_body)
+      @do_shutdown = false
+
       super
 
       # This creates the DocumentRoot, including its corresponding display widget
@@ -25,13 +24,31 @@ class Scarpe
     end
 
     # This isn't guaranteed to be able to return. For Webview in particular, this takes control
-    # of the main thread ***and*** stops any background threads. TODO: fix that with a second
-    # process for Webview.
+    # of the main thread ***and*** stops any background threads.
+    #
+    # So this is interesting. With a same-process Webview display service, this can't return.
+    # Webview takes full control. But we don't want to do that with a "no-op" display service,
+    # or no display service at all.
+    #
+    # If nobody is subscribed to "run", Scarpe will just traipse past "run" into "destroy" and
+    # shut everything down.
     def run
       send_display_event(event_name: "run")
+
+      # If there is an assertive display service like Webview, it will take control when
+      # it sees the run event and not give it back. A less assertive
+      # display service, or none at all, will simply return control immediately,
+      # and we'll run our own event loop here.
+
+      # Wait for incoming events from background threads, if any
+      until @do_shutdown
+        send_display_event(event_name: "heartbeat")
+        sleep 0.1
+      end
     end
 
     def destroy
+      @do_shutdown = true
       send_display_event(event_name: "destroy")
     end
   end
