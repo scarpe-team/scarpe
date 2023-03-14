@@ -25,6 +25,11 @@ class Scarpe
         return
       end
 
+      # Not deleting, so this will re-render
+      if changes["size"] && SIZES[@size.to_sym]
+        @size = @size.to_sym
+      end
+
       super
     end
 

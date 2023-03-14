@@ -32,3 +32,9 @@ Style/ClassMethodsDefinitions:
 
 Style/SpecialGlobalVars:
   Enabled: false
+
+Style/CaseEquality:
+  Enabled: false
+
+Style/RedundantConstantBase:
+  Enabled: false

@@ -36,6 +36,8 @@ class Scarpe
     DS_EVENT_TYPES = [:shoes, :display]
 
     class << self
+      attr_accessor :json_debug_serialize
+
       # An event_target may be nil, to indicate there is no target.
       def dispatch_event(event_type, event_name, event_target, *args, **kwargs)
         @@display_event_handlers ||= {}
@@ -45,8 +47,14 @@ class Scarpe
 
         raise "Cannot dispatch on event_name :any!" if event_name == :any
 
-        # TODO: debug mode that JSON-serializes and -deserializes all args to make sure only legal
-        # objects are passed through.
+        if DisplayService.json_debug_serialize
+          args = JSON.parse JSON.dump(args)
+          new_kw = {}
+          kwargs.each do |k, v|
+            new_kw[k] = JSON.parse JSON.dump(v)
+          end
+          kwargs = new_kw
+        end
 
         same_type_handlers = @@display_event_handlers[event_type] || {}
         return if same_type_handlers.empty?
@@ -93,15 +101,20 @@ class Scarpe
       end
 
       def unsub_from_events(unsub_id)
+        raise "Must provide an unsubscribe ID!" if unsub_id.nil?
+
         @@display_event_handlers.each do |_type, e_name_hash|
           e_name_hash.each do |_e_name, target_hash|
-            target_hash.delete_if { |_target, h_hash| h_hash[:unsub_id] == unsub_id }
+            target_hash.each do |_target, h_list|
+              h_list.delete_if { |item| item[:unsub_id] == unsub_id }
+            end
           end
         end
       end
 
       def full_reset!
         @@display_event_handlers = {}
+        @json_debug_serialize = nil
       end
 
       def display_services
@@ -143,6 +156,32 @@ class Scarpe
 
       def bind_display_event(event_name:, target: nil, &handler)
         DisplayService.subscribe_to_event(:display, event_name, target, &handler)
+      end
+    end
+
+    module LinkableTest
+      def on_next_event(event_type, event_name, target: nil, &block)
+        if event_type == :shoes
+          unsub_id = bind_shoes_event(event_name:, target:) do |*args, **kwargs|
+            block.call(*args, **kwargs)
+            DisplayService.unsub_from_events(unsub_id)
+          end
+        elsif event_type == :display
+          unsub_id = bind_display_event(event_name:, target:) do |*args, **kwargs|
+            block.call(*args, **kwargs)
+            DisplayService.unsub_from_events(unsub_id)
+          end
+        else
+          raise "Attempt to get on_next with unknown event type #{event_type.inspect}, not :display or :shoes!"
+        end
+      end
+
+      def on_next_heartbeat(&block)
+        on_next_event(:display, "heartbeat", &block)
+      end
+
+      def on_init(&block)
+        bind_display_event(event_name: "init", &block)
       end
     end
   end

@@ -2,12 +2,31 @@
 
 class Scarpe
   class App < Scarpe::Widget
+    class << self
+      attr_accessor :next_test_code
+    end
+
     display_properties :title, :width, :height, :resizable, :debug, :do_shutdown
 
-    def initialize(title: "Scarpe!", width: 480, height: 420, resizable: true, debug: false, &app_code_body)
+    def initialize(
+      title: "Scarpe!",
+      width: 480,
+      height: 420,
+      resizable: true,
+      debug: false,
+      test_code: nil,
+      &app_code_body
+    )
       @do_shutdown = false
 
+      if Scarpe::App.next_test_code
+        test_code = Scarpe::App.next_test_code
+        Scarpe::App.next_test_code = nil
+      end
+
       super
+
+      test_code&.call(self)
 
       # This creates the DocumentRoot, including its corresponding display widget
       @document_root = Scarpe::DocumentRoot.new(debug: @debug)
@@ -19,6 +38,7 @@ class Scarpe
 
     def init
       send_display_event(event_name: "init")
+      return if @do_shutdown
 
       @document_root.instance_eval(&@app_code_body)
     end
@@ -50,6 +70,34 @@ class Scarpe
     def destroy
       @do_shutdown = true
       send_display_event(event_name: "destroy")
+    end
+  end
+
+  # In tests, this will normally be included into App
+  module AppTest
+    def all_widgets
+      out = []
+
+      to_add = @document_root.children
+      until to_add.empty?
+        out.concat(to_add)
+        to_add = to_add.flat_map(&:children).compact
+      end
+
+      out
+    end
+
+    # We can add various ways to find widgets here.
+    def find_widgets_by(*specs)
+      widgets = all_widgets
+      specs.each do |spec|
+        if spec.is_a?(Class)
+          all_widgets.select! { |w| spec === w }
+        else
+          raise("Don't know how to find widgets by #{spec.inspect}!")
+        end
+      end
+      widgets
     end
   end
 end
