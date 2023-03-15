@@ -16,6 +16,7 @@ class Scarpe
       # For now, always allow inspect element
       @webview = WebviewRuby::Webview.new debug: true
       @evals = {} # This is a temporary measure, until I re-merge better evals with tracking
+      @init_refs = {} # This might or might not be a temporary measure... Inits don't go away, normally.
 
       @title = title
       @width = width
@@ -41,16 +42,24 @@ class Scarpe
     def init_code(name, &block)
       raise "App is running, javascript init no longer works!" if @is_running
 
+      # Save a reference to the init string so that it goesn't get GC'd
+      code_str = "#{name}();"
+      @init_refs[name] = code_str
+
       bind(name, &block)
-      @webview.init("#{name}();")
+      @webview.init(code_str)
     end
 
     def periodic_code(name, interval, &block)
       raise "App is running, javascript periodic-code init no longer works!" if @is_running
 
-      bind(name, &block)
+      # Save a reference to the init string so that it goesn't get GC'd
       js_interval = (interval.to_f * 1_000.0).to_i
-      @webview.init("setInterval(#{name}, #{js_interval});")
+      code_str = "setInterval(#{name}, #{js_interval});"
+      @init_refs[name] = code_str
+
+      bind(name, &block)
+      @webview.init(code_str)
     end
 
     # Running callbacks
