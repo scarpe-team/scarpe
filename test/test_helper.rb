@@ -93,6 +93,12 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
     with_tempfile("scarpe_control.rb", scarpe_test_code) do |control_file_path|
       # Start the application using the exe/scarpe utility
       system("SCARPE_TEST_CONTROL=#{control_file_path} ruby #{SCARPE_EXE} --dev #{test_app_location}")
+
+      # Check if the process exited normally or crashed (segfault)
+      if $?.exitstatus != 0
+        assert(false, "Scarpe app crashed with exit code: #{$?.exitstatus}")
+        return
+      end
     end
 
     # If failure is okay, don't check for status or assertions
