@@ -11,6 +11,4 @@ gem "minitest", "~> 5.0"
 
 gem "rubocop", "~> 1.21"
 
-gem "ruby-lsp", "~> 0.3.8", group: :development
-
 gem "rubocop-shopify", group: :development
