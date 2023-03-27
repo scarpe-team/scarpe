@@ -24,7 +24,7 @@ class Scarpe
 
     def initialize(properties)
       # Call method, which looks up the parent
-      @shoes_linkable_id = properties["shoes_linkable_id"]
+      @shoes_linkable_id = properties["shoes_linkable_id"] || properties[:shoes_linkable_id]
       unless @shoes_linkable_id
         raise "Could not find property shoes_linkable_id in #{properties.inspect}!"
       end
@@ -33,7 +33,7 @@ class Scarpe
       properties.each do |k, v|
         next if k == "shoes_linkable_id"
 
-        instance_variable_set("@" + k, v)
+        instance_variable_set("@" + k.to_s, v)
       end
 
       # The parent field is *almost* simple enough that a typed display property would handle it.
