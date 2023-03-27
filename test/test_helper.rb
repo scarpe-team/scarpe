@@ -10,6 +10,9 @@ require "json"
 
 require "minitest/autorun"
 
+require "minitest/reporters"
+Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
+
 # We're going to be passing a fair bit of data back and forth across eval boundaries.
 TEST_DATA = {}
 

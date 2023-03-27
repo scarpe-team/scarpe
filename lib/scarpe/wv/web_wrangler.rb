@@ -139,7 +139,7 @@ class Scarpe
     def js_eventually(code)
       raise "WebWrangler isn't running, eval doesn't work!" unless @is_running
 
-      puts "Deprecated: please do NOT use js_eventually, it's basically never what you want!"
+      puts "Deprecated: please do NOT use js_eventually, it's basically never what you want!" unless ENV["CI"]
 
       @webview.eval(code)
     end

@@ -125,6 +125,10 @@ Scarpe allows you to modify the app's behaviour outside of the normal Shoes API 
 
 The SCARPE_DISPLAY_SERVICES environment variable allows you to choose one or more display services, from the default Webview service, to no service at all, to potentially other experimental or incomplete services. This may be important if you're developing a new display method for Scarpe. Normally ScarpeDisplayServices will contain a semicolon-delimited list of class names for display services (which can be just the name of a single display service). For no display service at all, set it to a single dash.
 
+Example usage:
+
+`SCARPE_DISPLAY_SERVICES=Scarpe::GlimmerLibUIDisplayService ./exe/scarpe examples/hello_world.rb`
+
 The SCARPE_TEST_CONTROL environment variable can contain a path to a test-control-interface script for the Webview display service. If you look at test_helper, it gives some examples of how to use it.
 
 ## Definition of Done
