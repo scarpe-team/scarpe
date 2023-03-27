@@ -2,15 +2,13 @@
 
 require "test_helper"
 
+TEST_VALUES = {}
+
 # This method of testing starts up a Scarpe app with no display service
 # that runs in the same process as the test.
 class TestNoDisplayPara < Minitest::Test
-  class << self
-    attr_accessor :ret_val
-  end
-
   def setup
-    TestNoDisplayPara.ret_val = nil
+    TEST_VALUES[:ret_val] = nil
   end
 
   def test_para_text_children
@@ -27,12 +25,12 @@ class TestNoDisplayPara < Minitest::Test
       # During init, no widgets have yet been created. So that's too early to find our para.
       on_next_heartbeat do
         para = find_widgets_by(Scarpe::Para)[0]
-        TestNoDisplayPara.ret_val = para.text_items
+        TEST_VALUES[:ret_val] = para.text_items
         the_app.destroy
       end
     TEST_CODE
     assert_equal ["Testing test test. ", "Breadsticks. ", "Breadsticks. ", "Breadsticks. ", "Very good."],
-      TestNoDisplayPara.ret_val
+      TEST_VALUES[:ret_val]
   end
 
   def test_para_replace
@@ -48,14 +46,14 @@ class TestNoDisplayPara < Minitest::Test
         para.replace("goodbye world")
 
         if para.text_items == ["goodbye world"]
-          TestNoDisplayPara.ret_val = true
+          TEST_VALUES[:ret_val] = true
           the_app.destroy
         else
           raise "Expected para.text_children to equal ['goodbye world']!"
         end
       end
     TEST_CODE
-    assert_equal true, TestNoDisplayPara.ret_val
+    assert_equal true, TEST_VALUES[:ret_val]
   end
 end
 
