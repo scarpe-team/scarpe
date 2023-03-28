@@ -53,3 +53,7 @@ Metrics/BlockNesting:
 
 Layout/EmptyLinesAroundExceptionHandlingKeywords:
   Enabled: false
+
+Style/RedundantBegin:
+  Enabled: false
+
