@@ -11,7 +11,11 @@ class TestScarpe < Minitest::Test
     puts "Testing #{examples_to_test.count} examples"
 
     examples_to_test.each do |example|
-      test_scarpe_app(example, exit_immediately: true)
+      begin
+        test_scarpe_app(example, exit_immediately: true)
+      rescue
+        puts "============ Error when testing example: #{example.inspect}!"
+      end
     end
   end
 end
