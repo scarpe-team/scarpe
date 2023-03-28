@@ -312,6 +312,7 @@ class Scarpe
       @is_running = true
       @webview.run
       @is_running = false
+      @webview.destroy
     end
 
     def destroy
@@ -319,7 +320,7 @@ class Scarpe
       puts "  (But WebWrangler was already inactive)" if @debug && !@webview
       if @webview
         @bindings = {}
-        @webview.destroy
+        @webview.terminate
         @webview = nil
       end
     end
