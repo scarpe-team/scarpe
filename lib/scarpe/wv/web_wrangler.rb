@@ -319,7 +319,6 @@ class Scarpe
       puts "  (But WebWrangler was already inactive)" if @debug && !@webview
       if @webview
         @bindings = {}
-        @webview.terminate
         @webview.destroy
         @webview = nil
       end
