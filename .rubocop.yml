@@ -57,3 +57,5 @@ Layout/EmptyLinesAroundExceptionHandlingKeywords:
 Style/RedundantBegin:
   Enabled: false
 
+Layout/LeadingCommentSpace:
+  Enabled: false
