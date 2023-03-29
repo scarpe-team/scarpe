@@ -2,12 +2,9 @@
 
 require "test_helper"
 
-# Going to need to rewrite this, or at a minimum heavily modify it :-(
-__END__
-
-class TestFlow < Minitest::Test
+class TestWebviewFlow < Minitest::Test
   def test_it_accepts_a_height
-    flow = Scarpe::Flow.new(height: 25) do
+    flow = Scarpe::WebviewFlow.new("width" => 7, "height" => 25, "margin" => 4, "padding" => 5, "shoes_linkable_id" => 1) do
       "fishes that flop"
     end
 
