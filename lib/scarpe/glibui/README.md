@@ -25,3 +25,8 @@ window {
   }
 }.show
 ```
+
+# GLibUI Finished Examples
+
+* /examples/hello_world.rb
+* /examples/title_and_resize.rb
