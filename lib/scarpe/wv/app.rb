@@ -37,7 +37,7 @@ class Scarpe
       # The control interface has to exist to get callbacks like "override Scarpe app opts".
       # But the Scarpe App needs those options to be created. So we can't pass these to
       # ControlInterface.new.
-      @control_interface.set_system_components app: self, doc_root: @document_root, wrangler: @view
+      @control_interface.set_system_components app: self, doc_root: nil, wrangler: @view
 
       bind_display_event(event_name: "init") { init }
       bind_display_event(event_name: "run") { run }
