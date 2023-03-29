@@ -2,29 +2,48 @@
 
 require "test_helper"
 
-# Going to need to rewrite this, or at a minimum heavily modify it :-(
-__END__
+# Link display properties: text, click, has_block
 
-class TestLink < Minitest::Test
+class TestWebviewLink < Minitest::Test
   def setup
-    app = Minitest::Mock.new
-    Scarpe::Widget.document_root = app
-    app.expect :bind, nil, [Object]
+    @default_properties = {
+      "text" => "click here",
+      "click" => "#",
+      "has_block" => false,
+      "shoes_linkable_id" => 1,
+    }
+
   end
 
-  def test_link_with_a_block
-    link = Scarpe::Link.new("click me") { "thanks" }
+  def with_mocked_binding(&block)
+    @mocked_disp_service = Minitest::Mock.new
+    @mocked_doc_root = Minitest::Mock.new
+    @mocked_disp_service.expect(:doc_root, @mocked_doc_root)
+    @mocked_doc_root.expect(:bind, nil, [String])
 
-    assert_html link.to_html, :a, id: link.html_id, href: "#", onclick: link.handler_js_code("click") do
-      "click me"
+    Scarpe::WebviewDisplayService.stub(:instance, @mocked_disp_service, &block)
+
+    @mocked_disp_service.verify
+    @mocked_doc_root.verify
+  end
+
+  def test_link_with_url
+    with_mocked_binding do
+      link = Scarpe::WebviewLink.new(@default_properties.merge("click" => "https://www.google.com"))
+
+      assert_html link.to_html, :a, id: link.html_id, href: "https://www.google.com" do
+        "click here"
+      end
     end
   end
 
-  def test_link_with_a_url
-    link = Scarpe::Link.new("click me", click: "http://github.com/schwad/scarpe")
+  def test_link_with_block
+    with_mocked_binding do
+      link = Scarpe::WebviewLink.new(@default_properties.merge("has_block" => true))
 
-    assert_html link.to_html, :a, id: link.html_id, href: "http://github.com/schwad/scarpe" do
-      "click me"
+      assert_html link.to_html, :a, id: link.html_id, href: "#", onclick: link.handler_js_code("click") do
+        "click here"
+      end
     end
   end
 end

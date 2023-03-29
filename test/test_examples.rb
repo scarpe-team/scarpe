@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class TestScarpe < Minitest::Test
+class TestExamplesWithWebview < Minitest::Test
   def test_examples
     examples_to_test = Dir["examples/**/*.rb"]
       .reject { _1.include?("/not_checked/") }
