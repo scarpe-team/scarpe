@@ -12,7 +12,6 @@ class TestWebviewLink < Minitest::Test
       "has_block" => false,
       "shoes_linkable_id" => 1,
     }
-
   end
 
   def with_mocked_binding(&block)
