@@ -312,6 +312,7 @@ class Scarpe
       @is_running = true
       @webview.run
       @is_running = false
+      @webview.destroy
     end
 
     def destroy
@@ -320,7 +321,6 @@ class Scarpe
       if @webview
         @bindings = {}
         @webview.terminate
-        @webview.destroy
         @webview = nil
       end
     end
