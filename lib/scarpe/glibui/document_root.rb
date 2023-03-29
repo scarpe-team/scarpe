@@ -8,13 +8,12 @@ class Scarpe
 
     def initialize(properties)
       @callbacks = {}
-
       super
     end
 
-    def display
+    def display(properties = {})
       <<~GTEXT
-        window {
+        window("#{properties["title"] || "Scarpe with GlimmerLibUI"}", #{properties["width"] || 640}, #{properties["height"] || 480}) {
           area {
             #{@children.map(&:display).join}
           }

@@ -14,7 +14,7 @@ class Scarpe
       super
 
       bind_display_event(event_name: "run") do
-        code = @document_root.display
+        code = @document_root.display(properties)
         puts code
         # This is for if I want to confirm textual output. But not actually fire up the service.
         exit if ENV["NO_RUN"]
