@@ -21,6 +21,7 @@ class Scarpe
 
     attr_reader :shoes_linkable_id
     attr_reader :parent
+    attr_reader :children
 
     def initialize(properties)
       # Call method, which looks up the parent
