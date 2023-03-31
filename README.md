@@ -127,7 +127,7 @@ The SCARPE_DISPLAY_SERVICES environment variable allows you to choose one or mor
 
 Example usage:
 
-`SCARPE_DISPLAY_SERVICES=Scarpe::GlimmerLibUIDisplayService ./exe/scarpe examples/hello_world.rb`
+`SCARPE_DISPLAY_SERVICES=Scarpe::GlimmerLibUIDisplayService ./exe/scarpe examples/hello_world.rb --dev`
 
 The SCARPE_TEST_CONTROL environment variable can contain a path to a test-control-interface script for the Webview display service. If you look at test_helper, it gives some examples of how to use it.
 
