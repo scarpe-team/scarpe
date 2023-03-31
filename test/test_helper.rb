@@ -16,6 +16,11 @@ Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
 # We're going to be passing a fair bit of data back and forth across eval boundaries.
 TEST_DATA = {}
 
+# Soon this should go in the framework, not here
+unless Object.constants.include?(:Shoes)
+  Shoes = Scarpe
+end
+
 # Docs for our Webview lib: https://github.com/Maaarcocr/webview_ruby
 
 def with_tempfile(prefix, contents)

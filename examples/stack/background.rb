@@ -1,6 +1,4 @@
-require "scarpe"
-
-Scarpe.app do
+Shoes.app do
   stack width: 0.33 do
     background "purple"
     button "a button"
