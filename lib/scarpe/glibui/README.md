@@ -15,7 +15,7 @@ end
 
 # becomes
 
-include GlimmerLibUI
+include Glimmer
 
 window {
   area {
@@ -30,3 +30,4 @@ window {
 
 * /examples/hello_world.rb
 * /examples/title_and_resize.rb
+* /examples/stack/raw_stack.rb

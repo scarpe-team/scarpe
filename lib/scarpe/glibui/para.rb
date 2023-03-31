@@ -22,7 +22,6 @@ class Scarpe
       items = changes.delete("text_items")
       if items
         # we might need this to extend para in new prs?
-        # html_element.inner_html = to_html
         return
       end
 
@@ -31,8 +30,10 @@ class Scarpe
 
     def display
       <<~GLIMMER_CODE
-        text {
-          string "Hello World"
+        area {
+          text {
+            string "Hello World"
+          }
         }
       GLIMMER_CODE
     end
