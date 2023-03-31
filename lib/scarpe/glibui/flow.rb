@@ -9,24 +9,25 @@ class Scarpe
       super
     end
 
-    def element(&block)
-      HTML.render do |h|
-        h.div(id: html_id, style:, &block)
-      end
+    def display(properties = {})
+      <<~GTEXT
+        horizontal_box {
+          #{@children.map(&:display).join}
+        }.show
+      GTEXT
     end
 
-    private
+    # Marker from webview
+    # def style
+    #   styles = super
 
-    def style
-      styles = super
+    #   styles[:display] = "flex"
+    #   styles["flex-direction"] = "row"
+    #   styles["flex-wrap"] = "wrap"
+    #   styles[:width] = Dimensions.length(@width) if @width
+    #   styles[:height] = Dimensions.length(@height) if @height
 
-      styles[:display] = "flex"
-      styles["flex-direction"] = "row"
-      styles["flex-wrap"] = "wrap"
-      styles[:width] = Dimensions.length(@width) if @width
-      styles[:height] = Dimensions.length(@height) if @height
-
-      styles
-    end
+    #   styles
+    # end
   end
 end

@@ -31,3 +31,4 @@ window {
 * /examples/hello_world.rb
 * /examples/title_and_resize.rb
 * /examples/stack/raw_stack.rb
+* /examples/raw_flow.rb
