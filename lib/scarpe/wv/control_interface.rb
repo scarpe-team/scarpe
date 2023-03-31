@@ -15,16 +15,27 @@ class Scarpe
     SUBSCRIBE_EVENTS = [:init, :shutdown, :next_redraw, :every_redraw, :next_heartbeat, :every_heartbeat]
     DISPATCH_EVENTS = [:init, :shutdown, :redraw, :heartbeat]
 
+    attr_writer :doc_root
+
     # The control interface needs to see major system components to hook into their events
     def initialize
       @event_handlers = {}
       (SUBSCRIBE_EVENTS | DISPATCH_EVENTS).each { |e| @event_handlers[e] = [] }
     end
 
+    def inspect
+      "<#ControlInterface>"
+    end
+
     # This should get called once, from Scarpe::App
     def set_system_components(app:, doc_root:, wrangler:)
+      unless app && wrangler
+        puts "app is false!" unless app
+        puts "wrangler is false!" unless wrangler
+        raise "Must pass non-nil app and wrangler to ControlInterface#set_system_components!"
+      end
       @app = app
-      @doc_root = doc_root
+      @doc_root = doc_root # May be nil at this point
       @wrangler = wrangler
 
       @wrangler.control_interface = self

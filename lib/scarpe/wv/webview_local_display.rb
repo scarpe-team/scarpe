@@ -37,6 +37,7 @@ class Scarpe
         display_app = Scarpe::WebviewApp.new(properties)
         display_app.document_root = @doc_root
         @control_interface = display_app.control_interface
+        @control_interface.doc_root = @doc_root
         @app = @control_interface.app
         @wrangler = @control_interface.wrangler
 

@@ -271,10 +271,10 @@ class Scarpe
         t && t_now >= t
       end
       timed_out_from_scheduling.each do |id|
-        puts("JS timed out because it was never scheduled: #{@pending_evals[id][:code].inspect}") if @debug
+        puts("JS timed out because it was never scheduled: (#{id}) #{@pending_evals[id][:code].inspect}") if @debug
       end
       timed_out_from_finish.each do |id|
-        puts("JS timed out because it never finished: #{@pending_evals[id][:code].inspect}") if @debug
+        puts("JS timed out because it never finished: (#{id}) #{@pending_evals[id][:code].inspect}") if @debug
       end
 
       # A plus *should* be fine since nothing should ever be on both lists. But let's be safe.
@@ -504,8 +504,8 @@ class Scarpe
           # grab all waiting changes. In the mean time, it sits here and waits.
           #
           # We *could* do a fancy promise thing and have it update @waiting_changes for itself, etc, when it
-          # schedules itself. But we should always be calling promise_redraw or having a redraw commit (see below)
-          # when these things change, and I'd rather keep the logic in this method. It's easier to reason through
+          # schedules itself. But we should always be calling promise_redraw or having a redraw fulfilled (see below)
+          # when these things change. I'd rather keep the logic in this method. It's easier to reason through
           # all the cases.
           @waiting_redraw_promise = Promise.new
 
