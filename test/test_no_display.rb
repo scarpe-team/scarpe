@@ -13,7 +13,7 @@ class TestScarpeNoDisplay < Minitest::Test
   # make sure the test code actually gets called at all
   def test_app_created
     test_scarpe_code_no_display(<<~'SCARPE_APP', <<~'TEST_CODE')
-      Scarpe.app do
+      Shoes.app do
         para 'hello world'
       end
     SCARPE_APP
@@ -28,7 +28,7 @@ class TestScarpeNoDisplay < Minitest::Test
 
   def test_run_event
     test_scarpe_code_no_display(<<~'SCARPE_APP', <<~'TEST_CODE')
-      Scarpe.app do
+      Shoes.app do
         para 'hello world'
       end
     SCARPE_APP
@@ -43,7 +43,7 @@ class TestScarpeNoDisplay < Minitest::Test
 
   def test_first_heartbeat
     test_scarpe_code_no_display(<<~'SCARPE_APP', <<~'TEST_CODE')
-      Scarpe.app do
+      Shoes.app do
         para 'hello world'
       end
     SCARPE_APP
@@ -58,7 +58,7 @@ class TestScarpeNoDisplay < Minitest::Test
 
   def test_para_replace
     test_scarpe_code_no_display(<<~'SCARPE_APP', <<~'TEST_CODE')
-      Scarpe.app do
+      Shoes.app do
         para 'hello world'
       end
     SCARPE_APP
@@ -87,7 +87,7 @@ class TestScarpeNoDisplay < Minitest::Test
     TEST_DATA[:the_test] = self
     @got_here = false
     test_scarpe_code_no_display(<<~'SCARPE_APP', <<~'TEST_CODE')
-      Scarpe.app do
+      Shoes.app do
         para 'hello world'
       end
     SCARPE_APP

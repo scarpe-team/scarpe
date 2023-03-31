@@ -13,7 +13,7 @@ class TestNoDisplayPara < Minitest::Test
 
   def test_para_text_children
     test_scarpe_code_no_display(<<~'SCARPE_APP', <<~'TEST_CODE')
-      Scarpe.app do
+      Shoes.app do
         para "Testing test test. ",
           "Breadsticks. ",
           "Breadsticks. ",
@@ -35,7 +35,7 @@ class TestNoDisplayPara < Minitest::Test
 
   def test_para_replace
     test_scarpe_code_no_display(<<~'SCARPE_APP', <<~'TEST_CODE')
-      Scarpe.app do
+      Shoes.app do
         para 'hello world'
       end
     SCARPE_APP
