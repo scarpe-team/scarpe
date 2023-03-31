@@ -15,6 +15,7 @@ class Scarpe
     private_constant :SIZES
 
     def initialize(properties)
+      @properties = properties
       super
     end
 
@@ -32,7 +33,7 @@ class Scarpe
       <<~GLIMMER_CODE
         area {
           text {
-            string "Hello World"
+            string "#{@properties["text_items"].join(", ")}"
           }
         }
       GLIMMER_CODE
