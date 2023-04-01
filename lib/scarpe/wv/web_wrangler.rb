@@ -292,7 +292,6 @@ class Scarpe
 
     # After setup, we call run to go to "running" mode.
     # No more setup callbacks, only running callbacks.
-
     def run
       puts "Run..." if @debug
 
@@ -312,7 +311,7 @@ class Scarpe
       @is_running = true
       @webview.run
       @is_running = false
-      @webview.destroy
+      destroy if @webview
     end
 
     def destroy
