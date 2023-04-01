@@ -29,7 +29,7 @@ class Scarpe
     end
 
     def create_display_widget_for(widget_class_name, widget_id, properties)
-      if widget_class_name == "Scarpe::App"
+      if widget_class_name == "App"
         unless @doc_root
           raise "WebviewDocumentRoot is supposed to be created before WebviewApp!"
         end
@@ -51,7 +51,7 @@ class Scarpe
       display_widget = display_class.new(properties)
       set_widget_pairing(widget_id, display_widget)
 
-      if widget_class_name == "Scarpe::DocumentRoot"
+      if widget_class_name == "DocumentRoot"
         # WebviewDocumentRoot is created before WebviewApp. Mostly doc_root is just like any other widget,
         # but we'll want a reference to it when we create WebviewApp.
         @doc_root = display_widget

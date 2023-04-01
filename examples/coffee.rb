@@ -1,6 +1,4 @@
-require "scarpe"
-
-Scarpe.app title: "Sleepless", width: 80, height: 120 do
+Shoes.app title: "Sleepless", width: 80, height: 120 do
   @push = button "☕️"
   @note = para "😪"
   @push.click {

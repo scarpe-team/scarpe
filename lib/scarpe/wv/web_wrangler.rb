@@ -44,10 +44,6 @@ class Scarpe
       @webview = WebviewRuby::Webview.new debug: true
       @init_refs = {} # This might or might not be a temporary measure... Inits don't go away, normally.
 
-      # this should NOT turn on debug, even with debug option on, for normal debug levels! It's *verbose*.
-      # @dom_wrangler = DOMWrangler.new(self, debug: debug)
-      @dom_wrangler = DOMWrangler.new(self)
-
       @title = title
       @width = width
       @height = height
@@ -63,6 +59,10 @@ class Scarpe
       # what handlers to call when they return, etc.
       @pending_evals = {}
       @eval_counter = 0
+
+      # this should NOT turn on debug, even with debug option on, for normal debug levels! It's *verbose*.
+      # @dom_wrangler = DOMWrangler.new(self, debug: debug)
+      @dom_wrangler = DOMWrangler.new(self)
 
       bind("puts") do |*args|
         puts(*args)
@@ -447,6 +447,18 @@ class Scarpe
         @redraw_handlers = []
 
         @debug = debug
+
+        # The "fully up to date" logic is complicated and not
+        # as well tested as I'd like. This makes it far less
+        # likely that the event simply won't fire.
+        # With more comprehensive testing, this should be
+        # removable.
+        web_wrangler.periodic_code("scarpeDOMWranglerHeartbeat") do
+          if @fully_up_to_date_promise && fully_updated?
+            @fully_up_to_date_promise.fulfilled!
+            @fully_up_to_date_promise = nil
+          end
+        end
       end
 
       def request_change(js_code)

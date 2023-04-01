@@ -1,6 +1,4 @@
-require "scarpe"
-
-Scarpe.app do
+Shoes.app do
   stack do
     border "red", strokewidth: 5, curve: 12
     para "Curved Red"

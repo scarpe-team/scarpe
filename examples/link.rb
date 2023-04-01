@@ -1,6 +1,4 @@
-require "scarpe"
-
-Scarpe.app do
+Shoes.app do
   def collapsed
     @para = para(
       "'Scarpe' means shoes in Italian. 'Scarpe' also means Shoes in...",
