@@ -1,14 +1,12 @@
 #!/usr/bin/env ruby
 
 use_dev = ARGV.delete("--dev") ? true : false
-use_shoes = ARGV.delete("--no-shoes") ? false : true
 
 if ARGV.length != 1
     puts <<USAGE
 Usage: scarpe [OPTIONS] <scarpe app file>
   Options:
       --dev                          Use development local scarpe, not an installed gem
-      --no-shoes                     Do not define a Shoes alias for Shoes compatibility
 USAGE
     exit -1
 end
@@ -20,9 +18,7 @@ end
 
 require "scarpe"
 
-if use_shoes
-    Shoes = Scarpe
-end
+Shoes = Scarpe unless defined?(Shoes)
 
 # Run the Scarpe app file
 load ARGV[0]
