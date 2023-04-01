@@ -4,7 +4,7 @@ class Scarpe
   class GlimmerLibUIWidget < DisplayService::Linkable
     class << self
       def display_class_for(scarpe_class_name)
-        scarpe_class = Object.const_get(scarpe_class_name)
+        scarpe_class = Scarpe.const_get(scarpe_class_name)
         unless scarpe_class.ancestors.include?(Scarpe::DisplayService::Linkable)
           raise "Scarpe GlimmerLibUI can only get display classes for Scarpe linkable widgets, not #{scarpe_class.inspect}!"
         end
