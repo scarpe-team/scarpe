@@ -114,7 +114,7 @@ The SCARPE_TEST_CONTROL environment variable can contain a path to a test-contro
   * [Blog covering shoes3 history](https://web.archive.org/web/20190731215758/https://walkabout.mvmanila.com/)
 * [shoes4 (JRuby, incomplete)](https://github.com/shoes/shoes4)
 * [Shoes' native splash app](https://github.com/shoes/shoes-deprecated/blob/develop/lib/shoes.rb#L124-L176)
-* [Example directory](https://github.com/shoes/shoes-deprecated/tree/develop/samples)
+* [Original Shoes example directory](https://github.com/shoes/shoes-deprecated/tree/develop/samples)
 * [Found shoes apps](https://gist.github.com/search?l=Ruby&q=shoes.rb)
 * [HacketyHack](https://github.com/whymirror/hacketyhack)
 
