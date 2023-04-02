@@ -14,7 +14,7 @@ class Scarpe
     def display(properties = {})
       <<~GTEXT
         window("#{properties["title"] || "Scarpe with GlimmerLibUI"}", #{properties["width"] || 640}, #{properties["height"] || 480}) {
-          area {
+          horizontal_box {
             #{@children.map(&:display).join}
           }
         }.show
