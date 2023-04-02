@@ -14,3 +14,10 @@ gem "rubocop", "~> 1.21"
 gem "rubocop-shopify", group: :development
 
 gem "minitest-reporters", group: :test
+
+group :development do
+  gem "yard"
+  gem "redcarpet"
+  #gem "commonmarker"
+  #gem "github-markup"
+end
