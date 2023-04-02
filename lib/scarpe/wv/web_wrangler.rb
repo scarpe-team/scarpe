@@ -42,7 +42,7 @@ class Scarpe
     EVAL_DEFAULT_TIMEOUT = 0.5
 
     def initialize(title:, width:, height:, resizable: false, debug: false, heartbeat: 0.1)
-      puts "Creating WebWrangler..." if debug
+      Scarpe.debug("Creating WebWrangler...") if debug
 
       # For now, always allow inspect element
       @webview = WebviewRuby::Webview.new debug: true
@@ -143,7 +143,7 @@ class Scarpe
     def js_eventually(code)
       raise "WebWrangler isn't running, eval doesn't work!" unless @is_running
 
-      puts "Deprecated: please do NOT use js_eventually, it's basically never what you want!" unless ENV["CI"]
+      Scarpe.warning "Deprecated: please do NOT use js_eventually, it's basically never what you want!" unless ENV["CI"]
 
       @webview.eval(code)
     end
@@ -198,7 +198,7 @@ class Scarpe
 
           pending_evals[this_eval_serial][:timeout_if_not_finished] = t_now + timeout
           @webview.eval(wrapped_code)
-          puts "Scheduled JS: (#{this_eval_serial})\n#{wrapped_code}" if @debug
+          Scarpe.debug("Scheduled JS: (#{this_eval_serial})\n#{wrapped_code}") if @debug
         else
           # We're mid-shutdown. No more scheduling things.
         end
@@ -236,7 +236,7 @@ class Scarpe
       end
 
       if @debug
-        puts "Got JS value: #{r_type} / #{id} / #{val.inspect}"
+        Scarpe.debug("Got JS value: #{r_type} / #{id} / #{val.inspect}")
       end
 
       promise = entry[:promise]
@@ -275,17 +275,17 @@ class Scarpe
         t && t_now >= t
       end
       timed_out_from_scheduling.each do |id|
-        puts("JS timed out because it was never scheduled: (#{id}) #{@pending_evals[id][:code].inspect}") if @debug
+        Scarpe.debug("JS timed out because it was never scheduled: (#{id}) #{@pending_evals[id][:code].inspect}") if @debug
       end
       timed_out_from_finish.each do |id|
-        puts("JS timed out because it never finished: (#{id}) #{@pending_evals[id][:code].inspect}") if @debug
+        Scarpe.debug("JS timed out because it never finished: (#{id}) #{@pending_evals[id][:code].inspect}") if @debug
       end
 
       # A plus *should* be fine since nothing should ever be on both lists. But let's be safe.
       timed_out_ids = timed_out_from_scheduling | timed_out_from_finish
 
       timed_out_ids.each do |id|
-        $stderr.puts "Timing out JS eval! #{@pending_evals[id][:code]}"
+        Scarpe.error "Timing out JS eval! #{@pending_evals[id][:code]}"
         entry = @pending_evals.delete(id)
         err = JSTimeoutError.new(msg: "JS timeout error!", code: entry[:code], ret_value: nil)
         entry[:promise].rejected!(err)
@@ -298,7 +298,7 @@ class Scarpe
     # No more setup callbacks, only running callbacks.
 
     def run
-      puts "Run..." if @debug
+      Scarpe.debug("Run...") if @debug
 
       # From webview:
       # 0 - Width and height are default size
@@ -320,8 +320,8 @@ class Scarpe
     end
 
     def destroy
-      puts "Destroying WebWrangler..." if @debug
-      puts "  (But WebWrangler was already inactive)" if @debug && !@webview
+      Scarpe.debug("Destroying WebWrangler...") if @debug
+      Scarpe.debug("  (But WebWrangler was already inactive)") if @debug && !@webview
       if @webview
         @bindings = {}
         @webview.terminate
@@ -362,7 +362,6 @@ class Scarpe
                 height: 100%;
                 overflow: hidden;
               }
-
               p {
                 margin: 0;
               }
@@ -475,7 +474,7 @@ class Scarpe
         # Replace other pending changes, they're not needed any more
         @waiting_changes = ["document.getElementById('wrapper-wvroot').innerHTML = `#{html_text}`; true"]
 
-        puts "Requesting DOM replacement..." if @debug
+        Scarpe.debug("Requesting DOM replacement...") if @debug
         promise_redraw
       end
 
@@ -493,25 +492,25 @@ class Scarpe
       def promise_redraw
         if fully_updated?
           # No changes to make, nothing in-process or waiting, so just return a pre-fulfilled promise
-          puts "Requesting redraw but there are no pending changes or promises, return pre-fulfilled" if @debug
+          Scarpe.debug("Requesting redraw but there are no pending changes or promises, return pre-fulfilled") if @debug
           return Promise.fulfilled
         end
 
         # Already have a redraw requested *and* one on deck? Then all current changes will have committed
         # when we (eventually) fulfill the waiting_redraw_promise.
         if @waiting_redraw_promise
-          puts "Promising eventual redraw of #{@waiting_changes.size} waiting unscheduled changes." if @debug
+          Scarpe.debug("Promising eventual redraw of #{@waiting_changes.size} waiting unscheduled changes.") if @debug
           return @waiting_redraw_promise
         end
 
         if @waiting_changes.empty?
           # There's no waiting_redraw_promise. There are no waiting changes. But we're not fully updated.
           # So there must be a redraw in flight, and we don't need to schedule a new waiting_redraw_promise.
-          puts "Returning in-flight redraw promise" if @debug
+          Scarpe.debug("Returning in-flight redraw promise") if @debug
           return @pending_redraw_promise
         end
 
-        puts "Requesting redraw with #{@waiting_changes.size} waiting changes - need to schedule something!" if @debug
+        Scarpe.debug("Requesting redraw with #{@waiting_changes.size} waiting changes - need to schedule something!") if @debug
 
         # We have at least one waiting change, possibly newly-added. We have no waiting_redraw_promise.
         # Do we already have a redraw in-flight?
@@ -531,7 +530,7 @@ class Scarpe
         # We have no redraw in-flight and no pre-existing waiting line. The new change(s) are presumably right
         # after things were fully up-to-date. We can schedule them for immediate redraw.
 
-        puts "Requesting redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!" if @debug
+        Scarpe.info("Requesting redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!") if @debug
         promise = schedule_waiting_changes # This clears the waiting changes
         @pending_redraw_promise = promise
 
@@ -547,7 +546,7 @@ class Scarpe
             old_waiting_promise = @waiting_redraw_promise
             @waiting_redraw_promise = nil
 
-            puts "Fulfilled redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!" if
+            Scarpe.info "Fulfilled redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!" if
  @debug
 
             new_promise = promise_redraw
@@ -555,7 +554,7 @@ class Scarpe
           else
             # The in-flight redraw completed, and there's still no waiting promise. Good! That means
             # we should be fully up-to-date.
-            puts "Fulfilled redraw with no waiting changes - marking us as up to date!" if @debug
+            Scarpe.info "Fulfilled redraw with no waiting changes - marking us as up to date!" if @debug
             if @waiting_changes.empty?
               # We're fully up to date! Fulfill the promise. Now we don't need it again until somebody asks
               # us for another.
@@ -564,15 +563,15 @@ class Scarpe
                 @fully_up_to_date_promise = nil
               end
             else
-              $stderr.puts "WHOAH, WHAT? My logic must be wrong, because there's " +
+              Scarpe.error "WHOAH, WHAT? My logic must be wrong, because there's " +
                 "no waiting promise, but waiting changes!"
             end
           end
 
-          puts "REDRAW FULLY UP TO DATE" if fully_updated? && @debug
+          Scarpe.debug("REDRAW FULLY UP TO DATE") if fully_updated? && @debug
         end.on_rejected do
-          $stderr.puts "Could not complete JS redraw! #{promise.reason.full_message}"
-          puts "REDRAW FULLY UP TO DATE BUT JS FAILED" if fully_updated? && @debug
+          Scarpe.error "Could not complete JS redraw! #{promise.reason.full_message}"
+          Scarpe.debug("REDRAW FULLY UP TO DATE BUT JS FAILED") if fully_updated? && @debug
 
           raise "JS Redraw failed! Bailing!"
 

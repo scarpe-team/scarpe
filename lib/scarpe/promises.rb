@@ -284,7 +284,7 @@ class Scarpe
             @scheduler.call(*@parents.map(&:returned_value))
           rescue => e
             if Promise.debug
-              puts "Error while running scheduler! #{e.full_message}"
+              Scarpe.error("Error while running scheduler! #{e.full_message}")
             end
             rejected!(e)
           end
@@ -326,7 +326,7 @@ class Scarpe
         fulfilled!(result)
       rescue => e
         if Promise.debug
-          puts "Error running executor! #{e.full_message}"
+          Scarpe.error("Error running executor! #{e.full_message}")
         end
         rejected!(e)
       end
