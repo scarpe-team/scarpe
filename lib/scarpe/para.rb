@@ -10,9 +10,9 @@ class Scarpe
       end
     end
 
-    display_properties :text_items, :stroke, :size, :html_attributes
+    display_properties :text_items, :stroke, :size, :font, :html_attributes
 
-    def initialize(*args, stroke: nil, size: :para, **html_attributes)
+    def initialize(*args, stroke: nil, size: :para, font: nil, **html_attributes)
       @text_children = args || []
       # Text_children alternates strings and TextWidgets, so we can't just pass
       # it as a display property. It won't serialize.
@@ -34,6 +34,8 @@ class Scarpe
 
       # This should signal the display widget to change
       self.text_items = text_children_to_items(@text_children)
+      puts "in replace"
+      self.text_items
     end
   end
 
