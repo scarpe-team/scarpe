@@ -621,19 +621,19 @@ class Scarpe
       end
 
       def value=(new_value)
-        @webwrangler.dom_change("document.getElementById('" + html_id.to_s + "').value = '" + new_value.to_s + "'; true")
+        @webwrangler.dom_change("document.getElementById('" + html_id + "').value = '" + new_value + "'; true")
       end
 
       def inner_text=(new_text)
-        @webwrangler.dom_change("document.getElementById('" + html_id.to_s + "').innerText = '" + new_text.to_s + "'; true")
+        @webwrangler.dom_change("document.getElementById('" + html_id + "').innerText = '" + new_text + "'; true")
       end
 
       def inner_html=(new_html)
-        @webwrangler.dom_change("document.getElementById(\"" + html_id.to_s + "\").innerHTML = `" + new_html.to_s + "`; true")
+        @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").innerHTML = `" + new_html + "`; true")
       end
 
       def remove
-        @webwrangler.dom_change("document.getElementById('" + html_id.to_s + "').remove(); true")
+        @webwrangler.dom_change("document.getElementById('" + html_id + "').remove(); true")
       end
     end
   end
