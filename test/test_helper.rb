@@ -125,6 +125,17 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
         raise "Scarpe app returned an unexpected data format! #{out_data.inspect}"
       end
 
+      # If we exit immediately we still need a results file and a true value.
+      # We were getting exit_immediately being fine with apps segfaulting,
+      # so we need to check.
+      if opts[:exit_immediately]
+        if out_data[0]
+          # That's all we needed!
+          return
+        end
+        assert false, "App exited immediately, but its results were false! #{out_data.inspect}  App: #{test_app_location}"
+      end
+
       unless out_data[0]
         puts JSON.pretty_generate(out_data[1])
         assert false, "Some Scarpe tests failed..."

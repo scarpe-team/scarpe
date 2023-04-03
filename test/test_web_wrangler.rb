@@ -3,6 +3,18 @@
 require "test_helper"
 
 class TestWebWrangler < Minitest::Test
+  # Need to make sure that even with no widgets we still get at least one redraw
+  def test_empty_app
+    test_scarpe_code(<<-'SCARPE_APP', test_code:<<-'TEST_CODE', timeout: 0.5)
+      Scarpe.app do
+      end
+    SCARPE_APP
+      on_event(:next_redraw) do
+        return_when_assertions_done
+      end
+    TEST_CODE
+  end
+
   # We've had problems with dirty-tracking where the DOM stops updating after
   # the first change.
   def test_assert_multiple_dom_updates
