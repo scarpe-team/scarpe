@@ -125,6 +125,11 @@ The SCARPE_TEST_CONTROL environment variable can contain a path to a test-contro
 * **Whimsy** - We're not here to make money or be corporate. We're here to have fun! Even if we do end up building something amazing. Also, Chunky Bacon. 🥓
 * **Empathy** - Let's help one another, and adhere to good contributor standards while doing so.
 
+## Documentation
+
+Scarpe uses [YARD](https://yardoc.org/) for basic API documentation. You can run "yard doc" to generate documentation
+locally, and then view it with "yard server". Point your browser at "http://localhost:8808" for local viewing.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/scarpe-team/scarpe. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/scarpe-team/scarpe/blob/main/CODE_OF_CONDUCT.md) and {CONTRIBUTING.md](https://github.com/scarpe-team/scarpe/blob/main/CONTRIBUTING.md).
