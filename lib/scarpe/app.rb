@@ -34,6 +34,11 @@ class Scarpe
       create_display_widget
 
       @app_code_body = app_code_body
+
+      Signal.trap("INT") do
+        puts "\nStopping Scarpe app..."
+        destroy
+      end
     end
 
     def init
