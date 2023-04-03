@@ -133,6 +133,7 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
           # That's all we needed!
           return
         end
+
         assert false, "App exited immediately, but its results were false! #{out_data.inspect}  App: #{test_app_location}"
       end
 
