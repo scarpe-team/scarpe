@@ -537,6 +537,7 @@ class Scarpe
 
         promise.on_fulfilled do
           @redraw_handlers.each(&:call)
+          @pending_redraw_promise = nil
 
           if @waiting_redraw_promise
             # While this redraw was in flight, more waiting changes got added and we made a promise
@@ -549,12 +550,11 @@ class Scarpe
             puts "Fulfilled redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!" if
  @debug
 
-            @pending_redraw_promise = schedule_waiting_changes
-            @pending_redraw_promise.on_fulfilled { old_waiting_promise.fulfilled! }
+            new_promise = promise_redraw
+            new_promise.on_fulfilled { old_waiting_promise.fulfilled! }
           else
             # The in-flight redraw completed, and there's still no waiting promise. Good! That means
             # we should be fully up-to-date.
-            @pending_redraw_promise = nil
             puts "Fulfilled redraw with no waiting changes - marking us as up to date!" if @debug
             if @waiting_changes.empty?
               # We're fully up to date! Fulfill the promise. Now we don't need it again until somebody asks
