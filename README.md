@@ -39,6 +39,8 @@ From the button example:
 
 ### Quickstart
 
+Scarpe requires [Ruby 3.2](https://www.ruby-lang.org/en/downloads/) or higher! use `rvm` or `rbenv` for version control
+
 This is where most of the action is happening right now, and to have the full Scarpe experience _today_ this is probably what you want to do.
 
 ```
