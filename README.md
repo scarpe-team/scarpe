@@ -39,6 +39,8 @@ From the button example:
 
 ### Quickstart
 
+Scarpe requires [Ruby 3.2](https://www.ruby-lang.org/en/downloads/) or higher! use `rvm` or `rbenv` for version control
+
 This is where most of the action is happening right now, and to have the full Scarpe experience _today_ this is probably what you want to do.
 
 ```
@@ -124,6 +126,11 @@ The SCARPE_TEST_CONTROL environment variable can contain a path to a test-contro
 * **User Experience** - Ruby and this DSL are beautiful for making desktop app authoring easy. We should uphold this standard.
 * **Whimsy** - We're not here to make money or be corporate. We're here to have fun! Even if we do end up building something amazing. Also, Chunky Bacon. 🥓
 * **Empathy** - Let's help one another, and adhere to good contributor standards while doing so.
+
+## Documentation
+
+Scarpe uses [YARD](https://yardoc.org/) for basic API documentation. You can run "yard doc" to generate documentation
+locally, and then view it with "yard server". Point your browser at "http://localhost:8808" for local viewing.
 
 ## Contributing
 

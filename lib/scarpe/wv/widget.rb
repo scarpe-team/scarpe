@@ -137,16 +137,7 @@ class Scarpe
     # And so we can't easily cancel one "in flight," and we can't easily pick up the latest
     # changes... And we probably don't want to, because we may be halfway through a batch.
     def needs_update!
-      return if @dirty # Already dirty - nothing changed, so do nothing
-
-      @dirty = true
       WebviewDisplayService.instance.doc_root.request_redraw!
-    end
-
-    # When we do an update, we need to not redraw until we see another change
-    def clear_needs_update!
-      @dirty = false
-      @children.each(&:clear_needs_update!)
     end
 
     def handler_js_code(handler_function_name, *args)

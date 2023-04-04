@@ -27,6 +27,10 @@ class Scarpe
     class JSRuntimeError < JSEvalError
     end
 
+    # The code timed out for some reason
+    class JSTimeoutError < JSEvalError
+    end
+
     # We got weird or nonsensical results that seem like an error on WebWrangler's part
     class InternalError < JSEvalError
     end
@@ -283,7 +287,7 @@ class Scarpe
       timed_out_ids.each do |id|
         $stderr.puts "Timing out JS eval! #{@pending_evals[id][:code]}"
         entry = @pending_evals.delete(id)
-        err = JSSyntaxError.new(msg: "JS syntax error or handling error!", code: entry[:code], ret_value: nil)
+        err = JSTimeoutError.new(msg: "JS timeout error!", code: entry[:code], ret_value: nil)
         entry[:promise].rejected!(err)
       end
     end
@@ -526,11 +530,13 @@ class Scarpe
         # We have no redraw in-flight and no pre-existing waiting line. The new change(s) are presumably right
         # after things were fully up-to-date. We can schedule them for immediate redraw.
 
-        promise = schedule_waiting_changes
+        puts "Requesting redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!" if @debug
+        promise = schedule_waiting_changes # This clears the waiting changes
         @pending_redraw_promise = promise
 
         promise.on_fulfilled do
           @redraw_handlers.each(&:call)
+          @pending_redraw_promise = nil
 
           if @waiting_redraw_promise
             # While this redraw was in flight, more waiting changes got added and we made a promise
@@ -540,12 +546,15 @@ class Scarpe
             old_waiting_promise = @waiting_redraw_promise
             @waiting_redraw_promise = nil
 
-            @pending_redraw_promise = schedule_waiting_changes
-            @pending_redraw_promise.on_fulfilled { old_waiting_promise.fulfilled! }
+            puts "Fulfilled redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!" if
+ @debug
+
+            new_promise = promise_redraw
+            new_promise.on_fulfilled { old_waiting_promise.fulfilled! }
           else
             # The in-flight redraw completed, and there's still no waiting promise. Good! That means
             # we should be fully up-to-date.
-            @pending_redraw_promise = nil
+            puts "Fulfilled redraw with no waiting changes - marking us as up to date!" if @debug
             if @waiting_changes.empty?
               # We're fully up to date! Fulfill the promise. Now we don't need it again until somebody asks
               # us for another.
@@ -620,19 +629,19 @@ class Scarpe
       end
 
       def value=(new_value)
-        @webwrangler.dom_change("document.getElementById(#{html_id}).value = #{new_value}; true")
+        @webwrangler.dom_change("document.getElementById('" + html_id + "').value = '" + new_value + "'; true")
       end
 
       def inner_text=(new_text)
-        @webwrangler.dom_change("document.getElementById(#{html_id}).innerText = '#{new_text}'; true")
+        @webwrangler.dom_change("document.getElementById('" + html_id + "').innerText = '" + new_text + "'; true")
       end
 
       def inner_html=(new_html)
-        @webwrangler.dom_change("document.getElementById(#{html_id}).innerHTML = `#{new_html}`; true")
+        @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").innerHTML = `" + new_html + "`; true")
       end
 
       def remove
-        @webwrangler.dom_change("document.getElementById(#{html_id}).remove(); true")
+        @webwrangler.dom_change("document.getElementById('" + html_id + "').remove(); true")
       end
     end
   end
