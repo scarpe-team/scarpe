@@ -2,12 +2,12 @@
 
 def method_missing(method, ...)
   case method.to_s
-  when "para"
-    Scarpe.para(...)
   when "alert"
     Scarpe.alert(...)
   when "button"
     Scarpe.button(...)
+  when "stack"
+    Scarpe.stack(...)
   else
     super
   end
@@ -15,10 +15,15 @@ end
 
 def respond_to_missing?(method_name, include_private = false)
   [
-    "para",
     "alert",
     "button",
+    "stack",
   ].include?(method_name.to_s) || super
+end
+
+def para(*args, **kwargs)
+  hbox = @hbox ? @hbox : $vbox
+  Scarpe.para(*args, **kwargs, hbox: hbox)
 end
 
 class Scarpe

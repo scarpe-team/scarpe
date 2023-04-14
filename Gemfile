@@ -15,6 +15,8 @@ gem "rubocop-shopify", group: :development
 
 gem "minitest-reporters", group: :test
 
+gem "debug", group: :development
+
 group :development do
   gem "yard"
   gem "redcarpet"

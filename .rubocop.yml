@@ -15,6 +15,9 @@ Layout/LineLength:
 Style/MethodCallWithArgsParentheses:
   Enabled: false
 
+Style/GlobalVars:
+  Enabled: false
+
 Style/CommandLiteral:
   Enabled: false
 

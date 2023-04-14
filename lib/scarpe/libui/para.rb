@@ -3,16 +3,25 @@
 class Scarpe
   class << self
     # Sure we can showcase the defaults here so folks can avoid the insanity.
-    def para(text, size: 12.0, stroke: black, weight: nil, fill: nil, underline: nil, italic: nil)
-      Para.new(text, size: size, stroke: stroke, weight: weight, fill: fill, underline: underline, italic: italic)
+    def para(text, size: 12.0, stroke: black, weight: nil, fill: nil, underline: nil, italic: nil, hbox: nil)
+      Para.new(
+        text,
+        size: size,
+        stroke: stroke,
+        weight: weight,
+        fill: fill,
+        underline: underline,
+        italic: italic,
+        hbox: hbox,
+      )
     end
   end
 
   class Para
-    def initialize(text, size:, stroke:, weight:, fill:, underline:, italic:)
+    def initialize(text, size:, stroke:, weight:, fill:, underline:, italic:, hbox:)
       # old flow for label
       # UI.box_append($vbox, UI.new_label(text), 0)
-
+      @hbox = hbox
       @handler = UI::FFI::AreaHandler.malloc
       @handler.to_ptr.free = Fiddle::RUBY_FREE
       @area = UI.new_area(@handler)
@@ -40,8 +49,12 @@ class Scarpe
       attr_builder = []
       attr_builder << UI.new_weight_attribute(font_weight) if font_weight
       attr_builder << UI.new_size_attribute(size) if size
-      attr_builder << UI.new_color_attribute(stroke[0].to_f / 255.0, stroke[1].to_f / 255.0, stroke[2].to_f / 255.0, stroke[3].to_f || 1.0) if stroke
-      attr_builder << UI.new_background_attribute(fill[0].to_f / 255.0, fill[1].to_f / 255.0, fill[2].to_f / 255.0, fill[3].to_f || 1.0) if fill
+      attr_builder << UI.new_color_attribute(
+        stroke[0].to_f / 255.0, stroke[1].to_f / 255.0, stroke[2].to_f / 255.0, stroke[3].to_f || 1.0
+      ) if stroke
+      attr_builder << UI.new_background_attribute(
+        fill[0].to_f / 255.0, fill[1].to_f / 255.0, fill[2].to_f / 255.0, fill[3].to_f || 1.0
+      ) if fill
       attr_builder << UI.new_underline_attribute(UI::UnderlineSingle) if underline == "single"
       attr_builder << UI.new_underline_attribute(UI::UnderlineDouble) if underline == "double"
       attr_builder << UI.new_italic_attribute(UI::TextItalicNormal) if italic == true # NOTE- this is a boolean, not a string. and not part of core scarpe api. we set this internally.
@@ -102,12 +115,12 @@ class Scarpe
       # do i shove it in vbox or para_box?
       # @para_box = UI.new_vertical_box
       # UI.box_set_padded(@para_box, 1)
-      UI.box_append($vbox, @area, 1)
+      UI.box_append(@hbox, @area, 1)
 
       # I have absolutely no idea what is going on with boxes so need to look into this next
       # probably with stacks and flows
       # UI.window_set_margined($main_window, 1)
-      UI.window_set_child($main_window, $vbox)
+      UI.window_set_child($main_window, @hbox)
     end
 
     def append_with_attribute(what, *args)
