@@ -12,6 +12,14 @@ AllCops:
 Layout/LineLength:
   Max: 150
 
+Style/RedundantHeredocDelimiterQuotes:
+  Enabled: false
+
+Style/MissingRespondToMissing:
+  Enabled: false
+
+
+
 Style/MethodCallWithArgsParentheses:
   Enabled: false
 

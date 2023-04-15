@@ -57,7 +57,8 @@ class Scarpe
       ) if fill
       attr_builder << UI.new_underline_attribute(UI::UnderlineSingle) if underline == "single"
       attr_builder << UI.new_underline_attribute(UI::UnderlineDouble) if underline == "double"
-      attr_builder << UI.new_italic_attribute(UI::TextItalicNormal) if italic == true # NOTE- this is a boolean, not a string. and not part of core scarpe api. we set this internally.
+      # NOTE- this is a boolean, not a string. and not part of core scarpe api. we set this internally.
+      attr_builder << UI.new_italic_attribute(UI::TextItalicNormal) if italic == true
       attr_builder << UI.new_italic_attribute(UI::TextItalicItalic) if italic == "double"
       attr_builder << UI.new_underline_color_attribute(
         UI::UnderlineColorCustom,
