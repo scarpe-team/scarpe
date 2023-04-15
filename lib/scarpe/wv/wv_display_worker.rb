@@ -12,7 +12,7 @@ require "scarpe"
 # This script exists to create a WebviewDisplayService that can be operated remotely over a socket.
 
 if ARGV.length != 1
-  $stderr.puts "Usage: wv_display_worker.rb tcp_port_num"
+  Scarpe.error("Usage: wv_display_worker.rb tcp_port_num")
   exit(-1)
 end
 
@@ -65,4 +65,4 @@ s = TCPSocket.new("localhost", ARGV[0].to_i)
 
 SERVICE = WebviewContainedService.new(s, s)
 
-puts "Finished event loop. Exiting!"
+Scarpe.info("Finished event loop. Exiting!")
