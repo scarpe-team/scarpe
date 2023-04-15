@@ -11,7 +11,8 @@ class Scarpe
       end
 
       # We're appending this to the top level box. (Note, may want to apply to "parent" long term)
-      UI.box_append($vbox, @button, 0)
+      hbox = $parent_box ? $parent_box : $vbox
+      UI.box_append(hbox, @button, 0)
     end
   end
 end

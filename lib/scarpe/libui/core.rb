@@ -8,6 +8,8 @@ def method_missing(method, ...)
     Scarpe.button(...)
   when "stack"
     Scarpe.stack(...)
+  when "flow"
+    Scarpe.flow(...)
   else
     super
   end
@@ -22,8 +24,7 @@ def respond_to_missing?(method_name, include_private = false)
 end
 
 def para(*args, **kwargs)
-  hbox = @hbox ? @hbox : $vbox
-  Scarpe.para(*args, **kwargs, hbox: hbox)
+  Scarpe.para(*args, **kwargs)
 end
 
 class Scarpe
@@ -39,6 +40,7 @@ class Scarpe
 
       $main_window = UI.new_window(title, height, width, 1)
       $vbox = UI.new_vertical_box
+      UI.window_set_child($main_window, $vbox)
     end
 
     def closing_stuff
@@ -52,7 +54,6 @@ class Scarpe
       UI.control_show($main_window)
 
       # Add main box to main window, close everything out
-      UI.window_set_child($main_window, $vbox)
       UI.main
       UI.quit
     end

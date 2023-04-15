@@ -24,22 +24,11 @@ class Scarpe
     # Width means nothing right now, but we'll get there
     def stack(width: 1.0)
       hbox = UI.new_horizontal_box
-      if top_level?
-        global_stack[caller_key] = hbox
-        UI.window_set_child($vbox, hbox)
-      else
-        # global_stack[something][all][the][way][down] = hbox
-        # UI.box_append(global_stack[something][all][the][way], hbox, 0)
-      end
-      @box_present = hbox
+      old_parent = $parent_box ? $parent_box : $vbox
+      $parent_box = hbox
       yield
-    end
-
-    private
-
-    # Later we'll check for parent, but for now, just top level
-    def top_level?
-      true
+      UI.box_append(old_parent, hbox, 1)
+      $parent_box = nil
     end
   end
 end
