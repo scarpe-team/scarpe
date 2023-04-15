@@ -36,7 +36,6 @@ class Scarpe
       $parent_box = hbox
       yield
       UI.box_append($vbox, hbox, 1)
-      # UI.window_set_child($main_window, $parent_box)
       $parent_box = nil
     end
 
