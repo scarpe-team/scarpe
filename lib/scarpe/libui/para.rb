@@ -3,7 +3,7 @@
 class Scarpe
   class << self
     # Sure we can showcase the defaults here so folks can avoid the insanity.
-    def para(text, size: 12.0, stroke: black, weight: nil, fill: nil, underline: nil, italic: nil, hbox: nil)
+    def para(text, size: 12.0, stroke: black, weight: nil, fill: nil, underline: nil, italic: nil)
       Para.new(
         text,
         size: size,
@@ -12,16 +12,14 @@ class Scarpe
         fill: fill,
         underline: underline,
         italic: italic,
-        hbox: hbox,
       )
     end
   end
 
   class Para
-    def initialize(text, size:, stroke:, weight:, fill:, underline:, italic:, hbox:)
+    def initialize(text, size:, stroke:, weight:, fill:, underline:, italic:)
       # old flow for label
       # UI.box_append($vbox, UI.new_label(text), 0)
-      @hbox = hbox
       @handler = UI::FFI::AreaHandler.malloc
       @handler.to_ptr.free = Fiddle::RUBY_FREE
       @area = UI.new_area(@handler)
@@ -116,12 +114,18 @@ class Scarpe
       # do i shove it in vbox or para_box?
       # @para_box = UI.new_vertical_box
       # UI.box_set_padded(@para_box, 1)
-      UI.box_append(@hbox, @area, 1)
+      # debugger
+      hbox = $parent_box ? $parent_box : $vbox
+      UI.box_append(hbox, @area, 1)
 
       # I have absolutely no idea what is going on with boxes so need to look into this next
       # probably with stacks and flows
       # UI.window_set_margined($main_window, 1)
-      UI.window_set_child($main_window, @hbox)
+      # if $parent_box
+      UI.window_set_child($main_window, hbox)
+      # else
+      #   UI.window_set_child($main_window, $vbox)
+      # end
     end
 
     def append_with_attribute(what, *args)

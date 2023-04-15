@@ -23,16 +23,20 @@ class Scarpe
   class << self
     # Width means nothing right now, but we'll get there
     def stack(width: 1.0)
+      # maybe i don't need to keep a hash
+      # if top_level?
+      #   global_stack[caller_key] = hbox
+      #   UI.window_set_child($vbox, hbox)
+      # else
+      #   # global_stack[something][all][the][way][down] = hbox
+      #   # UI.box_append(global_stack[something][all][the][way], hbox, 0)
+      # end
       hbox = UI.new_horizontal_box
-      if top_level?
-        global_stack[caller_key] = hbox
-        UI.window_set_child($vbox, hbox)
-      else
-        # global_stack[something][all][the][way][down] = hbox
-        # UI.box_append(global_stack[something][all][the][way], hbox, 0)
-      end
-      @box_present = hbox
+      # Shit can I just global all the way down.
+      $parent_box = hbox
       yield
+      UI.window_set_child($main_window, $parent_box)
+      $parent_box = nil
     end
 
     private
