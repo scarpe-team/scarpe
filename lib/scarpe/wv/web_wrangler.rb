@@ -186,7 +186,7 @@ class Scarpe
       promise = Scarpe::Promise.new(parents: (opts[:wait_for] || [])) do
         # Are we mid-shutdown?
         if @webview
-          wrapped_code = js_wrapped_code(code, this_eval_serial)
+          wrapped_code = WebWrangler.js_wrapped_code(code, this_eval_serial)
 
           # We've been scheduled!
           t_now = Time.now
@@ -209,9 +209,7 @@ class Scarpe
       promise
     end
 
-    private
-
-    def js_wrapped_code(code, eval_id)
+    def self.js_wrapped_code(code, eval_id)
       <<~JS_CODE
         (function() {
           var code_string = #{JSON.dump code};
@@ -224,6 +222,8 @@ class Scarpe
         })();
       JS_CODE
     end
+
+    private
 
     def periodic_js_callback
       time_out_eval_results
@@ -471,9 +471,13 @@ class Scarpe
         promise_redraw
       end
 
+      def self.replacement_code(html_text)
+        "document.getElementById('wrapper-wvroot').innerHTML = `#{html_text}`; true"
+      end
+
       def request_replace(html_text)
         # Replace other pending changes, they're not needed any more
-        @waiting_changes = ["document.getElementById('wrapper-wvroot').innerHTML = `#{html_text}`; true"]
+        @waiting_changes = [DOMWrangler.replacement_code(html_text)]
 
         puts "Requesting DOM replacement..." if @debug
         promise_redraw
