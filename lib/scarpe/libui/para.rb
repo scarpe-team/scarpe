@@ -122,7 +122,7 @@ class Scarpe
       # probably with stacks and flows
       # UI.window_set_margined($main_window, 1)
       # if $parent_box
-      UI.window_set_child($main_window, hbox)
+      # UI.window_set_child($main_window, hbox)
       # else
       #   UI.window_set_child($main_window, $vbox)
       # end

@@ -39,4 +39,7 @@ Shoes.app do
   stack do
     para "hi friends"
   end
+  stack do
+    para "no wai!"
+  end
 end
