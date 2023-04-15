@@ -1,5 +1,5 @@
 
 
 Shoes.app do
-  para "Hello world"
+  para "Hello scarpe"
 end
