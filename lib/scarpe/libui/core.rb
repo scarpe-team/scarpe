@@ -8,6 +8,8 @@ def method_missing(method, ...)
     Scarpe.button(...)
   when "stack"
     Scarpe.stack(...)
+  when "flow"
+    Scarpe.flow(...)
   else
     super
   end
