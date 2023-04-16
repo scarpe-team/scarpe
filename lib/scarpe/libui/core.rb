@@ -1,17 +1,22 @@
 # frozen_string_literal: true
 
-def method_missing(method, ...)
-  case method.to_s
-  when "alert"
-    Scarpe.alert(...)
-  when "button"
-    Scarpe.button(...)
-  when "stack"
-    Scarpe.stack(...)
-  when "flow"
-    Scarpe.flow(...)
+def method_missing(method, *args, **kwargs, &block)
+  if Scarpe::SIZES.keys.include?(method)
+    kwargs[:size] = Scarpe::SIZES[method]
+    Scarpe.para(*args, **kwargs, &block)
   else
-    super
+    case method.to_s
+    when "alert"
+      Scarpe.alert(*args, **kwargs, &block)
+    when "button"
+      Scarpe.button(*args, **kwargs, &block)
+    when "stack"
+      Scarpe.stack(*args, **kwargs, &block)
+    when "flow"
+      Scarpe.flow(*args, **kwargs, &block)
+    else
+      super
+    end
   end
 end
 
