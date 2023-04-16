@@ -1,6 +1,16 @@
 # frozen_string_literal: true
 
 class Scarpe
+  SIZES = {
+    inscription: 10,
+    ins: 10,
+    para: 12,
+    caption: 14,
+    tagline: 18,
+    subtitle: 26,
+    title: 34,
+    banner: 48,
+  }.freeze
   class << self
     # Sure we can showcase the defaults here so folks can avoid the insanity.
     def para(text, size: 12.0, stroke: black, weight: nil, fill: nil, underline: nil, italic: nil)

@@ -9,25 +9,25 @@ require "debug"
 require_relative "colors"
 require_relative "stack"
 require_relative "flow"
-require_relative "core"
 require_relative "alert"
 require_relative "button"
 require_relative "para"
+require_relative "core"
 
 UI = LibUI
 
 Shoes = Scarpe
 
 Shoes.app(title: "Hello world!", height: 1000, width: 1000) do
+  title "Hello world!"
+  para "This is a paragraph", size: 10
   flow do
     stack do
-      para "Check out this paragraph",
-        size: 50,
+      inscription "Check out this paragraph",
         stroke: red,
         weight: "ultralight",
         fill: yellow
-      para "I'm just a fish though",
-        size: 99,
+      banner "I'm just a fish though",
         underline: "single",
         italic: true,
         weight: "bold",
