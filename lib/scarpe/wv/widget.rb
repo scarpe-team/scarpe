@@ -77,7 +77,8 @@ class Scarpe
     def remove_child(child)
       @children ||= []
       unless @children.include?(child)
-        puts "remove_child: no such child(#{child.inspect}) for parent(#{parent.inspect})!"
+        Scarpe.error("remove_child: no such child(#{child.inspect}) for"\
+          " parent(#{parent.inspect})!")
       end
       @children.delete(child)
     end
