@@ -2,7 +2,7 @@
 
 class Scarpe
   class DocumentRoot < Scarpe::Widget
-    include Scarpe::Background
+    include Scarpe::Background, Scarpe::Colors
 
     display_property :debug
 

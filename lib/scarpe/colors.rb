@@ -149,7 +149,7 @@ class Scarpe
       def included(base)
         COLORS.each do |color, rgb|
           define_method(color) do |alpha = 1.0|
-            rgb + [alpha]
+            "rgb(#{rgb.join(", ")}, #{alpha})"
           end
         end
       end

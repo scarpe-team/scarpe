@@ -1,6 +1,6 @@
 Shoes.app do
   stack width: 0.33 do
-    background "purple"
+    background blue
     button "a button"
   end
   stack width: 0.33 do

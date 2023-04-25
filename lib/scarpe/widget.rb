@@ -5,7 +5,7 @@
 # Interface:
 # A Scarpe::Widget defines the "element" method to indicate that it has custom markup of
 # some kind. A Widget with no element method renders as its children's markup, joined.
-
+require_relative "colors"
 class Scarpe
   class Widget < DisplayService::Linkable
     class << self

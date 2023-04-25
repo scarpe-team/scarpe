@@ -5,6 +5,7 @@ class Scarpe
     include Scarpe::Background
     include Scarpe::Border
     include Scarpe::Spacing
+    include Scarpe::Colors
 
     display_properties :width, :height, :margin, :padding, :scroll, :options
 
