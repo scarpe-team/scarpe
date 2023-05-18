@@ -246,7 +246,7 @@ class Scarpe
         promise.fulfilled!(val)
       when "error"
         promise.rejected! JSRuntimeError.new(
-          msg: "JS runtime error: #{val.inspect}!",
+          msg: "JS runtime error: #{val.inspect}! and code is #{entry[:code]}",
           code: entry[:code],
           ret_value: val,
         )
@@ -296,6 +296,7 @@ class Scarpe
 
     # After setup, we call run to go to "running" mode.
     # No more setup callbacks, only running callbacks.
+
     def run
       Scarpe.debug("Run...") if @debug
 
@@ -465,6 +466,7 @@ class Scarpe
 
       def request_change(js_code)
         @waiting_changes << js_code
+        Scarpe.debug "waitin changes #{@waiting_changes}" if @debug
 
         promise_redraw
       end
@@ -632,7 +634,7 @@ class Scarpe
       end
 
       def value=(new_value)
-        @webwrangler.dom_change("document.getElementById('" + html_id + "').value = '" + new_value + "'; true")
+        @webwrangler.dom_change("document.getElementById('" + html_id + "').value = `" + new_value + "`; true")
       end
 
       def inner_text=(new_text)
