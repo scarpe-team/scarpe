@@ -77,13 +77,13 @@ Huh. Great question. Right now we have a few key things we want to achieve. The 
 
 ![](https://geps.dev/progress/16?dangerColor=800000&warningColor=ff9900&successColor=006600)
 
-__40/256__
+__41/257__
 
 ### GlimmerLibUI Display Service Examples Passing
 
 ![](https://geps.dev/progress/2?dangerColor=800000&warningColor=ff9900&successColor=006600)
 
-__4/256__
+__4/257__
 
 ## Teach me more about Shoes, the DSL, what it is and why it is amazing
 
