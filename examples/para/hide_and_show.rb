@@ -1,5 +1,5 @@
 Shoes.app do
-  @banner = banner 'This is a big banner!'
+  @banner = banner "This is a big banner!", hidden: true
   para link("Hide banner") {
     @banner.hide
   }

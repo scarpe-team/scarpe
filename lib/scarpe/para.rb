@@ -10,14 +10,19 @@ class Scarpe
       end
     end
 
-    display_properties :text_items, :stroke, :size, :html_attributes
+    display_properties :text_items, :stroke, :size, :html_attributes, :hidden
 
-    def initialize(*args, stroke: nil, size: :para, **html_attributes)
+    def initialize(*args, stroke: nil, size: :para, hidden: false, **html_attributes)
       @text_children = args || []
-      # Text_children alternates strings and TextWidgets, so we can't just pass
-      # it as a display property. It won't serialize.
-      @text_items = text_children_to_items(@text_children)
-      @hidden_text_items = []
+      if hidden
+        @hidden_text_items = text_children_to_items(@text_children)
+        @text_items = []
+      else
+        # Text_children alternates strings and TextWidgets, so we can't just pass
+        # it as a display property. It won't serialize.
+        @text_items = text_children_to_items(@text_children)
+        @hidden_text_items = []
+      end
 
       @html_attributes = html_attributes || {}
 
