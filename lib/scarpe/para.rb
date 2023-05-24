@@ -13,10 +13,19 @@ class Scarpe
     display_properties :text_items, :stroke, :size, :font, :html_attributes
 
     def initialize(*args, stroke: nil, size: :para, font: nil, **html_attributes)
+    display_properties :text_items, :stroke, :size, :html_attributes, :hidden
+
+    def initialize(*args, stroke: nil, size: :para, font: nil, hidden: false, **html_attributes)
       @text_children = args || []
-      # Text_children alternates strings and TextWidgets, so we can't just pass
-      # it as a display property. It won't serialize.
-      @text_items = text_children_to_items(@text_children)
+      if hidden
+        @hidden_text_items = text_children_to_items(@text_children)
+        @text_items = []
+      else
+        # Text_children alternates strings and TextWidgets, so we can't just pass
+        # it as a display property. It won't serialize.
+        @text_items = text_children_to_items(@text_children)
+        @hidden_text_items = []
+      end
 
       @html_attributes = html_attributes || {}
 
@@ -36,6 +45,38 @@ class Scarpe
       self.text_items = text_children_to_items(@text_children)
       puts "in replace"
       self.text_items
+    end
+
+    def hide
+      # idempotent
+      return unless @hidden_text_items.empty?
+
+      @hidden_text_items = self.text_items
+      self.text_items = []
+    end
+
+    def show
+      # idempotent
+      return unless self.text_items.empty?
+
+      self.text_items = @hidden_text_items
+      @hidden_text_items = []
+    end
+
+    def hide
+      # idempotent
+      return unless @hidden_text_items.empty?
+
+      @hidden_text_items = self.text_items
+      self.text_items = []
+    end
+
+    def show
+      # idempotent
+      return unless self.text_items.empty?
+
+      self.text_items = @hidden_text_items
+      @hidden_text_items = []
     end
   end
 
