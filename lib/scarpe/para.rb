@@ -10,9 +10,9 @@ class Scarpe
       end
     end
 
-    display_properties :text_items, :stroke, :size, :html_attributes, :hidden
+    display_properties :text_items, :stroke, :size, :font, :html_attributes, :hidden
 
-    def initialize(*args, stroke: nil, size: :para, hidden: false, **html_attributes)
+    def initialize(*args, stroke: nil, size: :para, font: nil, hidden: false, **html_attributes)
       @text_children = args || []
       if hidden
         @hidden_text_items = text_children_to_items(@text_children)
