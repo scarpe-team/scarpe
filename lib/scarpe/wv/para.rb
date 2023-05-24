@@ -77,6 +77,7 @@ class Scarpe
       {
         "color" => @stroke,
         "font-size" => font_size,
+        "font-family" => @font,
       }.compact
     end
 
