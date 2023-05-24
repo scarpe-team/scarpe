@@ -9,8 +9,8 @@ class Scarpe
     # Considering a signature like this:
     # border "#00D0FF", :strokewidth => 3, :curve => 12
     def border(color, options = {})
-      @border_color = color
-      @options = options
+    self.border_color = color
+    self.options = options
     end
   end
 end
