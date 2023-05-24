@@ -5,7 +5,7 @@ class Scarpe
     display_properties :text, :height, :width
 
     def initialize(text = nil, height: nil, width: nil, &block)
-      @text = text || block.call
+      @text = text.nil? ? "" : text
 
       super
 
