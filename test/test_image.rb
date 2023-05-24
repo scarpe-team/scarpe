@@ -14,7 +14,7 @@ class TestNoDisplayImage < Minitest::Test
 
   def test_image
     test_scarpe_code_no_display(<<~SCARPE_APP, <<~'TEST_CODE')
-      Scarpe.app do
+      Shoes.app do
         image #{@url.inspect}
       end
     SCARPE_APP
