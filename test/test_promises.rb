@@ -4,7 +4,6 @@ require "test_helper"
 
 class TestPromises < Minitest::Test
   Promise = Scarpe::Promise
-  # Promise.debug = true
 
   def empty_promise_with_checker(state: nil, parents: [])
     # Initially, no handlers have been called

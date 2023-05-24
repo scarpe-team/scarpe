@@ -1,0 +1,4 @@
+{
+    "default": "warn",
+    "WV::WebWrangler": ["logger/web_wrangler.log", "debug"]
+}

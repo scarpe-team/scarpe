@@ -2,6 +2,8 @@
 
 class Scarpe
   class WebviewWidget < DisplayService::Linkable
+    include Scarpe::Log
+
     class << self
       def display_class_for(scarpe_class_name)
         scarpe_class = Scarpe.const_get(scarpe_class_name)
@@ -24,6 +26,8 @@ class Scarpe
     attr_reader :children
 
     def initialize(properties)
+      log_init("WV::Widget")
+
       # Call method, which looks up the parent
       @shoes_linkable_id = properties["shoes_linkable_id"] || properties[:shoes_linkable_id]
       unless @shoes_linkable_id
@@ -77,7 +81,7 @@ class Scarpe
     def remove_child(child)
       @children ||= []
       unless @children.include?(child)
-        Scarpe.error("remove_child: no such child(#{child.inspect}) for"\
+        @log.error("remove_child: no such child(#{child.inspect}) for"\
           " parent(#{parent.inspect})!")
       end
       @children.delete(child)

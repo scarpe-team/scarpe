@@ -127,6 +127,17 @@ The SCARPE_TEST_CONTROL environment variable can contain a path to a test-contro
 * **Whimsy** - We're not here to make money or be corporate. We're here to have fun! Even if we do end up building something amazing. Also, Chunky Bacon. 🥓
 * **Empathy** - Let's help one another, and adhere to good contributor standards while doing so.
 
+## Logging
+
+You can set SCARPE_LOG_CONFIG to an appropriate YAML file to set log levels per-component. You can find sample log configs under the logger directory. Scarpe has a number of component names that log data, set per-class. So you can set what components log at what sensitivity.
+
+```
+{
+    "default": "warn",
+    "WV::WebWrangler": ["logger/web_wrangler.log", "debug"]
+}
+```
+
 ## Documentation
 
 Scarpe uses [YARD](https://yardoc.org/) for basic API documentation. You can run "yard doc" to generate documentation
