@@ -23,9 +23,6 @@ class Scarpe
     def size
       width, height = FastImage.size(@url)
 
-      puts "Width: #{width}"
-      puts "Height: #{height}"
-
       [width, height]
     end
   end
