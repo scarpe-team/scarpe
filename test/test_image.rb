@@ -88,4 +88,13 @@ class TestWebviewImage < Minitest::Test
       "</a>",
       img.to_html
   end
+
+  def test_image_size
+    url = "http://shoesrb.com/manual/static/shoes-icon.png"
+    expected_size = [128, 128]
+    img = Scarpe::Image.new(url)
+    actual_size = img.size
+
+    assert_equal expected_size, actual_size
+  end
 end
