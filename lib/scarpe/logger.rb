@@ -7,8 +7,12 @@ class Scarpe
   LOG_LEVELS = [:debug, :info, :warning, :error, :fatal].freeze
 
   module Log
-    def log_init(component = nil)
-      @log = Logging.logger[component || self]
+    DEFAULT_LOG_CONFIG = {
+      "default": "info",
+    }
+
+    def log_init(component = self)
+      @log = Logging.logger[component]
     end
   end
 
@@ -35,35 +39,31 @@ class Scarpe
       end
 
       def json_to_appender(data)
-        if data.is_a?(String)
-          case data.downcase
-          when "stdout"
-            Logging.appenders.stdout
-          when "stderr"
-            Logging.appenders.stderr
-          else
-            Logging.appenders.file(data)
-          end
+        case data.downcase
+        when "stdout"
+          Logging.appenders.stdout
+        when "stderr"
+          Logging.appenders.stderr
+        when String
+          Logging.appenders.file(data)
+        else
+          raise "Don't know how to convert #{data.inspect} to an appender!"
         end
       end
 
       def json_configure_logger(logger, data)
-        if data.is_a?(String)
+        case data
+        in String
           sev = name_to_severity(data)
           logger.level = sev
-          return
-        end
-
-        if data.is_a?(Array) && data.size == 2
-          where, level = *data
+        in [where, level]
           app = json_to_appender(where)
           logger.appenders = [app]
           logger.additive = false # Don't also log to parent/root loggers
           logger.level = name_to_severity(level)
-          return
+        else
+          raise "Don't know how to use #{data.inspect} to specify a logger!"
         end
-
-        raise "Don't know how to use #{data.inspect} to specify a logger!"
       end
 
       def initialize_logger(log_config)
@@ -81,12 +81,6 @@ class Scarpe
   end
 end
 
-log_config = if ENV["SCARPE_LOG_CONFIG"]
-  JSON.parse(File.read(ENV["SCARPE_LOG_CONFIG"]))
-else
-  {
-    "default": "info",
-  }
-end
+log_config = ENV["SCARPE_LOG_CONFIG"] ? JSON.load_file(ENV["SCARPE_LOG_CONFIG"]) : Scarpe::Log::DEFAULT_LOG_CONFIG
 
 Scarpe::Logger.initialize_logger(log_config)
