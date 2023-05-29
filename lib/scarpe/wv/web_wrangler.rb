@@ -633,7 +633,7 @@ class Scarpe
       end
 
       def value=(new_value)
-        @webwrangler.dom_change("document.getElementById('" + html_id + "').value = '" + new_value + "'; true")
+        @webwrangler.dom_change("document.getElementById('" + html_id + "').value = `" + new_value + "`; true")
       end
 
       def inner_text=(new_text)
