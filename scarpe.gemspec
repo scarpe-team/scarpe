@@ -33,6 +33,7 @@ Gem::Specification.new do |spec|
   # Uncomment to register a new dependency of your gem
   spec.add_dependency "fastimage"
   spec.add_dependency "glimmer-dsl-libui"
+  spec.add_dependency "nokogiri"
 
   spec.add_dependency "webview_ruby", "~>0.1.1"
 
