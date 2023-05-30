@@ -2,8 +2,10 @@
 
 require_relative "scarpe/logger"
 
+# This will never be triggered -- we use the (...) feature below, which means this
+# file won't even parse in old Rubies.
 if RUBY_VERSION[0..2] < "3.2"
-  Scarpe::Logger.logger.error("Scarpe requires Ruby 3.2 or higher!")
+  Scarpe::Logger.logger("Scarpe").error("Scarpe requires Ruby 3.2 or higher!")
   exit(-1)
 end
 
