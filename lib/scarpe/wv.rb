@@ -26,6 +26,7 @@ require_relative "wv/button"
 require_relative "wv/image"
 require_relative "wv/edit_box"
 require_relative "wv/edit_line"
+require_relative "wv/list_box"
 require_relative "wv/alert"
 require_relative "wv/span"
 

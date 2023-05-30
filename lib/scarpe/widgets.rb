@@ -15,6 +15,7 @@ require_relative "button"
 require_relative "image"
 require_relative "edit_box"
 require_relative "edit_line"
+require_relative "list_box"
 require_relative "alert"
 require_relative "span"
 

@@ -4,7 +4,9 @@ Shoes.app :width => 320, :height => 420 do
   background "../static/menu-left.png", :top => 50, :width => 55
   background "../static/menu-right.png", :right => 0, :top => 50, :width => 55
   image "../static/menu-corner1.png", :top => 0, :left => 0
-  image "../static/menu-corner2.png", :right => 0, :top => 0
+  # image "../static/menu-corner2.png", :right => 0, :top => 0
+  # list_box :items => ["Phyllis", "Ronald", "Wyatt"]
+  list_box(items: ["Phyllis", "Ronald", "Wyatt"])
 
   stack :margin => 40 do
     stack :margin => 10 do
