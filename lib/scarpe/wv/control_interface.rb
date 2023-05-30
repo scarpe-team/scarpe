@@ -12,6 +12,8 @@
 
 class Scarpe
   class ControlInterface
+    include Scarpe::Log
+
     SUBSCRIBE_EVENTS = [:init, :shutdown, :next_redraw, :every_redraw, :next_heartbeat, :every_heartbeat]
     DISPATCH_EVENTS = [:init, :shutdown, :redraw, :heartbeat]
 
@@ -19,6 +21,8 @@ class Scarpe
 
     # The control interface needs to see major system components to hook into their events
     def initialize
+      log_init("WV::ControlInterface")
+
       @event_handlers = {}
       (SUBSCRIBE_EVENTS | DISPATCH_EVENTS).each { |e| @event_handlers[e] = [] }
     end

@@ -30,10 +30,9 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  # Uncomment to register a new dependency of your gem
   spec.add_dependency "fastimage"
   spec.add_dependency "glimmer-dsl-libui"
-
+  spec.add_dependency "logging", "~>2.3.1"
   spec.add_dependency "webview_ruby", "~>0.1.1"
 
   # For more information and examples about making a new gem, check out our

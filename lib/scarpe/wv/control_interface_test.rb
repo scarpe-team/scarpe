@@ -35,7 +35,7 @@ class Scarpe
       end
 
       result_file = ENV["SCARPE_TEST_RESULTS"] || "./scarpe_results.txt"
-      Scarpe.debug("Writing results file #{result_file.inspect} to disk!") if @debug
+      @log.debug("Writing results file #{result_file.inspect} to disk!")
       File.write(result_file, JSON.pretty_generate(result_structs))
 
       @results_returned = true

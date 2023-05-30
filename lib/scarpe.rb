@@ -21,22 +21,6 @@ require_relative "scarpe/glibui" if ENV["SCARPE_DISPLAY_SERVICES"] == "Scarpe::G
 
 class Scarpe
   class << self
-    def error(message)
-      Scarpe::Logger.logger.error(message)
-    end
-
-    def warn(message)
-      Scarpe::Logger.logger.warn(message)
-    end
-
-    def info(message)
-      Scarpe::Logger.logger.info(message)
-    end
-
-    def debug(message)
-      Scarpe::Logger.logger.debug(message)
-    end
-
     def app(...)
       app = Scarpe::App.new(...)
       app.init
