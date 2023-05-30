@@ -21,6 +21,10 @@ class Scarpe
       # Default overall level
       attr_accessor :level
 
+      def logger(component = self)
+        Logging.logger[component]
+      end
+
       def name_to_severity(data)
         case data
         when "debug"
