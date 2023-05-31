@@ -1,24 +1,95 @@
 #!/usr/bin/env ruby
 
-use_dev = ARGV.delete("--dev") ? true : false
+# We need to not use syntactic features of very recent Rubies in this file, so that it parses
+# correctly in earlier Rubies and can successfully give the version-check error.
+if RUBY_VERSION[0..2] < "3.2"
+  STDERR.puts("Scarpe requires Ruby 3.2 or higher!")
+  exit(-1)
+end
 
-if ARGV.length != 1
-    puts <<USAGE
-Usage: scarpe [OPTIONS] <scarpe app file>
+def print_usage
+  puts <<USAGE
+Usage: scarpe [OPTIONS] <scarpe app file>           # Same as "scarpe run"
+       scarpe [OPTIONS] run <scarpe app file>
+       scarpe [OPTIONS] env                         # print Scarpe environment settings
   Options:
       --dev                          Use development local scarpe, not an installed gem
 USAGE
+end
+
+def env_or_default(env_var, default_val)
+  "#{env_var}: #{ENV[env_var] || default_val}"
+end
+
+def env_or_none(env_var)
+  env_or_default(env_var, "(none)")
+end
+
+def print_env
+  puts <<~SCARPE_ENV
+    Scarpe environment:
+      SCARPE_DISPLAY_SERVICES: #{ENV["SCARPE_DISPLAY_SERVICES"] || "(default)Scarpe::WebviewDisplayService"}
+      SCARPE_LOG_CONFIG: #{ENV["SCARPE_LOG_CONFIG"] || "(default)#{Scarpe::Log::DEFAULT_LOG_CONFIG.inspect}"}
+      #{env_or_none("SCARPE_TEST_CONTROL")}
+      #{env_or_none("SCARPE_TEST_RESULTS")}
+    Ruby and shell environment:
+      RUBY_DESCRIPTION: #{RUBY_DESCRIPTION.inspect}
+      RUBY_PLATFORM: #{RUBY_PLATFORM.inspect}
+      RUBY_ENGINE: #{RUBY_ENGINE.inspect}
+      #{env_or_none("SHELL")}
+      #{env_or_none("PATH")}
+      #{env_or_none("LD_LIBRARY_PATH")}
+      #{env_or_none("DYLD_LIBRARY_PATH")}
+      #{env_or_none("GEM_ROOT")}
+      #{env_or_none("GEM_HOME")}
+      #{env_or_none("GEM_PATH")}
+SCARPE_ENV
+end
+
+# --dev option applies to all actions
+use_dev = ARGV.delete("--dev") ? true : false
+
+verb = "run"
+verb_target = nil
+
+case ARGV[0]
+when "env"
+  if ARGV.length != 1
+    print_usage
     exit -1
+  end
+
+  verb = "env"
+when "run"
+  if ARGV.length != 2
+    print_usage
+    exit -1
+  end
+  verb_target = ARGV[1]
+else
+  # Default to run
+  if ARGV.length != 1
+    print_usage
+    exit -1
+  end
+  verb_target = ARGV[0]
 end
 
 if use_dev
-    dev_path = File.expand_path("../lib", __dir__)
-    $LOAD_PATH.prepend dev_path
+  dev_path = File.expand_path("../lib", __dir__)
+  $LOAD_PATH.prepend dev_path
 end
-
+# We mustn't require Scarpe sooner than this so that the --dev setting is respected
 require "scarpe"
 
 Shoes = Scarpe unless defined?(Shoes)
 
-# Run the Scarpe app file
-load ARGV[0]
+case verb
+  when "run"
+    # Run the Scarpe app file
+    load ARGV[0]
+  when "env"
+    print_env
+  else
+    raise "Internal error! Unknown ./exe/scarpe verb!"
+end
