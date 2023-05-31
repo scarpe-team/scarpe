@@ -16,6 +16,10 @@ class Scarpe
       end
     end
 
+    def get_style
+      style
+    end
+
     private
 
     def style
