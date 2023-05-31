@@ -535,7 +535,7 @@ class Scarpe
         # We have no redraw in-flight and no pre-existing waiting line. The new change(s) are presumably right
         # after things were fully up-to-date. We can schedule them for immediate redraw.
 
-        @log.info("Requesting redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!")
+        @log.debug("Requesting redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!")
         promise = schedule_waiting_changes # This clears the waiting changes
         @pending_redraw_promise = promise
 
@@ -551,14 +551,14 @@ class Scarpe
             old_waiting_promise = @waiting_redraw_promise
             @waiting_redraw_promise = nil
 
-            @log.info "Fulfilled redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!"
+            @log.debug "Fulfilled redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!"
 
             new_promise = promise_redraw
             new_promise.on_fulfilled { old_waiting_promise.fulfilled! }
           else
             # The in-flight redraw completed, and there's still no waiting promise. Good! That means
             # we should be fully up-to-date.
-            @log.info "Fulfilled redraw with no waiting changes - marking us as up to date!"
+            @log.debug "Fulfilled redraw with no waiting changes - marking us as up to date!"
             if @waiting_changes.empty?
               # We're fully up to date! Fulfill the promise. Now we don't need it again until somebody asks
               # us for another.
