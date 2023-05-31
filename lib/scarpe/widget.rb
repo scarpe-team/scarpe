@@ -8,6 +8,8 @@
 
 class Scarpe
   class Widget < DisplayService::Linkable
+    include Scarpe::Log
+
     class << self
       attr_accessor :widget_classes, :alias_name, :linkable_properties, :linkable_properties_hash
 
@@ -57,6 +59,8 @@ class Scarpe
     end
 
     def initialize(*args, **kwargs)
+      log_init("Widget")
+
       self.class.display_property_names.each do |prop|
         if kwargs[prop.to_sym]
           instance_variable_set("@" + prop, kwargs[prop.to_sym])
@@ -110,7 +114,7 @@ class Scarpe
     def remove_child(child)
       @children ||= []
       unless @children.include?(child)
-        Scarpe.warn("remove_child: no such child(#{child.inspect}) for parent(#{parent.inspect})!")
+        @log.warn("remove_child: no such child(#{child.inspect}) for parent(#{parent.inspect})!")
       end
       @children.delete(child)
     end

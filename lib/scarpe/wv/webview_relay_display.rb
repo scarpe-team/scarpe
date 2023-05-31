@@ -6,7 +6,7 @@ require "rbconfig"
 class Scarpe
   class AppShutdownError < StandardError; end
 
-  module WVRelayUtil
+  module WVRelayUtil # Make sure the including class also includes Scarpe::Log
     def ready_to_read?(timeout = 0.0)
       r, _, e = IO.select [@from], [], [@from, @to].uniq, timeout
 
@@ -97,7 +97,7 @@ class Scarpe
             **kwargs_hash,
           )
         else
-          Scarpe.error("Unrecognized datagram type:event: #{m_data.inspect}!")
+          @log.error("Unrecognized datagram type:event: #{m_data.inspect}!")
         end
       elsif m_data["type"] == "create"
         raise "Parent process should never receive :create datagram!" if @i_am == :parent
@@ -107,11 +107,11 @@ class Scarpe
         if @i_am == :parent
           @shutdown = true
         else
-          Scarpe.info("Shutting down...")
+          @log.info("Shutting down...")
           exit 0
         end
       else
-        Scarpe.error("Unrecognized datagram type:event: #{m_data.inspect}!")
+        @log.error("Unrecognized datagram type:event: #{m_data.inspect}!")
       end
     end
 
@@ -132,12 +132,14 @@ class Scarpe
   # This "display service" actually creates a child process and sends events
   # back and forth, but creates no widgets of its own.
   class WVRelayDisplayService < Scarpe::DisplayService::Linkable
-    include WVRelayUtil
+    include Scarpe::Log
+    include WVRelayUtil # Needs Scarpe::Log
 
     attr_accessor :shutdown
 
     def initialize
       super()
+      log_init("WV::RelayDisplayService")
 
       @event_subs = []
       @shutdown = false
@@ -165,7 +167,7 @@ class Scarpe
         end
       rescue AppShutdownError
         @shutdown = true
-        Scarpe.info("Attempting to shut down...")
+        @log.info("Attempting to shut down...")
         self.destroy
       end
 
@@ -175,7 +177,7 @@ class Scarpe
         respond_to_datagram while ready_to_read?
       rescue AppShutdownError
         @shutdown = true
-        Scarpe.info("Attempting to shut down...")
+        @log.info("Attempting to shut down...")
         self.destroy
       end
     end
