@@ -19,7 +19,7 @@ require_relative "scarpe/widgets"
 
 # Display services
 require_relative "scarpe/wv"
-require_relative "scarpe/glibui" if ENV["SCARPE_DISPLAY_SERVICES"] == "Scarpe::GlimmerLibUIDisplayService"
+require_relative "scarpe/glibui" if ENV["SCARPE_DISPLAY_SERVICES"]&.include?("Scarpe::GlimmerLibUIDisplayService")
 
 class Scarpe
   class << self

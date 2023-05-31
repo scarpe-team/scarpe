@@ -98,9 +98,9 @@ class TestWebviewPara < Minitest::Test
   end
 
   def test_renders_a_magenta_paragraph
-    para = Scarpe::WebviewPara.new(@default_properties.merge("stroke" => "magenta"))
+    para = Scarpe::WebviewPara.new(@default_properties.merge("stroke" => [255, 0, 255, 255]))
 
-    assert_html para.to_html, :p, id: para.html_id, style: "color:magenta;font-size:12px" do
+    assert_html para.to_html, :p, id: para.html_id, style: "color:#FF00FF;font-size:12px" do
       "Hello World"
     end
   end

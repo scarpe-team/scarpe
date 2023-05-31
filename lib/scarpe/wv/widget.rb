@@ -96,6 +96,32 @@ class Scarpe
       needs_update!
     end
 
+    # Convert an [r, g, b, a] array to an HTML hex color code
+    # Arrays support alpha. HTML hex does not. So premultiply.
+    def rgb_to_hex(color)
+      return nil if color.nil?
+
+      r, g, b, a = *color
+      if r.is_a?(Float)
+        a ||= 1.0
+        r_float = r * a
+        g_float = g * a
+        b_float = b * a
+      else
+        a ||= 255
+        a_float = (a / 255.0)
+        r_float = (r.to_f / 255.0) * a_float
+        g_float = (g.to_f / 255.0) * a_float
+        b_float = (b.to_f / 255.0) * a_float
+      end
+
+      r_int = (r_float * 255.0).to_i.clamp(0, 255)
+      g_int = (g_float * 255.0).to_i.clamp(0, 255)
+      b_int = (b_float * 255.0).to_i.clamp(0, 255)
+
+      "#%0.2X%0.2X%0.2X" % [r_int, g_int, b_int]
+    end
+
     public
 
     # This gets a mini-webview for just this element and its children, if any

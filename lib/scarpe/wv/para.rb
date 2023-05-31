@@ -75,7 +75,7 @@ class Scarpe
 
     def style
       {
-        "color" => @stroke,
+        "color" => rgb_to_hex(@stroke),
         "font-size" => font_size,
         "font-family" => @font,
       }.compact
