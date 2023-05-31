@@ -39,21 +39,17 @@ class Scarpe
           http.request(request) do |response|
             case response
             when Net::HTTPSuccess
-              content = response.body
+              # content = response.body
 
-              puts "Content is:\n#{content}"
-
-              headers = response.header
-
-              puts "Headers are:\n#{headers.inspect}"
+              # headers = response.header
 
               get_title(content)
             else
-              puts "Failed to download content. Response code: #{response.code}"
+              Scarpe.error("Failed to download content. Response code: #{response.code}")
             end
           end
         rescue StandardError => e
-          puts "Error occurred while downloading: #{e.message}"
+          Scarpe.error("Error occurred while downloading: #{e.message}")
         end
       end
     end
@@ -62,11 +58,10 @@ class Scarpe
 
     def get_title(content)
       doc = Nokogiri::HTML(content)
-      title = doc.at_css("title")&.text&.strip || ""
-      puts "\ntitle: #{title}"
 
-      headings = doc.css("h1").map(&:text)
-      puts "\nheadings: #{headings}"
+      title = doc.at_css("title")&.text&.strip || ""
+
+      # headings = doc.css("h1").map(&:text)
 
       title
     end
