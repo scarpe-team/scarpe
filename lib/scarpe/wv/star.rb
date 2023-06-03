@@ -56,11 +56,11 @@ class Scarpe
     end
 
     def fill_color
-      "blue"
+      ""
     end
 
     def stroke_color
-      ""
+      "black"
     end
   end
 end
