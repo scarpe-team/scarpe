@@ -12,4 +12,8 @@ end
 
 RuboCop::RakeTask.new
 
-task default: [:test, :rubocop]
+task :build do
+  exec "gem build scarpe.gemspec"
+end
+
+task default: [:test, :rubocop, :build]
