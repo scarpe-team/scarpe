@@ -2,8 +2,8 @@
 
 class Scarpe
   class HTML
-    CONTENT_TAGS = [:div, :p, :button, :ul, :li, :textarea, :a, :strong, :em, :code, :u, :span].freeze
-    VOID_TAGS = [:input, :img].freeze
+    CONTENT_TAGS = [:div, :p, :button, :ul, :li, :textarea, :a, :strong, :em, :code, :u, :span, :svg].freeze
+    VOID_TAGS = [:input, :img, :polygon].freeze
     TAGS = (CONTENT_TAGS + VOID_TAGS).freeze
 
     class << self

@@ -6,6 +6,7 @@ require_relative "app"
 require_relative "spacing"
 require_relative "background"
 require_relative "border"
+require_relative "star"
 
 require_relative "document_root"
 require_relative "para"
