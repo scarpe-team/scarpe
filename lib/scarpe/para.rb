@@ -23,6 +23,7 @@ class Scarpe
         @text_items = text_children_to_items(@text_children)
         @hidden_text_items = []
       end
+      stroke = to_rgb(stroke)
 
       @html_attributes = html_attributes || {}
 

@@ -9,7 +9,6 @@ require_relative "wv/widget"
 require_relative "wv/webview_local_display"
 require_relative "wv/webview_relay_display"
 
-require_relative "wv/colors"
 require_relative "wv/dimensions"
 require_relative "wv/html"
 

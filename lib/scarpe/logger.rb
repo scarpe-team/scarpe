@@ -6,6 +6,8 @@ require "json"
 class Scarpe
   LOG_LEVELS = [:debug, :info, :warning, :error, :fatal].freeze
 
+  # Include this module to get a @log instance variable to log as your
+  # configured component.
   module Log
     DEFAULT_LOG_CONFIG = {
       "default": "info",
@@ -18,9 +20,6 @@ class Scarpe
 
   class Logger
     class << self
-      # Default overall level
-      attr_accessor :level
-
       def logger(component = self)
         Logging.logger[component]
       end
@@ -70,6 +69,7 @@ class Scarpe
         end
       end
 
+      # To provide initial logger configuration - called from this file
       def initialize_logger(log_config)
         Logging.logger.root.appenders = [Logging.appenders.stdout]
 
@@ -81,6 +81,23 @@ class Scarpe
           json_configure_logger(sublogger, logger_data)
         end
       end
+    end
+  end
+
+  class LoggedWrapper
+    include ::Scarpe::Log
+    def initialize(instance, component = instance)
+      log_init(component)
+
+      @instance = instance
+    end
+
+    def method_missing(method, ...)
+      self.singleton_class.define_method(method) do |*args, **kwargs, &block|
+        @log.info("Method: #{method} Args: #{args.inspect} KWargs: #{kwargs.inspect} Block: #{block ? "y" : "n"}")
+        @instance.send(method, *args, **kwargs, &block)
+      end
+      send(method, ...)
     end
   end
 end

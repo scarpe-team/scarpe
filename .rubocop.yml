@@ -70,3 +70,6 @@ Style/RedundantBegin:
 
 Layout/LeadingCommentSpace:
   Enabled: false
+
+Style/FormatString:
+  Enabled: false
