@@ -5,7 +5,6 @@
 require_relative "glibui/widget"
 require_relative "glibui/local_display"
 
-require_relative "glibui/colors"
 require_relative "glibui/dimensions"
 require_relative "glibui/html"
 

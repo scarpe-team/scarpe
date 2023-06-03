@@ -3,7 +3,7 @@
 ## _Scarpe Diem: Seize the Shoes_
 ![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/Schwad/scarpe/ci.yml?branch=main)
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-shopify-brightgreen.svg)](https://github.com/Shopify/ruby-style-guide)
-[![Discord](https://img.shields.io/discord/1072538177321058377?label=discord)](https://discord.gg/nbhaZJtfVW)
+[![Discord](https://img.shields.io/discord/1072538177321058377?label=discord)](https://discord.gg/Ca5EHSsGYp)
 
 <img src="https://user-images.githubusercontent.com/7865030/217309905-7f25e3cf-1850-481d-811b-dfddea2df54a.png" width="200" height="200">
 

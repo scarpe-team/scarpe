@@ -9,6 +9,7 @@
 class Scarpe
   class Widget < DisplayService::Linkable
     include Scarpe::Log
+    include Scarpe::Colors
 
     class << self
       attr_accessor :widget_classes, :alias_name, :linkable_properties, :linkable_properties_hash
