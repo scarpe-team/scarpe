@@ -50,7 +50,8 @@ class Scarpe
 
       # For now, always allow inspect element
       @webview = WebviewRuby::Webview.new debug: true
-      @init_refs = {} # This might or might not be a temporary measure... Inits don't go away, normally.
+      @webview = Scarpe::LoggedWrapper.new(@webview, "WebviewAPI") if debug
+      @init_refs = {} # Inits don't go away so keep a reference to them
 
       @title = title
       @width = width
