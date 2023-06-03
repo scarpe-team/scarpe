@@ -23,7 +23,6 @@ class Scarpe
       {
         width: Dimensions.length(@width),
         height: Dimensions.length(@height),
-        # "background-color": "red",
       }
     end
 
