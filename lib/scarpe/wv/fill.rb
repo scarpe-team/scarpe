@@ -9,7 +9,6 @@ class Scarpe
     def element
       width = @parent.get_style[:width]
       height = @parent.get_style[:height]
-      puts "width is #{width}"
 
       HTML.render do |h|
         h.div(id: html_id, style: style(width, height)) do
