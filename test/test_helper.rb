@@ -7,6 +7,7 @@ require "scarpe"
 
 require "tempfile"
 require "json"
+require "fileutils"
 
 require "minitest/autorun"
 
@@ -58,9 +59,59 @@ def test_scarpe_code(scarpe_app_code, test_code: "", **opts)
   end
 end
 
+LOGGER_DIR = File.expand_path("#{__dir__}/../logger")
+# Using an instance variable doesn't work for ALREADY_SET_UP(etc) and I'm not sure why not
+ALREADY_SET_UP_TEST_FAILURES = { setup: false }
+def set_up_test_failures
+  return if ALREADY_SET_UP_TEST_FAILURES[:setup]
+
+  ALREADY_SET_UP_TEST_FAILURES[:setup] = true
+  Dir["#{LOGGER_DIR}/test_failure*.log"].each { |fn| File.unlink(fn) }
+
+  Minitest.after_run do
+    # Print test failure logs to console for CI
+    Dir["#{LOGGER_DIR}/test_failure*.log"].to_a.each do |fn|
+      print "\n==========================\n\n"
+      print "Test failure log #{fn.inspect}:\n\n"
+      print File.read(fn)
+      print "\n"
+      File.unlink(fn)
+    end
+  end
+end
+
+def first_available_temp_spot(filepath)
+  dir, filename = File.split(filepath)
+  all_exts = filename.split(".", 2)[1]
+  base = File.basename(filename, "." + all_exts)
+
+  (0..100).each do |ctr|
+    candidate = "#{dir}/#{base}_#{"%03d" % ctr}.#{all_exts}"
+    next if File.exist?(candidate)
+    return candidate
+  end
+  raise "Can't find temp location for moving #{filepath.inspect}!"
+end
+
+TEST_SCARPE_LOG_CONFIG = File.expand_path("#{LOGGER_DIR}/scarpe_wv_test.json")
+log_out = JSON.load_file(TEST_SCARPE_LOG_CONFIG).values.map { |_level, locs| locs }
+TEST_SAVE_FILES = log_out.select { |s| s.start_with?("logger/") }.map { |s| s.gsub(/\Alogger\//, "") }
+def save_failure_logs
+  TEST_SAVE_FILES.each do |log_file|
+    full_loc = File.expand_path("#{LOGGER_DIR}/#{log_file}")
+    if File.exist?(full_loc)
+      temp_spot = first_available_temp_spot(full_loc)
+      STDERR.puts "Saving #{full_loc.inspect} to #{temp_spot.inspect}"
+      FileUtils.mv full_loc, temp_spot
+    end
+  end
+end
+
 def test_scarpe_app(test_app_location, test_code: "", **opts)
   bad_opts = opts.keys - TEST_OPTS
   raise "Bad options passed to test_scarpe_app: #{bad_opts.inspect}!" unless bad_opts.empty?
+
+  set_up_test_failures
 
   with_tempfile("scarpe_test_results.json", "") do |result_path|
     do_debug = opts[:debug] ? true : false
@@ -91,16 +142,18 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
       TEST_EXIT_IMMEDIATELY
     end
 
-    # No results until we write them
+    # Remove old results, if any
     File.unlink(result_path)
 
     with_tempfile("scarpe_control.rb", scarpe_test_code) do |control_file_path|
       # Start the application using the exe/scarpe utility
       system("SCARPE_TEST_CONTROL=#{control_file_path} SCARPE_TEST_RESULTS=#{result_path} " +
+        "SCARPE_LOG_CONFIG=\"#{TEST_SCARPE_LOG_CONFIG}\" " +
         "ruby #{SCARPE_EXE} --dev #{test_app_location}")
 
-      # Check if the process exited normally or crashed (segfault)
+      # Check if the process exited normally or crashed (segfault, failure, timeout)
       if $?.exitstatus != 0
+        save_failure_logs
         assert(false, "Scarpe app crashed with exit code: #{$?.exitstatus}")
         return
       end
@@ -114,6 +167,7 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
     return if opts[:exit_immediately] && !File.exist?(result_path)
 
     unless File.exist?(result_path)
+      save_failure_logs
       assert(false, "Scarpe app returned no status code!")
       return
     end
@@ -134,11 +188,13 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
           return
         end
 
+        save_failure_logs
         assert false, "App exited immediately, but its results were false! #{out_data.inspect}"
       end
 
       unless out_data[0]
         puts JSON.pretty_generate(out_data[1])
+        save_failure_logs
         assert false, "Some Scarpe tests failed..."
       end
 
@@ -146,7 +202,10 @@ def test_scarpe_app(test_app_location, test_code: "", **opts)
         test_data = out_data[1]
         test_data["succeeded"].times { assert true } # Add to the number of assertions
         test_data["failures"].each { |failure| assert false, "Failed Scarpe app test: #{failure}" }
-        assert_equal 0, test_data["still_pending"], "Some tests were still pending!"
+        if test_data["still_pending"] != 0
+          save_failure_logs
+          assert false, "Some tests were still pending!"
+        end
       end
     rescue
       $stderr.puts "Error parsing JSON data for Scarpe test status!"
@@ -161,19 +220,4 @@ def assert_html(actual_html, expected_tag, **opts, &block)
   end
 
   assert_equal expected_html, actual_html
-end
-
-# This doesn't have to happen in a different process...
-def test_scarpe_code_no_display(app_code, test_code_str, **opts)
-  with_env_vars("SCARPE_DISPLAY_SERVICES" => "-") do
-    test_code = proc do |app|
-      class << app
-        include ::Scarpe::DisplayService::LinkableTest
-        include ::Scarpe::AppTest
-      end
-      app.instance_eval test_code_str
-    end
-    Scarpe::App.next_test_code = test_code
-    RUBY_MAIN_OBJ.send(:eval, app_code)
-  end
 end
