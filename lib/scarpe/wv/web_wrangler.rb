@@ -43,7 +43,7 @@ class Scarpe
     # Allow a half-second for Webview to finish our JS eval before we decide it's not going to
     EVAL_DEFAULT_TIMEOUT = 0.5
 
-    def initialize(title:, width:, height:, resizable: false, debug: false, heartbeat: 0.1)
+    def initialize(title:, width:, height:, resizable: false, debug: false, heartbeat: 0.1, max_msg_bytes: nil, max_msg_statements: nil)
       log_init("WV::WebWrangler")
 
       @log.debug("Creating WebWrangler...")
@@ -68,7 +68,7 @@ class Scarpe
       @pending_evals = {}
       @eval_counter = 0
 
-      @dom_wrangler = DOMWrangler.new(self)
+      @dom_wrangler = DOMWrangler.new(self, max_msg_bytes:, max_msg_statements:)
 
       bind("puts") do |*args|
         puts(*args)
@@ -428,9 +428,14 @@ end
 # before we consider a redraw complete.
 #
 # DOMWrangler batches up changes - it's fine to have a redraw "in flight" and have
-# changes waiting to catch the next bus. But We don't want more than one in flight,
+# changes waiting to catch the next bus. But we don't want more than one in flight,
 # since it seems like having too many pending RPC requests can crash Webview. So:
 # one redraw scheduled and one redraw promise waiting around, at maximum.
+#
+# Very large messages can also crash Webview, so we have a maximum amount of JS in
+# flight. More JS in flight adds to complexity (more ways it can execute.) Reducing
+# the amount in flight can be slow (more round trips.)
+#
 class Scarpe
   class WebWrangler
     class DOMWrangler
@@ -440,7 +445,10 @@ class Scarpe
       attr_reader :pending_redraw_promise
       attr_reader :waiting_redraw_promise
 
-      def initialize(web_wrangler, debug: false)
+      attr_reader :max_message_bytes      # Can be set with SWV_MAX_MSG_BYTES
+      attr_reader :max_message_statements # Can be set with SWV_MAX_MSG_STATEMENTS
+
+      def initialize(web_wrangler, debug: false, max_msg_bytes: nil, max_msg_statements: nil)
         log_init("WV::WebWrangler::DOMWrangler")
 
         @wrangler = web_wrangler
@@ -453,6 +461,9 @@ class Scarpe
 
         @redraw_handlers = []
 
+        @max_message_bytes = max_msg_bytes || ENV["SWV_MAX_MSG_BYTES"] || 4096
+        @max_message_statements = max_msg_statements || ENV["SWV_MAX_MSG_STATEMENTS"] || 10
+
         # The "fully up to date" logic is complicated and not
         # as well tested as I'd like. This makes it far less
         # likely that the event simply won't fire.
@@ -460,6 +471,7 @@ class Scarpe
         # removable.
         web_wrangler.periodic_code("scarpeDOMWranglerHeartbeat") do
           if @fully_up_to_date_promise && fully_updated?
+            @log.info("Fulfilling up-to-date promise on heartbeat")
             @fully_up_to_date_promise.fulfilled!
             @fully_up_to_date_promise = nil
           end
@@ -516,7 +528,7 @@ class Scarpe
           return @pending_redraw_promise
         end
 
-        @log.debug("Requesting redraw with #{@waiting_changes.size} waiting changes - need to schedule something!")
+        @log.debug("Requesting redraw with #{@waiting_changes.size} waiting changes and no waiting promise - need to schedule something!")
 
         # We have at least one waiting change, possibly newly-added. We have no waiting_redraw_promise.
         # Do we already have a redraw in-flight?
@@ -530,14 +542,15 @@ class Scarpe
           # all the cases.
           @waiting_redraw_promise = Promise.new
 
+          @log.debug("Creating a new waiting promise since a pending promise is already in place")
           return @waiting_redraw_promise
         end
 
         # We have no redraw in-flight and no pre-existing waiting line. The new change(s) are presumably right
         # after things were fully up-to-date. We can schedule them for immediate redraw.
 
-        @log.debug("Requesting redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!")
-        promise = schedule_waiting_changes # This clears the waiting changes
+        @log.debug("Scheduling a new redraw for #{@waiting_changes.size} waiting changes! (limit #{@max_message_statements} per message)")
+        promise = schedule_waiting_changes # This reduces or clears the waiting changes
         @pending_redraw_promise = promise
 
         promise.on_fulfilled do
@@ -606,11 +619,28 @@ class Scarpe
 
       private
 
-      # Put together the waiting changes into a new in-flight redraw request.
+      # Put together some or all waiting changes into a new in-flight redraw request.
       # Return it as a promise.
       def schedule_waiting_changes
-        js_code = @waiting_changes.join(";")
-        @waiting_changes = [] # They're not waiting any more!
+        return if @waiting_changes.empty?
+
+        # Send as many messages as will fit max statements and max
+        # bytes, but at least one message.
+        sched_bytes = 0
+        sched_msgs = 0
+        @waiting_changes.size.times do
+          break if sched_bytes + @waiting_changes[sched_msgs].size > @max_message_bytes
+
+          sched_bytes += @waiting_changes[sched_msgs].size
+          sched_msgs += 1
+        end
+        sched_msgs = @max_message_statements if sched_msgs > @max_message_statements
+        sched_msgs = 1 if sched_msgs == 0
+
+        to_send = @waiting_changes[0...sched_msgs]
+        @waiting_changes = @waiting_changes[sched_msgs..-1]
+
+        js_code = to_send.join(";")
         @wrangler.eval_js_async js_code
       end
     end

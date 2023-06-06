@@ -23,6 +23,7 @@ jobs:
       - name: Run tests
         run: CI_RUN='true' bundle exec rake test
       - name: upload test-fail logs
+        if: '!cancelled()'
         uses: actions/upload-artifact@v3
         with:
           name: test failure logs

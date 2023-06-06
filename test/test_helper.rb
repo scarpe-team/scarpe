@@ -91,16 +91,21 @@ class ScarpeTest < Minitest::Test
     all_exts = filename.split(".", 2)[1]
     base = File.basename(filename, "." + all_exts)
 
-    "#{dir}/#{base}_#{test_name}_out.#{all_exts}"
+    out_loc = "#{dir}/#{base}_#{test_name}_out.#{all_exts}"
+
+    if File.exist?(out_loc)
+      raise "Duplicate test name #{test_name.inspect}? This file should *not* already exist!"
+    end
+
+    out_loc
   end
 
   def save_failure_logs(test_name:)
     TEST_SAVE_FILES.each do |log_file|
       full_loc = File.expand_path("#{LOGGER_DIR}/#{log_file}")
-      log_out_spot = logfail_out_loc(full_loc, test_name:)
       next unless File.exist?(full_loc)
 
-      FileUtils.mv full_loc, log_out_spot
+      FileUtils.mv full_loc, logfail_out_loc(full_loc, test_name:)
     end
   end
 
@@ -219,5 +224,31 @@ class ScarpeTest < Minitest::Test
     end
 
     assert_equal expected_html, actual_html
+  end
+end
+
+# This test will save extensive logs in case of test failure.
+# We don't use this class for run_test_scarpe_code since we
+# handle the log config with the env variable instead of per-test
+# re-configuration. I assume it's possible to refactor that to use
+# this class.
+class LoggedScarpeTest < ScarpeTest
+  def setup
+    # Make sure test failures will be saved at the end of the run.
+    # Delete stale test failures and logging only the *first* time this is called.
+    set_up_test_failures
+
+    @normal_log_config = Scarpe::Logger.current_log_config
+    Scarpe::Logger.configure_logger(TEST_SCARPE_LOG_CONFIG)
+  end
+
+  def teardown
+    # Restore previous log config
+    Scarpe::Logger.configure_logger(@normal_log_config)
+
+    if self.failure
+      test_name = "#{self.class.name}_#{self.name}"
+      save_failure_logs(test_name:)
+    end
   end
 end
