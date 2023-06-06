@@ -73,3 +73,6 @@ Layout/LeadingCommentSpace:
 
 Style/FormatString:
   Enabled: false
+
+Style/RegexpLiteral:
+  Enabled: false

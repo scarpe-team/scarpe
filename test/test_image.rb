@@ -4,31 +4,6 @@ require "test_helper"
 
 TEST_VALUES = {}
 
-# This method of testing starts up a Scarpe app with no display service
-# that runs in the same process as the test.
-class TestNoDisplayImage < Minitest::Test
-  def setup
-    TEST_VALUES.clear
-    @url = "http://shoesrb.com/manual/static/shoes-icon.png"
-  end
-
-  def test_image
-    test_scarpe_code_no_display(<<~SCARPE_APP, <<~'TEST_CODE')
-      Shoes.app do
-        image #{@url.inspect}
-      end
-    SCARPE_APP
-      the_app = self
-      on_next_heartbeat do
-        image = find_widgets_by(Scarpe::Image)[0]
-        TEST_VALUES[:url] = image.url
-        the_app.destroy
-      end
-    TEST_CODE
-    assert_equal @url, TEST_VALUES[:url]
-  end
-end
-
 class TestWebviewImage < Minitest::Test
   def setup
     @url = "http://shoesrb.com/manual/static/shoes-icon.png"
