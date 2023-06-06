@@ -1,0 +1,4 @@
+{
+    "default": ["debug", "logger/test_failure.log"],
+    "WebviewAPI": ["debug", "logger/test_failure_wv_api.log"]
+}
