@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class TestWebWrangler < ScarpeTest
+class TestWebWranglerInScarpeApp < LoggedScarpeTest
   # Need to make sure that even with no widgets we still get at least one redraw
   def test_empty_app
     run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE', timeout: 0.5)
@@ -15,10 +15,12 @@ class TestWebWrangler < ScarpeTest
     TEST_CODE
   end
 
-  # We've had problems with dirty-tracking where the DOM stops updating after
-  # the first change.
+  ## We've had problems with dirty-tracking where the DOM stops updating after
+  ## the first change. But this test is unstable in CI, so it's commented out :-(
+  ## In CI, not even the initial para Hello goes through... We don't get a success
+  ## from it (at least once.)
   #def test_assert_multiple_dom_updates
-  #  test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
+  #  run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
   #    Shoes.app do
   #      para "Hello"
   #    end
@@ -46,23 +48,25 @@ class TestWebWrangler < ScarpeTest
   #    end
   #  TEST_CODE
   #end
+end
 
-  def with_mocked_webview(&block)
+class TestWebWranglerMocked < LoggedScarpeTest
+  def with_mocked_webview(wrangler_opts: {}, &block)
     @mocked_webview = Minitest::Mock.new
     ["puts", "scarpeAsyncEvalResult", "scarpeHeartbeat"].each do |bound_method|
       @mocked_webview.expect :bind, nil, [bound_method]
     end
     @mocked_webview.expect :init, nil, [String]
     WebviewRuby::Webview.stub :new, @mocked_webview do
-      @web_wrangler = Scarpe::WebWrangler.new title: "A Window", width: 300, height: 200
+      @web_wrangler = Scarpe::WebWrangler.new title: "A Window", width: 300, height: 200, **wrangler_opts
       block.call
     end
-    #@mocked_webview.verify
+    @mocked_webview.verify
   end
 
   CHEAT_CONSTS = {}
-  def with_running_mocked_webview(&block)
-    with_mocked_webview do
+  def with_running_mocked_webview(wrangler_opts: {}, &block)
+    with_mocked_webview(wrangler_opts:) do
       @mocked_webview.expect :set_title, nil, [String]
       @mocked_webview.expect :set_size, nil, [300, 200, 3]
       @mocked_webview.expect :navigate, nil, [String]
@@ -92,7 +96,7 @@ class TestWebWrangler < ScarpeTest
   end
 
   def replacement_js_code(new_body, eval_serial)
-    wrapped_js_code(Scarpe::WebWrangler::DOMWrangler.replacement_code("<body>Bobo</body>"), eval_serial)
+    wrapped_js_code(Scarpe::WebWrangler::DOMWrangler.replacement_code(new_body), eval_serial)
   end
 
   def test_ww_draw_body
@@ -109,10 +113,11 @@ class TestWebWrangler < ScarpeTest
 
   def test_ww_redraw_basic
     with_running_mocked_webview do
+      new_body_code = "<body>Bobo</body>"
       # On the first call to replace, this will schedule a code replacement
-      replacement_code = replacement_js_code("<body>Bobo</body>", 0)
+      replacement_code = replacement_js_code(new_body_code, 0)
       @mocked_webview.expect :eval, nil, [replacement_code]
-      @web_wrangler.replace("<body>Bobo</body>")
+      @web_wrangler.replace(new_body_code)
 
       # Until WebWrangler gets an acknowledgement, it won't schedule more JS
       # We don't really care what's in this JS - these would be element modifications in real code

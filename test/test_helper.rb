@@ -22,8 +22,8 @@ end
 # Docs for our Webview lib: https://github.com/Maaarcocr/webview_ruby
 
 class ScarpeTest < Minitest::Test
-  def with_tempfile(prefix, contents)
-    t = Tempfile.new(prefix)
+  def with_tempfile(prefix, contents, dir: Dir.tmpdir)
+    t = Tempfile.new(prefix, dir)
     t.write(contents)
     t.flush # Make sure the contents are written out
 
@@ -47,70 +47,20 @@ class ScarpeTest < Minitest::Test
 
   SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
   TEST_OPTS = [:timeout, :allow_fail, :allow_timeout, :debug, :exit_immediately]
+  LOGGER_DIR = File.expand_path("#{__dir__}/../logger")
 
-  def run_test_scarpe_code(scarpe_app_code, test_code: "", test_name: nil, **opts)
-    test_name ||= caller_locations[0].label
-
+  def run_test_scarpe_code(scarpe_app_code, test_code: "", **opts)
     bad_opts = opts.keys - TEST_OPTS
     raise "Bad options passed to run_test_scarpe_code: #{bad_opts.inspect}!" unless bad_opts.empty?
 
     with_tempfile("scarpe_test_app.rb", scarpe_app_code) do |test_app_location|
-      run_test_scarpe_app(test_app_location, test_code:, test_name:, **opts)
+      run_test_scarpe_app(test_app_location, test_code:, **opts)
     end
   end
 
-  LOGGER_DIR = File.expand_path("#{__dir__}/../logger")
-  # Using an instance variable doesn't work for ALREADY_SET_UP(etc) and I'm not sure why not
-  ALREADY_SET_UP_TEST_FAILURES = { setup: false }
-  TEST_SCARPE_LOG_CONFIG = File.expand_path("#{LOGGER_DIR}/scarpe_wv_test.json")
-  log_out = JSON.load_file(TEST_SCARPE_LOG_CONFIG).values.map { |_level, locs| locs }
-  TEST_SAVE_FILES = log_out.select { |s| s.start_with?("logger/") }.map { |s| s.gsub(%r{\Alogger\/}, "") }
-  def set_up_test_failures
-    return if ALREADY_SET_UP_TEST_FAILURES[:setup]
-
-    ALREADY_SET_UP_TEST_FAILURES[:setup] = true
-    # Delete stale test failures, if any, before starting test run
-    Dir["#{LOGGER_DIR}/test_failure*.log"].each { |fn| File.unlink(fn) }
-
-    Minitest.after_run do
-      # Remove un-saved test logs
-      TEST_SAVE_FILES.each do |f|
-        path = "#{LOGGER_DIR}/#{f}"
-        File.unlink(path) if File.exist?(path)
-      end
-
-      # Print test failure logs to console for CI
-      unless Dir["#{LOGGER_DIR}/test_failure*_out.log"].empty?
-        puts "Some tests have failed! See #{LOGGER_DIR}/test_failure*_out.log for test logs!"
-      end
-    end
-  end
-
-  def logfail_out_loc(filepath, test_name:)
-    dir, filename = File.split(filepath)
-    all_exts = filename.split(".", 2)[1]
-    base = File.basename(filename, "." + all_exts)
-
-    "#{dir}/#{base}_#{test_name}_out.#{all_exts}"
-  end
-
-  def save_failure_logs(test_name:)
-    TEST_SAVE_FILES.each do |log_file|
-      full_loc = File.expand_path("#{LOGGER_DIR}/#{log_file}")
-      log_out_spot = logfail_out_loc(full_loc, test_name:)
-      next unless File.exist?(full_loc)
-
-      FileUtils.mv full_loc, log_out_spot
-    end
-  end
-
-  def run_test_scarpe_app(test_app_location, test_name: nil, test_code: "", **opts)
-    test_name ||= caller_locations[0].label
-
+  def run_test_scarpe_app(test_app_location, test_code: "", **opts)
     bad_opts = opts.keys - TEST_OPTS
     raise "Bad options passed to run_test_scarpe_app: #{bad_opts.inspect}!" unless bad_opts.empty?
-
-    set_up_test_failures
 
     with_tempfile("scarpe_test_results.json", "") do |result_path|
       do_debug = opts[:debug] ? true : false
@@ -145,16 +95,17 @@ class ScarpeTest < Minitest::Test
       File.unlink(result_path)
 
       with_tempfile("scarpe_control.rb", scarpe_test_code) do |control_file_path|
-        # Start the application using the exe/scarpe utility
-        system("SCARPE_TEST_CONTROL=#{control_file_path} SCARPE_TEST_RESULTS=#{result_path} " +
-          "SCARPE_LOG_CONFIG=\"#{TEST_SCARPE_LOG_CONFIG}\" " +
-          "ruby #{SCARPE_EXE} --dev #{test_app_location}")
+        with_tempfile("scarpe_log_config.json", JSON.dump(log_config_for_test), dir: LOGGER_DIR) do |scarpe_log_config|
+          # Start the application using the exe/scarpe utility
+          system("SCARPE_TEST_CONTROL=#{control_file_path} SCARPE_TEST_RESULTS=#{result_path} " +
+            "SCARPE_LOG_CONFIG=\"#{scarpe_log_config}\" " +
+            "ruby #{SCARPE_EXE} --dev #{test_app_location}")
 
-        # Check if the process exited normally or crashed (segfault, failure, timeout)
-        if $?.exitstatus != 0
-          save_failure_logs(test_name:)
-          assert(false, "Scarpe app crashed with exit code: #{$?.exitstatus}")
-          return
+          # Check if the process exited normally or crashed (segfault, failure, timeout)
+          unless $?.success?
+            assert(false, "Scarpe app crashed with exit code: #{$?.exitstatus}")
+            return
+          end
         end
       end
 
@@ -166,9 +117,7 @@ class ScarpeTest < Minitest::Test
       return if opts[:exit_immediately] && !File.exist?(result_path)
 
       unless File.exist?(result_path)
-        save_failure_logs(test_name:)
-        assert(false, "Scarpe app returned no status code!")
-        return
+        return assert(false, "Scarpe app returned no status code!")
       end
 
       begin
@@ -187,13 +136,11 @@ class ScarpeTest < Minitest::Test
             return
           end
 
-          save_failure_logs(test_name:)
           assert false, "App exited immediately, but its results were false! #{out_data.inspect}"
         end
 
         unless out_data[0]
           puts JSON.pretty_generate(out_data[1])
-          save_failure_logs(test_name:)
           assert false, "Some Scarpe tests failed..."
         end
 
@@ -202,7 +149,6 @@ class ScarpeTest < Minitest::Test
           test_data["succeeded"].times { assert true } # Add to the number of assertions
           test_data["failures"].each { |failure| assert false, "Failed Scarpe app test: #{failure}" }
           if test_data["still_pending"] != 0
-            save_failure_logs(test_name:)
             assert false, "Some tests were still pending!"
           end
         end
@@ -219,5 +165,109 @@ class ScarpeTest < Minitest::Test
     end
 
     assert_equal expected_html, actual_html
+  end
+end
+
+# This test will save extensive logs in case of test failure.
+class LoggedScarpeTest < ScarpeTest
+  def file_id
+    "#{self.class.name}_#{self.name}"
+  end
+
+  def setup
+    # Make sure test failures will be saved at the end of the run.
+    # Delete stale test failures and logging only the *first* time this is called.
+    set_up_test_failures
+
+    @normal_log_config = Scarpe::Logger.current_log_config
+    Scarpe::Logger.configure_logger(log_config_for_test)
+
+    Scarpe::Logger.logger("LoggedScarpeTest").info("Test: #{self.class.name}##{self.name}")
+  end
+
+  def teardown
+    # Restore previous log config
+    Scarpe::Logger.configure_logger(@normal_log_config)
+
+    if self.failure
+      save_failure_logs
+    else
+      remove_unsaved_logs
+    end
+  end
+
+  def log_config_for_test
+    {
+      "default" => ["debug", "logger/test_failure_#{file_id}.log"],
+      "WebviewAPI" => ["debug", "logger/test_failure_wv_api_#{file_id}.log"],
+    }
+  end
+
+  # This could be a lot simpler except I want to only update the file list in one place,
+  # log_config_for_test(). Having a single spot should (I hope) make it a lot friendlier to
+  # add more logfiles for different components, logged API objects, etc.
+  def saved_log_files
+    lc = log_config_for_test
+    log_outfiles = lc.values.map { |_level, loc| loc }
+    log_outfiles.select { |s| s.start_with?("logger/") }.map { |s| s.delete_prefix("logger/") }
+  end
+
+  # We want test failures set up once *total*, not per Minitest::Test. So an instance var
+  # doesn't do it.
+  ALREADY_SET_UP_TEST_FAILURES = { setup: false }
+
+  def set_up_test_failures
+    return if ALREADY_SET_UP_TEST_FAILURES[:setup]
+
+    ALREADY_SET_UP_TEST_FAILURES[:setup] = true
+    # Delete stale test failures, if any, before starting the first failure-logged test
+    Dir["#{LOGGER_DIR}/test_failure*.log"].each { |fn| File.unlink(fn) }
+
+    Minitest.after_run do
+      # Print test failure notice to console
+      unless Dir["#{LOGGER_DIR}/test_failure*.out.log"].empty?
+        puts "Some tests have failed! See #{LOGGER_DIR}/test_failure*.out.log for test logs!"
+      end
+
+      # Remove un-saved test logs
+      Dir["#{LOGGER_DIR}/test_failure*.log"].each do |f|
+        next if f.include?(".out.log")
+
+        File.unlink(f) if File.exist?(f)
+      end
+    end
+  end
+
+  def logfail_out_loc(filepath)
+    # Add a .out prefix before final .log
+    out_loc = filepath.gsub(%r{.log\Z}, ".out.log")
+
+    if out_loc == filepath
+      raise "Something is wrong! Could not figure out failure-log output path for #{filepath.inspect}!"
+    end
+
+    if File.exist?(out_loc)
+      raise "Duplicate test name #{test_name.inspect}? This file should *not* already exist!"
+    end
+
+    out_loc
+  end
+
+  def save_failure_logs
+    saved_log_files.each do |log_file|
+      full_loc = File.expand_path("#{LOGGER_DIR}/#{log_file}")
+      # TODO: we'd like to skip 0-length logfiles. But also Logging doesn't flush. For now, ignore.
+      next unless File.exist?(full_loc)
+
+      FileUtils.mv full_loc, logfail_out_loc(full_loc)
+    end
+  end
+
+  def remove_unsaved_logs
+    Dir["#{LOGGER_DIR}/test_failure*.log"].each do |f|
+      next if f.include?(".out.log") # Don't delete saved logs
+
+      File.unlink(f)
+    end
   end
 end
