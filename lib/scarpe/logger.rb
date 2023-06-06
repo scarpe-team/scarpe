@@ -104,6 +104,7 @@ class Scarpe
 
         log_config.each do |component, logger_data|
           next if component == DEFAULT_COMPONENT
+
           sublogger = Logging.logger[component]
           json_configure_logger(sublogger, logger_data)
         end

@@ -85,9 +85,10 @@ def first_available_temp_spot(filepath)
   all_exts = filename.split(".", 2)[1]
   base = File.basename(filename, "." + all_exts)
 
-  (0..100).each do |ctr|
+  100.times do |ctr|
     candidate = "#{dir}/#{base}_#{"%03d" % ctr}.#{all_exts}"
     next if File.exist?(candidate)
+
     return candidate
   end
   raise "Can't find temp location for moving #{filepath.inspect}!"
@@ -95,15 +96,14 @@ end
 
 TEST_SCARPE_LOG_CONFIG = File.expand_path("#{LOGGER_DIR}/scarpe_wv_test.json")
 log_out = JSON.load_file(TEST_SCARPE_LOG_CONFIG).values.map { |_level, locs| locs }
-TEST_SAVE_FILES = log_out.select { |s| s.start_with?("logger/") }.map { |s| s.gsub(/\Alogger\//, "") }
+TEST_SAVE_FILES = log_out.select { |s| s.start_with?("logger/") }.map { |s| s.gsub(%r{\Alogger\/}, "") }
 def save_failure_logs
   TEST_SAVE_FILES.each do |log_file|
     full_loc = File.expand_path("#{LOGGER_DIR}/#{log_file}")
-    if File.exist?(full_loc)
-      temp_spot = first_available_temp_spot(full_loc)
-      STDERR.puts "Saving #{full_loc.inspect} to #{temp_spot.inspect}"
-      FileUtils.mv full_loc, temp_spot
-    end
+    temp_spot = first_available_temp_spot(full_loc)
+    next unless File.exist?(full_loc)
+
+    FileUtils.mv full_loc, temp_spot
   end
 end
 
