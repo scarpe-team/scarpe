@@ -1,0 +1,47 @@
+---
+:context:
+  :app: "/home/ccoupe/Projects/shoes3/minlin/samples/simple/chipmunk.rb"
+  :time: 2017-12-17 21:37:26.497452015 -07:00
+:events:
+- :time: 3.111306338
+  :button: 1
+  :x: 19
+  :y: 59
+  :modifiers: shift
+  :object: &1 !ruby/object:Shoes::Types::Shape {}
+  :type: :click
+- :time: 6.447366351
+  :button: 1
+  :x: 82
+  :y: 52
+  :modifiers: control
+  :object: &3 !ruby/object:Shoes::Types::Shape {}
+  :type: :click
+- :time: 10.895925171
+  :button: 1
+  :x: 112
+  :y: 49
+  :modifiers: shift
+  :object: &2 !ruby/object:Shoes::Types::Shape {}
+  :type: :click
+- :time: 15.735470191
+  :button: 1
+  :x: 17
+  :y: 52
+  :modifiers: control_shift
+  :object: *1
+  :type: :click
+- :time: 19.503386712
+  :button: 1
+  :x: 109
+  :y: 52
+  :modifiers: control_shift
+  :object: *2
+  :type: :click
+- :time: 22.647864317
+  :button: 1
+  :x: 82
+  :y: 54
+  :modifiers: 
+  :object: *3
+  :type: :click
