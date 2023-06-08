@@ -1,0 +1,40 @@
+---
+:context:
+  :app: "/home/ccoupe/Projects/shoes3/Tests/events/button.rb"
+  :time: 2017-12-18 23:46:58.596135799 -07:00
+:events:
+- :time: 2.380615873
+  :button: 1
+  :x: 0
+  :y: 35
+  :modifiers: 
+  :object: !ruby/object:Shoes::Types::Button {}
+  :type: :btn_activate
+- :time: 3.780337516
+  :button: 1
+  :x: 75
+  :y: 35
+  :modifiers: 
+  :object: !ruby/object:Shoes::Types::Button {}
+  :type: :btn_activate
+- :time: 6.24463253
+  :button: 1
+  :x: 0
+  :y: 100
+  :modifiers: 
+  :object: !ruby/object:Shoes::Types::Radio {}
+  :type: :btn_activate
+- :time: 6.244678214
+  :button: 1
+  :x: 0
+  :y: 135
+  :modifiers: 
+  :object: !ruby/object:Shoes::Types::Radio {}
+  :type: :btn_activate
+- :time: 8.060630508
+  :button: 1
+  :x: 0
+  :y: 65
+  :modifiers: 
+  :object: !ruby/object:Shoes::Types::Check {}
+  :type: :btn_activate
