@@ -12,6 +12,8 @@ end
 require "securerandom"
 require "json"
 
+require_relative "constants"
+
 require_relative "scarpe/version"
 require_relative "scarpe/promises"
 require_relative "scarpe/display_service"
@@ -20,6 +22,9 @@ require_relative "scarpe/widgets"
 # Display services
 require_relative "scarpe/wv"
 require_relative "scarpe/glibui" if ENV["SCARPE_DISPLAY_SERVICES"]&.include?("Scarpe::GlimmerLibUIDisplayService")
+
+#Constants Module
+include Constants
 
 class Scarpe
   class << self
