@@ -12,7 +12,7 @@ class Scarpe
     include Scarpe::Colors
 
     class << self
-      attr_accessor :widget_classes, :alias_name, :linkable_properties, :linkable_properties_hash
+      attr_accessor :widget_classes, :alias_name
 
       def alias_as(name)
         self.alias_name = name
@@ -33,17 +33,27 @@ class Scarpe
         widget_classes.detect { |k| k.dsl_name == name.to_s || k.alias_name.to_s == name.to_s }
       end
 
+      private
+
+      def linkable_properties
+        @linkable_properties ||= []
+      end
+
+      def linkable_properties_hash
+        @linkable_properties_hash ||= {}
+      end
+
+      public
+
       # Display properties in Shoes Linkables are automatically sync'd with the display side objects.
       # TODO: do we want types or other modifiers on specific properties?
       def display_property(name)
         name = name.to_s
-        @linkable_properties ||= []
-        @linkable_properties_hash ||= {}
 
-        return if @linkable_properties_hash[name]
+        return if linkable_properties_hash[name]
 
-        @linkable_properties << { name: name }
-        @linkable_properties_hash[name] = true
+        linkable_properties << { name: name }
+        linkable_properties_hash[name] = true
       end
 
       def display_properties(*names)
@@ -51,11 +61,11 @@ class Scarpe
       end
 
       def display_property_names
-        @linkable_properties.map { |prop| prop[:name] }
+        linkable_properties.map { |prop| prop[:name] }
       end
 
       def display_property_name?(name)
-        @linkable_properties_hash[name.to_s]
+        linkable_properties_hash[name.to_s]
       end
     end
 
