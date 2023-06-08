@@ -164,6 +164,7 @@ class Scarpe
     # in a JS function.
     EVAL_OPTS = [:timeout, :wait_for]
     def eval_js_async(code, opts = {})
+      puts code
       bad_opts = opts.keys - EVAL_OPTS
       raise("Bad options given to eval_with_handler! #{bad_opts.inspect}") unless bad_opts.empty?
 

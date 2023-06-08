@@ -26,6 +26,9 @@ class Scarpe
     # All JS callbacks to Scarpe widgets are dispatched
     # via this handler, which is set up in Scarpe::App
     def handle_callback(name, *args)
+      puts "in callbacksssssssssssssssssssssss"
+      puts name
+      puts "#{@callbacks[name].call(*args)} is"
       @callbacks[name].call(*args)
     end
 

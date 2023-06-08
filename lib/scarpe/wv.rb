@@ -10,6 +10,7 @@ require_relative "wv/webview_local_display"
 require_relative "wv/webview_relay_display"
 
 require_relative "wv/dimensions"
+require_relative "wv/motion"
 require_relative "wv/html"
 
 require_relative "wv/spacing"

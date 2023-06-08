@@ -2,8 +2,8 @@
 
 class Scarpe
   class HTML
-    CONTENT_TAGS = [:div, :p, :button, :ul, :li, :textarea, :a, :strong, :em, :code, :u, :span, :svg].freeze
-    VOID_TAGS = [:input, :img, :polygon].freeze
+    CONTENT_TAGS = [:div, :p, :button, :ul, :li, :textarea, :a, :strong, :em, :body, :script, :code, :u, :span, :svg, :canvas].freeze
+    VOID_TAGS = [:input, :img, :polygon, :path].freeze
     TAGS = (CONTENT_TAGS + VOID_TAGS).freeze
 
     class << self
@@ -88,6 +88,7 @@ class Scarpe
     def render_attributes(attributes = {})
       return "" if attributes.empty?
 
+      puts "in redner #{attributes[:style]}"
       attributes[:style] = render_style(attributes[:style]) if attributes[:style]
       attributes.compact!
 

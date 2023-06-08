@@ -54,6 +54,7 @@ class Scarpe
       end
 
       @view.bind("scarpeHandler") do |*args|
+        puts "in bind"
         @document_root.handle_callback(*args)
       end
 
