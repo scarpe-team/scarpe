@@ -8,6 +8,7 @@ SCARPE_DIR = File.join(__dir__, "../..")
 
 $LOAD_PATH.prepend(SCARPE_DIR)
 require "scarpe"
+require "scarpe/wv_local"
 
 # This script exists to create a WebviewDisplayService that can be operated remotely over a socket.
 

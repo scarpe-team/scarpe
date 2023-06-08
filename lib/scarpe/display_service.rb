@@ -27,7 +27,7 @@
 #
 # ## Choosing Display Services
 #
-# Before running a Scarpe app, you can set SCARPE_DISPLAY_SERVICES. A single
+# Before running a Scarpe app, you can set SCARPE_DISPLAY_SERVICE. A single
 # dash means no display service. A list of class names will cause Scarpe
 # to instantiate that class or those classes as the display service(s).
 # Leaving the variable unset is equivalent to "Scarpe::WebviewDisplayService".
@@ -117,20 +117,18 @@ class Scarpe
         @json_debug_serialize = nil
       end
 
-      def display_services
-        return @service_list if @service_list
+      def set_display_service_class(klass)
+        raise "Can only set a single display service class!" if @display_service_klass
 
-        service_spec = (ENV["SCARPE_DISPLAY_SERVICES"] || "Scarpe::WebviewDisplayService").strip
-        if service_spec == "-"
-          @service_list = [].freeze
-          return @service_list
-        end
-        @service_list = service_spec.split(";").map do |svc|
-          klass = Object.const_get(svc)
-          raise "Cannot find class #{svc.inspect} to create display service!" unless klass
+        @display_service_klass = klass
+      end
 
-          klass.new
-        end
+      def display_service
+        return @service if @service
+
+        raise "No display service was set!" unless @display_service_klass
+
+        @service = @display_service_klass.new
       end
     end
 
@@ -155,32 +153,6 @@ class Scarpe
 
       def bind_display_event(event_name:, target: nil, &handler)
         DisplayService.subscribe_to_event(:display, event_name, target, &handler)
-      end
-    end
-
-    module LinkableTest
-      def on_next_event(event_type, event_name, target: nil, &block)
-        if event_type == :shoes
-          unsub_id = bind_shoes_event(event_name:, target:) do |*args, **kwargs|
-            block.call(*args, **kwargs)
-            DisplayService.unsub_from_events(unsub_id)
-          end
-        elsif event_type == :display
-          unsub_id = bind_display_event(event_name:, target:) do |*args, **kwargs|
-            block.call(*args, **kwargs)
-            DisplayService.unsub_from_events(unsub_id)
-          end
-        else
-          raise "Attempt to get on_next with unknown event type #{event_type.inspect}, not :display or :shoes!"
-        end
-      end
-
-      def on_next_heartbeat(&block)
-        on_next_event(:display, "heartbeat", &block)
-      end
-
-      def on_init(&block)
-        bind_display_event(event_name: "init", &block)
       end
     end
   end

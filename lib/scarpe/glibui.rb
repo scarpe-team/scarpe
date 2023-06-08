@@ -25,3 +25,5 @@ require_relative "glibui/alert"
 
 require_relative "glibui/text_widget"
 require_relative "glibui/link"
+
+Scarpe::DisplayService.set_display_service_class(Scarpe::GlimmerLibUIDisplayService)
