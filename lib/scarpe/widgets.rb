@@ -8,6 +8,7 @@ require_relative "spacing"
 require_relative "background"
 require_relative "border"
 require_relative "star"
+require_relative "oval"
 
 require_relative "fill"
 
