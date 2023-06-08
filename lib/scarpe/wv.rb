@@ -15,6 +15,7 @@ require_relative "wv/html"
 require_relative "wv/spacing"
 require_relative "wv/star"
 require_relative "wv/radio"
+require_relative "wv/oval"
 require_relative "wv/background"
 require_relative "wv/border"
 
