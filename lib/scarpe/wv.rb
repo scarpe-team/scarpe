@@ -11,6 +11,7 @@ require_relative "wv/webview_relay_display"
 
 require_relative "wv/dimensions"
 require_relative "wv/html"
+require_relative "wv/font"
 
 require_relative "wv/spacing"
 require_relative "wv/star"

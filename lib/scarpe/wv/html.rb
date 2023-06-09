@@ -2,8 +2,8 @@
 
 class Scarpe
   class HTML
-    CONTENT_TAGS = [:div, :p, :button, :ul, :li, :textarea, :a, :strong, :em, :code, :u, :span, :svg].freeze
-    VOID_TAGS = [:input, :img, :polygon, :path].freeze
+    CONTENT_TAGS = [:div, :p, :button, :ul, :li, :textarea, :a, :strong, :em, :style, :code, :u, :span, :svg].freeze
+    VOID_TAGS = [:input, :img, :polygon, :path, :link].freeze
     TAGS = (CONTENT_TAGS + VOID_TAGS).freeze
 
     class << self
@@ -34,7 +34,9 @@ class Scarpe
     end
 
     def tag(name, **attrs, &block)
-      if VOID_TAGS.include?(name)
+      if name == :style
+        @buffer += "<#{name}>"
+      elsif VOID_TAGS.include?(name)
         raise ArgumentError, "void tag #{name} cannot have content" if block_given?
 
         @buffer += "<#{name}#{render_attributes(attrs)} />"
