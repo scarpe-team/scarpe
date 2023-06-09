@@ -13,7 +13,7 @@ class TestExamplesWithWebview < Minitest::Test
   examples_to_test.each do |example_filename|
     example = example_filename.gsub("/", "_").gsub("-", "_").gsub(/.rb\Z/, "")
     define_method("test_webview_#{example}") do
-      test_scarpe_app(example_filename, exit_immediately: true)
+      test_scarpe_app(example_filename, exit_immediately: true, test_name: example)
     end
   end
 end
