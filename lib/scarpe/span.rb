@@ -1,32 +1,26 @@
 # frozen_string_literal: true
 
-module ShapeHelper
-  def path_commands
-    $path_commands ||= []
-  end
+class Scarpe
+  class Span < Scarpe::Widget
+    display_properties :text, :stroke, :size, :font, :html_attributes
 
-  def move_to(x, y)
-    validate_coordinates(x, y)
-    path_commands << "M #{x} #{y}"
-  end
+    def initialize(text, stroke: nil, size: :span, font: nil, **html_attributes)
+      @text = text
+      @stroke = stroke
+      @size = size
+      @font = font
+      @html_attributes = html_attributes
 
-  def line_to(x, y)
-    validate_coordinates(x, y)
-    path_commands << "L #{x} #{y}"
-  end
+      super
 
-  def shape_path
-    path_commands_str = path_commands.join(" ")
-    path_commands_str
-  end
+      create_display_widget
+    end
 
-  private
+    def replace(text)
+      @text = text
 
-  def validate_coordinates(x, y)
-    raise ArgumentError, "Invalid coordinates: x=#{x}, y=#{y}" unless valid_coordinate?(x) && valid_coordinate?(y)
-  end
-
-  def valid_coordinate?(coordinate)
-    coordinate.is_a?(Numeric)
+      # This should signal the display widget to change
+      self.text = @text
+    end
   end
 end
