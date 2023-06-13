@@ -2,9 +2,9 @@
 
 require "test_helper"
 
-class TestControlInterface < Minitest::Test
+class TestControlInterface < ScarpeTest
   def test_trivial_async_assert
-    test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE', timeout: 0.5)
+    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE', timeout: 0.5)
       Shoes.app do
         para "Hello World"
       end
@@ -17,7 +17,7 @@ class TestControlInterface < Minitest::Test
   end
 
   def test_assert_dom_html
-    test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
+    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
       Shoes.app do
         para "Hello World"
       end
@@ -31,7 +31,7 @@ class TestControlInterface < Minitest::Test
   end
 
   def test_assert_widget
-    test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
+    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
       Shoes.app do
         para "Hello World"
       end
@@ -45,7 +45,7 @@ class TestControlInterface < Minitest::Test
   end
 
   def test_assert_dom_html_update
-    test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
+    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
       Shoes.app do
         para "Hello World"
       end

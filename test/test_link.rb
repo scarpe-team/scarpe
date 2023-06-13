@@ -4,7 +4,7 @@ require "test_helper"
 
 # Link display properties: text, click, has_block
 
-class TestWebviewLink < Minitest::Test
+class TestWebviewLink < ScarpeTest
   def setup
     @default_properties = {
       "text" => "click here",

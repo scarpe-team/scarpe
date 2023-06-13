@@ -2,9 +2,7 @@
 
 require "test_helper"
 
-TEST_VALUES = {}
-
-class TestWebviewPara < Minitest::Test
+class TestWebviewPara < ScarpeTest
   def setup
     @default_properties = {
       "shoes_linkable_id" => 1,

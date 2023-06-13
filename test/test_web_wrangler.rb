@@ -2,10 +2,10 @@
 
 require "test_helper"
 
-class TestWebWrangler < Minitest::Test
+class TestWebWrangler < ScarpeTest
   # Need to make sure that even with no widgets we still get at least one redraw
   def test_empty_app
-    test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE', timeout: 0.5)
+    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE', timeout: 0.5)
       Scarpe.app do
       end
     SCARPE_APP

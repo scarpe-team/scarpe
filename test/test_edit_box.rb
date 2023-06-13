@@ -5,7 +5,7 @@ require "test_helper"
 # Going to need to rewrite this, or at a minimum heavily modify it :-(
 __END__
 
-class TestEditBox < Minitest::Test
+class TestEditBox < ScarpeTest
   def setup
     app = Minitest::Mock.new
     Scarpe::Widget.document_root = app
