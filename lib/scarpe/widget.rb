@@ -101,14 +101,10 @@ class Scarpe
     end
 
     def create_display_widget
-      # We want to support multiple, or zero, display services later. Thus, we link via events and
-      # DisplayService objects.
       klass_name = self.class.name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
-      DisplayService.display_services.each do |display_service|
-        # We SHOULD NOT save a reference to our display widget(s). If they just disappear later, we'll cheerfully
-        # keep ticking along and not complain.
-        display_service.create_display_widget_for(klass_name, self.linkable_id, display_properties)
-      end
+
+      # Should we save a reference to widget for later reference?
+      DisplayService.display_service.create_display_widget_for(klass_name, self.linkable_id, display_properties)
     end
 
     attr_reader :parent

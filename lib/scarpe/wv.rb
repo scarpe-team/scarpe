@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Scarpe Webview Display Service
+# Scarpe Webview Display Services
 
 require_relative "wv/web_wrangler"
 require_relative "wv/control_interface"

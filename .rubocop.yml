@@ -76,3 +76,6 @@ Style/FormatString:
 
 Style/RegexpLiteral:
   Enabled: false
+
+Style/ReturnNil:
+  Enabled: false

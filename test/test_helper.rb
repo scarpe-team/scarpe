@@ -57,7 +57,7 @@ def test_scarpe_code(scarpe_app_code, test_code: "", test_name: nil, **opts)
   raise "Bad options passed to test_scarpe_code: #{bad_opts.inspect}!" unless bad_opts.empty?
 
   with_tempfile("scarpe_test_app.rb", scarpe_app_code) do |test_app_location|
-    test_scarpe_app(test_app_location, test_code: test_code, test_name:, **opts)
+    test_scarpe_app(test_app_location, test_code:, test_name:, **opts)
   end
 end
 
