@@ -27,7 +27,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: test failure logs
-          path: logger/test_failure_*_out.log
+          path: logger/test_failure*.out.log
   linter:
     name: Linter
     runs-on: macos-latest
