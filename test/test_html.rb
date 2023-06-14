@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class TestHTML < Minitest::Test
+class TestHTML < ScarpeTest
   def test_works_without_content
     subject = ::Scarpe::HTML.render(&:div)
 
