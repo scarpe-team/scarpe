@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "fastimage"
+require "open-uri"
+
 class Scarpe
   class Image < Scarpe::Widget
     display_properties :url, :width, :height, :top, :left, :click
@@ -9,7 +12,18 @@ class Scarpe
 
       super
 
+      # Get the image dimensions
+      # @width, @height = size
+
       create_display_widget
+    end
+  end
+
+  class Widget
+    def size
+      width, height = FastImage.size(@url)
+
+      [width, height]
     end
   end
 end

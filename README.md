@@ -3,7 +3,7 @@
 ## _Scarpe Diem: Seize the Shoes_
 ![GitHub Workflow Status (with branch)](https://img.shields.io/github/actions/workflow/status/Schwad/scarpe/ci.yml?branch=main)
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-shopify-brightgreen.svg)](https://github.com/Shopify/ruby-style-guide)
-[![Discord](https://img.shields.io/discord/1072538177321058377?label=discord)](https://discord.gg/nbhaZJtfVW)
+[![Discord](https://img.shields.io/discord/1072538177321058377?label=discord)](https://discord.gg/Ca5EHSsGYp)
 
 <img src="https://user-images.githubusercontent.com/7865030/217309905-7f25e3cf-1850-481d-811b-dfddea2df54a.png" width="200" height="200">
 
@@ -77,13 +77,13 @@ Huh. Great question. Right now we have a few key things we want to achieve. The 
 
 ![](https://geps.dev/progress/16?dangerColor=800000&warningColor=ff9900&successColor=006600)
 
-__40/256__
+__41/288__
 
 ### GlimmerLibUI Display Service Examples Passing
 
 ![](https://geps.dev/progress/2?dangerColor=800000&warningColor=ff9900&successColor=006600)
 
-__4/256__
+__4/288__
 
 ## Teach me more about Shoes, the DSL, what it is and why it is amazing
 
@@ -97,11 +97,11 @@ Scarpe allows you to modify the app's behaviour outside of the normal Shoes API 
 
 For example, we are working with multiple display services like Webview, Glimmer, and possibly some others.
 
-The SCARPE_DISPLAY_SERVICES environment variable allows you to choose one or more display services, from the default Webview service, to no service at all, to potentially other experimental or incomplete services. This may be important if you're developing a new display method for Scarpe. Normally ScarpeDisplayServices will contain a semicolon-delimited list of class names for display services (which can be just the name of a single display service). For no display service at all, set it to a single dash.
+The SCARPE_DISPLAY_SERVICE environment variable allows you to choose one or more display services, from the default Webview service to potentially other experimental or incomplete services. This may be important if you're developing a new display method for Scarpe. The display service variable will contain a name like "wv_local" or "wv_remote" or "glibui" which corresponds to a require-able Ruby file under lib/scarpe, either in the Scarpe gem or another gem your app requires.
 
 Example usage:
 
-`SCARPE_DISPLAY_SERVICES=Scarpe::GlimmerLibUIDisplayService ./exe/scarpe examples/hello_world.rb`
+`SCARPE_DISPLAY_SERVICE=glibui ./exe/scarpe examples/hello_world.rb`
 
 The SCARPE_TEST_CONTROL environment variable can contain a path to a test-control-interface script for the Webview display service. If you look at test_helper, it gives some examples of how to use it.
 
@@ -126,6 +126,17 @@ The SCARPE_TEST_CONTROL environment variable can contain a path to a test-contro
 * **User Experience** - Ruby and this DSL are beautiful for making desktop app authoring easy. We should uphold this standard.
 * **Whimsy** - We're not here to make money or be corporate. We're here to have fun! Even if we do end up building something amazing. Also, Chunky Bacon. 🥓
 * **Empathy** - Let's help one another, and adhere to good contributor standards while doing so.
+
+## Logging
+
+You can set SCARPE_LOG_CONFIG to an appropriate YAML file to set log levels per-component. You can find sample log configs under the logger directory. Scarpe has a number of component names that log data, set per-class. So you can set what components log at what sensitivity.
+
+```
+{
+    "default": "warn",
+    "WV::WebWrangler": ["logger/web_wrangler.log", "debug"]
+}
+```
 
 ## Documentation
 

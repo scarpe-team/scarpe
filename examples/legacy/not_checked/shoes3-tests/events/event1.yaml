@@ -1,0 +1,26 @@
+---
+:context:
+  :app: "/home/ccoupe/Projects/shoes3/Tests/events/event1.rb"
+  :time: 2017-12-18 19:14:17.527820709 -07:00
+:events:
+- :time: 2.084820129
+  :button: 1
+  :x: 379
+  :y: 55
+  :modifiers: 
+  :object: 
+  :type: :click
+- :time: 3.299109652
+  :button: 1
+  :x: 0
+  :y: 70
+  :modifiers: 
+  :object: !ruby/object:Shoes::Types::Button {}
+  :type: :btn_activate
+- :time: 4.835090063
+  :button: 1
+  :x: 75
+  :y: 70
+  :modifiers: 
+  :object: !ruby/object:Shoes::Types::Button {}
+  :type: :btn_activate

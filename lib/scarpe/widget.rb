@@ -8,8 +8,11 @@
 
 class Scarpe
   class Widget < DisplayService::Linkable
+    include Scarpe::Log
+    include Scarpe::Colors
+
     class << self
-      attr_accessor :widget_classes, :alias_name, :linkable_properties, :linkable_properties_hash
+      attr_accessor :widget_classes, :alias_name
 
       def alias_as(name)
         self.alias_name = name
@@ -30,17 +33,27 @@ class Scarpe
         widget_classes.detect { |k| k.dsl_name == name.to_s || k.alias_name.to_s == name.to_s }
       end
 
+      private
+
+      def linkable_properties
+        @linkable_properties ||= []
+      end
+
+      def linkable_properties_hash
+        @linkable_properties_hash ||= {}
+      end
+
+      public
+
       # Display properties in Shoes Linkables are automatically sync'd with the display side objects.
       # TODO: do we want types or other modifiers on specific properties?
       def display_property(name)
         name = name.to_s
-        @linkable_properties ||= []
-        @linkable_properties_hash ||= {}
 
-        return if @linkable_properties_hash[name]
+        return if linkable_properties_hash[name]
 
-        @linkable_properties << { name: name }
-        @linkable_properties_hash[name] = true
+        linkable_properties << { name: name }
+        linkable_properties_hash[name] = true
       end
 
       def display_properties(*names)
@@ -48,15 +61,17 @@ class Scarpe
       end
 
       def display_property_names
-        @linkable_properties.map { |prop| prop[:name] }
+        linkable_properties.map { |prop| prop[:name] }
       end
 
       def display_property_name?(name)
-        @linkable_properties_hash[name.to_s]
+        linkable_properties_hash[name.to_s]
       end
     end
 
     def initialize(*args, **kwargs)
+      log_init("Widget")
+
       self.class.display_property_names.each do |prop|
         if kwargs[prop.to_sym]
           instance_variable_set("@" + prop, kwargs[prop.to_sym])
@@ -86,14 +101,10 @@ class Scarpe
     end
 
     def create_display_widget
-      # We want to support multiple, or zero, display services later. Thus, we link via events and
-      # DisplayService objects.
       klass_name = self.class.name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
-      DisplayService.display_services.each do |display_service|
-        # We SHOULD NOT save a reference to our display widget(s). If they just disappear later, we'll cheerfully
-        # keep ticking along and not complain.
-        display_service.create_display_widget_for(klass_name, self.linkable_id, display_properties)
-      end
+
+      # Should we save a reference to widget for later reference?
+      DisplayService.display_service.create_display_widget_for(klass_name, self.linkable_id, display_properties)
     end
 
     attr_reader :parent
@@ -110,7 +121,7 @@ class Scarpe
     def remove_child(child)
       @children ||= []
       unless @children.include?(child)
-        Scarpe.warn("remove_child: no such child(#{child.inspect}) for parent(#{parent.inspect})!")
+        @log.warn("remove_child: no such child(#{child.inspect}) for parent(#{parent.inspect})!")
       end
       @children.delete(child)
     end

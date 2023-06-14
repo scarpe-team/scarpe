@@ -8,19 +8,24 @@ SCARPE_DIR = File.join(__dir__, "../..")
 
 $LOAD_PATH.prepend(SCARPE_DIR)
 require "scarpe"
+require "scarpe/wv_local"
 
 # This script exists to create a WebviewDisplayService that can be operated remotely over a socket.
 
 if ARGV.length != 1
-  Scarpe.error("Usage: wv_display_worker.rb tcp_port_num")
+  $stderr.puts("Usage: wv_display_worker.rb tcp_port_num")
   exit(-1)
 end
 
 class WebviewContainedService < Scarpe::DisplayService::Linkable
-  include Scarpe::WVRelayUtil
+  include Scarpe::Log
+  include Scarpe::WVRelayUtil # Needs Scarpe::Log
+
+  attr_reader :log
 
   def initialize(from, to)
     super()
+    log_init("WV::DisplayWorker")
 
     @i_am = :child
     @event_subs = []
@@ -65,4 +70,4 @@ s = TCPSocket.new("localhost", ARGV[0].to_i)
 
 SERVICE = WebviewContainedService.new(s, s)
 
-Scarpe.info("Finished event loop. Exiting!")
+SERVICE.log.info("Finished event loop. Exiting!")

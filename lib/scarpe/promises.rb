@@ -26,11 +26,9 @@
 
 class Scarpe
   class Promise
-    PROMISE_STATES = [:unscheduled, :pending, :fulfilled, :rejected]
+    include Scarpe::Log
 
-    class << self
-      attr_accessor :debug
-    end
+    PROMISE_STATES = [:unscheduled, :pending, :fulfilled, :rejected]
 
     attr_reader :state
     attr_reader :parents
@@ -77,6 +75,8 @@ class Scarpe
     # sugar above.
 
     def initialize(state: nil, parents: [], &scheduler)
+      log_init("Promise")
+
       # These are as initially specified, and effectively immutable
       @state = state
       @parents = parents
@@ -283,9 +283,7 @@ class Scarpe
           begin
             @scheduler.call(*@parents.map(&:returned_value))
           rescue => e
-            if Promise.debug
-              Scarpe.error("Error while running scheduler! #{e.full_message}")
-            end
+            @log.error("Error while running scheduler! #{e.full_message}")
             rejected!(e)
           end
           @scheduler = nil
@@ -325,9 +323,7 @@ class Scarpe
         result = @executor.call(*@parents.map(&:returned_value))
         fulfilled!(result)
       rescue => e
-        if Promise.debug
-          Scarpe.error("Error running executor! #{e.full_message}")
-        end
+        @log.error("Error running executor! #{e.full_message}")
         rejected!(e)
       end
     ensure

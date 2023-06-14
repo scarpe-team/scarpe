@@ -64,7 +64,7 @@ class Scarpe
         if child.respond_to?(:to_html)
           child.to_html
         else
-          child
+          child.gsub("\n", "<br>")
         end
       end.join
     end
@@ -75,8 +75,9 @@ class Scarpe
 
     def style
       {
-        "color" => @stroke,
+        "color" => rgb_to_hex(@stroke),
         "font-size" => font_size,
+        "font-family" => @font,
       }.compact
     end
 

@@ -70,3 +70,12 @@ Style/RedundantBegin:
 
 Layout/LeadingCommentSpace:
   Enabled: false
+
+Style/FormatString:
+  Enabled: false
+
+Style/RegexpLiteral:
+  Enabled: false
+
+Style/ReturnNil:
+  Enabled: false

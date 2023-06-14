@@ -2,6 +2,8 @@
 
 class Scarpe
   class WebviewWidget < DisplayService::Linkable
+    include Scarpe::Log
+
     class << self
       def display_class_for(scarpe_class_name)
         scarpe_class = Scarpe.const_get(scarpe_class_name)
@@ -24,6 +26,8 @@ class Scarpe
     attr_reader :children
 
     def initialize(properties)
+      log_init("WV::Widget")
+
       # Call method, which looks up the parent
       @shoes_linkable_id = properties["shoes_linkable_id"] || properties[:shoes_linkable_id]
       unless @shoes_linkable_id
@@ -77,7 +81,7 @@ class Scarpe
     def remove_child(child)
       @children ||= []
       unless @children.include?(child)
-        Scarpe.error("remove_child: no such child(#{child.inspect}) for"\
+        @log.error("remove_child: no such child(#{child.inspect}) for"\
           " parent(#{parent.inspect})!")
       end
       @children.delete(child)
@@ -90,6 +94,32 @@ class Scarpe
 
       # If we add a child, we should redraw ourselves
       needs_update!
+    end
+
+    # Convert an [r, g, b, a] array to an HTML hex color code
+    # Arrays support alpha. HTML hex does not. So premultiply.
+    def rgb_to_hex(color)
+      return nil if color.nil?
+
+      r, g, b, a = *color
+      if r.is_a?(Float)
+        a ||= 1.0
+        r_float = r * a
+        g_float = g * a
+        b_float = b * a
+      else
+        a ||= 255
+        a_float = (a / 255.0)
+        r_float = (r.to_f / 255.0) * a_float
+        g_float = (g.to_f / 255.0) * a_float
+        b_float = (b.to_f / 255.0) * a_float
+      end
+
+      r_int = (r_float * 255.0).to_i.clamp(0, 255)
+      g_int = (g_float * 255.0).to_i.clamp(0, 255)
+      b_int = (b_float * 255.0).to_i.clamp(0, 255)
+
+      "#%0.2X%0.2X%0.2X" % [r_int, g_int, b_int]
     end
 
     public

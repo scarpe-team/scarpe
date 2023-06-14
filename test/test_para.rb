@@ -2,62 +2,7 @@
 
 require "test_helper"
 
-TEST_VALUES = {}
-
-# This method of testing starts up a Scarpe app with no display service
-# that runs in the same process as the test.
-class TestNoDisplayPara < Minitest::Test
-  def setup
-    TEST_VALUES[:ret_val] = nil
-  end
-
-  def test_para_text_children
-    test_scarpe_code_no_display(<<~'SCARPE_APP', <<~'TEST_CODE')
-      Shoes.app do
-        para "Testing test test. ",
-          "Breadsticks. ",
-          "Breadsticks. ",
-          "Breadsticks. ",
-          "Very good."
-      end
-    SCARPE_APP
-      the_app = self
-      # During init, no widgets have yet been created. So that's too early to find our para.
-      on_next_heartbeat do
-        para = find_widgets_by(Scarpe::Para)[0]
-        TEST_VALUES[:ret_val] = para.text_items
-        the_app.destroy
-      end
-    TEST_CODE
-    assert_equal ["Testing test test. ", "Breadsticks. ", "Breadsticks. ", "Breadsticks. ", "Very good."],
-      TEST_VALUES[:ret_val]
-  end
-
-  def test_para_replace
-    test_scarpe_code_no_display(<<~'SCARPE_APP', <<~'TEST_CODE')
-      Shoes.app do
-        para 'hello world'
-      end
-    SCARPE_APP
-      the_app = self
-      # During init, no widgets have yet been created. So that's too early to find our para.
-      on_next_heartbeat do
-        para = find_widgets_by(Scarpe::Para)[0]
-        para.replace("goodbye world")
-
-        if para.text_items == ["goodbye world"]
-          TEST_VALUES[:ret_val] = true
-          the_app.destroy
-        else
-          raise "Expected para.text_children to equal ['goodbye world']!"
-        end
-      end
-    TEST_CODE
-    assert_equal true, TEST_VALUES[:ret_val]
-  end
-end
-
-class TestWebviewPara < Minitest::Test
+class TestWebviewPara < ScarpeTest
   def setup
     @default_properties = {
       "shoes_linkable_id" => 1,
@@ -98,9 +43,9 @@ class TestWebviewPara < Minitest::Test
   end
 
   def test_renders_a_magenta_paragraph
-    para = Scarpe::WebviewPara.new(@default_properties.merge("stroke" => "magenta"))
+    para = Scarpe::WebviewPara.new(@default_properties.merge("stroke" => [255, 0, 255, 255]))
 
-    assert_html para.to_html, :p, id: para.html_id, style: "color:magenta;font-size:12px" do
+    assert_html para.to_html, :p, id: para.html_id, style: "color:#FF00FF;font-size:12px" do
       "Hello World"
     end
   end
