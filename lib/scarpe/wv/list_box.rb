@@ -16,16 +16,8 @@ class Scarpe
     def properties_changed(changes)
       selected = changes.delete("selected_item")
       if selected
-        selected_index = items.index(selected)
-        html_element.selectedIndex = selected_index if selected_index
+        html_element.value = selected
       end
-
-      t = changes.delete("items")
-      if t
-        html_element.innerHTML = ""
-        t.each { |item| html_element.add_option(item) }
-      end
-
       super
     end
 

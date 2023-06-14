@@ -2,13 +2,13 @@
 
 require "test_helper"
 
-class TestScarpe < Minitest::Test
+class TestScarpe < ScarpeTest
   def test_that_it_has_a_version_number
     refute_nil ::Scarpe::VERSION
   end
 
   def test_hello_world_app
-    test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Shoes.app do
         para "Hello World"
       end
@@ -16,7 +16,7 @@ class TestScarpe < Minitest::Test
   end
 
   def test_app_timeout
-    test_scarpe_code(<<-'SCARPE_APP', timeout: 0.1, allow_fail: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', timeout: 0.1, allow_fail: true)
       Shoes.app do
         para "Just waiting for this to time out"
       end
@@ -24,7 +24,7 @@ class TestScarpe < Minitest::Test
   end
 
   def test_button_app
-    test_scarpe_code(<<-'SCARPE_APP', debug: true, exit_immediately: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', debug: true, exit_immediately: true)
       Shoes.app do
         @push = button "Push me", width: 200, height: 50, top: 109, left: 132
         @note = para "Nothing pushed so far"
@@ -35,7 +35,7 @@ class TestScarpe < Minitest::Test
   end
 
   def test_text_widgets
-    test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Shoes.app do
         para "This is plain."
         para "This has ", em("emphasis"), " and great ", strong("strength"), " and ", code("coolness"), "."
@@ -44,7 +44,7 @@ class TestScarpe < Minitest::Test
   end
 
   def test_button_args_optional
-    test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Shoes.app do
         button "Push me"
       end
@@ -52,7 +52,7 @@ class TestScarpe < Minitest::Test
   end
 
   def test_stack_args_optional
-    test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Shoes.app do
         stack do
           button "Push me"
@@ -62,7 +62,7 @@ class TestScarpe < Minitest::Test
   end
 
   def test_widgets_exist
-    test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Shoes.app do
         stack do
           para "Here I am"

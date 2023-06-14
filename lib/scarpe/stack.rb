@@ -10,9 +10,9 @@ class Scarpe
     include Scarpe::Border
     include Scarpe::Spacing
 
-    display_properties :width, :height, :margin, :padding, :scroll, :options
+    display_properties :width, :height, :margin, :padding, :scroll, :margin_top, :options
 
-    def initialize(width: nil, height: nil, margin: nil, padding: nil, scroll: false, **options, &block)
+    def initialize(width: nil, height: nil, margin: nil, padding: nil, scroll: false, margin_top: nil, **options, &block)
       # TODO: what are these options? Are they guaranteed serializable?
       @options = options
 
@@ -20,8 +20,7 @@ class Scarpe
 
       create_display_widget
       # Create the display-side widget *before* instance_eval, which will add child widgets with their display widgets
-
-      instance_eval(&block)
+      instance_eval(&block) if block_given?
     end
   end
 

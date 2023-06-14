@@ -30,15 +30,24 @@ class Scarpe
     # unless you want any other results that would be returned
     # to be wiped out.
     def return_results(result_structs)
-      if @results_returned
-        raise "Returning more than one set of results! Bad!"
+      result_file = ENV["SCARPE_TEST_RESULTS"] || "./scarpe_results.txt"
+
+      # Multiple different sets of results is bad, even if both are passing.
+      if @results_returned && @results_returned != result_structs
+        # Just raising here doesn't reliably fail the test.
+        # See: https://github.com/scarpe-team/scarpe/issues/212
+        @log.error("Writing multi-result failure file to #{result_file.inspect}!")
+
+        bad_result = [false, "Returned two sets of results!", @results_returned, result_structs]
+        File.write(result_file, JSON.pretty_generate(bad_result))
+
+        return
       end
 
-      result_file = ENV["SCARPE_TEST_RESULTS"] || "./scarpe_results.txt"
       @log.debug("Writing results file #{result_file.inspect} to disk!")
       File.write(result_file, JSON.pretty_generate(result_structs))
 
-      @results_returned = true
+      @results_returned = result_structs
     end
 
     # Need to be able to query widgets in test code
