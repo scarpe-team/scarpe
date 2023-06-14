@@ -87,6 +87,11 @@ class Scarpe
       @webview.init("setInterval(scarpeHeartbeat,#{js_interval})")
     end
 
+    # Shorter name for better stack trace messages
+    def inspect
+      "Scarpe::WebWrangler:#{object_id}"
+    end
+
     attr_writer :control_interface
 
     ### Setup-mode Callbacks
@@ -494,7 +499,8 @@ class Scarpe
       # "pending and waiting" - we have a waiting promise for our unscheduled changes; we can add more unscheduled
       #     changes since we haven't scheduled them yet.
       #
-      # This is often called right after adding a new waiting change or replacing them, so that may need fixing up.
+      # This is often called after adding a new waiting change or replacing them, so the state may have just changed.
+      # It can also be called when no changes have been made and no updates need to happen.
       def promise_redraw
         if fully_updated?
           # No changes to make, nothing in-process or waiting, so just return a pre-fulfilled promise
@@ -573,7 +579,7 @@ class Scarpe
             end
           end
 
-          @log.debug("REDRAW FULLY UP TO DATE") if fully_updated?
+          @log.debug("Redraw is now fully up-to-date") if fully_updated?
         end.on_rejected do
           @log.error "Could not complete JS redraw! #{promise.reason.full_message}"
           @log.debug("REDRAW FULLY UP TO DATE BUT JS FAILED") if fully_updated?
