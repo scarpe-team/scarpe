@@ -24,7 +24,7 @@ class TestScarpe < LoggedScarpeTest
   end
 
   def test_button_app
-    run_test_scarpe_code(<<-'SCARPE_APP', debug: true, exit_immediately: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Shoes.app do
         @push = button "Push me", width: 200, height: 50, top: 109, left: 132
         @note = para "Nothing pushed so far"

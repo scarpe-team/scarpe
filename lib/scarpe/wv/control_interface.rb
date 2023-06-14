@@ -34,8 +34,8 @@ class Scarpe
     # This should get called once, from Scarpe::App
     def set_system_components(app:, doc_root:, wrangler:)
       unless app && wrangler
-        puts "app is false!" unless app
-        puts "wrangler is false!" unless wrangler
+        @log.error("False app passed to set_system_components!") unless app
+        @log.error("False wrangler passed to set_system_components!") unless wrangler
         raise "Must pass non-nil app and wrangler to ControlInterface#set_system_components!"
       end
       @app = app

@@ -5,6 +5,7 @@ class Scarpe
     class << self
       attr_accessor :next_test_code
     end
+    include Scarpe::Log
 
     display_properties :title, :width, :height, :resizable, :debug, :do_shutdown
 
@@ -13,10 +14,12 @@ class Scarpe
       width: 480,
       height: 420,
       resizable: true,
-      debug: false,
+      debug: ENV["SCARPE_DEBUG"] ? true : false,
       test_code: nil,
       &app_code_body
     )
+      log_init("Scarpe::App")
+
       @do_shutdown = false
 
       if Scarpe::App.next_test_code
@@ -29,13 +32,14 @@ class Scarpe
       test_code&.call(self)
 
       # This creates the DocumentRoot, including its corresponding display widget
-      @document_root = Scarpe::DocumentRoot.new(debug: @debug)
+      @document_root = Scarpe::DocumentRoot.new
 
       create_display_widget
 
       @app_code_body = app_code_body
 
       Signal.trap("INT") do
+        @log.warning("App interrupted by signal, stopping...")
         puts "\nStopping Scarpe app..."
         destroy
       end
@@ -75,34 +79,6 @@ class Scarpe
     def destroy
       @do_shutdown = true
       send_display_event(event_name: "destroy")
-    end
-  end
-
-  # In tests, this will normally be included into App
-  module AppTest
-    def all_widgets
-      out = []
-
-      to_add = @document_root.children
-      until to_add.empty?
-        out.concat(to_add)
-        to_add = to_add.flat_map(&:children).compact
-      end
-
-      out
-    end
-
-    # We can add various ways to find widgets here.
-    def find_widgets_by(*specs)
-      widgets = all_widgets
-      specs.each do |spec|
-        if spec.is_a?(Class)
-          all_widgets.select! { |w| spec === w }
-        else
-          raise("Don't know how to find widgets by #{spec.inspect}!")
-        end
-      end
-      widgets
     end
   end
 end
