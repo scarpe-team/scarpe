@@ -1,0 +1,30 @@
+# frozen_string_literal: true
+
+class Scarpe
+  class Webview<%= argument %> < Scarpe::WebviewWidget
+
+    def initialize(properties)
+      super
+
+    end
+
+      super
+    end
+
+    def element
+      HTML.render do |h|
+        h.textarea(id: html_id, style: style)
+      end
+    end
+
+    private
+
+    def style
+      styles = {}
+
+      #ADD YOUR STYLES HERE
+
+      styles.compact
+    end
+  end
+end

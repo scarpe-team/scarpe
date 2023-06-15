@@ -1,0 +1,11 @@
+# class_template.erb
+# frozen_string_literal: true
+
+class Scarpe
+  class <%= argument %> < Scarpe::Widget
+    def initialize
+      super
+      create_display_widget
+    end
+  end
+end
