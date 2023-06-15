@@ -12,6 +12,7 @@ def print_usage
 Usage: scarpe [OPTIONS] <scarpe app file>           # Same as "scarpe run"
        scarpe [OPTIONS] run <scarpe app file>
        scarpe [OPTIONS] env                         # print Scarpe environment settings
+       scarpe -v                                    # print the Scarpe gem version and exit
   Options:
       --dev                          Use development local scarpe, not an installed gem
 USAGE
@@ -43,7 +44,7 @@ def print_env
       #{env_or_none("GEM_ROOT")}
       #{env_or_none("GEM_HOME")}
       #{env_or_none("GEM_PATH")}
-SCARPE_ENV
+  SCARPE_ENV
 end
 
 # --dev option applies to all actions
@@ -53,6 +54,9 @@ verb = "run"
 verb_target = nil
 
 case ARGV[0]
+when "-v"
+  # This will be fine, pass it through.
+  verb = "-v"
 when "env"
   if ARGV.length != 1
     print_usage
@@ -85,6 +89,8 @@ require "scarpe"
 Shoes = Scarpe unless defined?(Shoes)
 
 case verb
+  when "-v"
+    puts "Scarpe #{Scarpe::VERSION}"
   when "run"
     # Run the Scarpe app file
     load ARGV[0]
