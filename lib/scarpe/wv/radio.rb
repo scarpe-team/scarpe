@@ -10,9 +10,14 @@ class Scarpe
 
     def element
       HTML.render do |h|
-        h.input(type: :radio, id: html_id, name: "html_id", value: "hmm #{text}")
-        h.label(for: html_id) { @text }
+        h.input(type: :radio, id: html_id, name: group_name, value: "hmm #{text}")
       end
+    end
+
+    private
+
+    def group_name
+      @group || @parent
     end
   end
 end
