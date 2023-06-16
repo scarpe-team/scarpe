@@ -95,7 +95,40 @@ class TestWebWrangler < ScarpeTest
     wrapped_js_code(Scarpe::WebWrangler::DOMWrangler.replacement_code("<body>Bobo</body>"), eval_serial)
   end
 
+  def test_ww_draw_body
+    with_running_mocked_webview do
+      # On the first call to replace, this will schedule a code replacement
+      replacement_code = replacement_js_code("<body>Bobo</body>", 0)
+      @mocked_webview.expect :eval, nil, [replacement_code]
+      @web_wrangler.replace("<body>Bobo</body>")
+
+      @web_wrangler.send(:receive_eval_result, "success", 0, true)
+      assert @web_wrangler.dom_fully_updated?, "DOM should be fully_updated with body in place and no updates!"
+    end
+  end
+
   def test_ww_redraw_basic
+    with_running_mocked_webview do
+      # On the first call to replace, this will schedule a code replacement
+      replacement_code = replacement_js_code("<body>Bobo</body>", 0)
+      @mocked_webview.expect :eval, nil, [replacement_code]
+      @web_wrangler.replace("<body>Bobo</body>")
+
+      # Until WebWrangler gets an acknowledgement, it won't schedule more JS
+      # We don't really care what's in this JS - these would be element modifications in real code
+      @web_wrangler.dom_change("func1()")
+
+      # After WebWrangler gets a success on the first update it will schedule the other ones
+      update_code = wrapped_js_code("func1()", 1)
+      @mocked_webview.expect :eval, nil, [update_code]
+      @web_wrangler.send(:receive_eval_result, "success", 0, true)
+
+      @web_wrangler.send(:receive_eval_result, "success", 1, true)
+      assert @web_wrangler.dom_fully_updated?, "DOM should be fully_updated with body in place and update finished!"
+    end
+  end
+
+  def test_ww_redraw_multi
     with_running_mocked_webview do
       # On the first call to replace, this will schedule a code replacement
       replacement_code = replacement_js_code("<body>Bobo</body>", 0)
@@ -112,6 +145,93 @@ class TestWebWrangler < ScarpeTest
       update_code = wrapped_js_code("func1();func2();func3()", 1)
       @mocked_webview.expect :eval, nil, [update_code]
       @web_wrangler.send(:receive_eval_result, "success", 0, true)
+    end
+  end
+
+  def test_ww_redraw_fully_updated
+    with_running_mocked_webview do
+      assert @web_wrangler.dom_fully_updated?, "DOM should be fully_updated before any calls!"
+
+      new_body_code = "<body>Bobo</body>"
+      # On the first call to replace, this will schedule a code replacement
+      replacement_code = replacement_js_code(new_body_code, 0)
+      @mocked_webview.expect :eval, nil, [replacement_code]
+      @web_wrangler.replace(new_body_code)
+      promise = @web_wrangler.promise_dom_fully_updated
+
+      assert !@web_wrangler.dom_fully_updated?, "DOM should not be fully_updated before body in place!"
+      assert !promise.complete?, "Fully-updated promise should not be fulfilled before everything is done!"
+
+      # Until WebWrangler gets an acknowledgement, it won't schedule more JS
+      # We don't really care what's in this JS - these would be element modifications in real code
+      @web_wrangler.dom_change("func1()")
+      @web_wrangler.dom_change("func2()")
+
+      assert !@web_wrangler.dom_fully_updated?, "DOM should not be fully_updated with requested updates!"
+      assert !promise.complete?, "Fully-updated promise should not be fulfilled before everything is done! (2)"
+
+      # After WebWrangler gets a success on the first update it will schedule the other ones
+      update_code = wrapped_js_code("func1();func2()", 1)
+      @mocked_webview.expect :eval, nil, [update_code]
+      @web_wrangler.send(:receive_eval_result, "success", 0, true)
+
+      assert !@web_wrangler.dom_fully_updated?, "DOM should not be fully_updated between updates!"
+
+      @web_wrangler.dom_change("func3()")
+      update_code = wrapped_js_code("func3()", 2)
+      @mocked_webview.expect :eval, nil, [update_code]
+      @web_wrangler.send(:receive_eval_result, "success", 1, true)
+
+      assert !@web_wrangler.dom_fully_updated?, "DOM should not be fully_updated before last success callback!"
+
+      @web_wrangler.send(:receive_eval_result, "success", 2, true)
+
+      assert @web_wrangler.dom_fully_updated?, "DOM should be fully_updated after all success callbacks finished!"
+      assert_equal :fulfilled, promise.state, "Fully-updated promise should be fulfilled once all updates complete!"
+    end
+  end
+
+  def test_ww_redraw_promises
+    with_running_mocked_webview do
+      new_body_code = "<body>Bobo</body>"
+      # On the first call to replace, this will schedule a code replacement
+      replacement_code = replacement_js_code(new_body_code, 0)
+      @mocked_webview.expect :eval, nil, [replacement_code]
+      body_promise = @web_wrangler.replace(new_body_code)
+
+      assert !body_promise.complete?, "Body promise should stay pending until body is updated"
+
+      # These two update promises will be the same object, but that's an implementation detail.
+      update_p1 = @web_wrangler.dom_change("func1()")
+      update_p2 = @web_wrangler.dom_change("func2()")
+
+      assert !body_promise.complete?, "Body promise should stay pending until body is updated (2)"
+      assert !update_p1.complete?, "Update promise should stay pending until update is finished"
+      assert !update_p2.complete?, "Update promise(2) should stay pending until update is finished"
+
+      # After WebWrangler gets a success on the first update it will schedule the other ones
+      update_code = wrapped_js_code("func1();func2()", 1)
+      @mocked_webview.expect :eval, nil, [update_code]
+      @web_wrangler.send(:receive_eval_result, "success", 0, true)
+
+      assert_equal :fulfilled, body_promise.state, "Body promise should be complete when body is updated"
+      assert !update_p1.complete?, "Update promise should stay pending until update is finished (2)"
+
+      update_p3 = @web_wrangler.dom_change("func3()")
+
+      assert !update_p3.complete?, "Second-update promise should stay pending until update is finished"
+
+      update_code = wrapped_js_code("func3()", 2)
+      @mocked_webview.expect :eval, nil, [update_code]
+      @web_wrangler.send(:receive_eval_result, "success", 1, true)
+
+      assert_equal :fulfilled, update_p1.state, "Update promise should be fulfilled after update is finished (2)"
+      assert_equal :fulfilled, update_p2.state, "Update promise(2) should be fulfilled after update is finished (2)"
+      assert !update_p3.complete?, "Second-update promise should stay pending until update is finished (2)"
+
+      @web_wrangler.send(:receive_eval_result, "success", 2, true)
+
+      assert_equal :fulfilled, update_p3.state, "Update promise should be fulfilled after update is finished (2)"
     end
   end
 end
