@@ -82,23 +82,12 @@ class Scarpe
       if m_data["type"] == "event"
         kwargs_hash = {}
         m_data["kwargs"].each { |k, v| kwargs_hash[k.to_sym] = v }
-        if m_data["kwargs"]["event_type"] == "shoes"
-          send_shoes_event(
-            *m_data["args"],
-            event_name: m_data["kwargs"]["event_name"],
-            target: m_data["kwargs"]["event_target"],
-            **kwargs_hash,
-          )
-        elsif m_data["kwargs"]["event_type"] == "display"
-          send_display_event(
-            *m_data["args"],
-            event_name: m_data["kwargs"]["event_name"],
-            target: m_data["kwargs"]["event_target"],
-            **kwargs_hash,
-          )
-        else
-          @log.error("Unrecognized datagram type:event: #{m_data.inspect}!")
-        end
+        send_shoes_event(
+          *m_data["args"],
+          event_name: m_data["kwargs"]["event_name"],
+          target: m_data["kwargs"]["event_target"],
+          **kwargs_hash,
+        )
       elsif m_data["type"] == "create"
         raise "Parent process should never receive :create datagram!" if @i_am == :parent
 
@@ -131,7 +120,7 @@ class Scarpe
 
   # This "display service" actually creates a child process and sends events
   # back and forth, but creates no widgets of its own.
-  class WVRelayDisplayService < Scarpe::DisplayService::Linkable
+  class WVRelayDisplayService < Scarpe::DisplayService
     include Scarpe::Log
     include WVRelayUtil # Needs Scarpe::Log
 
@@ -154,14 +143,6 @@ class Scarpe
       # Subscribe to all event notifications and relay them to the opposite side
       @event_subs << bind_shoes_event(event_name: :any, target: :any) do |*args, **kwargs|
         unless kwargs[:relayed]
-          kwargs[:event_type] = :shoes
-          kwargs[:relayed] = true
-          send_datagram({ type: :event, args:, kwargs: })
-        end
-      end
-      @event_subs << bind_display_event(event_name: :any, target: :any) do |*args, **kwargs|
-        unless kwargs[:relayed]
-          kwargs[:event_type] = :display
           kwargs[:relayed] = true
           send_datagram({ type: :event, args:, kwargs: })
         end
@@ -173,7 +154,7 @@ class Scarpe
 
       # Here, we run our own event loop. We need to poll the connection to the child,
       # and respond appropriately to Ruby calls/callbacks.
-      @event_subs << bind_display_event(event_name: "heartbeat") do
+      @event_subs << bind_shoes_event(event_name: "heartbeat") do
         respond_to_datagram while ready_to_read?
       rescue AppShutdownError
         @shutdown = true

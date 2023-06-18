@@ -61,7 +61,7 @@ class Scarpe
         destroy_self
       end
 
-      super()
+      super(linkable_id: @shoes_linkable_id)
     end
 
     # This exists to be overridden by children watching for changes

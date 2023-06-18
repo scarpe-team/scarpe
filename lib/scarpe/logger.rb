@@ -10,7 +10,10 @@ class Scarpe
   # configured component.
   module Log
     DEFAULT_LOG_CONFIG = {
-      "default": "info",
+      "default" => "info",
+    }
+    DEFAULT_DEBUG_LOG_CONFIG = {
+      "default" => "debug",
     }
 
     def log_init(component = self)
@@ -136,6 +139,10 @@ class Scarpe
   end
 end
 
-log_config = ENV["SCARPE_LOG_CONFIG"] ? JSON.load_file(ENV["SCARPE_LOG_CONFIG"]) : Scarpe::Log::DEFAULT_LOG_CONFIG
+log_config = if ENV["SCARPE_LOG_CONFIG"]
+  JSON.load_file(ENV["SCARPE_LOG_CONFIG"])
+else
+  ENV["SCARPE_DEBUG"] ? Scarpe::Log::DEFAULT_DEBUG_LOG_CONFIG : Scarpe::Log::DEFAULT_LOG_CONFIG
+end
 
 Scarpe::Logger.configure_logger(log_config)

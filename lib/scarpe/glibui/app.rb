@@ -13,7 +13,7 @@ class Scarpe
     def initialize(properties)
       super
 
-      bind_display_event(event_name: "run") do
+      bind_shoes_event(event_name: "run") do
         code = @document_root.display(properties)
         puts code
         # This is for if I want to confirm textual output. But not actually fire up the service.

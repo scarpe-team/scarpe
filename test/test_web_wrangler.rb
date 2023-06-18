@@ -46,6 +46,31 @@ class TestWebWranglerInScarpeApp < LoggedScarpeTest
       end
     TEST_CODE
   end
+
+  # We've had problems with dirty-tracking where the DOM stops updating after
+  # the first change.
+  def test_event_from_js_handler
+    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
+      Shoes.app do
+        $p = para "Hello"
+        button "Press Me" do
+          $p.replace "Goodbye"
+        end
+      end
+    SCARPE_APP
+      on_event(:next_redraw) do
+        button = find_wv_widgets(Scarpe::WebviewButton)[0]
+        snippet = button.handler_js_code("click")
+        with_js_value(snippet) do
+          # We clicked the button, which should (in local-Webview) mean the Shoes-side
+          # replacement has occurred
+        end.then_ruby_promise { fully_updated }.then_with_js_dom_html do |html_text|
+          assert html_text.include?("Goodbye"), "DOM root should contain the new button text! Text: #{html_text.inspect}"
+          assert !html_text.include?("Hello"), "DOM root shouldn't contain the old button text! Text: #{html_text.inspect}"
+        end.then { return_when_assertions_done }
+      end
+    TEST_CODE
+  end
 end
 
 class TestWebWranglerMocked < LoggedScarpeTest
