@@ -91,10 +91,15 @@ class Scarpe
       public
 
       def configure_logger(log_config)
+        if log_config.is_a?(String) && File.exist?(log_config)
+          log_config = JSON.load_file(log_config)
+        end
+
         log_config = freeze_log_config(log_config) unless log_config.nil?
         @current_log_config = log_config # Save a copy for later
 
         Logging.reset # Reset all Logging settings to defaults
+        Logging.reopen # For log-reconfig (e.g. test failures), often important to *not* store an open handle to a moved file
         return if log_config.nil?
 
         Logging.logger.root.appenders = [Logging.appenders.stdout]
@@ -124,6 +129,7 @@ class Scarpe
       self.singleton_class.define_method(method) do |*args, **kwargs, &block|
         ret = @instance.send(method, *args, **kwargs, &block)
         @log.info("Method: #{method} Args: #{args.inspect} KWargs: #{kwargs.inspect} Block: #{block ? "y" : "n"} Return: #{ret.inspect}")
+        ret
       end
       send(method, ...)
     end

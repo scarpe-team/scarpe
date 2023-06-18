@@ -433,7 +433,7 @@ end
 # before we consider a redraw complete.
 #
 # DOMWrangler batches up changes - it's fine to have a redraw "in flight" and have
-# changes waiting to catch the next bus. But We don't want more than one in flight,
+# changes waiting to catch the next bus. But we don't want more than one in flight,
 # since it seems like having too many pending RPC requests can crash Webview. So:
 # one redraw scheduled and one redraw promise waiting around, at maximum.
 class Scarpe
@@ -465,6 +465,7 @@ class Scarpe
         # removable.
         web_wrangler.periodic_code("scarpeDOMWranglerHeartbeat") do
           if @fully_up_to_date_promise && fully_updated?
+            @log.info("Fulfilling up-to-date promise on heartbeat")
             @fully_up_to_date_promise.fulfilled!
             @fully_up_to_date_promise = nil
           end
@@ -522,7 +523,7 @@ class Scarpe
           return @pending_redraw_promise
         end
 
-        @log.debug("Requesting redraw with #{@waiting_changes.size} waiting changes - need to schedule something!")
+        @log.debug("Requesting redraw with #{@waiting_changes.size} waiting changes and no waiting promise - need to schedule something!")
 
         # We have at least one waiting change, possibly newly-added. We have no waiting_redraw_promise.
         # Do we already have a redraw in-flight?
@@ -536,6 +537,7 @@ class Scarpe
           # all the cases.
           @waiting_redraw_promise = Promise.new
 
+          @log.debug("Creating a new waiting promise since a pending promise is already in place")
           return @waiting_redraw_promise
         end
 
@@ -615,6 +617,8 @@ class Scarpe
       # Put together the waiting changes into a new in-flight redraw request.
       # Return it as a promise.
       def schedule_waiting_changes
+        return if @waiting_changes.empty?
+
         js_code = @waiting_changes.join(";")
         @waiting_changes = [] # They're not waiting any more!
         @wrangler.eval_js_async js_code

@@ -99,7 +99,7 @@ class Scarpe
     # Convert an [r, g, b, a] array to an HTML hex color code
     # Arrays support alpha. HTML hex does not. So premultiply.
     def rgb_to_hex(color)
-      return nil if color.nil?
+      return color if color.nil?
 
       r, g, b, a = *color
       if r.is_a?(Float)

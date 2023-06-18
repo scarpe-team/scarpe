@@ -21,6 +21,7 @@ class Scarpe
       wrangler.periodic_code("scarpeTestTimeout") do |*_args|
         if (Time.now - t_start).to_f > time
           @did_time_out = true
+          @log.warn("die_after - timed out after #{time.inspect}")
           app.destroy
         end
       end

@@ -23,10 +23,11 @@ jobs:
       - name: Run tests
         run: CI_RUN='true' bundle exec rake test
       - name: upload test-fail logs
+        if: '!cancelled()'
         uses: actions/upload-artifact@v3
         with:
           name: test failure logs
-          path: logger/test_failure_*_out.log
+          path: logger/test_failure*.out.log
   linter:
     name: Linter
     runs-on: macos-latest
