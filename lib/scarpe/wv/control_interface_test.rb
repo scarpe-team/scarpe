@@ -193,6 +193,10 @@ class Scarpe
     def with_js_dom_html(wait_for: [], timeout: DEFAULT_ASSERTION_TIMEOUT, &block)
       with_js_value("document.getElementById('wrapper-wvroot').innerHTML", wait_for: wait_for, timeout: timeout, &block)
     end
+
+    def fully_updated(wait_for: [])
+      wrangler.promise_dom_fully_updated
+    end
   end
 
   # A Promise but with helper functions
