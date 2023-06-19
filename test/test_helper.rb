@@ -46,7 +46,7 @@ class ScarpeTest < Minitest::Test
   end
 
   SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
-  TEST_OPTS = [:timeout, :allow_fail, :allow_timeout, :debug, :exit_immediately]
+  TEST_OPTS = [:timeout, :allow_fail, :allow_timeout, :exit_immediately]
   LOGGER_DIR = File.expand_path("#{__dir__}/../logger")
 
   def run_test_scarpe_code(scarpe_app_code, test_code: "", **opts)
@@ -63,21 +63,12 @@ class ScarpeTest < Minitest::Test
     raise "Bad options passed to run_test_scarpe_app: #{bad_opts.inspect}!" unless bad_opts.empty?
 
     with_tempfile("scarpe_test_results.json", "") do |result_path|
-      do_debug = opts[:debug] ? true : false
       timeout = opts[:timeout] ? opts[:timeout].to_f : 1.5
       scarpe_test_code = <<~SCARPE_TEST_CODE
         require "scarpe/wv/control_interface_test"
 
-        override_app_opts debug: #{do_debug}
-
         on_event(:init) do
           die_after #{timeout}
-
-          # scarpeStatusAndExit is barbaric, and ignores all pending assertions and other subtleties.
-          wrangler.bind("scarpeStatusAndExit") do |*results|
-            return_results(results)
-            app.destroy
-          end
         end
       SCARPE_TEST_CODE
 
@@ -86,6 +77,7 @@ class ScarpeTest < Minitest::Test
       if opts[:exit_immediately]
         scarpe_test_code += <<~TEST_EXIT_IMMEDIATELY
           on_event(:next_heartbeat) do
+            Scarpe::Logger.logger("ScarpeTest").info("Dying on heartbeat because :exit_immediately is set")
             app.destroy
           end
         TEST_EXIT_IMMEDIATELY
@@ -97,13 +89,14 @@ class ScarpeTest < Minitest::Test
       with_tempfile("scarpe_control.rb", scarpe_test_code) do |control_file_path|
         with_tempfile("scarpe_log_config.json", JSON.dump(log_config_for_test), dir: LOGGER_DIR) do |scarpe_log_config|
           # Start the application using the exe/scarpe utility
+          # For unit testing always supply --debug so we get the most logging
           system("SCARPE_TEST_CONTROL=#{control_file_path} SCARPE_TEST_RESULTS=#{result_path} " +
             "SCARPE_LOG_CONFIG=\"#{scarpe_log_config}\" " +
-            "ruby #{SCARPE_EXE} --dev #{test_app_location}")
+            "ruby #{SCARPE_EXE} --debug --dev #{test_app_location}")
 
           # Check if the process exited normally or crashed (segfault, failure, timeout)
           unless $?.success?
-            assert(false, "Scarpe app crashed with exit code: #{$?.exitstatus}")
+            assert(false, "Scarpe app failed with exit code: #{$?.exitstatus}")
             return
           end
         end
@@ -120,41 +113,38 @@ class ScarpeTest < Minitest::Test
         return assert(false, "Scarpe app returned no status code!")
       end
 
-      begin
-        out_data = JSON.parse File.read(result_path)
+      out_data = JSON.parse File.read(result_path)
+      Scarpe::Logger.logger("TestHelper").info("JSON assertion data: #{out_data.inspect}")
 
-        unless out_data.respond_to?(:each) && out_data.length > 1
-          raise "Scarpe app returned an unexpected data format! #{out_data.inspect}"
+      unless out_data.respond_to?(:each) && out_data.length > 1
+        raise "Scarpe app returned an unexpected data format! #{out_data.inspect}"
+      end
+
+      # If we exit immediately we still need a results file and a true value.
+      # We were getting exit_immediately being fine with apps segfaulting,
+      # so we need to check.
+      if opts[:exit_immediately]
+        if out_data[0]
+          # That's all we needed!
+          return
         end
 
-        # If we exit immediately we still need a results file and a true value.
-        # We were getting exit_immediately being fine with apps segfaulting,
-        # so we need to check.
-        if opts[:exit_immediately]
-          if out_data[0]
-            # That's all we needed!
-            return
-          end
+        save_failure_logs(test_name:)
+        assert false, "App exited immediately, but its results were false! #{out_data.inspect}"
+      end
 
-          assert false, "App exited immediately, but its results were false! #{out_data.inspect}"
-        end
+      unless out_data[0]
+        puts JSON.pretty_generate(out_data[1])
+        assert false, "Some Scarpe tests failed..."
+      end
 
-        unless out_data[0]
-          puts JSON.pretty_generate(out_data[1])
-          assert false, "Some Scarpe tests failed..."
+      if out_data[1].is_a?(Hash)
+        test_data = out_data[1]
+        test_data["succeeded"].times { assert true } # Add to the number of assertions
+        test_data["failures"].each { |failure| assert false, "Failed Scarpe app test: #{failure}" }
+        if test_data["still_pending"] != 0
+          assert false, "Some tests were still pending!"
         end
-
-        if out_data[1].is_a?(Hash)
-          test_data = out_data[1]
-          test_data["succeeded"].times { assert true } # Add to the number of assertions
-          test_data["failures"].each { |failure| assert false, "Failed Scarpe app test: #{failure}" }
-          if test_data["still_pending"] != 0
-            assert false, "Some tests were still pending!"
-          end
-        end
-      rescue
-        $stderr.puts "Error parsing JSON data for Scarpe test status!"
-        raise
       end
     end
   end

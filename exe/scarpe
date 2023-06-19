@@ -15,6 +15,7 @@ Usage: scarpe [OPTIONS] <scarpe app file>           # Same as "scarpe run"
        scarpe -v                                    # print the Scarpe gem version and exit
   Options:
       --dev                          Use development local scarpe, not an installed gem
+      --debug                        Turn on application debug mode
 USAGE
 end
 
@@ -34,6 +35,7 @@ def print_env
     Scarpe::WV environment:
       #{env_or_none("SCARPE_TEST_CONTROL")}
       #{env_or_none("SCARPE_TEST_RESULTS")}
+      #{env_or_none("SCARPE_DEBUG")}
     Ruby and shell environment:
       RUBY_DESCRIPTION: #{RUBY_DESCRIPTION.inspect}
       RUBY_PLATFORM: #{RUBY_PLATFORM.inspect}
@@ -50,6 +52,7 @@ end
 
 # --dev option applies to all actions
 use_dev = ARGV.delete("--dev") ? true : false
+use_debug = ARGV.delete("--debug") ? true : false
 
 verb = "run"
 verb_target = nil
@@ -80,6 +83,9 @@ else
   verb_target = ARGV[0]
 end
 
+if use_debug
+  ENV['SCARPE_DEBUG'] = 'true'
+end
 if use_dev
   dev_path = File.expand_path("../lib", __dir__)
   $LOAD_PATH.prepend dev_path
