@@ -189,7 +189,12 @@ class LoggedScarpeTest < ScarpeTest
   def log_config_for_test
     {
       "default" => ["debug", "logger/test_failure_#{file_id}.log"],
+
       "WebviewAPI" => ["debug", "logger/test_failure_wv_api_#{file_id}.log"],
+
+      "DisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
+      "WV::RelayDisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
+      "WV::WebviewDisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
     }
   end
 

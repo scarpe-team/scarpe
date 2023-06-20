@@ -38,6 +38,14 @@ class Scarpe
 
       @app_code_body = app_code_body
 
+      # Try to de-dup as much as possible and not send repeat or multiple
+      # destroy events
+      @watch_for_destroy = bind_shoes_event(event_name: "destroy") do
+        DisplayService.unsub_from_events(@watch_for_destroy) if @watch_for_destroy
+        @watch_for_destroy = nil
+        self.destroy(send_event: false)
+      end
+
       Signal.trap("INT") do
         @log.warning("App interrupted by signal, stopping...")
         puts "\nStopping Scarpe app..."
@@ -46,39 +54,30 @@ class Scarpe
     end
 
     def init
-      send_display_event(event_name: "init")
+      send_shoes_event(event_name: "init")
       return if @do_shutdown
 
       @document_root.instance_eval(&@app_code_body)
     end
 
-    # This isn't guaranteed to be able to return. For Webview in particular, this takes control
-    # of the main thread ***and*** stops any background threads.
-    #
-    # So this is interesting. With a same-process Webview display service, this can't return.
-    # Webview takes full control. But we don't want to do that with a "no-op" display service,
-    # or no display service at all.
-    #
-    # If nobody is subscribed to "run", Scarpe will just traipse past "run" into "destroy" and
-    # shut everything down.
+    # This isn't supposed to return. The display service should take control
+    # of the main thread. Local Webview even stops any background threads.
     def run
-      send_display_event(event_name: "run")
+      send_shoes_event(event_name: "run")
 
-      # If there is an assertive display service like Webview, it will take control when
-      # it sees the run event and not give it back. A less assertive
-      # display service, or none at all, will simply return control immediately,
-      # and we'll run our own event loop here.
+      # The display service should take control when it receives the run event.
+      # If it return immediately here, that normally means a failure.
 
-      # Wait for incoming events from background threads, if any
+      # TODO: remove this loop after fixing the Webview relay service not to require it.
       until @do_shutdown
-        send_display_event(event_name: "heartbeat")
+        send_shoes_event(event_name: "heartbeat")
         sleep 0.1
       end
     end
 
-    def destroy
+    def destroy(send_event: true)
       @do_shutdown = true
-      send_display_event(event_name: "destroy")
+      send_shoes_event(event_name: "destroy") if send_event
     end
   end
 end

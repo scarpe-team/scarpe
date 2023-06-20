@@ -8,7 +8,7 @@ class Scarpe
       # Bind to display-side handler for "click"
       bind("click") do
         # This will be sent to the bind_self_event in Button
-        send_display_event(event_name: "click", target: shoes_linkable_id)
+        send_self_event(event_name: "click")
       end
     end
 
