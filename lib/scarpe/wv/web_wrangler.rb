@@ -51,7 +51,7 @@ class Scarpe
       # For now, always allow inspect element
       @webview = WebviewRuby::Webview.new debug: true
       @webview = Scarpe::LoggedWrapper.new(@webview, "WebviewAPI") if debug
-      @init_refs = {} # Inits don't go away so keep a reference to them
+      @init_refs = {} # Inits don't go away so keep a reference to them to prevent GC
 
       @title = title
       @width = width
@@ -456,6 +456,12 @@ class Scarpe
 
         @fully_up_to_date_promise = nil
 
+        # Initially we're waiting for a full replacement to happen.
+        # It's possible to request updates/changes before we have
+        # a DOM in place and before Webview is running. If we do
+        # that, we should discard those updates.
+        @first_draw_requested = false
+
         @redraw_handlers = []
 
         # The "fully up to date" logic is complicated and not
@@ -473,6 +479,9 @@ class Scarpe
       end
 
       def request_change(js_code)
+        # No updates until there's something to update
+        return unless @first_draw_requested
+
         @waiting_changes << js_code
 
         promise_redraw
@@ -485,6 +494,7 @@ class Scarpe
       def request_replace(html_text)
         # Replace other pending changes, they're not needed any more
         @waiting_changes = [DOMWrangler.replacement_code(html_text)]
+        @first_draw_requested = true
 
         @log.debug("Requesting DOM replacement...")
         promise_redraw
@@ -621,7 +631,7 @@ class Scarpe
 
         js_code = @waiting_changes.join(";")
         @waiting_changes = [] # They're not waiting any more!
-        @wrangler.eval_js_async js_code
+        @wrangler.eval_js_async(js_code)
       end
     end
   end

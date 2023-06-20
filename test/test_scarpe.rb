@@ -74,4 +74,13 @@ class TestScarpe < LoggedScarpeTest
       end
     SCARPE_APP
   end
+
+  def test_modify_before_show
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+      Shoes.app do
+        p = para "Hello"
+        p.replace("Goodbye")
+      end
+    SCARPE_APP
+  end
 end
