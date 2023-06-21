@@ -13,5 +13,6 @@
       radio :films
       para "Children of Heaven by Majid Majidi"
     end
+    puts radio(:films).checked?
   end
 end
