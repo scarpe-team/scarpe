@@ -10,6 +10,7 @@ require_relative "border"
 require_relative "star"
 
 require_relative "fill"
+require_relative "arc"
 
 require_relative "document_root"
 require_relative "para"

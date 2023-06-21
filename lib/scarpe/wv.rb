@@ -16,6 +16,7 @@ require_relative "wv/spacing"
 require_relative "wv/star"
 require_relative "wv/background"
 require_relative "wv/border"
+require_relative "wv/arc"
 
 require_relative "wv/fill"
 
