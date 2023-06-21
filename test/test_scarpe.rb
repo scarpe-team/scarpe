@@ -2,13 +2,21 @@
 
 require "test_helper"
 
-class TestScarpe < LoggedScarpeTest
+class TestWebviewScarpe < LoggedScarpeTest
   def test_that_it_has_a_version_number
     refute_nil ::Scarpe::VERSION
   end
 
   def test_hello_world_app
     run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+      Shoes.app do
+        para "Hello World"
+      end
+    SCARPE_APP
+  end
+
+  def test_hello_world_app_wv_relay
+    run_test_scarpe_code(<<-'SCARPE_APP', display_service: "wv_relay", exit_immediately: true)
       Shoes.app do
         para "Hello World"
       end
@@ -63,6 +71,20 @@ class TestScarpe < LoggedScarpeTest
 
   def test_widgets_exist
     run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+      Shoes.app do
+        stack do
+          para "Here I am"
+          button "Push me"
+          alert "I am an alert!"
+          edit_line "edit_line here", width: 450
+          image "http://shoesrb.com/manual/static/shoes-icon.png"
+        end
+      end
+    SCARPE_APP
+  end
+
+  def test_widgets_exist_wv_relay
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true, display_service: "wv_relay")
       Shoes.app do
         stack do
           para "Here I am"

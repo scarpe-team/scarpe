@@ -13,7 +13,7 @@ class Scarpe
     include Scarpe::Log
 
     attr_reader :is_running
-    attr_reader :heartbeat
+    attr_reader :heartbeat # This is the heartbeat duration in seconds, usually fractional
     attr_reader :control_interface
 
     # This error indicates a problem when running ConfirmedEval

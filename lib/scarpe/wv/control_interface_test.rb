@@ -22,6 +22,7 @@ class Scarpe
         if (Time.now - t_start).to_f > time
           @did_time_out = true
           @log.warn("die_after - timed out after #{time.inspect}")
+          return_results([false, "Timed out!", time])
           app.destroy
         end
       end

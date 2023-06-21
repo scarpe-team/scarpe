@@ -7,7 +7,7 @@ class Scarpe
     end
     include Scarpe::Log
 
-    display_properties :title, :width, :height, :resizable, :debug, :do_shutdown
+    display_properties :title, :width, :height, :resizable, :debug
 
     def initialize(
       title: "Scarpe!",
@@ -64,15 +64,6 @@ class Scarpe
     # of the main thread. Local Webview even stops any background threads.
     def run
       send_shoes_event(event_name: "run")
-
-      # The display service should take control when it receives the run event.
-      # If it return immediately here, that normally means a failure.
-
-      # TODO: remove this loop after fixing the Webview relay service not to require it.
-      until @do_shutdown
-        send_shoes_event(event_name: "heartbeat")
-        sleep 0.1
-      end
     end
 
     def destroy(send_event: true)

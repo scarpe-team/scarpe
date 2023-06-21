@@ -71,6 +71,20 @@ class TestWebWranglerInScarpeApp < LoggedScarpeTest
       end
     TEST_CODE
   end
+
+  # When the Display Service side sends a destroy event, everything should shut down.
+  def test_destroy_from_display_service
+    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
+      Shoes.app do
+        para "Hello"
+      end
+    SCARPE_APP
+      on_event(:next_redraw) do
+        return_results([true, "Destroy and exit"])
+        DisplayService.dispatch_event("destroy", nil)
+      end
+    TEST_CODE
+  end
 end
 
 class TestWebWranglerMocked < LoggedScarpeTest
