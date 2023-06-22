@@ -68,9 +68,7 @@ Shoes.app(title: "Highlander") do
       $bottom_display.replace "Selected duplicates: #{$dup_list.selected_item.inspect}"
     end
 
-    # Right now we get an error if we try this in the middle of the app block because we're
-    # updating widgets before they exist. It's supposed to work. Fix!
-    #update_dup_list
+    update_dup_list
 
     button "Refresh the list!" do
       $top_text.replace "Refreshing..."

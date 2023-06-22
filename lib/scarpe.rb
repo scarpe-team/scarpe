@@ -14,6 +14,8 @@ require "json"
 
 require_relative "constants"
 
+class Scarpe::Error < StandardError; end
+
 require_relative "scarpe/version"
 require_relative "scarpe/promises"
 require_relative "scarpe/display_service"
