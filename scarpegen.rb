@@ -134,12 +134,13 @@ class ScarpeGenerator
 
     File.write("lib/scarpe/wv/#{@filename}.rb", webview_content)
     puts "generated webview file"
-    add_require_relative_to_wv_file(file_path)
+    add_require_relative_to_wv_file
   end
 
-  def add_require_relative_to_wv_file(file_path)
+  def add_require_relative_to_wv_file
     wv_file_path = "lib/scarpe/wv.rb"
-    require_line = "require_relative \"wv/#{File.basename(file_path, ".*")}\""
+    filename = @filename.downcase
+    require_line = "require_relative \"wv/#{filename}\""
 
     File.open(wv_file_path, "a") do |file|
       file.puts require_line
