@@ -98,6 +98,8 @@ class Scarpe
 
     # Send out the specified event
     def dispatch_event(event, *args, **keywords)
+      @log.debug("CTL event #{event.inspect} #{args.inspect} #{keywords.inspect}")
+
       unless DISPATCH_EVENTS.include?(event)
         raise "Illegal dispatch of event #{event.inspect}! Valid values are: #{DISPATCH_EVENTS.inspect}"
       end
