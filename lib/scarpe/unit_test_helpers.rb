@@ -93,6 +93,7 @@ module Scarpe::Test::LoggedTest
       "DisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
       "WV::RelayDisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
       "WV::WebviewDisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
+      "WV::ControlInterface" => ["debug", "logger/test_failure_events_#{file_id}.log"],
     }
   end
 
