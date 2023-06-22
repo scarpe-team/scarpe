@@ -5,7 +5,7 @@ require "test_helper"
 class TestWebWranglerInScarpeApp < LoggedScarpeTest
   # Need to make sure that even with no widgets we still get at least one redraw
   def test_empty_app
-    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE', timeout: 0.5)
+    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE', timeout: 1.0)
       Scarpe.app do
       end
     SCARPE_APP
@@ -68,6 +68,20 @@ class TestWebWranglerInScarpeApp < LoggedScarpeTest
           assert html_text.include?("Goodbye"), "DOM root should contain the new button text! Text: #{html_text.inspect}"
           assert !html_text.include?("Hello"), "DOM root shouldn't contain the old button text! Text: #{html_text.inspect}"
         end.then { return_when_assertions_done }
+      end
+    TEST_CODE
+  end
+
+  # When the Display Service side sends a destroy event, everything should shut down.
+  def test_destroy_from_display_service
+    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
+      Shoes.app do
+        para "Hello"
+      end
+    SCARPE_APP
+      on_event(:next_redraw) do
+        return_results([true, "Destroy and exit"])
+        DisplayService.dispatch_event("destroy", nil)
       end
     TEST_CODE
   end

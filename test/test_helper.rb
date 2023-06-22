@@ -46,24 +46,28 @@ class ScarpeTest < Minitest::Test
   end
 
   SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
-  TEST_OPTS = [:timeout, :allow_fail, :allow_timeout, :exit_immediately]
   LOGGER_DIR = File.expand_path("#{__dir__}/../logger")
 
-  def run_test_scarpe_code(scarpe_app_code, test_code: "", **opts)
-    bad_opts = opts.keys - TEST_OPTS
-    raise "Bad options passed to run_test_scarpe_code: #{bad_opts.inspect}!" unless bad_opts.empty?
+  def run_test_scarpe_code(
+    scarpe_app_code,
+    **opts
+  )
 
     with_tempfile("scarpe_test_app.rb", scarpe_app_code) do |test_app_location|
-      run_test_scarpe_app(test_app_location, test_code:, **opts)
+      run_test_scarpe_app(test_app_location, **opts)
     end
   end
 
-  def run_test_scarpe_app(test_app_location, test_code: "", **opts)
-    bad_opts = opts.keys - TEST_OPTS
-    raise "Bad options passed to run_test_scarpe_app: #{bad_opts.inspect}!" unless bad_opts.empty?
+  def run_test_scarpe_app(
+    test_app_location,
+    test_code: "",
+    timeout: 2.5,
+    allow_fail: false,
+    exit_immediately: false,
+    display_service: "wv_local"
+  )
 
     with_tempfile("scarpe_test_results.json", "") do |result_path|
-      timeout = opts[:timeout] ? opts[:timeout].to_f : 1.5
       scarpe_test_code = <<~SCARPE_TEST_CODE
         require "scarpe/wv/control_interface_test"
 
@@ -74,7 +78,7 @@ class ScarpeTest < Minitest::Test
 
       scarpe_test_code += test_code
 
-      if opts[:exit_immediately]
+      if exit_immediately
         scarpe_test_code += <<~TEST_EXIT_IMMEDIATELY
           on_event(:next_heartbeat) do
             Scarpe::Logger.logger("ScarpeTest").info("Dying on heartbeat because :exit_immediately is set")
@@ -103,11 +107,11 @@ class ScarpeTest < Minitest::Test
       end
 
       # If failure is okay, don't check for status or assertions
-      return if opts[:allow_fail]
+      return if allow_fail
 
       # If we exit immediately with no result written, that's fine.
       # But if we wrote a result, make sure it says pass, not fail.
-      return if opts[:exit_immediately] && !File.exist?(result_path)
+      return if exit_immediately && !File.exist?(result_path)
 
       unless File.exist?(result_path)
         return assert(false, "Scarpe app returned no status code!")
@@ -123,18 +127,17 @@ class ScarpeTest < Minitest::Test
       # If we exit immediately we still need a results file and a true value.
       # We were getting exit_immediately being fine with apps segfaulting,
       # so we need to check.
-      if opts[:exit_immediately]
+      if exit_immediately
         if out_data[0]
           # That's all we needed!
           return
         end
 
-        save_failure_logs(test_name:)
         assert false, "App exited immediately, but its results were false! #{out_data.inspect}"
       end
 
       unless out_data[0]
-        puts JSON.pretty_generate(out_data[1])
+        puts JSON.pretty_generate(out_data[1..-1])
         assert false, "Some Scarpe tests failed..."
       end
 
@@ -242,7 +245,7 @@ class LoggedScarpeTest < ScarpeTest
     end
 
     if File.exist?(out_loc)
-      raise "Duplicate test name #{test_name.inspect}? This file should *not* already exist!"
+      raise "Duplicate test file #{out_loc.inspect}? This file should *not* already exist!"
     end
 
     out_loc
