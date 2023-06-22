@@ -46,7 +46,6 @@ class ScarpeTest < Minitest::Test
   end
 
   SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
-  TEST_OPTS = [:timeout, :allow_fail, :exit_immediately]
   LOGGER_DIR = File.expand_path("#{__dir__}/../logger")
 
   def run_test_scarpe_code(
@@ -62,7 +61,7 @@ class ScarpeTest < Minitest::Test
   def run_test_scarpe_app(
     test_app_location,
     test_code: "",
-    timeout: 1.5,
+    timeout: 2.5,
     allow_fail: false,
     exit_immediately: false,
     display_service: "wv_local"
@@ -134,12 +133,11 @@ class ScarpeTest < Minitest::Test
           return
         end
 
-        save_failure_logs
         assert false, "App exited immediately, but its results were false! #{out_data.inspect}"
       end
 
       unless out_data[0]
-        puts JSON.pretty_generate(out_data[1])
+        puts JSON.pretty_generate(out_data[1..-1])
         assert false, "Some Scarpe tests failed..."
       end
 

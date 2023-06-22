@@ -13,6 +13,7 @@ class Scarpe
     include Scarpe::Log
 
     attr_reader :is_running
+    attr_reader :is_terminated
     attr_reader :heartbeat # This is the heartbeat duration in seconds, usually fractional
     attr_reader :control_interface
 
@@ -79,6 +80,8 @@ class Scarpe
       end
 
       @webview.bind("scarpeHeartbeat") do
+        return unless @webview # I think GTK+ may continue to deliver events after shutdown
+
         periodic_js_callback
         @heartbeat_handlers.each(&:call)
         @control_interface.dispatch_event(:heartbeat)
@@ -322,15 +325,17 @@ class Scarpe
       @webview.run
       @is_running = false
       @webview.destroy
+      @webview = nil
     end
 
     def destroy
       @log.debug("Destroying WebWrangler...")
-      @log.debug("  (But WebWrangler was already inactive)") unless @webview
-      if @webview
+      @log.debug("  (WebWrangler was already terminated)") if @is_terminated
+      @log.debug("  (WebWrangler was already destroyed)") unless @webview
+      if @webview && !@is_terminated
         @bindings = {}
         @webview.terminate
-        @webview = nil
+        @is_terminated = true
       end
     end
 
