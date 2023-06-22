@@ -18,6 +18,7 @@ require_relative "wv/background"
 require_relative "wv/border"
 
 require_relative "wv/fill"
+require_relative "wv/arc"
 
 require_relative "wv/app"
 require_relative "wv/document_root"
