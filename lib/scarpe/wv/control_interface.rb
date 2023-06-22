@@ -18,11 +18,13 @@ class Scarpe
     DISPATCH_EVENTS = [:init, :shutdown, :redraw, :heartbeat]
 
     attr_writer :doc_root
+    attr_reader :do_shutdown
 
     # The control interface needs to see major system components to hook into their events
     def initialize
       log_init("WV::ControlInterface")
 
+      @do_shutdown = false
       @event_handlers = {}
       (SUBSCRIBE_EVENTS | DISPATCH_EVENTS).each { |e| @event_handlers[e] = [] }
     end
@@ -104,6 +106,8 @@ class Scarpe
         raise "Illegal dispatch of event #{event.inspect}! Valid values are: #{DISPATCH_EVENTS.inspect}"
       end
 
+      return if @do_shutdown
+
       if event == :redraw
         dumb_dispatch_event(:every_redraw, *args, **keywords)
 
@@ -126,6 +130,10 @@ class Scarpe
         dumb_dispatch_event(:next_heartbeat, *args, **keywords)
         @event_handlers[:next_heartbeat] -= handlers
         return
+      end
+
+      if event == :shutdown
+        @do_shutdown = true
       end
 
       dumb_dispatch_event(event, *args, **keywords)
