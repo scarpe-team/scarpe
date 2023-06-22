@@ -140,27 +140,33 @@ class Scarpe
       @pid = spawn(RbConfig.ruby, File.join(__dir__, "wv_display_worker.rb"), port.to_s)
       @from = @to = server.accept
 
-      # Subscribe to all event notifications and relay them to the opposite side
+      # Subscribe to all event notifications and relay them to the worker
       @event_subs << bind_shoes_event(event_name: :any, target: :any) do |*args, **kwargs|
         unless kwargs[:relayed]
           kwargs[:relayed] = true
           send_datagram({ type: :event, args:, kwargs: })
+        end
+
+        # Forward the run event to the child process before doing this
+        if event_name == "run"
+          run_event_loop
         end
       rescue AppShutdownError
         @shutdown = true
         @log.info("Attempting to shut down...")
         self.destroy
       end
+    end
 
-      # Here, we run our own event loop. We need to poll the connection to the child,
-      # and respond appropriately to Ruby calls/callbacks.
-      @event_subs << bind_shoes_event(event_name: "heartbeat") do
+    def run_event_loop
+      until @shutdown
         respond_to_datagram while ready_to_read?
-      rescue AppShutdownError
-        @shutdown = true
-        @log.info("Attempting to shut down...")
-        self.destroy
+        sleep 0.1
       end
+    rescue AppShutdownError
+      @shutdown = true
+      @log.info("Attempting to shut down...")
+      self.destroy
     end
 
     def create_display_widget_for(widget_class_name, widget_id, properties)
