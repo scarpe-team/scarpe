@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class InvalidAttributeValueError < StandardError; end
+  class InvalidAttributeValueError < Scarpe::Error; end
 
   class Star < Scarpe::Widget
     display_properties :left, :top, :points, :outer, :inner
