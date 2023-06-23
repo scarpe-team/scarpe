@@ -4,7 +4,7 @@ require "socket"
 require "rbconfig"
 
 class Scarpe
-  class AppShutdownError < StandardError; end
+  class AppShutdownError < Scarpe::Error; end
 
   module WVRelayUtil # Make sure the including class also includes Scarpe::Log
     def ready_to_read?(timeout = 0.0)

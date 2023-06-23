@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class TestColors < ScarpeTest
+class TestColors < Minitest::Test
   class Dummy
     include Scarpe::Colors
   end
