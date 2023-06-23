@@ -79,3 +79,6 @@ Style/RegexpLiteral:
 
 Style/ReturnNil:
   Enabled: false
+
+Style/ClassAndModuleChildren:
+  Enabled: false

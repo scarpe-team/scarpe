@@ -18,8 +18,7 @@ class Scarpe
     attr_reader :control_interface
 
     # This error indicates a problem when running ConfirmedEval
-    # TODO: add a Scarpe::Error parent class and inherit from it
-    class JSEvalError < StandardError
+    class JSEvalError < Scarpe::Error
       def initialize(data)
         @data = data
         super(data[:msg] || (self.class.name + "!"))
@@ -79,6 +78,8 @@ class Scarpe
         receive_eval_result(*results)
       end
 
+      # Ruby receives scarpeHeartbeat messages via the window library's main loop.
+      # So this is a way for Ruby to be notified periodically, in time with that loop.
       @webview.bind("scarpeHeartbeat") do
         return unless @webview # I think GTK+ may continue to deliver events after shutdown
 
