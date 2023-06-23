@@ -5,18 +5,21 @@ class Scarpe
     class << self
       attr_accessor :next_test_code
     end
+    include Scarpe::Log
 
-    display_properties :title, :width, :height, :resizable, :debug, :do_shutdown
+    display_properties :title, :width, :height, :resizable, :debug
 
     def initialize(
       title: "Scarpe!",
       width: 480,
       height: 420,
       resizable: true,
-      debug: false,
+      debug: ENV["SCARPE_DEBUG"] ? true : false,
       test_code: nil,
       &app_code_body
     )
+      log_init("Scarpe::App")
+
       @do_shutdown = false
 
       if Scarpe::App.next_test_code
@@ -29,80 +32,43 @@ class Scarpe
       test_code&.call(self)
 
       # This creates the DocumentRoot, including its corresponding display widget
-      @document_root = Scarpe::DocumentRoot.new(debug: @debug)
+      @document_root = Scarpe::DocumentRoot.new
 
       create_display_widget
 
       @app_code_body = app_code_body
 
+      # Try to de-dup as much as possible and not send repeat or multiple
+      # destroy events
+      @watch_for_destroy = bind_shoes_event(event_name: "destroy") do
+        DisplayService.unsub_from_events(@watch_for_destroy) if @watch_for_destroy
+        @watch_for_destroy = nil
+        self.destroy(send_event: false)
+      end
+
       Signal.trap("INT") do
+        @log.warning("App interrupted by signal, stopping...")
         puts "\nStopping Scarpe app..."
         destroy
       end
     end
 
     def init
-      send_display_event(event_name: "init")
+      send_shoes_event(event_name: "init")
       return if @do_shutdown
 
       @document_root.instance_eval(&@app_code_body)
     end
 
-    # This isn't guaranteed to be able to return. For Webview in particular, this takes control
-    # of the main thread ***and*** stops any background threads.
-    #
-    # So this is interesting. With a same-process Webview display service, this can't return.
-    # Webview takes full control. But we don't want to do that with a "no-op" display service,
-    # or no display service at all.
-    #
-    # If nobody is subscribed to "run", Scarpe will just traipse past "run" into "destroy" and
-    # shut everything down.
+    # This isn't supposed to return. The display service should take control
+    # of the main thread. Local Webview even stops any background threads.
     def run
-      send_display_event(event_name: "run")
-
-      # If there is an assertive display service like Webview, it will take control when
-      # it sees the run event and not give it back. A less assertive
-      # display service, or none at all, will simply return control immediately,
-      # and we'll run our own event loop here.
-
-      # Wait for incoming events from background threads, if any
-      until @do_shutdown
-        send_display_event(event_name: "heartbeat")
-        sleep 0.1
-      end
+      send_shoes_event(event_name: "run")
     end
 
-    def destroy
+    def destroy(send_event: true)
       @do_shutdown = true
-      send_display_event(event_name: "destroy")
-    end
-  end
-
-  # In tests, this will normally be included into App
-  module AppTest
-    def all_widgets
-      out = []
-
-      to_add = @document_root.children
-      until to_add.empty?
-        out.concat(to_add)
-        to_add = to_add.flat_map(&:children).compact
-      end
-
-      out
-    end
-
-    # We can add various ways to find widgets here.
-    def find_widgets_by(*specs)
-      widgets = all_widgets
-      specs.each do |spec|
-        if spec.is_a?(Class)
-          all_widgets.select! { |w| spec === w }
-        else
-          raise("Don't know how to find widgets by #{spec.inspect}!")
-        end
-      end
-      widgets
+      send_shoes_event(event_name: "destroy") if send_event
     end
   end
 end

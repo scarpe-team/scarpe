@@ -78,17 +78,17 @@ class Scarpe
         end
       end
 
-      super() # Can specify linkable_id, but no reason to
+      super() # linkable_id defaults to object_id
     end
 
     def bind_self_event(event_name, &block)
       raise("Widget has no linkable_id! #{inspect}") unless linkable_id
 
-      bind_display_event(event_name: event_name, target: linkable_id, &block)
+      bind_shoes_event(event_name: event_name, target: linkable_id, &block)
     end
 
     def bind_no_target_event(event_name, &block)
-      bind_display_event(event_name:, &block)
+      bind_shoes_event(event_name:, &block)
     end
 
     def display_properties

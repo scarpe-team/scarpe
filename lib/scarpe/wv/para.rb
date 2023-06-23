@@ -64,7 +64,7 @@ class Scarpe
         if child.respond_to?(:to_html)
           child.to_html
         else
-          child
+          child.gsub("\n", "<br>")
         end
       end.join
     end

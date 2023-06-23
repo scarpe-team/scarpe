@@ -6,7 +6,7 @@ class Scarpe
       super
 
       bind("click") do
-        send_display_event(event_name: "click", target: shoes_linkable_id)
+        send_self_event(event_name: "click")
       end
     end
 

@@ -21,6 +21,8 @@ class Scarpe
       wrangler.periodic_code("scarpeTestTimeout") do |*_args|
         if (Time.now - t_start).to_f > time
           @did_time_out = true
+          @log.warn("die_after - timed out after #{time.inspect}")
+          return_results([false, "Timed out!", time])
           app.destroy
         end
       end
@@ -191,6 +193,10 @@ class Scarpe
 
     def with_js_dom_html(wait_for: [], timeout: DEFAULT_ASSERTION_TIMEOUT, &block)
       with_js_value("document.getElementById('wrapper-wvroot').innerHTML", wait_for: wait_for, timeout: timeout, &block)
+    end
+
+    def fully_updated(wait_for: [])
+      wrangler.promise_dom_fully_updated
     end
   end
 

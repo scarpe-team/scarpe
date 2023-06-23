@@ -82,23 +82,12 @@ class Scarpe
       if m_data["type"] == "event"
         kwargs_hash = {}
         m_data["kwargs"].each { |k, v| kwargs_hash[k.to_sym] = v }
-        if m_data["kwargs"]["event_type"] == "shoes"
-          send_shoes_event(
-            *m_data["args"],
-            event_name: m_data["kwargs"]["event_name"],
-            target: m_data["kwargs"]["event_target"],
-            **kwargs_hash,
-          )
-        elsif m_data["kwargs"]["event_type"] == "display"
-          send_display_event(
-            *m_data["args"],
-            event_name: m_data["kwargs"]["event_name"],
-            target: m_data["kwargs"]["event_target"],
-            **kwargs_hash,
-          )
-        else
-          @log.error("Unrecognized datagram type:event: #{m_data.inspect}!")
-        end
+        send_shoes_event(
+          *m_data["args"],
+          event_name: m_data["kwargs"]["event_name"],
+          target: m_data["kwargs"]["event_target"],
+          **kwargs_hash,
+        )
       elsif m_data["type"] == "create"
         raise "Parent process should never receive :create datagram!" if @i_am == :parent
 
@@ -131,7 +120,7 @@ class Scarpe
 
   # This "display service" actually creates a child process and sends events
   # back and forth, but creates no widgets of its own.
-  class WVRelayDisplayService < Scarpe::DisplayService::Linkable
+  class WVRelayDisplayService < Scarpe::DisplayService
     include Scarpe::Log
     include WVRelayUtil # Needs Scarpe::Log
 
@@ -151,35 +140,33 @@ class Scarpe
       @pid = spawn(RbConfig.ruby, File.join(__dir__, "wv_display_worker.rb"), port.to_s)
       @from = @to = server.accept
 
-      # Subscribe to all event notifications and relay them to the opposite side
+      # Subscribe to all event notifications and relay them to the worker
       @event_subs << bind_shoes_event(event_name: :any, target: :any) do |*args, **kwargs|
         unless kwargs[:relayed]
-          kwargs[:event_type] = :shoes
           kwargs[:relayed] = true
           send_datagram({ type: :event, args:, kwargs: })
         end
-      end
-      @event_subs << bind_display_event(event_name: :any, target: :any) do |*args, **kwargs|
-        unless kwargs[:relayed]
-          kwargs[:event_type] = :display
-          kwargs[:relayed] = true
-          send_datagram({ type: :event, args:, kwargs: })
-        end
-      rescue AppShutdownError
-        @shutdown = true
-        @log.info("Attempting to shut down...")
-        self.destroy
-      end
 
-      # Here, we run our own event loop. We need to poll the connection to the child,
-      # and respond appropriately to Ruby calls/callbacks.
-      @event_subs << bind_display_event(event_name: "heartbeat") do
-        respond_to_datagram while ready_to_read?
+        # Forward the run event to the child process before doing this
+        if event_name == "run"
+          run_event_loop
+        end
       rescue AppShutdownError
         @shutdown = true
         @log.info("Attempting to shut down...")
         self.destroy
       end
+    end
+
+    def run_event_loop
+      until @shutdown
+        respond_to_datagram while ready_to_read?
+        sleep 0.1
+      end
+    rescue AppShutdownError
+      @shutdown = true
+      @log.info("Attempting to shut down...")
+      self.destroy
     end
 
     def create_display_widget_for(widget_class_name, widget_id, properties)

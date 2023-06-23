@@ -19,6 +19,7 @@ class Scarpe
 
     def change(&block)
       @callback = block
+      self # Allow chaining calls
     end
   end
 end

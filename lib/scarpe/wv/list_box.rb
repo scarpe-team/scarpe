@@ -9,7 +9,7 @@ class Scarpe
 
       # The JS handler sends a "change" event, which we forward to the Shoes widget tree
       bind("change") do |new_item|
-        send_display_event(new_item, event_name: "change", target: shoes_linkable_id)
+        send_event(new_item, event_name: "change")
       end
     end
 

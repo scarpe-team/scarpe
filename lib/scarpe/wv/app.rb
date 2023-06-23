@@ -39,9 +39,9 @@ class Scarpe
       # ControlInterface.new.
       @control_interface.set_system_components app: self, doc_root: nil, wrangler: @view
 
-      bind_display_event(event_name: "init") { init }
-      bind_display_event(event_name: "run") { run }
-      bind_display_event(event_name: "destroy") { destroy }
+      bind_shoes_event(event_name: "init") { init }
+      bind_shoes_event(event_name: "run") { run }
+      bind_shoes_event(event_name: "destroy") { destroy }
     end
 
     attr_writer :document_root

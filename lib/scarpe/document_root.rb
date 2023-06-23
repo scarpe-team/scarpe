@@ -4,9 +4,7 @@ class Scarpe
   class DocumentRoot < Scarpe::Widget
     include Scarpe::Background
 
-    display_property :debug
-
-    def initialize(debug: false)
+    def initialize
       super
 
       create_display_widget

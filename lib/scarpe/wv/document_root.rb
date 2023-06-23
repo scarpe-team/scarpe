@@ -4,8 +4,6 @@ class Scarpe
   class WebviewDocumentRoot < Scarpe::WebviewWidget
     include Scarpe::WebviewBackground
 
-    attr_reader :debug
-
     def initialize(properties)
       @callbacks = {}
 

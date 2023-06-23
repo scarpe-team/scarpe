@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class TestDimensions < Minitest::Test
+class TestDimensions < ScarpeTest
   def test_no_value_returns_nil
     assert_nil ::Scarpe::Dimensions.length(nil)
   end
