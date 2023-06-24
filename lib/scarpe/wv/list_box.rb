@@ -9,7 +9,7 @@ class Scarpe
 
       # The JS handler sends a "change" event, which we forward to the Shoes widget tree
       bind("change") do |new_item|
-        send_event(new_item, event_name: "change")
+        send_self_event(new_item, event_name: "change")
       end
     end
 
