@@ -224,8 +224,12 @@ class Scarpe
       end
     end
 
+    def then_with_js_value(js_code, wait_for: [], timeout: DEFAULT_ASSERTION_TIMEOUT, &block)
+      @iface.with_js_value(js_code, wait_for: (wait_for + [self]), timeout:, &block)
+    end
+
     def then_with_js_dom_html(wait_for: [], timeout: DEFAULT_ASSERTION_TIMEOUT, &block)
-      @iface.with_js_dom_html(wait_for: (wait_for + [self]), timeout: timeout, &block)
+      @iface.with_js_dom_html(wait_for: (wait_for + [self]), timeout:, &block)
     end
   end
 end
