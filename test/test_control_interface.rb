@@ -44,8 +44,6 @@ class TestControlInterface < LoggedScarpeTest
     TEST_CODE
   end
 
-  # This test can occasionally still fail on CI -- need to replicate that and figure it out.
-  # Failure is a "returned no status code" in 2.9 seconds (long), which probably means a timeout.
   def test_assert_dom_html_update
     run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
       Shoes.app do

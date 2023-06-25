@@ -2,63 +2,83 @@
 
 require "test_helper"
 
-# Going to need to rewrite this, or at a minimum heavily modify it :-(
-__END__
-
-class TestEditBox < ScarpeTest
-  def setup
-    app = Minitest::Mock.new
-    Scarpe::Widget.document_root = app
-    app.expect :bind, nil, [Object]
-  end
-
+class TestEditBox < LoggedScarpeTest
   def test_renders_textarea
-    edit_box = Scarpe::EditBox.new("Hello, World!")
-    html_id = edit_box.html_id
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+      Shoes.app do
+        edit_box "Hello, World!"
+      end
+    SCARPE_APP
+      on_heartbeat do
+        box = edit_box
+        html_id = box.display.html_id
+        assert_html edit_box.display.to_html, :textarea, id: html_id, oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)" do
+          "Hello, World!"
+        end
 
-    assert_html edit_box.to_html, :textarea, id: html_id, oninput: "scarpeHandler('#{html_id}-change', this.value)" do
-      "Hello, World!"
-    end
+        test_finished
+      end
+    TEST_CODE
   end
 
   def test_renders_textarea_content_block
-    edit_box = Scarpe::EditBox.new { "Hello, World!" }
-    html_id = edit_box.html_id
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+      Shoes.app do
+        edit_box { "Hello, World!" }
+      end
+    SCARPE_APP
+      on_heartbeat do
+        box = edit_box
+        html_id = box.display.html_id
+        assert_html edit_box.display.to_html, :textarea, id: html_id, oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)" do
+          "Hello, World!"
+        end
 
-    assert_html edit_box.to_html, :textarea, id: html_id, oninput: "scarpeHandler('#{html_id}-change', this.value)" do
-      "Hello, World!"
-    end
+        test_finished
+      end
+    TEST_CODE
   end
 
   def test_textarea_width
-    edit_box = Scarpe::EditBox.new("Hello, World!", width: 100)
-    html_id = edit_box.html_id
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+      Shoes.app do
+        edit_box "Hello, World!", width: 100, height: 120
+      end
+    SCARPE_APP
+      on_heartbeat do
+        box = edit_box
+        html_id = box.display.html_id
+        assert_html edit_box.display.to_html,
+          :textarea,
+          id: html_id,
+          oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)",
+          style: "height:120px;width:100px" do
+          "Hello, World!"
+        end
 
-    assert_html edit_box.to_html,
-      :textarea,
-      id: html_id,
-      oninput: "scarpeHandler('#{html_id}-change', this.value)\" style=\"width:100px" do
-      "Hello, World!"
-    end
+        test_finished
+      end
+    TEST_CODE
   end
 
-  def test_textarea_height
-    edit_box = Scarpe::EditBox.new("Hello, World!", height: 100)
-    html_id = edit_box.html_id
+  # TODO: look into how to trigger a JS change event using document.dispatchEvent?
 
-    assert_html edit_box.to_html,
-      :textarea,
-      id: html_id,
-      oninput: "scarpeHandler('#{html_id}-change', this.value)\" style=\"height:100px" do
-      "Hello, World!"
-    end
-  end
-
-  def test_textarea_change_callback
-    puts "TODO: test_textarea_change_callback"
-  end
-
-  private
-
-  attr_reader :app
+  # Amusingly, this hits a Webview bug. You can do the same thing in the console.
+  # The value updates, including on the screen, but querying the innerHTML of the
+  # enclosing element shows the *old* value, not the new one.
+  #def test_textarea_widget_change
+  #  run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+  #    Shoes.app do
+  #      edit_box "Hello, World!"
+  #    end
+  #  SCARPE_APP
+  #    on_heartbeat do
+  #      edit_box.text = "Justified Unicorn Homicide is the best band name"
+  #      wait fully_updated
+  #      assert_include dom_html, "Justified Unicorn Homicide"
+  #
+  #      test_finished
+  #    end
+  #  TEST_CODE
+  #end
 end

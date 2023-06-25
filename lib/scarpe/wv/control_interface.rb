@@ -95,7 +95,11 @@ class Scarpe
         raise "Illegal subscribe to event #{event.inspect}! Valid values are: #{SUBSCRIBE_EVENTS.inspect}"
       end
 
-      @event_handlers[event] << block
+      @unsub_id ||= 0
+      @unsub_id += 1
+
+      @event_handlers[event] << { handler: block, unsub: @unsub_id }
+      @unsub_id
     end
 
     # Send out the specified event
@@ -145,8 +149,8 @@ class Scarpe
     private
 
     def dumb_dispatch_event(event, *args, **keywords)
-      @event_handlers[event].each do |handler|
-        instance_eval(*args, **keywords, &handler)
+      @event_handlers[event].each do |data|
+        instance_eval(*args, **keywords, &data[:handler])
       end
     end
   end

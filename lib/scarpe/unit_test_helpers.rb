@@ -4,10 +4,6 @@ require "tempfile"
 require "json"
 require "fileutils"
 
-# Helpers here should *not* use Webview-specific functionality.
-# The intention is that these are helpers for various Scarpe display
-# services that do *not* use Webview.
-
 module Scarpe::Test; end
 
 # We want test failures set up once *total*, not per Minitest::Test. So an instance var
@@ -15,6 +11,9 @@ module Scarpe::Test; end
 ALREADY_SET_UP_LOGGED_TEST_FAILURES = { setup: false }
 
 # General helpers for general usage
+# Helpers here should *not* use Webview-specific functionality.
+# The intention is that these are helpers for various Scarpe display
+# services that do *not* use Webview.
 module Scarpe::Test::Helpers
   def with_tempfile(prefix, contents, dir: Dir.tmpdir)
     t = Tempfile.new(prefix, dir)
@@ -27,6 +26,31 @@ module Scarpe::Test::Helpers
     t.unlink
   end
 
+  # Pass an array of arrays, where each array is of the form:
+  # [prefix, contents, (optional)dir]
+  #
+  # I don't love inlining with_tempfile's contents into here.
+  # But calling it iteratively or recursively was difficult
+  # when I tried it the obvious ways.
+  def with_tempfiles(tf_specs, &block)
+    tempfiles = []
+    tf_specs.each do |prefix, contents, dir|
+      dir ||= Dir.tmpdir
+      t = Tempfile.new(prefix, dir)
+      tempfiles << t
+      t.write(contents)
+      t.flush # Make sure the contents are written out
+    end
+
+    args = tempfiles.map(&:path)
+    yield(args)
+  ensure
+    tempfiles.each do |t|
+      t.close
+      t.unlink
+    end
+  end
+
   # Temporarily set env vars for the block of code inside
   def with_env_vars(envs)
     old_env = {}
@@ -37,6 +61,53 @@ module Scarpe::Test::Helpers
     yield
   ensure
     old_env.each { |k, v| ENV[k] = v }
+  end
+
+  def assert_include(text, subtext, msg = nil)
+    msg ||= "Expected #{text.inspect} to include #{subtext.inspect}"
+    assert text.include?(subtext), msg
+  end
+
+  def assert_not_include(text, subtext, msg = nil)
+    msg ||= "Expected #{text.inspect} not to include #{subtext.inspect}"
+    assert !text.include?(subtext), msg
+  end
+
+  def assert_html(actual_html, expected_tag, **opts, &block)
+    expected_html = Scarpe::HTML.render do |h|
+      h.public_send(expected_tag, opts, &block)
+    end
+
+    assert_equal expected_html, actual_html
+  end
+
+  # This does a final return of results. If it gets called
+  # multiple times, the test fails because that's not okay.
+  def return_results(result_bool, msg, data = {})
+    result_file = ENV["SCARPE_TEST_RESULTS"] || "./scarpe_results.txt"
+
+    result_structs = [result_bool, msg, data.merge(test_metadata)]
+    if File.exist?(result_file)
+      results_returned = JSON.parse File.read(result_file)
+    end
+
+    # Multiple different sets of results is bad, even if both are passing.
+    if results_returned && results_returned[0..1] != result_structs[0..1]
+      # Just raising here doesn't reliably fail the test.
+      # See: https://github.com/scarpe-team/scarpe/issues/212
+      Scarpe::Logger.logger("Test Results").error("Writing multi-result failure file to #{result_file.inspect}!")
+
+      new_res_data = { first_result: results_returned, second_result: result_structs }.merge(test_metadata)
+      bad_result = [false, "Returned two sets of results!", new_res_data]
+      File.write(result_file, JSON.pretty_generate(bad_result))
+
+      return
+    elsif results_returned
+      Scarpe::Logger.logger("Test Results").warn "Returning identical results twice: #{results_returned.inspect}"
+    end
+
+    Scarpe::Logger.logger("Test Results").debug("Writing results file #{result_file.inspect} to disk!")
+    File.write(result_file, JSON.pretty_generate(result_structs))
   end
 end
 
@@ -89,6 +160,8 @@ module Scarpe::Test::LoggedTest
       "default" => ["debug", "logger/test_failure_#{file_id}.log"],
 
       "WebviewAPI" => ["debug", "logger/test_failure_wv_api_#{file_id}.log"],
+
+      "CatsCradle" => ["debug", "logger/test_failure_catscradle_#{file_id}.log"],
 
       "DisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
       "WV::RelayDisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],

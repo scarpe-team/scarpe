@@ -11,6 +11,8 @@ class Scarpe
   DEFAULT_ASSERTION_TIMEOUT = 1.0
 
   class ControlInterface
+    include Scarpe::Test::Helpers
+
     def timed_out?
       @did_time_out
     end
@@ -42,32 +44,6 @@ class Scarpe
         }
       end
       data
-    end
-
-    # This does a final return of results. If it gets called
-    # multiple times, the test fails because that's not okay.
-    def return_results(result_bool, msg, data = {})
-      result_file = ENV["SCARPE_TEST_RESULTS"] || "./scarpe_results.txt"
-
-      result_structs = [result_bool, msg, data.merge(test_metadata)]
-
-      # Multiple different sets of results is bad, even if both are passing.
-      if @results_returned && @results_returned[0..1] != result_structs[0..1]
-        # Just raising here doesn't reliably fail the test.
-        # See: https://github.com/scarpe-team/scarpe/issues/212
-        @log.error("Writing multi-result failure file to #{result_file.inspect}!")
-
-        new_res_data = { first_result: @results_returned, second_result: result_structs }.merge(test_metadata)
-        bad_result = [false, "Returned two sets of results!", new_res_data]
-        File.write(result_file, JSON.pretty_generate(bad_result))
-
-        return
-      end
-
-      @log.debug("Writing results file #{result_file.inspect} to disk!")
-      File.write(result_file, JSON.pretty_generate(result_structs))
-
-      @results_returned = result_structs
     end
 
     # Need to be able to query widgets in test code
@@ -105,6 +81,11 @@ class Scarpe
 
     # We want an assertions library, but one that runs inside the spawned
     # Webview sub-process.
+
+    # Note that we do *not* extract this assertions library to use elsewhere
+    # because it's very focused on evented assertions that start and stop
+    # over a period of time. Instantaneous procedural asserts don't want to
+    # use this API.
 
     def return_when_assertions_done
       assertions_may_exist

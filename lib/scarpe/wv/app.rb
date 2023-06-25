@@ -24,6 +24,7 @@ class Scarpe
       # events, specify overrides and so on.
       @control_interface = ControlInterface.new
       if ENV["SCARPE_TEST_CONTROL"]
+        require "scarpe/unit_test_helpers"
         @control_interface.instance_eval File.read(ENV["SCARPE_TEST_CONTROL"])
       end
 
