@@ -63,6 +63,10 @@ class Scarpe
     # This isn't supposed to return. The display service should take control
     # of the main thread. Local Webview even stops any background threads.
     def run
+      if @do_shutdown
+        $stderr.puts "Destroy has already been signaled, but we just called Shoes::App.run!"
+        return
+      end
       send_shoes_event(event_name: "run")
     end
 

@@ -21,6 +21,9 @@ end
 
 # Docs for our Webview lib: https://github.com/Maaarcocr/webview_ruby
 
+SET_UP_TIMEOUT_CHECKS = { setup: false, near_timeout: [] }
+TIMEOUT_FRACTION_OF_THRESHOLD = 0.5 # Too low?
+
 class ScarpeWebviewTest < Minitest::Test
   include Scarpe::Test::Helpers
 
@@ -39,7 +42,7 @@ class ScarpeWebviewTest < Minitest::Test
   def run_test_scarpe_app(
     test_app_location,
     test_code: "",
-    timeout: 2.5,
+    timeout: 3.0,
     allow_fail: false,
     exit_immediately: false,
     display_service: "wv_local"
@@ -98,32 +101,56 @@ class ScarpeWebviewTest < Minitest::Test
       out_data = JSON.parse File.read(result_path)
       Scarpe::Logger.logger("TestHelper").info("JSON assertion data: #{out_data.inspect}")
 
-      unless out_data.respond_to?(:each) && out_data.length > 1
+      unless out_data.respond_to?(:each) && out_data.length == 3
         raise "Scarpe app returned an unexpected data format! #{out_data.inspect}"
+      end
+
+      result, _msg, data = *out_data
+
+      if data["die_after"]
+        threshold = data["die_after"]["threshold"]
+        passed = data["die_after"]["passed"]
+        if passed / threshold > TIMEOUT_FRACTION_OF_THRESHOLD
+          test_name = "#{self.class.name}_#{self.name}"
+
+          SET_UP_TIMEOUT_CHECKS[:near_timeout] << [test_name, "%.2f%%" % (passed / threshold * 100.0)]
+        end
+
+        unless SET_UP_TIMEOUT_CHECKS[:setup]
+          Minitest.after_run do
+            unless SET_UP_TIMEOUT_CHECKS[:near_timeout].empty?
+              puts "#{SET_UP_TIMEOUT_CHECKS[:near_timeout].size} tests were near their maximum timeout!"
+              SET_UP_TIMEOUT_CHECKS[:near_timeout].each do |name, pct|
+                puts "Test #{name} was at #{pct} of threshold!"
+              end
+            end
+          end
+          SET_UP_TIMEOUT_CHECKS[:setup] = true
+        end
       end
 
       # If we exit immediately we still need a results file and a true value.
       # We were getting exit_immediately being fine with apps segfaulting,
       # so we need to check.
       if exit_immediately
-        if out_data[0]
+        if result
           # That's all we needed!
           return
         end
 
-        assert false, "App exited immediately, but its results were false! #{out_data.inspect}"
+        assert false, "App exited immediately, but its result was false! #{out_data.inspect}"
       end
 
-      unless out_data[0]
+      unless result
         puts JSON.pretty_generate(out_data[1..-1])
         assert false, "Some Scarpe tests failed..."
       end
 
-      if out_data[1].is_a?(Hash)
-        test_data = out_data[1]
-        test_data["succeeded"].times { assert true } # Add to the number of assertions
-        test_data["failures"].each { |failure| assert false, "Failed Scarpe app test: #{failure}" }
-        if test_data["still_pending"] != 0
+      # If this is an assertion hash...
+      if data["succeeded"]
+        data["succeeded"].times { assert true } # Add to the number of assertions
+        data["failures"].each { |failure| assert false, "Failed Scarpe app test: #{failure}" }
+        if data["still_pending"] != 0
           assert false, "Some tests were still pending!"
         end
       end

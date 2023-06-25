@@ -106,7 +106,10 @@ class Scarpe
         raise "Illegal dispatch of event #{event.inspect}! Valid values are: #{DISPATCH_EVENTS.inspect}"
       end
 
-      return if @do_shutdown
+      if @do_shutdown
+        @log.debug("CTL: Shutting down - not dispatching #{event}!")
+        return
+      end
 
       if event == :redraw
         dumb_dispatch_event(:every_redraw, *args, **keywords)

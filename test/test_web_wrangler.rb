@@ -5,7 +5,7 @@ require "test_helper"
 class TestWebWranglerInScarpeApp < LoggedScarpeTest
   # Need to make sure that even with no widgets we still get at least one redraw
   def test_empty_app
-    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE', timeout: 1.0)
+    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
       Scarpe.app do
       end
     SCARPE_APP
@@ -80,7 +80,7 @@ class TestWebWranglerInScarpeApp < LoggedScarpeTest
       end
     SCARPE_APP
       on_event(:next_redraw) do
-        return_results([true, "Destroy and exit"])
+        return_results(true, "Destroy and exit")
         DisplayService.dispatch_event("destroy", nil)
       end
     TEST_CODE
