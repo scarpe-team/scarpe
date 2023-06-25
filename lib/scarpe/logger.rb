@@ -139,6 +139,10 @@ class Scarpe
   end
 end
 
+class Logging::Logger
+  alias_method :warning, :warn
+end
+
 log_config = if ENV["SCARPE_LOG_CONFIG"]
   JSON.load_file(ENV["SCARPE_LOG_CONFIG"])
 else
