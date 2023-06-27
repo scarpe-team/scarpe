@@ -47,6 +47,24 @@ class TestPromises < Minitest::Test
     assert_equal true, called[:scheduled], "Promise scheduled handler wasn't called on simple fulfillment!"
   end
 
+  def test_simple_promise_fulfillment_accessor
+    p = Promise.new
+
+    p.fulfilled!
+
+    assert_equal true, p.fulfilled?, "Promise fulfilled? accessor failed!"
+    assert_equal false, p.rejected?, "Promise rejected? accessor failed!"
+  end
+
+  def test_simple_promise_rejection_accessor
+    p = Promise.new
+
+    p.rejected!
+
+    assert_equal false, p.fulfilled?, "Promise fulfilled? accessor failed!"
+    assert_equal true, p.rejected?, "Promise rejected? accessor failed!"
+  end
+
   def test_simple_promise_rejection
     p, called = empty_promise_with_checker
 

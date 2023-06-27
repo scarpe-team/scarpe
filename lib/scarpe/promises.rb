@@ -135,6 +135,24 @@ class Scarpe
       @state == :fulfilled || @state == :rejected
     end
 
+    def fulfilled?
+      @state == :fulfilled
+    end
+
+    def rejected?
+      @state == :rejected
+    end
+
+    def inspect
+      "#<Scarpe::Promise:#{object_id} " +
+        "@state=#{@state.inspect} @parents=#{@parents.inspect} " +
+        "@waiting_on=#{@waiting_on.inspect} @on_fulfilled=#{@on_fulfilled.size} " +
+        "@on_rejected=#{@on_rejected.size} @on_scheduled=#{@on_scheduled.size} " +
+        "@scheduler=#{@scheduler ? "Y" : "N"} @executor=#{@executor ? "Y" : "N"} " +
+        "@returned_value=#{@returned_value.inspect} @reason=#{@reason.inspect}" +
+        ">"
+    end
+
     # These promises are mostly designed for external execution.
     # You could put together your own thread-pool, or use RPC,
     # a WebView, a database or similar source of external calculation.
