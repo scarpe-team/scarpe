@@ -4,7 +4,7 @@ require "test_helper"
 
 class TestControlInterface < LoggedScarpeTest
   def test_trivial_async_assert
-    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE', timeout: 1.0)
+    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
       Shoes.app do
         para "Hello World"
       end

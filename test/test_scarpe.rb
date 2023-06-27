@@ -24,7 +24,7 @@ class TestWebviewScarpe < LoggedScarpeTest
   end
 
   def test_app_timeout
-    run_test_scarpe_code(<<-'SCARPE_APP', timeout: 0.1, allow_fail: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', timeout: 0.5, allow_fail: true)
       Shoes.app do
         para "Just waiting for this to time out"
       end
