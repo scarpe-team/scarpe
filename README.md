@@ -149,7 +149,7 @@ locally, and then view it with "yard server". Point your browser at "http://loca
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/scarpe-team/scarpe. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/scarpe-team/scarpe/blob/main/CODE_OF_CONDUCT.md) and {CONTRIBUTING.md](https://github.com/scarpe-team/scarpe/blob/main/CONTRIBUTING.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/scarpe-team/scarpe. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/scarpe-team/scarpe/blob/main/CODE_OF_CONDUCT.md) and [CONTRIBUTING.md](https://github.com/scarpe-team/scarpe/blob/main/CONTRIBUTING.md).
 
 ## License
 

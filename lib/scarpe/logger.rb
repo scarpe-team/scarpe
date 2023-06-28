@@ -53,11 +53,11 @@ class Scarpe
       def json_to_appender(data)
         case data.downcase
         when "stdout"
-          Logging.appenders.stdout
+          Logging.appenders.stdout layout: @custom_log_layout
         when "stderr"
-          Logging.appenders.stderr
+          Logging.appenders.stderr layout: @custom_log_layout
         when String
-          Logging.appenders.file(data)
+          Logging.appenders.file data, layout: @custom_log_layout
         else
           raise "Don't know how to convert #{data.inspect} to an appender!"
         end
@@ -94,6 +94,9 @@ class Scarpe
       public
 
       def configure_logger(log_config)
+        # TODO: custom coloring? https://github.com/TwP/logging/blob/master/examples/colorization.rb
+        @custom_log_layout = Logging.layouts.pattern pattern: '[%r] %-5l %c: %m\n'
+
         if log_config.is_a?(String) && File.exist?(log_config)
           log_config = JSON.load_file(log_config)
         end
@@ -137,6 +140,10 @@ class Scarpe
       send(method, ...)
     end
   end
+end
+
+class Logging::Logger
+  alias_method :warning, :warn
 end
 
 log_config = if ENV["SCARPE_LOG_CONFIG"]

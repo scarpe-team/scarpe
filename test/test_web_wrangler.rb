@@ -5,7 +5,7 @@ require "test_helper"
 class TestWebWranglerInScarpeApp < LoggedScarpeTest
   # Need to make sure that even with no widgets we still get at least one redraw
   def test_empty_app
-    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE', timeout: 1.0)
+    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
       Scarpe.app do
       end
     SCARPE_APP
@@ -80,7 +80,7 @@ class TestWebWranglerInScarpeApp < LoggedScarpeTest
       end
     SCARPE_APP
       on_event(:next_redraw) do
-        return_results([true, "Destroy and exit"])
+        return_results(true, "Destroy and exit")
         DisplayService.dispatch_event("destroy", nil)
       end
     TEST_CODE
@@ -274,6 +274,44 @@ class TestWebWranglerMocked < LoggedScarpeTest
       @web_wrangler.send(:receive_eval_result, "success", 2, true)
 
       assert_equal :fulfilled, update_p3.state, "Update promise should be fulfilled after update is finished (2)"
+    end
+  end
+end
+
+class TestWebWranglerAsyncJS < LoggedScarpeTest
+  def round_trip_app(how_many)
+    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-TEST_CODE, timeout: 5.0)
+      Scarpe.app do
+        para "Hello"
+      end
+    SCARPE_APP
+      on_event(:next_redraw) do
+        num_times = #{how_many}
+
+        p = wrangler.eval_js_async("document.tests = {}")
+        num_times.times do |i|
+          next_p = p.on_fulfilled do
+            wrangler.eval_js_async("document.tests[\#{i}] = true")
+          end
+          p = next_p
+        end
+
+        with_js_value("document.tests", wait_for: [p]) do |tests_hash|
+          expected_value = {}
+          num_times.times { |i| expected_value[i.to_s] = true }
+          assert_equal expected_value, tests_hash
+        end.then { return_when_assertions_done }
+      end
+    TEST_CODE
+  end
+
+  def test_many_round_trips
+    round_trip_app(30)
+  end
+
+  def test_many_app_starts
+    20.times do
+      round_trip_app(5)
     end
   end
 end
