@@ -7,7 +7,7 @@ class Scarpe
 
     display_properties :width, :height, :margin, :padding
 
-    def initialize(width: nil, height: nil, margin: nil, padding: nil, &block)
+    def initialize(width: nil, height: "100%", margin: nil, padding: nil, &block)
       super
 
       # Create the display-side widget *before* instance_eval, which will add child widgets with their display widgets

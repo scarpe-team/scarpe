@@ -55,7 +55,7 @@ class Scarpe
     end
 
     def fill_color
-      ""
+      "yellow"
     end
 
     def stroke_color
