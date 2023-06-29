@@ -4,9 +4,9 @@ class Scarpe
   class Button < Scarpe::Widget
     include Scarpe::Log
 
-    display_properties :text, :width, :height, :top, :left
+    display_properties :text, :width, :height, :top, :left, :size
 
-    def initialize(text, width: nil, height: nil, top: nil, left: nil, &block)
+    def initialize(text, width: nil, height: nil, top: nil, left: nil, size: 12, &block)
       log_init("Button")
 
       # Properties passed as positional args, not keywords, don't get auto-set

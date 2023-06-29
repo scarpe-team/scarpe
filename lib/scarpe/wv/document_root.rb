@@ -12,7 +12,7 @@ class Scarpe
 
     def element(&blck)
       HTML.render do |h|
-        h.div(style:, &blck)
+        h.div(style: style.merge(height: "100%"), &blck)
       end
     end
 
