@@ -1,1 +1,0 @@
-![Alt text](pirate.png)
