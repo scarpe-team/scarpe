@@ -12,7 +12,6 @@ class Scarpe
 
     display_properties :width, :height, :margin, :padding, :scroll, :margin_top, :margin_left, :margin_right, :margin_bottom, :options
 
-
     def initialize(width: nil, height: "100%", margin: nil, padding: nil, scroll: false, margin_top: nil, margin_bottom: nil, margin_left: nil,
       margin_right: nil, **options, &block)
 
