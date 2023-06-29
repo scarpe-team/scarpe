@@ -36,3 +36,4 @@ require_relative "wv/shape"
 
 require_relative "wv/text_widget"
 require_relative "wv/link"
+require_relative "wv/line"
