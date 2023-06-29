@@ -12,7 +12,7 @@ class Scarpe
 
     display_properties :width, :height, :margin, :padding, :scroll, :margin_top, :options
 
-    def initialize(width: nil, height: nil, margin: nil, padding: nil, scroll: false, margin_top: nil, **options, &block)
+    def initialize(width: nil, height: "100%", margin: nil, padding: nil, scroll: false, margin_top: nil, **options, &block)
       # TODO: what are these options? Are they guaranteed serializable?
       @options = options
 
