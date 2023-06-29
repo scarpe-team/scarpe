@@ -166,9 +166,9 @@ module Scarpe::Test
     # Also, wait, what's up with span? What *is* that?
     WIDGET_FINDERS.each do |finder_name, scarpe_class|
       define_method(finder_name) do |*args|
-        root = Scarpe::App.instance.document_root
+        app = Scarpe::App.instance
 
-        widgets = root.find_widgets_by(scarpe_class, *args)
+        widgets = app.find_widgets_by(scarpe_class, *args)
         raise "Found more than one #{finder_name} matching #{args.inspect}!" if widgets.size > 1
         raise "Found no #{finder_name} matching #{args.inspect}!" if widgets.empty?
 

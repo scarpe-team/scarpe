@@ -20,8 +20,6 @@ class Scarpe
       debug: ENV["SCARPE_DEBUG"] ? true : false,
       &app_code_body
     )
-      log_init("Scarpe::App")
-
       if Scarpe::App.instance
         @log.error("Trying to create a second Scarpe::App in the same process! Fail!")
         raise "Cannot create multiple Scarpe::App objects!"
@@ -29,12 +27,16 @@ class Scarpe
         Scarpe::App.instance = self
       end
 
+      log_init("Scarpe::App")
+
       @do_shutdown = false
 
       super
 
       # This creates the DocumentRoot, including its corresponding display widget
       @document_root = Scarpe::DocumentRoot.new
+
+      @slots = []
 
       # Now create the App display widget
       create_display_widget
@@ -68,7 +70,31 @@ class Scarpe
       send_shoes_event(event_name: "init")
       return if @do_shutdown
 
-      @document_root.instance_eval(&@app_code_body)
+      ::Scarpe::App.instance.with_slot(@document_root, &@app_code_body)
+    end
+
+    # "Container" widgets like flows, stacks, masks and the document root
+    # are considered "slots" in Scarpe parlance. When a new slot is created,
+    # we push it here in order to track what widgets are found in that slot.
+    def push_slot(slot)
+      @slots.push(slot)
+    end
+
+    def pop_slot
+      @slots.pop
+    end
+
+    def current_slot
+      @slots[-1]
+    end
+
+    def with_slot(slot_item, &block)
+      return unless block_given?
+
+      push_slot(slot_item)
+      Scarpe::App.instance.instance_eval(&block)
+    ensure
+      pop_slot
     end
 
     # This isn't supposed to return. The display service should take control
@@ -85,5 +111,63 @@ class Scarpe
       @do_shutdown = true
       send_shoes_event(event_name: "destroy") if send_event
     end
+
+    def all_widgets
+      out = []
+
+      to_add = @document_root.children
+      until to_add.empty?
+        out.concat(to_add)
+        to_add = to_add.flat_map(&:children).compact
+      end
+
+      out
+    end
+
+    # We can add various ways to find widgets here.
+    # These are sort of like Shoes selectors, used for testing.
+    def find_widgets_by(*specs)
+      widgets = all_widgets
+      specs.each do |spec|
+        if spec.is_a?(Class)
+          widgets.select! { |w| spec === w }
+        elsif spec.is_a?(Symbol)
+          s = spec.to_s
+          case s[0]
+          when "$"
+            begin
+              # I'm not finding a global_variable_get or similar...
+              global_value = eval s
+              widgets &= [global_value]
+            rescue
+              raise "Error getting global variable: #{spec.inspect}"
+            end
+          when "@"
+            if app.instance_variables.include?(spec)
+              widgets &= [self.instance_variable_get(spec)]
+            else
+              raise "Can't find top-level instance variable: #{spec.inspect}!"
+            end
+          else
+          end
+        else
+          raise("Don't know how to find widgets by #{spec.inspect}!")
+        end
+      end
+      widgets
+    end
   end
+end
+
+# DSL methods
+class Scarpe::App
+  def background(...)
+    current_slot.background(...)
+  end
+
+  def border(...)
+    current_slot.border(...)
+  end
+
+  alias_method :info, :puts
 end

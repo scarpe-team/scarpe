@@ -107,4 +107,13 @@ class TestWebviewScarpe < LoggedScarpeTest
       end
     SCARPE_APP
   end
+
+  def test_download
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+      Shoes.app do
+        para "Hello"
+        download("https://raw.githubusercontent.com/scarpe-team/scarpe/main/docs/static/avatar.png")
+      end
+    SCARPE_APP
+  end
 end

@@ -12,15 +12,11 @@ class Scarpe
     include Scarpe::Colors
 
     class << self
-      attr_accessor :widget_classes, :alias_name
-
-      def alias_as(name)
-        self.alias_name = name
-      end
+      attr_accessor :widget_classes
 
       def inherited(subclass)
-        self.widget_classes ||= []
-        self.widget_classes << subclass
+        Scarpe::Widget.widget_classes ||= []
+        Scarpe::Widget.widget_classes << subclass
         super
       end
 
@@ -30,7 +26,7 @@ class Scarpe
       end
 
       def widget_class_by_name(name)
-        widget_classes.detect { |k| k.dsl_name == name.to_s || k.alias_name.to_s == name.to_s }
+        widget_classes.detect { |k| k.dsl_name == name.to_s }
       end
 
       private
@@ -56,16 +52,20 @@ class Scarpe
         linkable_properties_hash[name] = true
       end
 
+      # Add these names as display properties
       def display_properties(*names)
         names.each { |n| display_property(n) }
       end
 
       def display_property_names
-        linkable_properties.map { |prop| prop[:name] }
+        parent_prop_names = self != Scarpe::Widget ? self.superclass.display_property_names : []
+
+        parent_prop_names | linkable_properties.map { |prop| prop[:name] }
       end
 
       def display_property_name?(name)
-        linkable_properties_hash[name.to_s]
+        linkable_properties_hash[name.to_s] ||
+          (self != Scarpe::Widget && superclass.display_property_name?(name))
       end
     end
 
@@ -91,9 +91,11 @@ class Scarpe
       bind_shoes_event(event_name:, &block)
     end
 
-    def display_properties
+    def display_property_values
+      all_property_names = self.class.display_property_names
+
       properties = {}
-      self.class.display_property_names.each do |prop|
+      all_property_names.each do |prop|
         properties[prop] = instance_variable_get("@" + prop)
       end
       properties["shoes_linkable_id"] = self.linkable_id
@@ -104,7 +106,7 @@ class Scarpe
       klass_name = self.class.name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
 
       # Should we save a reference to widget for later reference?
-      DisplayService.display_service.create_display_widget_for(klass_name, self.linkable_id, display_properties)
+      DisplayService.display_service.create_display_widget_for(klass_name, self.linkable_id, display_property_values)
     end
 
     attr_reader :parent
@@ -177,7 +179,7 @@ class Scarpe
         widget_instance = klass.new(*args, **kwargs, &block)
 
         unless klass.ancestors.include?(Scarpe::TextWidget)
-          widget_instance.set_parent(self)
+          widget_instance.set_parent Scarpe::App.instance.current_slot
         end
 
         widget_instance

@@ -16,6 +16,7 @@ class Scarpe
     # TODO: re-think the list of top-level singleton objects.
     attr_reader :control_interface
     attr_reader :doc_root
+    attr_reader :app
     attr_reader :wrangler
 
     # This is called before any of the various WebviewWidgets are created.
