@@ -1,0 +1,38 @@
+# class_template.erb
+# frozen_string_literal: true
+
+class Scarpe
+  class <%= argument %> < Scarpe::Widget
+
+    # Display Properties
+    # These properties determine the visual characteristics of the widget
+    # Customize them according to your requirements
+
+    # Example display properties:
+    # :background_color - Sets the background color of the widget (<%= argument %>)
+    # :width - Specifies the width of the widget(<%= argument %>)
+    # :height - Specifies the height of the widget(<%= argument %>)
+
+    display_properties <%= display_properties %>
+
+    def initialize
+      super
+
+      # Event Handlers
+      # Define your event handlers here
+      # to get broad idea on events look in wiki section
+      # Example event handler:
+      # bind_self_event("dummy") do
+      #   # Event handling code goes here
+      # end
+
+
+    # This method uses the DisplayService to create a visual representation of the widget
+    # It generates a display widget based on the specified display properties
+      create_display_widget
+    end
+
+  # other methods
+
+  end
+end

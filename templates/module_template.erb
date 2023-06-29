@@ -1,0 +1,12 @@
+# frozen_string_literal: true
+
+class Scarpe
+  module <%= argument %>
+    def self.included(includer)
+    <%# add display propeties below... for this example :background_color is added as display_property %>
+      includer.display_property(:background_color)
+    end
+
+# Write any methods here!
+  end
+end
