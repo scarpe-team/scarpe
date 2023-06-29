@@ -1,7 +1,10 @@
 # frozen_string_literal: true
 
+require_relative "shape_helper"
+
 class Scarpe
   class WebviewStar < Scarpe::WebviewWidget
+    include ShapeHelper
     def initialize(properties)
       super(properties)
     end
@@ -9,7 +12,7 @@ class Scarpe
     def element(&block)
       HTML.render do |h|
         h.div(id: html_id, style: style) do
-          h.svg(width: @outer, height: @outer, style: "fill:#{fill_color};") do
+          h.svg(width: @outer, height: @outer, style: "fill:#{color_for_fill};") do
             h.polygon(points: star_points, style: "stroke:#{stroke_color};stroke-width:2")
           end
           block.call(h) if block_given?

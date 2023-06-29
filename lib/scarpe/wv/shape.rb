@@ -14,7 +14,7 @@ class Scarpe
       HTML.render do |h|
         h.div(id: html_id, style: style) do
           h.svg(width: "400", height: "500") do
-            h.path(d: shape_path, style: "stroke:#{stroke_color};stroke-width:2")
+            h.path(d: shape_path, style: "fill:#{color_for_fill};stroke-width:2;")
           end
           block.call(h) if block_given?
         end
@@ -28,10 +28,6 @@ class Scarpe
         width: "400",
         height: "900",
       }
-    end
-
-    def stroke_color
-      "black"
     end
   end
 end

@@ -20,6 +20,18 @@ module ShapeHelper
     path_commands_str
   end
 
+  def colors
+    $colors ||= []
+  end
+
+  def fill(color)
+    colors << [color]
+  end
+
+  def color_for_fill
+    (colors&.pop || ["black"]).join
+  end
+
   private
 
   def validate_coordinates(x, y)

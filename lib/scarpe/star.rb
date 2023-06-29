@@ -7,8 +7,6 @@ class Scarpe
     display_properties :left, :top, :points, :outer, :inner
 
     def initialize(left, top, points = 10, outer = 100, inner = 50)
-      @left = convert_to_integer(left, "left")
-      @top = convert_to_integer(top, "top")
       @points = convert_to_integer(points, "points", 10)
       @outer = convert_to_float(outer, "outer", 100.0)
       @inner = convert_to_float(inner, "inner", 50.0)
