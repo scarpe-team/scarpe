@@ -35,8 +35,16 @@ class Scarpe
       styles[:top] = Dimensions.length(@top) if @top
       styles[:left] = Dimensions.length(@left) if @left
       styles[:position] = "absolute" if @top || @left
-
+      styles["font-size"] = Dimensions.length(font_size) if @size
+      styles["font-family"] = @font if @font
+      styles["color"] = rgb_to_hex(@stroke) if @stroke
       styles
+    end
+
+    def font_size
+      font_size = @size.is_a?(Symbol) ? SIZES[@size] : @size
+
+      Dimensions.length(font_size)
     end
   end
 end
