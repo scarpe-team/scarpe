@@ -7,7 +7,6 @@ class Scarpe
 
     def initialize(properties)
       super(properties)
-      puts "x2: #{@x2}"
     end
 
     def element
@@ -31,7 +30,7 @@ class Scarpe
 
     def line_style
       {
-        stroke: "#{color_for_fill}",
+        stroke: " #{@color}",
         "stroke-width": "4",
       }
     end

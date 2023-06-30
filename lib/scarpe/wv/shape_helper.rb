@@ -25,11 +25,11 @@ module ShapeHelper
   end
 
   def fill(color)
-    colors << [color]
+    $current_color = color
   end
 
   def color_for_fill
-    (colors&.pop || ["black"]).join
+    $current_color || "black"
   end
 
   private

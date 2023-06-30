@@ -6,7 +6,7 @@ class Scarpe
   class Line < Scarpe::Widget
     include ShapeHelper
 
-    display_properties :left, :top, :x2, :y2
+    display_properties :left, :top, :x2, :y2, :color
 
     def initialize(left, top, x2, y2)
       validate_coordinates(x2, y2)
@@ -14,6 +14,7 @@ class Scarpe
       @top = top
       @x2 = x2
       @y2 = y2
+      @color = color_for_fill
 
       # validate_coordinates(x2, y2)
 
