@@ -14,6 +14,8 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 10 
     steps:
+      - name: Install dependencies
+        run: brew install pkg-config portaudio
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Setup Ruby and install gems

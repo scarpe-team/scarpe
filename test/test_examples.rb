@@ -8,6 +8,7 @@ class TestExamplesWithWebview < LoggedScarpeTest
   examples_to_test = Dir["examples/**/*.rb"]
     .reject { !_1.include?(match_str) }
     .reject { _1.include?("/not_checked/") }
+    .reject { _1.include?("/bloopsaphone/") } # How do we want to CI-check these?
     .reject { _1.include?("/skip_ci/") if ENV["CI_RUN"] }
 
   examples_to_test.each do |example_filename|
