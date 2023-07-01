@@ -24,9 +24,13 @@ class Scarpe
 
     def style
       styles = {}
-
+      styles["background-color"] = @color
+      styles["padding-top"] = @padding_top
+      styles["padding-bottom"] = @padding_bottom
+      styles[:color] = @text_color
       styles[:width] = Dimensions.length(@width) if @width
       styles[:height] = Dimensions.length(@height) if @height
+      styles["font-size"] = @font_size
 
       styles[:top] = Dimensions.length(@top) if @top
       styles[:left] = Dimensions.length(@left) if @left

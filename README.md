@@ -73,6 +73,10 @@ It's very early in the development process. If you'd like to help develop Scarpe
 
 We'd love the help!
 
+If you want to quickly add a feature, you can use the `ruby scarpegen.rb` command. This command will generate the necessary files for you, along with a simple template and a set of questions to guide you through the process. By following these steps, you will be good to go!
+
+By leveraging the `ruby scarpegen.rb` command and the provided resources, you can expedite the feature addition process and ensure a smoother development experience.
+
 ## Are we done yet?
 
 Huh. Great question. Right now we have a few key things we want to achieve. The first is passing all of the examples we can get our hands on. The second is passing HacketyHack. We're manually keeping tabs on that here.

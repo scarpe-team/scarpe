@@ -3,14 +3,17 @@
 class Scarpe
   class Button < Scarpe::Widget
     include Scarpe::Log
+    display_properties :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size
 
-    display_properties :text, :width, :height, :top, :left, :size
+    def initialize(text, width: nil, height: nil, top: nil, left: nil, color: nil, padding_top: nil, padding_bottom: nil, size: 12, text_color: nil,
+      font_size: nil, & block)
 
-    def initialize(text, width: nil, height: nil, top: nil, left: nil, size: 12, &block)
       log_init("Button")
 
       # Properties passed as positional args, not keywords, don't get auto-set
       @text = text
+      @color = color
+
       @block = block
 
       super
