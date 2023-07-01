@@ -10,9 +10,10 @@ class Scarpe
       end
     end
 
-    display_properties :text_items, :stroke, :size, :font, :html_attributes, :hidden
+    display_properties :text_items, :stroke, :size, :font, :html_attributes, :hidden,:style
 
     def initialize(*args, stroke: nil, size: :para, font: nil, hidden: false, **html_attributes)
+      @style = {}
       @text_children = args || []
       if hidden
         @hidden_text_items = text_children_to_items(@text_children)
@@ -28,7 +29,6 @@ class Scarpe
       @html_attributes = html_attributes || {}
 
       super
-
       create_display_widget
     end
 
@@ -38,9 +38,13 @@ class Scarpe
 
     def replace(*children)
       @text_children = children
-
       # This should signal the display widget to change
       self.text_items = text_children_to_items(@text_children)
+    end
+
+    def change_style(*style_args)
+      puts "style_args: #{style_args}"
+      self.style=style_args
     end
 
     def hide

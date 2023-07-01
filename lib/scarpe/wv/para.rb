@@ -30,6 +30,10 @@ class Scarpe
         @size = @size.to_sym
       end
 
+      if changes["style"]
+        # html_element.style = @style
+        @opti = true 
+      end
       super
     end
 
@@ -70,7 +74,13 @@ class Scarpe
     end
 
     def options
+     if !@opti
       @html_attributes.merge(id: html_id, style: style)
+     else
+     new_style =   @style.first.map { |key, value| "#{key}:#{value}" }.join("; ")
+      @html_attributes.merge(id: html_id, style: new_style)
+     end
+
     end
 
     def style
