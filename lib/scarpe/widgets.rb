@@ -27,3 +27,4 @@ require_relative "arc"
 
 require_relative "text_widget"
 require_relative "link"
+require_relative "line"

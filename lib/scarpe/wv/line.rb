@@ -1,23 +1,20 @@
 # frozen_string_literal: true
 
 require_relative "shape_helper"
-
 class Scarpe
-  class WebviewShape < Scarpe::WebviewWidget
+  class WebviewLine < Scarpe::WebviewWidget
     include ShapeHelper
 
     def initialize(properties)
-      @color = color_for_fill
       super(properties)
     end
 
-    def element(&block)
+    def element
       HTML.render do |h|
         h.div(id: html_id, style: style) do
-          h.svg(width: "400", height: "500") do
-            h.path(d: shape_path, style: "fill:#{@color};stroke-width:2;")
+          h.svg(width: @x2, height: @y2) do
+            h.line(x1: @left, y1: @top, x2: @x2, y2: @y2, style: line_style)
           end
-          block.call(h) if block_given?
         end
       end
     end
@@ -26,8 +23,15 @@ class Scarpe
 
     def style
       {
-        width: "400",
-        height: "900",
+        left: "#{@left}px",
+        top: "#{@top}px",
+      }
+    end
+
+    def line_style
+      {
+        stroke: " #{@color}",
+        "stroke-width": "4",
       }
     end
   end

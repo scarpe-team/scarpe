@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "wv/shape_helper"
+
 class Scarpe
   class Shape < Scarpe::Widget
     include ShapeHelper
@@ -12,7 +13,7 @@ class Scarpe
 
       super()
       create_display_widget
-      instance_eval(&block)
+      instance_eval(&block) if block_given?
     end
   end
 end

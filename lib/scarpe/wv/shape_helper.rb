@@ -20,6 +20,18 @@ module ShapeHelper
     path_commands_str
   end
 
+  def colors
+    $colors ||= []
+  end
+
+  def fill(color)
+    $current_color = color
+  end
+
+  def color_for_fill
+    $current_color || "black"
+  end
+
   private
 
   def validate_coordinates(x, y)
