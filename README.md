@@ -11,6 +11,12 @@
 
 Scarpe isn't feature complete with any version of Shoes (yet?). We're initially targeting Shoes Classic.
 
+## Wait, What's A Shoes?
+
+Shoes is an old library (really several different ones) that let you build little local desktop computer programs, package them up and give copies to people. Imagine if you can write a tiny little Ruby program (e.g. sneak a peek at the next section) and then it would make a runnable app, opening a window in Ruby, where you could click buttons and play sounds and stuff.
+
+Scarpe is a rewrite of Shoes, because old Shoes doesn't really work any more. There have been a surprising number of rewrites of Shoes over the years -- people love it and miss having it around. This one is ours. Also it uses Webview.
+
 ## Usage
 
 Note: you'll probably want the [Scarpe in Development](#scarpe-in-development) instructions below in most cases! Scarpe isn't ready for "just install the released version" production usage yet.
