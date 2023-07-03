@@ -50,9 +50,15 @@ Scarpe requires [Ruby 3.2](https://www.ruby-lang.org/en/downloads/) or higher! u
 This is where most of the action is happening right now, and to have the full Scarpe experience _today_ this is probably what you want to do.
 
 ```
+# dependencies - Mac version
+brew install portaudio pkg-config # for sound!
+# dependencies - Ubuntu Linux version
+sudo apt-get install libportaudio2
+
 # get it
 git clone http://github.com/scarpe-team/scarpe
 cd scarpe; bundle install
+
 # run it
 ./exe/scarpe examples/button.rb --dev
 ```
@@ -68,6 +74,8 @@ You can run without Scarpe being installed by including its directory. For insta
 Most commonly we are all using this command: `./exe/scarpe examples/button.rb --dev`
 
 The `--dev` flag points to your local scarpe rather than an installed Scarpe gem.
+
+The `--debug` flag will dump a ton of useful information to the console if you want to see what's happening with your app.
 
 It's very early in the development process. If you'd like to help develop Scarpe, great! It would be useful to drop us a message/issue/PR on GitHub early on, so we know you're working in a particular area, and we can warn you if anybody else is currently doing so.
 
