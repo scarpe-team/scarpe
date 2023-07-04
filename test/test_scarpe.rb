@@ -2,6 +2,8 @@
 
 require "test_helper"
 
+# These are a variety of simple apps, and we're just making sure they don't immediately fail.
+
 class TestWebviewScarpe < LoggedScarpeTest
   def test_that_it_has_a_version_number
     refute_nil ::Scarpe::VERSION

@@ -139,6 +139,10 @@ class Scarpe
       end
       send(method, ...)
     end
+
+    def respond_to_missing?(method_name, include_private = false)
+      @instance.respond_to_missing?(method_name, include_private)
+    end
   end
 end
 

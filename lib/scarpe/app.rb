@@ -2,10 +2,13 @@
 
 class Scarpe
   class App < Scarpe::Widget
-    class << self
-      attr_accessor :next_test_code
-    end
     include Scarpe::Log
+
+    class << self
+      attr_accessor :instance
+    end
+
+    attr_reader :document_root
 
     display_properties :title, :width, :height, :resizable, :debug
 
@@ -15,26 +18,34 @@ class Scarpe
       height: 420,
       resizable: true,
       debug: ENV["SCARPE_DEBUG"] ? true : false,
-      test_code: nil,
       &app_code_body
     )
       log_init("Scarpe::App")
 
-      @do_shutdown = false
-
-      if Scarpe::App.next_test_code
-        test_code = Scarpe::App.next_test_code
-        Scarpe::App.next_test_code = nil
+      if Scarpe::App.instance
+        @log.error("Trying to create a second Scarpe::App in the same process! Fail!")
+        raise "Cannot create multiple Scarpe::App objects!"
+      else
+        Scarpe::App.instance = self
       end
 
-      super
+      @do_shutdown = false
 
-      test_code&.call(self)
+      super
 
       # This creates the DocumentRoot, including its corresponding display widget
       @document_root = Scarpe::DocumentRoot.new
 
+      # Now create the App display widget
       create_display_widget
+
+      # Set up testing events *after* Display Service basic objects exist
+      if ENV["SCARPE_APP_TEST"]
+        test_code = File.read ENV["SCARPE_APP_TEST"]
+        if test_code != ""
+          self.instance_eval test_code
+        end
+      end
 
       @app_code_body = app_code_body
 

@@ -42,6 +42,7 @@ class ScarpeWebviewTest < Minitest::Test
   def run_test_scarpe_app(
     test_app_location,
     test_code: "",
+    app_test_code: "",
     timeout: 3.0,
     allow_fail: false,
     exit_immediately: false,
@@ -49,7 +50,12 @@ class ScarpeWebviewTest < Minitest::Test
   )
 
     with_tempfile("scarpe_test_results.json", "") do |result_path|
-      scarpe_test_code = <<~SCARPE_TEST_CODE
+      # We're temporarily dealing with two different kinds of test code.
+      # Test_control_code/test_code is a display-library test language.
+      # app_test_code is a test_flow/integrated experimental test language.
+
+      # test_control_code:
+      test_control_code = <<~SCARPE_TEST_CODE
         require "scarpe/wv/control_interface_test"
 
         on_event(:init) do
@@ -57,10 +63,10 @@ class ScarpeWebviewTest < Minitest::Test
         end
       SCARPE_TEST_CODE
 
-      scarpe_test_code += test_code
+      test_control_code += test_code
 
       if exit_immediately
-        scarpe_test_code += <<~TEST_EXIT_IMMEDIATELY
+        test_control_code += <<~TEST_EXIT_IMMEDIATELY
           on_event(:next_heartbeat) do
             Scarpe::Logger.logger("ScarpeTest").info("Dying on heartbeat because :exit_immediately is set")
             app.destroy
@@ -68,22 +74,32 @@ class ScarpeWebviewTest < Minitest::Test
         TEST_EXIT_IMMEDIATELY
       end
 
+      # app_test_code:
+      app_test_file_code = <<~SCARPE_APP_TEST_CODE
+        require "scarpe/cats_cradle"
+        self.class.include Scarpe::Test::CatsCradle
+        event_init
+      SCARPE_APP_TEST_CODE
+      app_test_file_code += app_test_code
+
       # Remove old results, if any
       File.unlink(result_path)
 
-      with_tempfile("scarpe_control.rb", scarpe_test_code) do |control_file_path|
-        with_tempfile("scarpe_log_config.json", JSON.dump(log_config_for_test)) do |scarpe_log_config|
-          # Start the application using the exe/scarpe utility
-          # For unit testing always supply --debug so we get the most logging
-          system("SCARPE_TEST_CONTROL=#{control_file_path} SCARPE_TEST_RESULTS=#{result_path} " +
-            "SCARPE_LOG_CONFIG=\"#{scarpe_log_config}\" " +
-            "ruby #{SCARPE_EXE} --debug --dev #{test_app_location}")
+      with_tempfiles([
+        ["scarpe_control.rb", test_control_code],
+        ["scarpe_log_config.json", JSON.dump(log_config_for_test)],
+        ["scarpe_app_test.rb", app_test_file_code],
+      ]) do |control_file_path, scarpe_log_config, app_test_path|
+        # Start the application using the exe/scarpe utility
+        # For unit testing always supply --debug so we get the most logging
+        system("SCARPE_TEST_CONTROL=#{control_file_path} SCARPE_TEST_RESULTS=#{result_path} " +
+          "SCARPE_LOG_CONFIG=\"#{scarpe_log_config}\" SCARPE_APP_TEST=\"#{app_test_path}\" " +
+          "ruby #{SCARPE_EXE} --debug --dev #{test_app_location}")
 
-          # Check if the process exited normally or crashed (segfault, failure, timeout)
-          unless $?.success?
-            assert(false, "Scarpe app failed with exit code: #{$?.exitstatus}")
-            return
-          end
+        # Check if the process exited normally or crashed (segfault, failure, timeout)
+        unless $?.success?
+          assert(false, "Scarpe app failed with exit code: #{$?.exitstatus}")
+          return
         end
       end
 
@@ -155,14 +171,6 @@ class ScarpeWebviewTest < Minitest::Test
         end
       end
     end
-  end
-
-  def assert_html(actual_html, expected_tag, **opts, &block)
-    expected_html = Scarpe::HTML.render do |h|
-      h.public_send(expected_tag, opts, &block)
-    end
-
-    assert_equal expected_html, actual_html
   end
 end
 

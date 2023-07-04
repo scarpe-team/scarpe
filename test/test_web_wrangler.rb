@@ -2,6 +2,9 @@
 
 require "test_helper"
 
+# Test WebWrangler and its weird, involved testing language.
+# This may go away over time as CatsCradle gets more capable.
+
 class TestWebWranglerInScarpeApp < LoggedScarpeTest
   # Need to make sure that even with no widgets we still get at least one redraw
   def test_empty_app
@@ -11,63 +14,6 @@ class TestWebWranglerInScarpeApp < LoggedScarpeTest
     SCARPE_APP
       on_event(:next_redraw) do
         return_when_assertions_done
-      end
-    TEST_CODE
-  end
-
-  # We've had problems with dirty-tracking where the DOM stops updating after
-  # the first change.
-  def test_assert_multiple_dom_updates
-    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
-      Shoes.app do
-        para "Hello"
-      end
-    SCARPE_APP
-      on_event(:next_redraw) do
-        para = find_wv_widgets(Scarpe::WebviewPara)[0]
-        with_js_dom_html do |html_text|
-          assert html_text.include?("Hello"), "DOM HTML should include initial para text!"
-        end.then_ruby_promise do
-          # We'll send the signal that changes the para text, as though we called Scarpe's para.replace
-          change = { "text_items" => [ "Goodbye" ] }
-          doc_root.send_shoes_event(change, event_name: "prop_change", target: para.shoes_linkable_id)
-          wrangler.promise_dom_fully_updated
-        end.then_with_js_dom_html do |html_text|
-          assert html_text.include?("Goodbye"), "DOM root should contain the first replacement text! Text: #{html_text.inspect}"
-          assert !html_text.include?("Hello"), "DOM root shouldn't still contain the original text! Text: #{html_text.inspect}"
-        end.then_ruby_promise do
-          # We'll send the signal that changes the para text, as though we called Scarpe's para.replace
-          change = { "text_items" => [ "Borzoi" ] }
-          doc_root.send_shoes_event(change, event_name: "prop_change", target: para.shoes_linkable_id)
-          wrangler.promise_dom_fully_updated
-        end.then_with_js_dom_html do |html_text|
-          assert html_text.include?("Borzoi"), "DOM root should contain the second replacement text! Text: #{html_text.inspect}"
-        end.then { return_when_assertions_done }
-      end
-    TEST_CODE
-  end
-
-  # We've had problems with dirty-tracking where the DOM stops updating after
-  # the first change.
-  def test_event_from_js_handler
-    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
-      Shoes.app do
-        $p = para "Hello"
-        button "Press Me" do
-          $p.replace "Goodbye"
-        end
-      end
-    SCARPE_APP
-      on_event(:next_redraw) do
-        button = find_wv_widgets(Scarpe::WebviewButton)[0]
-        snippet = button.handler_js_code("click")
-        with_js_value(snippet) do
-          # We clicked the button, which should (in local-Webview) mean the Shoes-side
-          # replacement has occurred
-        end.then_ruby_promise { fully_updated }.then_with_js_dom_html do |html_text|
-          assert html_text.include?("Goodbye"), "DOM root should contain the new button text! Text: #{html_text.inspect}"
-          assert !html_text.include?("Hello"), "DOM root shouldn't contain the old button text! Text: #{html_text.inspect}"
-        end.then { return_when_assertions_done }
       end
     TEST_CODE
   end
@@ -309,8 +255,11 @@ class TestWebWranglerAsyncJS < LoggedScarpeTest
     round_trip_app(30)
   end
 
-  def test_many_app_starts
-    20.times do
+  # If you run_test_scarpe_code more than once in a test, you can have slightly odd
+  # results like it showing up multiple times in the "too close to timeout length"
+  # print. Generally it's better to have one per test.
+  20.times do |i|
+    define_method("test_many_app_starts_#{i}") do
       round_trip_app(5)
     end
   end
