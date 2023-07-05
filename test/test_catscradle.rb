@@ -115,6 +115,29 @@ class TestCatsCradle < LoggedScarpeTest
       end
     TEST_CODE
   end
+
+  def test_button_click_ivar
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+      Shoes.app do
+        @p = para "Hello"
+        button "Press Me" do
+          @p.replace "Goodbye"
+        end
+      end
+    SCARPE_APP
+      on_heartbeat do
+        b = button()
+        snippet = button.display.handler_js_code("click")
+        query_js_value(snippet) # Run the snippet
+        wait fully_updated
+        html_text = dom_html
+        assert_include html_text, "Goodbye"
+        assert_not_include html_text, "Hello"
+
+        test_finished
+      end
+    TEST_CODE
+  end
 end
 
 # How to get this to work with relay-display?

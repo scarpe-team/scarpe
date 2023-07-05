@@ -11,10 +11,12 @@ require_relative "star"
 
 require_relative "fill"
 
+require_relative "slot"
 require_relative "document_root"
 require_relative "para"
 require_relative "stack"
 require_relative "flow"
+require_relative "download"
 require_relative "button"
 require_relative "image"
 require_relative "edit_box"

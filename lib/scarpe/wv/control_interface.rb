@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 # The ControlInterface is used for testing. It's a way to register interest
-# in important events like redraw, init and shutdown, and to override
-# test-relevant values like the options to Shoes.app(). Note that no part
-# of the Scarpe framework should ever *depend* on ControlInterface. It's
-# for testing, not normal operation. If no ControlInterface were ever
-# created or called, Scarpe apps should run fine with no modifications.
+# in important events like redraw, init and shutdown, and to configure a
+# Shoes app for testing. Note that no part of the Scarpe framework should
+# ever *depend* on ControlInterface. It's for testing, not normal operation.
+# If no ControlInterface were ever created or called, Scarpe apps should run
+# fine with no modifications.
 #
 # And if you depend on this from the framework, I'll add a check-mode that
 # never dispatches any events to any handlers. Do NOT test me on this.
@@ -78,16 +78,6 @@ class Scarpe
 
     # The control interface has overrides for certain settings. If the override has been specified,
     # those settings will be overridden.
-
-    # Override the Shoes app opts like "debug:" and "die_after:" with new ones.
-    def override_app_opts(new_opts)
-      @new_app_opts = new_opts
-    end
-
-    # Called by Scarpe::App to get the override options
-    def app_opts_get_override(opts)
-      @new_app_opts || opts
-    end
 
     # On recognised events, this sets a handler for that event
     def on_event(event, &block)

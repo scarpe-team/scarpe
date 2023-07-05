@@ -13,6 +13,7 @@ class Scarpe
 
       super()
       create_display_widget
+
       instance_eval(&block) if block_given?
     end
   end
