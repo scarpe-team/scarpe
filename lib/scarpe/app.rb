@@ -169,5 +169,17 @@ class Scarpe::App
     current_slot.border(...)
   end
 
+  def motion(&block)
+    subscription_item(shoes_api_name: "motion", &block)
+  end
+
+  def hover(&block)
+    subscription_item(shoes_api_name: "hover", &block)
+  end
+
+  def click(&block)
+    subscription_item(shoes_api_name: "click", &block)
+  end
+
   alias_method :info, :puts
 end

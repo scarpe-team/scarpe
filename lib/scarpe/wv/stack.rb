@@ -1,39 +1,18 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class WebviewStack < Scarpe::WebviewWidget
-    include Scarpe::WebviewBackground
-    include Scarpe::WebviewBorder
-    include Scarpe::WebviewSpacing
-
-    def initialize(properties)
-      super
-    end
-
-    def element(&block)
-      HTML.render do |h|
-        h.div(id: html_id, style: style, &block)
-      end
-    end
-
+  class WebviewStack < Scarpe::WebviewSlot
     def get_style
       style
     end
 
-    private
+    protected
 
     def style
       styles = super
 
-      styles["margin-top"] = @margin_top if @margin_top
-      styles["margin-bottom"] = @margin_bottom if @margin_bottom
-      styles["margin-left"] = @margin_left if @margin_left
-      styles["margin-right"] = @margin_right if @margin_right
-
       styles[:display] = "flex"
       styles["flex-direction"] = "column"
-      styles[:width] = Dimensions.length(@width) if @width
-      styles[:height] = Dimensions.length(@height) if @height
       styles["overflow"] = "auto" if @scroll
 
       styles
