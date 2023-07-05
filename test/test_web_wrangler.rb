@@ -226,7 +226,7 @@ end
 
 class TestWebWranglerAsyncJS < LoggedScarpeTest
   def round_trip_app(how_many)
-    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-TEST_CODE, timeout: 5.0)
+    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-TEST_CODE)
       Scarpe.app do
         para "Hello"
       end

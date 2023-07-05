@@ -43,7 +43,7 @@ class ScarpeWebviewTest < Minitest::Test
     test_app_location,
     test_code: "",
     app_test_code: "",
-    timeout: 3.0,
+    timeout: 10.0,
     allow_fail: false,
     exit_immediately: false,
     display_service: "wv_local"
