@@ -7,10 +7,21 @@ class Scarpe
     def initialize(properties)
       super(properties)
       @checked = properties[:checked]
+      puts "checked: #{@checked}"
 
       bind("click") do
         send_display_event(event_name: "click", target: shoes_linkable_id)
       end
+    end
+
+    def properties_changed(changes)
+      items = changes.delete("checked")
+      if items
+        html_element.unmark_radio_button
+        return
+      end
+
+      super
     end
 
     def element

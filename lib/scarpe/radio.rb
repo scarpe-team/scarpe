@@ -19,12 +19,6 @@ class Scarpe
       self.checked = !checked?
     end
 
-    def checked=(value)
-      @checked = value
-      update_display_widget
-      checked?
-    end
-
     def checked?
       @checked ? true : false
     end
