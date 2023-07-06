@@ -17,6 +17,10 @@ class Scarpe
 
       create_display_widget
     end
+
+    def replace(url)
+      self.url = url
+    end
   end
 
   class Widget

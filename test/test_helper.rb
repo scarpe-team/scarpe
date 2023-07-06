@@ -4,8 +4,8 @@ RUBY_MAIN_OBJ = self
 
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "scarpe"
+require "scarpe/unit_test_helpers"
 
-require "tempfile"
 require "json"
 require "fileutils"
 
@@ -14,9 +14,6 @@ require "minitest/autorun"
 require "minitest/reporters"
 Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
 
-# We're going to be passing a fair bit of data back and forth across eval boundaries.
-TEST_DATA = {}
-
 # Soon this should go in the framework, not here
 unless Object.constants.include?(:Shoes)
   Shoes = Scarpe
@@ -24,200 +21,159 @@ end
 
 # Docs for our Webview lib: https://github.com/Maaarcocr/webview_ruby
 
-def with_tempfile(prefix, contents)
-  t = Tempfile.new(prefix)
-  t.write(contents)
-  t.flush # Make sure the contents are written out
+SET_UP_TIMEOUT_CHECKS = { setup: false, near_timeout: [] }
+TIMEOUT_FRACTION_OF_THRESHOLD = 0.5 # Too low?
 
-  yield(t.path)
-ensure
-  t.close
-  t.unlink
-end
+class ScarpeWebviewTest < Minitest::Test
+  include Scarpe::Test::Helpers
 
-# Temporarily set env vars for the block of code inside
-def with_env_vars(envs)
-  old_env = {}
-  envs.each do |k, v|
-    old_env[k] = ENV[k]
-    ENV[k] = v
-  end
-  yield
-ensure
-  old_env.each { |k, v| ENV[k] = v }
-end
+  SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
 
-SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
-TEST_OPTS = [:timeout, :allow_fail, :allow_timeout, :debug, :exit_immediately]
+  def run_test_scarpe_code(
+    scarpe_app_code,
+    **opts
+  )
 
-def test_scarpe_code(scarpe_app_code, test_code: "", **opts)
-  bad_opts = opts.keys - TEST_OPTS
-  raise "Bad options passed to test_scarpe_code: #{bad_opts.inspect}!" unless bad_opts.empty?
-
-  with_tempfile("scarpe_test_app.rb", scarpe_app_code) do |test_app_location|
-    test_scarpe_app(test_app_location, test_code: test_code, **opts)
-  end
-end
-
-LOGGER_DIR = File.expand_path("#{__dir__}/../logger")
-# Using an instance variable doesn't work for ALREADY_SET_UP(etc) and I'm not sure why not
-ALREADY_SET_UP_TEST_FAILURES = { setup: false }
-def set_up_test_failures
-  return if ALREADY_SET_UP_TEST_FAILURES[:setup]
-
-  ALREADY_SET_UP_TEST_FAILURES[:setup] = true
-  Dir["#{LOGGER_DIR}/test_failure*.log"].each { |fn| File.unlink(fn) }
-
-  Minitest.after_run do
-    # Print test failure logs to console for CI
-    Dir["#{LOGGER_DIR}/test_failure*.log"].to_a.each do |fn|
-      print "\n==========================\n\n"
-      print "Test failure log #{fn.inspect}:\n\n"
-      print File.read(fn)
-      print "\n"
-      File.unlink(fn)
+    with_tempfile("scarpe_test_app.rb", scarpe_app_code) do |test_app_location|
+      run_test_scarpe_app(test_app_location, **opts)
     end
   end
-end
 
-def first_available_temp_spot(filepath)
-  dir, filename = File.split(filepath)
-  all_exts = filename.split(".", 2)[1]
-  base = File.basename(filename, "." + all_exts)
+  def run_test_scarpe_app(
+    test_app_location,
+    test_code: "",
+    app_test_code: "",
+    timeout: 3.0,
+    allow_fail: false,
+    exit_immediately: false,
+    display_service: "wv_local"
+  )
 
-  100.times do |ctr|
-    candidate = "#{dir}/#{base}_#{"%03d" % ctr}.#{all_exts}"
-    next if File.exist?(candidate)
+    with_tempfile("scarpe_test_results.json", "") do |result_path|
+      # We're temporarily dealing with two different kinds of test code.
+      # Test_control_code/test_code is a display-library test language.
+      # app_test_code is a test_flow/integrated experimental test language.
 
-    return candidate
-  end
-  raise "Can't find temp location for moving #{filepath.inspect}!"
-end
+      # test_control_code:
+      test_control_code = <<~SCARPE_TEST_CODE
+        require "scarpe/wv/control_interface_test"
 
-TEST_SCARPE_LOG_CONFIG = File.expand_path("#{LOGGER_DIR}/scarpe_wv_test.json")
-log_out = JSON.load_file(TEST_SCARPE_LOG_CONFIG).values.map { |_level, locs| locs }
-TEST_SAVE_FILES = log_out.select { |s| s.start_with?("logger/") }.map { |s| s.gsub(%r{\Alogger\/}, "") }
-def save_failure_logs
-  TEST_SAVE_FILES.each do |log_file|
-    full_loc = File.expand_path("#{LOGGER_DIR}/#{log_file}")
-    temp_spot = first_available_temp_spot(full_loc)
-    next unless File.exist?(full_loc)
+        on_event(:init) do
+          die_after #{timeout}
+        end
+      SCARPE_TEST_CODE
 
-    FileUtils.mv full_loc, temp_spot
-  end
-end
+      test_control_code += test_code
 
-def test_scarpe_app(test_app_location, test_code: "", **opts)
-  bad_opts = opts.keys - TEST_OPTS
-  raise "Bad options passed to test_scarpe_app: #{bad_opts.inspect}!" unless bad_opts.empty?
+      if exit_immediately
+        test_control_code += <<~TEST_EXIT_IMMEDIATELY
+          on_event(:next_heartbeat) do
+            Scarpe::Logger.logger("ScarpeTest").info("Dying on heartbeat because :exit_immediately is set")
+            app.destroy
+          end
+        TEST_EXIT_IMMEDIATELY
+      end
 
-  set_up_test_failures
+      # app_test_code:
+      app_test_file_code = <<~SCARPE_APP_TEST_CODE
+        require "scarpe/cats_cradle"
+        self.class.include Scarpe::Test::CatsCradle
+        event_init
+      SCARPE_APP_TEST_CODE
+      app_test_file_code += app_test_code
 
-  with_tempfile("scarpe_test_results.json", "") do |result_path|
-    do_debug = opts[:debug] ? true : false
-    timeout = opts[:timeout] ? opts[:timeout].to_f : 1.5
-    scarpe_test_code = <<~SCARPE_TEST_CODE
-      require "scarpe/wv/control_interface_test"
+      # Remove old results, if any
+      File.unlink(result_path)
 
-      override_app_opts debug: #{do_debug}
+      with_tempfiles([
+        ["scarpe_control.rb", test_control_code],
+        ["scarpe_log_config.json", JSON.dump(log_config_for_test)],
+        ["scarpe_app_test.rb", app_test_file_code],
+      ]) do |control_file_path, scarpe_log_config, app_test_path|
+        # Start the application using the exe/scarpe utility
+        # For unit testing always supply --debug so we get the most logging
+        system("SCARPE_TEST_CONTROL=#{control_file_path} SCARPE_TEST_RESULTS=#{result_path} " +
+          "SCARPE_LOG_CONFIG=\"#{scarpe_log_config}\" SCARPE_APP_TEST=\"#{app_test_path}\" " +
+          "ruby #{SCARPE_EXE} --debug --dev #{test_app_location}")
 
-      on_event(:init) do
-        die_after #{timeout}
-
-        # scarpeStatusAndExit is barbaric, and ignores all pending assertions and other subtleties.
-        wrangler.bind("scarpeStatusAndExit") do |*results|
-          return_results(results)
-          app.destroy
+        # Check if the process exited normally or crashed (segfault, failure, timeout)
+        unless $?.success?
+          assert(false, "Scarpe app failed with exit code: #{$?.exitstatus}")
+          return
         end
       end
-    SCARPE_TEST_CODE
 
-    scarpe_test_code += test_code
+      # If failure is okay, don't check for status or assertions
+      return if allow_fail
 
-    if opts[:exit_immediately]
-      scarpe_test_code += <<~TEST_EXIT_IMMEDIATELY
-        on_event(:next_heartbeat) do
-          app.destroy
-        end
-      TEST_EXIT_IMMEDIATELY
-    end
+      # If we exit immediately with no result written, that's fine.
+      # But if we wrote a result, make sure it says pass, not fail.
+      return if exit_immediately && !File.exist?(result_path)
 
-    # Remove old results, if any
-    File.unlink(result_path)
-
-    with_tempfile("scarpe_control.rb", scarpe_test_code) do |control_file_path|
-      # Start the application using the exe/scarpe utility
-      system("SCARPE_TEST_CONTROL=#{control_file_path} SCARPE_TEST_RESULTS=#{result_path} " +
-        "SCARPE_LOG_CONFIG=\"#{TEST_SCARPE_LOG_CONFIG}\" " +
-        "ruby #{SCARPE_EXE} --dev #{test_app_location}")
-
-      # Check if the process exited normally or crashed (segfault, failure, timeout)
-      if $?.exitstatus != 0
-        save_failure_logs
-        assert(false, "Scarpe app crashed with exit code: #{$?.exitstatus}")
-        return
+      unless File.exist?(result_path)
+        return assert(false, "Scarpe app returned no status code!")
       end
-    end
 
-    # If failure is okay, don't check for status or assertions
-    return if opts[:allow_fail]
-
-    # If we exit immediately with no result written, that's fine.
-    # But if we wrote a result, make sure it says pass, not fail.
-    return if opts[:exit_immediately] && !File.exist?(result_path)
-
-    unless File.exist?(result_path)
-      save_failure_logs
-      assert(false, "Scarpe app returned no status code!")
-      return
-    end
-
-    begin
       out_data = JSON.parse File.read(result_path)
+      Scarpe::Logger.logger("TestHelper").info("JSON assertion data: #{out_data.inspect}")
 
-      unless out_data.respond_to?(:each) && out_data.length > 1
+      unless out_data.respond_to?(:each) && out_data.length == 3
         raise "Scarpe app returned an unexpected data format! #{out_data.inspect}"
+      end
+
+      result, _msg, data = *out_data
+
+      if data["die_after"]
+        threshold = data["die_after"]["threshold"]
+        passed = data["die_after"]["passed"]
+        if passed / threshold > TIMEOUT_FRACTION_OF_THRESHOLD
+          test_name = "#{self.class.name}_#{self.name}"
+
+          SET_UP_TIMEOUT_CHECKS[:near_timeout] << [test_name, "%.2f%%" % (passed / threshold * 100.0)]
+        end
+
+        unless SET_UP_TIMEOUT_CHECKS[:setup]
+          Minitest.after_run do
+            unless SET_UP_TIMEOUT_CHECKS[:near_timeout].empty?
+              puts "#{SET_UP_TIMEOUT_CHECKS[:near_timeout].size} tests were near their maximum timeout!"
+              SET_UP_TIMEOUT_CHECKS[:near_timeout].each do |name, pct|
+                puts "Test #{name} was at #{pct} of threshold!"
+              end
+            end
+          end
+          SET_UP_TIMEOUT_CHECKS[:setup] = true
+        end
       end
 
       # If we exit immediately we still need a results file and a true value.
       # We were getting exit_immediately being fine with apps segfaulting,
       # so we need to check.
-      if opts[:exit_immediately]
-        if out_data[0]
+      if exit_immediately
+        if result
           # That's all we needed!
           return
         end
 
-        save_failure_logs
-        assert false, "App exited immediately, but its results were false! #{out_data.inspect}"
+        assert false, "App exited immediately, but its result was false! #{out_data.inspect}"
       end
 
-      unless out_data[0]
-        puts JSON.pretty_generate(out_data[1])
-        save_failure_logs
+      unless result
+        puts JSON.pretty_generate(out_data[1..-1])
         assert false, "Some Scarpe tests failed..."
       end
 
-      if out_data[1].is_a?(Hash)
-        test_data = out_data[1]
-        test_data["succeeded"].times { assert true } # Add to the number of assertions
-        test_data["failures"].each { |failure| assert false, "Failed Scarpe app test: #{failure}" }
-        if test_data["still_pending"] != 0
-          save_failure_logs
+      # If this is an assertion hash...
+      if data["succeeded"]
+        data["succeeded"].times { assert true } # Add to the number of assertions
+        data["failures"].each { |failure| assert false, "Failed Scarpe app test: #{failure}" }
+        if data["still_pending"] != 0
           assert false, "Some tests were still pending!"
         end
       end
-    rescue
-      $stderr.puts "Error parsing JSON data for Scarpe test status!"
-      raise
     end
   end
 end
 
-def assert_html(actual_html, expected_tag, **opts, &block)
-  expected_html = Scarpe::HTML.render do |h|
-    h.public_send(expected_tag, opts, &block)
-  end
-
-  assert_equal expected_html, actual_html
+class LoggedScarpeTest < ScarpeWebviewTest
+  include Scarpe::Test::LoggedTest
 end

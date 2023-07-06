@@ -13,12 +13,12 @@ class Scarpe
     include Scarpe::Log
 
     attr_reader :is_running
-    attr_reader :heartbeat
+    attr_reader :is_terminated
+    attr_reader :heartbeat # This is the heartbeat duration in seconds, usually fractional
     attr_reader :control_interface
 
     # This error indicates a problem when running ConfirmedEval
-    # TODO: add a Scarpe::Error parent class and inherit from it
-    class JSEvalError < StandardError
+    class JSEvalError < Scarpe::Error
       def initialize(data)
         @data = data
         super(data[:msg] || (self.class.name + "!"))
@@ -51,7 +51,7 @@ class Scarpe
       # For now, always allow inspect element
       @webview = WebviewRuby::Webview.new debug: true
       @webview = Scarpe::LoggedWrapper.new(@webview, "WebviewAPI") if debug
-      @init_refs = {} # Inits don't go away so keep a reference to them
+      @init_refs = {} # Inits don't go away so keep a reference to them to prevent GC
 
       @title = title
       @width = width
@@ -78,13 +78,22 @@ class Scarpe
         receive_eval_result(*results)
       end
 
+      # Ruby receives scarpeHeartbeat messages via the window library's main loop.
+      # So this is a way for Ruby to be notified periodically, in time with that loop.
       @webview.bind("scarpeHeartbeat") do
+        return unless @webview # I think GTK+ may continue to deliver events after shutdown
+
         periodic_js_callback
         @heartbeat_handlers.each(&:call)
         @control_interface.dispatch_event(:heartbeat)
       end
       js_interval = (heartbeat.to_f * 1_000.0).to_i
       @webview.init("setInterval(scarpeHeartbeat,#{js_interval})")
+    end
+
+    # Shorter name for better stack trace messages
+    def inspect
+      "Scarpe::WebWrangler:#{object_id}"
     end
 
     attr_writer :control_interface
@@ -317,15 +326,17 @@ class Scarpe
       @webview.run
       @is_running = false
       @webview.destroy
+      @webview = nil
     end
 
     def destroy
       @log.debug("Destroying WebWrangler...")
-      @log.debug("  (But WebWrangler was already inactive)") unless @webview
-      if @webview
+      @log.debug("  (WebWrangler was already terminated)") if @is_terminated
+      @log.debug("  (WebWrangler was already destroyed)") unless @webview
+      if @webview && !@is_terminated
         @bindings = {}
         @webview.terminate
-        @webview = nil
+        @is_terminated = true
       end
     end
 
@@ -428,7 +439,7 @@ end
 # before we consider a redraw complete.
 #
 # DOMWrangler batches up changes - it's fine to have a redraw "in flight" and have
-# changes waiting to catch the next bus. But We don't want more than one in flight,
+# changes waiting to catch the next bus. But we don't want more than one in flight,
 # since it seems like having too many pending RPC requests can crash Webview. So:
 # one redraw scheduled and one redraw promise waiting around, at maximum.
 class Scarpe
@@ -451,6 +462,12 @@ class Scarpe
 
         @fully_up_to_date_promise = nil
 
+        # Initially we're waiting for a full replacement to happen.
+        # It's possible to request updates/changes before we have
+        # a DOM in place and before Webview is running. If we do
+        # that, we should discard those updates.
+        @first_draw_requested = false
+
         @redraw_handlers = []
 
         # The "fully up to date" logic is complicated and not
@@ -460,6 +477,7 @@ class Scarpe
         # removable.
         web_wrangler.periodic_code("scarpeDOMWranglerHeartbeat") do
           if @fully_up_to_date_promise && fully_updated?
+            @log.info("Fulfilling up-to-date promise on heartbeat")
             @fully_up_to_date_promise.fulfilled!
             @fully_up_to_date_promise = nil
           end
@@ -467,6 +485,9 @@ class Scarpe
       end
 
       def request_change(js_code)
+        # No updates until there's something to update
+        return unless @first_draw_requested
+
         @waiting_changes << js_code
 
         promise_redraw
@@ -479,6 +500,7 @@ class Scarpe
       def request_replace(html_text)
         # Replace other pending changes, they're not needed any more
         @waiting_changes = [DOMWrangler.replacement_code(html_text)]
+        @first_draw_requested = true
 
         @log.debug("Requesting DOM replacement...")
         promise_redraw
@@ -494,7 +516,8 @@ class Scarpe
       # "pending and waiting" - we have a waiting promise for our unscheduled changes; we can add more unscheduled
       #     changes since we haven't scheduled them yet.
       #
-      # This is often called right after adding a new waiting change or replacing them, so that may need fixing up.
+      # This is often called after adding a new waiting change or replacing them, so the state may have just changed.
+      # It can also be called when no changes have been made and no updates need to happen.
       def promise_redraw
         if fully_updated?
           # No changes to make, nothing in-process or waiting, so just return a pre-fulfilled promise
@@ -516,7 +539,7 @@ class Scarpe
           return @pending_redraw_promise
         end
 
-        @log.debug("Requesting redraw with #{@waiting_changes.size} waiting changes - need to schedule something!")
+        @log.debug("Requesting redraw with #{@waiting_changes.size} waiting changes and no waiting promise - need to schedule something!")
 
         # We have at least one waiting change, possibly newly-added. We have no waiting_redraw_promise.
         # Do we already have a redraw in-flight?
@@ -530,6 +553,7 @@ class Scarpe
           # all the cases.
           @waiting_redraw_promise = Promise.new
 
+          @log.debug("Creating a new waiting promise since a pending promise is already in place")
           return @waiting_redraw_promise
         end
 
@@ -573,7 +597,7 @@ class Scarpe
             end
           end
 
-          @log.debug("REDRAW FULLY UP TO DATE") if fully_updated?
+          @log.debug("Redraw is now fully up-to-date") if fully_updated?
         end.on_rejected do
           @log.error "Could not complete JS redraw! #{promise.reason.full_message}"
           @log.debug("REDRAW FULLY UP TO DATE BUT JS FAILED") if fully_updated?
@@ -609,9 +633,11 @@ class Scarpe
       # Put together the waiting changes into a new in-flight redraw request.
       # Return it as a promise.
       def schedule_waiting_changes
+        return if @waiting_changes.empty?
+
         js_code = @waiting_changes.join(";")
         @waiting_changes = [] # They're not waiting any more!
-        @wrangler.eval_js_async js_code
+        @wrangler.eval_js_async(js_code)
       end
     end
   end

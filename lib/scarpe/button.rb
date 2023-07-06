@@ -2,17 +2,25 @@
 
 class Scarpe
   class Button < Scarpe::Widget
-    display_properties :text, :width, :height, :top, :left
+    include Scarpe::Log
+    display_properties :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size
 
-    def initialize(text, width: nil, height: nil, top: nil, left: nil, &block)
+    def initialize(text, width: nil, height: nil, top: nil, left: nil, color: nil, padding_top: nil, padding_bottom: nil, size: 12, text_color: nil,
+      font_size: nil, & block)
+
+      log_init("Button")
+
       # Properties passed as positional args, not keywords, don't get auto-set
       @text = text
+      @color = color
+
       @block = block
 
       super
 
       # Bind to a handler named "click"
       bind_self_event("click") do
+        @log.debug("Button clicked, calling handler") if @block
         @block&.call
       end
 

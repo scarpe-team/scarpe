@@ -61,7 +61,7 @@ class Scarpe
         destroy_self
       end
 
-      super()
+      super(linkable_id: @shoes_linkable_id)
     end
 
     # This exists to be overridden by children watching for changes
@@ -73,6 +73,10 @@ class Scarpe
       @parent&.remove_child(self)
       new_parent&.add_child(self)
       @parent = new_parent
+    end
+
+    def inspect
+      "#<#{self.class}:#{self.object_id} @shoes_linkable_id=#{@shoes_linkable_id} @parent=#{@parent.inspect} @children=#{@children.inspect}>"
     end
 
     protected
@@ -99,7 +103,7 @@ class Scarpe
     # Convert an [r, g, b, a] array to an HTML hex color code
     # Arrays support alpha. HTML hex does not. So premultiply.
     def rgb_to_hex(color)
-      return nil if color.nil?
+      return color if color.nil?
 
       r, g, b, a = *color
       if r.is_a?(Float)
@@ -126,7 +130,7 @@ class Scarpe
 
     # This gets a mini-webview for just this element and its children, if any
     def html_element
-      @elt_wrangler ||= WebviewDisplayService.instance.doc_root.get_element_wrangler(html_id)
+      @elt_wrangler ||= Scarpe::WebWrangler::ElementWrangler.new(html_id)
     end
 
     # Return a promise that guarantees all currently-requested changes have completed
@@ -154,7 +158,7 @@ class Scarpe
     def bind(event, &block)
       raise("Widget has no linkable_id! #{inspect}") unless linkable_id
 
-      WebviewDisplayService.instance.doc_root.bind("#{linkable_id}-#{event}", &block)
+      WebviewDisplayService.instance.app.bind("#{linkable_id}-#{event}", &block)
     end
 
     # Removes the element from both the Ruby Widget tree and the HTML DOM.
@@ -168,7 +172,7 @@ class Scarpe
     # And so we can't easily cancel one "in flight," and we can't easily pick up the latest
     # changes... And we probably don't want to, because we may be halfway through a batch.
     def needs_update!
-      WebviewDisplayService.instance.doc_root.request_redraw!
+      WebviewDisplayService.instance.app.request_redraw!
     end
 
     def handler_js_code(handler_function_name, *args)

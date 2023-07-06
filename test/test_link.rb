@@ -4,7 +4,7 @@ require "test_helper"
 
 # Link display properties: text, click, has_block
 
-class TestWebviewLink < Minitest::Test
+class TestWebviewLink < ScarpeWebviewTest
   def setup
     @default_properties = {
       "text" => "click here",
@@ -16,14 +16,14 @@ class TestWebviewLink < Minitest::Test
 
   def with_mocked_binding(&block)
     @mocked_disp_service = Minitest::Mock.new
-    @mocked_doc_root = Minitest::Mock.new
-    @mocked_disp_service.expect(:doc_root, @mocked_doc_root)
-    @mocked_doc_root.expect(:bind, nil, [String])
+    @mocked_app = Minitest::Mock.new
+    @mocked_disp_service.expect(:app, @mocked_app)
+    @mocked_app.expect(:bind, nil, [String])
 
     Scarpe::WebviewDisplayService.stub(:instance, @mocked_disp_service, &block)
 
     @mocked_disp_service.verify
-    @mocked_doc_root.verify
+    @mocked_app.verify
   end
 
   def test_link_with_url

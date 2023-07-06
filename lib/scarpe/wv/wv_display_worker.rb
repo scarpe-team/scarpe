@@ -8,6 +8,7 @@ SCARPE_DIR = File.join(__dir__, "../..")
 
 $LOAD_PATH.prepend(SCARPE_DIR)
 require "scarpe"
+require "scarpe/wv_local"
 
 # This script exists to create a WebviewDisplayService that can be operated remotely over a socket.
 
@@ -36,7 +37,7 @@ class WebviewContainedService < Scarpe::DisplayService::Linkable
     @init_done = false
 
     # Wait to register our periodic_code until the wrangler exists
-    @event_subs << bind_display_event(event_name: "init") do
+    @event_subs << bind_shoes_event(event_name: "init") do
       @wv_display.wrangler.periodic_code("datagramProcessor", 0.1) do
         respond_to_datagram while ready_to_read?(0.0)
       end
@@ -46,14 +47,6 @@ class WebviewContainedService < Scarpe::DisplayService::Linkable
     # Subscribe to all event notifications and relay them to the opposite side
     @event_subs << bind_shoes_event(event_name: :any, target: :any) do |*args, **kwargs|
       unless kwargs[:relayed] || kwargs["relayed"]
-        kwargs[:event_type] = :shoes
-        kwargs[:relayed] = true
-        send_datagram({ type: :event, args:, kwargs: })
-      end
-    end
-    @event_subs << bind_display_event(event_name: :any, target: :any) do |*args, **kwargs|
-      unless kwargs[:relayed]
-        kwargs[:event_type] = :display
         kwargs[:relayed] = true
         send_datagram({ type: :event, args:, kwargs: })
       end

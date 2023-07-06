@@ -33,7 +33,9 @@ Gem::Specification.new do |spec|
   spec.add_dependency "fastimage"
   spec.add_dependency "glimmer-dsl-libui"
   spec.add_dependency "nokogiri"
+  spec.add_dependency "sqlite3"
 
+  spec.add_dependency "bloops", "~>0.5"
   spec.add_dependency "logging", "~>2.3.1"
   spec.add_dependency "webview_ruby", "~>0.1.1"
 

@@ -2,84 +2,116 @@
 
 class Scarpe
   class App < Scarpe::Widget
+    include Scarpe::Log
+
     class << self
-      attr_accessor :next_test_code
+      attr_accessor :instance
     end
 
-    display_properties :title, :width, :height, :resizable, :debug, :do_shutdown
+    attr_reader :document_root
+
+    display_properties :title, :width, :height, :resizable, :debug
 
     def initialize(
       title: "Scarpe!",
       width: 480,
       height: 420,
       resizable: true,
-      debug: false,
-      test_code: nil,
+      debug: ENV["SCARPE_DEBUG"] ? true : false,
       &app_code_body
     )
-      @do_shutdown = false
-
-      if Scarpe::App.next_test_code
-        test_code = Scarpe::App.next_test_code
-        Scarpe::App.next_test_code = nil
+      if Scarpe::App.instance
+        @log.error("Trying to create a second Scarpe::App in the same process! Fail!")
+        raise "Cannot create multiple Scarpe::App objects!"
+      else
+        Scarpe::App.instance = self
       end
+
+      log_init("Scarpe::App")
+
+      @do_shutdown = false
 
       super
 
-      test_code&.call(self)
-
       # This creates the DocumentRoot, including its corresponding display widget
-      @document_root = Scarpe::DocumentRoot.new(debug: @debug)
+      @document_root = Scarpe::DocumentRoot.new
 
+      @slots = []
+
+      # Now create the App display widget
       create_display_widget
+
+      # Set up testing events *after* Display Service basic objects exist
+      if ENV["SCARPE_APP_TEST"]
+        test_code = File.read ENV["SCARPE_APP_TEST"]
+        if test_code != ""
+          self.instance_eval test_code
+        end
+      end
 
       @app_code_body = app_code_body
 
+      # Try to de-dup as much as possible and not send repeat or multiple
+      # destroy events
+      @watch_for_destroy = bind_shoes_event(event_name: "destroy") do
+        DisplayService.unsub_from_events(@watch_for_destroy) if @watch_for_destroy
+        @watch_for_destroy = nil
+        self.destroy(send_event: false)
+      end
+
       Signal.trap("INT") do
+        @log.warning("App interrupted by signal, stopping...")
         puts "\nStopping Scarpe app..."
         destroy
       end
     end
 
     def init
-      send_display_event(event_name: "init")
+      send_shoes_event(event_name: "init")
       return if @do_shutdown
 
-      @document_root.instance_eval(&@app_code_body)
+      ::Scarpe::App.instance.with_slot(@document_root, &@app_code_body)
     end
 
-    # This isn't guaranteed to be able to return. For Webview in particular, this takes control
-    # of the main thread ***and*** stops any background threads.
-    #
-    # So this is interesting. With a same-process Webview display service, this can't return.
-    # Webview takes full control. But we don't want to do that with a "no-op" display service,
-    # or no display service at all.
-    #
-    # If nobody is subscribed to "run", Scarpe will just traipse past "run" into "destroy" and
-    # shut everything down.
+    # "Container" widgets like flows, stacks, masks and the document root
+    # are considered "slots" in Scarpe parlance. When a new slot is created,
+    # we push it here in order to track what widgets are found in that slot.
+    def push_slot(slot)
+      @slots.push(slot)
+    end
+
+    def pop_slot
+      @slots.pop
+    end
+
+    def current_slot
+      @slots[-1]
+    end
+
+    def with_slot(slot_item, &block)
+      return unless block_given?
+
+      push_slot(slot_item)
+      Scarpe::App.instance.instance_eval(&block)
+    ensure
+      pop_slot
+    end
+
+    # This isn't supposed to return. The display service should take control
+    # of the main thread. Local Webview even stops any background threads.
     def run
-      send_display_event(event_name: "run")
-
-      # If there is an assertive display service like Webview, it will take control when
-      # it sees the run event and not give it back. A less assertive
-      # display service, or none at all, will simply return control immediately,
-      # and we'll run our own event loop here.
-
-      # Wait for incoming events from background threads, if any
-      until @do_shutdown
-        send_display_event(event_name: "heartbeat")
-        sleep 0.1
+      if @do_shutdown
+        $stderr.puts "Destroy has already been signaled, but we just called Shoes::App.run!"
+        return
       end
+      send_shoes_event(event_name: "run")
     end
 
-    def destroy
+    def destroy(send_event: true)
       @do_shutdown = true
-      send_display_event(event_name: "destroy")
+      send_shoes_event(event_name: "destroy") if send_event
     end
-  end
 
-  # In tests, this will normally be included into App
-  module AppTest
     def all_widgets
       out = []
 
@@ -93,11 +125,31 @@ class Scarpe
     end
 
     # We can add various ways to find widgets here.
+    # These are sort of like Shoes selectors, used for testing.
     def find_widgets_by(*specs)
       widgets = all_widgets
       specs.each do |spec|
         if spec.is_a?(Class)
-          all_widgets.select! { |w| spec === w }
+          widgets.select! { |w| spec === w }
+        elsif spec.is_a?(Symbol)
+          s = spec.to_s
+          case s[0]
+          when "$"
+            begin
+              # I'm not finding a global_variable_get or similar...
+              global_value = eval s
+              widgets &= [global_value]
+            rescue
+              raise "Error getting global variable: #{spec.inspect}"
+            end
+          when "@"
+            if app.instance_variables.include?(spec)
+              widgets &= [self.instance_variable_get(spec)]
+            else
+              raise "Can't find top-level instance variable: #{spec.inspect}!"
+            end
+          else
+          end
         else
           raise("Don't know how to find widgets by #{spec.inspect}!")
         end
@@ -105,4 +157,17 @@ class Scarpe
       widgets
     end
   end
+end
+
+# DSL methods
+class Scarpe::App
+  def background(...)
+    current_slot.background(...)
+  end
+
+  def border(...)
+    current_slot.border(...)
+  end
+
+  alias_method :info, :puts
 end

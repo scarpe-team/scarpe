@@ -1,0 +1,42 @@
+-------------------  GTK -----------------------
+
+Tests/menu/menu2.rb
+change  menuitem title        ok
+diable  menuitem              ok
+
+
+Tests/menu/menu3.rb
+
+Menuitem Tests - Info Menu   at 0       at 1+   at -1
+insert                         ok         ok      ok    foo About bar
+remove                         ok         ok      ok   
+  
+
+Menu       Tests - Info Menu   at 0       at 1+   at -1
+insert                         won't        ok      ok    Shoes info help
+remove                         won't        ok      ok  
+
+Test/menu/menu4.rb
+create action key               ok
+change action key               ok
+
+-------------------  OSX -----------------------
+
+Tests/menu/menu2.rb
+change  menuitem title        ok
+diable  menuitem              ok
+
+
+Tests/menu/menu3.rb
+Menuitem Tests - Info Menu   at 0        at 1+   at -1
+insert                        ok          ok      ok
+remove                        ok          ok      ok
+
+
+Menu     Tests - Info Menu   at 0       at 1+   at -1
+insert                       won't        ok      ok
+remove                       won't        ok      ok 
+
+Test/menu/menu4.rb
+create action key              ok
+change action key              ok

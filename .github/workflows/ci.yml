@@ -14,6 +14,8 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 10 
     steps:
+      - name: Install dependencies
+        run: brew install pkg-config portaudio
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Setup Ruby and install gems
@@ -22,6 +24,12 @@ jobs:
           bundler-cache: true
       - name: Run tests
         run: CI_RUN='true' bundle exec rake test
+      - name: upload test-fail logs
+        if: '!cancelled()'
+        uses: actions/upload-artifact@v3
+        with:
+          name: test failure logs
+          path: logger/test_failure*.out.log
   linter:
     name: Linter
     runs-on: macos-latest

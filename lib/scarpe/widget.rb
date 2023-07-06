@@ -12,15 +12,11 @@ class Scarpe
     include Scarpe::Colors
 
     class << self
-      attr_accessor :widget_classes, :alias_name, :linkable_properties, :linkable_properties_hash
-
-      def alias_as(name)
-        self.alias_name = name
-      end
+      attr_accessor :widget_classes
 
       def inherited(subclass)
-        self.widget_classes ||= []
-        self.widget_classes << subclass
+        Scarpe::Widget.widget_classes ||= []
+        Scarpe::Widget.widget_classes << subclass
         super
       end
 
@@ -30,32 +26,46 @@ class Scarpe
       end
 
       def widget_class_by_name(name)
-        widget_classes.detect { |k| k.dsl_name == name.to_s || k.alias_name.to_s == name.to_s }
+        widget_classes.detect { |k| k.dsl_name == name.to_s }
       end
+
+      private
+
+      def linkable_properties
+        @linkable_properties ||= []
+      end
+
+      def linkable_properties_hash
+        @linkable_properties_hash ||= {}
+      end
+
+      public
 
       # Display properties in Shoes Linkables are automatically sync'd with the display side objects.
       # TODO: do we want types or other modifiers on specific properties?
       def display_property(name)
         name = name.to_s
-        @linkable_properties ||= []
-        @linkable_properties_hash ||= {}
 
-        return if @linkable_properties_hash[name]
+        return if linkable_properties_hash[name]
 
-        @linkable_properties << { name: name }
-        @linkable_properties_hash[name] = true
+        linkable_properties << { name: name }
+        linkable_properties_hash[name] = true
       end
 
+      # Add these names as display properties
       def display_properties(*names)
         names.each { |n| display_property(n) }
       end
 
       def display_property_names
-        @linkable_properties.map { |prop| prop[:name] }
+        parent_prop_names = self != Scarpe::Widget ? self.superclass.display_property_names : []
+
+        parent_prop_names | linkable_properties.map { |prop| prop[:name] }
       end
 
       def display_property_name?(name)
-        @linkable_properties_hash[name.to_s]
+        linkable_properties_hash[name.to_s] ||
+          (self != Scarpe::Widget && superclass.display_property_name?(name))
       end
     end
 
@@ -68,22 +78,24 @@ class Scarpe
         end
       end
 
-      super() # Can specify linkable_id, but no reason to
+      super() # linkable_id defaults to object_id
     end
 
     def bind_self_event(event_name, &block)
       raise("Widget has no linkable_id! #{inspect}") unless linkable_id
 
-      bind_display_event(event_name: event_name, target: linkable_id, &block)
+      bind_shoes_event(event_name: event_name, target: linkable_id, &block)
     end
 
     def bind_no_target_event(event_name, &block)
-      bind_display_event(event_name:, &block)
+      bind_shoes_event(event_name:, &block)
     end
 
-    def display_properties
+    def display_property_values
+      all_property_names = self.class.display_property_names
+
       properties = {}
-      self.class.display_property_names.each do |prop|
+      all_property_names.each do |prop|
         properties[prop] = instance_variable_get("@" + prop)
       end
       properties["shoes_linkable_id"] = self.linkable_id
@@ -91,14 +103,10 @@ class Scarpe
     end
 
     def create_display_widget
-      # We want to support multiple, or zero, display services later. Thus, we link via events and
-      # DisplayService objects.
       klass_name = self.class.name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
-      DisplayService.display_services.each do |display_service|
-        # We SHOULD NOT save a reference to our display widget(s). If they just disappear later, we'll cheerfully
-        # keep ticking along and not complain.
-        display_service.create_display_widget_for(klass_name, self.linkable_id, display_properties)
-      end
+
+      # Should we save a reference to widget for later reference?
+      DisplayService.display_service.create_display_widget_for(klass_name, self.linkable_id, display_property_values)
     end
 
     attr_reader :parent
@@ -171,7 +179,7 @@ class Scarpe
         widget_instance = klass.new(*args, **kwargs, &block)
 
         unless klass.ancestors.include?(Scarpe::TextWidget)
-          widget_instance.set_parent(self)
+          widget_instance.set_parent Scarpe::App.instance.current_slot
         end
 
         widget_instance

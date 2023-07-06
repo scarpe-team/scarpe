@@ -10,7 +10,10 @@ class Scarpe
   # configured component.
   module Log
     DEFAULT_LOG_CONFIG = {
-      "default": "info",
+      "default" => "info",
+    }
+    DEFAULT_DEBUG_LOG_CONFIG = {
+      "default" => "debug",
     }
 
     def log_init(component = self)
@@ -50,11 +53,11 @@ class Scarpe
       def json_to_appender(data)
         case data.downcase
         when "stdout"
-          Logging.appenders.stdout
+          Logging.appenders.stdout layout: @custom_log_layout
         when "stderr"
-          Logging.appenders.stderr
+          Logging.appenders.stderr layout: @custom_log_layout
         when String
-          Logging.appenders.file(data)
+          Logging.appenders.file data, layout: @custom_log_layout
         else
           raise "Don't know how to convert #{data.inspect} to an appender!"
         end
@@ -91,10 +94,18 @@ class Scarpe
       public
 
       def configure_logger(log_config)
+        # TODO: custom coloring? https://github.com/TwP/logging/blob/master/examples/colorization.rb
+        @custom_log_layout = Logging.layouts.pattern pattern: '[%r] %-5l %c: %m\n'
+
+        if log_config.is_a?(String) && File.exist?(log_config)
+          log_config = JSON.load_file(log_config)
+        end
+
         log_config = freeze_log_config(log_config) unless log_config.nil?
         @current_log_config = log_config # Save a copy for later
 
         Logging.reset # Reset all Logging settings to defaults
+        Logging.reopen # For log-reconfig (e.g. test failures), often important to *not* store an open handle to a moved file
         return if log_config.nil?
 
         Logging.logger.root.appenders = [Logging.appenders.stdout]
@@ -124,12 +135,25 @@ class Scarpe
       self.singleton_class.define_method(method) do |*args, **kwargs, &block|
         ret = @instance.send(method, *args, **kwargs, &block)
         @log.info("Method: #{method} Args: #{args.inspect} KWargs: #{kwargs.inspect} Block: #{block ? "y" : "n"} Return: #{ret.inspect}")
+        ret
       end
       send(method, ...)
+    end
+
+    def respond_to_missing?(method_name, include_private = false)
+      @instance.respond_to_missing?(method_name, include_private)
     end
   end
 end
 
-log_config = ENV["SCARPE_LOG_CONFIG"] ? JSON.load_file(ENV["SCARPE_LOG_CONFIG"]) : Scarpe::Log::DEFAULT_LOG_CONFIG
+class Logging::Logger
+  alias_method :warning, :warn
+end
+
+log_config = if ENV["SCARPE_LOG_CONFIG"]
+  JSON.load_file(ENV["SCARPE_LOG_CONFIG"])
+else
+  ENV["SCARPE_DEBUG"] ? Scarpe::Log::DEFAULT_DEBUG_LOG_CONFIG : Scarpe::Log::DEFAULT_LOG_CONFIG
+end
 
 Scarpe::Logger.configure_logger(log_config)

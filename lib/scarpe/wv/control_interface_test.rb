@@ -11,34 +11,39 @@ class Scarpe
   DEFAULT_ASSERTION_TIMEOUT = 1.0
 
   class ControlInterface
+    include Scarpe::Test::Helpers
+
     def timed_out?
       @did_time_out
     end
 
     def die_after(time)
       t_start = Time.now
+      @die_after = [t_start, time]
 
       wrangler.periodic_code("scarpeTestTimeout") do |*_args|
-        if (Time.now - t_start).to_f > time
+        t_delta = (Time.now - t_start).to_f
+        if t_delta > time
           @did_time_out = true
+          @log.warn("die_after - timed out after #{t_delta.inspect} (threshold: #{time.inspect})")
+          return_results(false, "Timed out!")
           app.destroy
         end
       end
     end
 
-    # This does a final return of results. Don't call it yourself
-    # unless you want any other results that would be returned
-    # to be wiped out.
-    def return_results(result_structs)
-      if @results_returned
-        raise "Returning more than one set of results! Bad!"
+    # This is returned alongside the actual results automatically
+    def test_metadata
+      data = {}
+      if @die_after
+        t_delta = (Time.now - @die_after[0]).to_f
+        data["die_after"] = {
+          t_start: @die_after[0].to_s,
+          threshold: @die_after[1],
+          passed: t_delta,
+        }
       end
-
-      result_file = ENV["SCARPE_TEST_RESULTS"] || "./scarpe_results.txt"
-      @log.debug("Writing results file #{result_file.inspect} to disk!")
-      File.write(result_file, JSON.pretty_generate(result_structs))
-
-      @results_returned = true
+      data
     end
 
     # Need to be able to query widgets in test code
@@ -77,13 +82,18 @@ class Scarpe
     # We want an assertions library, but one that runs inside the spawned
     # Webview sub-process.
 
+    # Note that we do *not* extract this assertions library to use elsewhere
+    # because it's very focused on evented assertions that start and stop
+    # over a period of time. Instantaneous procedural asserts don't want to
+    # use this API.
+
     def return_when_assertions_done
       assertions_may_exist
 
       wrangler.periodic_code("scarpeReturnWhenAssertionsDone") do |*_args|
         if @assertions_pending.empty?
           success = @assertions_failed.empty?
-          return_results [success, assertion_data_as_a_struct]
+          return_results success, "Assertions #{success ? "succeeded" : "failed"}", assertion_data_as_a_struct
           app.destroy
         end
       end
@@ -183,6 +193,10 @@ class Scarpe
     def with_js_dom_html(wait_for: [], timeout: DEFAULT_ASSERTION_TIMEOUT, &block)
       with_js_value("document.getElementById('wrapper-wvroot').innerHTML", wait_for: wait_for, timeout: timeout, &block)
     end
+
+    def fully_updated(wait_for: [])
+      wrangler.promise_dom_fully_updated
+    end
   end
 
   # A Promise but with helper functions
@@ -209,8 +223,12 @@ class Scarpe
       end
     end
 
+    def then_with_js_value(js_code, wait_for: [], timeout: DEFAULT_ASSERTION_TIMEOUT, &block)
+      @iface.with_js_value(js_code, wait_for: (wait_for + [self]), timeout:, &block)
+    end
+
     def then_with_js_dom_html(wait_for: [], timeout: DEFAULT_ASSERTION_TIMEOUT, &block)
-      @iface.with_js_dom_html(wait_for: (wait_for + [self]), timeout: timeout, &block)
+      @iface.with_js_dom_html(wait_for: (wait_for + [self]), timeout:, &block)
     end
   end
 end

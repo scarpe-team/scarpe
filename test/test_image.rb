@@ -2,9 +2,7 @@
 
 require "test_helper"
 
-TEST_VALUES = {}
-
-class TestWebviewImage < Minitest::Test
+class TestWebviewImage < ScarpeWebviewTest
   def setup
     @url = "http://shoesrb.com/manual/static/shoes-icon.png"
     @default_properties = {

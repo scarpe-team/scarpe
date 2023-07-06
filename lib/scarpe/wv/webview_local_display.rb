@@ -6,15 +6,17 @@ class Scarpe
   # process, too many or too large evals can crash the process, etc.
   # Normally the intention is to use a RelayDisplayService to a second
   # process containing one of these.
-  class WebviewDisplayService
+  class WebviewDisplayService < Scarpe::DisplayService
+    include Scarpe::Log
+
     class << self
       attr_accessor :instance
     end
 
     # TODO: re-think the list of top-level singleton objects.
     attr_reader :control_interface
-    attr_reader :app
     attr_reader :doc_root
+    attr_reader :app
     attr_reader :wrangler
 
     # This is called before any of the various WebviewWidgets are created.
@@ -24,6 +26,9 @@ class Scarpe
       end
 
       WebviewDisplayService.instance = self
+
+      super()
+      log_init("WV::WebviewDisplayService")
 
       @display_widget_for = {}
     end
@@ -55,19 +60,6 @@ class Scarpe
         # WebviewDocumentRoot is created before WebviewApp. Mostly doc_root is just like any other widget,
         # but we'll want a reference to it when we create WebviewApp.
         @doc_root = display_widget
-      end
-
-      display_widget
-    end
-
-    def set_widget_pairing(id, display_widget)
-      @display_widget_for[id] = display_widget
-    end
-
-    def query_display_widget_for(id, nil_ok: false)
-      display_widget = @display_widget_for[id]
-      unless display_widget || nil_ok
-        raise "Could not find display widget for linkable ID #{id.inspect}!"
       end
 
       display_widget

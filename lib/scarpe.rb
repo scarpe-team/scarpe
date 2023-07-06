@@ -12,14 +12,23 @@ end
 require "securerandom"
 require "json"
 
+require_relative "constants"
+
+class Scarpe::Error < StandardError; end
+
 require_relative "scarpe/version"
 require_relative "scarpe/promises"
 require_relative "scarpe/display_service"
 require_relative "scarpe/widgets"
 
-# Display services
-require_relative "scarpe/wv"
-require_relative "scarpe/glibui" if ENV["SCARPE_DISPLAY_SERVICES"]&.include?("Scarpe::GlimmerLibUIDisplayService")
+require "bloops"
+
+d_s = ENV["SCARPE_DISPLAY_SERVICE"] || "wv_local"
+# This is require, not require_relative, to allow gems to supply a new display service
+require "scarpe/#{d_s}"
+
+#Constants Module
+include Constants
 
 class Scarpe
   class << self

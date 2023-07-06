@@ -11,6 +11,12 @@
 
 Scarpe isn't feature complete with any version of Shoes (yet?). We're initially targeting Shoes Classic.
 
+## Wait, What's A Shoes?
+
+Shoes is an old library (really several different ones) that let you build little local desktop computer programs, package them up and give copies to people. Imagine if you can write a tiny little Ruby program (e.g. sneak a peek at the next section) and then it would make a runnable app, opening a window in Ruby, where you could click buttons and play sounds and stuff.
+
+Scarpe is a rewrite of Shoes, because old Shoes doesn't really work any more. There have been a surprising number of rewrites of Shoes over the years -- people love it and miss having it around. This one is ours. Also it uses Webview.
+
 ## Usage
 
 Note: you'll probably want the [Scarpe in Development](#scarpe-in-development) instructions below in most cases! Scarpe isn't ready for "just install the released version" production usage yet.
@@ -44,9 +50,17 @@ Scarpe requires [Ruby 3.2](https://www.ruby-lang.org/en/downloads/) or higher! u
 This is where most of the action is happening right now, and to have the full Scarpe experience _today_ this is probably what you want to do.
 
 ```
+# dependencies - Mac version
+brew install portaudio pkg-config # for sound!
+# dependencies - Ubuntu Linux version
+sudo apt install libgtk-3-dev libwebkit2gtk-4.0-dev libportaudio2
+
+for any other linux or windows. please see the webview docs for your [platform](https://github.com/webview/webview#prerequisites)
+
 # get it
 git clone http://github.com/scarpe-team/scarpe
 cd scarpe; bundle install
+
 # run it
 ./exe/scarpe examples/button.rb --dev
 ```
@@ -63,9 +77,15 @@ Most commonly we are all using this command: `./exe/scarpe examples/button.rb --
 
 The `--dev` flag points to your local scarpe rather than an installed Scarpe gem.
 
+The `--debug` flag will dump a ton of useful information to the console if you want to see what's happening with your app.
+
 It's very early in the development process. If you'd like to help develop Scarpe, great! It would be useful to drop us a message/issue/PR on GitHub early on, so we know you're working in a particular area, and we can warn you if anybody else is currently doing so.
 
 We'd love the help!
+
+If you want to quickly add a feature, you can use the `ruby scarpegen.rb` command. This command will generate the necessary files for you, along with a simple template and a set of questions to guide you through the process. By following these steps, you will be good to go!
+
+By leveraging the `ruby scarpegen.rb` command and the provided resources, you can expedite the feature addition process and ensure a smoother development experience.
 
 ## Are we done yet?
 
@@ -77,13 +97,13 @@ Huh. Great question. Right now we have a few key things we want to achieve. The 
 
 ![](https://geps.dev/progress/16?dangerColor=800000&warningColor=ff9900&successColor=006600)
 
-__41/257__
+__41/288__
 
 ### GlimmerLibUI Display Service Examples Passing
 
 ![](https://geps.dev/progress/2?dangerColor=800000&warningColor=ff9900&successColor=006600)
 
-__4/257__
+__4/288__
 
 ## Teach me more about Shoes, the DSL, what it is and why it is amazing
 
@@ -97,11 +117,11 @@ Scarpe allows you to modify the app's behaviour outside of the normal Shoes API 
 
 For example, we are working with multiple display services like Webview, Glimmer, and possibly some others.
 
-The SCARPE_DISPLAY_SERVICES environment variable allows you to choose one or more display services, from the default Webview service, to no service at all, to potentially other experimental or incomplete services. This may be important if you're developing a new display method for Scarpe. Normally ScarpeDisplayServices will contain a semicolon-delimited list of class names for display services (which can be just the name of a single display service). For no display service at all, set it to a single dash.
+The SCARPE_DISPLAY_SERVICE environment variable allows you to choose one or more display services, from the default Webview service to potentially other experimental or incomplete services. This may be important if you're developing a new display method for Scarpe. The display service variable will contain a name like "wv_local" or "wv_remote" or "glibui" which corresponds to a require-able Ruby file under lib/scarpe, either in the Scarpe gem or another gem your app requires.
 
 Example usage:
 
-`SCARPE_DISPLAY_SERVICES=Scarpe::GlimmerLibUIDisplayService ./exe/scarpe examples/hello_world.rb`
+`SCARPE_DISPLAY_SERVICE=glibui ./exe/scarpe examples/hello_world.rb`
 
 The SCARPE_TEST_CONTROL environment variable can contain a path to a test-control-interface script for the Webview display service. If you look at test_helper, it gives some examples of how to use it.
 
@@ -145,7 +165,7 @@ locally, and then view it with "yard server". Point your browser at "http://loca
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/scarpe-team/scarpe. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/scarpe-team/scarpe/blob/main/CODE_OF_CONDUCT.md) and {CONTRIBUTING.md](https://github.com/scarpe-team/scarpe/blob/main/CONTRIBUTING.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/scarpe-team/scarpe. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/scarpe-team/scarpe/blob/main/CODE_OF_CONDUCT.md) and [CONTRIBUTING.md](https://github.com/scarpe-team/scarpe/blob/main/CONTRIBUTING.md).
 
 ## License
 

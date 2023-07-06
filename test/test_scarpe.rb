@@ -2,13 +2,23 @@
 
 require "test_helper"
 
-class TestScarpe < Minitest::Test
+# These are a variety of simple apps, and we're just making sure they don't immediately fail.
+
+class TestWebviewScarpe < LoggedScarpeTest
   def test_that_it_has_a_version_number
     refute_nil ::Scarpe::VERSION
   end
 
   def test_hello_world_app
-    test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+      Shoes.app do
+        para "Hello World"
+      end
+    SCARPE_APP
+  end
+
+  def test_hello_world_app_wv_relay
+    run_test_scarpe_code(<<-'SCARPE_APP', display_service: "wv_relay", exit_immediately: true)
       Shoes.app do
         para "Hello World"
       end
@@ -16,7 +26,7 @@ class TestScarpe < Minitest::Test
   end
 
   def test_app_timeout
-    test_scarpe_code(<<-'SCARPE_APP', timeout: 0.1, allow_fail: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', timeout: 0.5, allow_fail: true)
       Shoes.app do
         para "Just waiting for this to time out"
       end
@@ -24,7 +34,7 @@ class TestScarpe < Minitest::Test
   end
 
   def test_button_app
-    test_scarpe_code(<<-'SCARPE_APP', debug: true, exit_immediately: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Shoes.app do
         @push = button "Push me", width: 200, height: 50, top: 109, left: 132
         @note = para "Nothing pushed so far"
@@ -35,7 +45,7 @@ class TestScarpe < Minitest::Test
   end
 
   def test_text_widgets
-    test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Shoes.app do
         para "This is plain."
         para "This has ", em("emphasis"), " and great ", strong("strength"), " and ", code("coolness"), "."
@@ -44,7 +54,7 @@ class TestScarpe < Minitest::Test
   end
 
   def test_button_args_optional
-    test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Shoes.app do
         button "Push me"
       end
@@ -52,7 +62,7 @@ class TestScarpe < Minitest::Test
   end
 
   def test_stack_args_optional
-    test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Shoes.app do
         stack do
           button "Push me"
@@ -62,7 +72,7 @@ class TestScarpe < Minitest::Test
   end
 
   def test_widgets_exist
-    test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Shoes.app do
         stack do
           para "Here I am"
@@ -71,6 +81,38 @@ class TestScarpe < Minitest::Test
           edit_line "edit_line here", width: 450
           image "http://shoesrb.com/manual/static/shoes-icon.png"
         end
+      end
+    SCARPE_APP
+  end
+
+  def test_widgets_exist_wv_relay
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true, display_service: "wv_relay")
+      Shoes.app do
+        stack do
+          para "Here I am"
+          button "Push me"
+          alert "I am an alert!"
+          edit_line "edit_line here", width: 450
+          image "http://shoesrb.com/manual/static/shoes-icon.png"
+        end
+      end
+    SCARPE_APP
+  end
+
+  def test_modify_before_show
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+      Shoes.app do
+        p = para "Hello"
+        p.replace("Goodbye")
+      end
+    SCARPE_APP
+  end
+
+  def test_download
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+      Shoes.app do
+        para "Hello"
+        download("https://raw.githubusercontent.com/scarpe-team/scarpe/main/docs/static/avatar.png")
       end
     SCARPE_APP
   end

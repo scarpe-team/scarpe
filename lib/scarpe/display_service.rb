@@ -3,7 +3,20 @@
 # Scarpe Shoes apps operate in multiple layers. A Shoes widget tree exists as fairly
 # plain, simple Ruby objects. And then a display-service widget tree integrates with
 # the display technology, initially Webview. This lets us use Ruby as our API while
-# not tying it too closely to some fairly serious limitations of Webview.
+# not tying it too closely to the limitations of Webview.
+#
+# ## Choosing Display Services
+#
+# Before running a Scarpe app, you can set SCARPE_DISPLAY_SERVICE. If you
+# set it to "whatever_service", Scarpe will require "scarpe/whatever_service",
+# which can be supplied by the Scarpe gem or another Scarpe-based gem.
+# Currently leaving the environment variable empty is equivalent to requesting
+# local Webview.
+#
+# ## Events
+#
+# Events are a lot of what tie the Shoes widgets and the display service together.
+#
 # Scarpe widgets *expect* to operate in a fairly "hands off" mode where they record
 # to an event queue to send to the display service, and the display service records
 # events to send back.
@@ -25,27 +38,25 @@
 # you want both. But internally they're immediately dispatched as events
 # rather than keeping a literal array of items.
 #
-# ## Choosing Display Services
-#
-# Before running a Scarpe app, you can set SCARPE_DISPLAY_SERVICES. A single
-# dash means no display service. A list of class names will cause Scarpe
-# to instantiate that class or those classes as the display service(s).
-# Leaving the variable unset is equivalent to "Scarpe::WebviewDisplayService".
 class Scarpe
   class DisplayService
-    DS_EVENT_TYPES = [:shoes, :display]
-
     class << self
+      # This is in the eigenclass/metaclass, *not* instances of DisplayService
+      include Scarpe::Log
+
       attr_accessor :json_debug_serialize
 
       # An event_target may be nil, to indicate there is no target.
-      def dispatch_event(event_type, event_name, event_target, *args, **kwargs)
+      def dispatch_event(event_name, event_target, *args, **kwargs)
         @@display_event_handlers ||= {}
-        unless DS_EVENT_TYPES.include?(event_type)
-          raise("Unknown event type #{event_type.inspect}! Known types are #{DS_EVENT_TYPES.inspect}!")
+
+        unless @log
+          log_init("DisplayService")
         end
 
         raise "Cannot dispatch on event_name :any!" if event_name == :any
+
+        @log.debug("Dispatch event: #{event_name.inspect} T: #{event_target.inspect} A: #{args.inspect} KW: #{kwargs.inspect}")
 
         if DisplayService.json_debug_serialize
           args = JSON.parse JSON.dump(args)
@@ -56,11 +67,8 @@ class Scarpe
           kwargs = new_kw
         end
 
-        same_type_handlers = @@display_event_handlers[event_type] || {}
-        return if same_type_handlers.empty?
-
-        same_name_handlers = same_type_handlers[event_name] || {}
-        any_name_handlers = same_type_handlers[:any] || {}
+        same_name_handlers = @@display_event_handlers[event_name] || {}
+        any_name_handlers = @@display_event_handlers[:any] || {}
 
         # Do we have any keys, in same_name_handlers or any_name_handlers, matching the target or :any?
         # Note that "nil" is a target like any other for these purposes -- subscribing to a nil target
@@ -71,7 +79,6 @@ class Scarpe
           any_name_handlers[:any],            # Any name, any target
           any_name_handlers[event_target],    # Any name, same target
         ].compact.inject([], &:+)
-
         kwargs[:event_name] = event_name
         kwargs[:event_target] = event_target if event_target
         handlers.each { |h| h[:handler].call(*args, **kwargs) }
@@ -79,23 +86,25 @@ class Scarpe
 
       # It's permitted to subscribe to event_name :any for all event names, and event_target :any for all targets.
       # An event_target of nil means "no target", and only matches events dispatched with a nil target.
-      def subscribe_to_event(event_type, event_name, event_target, &handler)
+      def subscribe_to_event(event_name, event_target, &handler)
         @@display_event_handlers ||= {}
         @@display_event_unsub_id ||= 0
-        unless DS_EVENT_TYPES.include?(event_type)
-          raise("Unknown event type #{event_type.inspect}! Known types are #{DS_EVENT_TYPES.inspect}!")
-        end
         unless handler
           raise "Must pass a block as a handler to DisplayService.subscribe_to_event!"
         end
 
+        unless @log
+          log_init("DisplayService")
+        end
+
+        @log.debug("Subscribe to event: #{event_name.inspect} T: #{event_target.inspect}")
+
         id = @@display_event_unsub_id
         @@display_event_unsub_id += 1
 
-        @@display_event_handlers[event_type] ||= {}
-        @@display_event_handlers[event_type][event_name] ||= {}
-        @@display_event_handlers[event_type][event_name][event_target] ||= []
-        @@display_event_handlers[event_type][event_name][event_target] << { handler:, unsub_id: id }
+        @@display_event_handlers[event_name] ||= {}
+        @@display_event_handlers[event_name][event_target] ||= []
+        @@display_event_handlers[event_name][event_target] << { handler:, unsub_id: id }
 
         id
       end
@@ -103,11 +112,9 @@ class Scarpe
       def unsub_from_events(unsub_id)
         raise "Must provide an unsubscribe ID!" if unsub_id.nil?
 
-        @@display_event_handlers.each do |_type, e_name_hash|
-          e_name_hash.each do |_e_name, target_hash|
-            target_hash.each do |_target, h_list|
-              h_list.delete_if { |item| item[:unsub_id] == unsub_id }
-            end
+        @@display_event_handlers.each do |_e_name, target_hash|
+          target_hash.each do |_target, h_list|
+            h_list.delete_if { |item| item[:unsub_id] == unsub_id }
           end
         end
       end
@@ -117,23 +124,24 @@ class Scarpe
         @json_debug_serialize = nil
       end
 
-      def display_services
-        return @service_list if @service_list
+      def set_display_service_class(klass)
+        raise "Can only set a single display service class!" if @display_service_klass
 
-        service_spec = (ENV["SCARPE_DISPLAY_SERVICES"] || "Scarpe::WebviewDisplayService").strip
-        if service_spec == "-"
-          @service_list = [].freeze
-          return @service_list
-        end
-        @service_list = service_spec.split(";").map do |svc|
-          klass = Object.const_get(svc)
-          raise "Cannot find class #{svc.inspect} to create display service!" unless klass
+        @display_service_klass = klass
+      end
 
-          klass.new
-        end
+      def display_service
+        return @service if @service
+
+        raise "No display service was set!" unless @display_service_klass
+
+        @service = @display_service_klass.new
       end
     end
 
+    # This is for objects that can be referred to via events, using their
+    # IDs. There are also convenience functions for binding and sending
+    # events.
     class Linkable
       attr_reader :linkable_id
 
@@ -141,47 +149,41 @@ class Scarpe
         @linkable_id = linkable_id
       end
 
-      def send_shoes_event(*args, event_name:, target: nil, **kwargs)
-        DisplayService.dispatch_event(:shoes, event_name, target, *args, **kwargs)
+      def send_self_event(*args, event_name:, **kwargs)
+        DisplayService.dispatch_event(event_name, self.linkable_id, *args, **kwargs)
       end
 
-      def send_display_event(*args, event_name:, target: nil, **kwargs)
-        DisplayService.dispatch_event(:display, event_name, target, *args, **kwargs)
+      def send_shoes_event(*args, event_name:, target: nil, **kwargs)
+        DisplayService.dispatch_event(event_name, target, *args, **kwargs)
       end
 
       def bind_shoes_event(event_name:, target: nil, &handler)
-        DisplayService.subscribe_to_event(:shoes, event_name, target, &handler)
-      end
-
-      def bind_display_event(event_name:, target: nil, &handler)
-        DisplayService.subscribe_to_event(:display, event_name, target, &handler)
+        DisplayService.subscribe_to_event(event_name, target, &handler)
       end
     end
 
-    module LinkableTest
-      def on_next_event(event_type, event_name, target: nil, &block)
-        if event_type == :shoes
-          unsub_id = bind_shoes_event(event_name:, target:) do |*args, **kwargs|
-            block.call(*args, **kwargs)
-            DisplayService.unsub_from_events(unsub_id)
-          end
-        elsif event_type == :display
-          unsub_id = bind_display_event(event_name:, target:) do |*args, **kwargs|
-            block.call(*args, **kwargs)
-            DisplayService.unsub_from_events(unsub_id)
-          end
-        else
-          raise "Attempt to get on_next with unknown event type #{event_type.inspect}, not :display or :shoes!"
-        end
+    # These methods are an interface to DisplayService objects.
+
+    def create_display_widget_for(widget_class_name, widget_id, properties)
+      raise "Override in DisplayService implementation!"
+    end
+
+    def set_widget_pairing(id, display_widget)
+      @display_widget_for ||= {}
+      @display_widget_for[id] = display_widget
+    end
+
+    def query_display_widget_for(id, nil_ok: false)
+      display_widget = @display_widget_for[id]
+      unless display_widget || nil_ok
+        raise "Could not find display widget for linkable ID #{id.inspect}!"
       end
 
-      def on_next_heartbeat(&block)
-        on_next_event(:display, "heartbeat", &block)
-      end
+      display_widget
+    end
 
-      def on_init(&block)
-        bind_display_event(event_name: "init", &block)
-      end
+    def destroy
+      raise "Override in DisplayService implementation!"
     end
   end
 end
