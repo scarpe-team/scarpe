@@ -1,3 +1,5 @@
+# if this example path is changed from examples/button.rb update in docs too
+
 Shoes.app do
   @push = button "Push me"
   @note = para "Nothing pushed so far"
