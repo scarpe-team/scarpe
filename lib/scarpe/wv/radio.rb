@@ -7,7 +7,6 @@ class Scarpe
     def initialize(properties)
       super(properties)
       @checked = properties[:checked]
-      puts "checked: #{@checked}"
 
       bind("click") do
         send_display_event(event_name: "click", target: shoes_linkable_id)
