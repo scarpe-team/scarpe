@@ -1,16 +1,17 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class Webview<%= argument %> < Scarpe::WebviewWidget
-
+  class WebviewVideo < Scarpe::WebviewWidget
     def initialize(properties)
+      @url = properties[:url]
       super
-
     end
 
     def element
       HTML.render do |h|
-        h.textarea(id: html_id, style: style)
+        h.video(id: html_id, style: style, controls: true) do
+          h.source(src: @url, type: "video/mp4")
+        end
       end
     end
 
