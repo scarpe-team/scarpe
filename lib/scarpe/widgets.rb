@@ -10,6 +10,7 @@ require_relative "border"
 require_relative "star"
 
 require_relative "fill"
+require_relative "font"
 
 require_relative "slot"
 require_relative "para"
