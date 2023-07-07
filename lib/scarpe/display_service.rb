@@ -160,6 +160,10 @@ class Scarpe
       def bind_shoes_event(event_name:, target: nil, &handler)
         DisplayService.subscribe_to_event(event_name, target, &handler)
       end
+
+      def unsub_shoes_event(unsub_id)
+        DisplayService.unsub_from_events(unsub_id)
+      end
     end
 
     # These methods are an interface to DisplayService objects.

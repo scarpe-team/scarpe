@@ -12,10 +12,9 @@ end
 require "securerandom"
 require "json"
 
-require_relative "constants"
-
 class Scarpe::Error < StandardError; end
 
+require_relative "scarpe/constants"
 require_relative "scarpe/version"
 require_relative "scarpe/promises"
 require_relative "scarpe/display_service"
@@ -27,7 +26,6 @@ d_s = ENV["SCARPE_DISPLAY_SERVICE"] || "wv_local"
 # This is require, not require_relative, to allow gems to supply a new display service
 require "scarpe/#{d_s}"
 
-#Constants Module
 include Constants
 
 class Scarpe

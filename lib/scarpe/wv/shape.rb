@@ -3,6 +3,7 @@
 require_relative "shape_helper"
 
 class Scarpe
+  # Should inherit from Slot?
   class WebviewShape < Scarpe::WebviewWidget
     include ShapeHelper
 

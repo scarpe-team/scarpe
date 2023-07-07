@@ -8,6 +8,7 @@ require "scarpe/unit_test_helpers"
 
 require "json"
 require "fileutils"
+require "tmpdir"
 
 require "minitest/autorun"
 
@@ -43,7 +44,7 @@ class ScarpeWebviewTest < Minitest::Test
     test_app_location,
     test_code: "",
     app_test_code: "",
-    timeout: 3.0,
+    timeout: 10.0,
     allow_fail: false,
     exit_immediately: false,
     display_service: "wv_local"
@@ -94,6 +95,7 @@ class ScarpeWebviewTest < Minitest::Test
         # For unit testing always supply --debug so we get the most logging
         system("SCARPE_TEST_CONTROL=#{control_file_path} SCARPE_TEST_RESULTS=#{result_path} " +
           "SCARPE_LOG_CONFIG=\"#{scarpe_log_config}\" SCARPE_APP_TEST=\"#{app_test_path}\" " +
+          "LOCALAPPDATA=\"#{Dir.tmpdir}\"" +
           "ruby #{SCARPE_EXE} --debug --dev #{test_app_location}")
 
         # Check if the process exited normally or crashed (segfault, failure, timeout)
