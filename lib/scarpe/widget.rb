@@ -81,6 +81,12 @@ class Scarpe
       super() # linkable_id defaults to object_id
     end
 
+    def inspect
+      "#<#{self.class}:#{self.object_id} " +
+        "@linkable_id=#{@linkable_id.inspect} @parent=#{@parent.inspect} " +
+        "@children=#{@children.inspect} properties=#{display_property_values.inspect}>"
+    end
+
     def bind_self_event(event_name, &block)
       raise("Widget has no linkable_id! #{inspect}") unless linkable_id
 
