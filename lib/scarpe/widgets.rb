@@ -10,6 +10,7 @@ require_relative "border"
 require_relative "star"
 
 require_relative "fill"
+require_relative "font"
 
 require_relative "slot"
 require_relative "document_root"
@@ -30,4 +31,3 @@ require_relative "arc"
 require_relative "text_widget"
 require_relative "link"
 require_relative "line"
-require_relative "font"

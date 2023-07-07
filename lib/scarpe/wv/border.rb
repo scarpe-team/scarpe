@@ -6,12 +6,14 @@ class Scarpe
       styles = (super if defined?(super)) || {}
       return styles unless @border_color
 
-      border_color = if @border_color.is_a?(Range)
-        { "border-image": "linear-gradient(45deg, #{@border_color.first}, #{@border_color.last}) 1" }
+      border_color = case @border_color
+      when Range
+        { "border-image": "linear-gradient(45deg, #{@border_color.first}, #{@border_color.last})" }
+      when Array
+        { "border-color": "rgba(#{@border_color.join(", ")})" }
       else
         { "border-color": @border_color }
       end
-
       styles.merge(
         "border-style": "solid",
         "border-width": "#{@options[:strokewidth] || 1}px",
