@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../base64"
+require "scarpe/base64"
 class Scarpe
   module WebviewBackground
     include Base64

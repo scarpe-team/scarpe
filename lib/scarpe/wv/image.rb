@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-# require "base64"
-# require "uri"
-require_relative "../base64"
+require "scarpe/base64"
 
 class Scarpe
   class WebviewImage < WebviewWidget
