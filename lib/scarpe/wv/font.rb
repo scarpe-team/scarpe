@@ -12,18 +12,21 @@ class Scarpe
       super
     end
 
+    def font_name
+      File.basename(@font, ".*")
+    end
+
     def element
-      puts @font
       HTML.render do |h|
         h.link(href: @font, rel: "stylesheet")
         h.style do
           <<~CSS
             @font-face {
-              font-family: Pacifico;
+              font-family: #{font_name};
               src: url("data:font/truetype;base64,#{encode_file_to_base64(@font)}") format('truetype');
             }
             * {
-              font-family: Pacifico;
+              font-family: #{font_name};
             }
           CSS
         end

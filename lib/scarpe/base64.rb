@@ -16,7 +16,6 @@ class Scarpe
       directory_path = File.dirname(__FILE__, 3)
 
       image_path = File.join(directory_path, image_filename)
-      puts "directory_path: #{directory_path}"
 
       image_data = File.binread(image_path)
 
