@@ -4,7 +4,9 @@ class Scarpe
   class Flow < Scarpe::Slot
     display_properties :width, :height, :margin, :padding
 
-    def initialize(width: nil, height: "100%", margin: nil, padding: nil, &block)
+    def initialize(width: nil, height: nil, margin: nil, padding: nil, **options, &block)
+      @options = options
+
       super
 
       # Create the display-side widget *before* instance_eval, which will add child widgets with their display widgets

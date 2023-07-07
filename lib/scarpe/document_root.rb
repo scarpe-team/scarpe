@@ -1,8 +1,12 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class DocumentRoot < Scarpe::Slot
+  class DocumentRoot < Scarpe::Flow
     def initialize
+      @height = "100%"
+      @width = @margin = @padding = nil
+      @options = {}
+
       super
 
       create_display_widget

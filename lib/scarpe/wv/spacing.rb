@@ -5,7 +5,7 @@ class Scarpe
     SPACING_DIRECTIONS = [:left, :right, :top, :bottom]
 
     def style
-      styles = (super if defined?(super)) || {}
+      styles = defined?(super) ? super : {}
 
       extract_spacing_styles_for(:margin, styles, @margin)
       extract_spacing_styles_for(:padding, styles, @padding)

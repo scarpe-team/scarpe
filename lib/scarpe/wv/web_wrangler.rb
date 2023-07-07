@@ -671,6 +671,10 @@ class Scarpe
         @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").innerHTML = `" + new_html + "`; true")
       end
 
+      def set_attribute(attribute, value)
+        @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").setAttribute(" + attribute.inspect + "," + value.inspect + "); true")
+      end
+
       def remove
         @webwrangler.dom_change("document.getElementById('" + html_id + "').remove(); true")
       end

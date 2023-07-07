@@ -5,7 +5,7 @@ class Scarpe
     display_properties :text, :height, :width
 
     def initialize(text = nil, height: nil, width: nil, &block)
-      @text = text.nil? ? block&.call : text || ""
+      @text = (text.nil? ? block&.call : text) || ""
 
       super
 
@@ -19,6 +19,10 @@ class Scarpe
 
     def change(&block)
       @callback = block
+    end
+
+    def append(new_text)
+      self.text = self.text + new_text
     end
   end
 end
