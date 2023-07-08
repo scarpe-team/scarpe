@@ -138,56 +138,58 @@ class Scarpe
         @service = @display_service_klass.new
       end
     end
+  end
+end
 
-    # This is for objects that can be referred to via events, using their
-    # IDs. There are also convenience functions for binding and sending
-    # events.
-    class Linkable
-      attr_reader :linkable_id
+module Shoes
+  # This is for objects that can be referred to via events, using their
+  # IDs. There are also convenience functions for binding and sending
+  # events.
+  class Linkable
+    attr_reader :linkable_id
 
-      def initialize(linkable_id: object_id)
-        @linkable_id = linkable_id
-      end
-
-      def send_self_event(*args, event_name:, **kwargs)
-        DisplayService.dispatch_event(event_name, self.linkable_id, *args, **kwargs)
-      end
-
-      def send_shoes_event(*args, event_name:, target: nil, **kwargs)
-        DisplayService.dispatch_event(event_name, target, *args, **kwargs)
-      end
-
-      def bind_shoes_event(event_name:, target: nil, &handler)
-        DisplayService.subscribe_to_event(event_name, target, &handler)
-      end
-
-      def unsub_shoes_event(unsub_id)
-        DisplayService.unsub_from_events(unsub_id)
-      end
+    def initialize(linkable_id: object_id)
+      @linkable_id = linkable_id
     end
 
-    # These methods are an interface to DisplayService objects.
-
-    def create_display_widget_for(widget_class_name, widget_id, properties)
-      raise "Override in DisplayService implementation!"
+    def send_self_event(*args, event_name:, **kwargs)
+      DisplayService.dispatch_event(event_name, self.linkable_id, *args, **kwargs)
     end
 
-    def set_widget_pairing(id, display_widget)
-      @display_widget_for ||= {}
-      @display_widget_for[id] = display_widget
+    def send_shoes_event(*args, event_name:, target: nil, **kwargs)
+      DisplayService.dispatch_event(event_name, target, *args, **kwargs)
     end
 
-    def query_display_widget_for(id, nil_ok: false)
-      display_widget = @display_widget_for[id]
-      unless display_widget || nil_ok
-        raise "Could not find display widget for linkable ID #{id.inspect}!"
-      end
-
-      display_widget
+    def bind_shoes_event(event_name:, target: nil, &handler)
+      DisplayService.subscribe_to_event(event_name, target, &handler)
     end
 
-    def destroy
-      raise "Override in DisplayService implementation!"
+    def unsub_shoes_event(unsub_id)
+      DisplayService.unsub_from_events(unsub_id)
     end
+  end
+
+  # These methods are an interface to DisplayService objects.
+
+  def create_display_widget_for(widget_class_name, widget_id, properties)
+    raise "Override in DisplayService implementation!"
+  end
+
+  def set_widget_pairing(id, display_widget)
+    @display_widget_for ||= {}
+    @display_widget_for[id] = display_widget
+  end
+
+  def query_display_widget_for(id, nil_ok: false)
+    display_widget = @display_widget_for[id]
+    unless display_widget || nil_ok
+      raise "Could not find display widget for linkable ID #{id.inspect}!"
+    end
+
+    display_widget
+  end
+
+  def destroy
+    raise "Override in DisplayService implementation!"
   end
 end

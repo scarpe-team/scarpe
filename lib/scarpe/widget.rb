@@ -7,7 +7,7 @@
 # some kind. A Widget with no element method renders as its children's markup, joined.
 
 class Scarpe
-  class Widget < DisplayService::Linkable
+  class Widget < Shoes::Linkable
     include Scarpe::Log
     include Scarpe::Colors
 

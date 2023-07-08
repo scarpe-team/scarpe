@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class WebviewWidget < DisplayService::Linkable
+  class WebviewWidget < Shoes::Linkable
     include Scarpe::Log
 
     class << self
       def display_class_for(scarpe_class_name)
         scarpe_class = Scarpe.const_get(scarpe_class_name)
-        unless scarpe_class.ancestors.include?(Scarpe::DisplayService::Linkable)
+        unless scarpe_class.ancestors.include?(Shoes::Linkable)
           raise "Scarpe Webview can only get display classes for Scarpe " +
             "linkable widgets, not #{scarpe_class_name.inspect}!"
         end
