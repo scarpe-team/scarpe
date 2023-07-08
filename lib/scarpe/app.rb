@@ -54,7 +54,7 @@ class Scarpe
       # Try to de-dup as much as possible and not send repeat or multiple
       # destroy events
       @watch_for_destroy = bind_shoes_event(event_name: "destroy") do
-        DisplayService.unsub_from_events(@watch_for_destroy) if @watch_for_destroy
+        Shoes::DisplayService.unsub_from_events(@watch_for_destroy) if @watch_for_destroy
         @watch_for_destroy = nil
         self.destroy(send_event: false)
       end

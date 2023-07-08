@@ -38,7 +38,7 @@
 # you want both. But internally they're immediately dispatched as events
 # rather than keeping a literal array of items.
 #
-class Scarpe
+module Shoes
   class DisplayService
     class << self
       # This is in the eigenclass/metaclass, *not* instances of DisplayService
@@ -138,10 +138,32 @@ class Scarpe
         @service = @display_service_klass.new
       end
     end
-  end
-end
 
-module Shoes
+    # These methods are an interface to DisplayService objects.
+
+    def create_display_widget_for(widget_class_name, widget_id, properties)
+      raise "Override in DisplayService implementation!"
+    end
+
+    def set_widget_pairing(id, display_widget)
+      @display_widget_for ||= {}
+      @display_widget_for[id] = display_widget
+    end
+
+    def query_display_widget_for(id, nil_ok: false)
+      display_widget = @display_widget_for[id]
+      unless display_widget || nil_ok
+        raise "Could not find display widget for linkable ID #{id.inspect}!"
+      end
+
+      display_widget
+    end
+
+    def destroy
+      raise "Override in DisplayService implementation!"
+    end
+  end
+
   # This is for objects that can be referred to via events, using their
   # IDs. There are also convenience functions for binding and sending
   # events.
@@ -167,29 +189,5 @@ module Shoes
     def unsub_shoes_event(unsub_id)
       DisplayService.unsub_from_events(unsub_id)
     end
-  end
-
-  # These methods are an interface to DisplayService objects.
-
-  def create_display_widget_for(widget_class_name, widget_id, properties)
-    raise "Override in DisplayService implementation!"
-  end
-
-  def set_widget_pairing(id, display_widget)
-    @display_widget_for ||= {}
-    @display_widget_for[id] = display_widget
-  end
-
-  def query_display_widget_for(id, nil_ok: false)
-    display_widget = @display_widget_for[id]
-    unless display_widget || nil_ok
-      raise "Could not find display widget for linkable ID #{id.inspect}!"
-    end
-
-    display_widget
-  end
-
-  def destroy
-    raise "Override in DisplayService implementation!"
   end
 end

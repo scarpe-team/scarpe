@@ -27,7 +27,7 @@ class TestWebWranglerInScarpeApp < LoggedScarpeTest
     SCARPE_APP
       on_event(:next_redraw) do
         return_results(true, "Destroy and exit")
-        DisplayService.dispatch_event("destroy", nil)
+        Shoes::DisplayService.dispatch_event("destroy", nil)
       end
     TEST_CODE
   end

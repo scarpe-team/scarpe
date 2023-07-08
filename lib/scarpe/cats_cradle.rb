@@ -28,7 +28,7 @@ module Scarpe::Test
     def initialize(obj)
       @obj = obj
       # TODO: how to do this with Webview relay? Proxy object to send a message, maybe?
-      @display = ::Scarpe::DisplayService.display_service.query_display_widget_for(obj.linkable_id)
+      @display = ::Shoes::DisplayService.display_service.query_display_widget_for(obj.linkable_id)
     end
 
     def method_missing(method, ...)
@@ -110,7 +110,7 @@ module Scarpe::Test
 
       @cc_init_done = true
 
-      @control_interface = ::Scarpe::DisplayService.display_service.control_interface
+      @control_interface = ::Shoes::DisplayService.display_service.control_interface
       @wrangler = @control_interface.wrangler
 
       cc_instance = self # ControlInterface#on_event does an instance eval. We'll reset self with another.
@@ -235,7 +235,7 @@ module Scarpe::Test
       else
         return_results(true, "Test finished successfully")
       end
-      ::Scarpe::DisplayService.dispatch_event("destroy", nil)
+      ::Shoes::DisplayService.dispatch_event("destroy", nil)
     end
   end
 
