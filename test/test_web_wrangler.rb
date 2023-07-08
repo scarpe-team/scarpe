@@ -9,7 +9,7 @@ class TestWebWranglerInScarpeApp < LoggedScarpeTest
   # Need to make sure that even with no widgets we still get at least one redraw
   def test_empty_app
     run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
-      Scarpe.app do
+      Shoes.app do
       end
     SCARPE_APP
       on_event(:next_redraw) do
@@ -227,7 +227,7 @@ end
 class TestWebWranglerAsyncJS < LoggedScarpeTest
   def round_trip_app(how_many)
     run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-TEST_CODE)
-      Scarpe.app do
+      Shoes.app do
         para "Hello"
       end
     SCARPE_APP
