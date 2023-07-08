@@ -12,6 +12,7 @@ end
 require "securerandom"
 require "json"
 
+# Is there a Shoes::Error class? Should this be two different error classes?
 class Scarpe::Error < StandardError; end
 
 require_relative "scarpe/constants"
@@ -28,7 +29,7 @@ require "scarpe/#{d_s}"
 
 include Constants
 
-class Scarpe
+module Shoes
   class << self
     def app(...)
       app = Scarpe::App.new(...)
