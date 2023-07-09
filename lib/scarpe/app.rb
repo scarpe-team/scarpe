@@ -81,6 +81,8 @@ class Scarpe
     end
 
     def pop_slot
+      return if @slots.size <= 1
+
       @slots.pop
     end
 
