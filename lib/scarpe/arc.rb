@@ -3,7 +3,7 @@
 class Scarpe
   class InvalidAttributeValueError < Scarpe::Error; end
 
-  class Arc < Scarpe::Widget
+  class Arc < Shoes::Widget
     display_properties :left, :top, :width, :height, :angle1, :angle2
 
     def initialize(*args)

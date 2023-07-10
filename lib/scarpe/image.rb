@@ -4,7 +4,7 @@ require "fastimage"
 require "open-uri"
 
 class Scarpe
-  class Image < Scarpe::Widget
+  class Image < Shoes::Widget
     display_properties :url, :width, :height, :top, :left, :click
 
     def initialize(url, width: nil, height: nil, top: nil, left: nil, click: nil)
@@ -22,7 +22,9 @@ class Scarpe
       self.url = url
     end
   end
+end
 
+module Shoes
   class Widget
     def size
       width, height = FastImage.size(@url)

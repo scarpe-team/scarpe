@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class Flow < Scarpe::Slot
+  class Flow < Shoes::Slot
     display_properties :width, :height, :margin, :padding
 
     def initialize(width: nil, height: nil, margin: nil, padding: nil, **options, &block)

@@ -4,7 +4,7 @@ require "net/http"
 require "openssl"
 require "nokogiri"
 
-class Scarpe
+module Shoes
   class Widget
     class ResponseWrapper
       attr_reader :response

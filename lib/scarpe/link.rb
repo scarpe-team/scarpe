@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class Link < Scarpe::TextWidget
+  class Link < Shoes::TextWidget
     display_properties :text, :click, :has_block
 
     def initialize(text, click: nil, &block)

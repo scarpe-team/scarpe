@@ -3,7 +3,7 @@
 require_relative "wv/shape_helper"
 
 class Scarpe
-  class Shape < Scarpe::Widget
+  class Shape < Shoes::Widget
     include ShapeHelper
     display_properties :left, :top
 

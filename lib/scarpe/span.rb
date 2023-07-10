@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class Span < Scarpe::Widget
+  class Span < Shoes::Widget
     display_properties :text, :stroke, :size, :font, :html_attributes
 
     def initialize(text, stroke: nil, size: :span, font: nil, **html_attributes)

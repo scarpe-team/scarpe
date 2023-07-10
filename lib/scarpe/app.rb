@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class App < Scarpe::Widget
+  class App < Shoes::Widget
     include Scarpe::Log
 
     class << self

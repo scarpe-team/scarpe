@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class Video < Scarpe::Widget
+  class Video < Shoes::Widget
     display_properties :url
 
     def initialize(url)

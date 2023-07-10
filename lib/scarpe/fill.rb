@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class Fill < Scarpe::Widget
+  class Fill < Shoes::Widget
     display_properties :color
 
     def initialize(color)

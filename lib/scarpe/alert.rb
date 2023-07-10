@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class Alert < Scarpe::Widget
+  class Alert < Shoes::Widget
     display_property :text
 
     def initialize(text)
