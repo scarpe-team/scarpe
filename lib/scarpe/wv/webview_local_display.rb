@@ -6,7 +6,7 @@ class Scarpe
   # process, too many or too large evals can crash the process, etc.
   # Normally the intention is to use a RelayDisplayService to a second
   # process containing one of these.
-  class WebviewDisplayService < Scarpe::DisplayService
+  class WebviewDisplayService < Shoes::DisplayService
     include Scarpe::Log
 
     class << self

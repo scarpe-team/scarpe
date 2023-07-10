@@ -120,7 +120,7 @@ class Scarpe
 
   # This "display service" actually creates a child process and sends events
   # back and forth, but creates no widgets of its own.
-  class WVRelayDisplayService < Scarpe::DisplayService
+  class WVRelayDisplayService < Shoes::DisplayService
     include Scarpe::Log
     include WVRelayUtil # Needs Scarpe::Log
 

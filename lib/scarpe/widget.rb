@@ -7,7 +7,7 @@
 # some kind. A Widget with no element method renders as its children's markup, joined.
 
 class Scarpe
-  class Widget < DisplayService::Linkable
+  class Widget < Shoes::Linkable
     include Scarpe::Log
     include Scarpe::Colors
 
@@ -81,6 +81,12 @@ class Scarpe
       super() # linkable_id defaults to object_id
     end
 
+    def inspect
+      "#<#{self.class}:#{self.object_id} " +
+        "@linkable_id=#{@linkable_id.inspect} @parent=#{@parent.inspect} " +
+        "@children=#{@children.inspect} properties=#{display_property_values.inspect}>"
+    end
+
     def bind_self_event(event_name, &block)
       raise("Widget has no linkable_id! #{inspect}") unless linkable_id
 
@@ -106,7 +112,7 @@ class Scarpe
       klass_name = self.class.name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
 
       # Should we save a reference to widget for later reference?
-      DisplayService.display_service.create_display_widget_for(klass_name, self.linkable_id, display_property_values)
+      ::Shoes::DisplayService.display_service.create_display_widget_for(klass_name, self.linkable_id, display_property_values)
     end
 
     attr_reader :parent

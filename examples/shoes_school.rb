@@ -1,4 +1,4 @@
-Shoes.app(title: "Shoes School", height: 700, width: 1000) do
+Shoes.app(title: "Shoes School", height: 800, width: 1000) do
   CHAPTERS = [
     [
       %(
@@ -37,9 +37,7 @@ Shoes.app(title: "Shoes School", height: 700, width: 1000) do
   end
   stack do
     flow do
-      IDE = edit_box(height: 300, width: "100%") do
-        CHAPTERS[current_chapter][0]
-      end
+      IDE = edit_box(CHAPTERS[current_chapter][0], height: 300, width: "100%")
     end
     flow do
       LECTURE = para CHAPTERS[current_chapter][1], size: 30

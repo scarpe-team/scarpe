@@ -19,6 +19,7 @@ class Scarpe
       class_name = element.capitalize
 
       widget_class = Class.new(Scarpe::TextWidget) do
+        # Can we just change content to text to match the Shoes API?
         display_property :content
 
         def initialize(content)
@@ -27,6 +28,14 @@ class Scarpe
           super
 
           create_display_widget
+        end
+
+        def text
+          self.content
+        end
+
+        def text=(new_text)
+          self.content = new_text
         end
       end
       Scarpe.const_set class_name, widget_class

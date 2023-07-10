@@ -10,3 +10,5 @@ Gemfile.lock
 scarpe_results.txt
 **/.DS_Store
 logger/*.log
+/docs/yard/template/default/doc
+/docs/yard/template/default/.yardoc

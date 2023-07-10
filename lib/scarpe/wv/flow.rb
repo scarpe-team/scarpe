@@ -1,21 +1,12 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class WebviewFlow < Scarpe::WebviewWidget
-    include Scarpe::WebviewBackground
-    include Scarpe::WebviewBorder
-
+  class WebviewFlow < Scarpe::WebviewSlot
     def initialize(properties)
       super
     end
 
-    def element(&block)
-      HTML.render do |h|
-        h.div(id: html_id, style:, &block)
-      end
-    end
-
-    private
+    protected
 
     def style
       styles = super
@@ -23,8 +14,9 @@ class Scarpe
       styles[:display] = "flex"
       styles["flex-direction"] = "row"
       styles["flex-wrap"] = "wrap"
-      styles[:width] = Dimensions.length(@width) if @width
-      styles[:height] = Dimensions.length(@height) if @height
+      styles["align-content"] = "flex-start"
+      styles["justify-content"] = "flex-start"
+      styles["align-items"] = "flex-start"
 
       styles
     end

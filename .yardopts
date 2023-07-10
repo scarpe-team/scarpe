@@ -1,3 +1,10 @@
 --markup-provider=redcarpet
 --markup=markdown
+--protected
+--no-private
+--template-path docs/yard/template
+-
+lib/**/*.rb
+docs/yard/*.md
+docs/static/manual.md
 

@@ -38,7 +38,7 @@
 # you want both. But internally they're immediately dispatched as events
 # rather than keeping a literal array of items.
 #
-class Scarpe
+module Shoes
   class DisplayService
     class << self
       # This is in the eigenclass/metaclass, *not* instances of DisplayService
@@ -139,29 +139,6 @@ class Scarpe
       end
     end
 
-    # This is for objects that can be referred to via events, using their
-    # IDs. There are also convenience functions for binding and sending
-    # events.
-    class Linkable
-      attr_reader :linkable_id
-
-      def initialize(linkable_id: object_id)
-        @linkable_id = linkable_id
-      end
-
-      def send_self_event(*args, event_name:, **kwargs)
-        DisplayService.dispatch_event(event_name, self.linkable_id, *args, **kwargs)
-      end
-
-      def send_shoes_event(*args, event_name:, target: nil, **kwargs)
-        DisplayService.dispatch_event(event_name, target, *args, **kwargs)
-      end
-
-      def bind_shoes_event(event_name:, target: nil, &handler)
-        DisplayService.subscribe_to_event(event_name, target, &handler)
-      end
-    end
-
     # These methods are an interface to DisplayService objects.
 
     def create_display_widget_for(widget_class_name, widget_id, properties)
@@ -184,6 +161,33 @@ class Scarpe
 
     def destroy
       raise "Override in DisplayService implementation!"
+    end
+  end
+
+  # This is for objects that can be referred to via events, using their
+  # IDs. There are also convenience functions for binding and sending
+  # events.
+  class Linkable
+    attr_reader :linkable_id
+
+    def initialize(linkable_id: object_id)
+      @linkable_id = linkable_id
+    end
+
+    def send_self_event(*args, event_name:, **kwargs)
+      DisplayService.dispatch_event(event_name, self.linkable_id, *args, **kwargs)
+    end
+
+    def send_shoes_event(*args, event_name:, target: nil, **kwargs)
+      DisplayService.dispatch_event(event_name, target, *args, **kwargs)
+    end
+
+    def bind_shoes_event(event_name:, target: nil, &handler)
+      DisplayService.subscribe_to_event(event_name, target, &handler)
+    end
+
+    def unsub_shoes_event(unsub_id)
+      DisplayService.unsub_from_events(unsub_id)
     end
   end
 end

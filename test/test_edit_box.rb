@@ -21,18 +21,23 @@ class TestEditBox < LoggedScarpeTest
     TEST_CODE
   end
 
-  def test_renders_textarea_content_block
+  def test_renders_textarea_no_change_cb_on_manual_replace
     run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
       Shoes.app do
-        edit_box { "Hello, World!" }
+        @p = para "Yo!"
+        edit_box { @p.replace "Double Yo!" }
       end
     SCARPE_APP
       on_heartbeat do
         box = edit_box
+        box.text = "Awwww yeah"
+        wait fully_updated
         html_id = box.display.html_id
         assert_html edit_box.display.to_html, :textarea, id: html_id, oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)" do
-          "Hello, World!"
+          "Awwww yeah"
         end
+        # Shoes3 does *not* fire a change event when manually replacing text
+        assert_not_include para.display.to_html, "Double Yo!"
 
         test_finished
       end

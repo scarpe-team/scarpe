@@ -17,7 +17,7 @@ if ARGV.length != 1
   exit(-1)
 end
 
-class WebviewContainedService < Scarpe::DisplayService::Linkable
+class WebviewContainedService < Shoes::Linkable
   include Scarpe::Log
   include Scarpe::WVRelayUtil # Needs Scarpe::Log
 

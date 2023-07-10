@@ -54,7 +54,7 @@ class Scarpe
       # Try to de-dup as much as possible and not send repeat or multiple
       # destroy events
       @watch_for_destroy = bind_shoes_event(event_name: "destroy") do
-        DisplayService.unsub_from_events(@watch_for_destroy) if @watch_for_destroy
+        Shoes::DisplayService.unsub_from_events(@watch_for_destroy) if @watch_for_destroy
         @watch_for_destroy = nil
         self.destroy(send_event: false)
       end
@@ -81,6 +81,8 @@ class Scarpe
     end
 
     def pop_slot
+      return if @slots.size <= 1
+
       @slots.pop
     end
 
@@ -167,6 +169,18 @@ class Scarpe::App
 
   def border(...)
     current_slot.border(...)
+  end
+
+  def motion(&block)
+    subscription_item(shoes_api_name: "motion", &block)
+  end
+
+  def hover(&block)
+    subscription_item(shoes_api_name: "hover", &block)
+  end
+
+  def click(&block)
+    subscription_item(shoes_api_name: "click", &block)
   end
 
   alias_method :info, :puts
