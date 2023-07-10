@@ -7,7 +7,7 @@
 # some kind. A Widget with no element method renders as its children's markup, joined.
 
 class Scarpe
-  class Widget < DisplayService::Linkable
+  class Widget < Shoes::Linkable
     include Scarpe::Log
     include Scarpe::Colors
 
@@ -106,7 +106,7 @@ class Scarpe
       klass_name = self.class.name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
 
       # Should we save a reference to widget for later reference?
-      DisplayService.display_service.create_display_widget_for(klass_name, self.linkable_id, display_property_values)
+      ::Shoes::DisplayService.display_service.create_display_widget_for(klass_name, self.linkable_id, display_property_values)
     end
 
     attr_reader :parent

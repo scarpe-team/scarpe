@@ -1,4 +1,4 @@
-Scarpe.app do
+Shoes.app do
   font "fonts/Pacifico.ttf"
   para "Hello yayyy"
 end

@@ -94,8 +94,6 @@ end
 # We mustn't require Scarpe sooner than this so that the --dev setting is respected
 require "scarpe"
 
-Shoes = Scarpe unless defined?(Shoes)
-
 case verb
   when "-v"
     puts "Scarpe #{Scarpe::VERSION}"

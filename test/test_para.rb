@@ -11,11 +11,11 @@ class TestWebviewPara < ScarpeWebviewTest
       "size" => :para,
       "html_attributes" => {},
     }
-    Scarpe::DisplayService.full_reset!
+    Shoes::DisplayService.full_reset!
   end
 
   def teardown
-    Scarpe::DisplayService.full_reset!
+    Shoes::DisplayService.full_reset!
   end
 
   def test_renders_paragraph

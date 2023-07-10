@@ -9,11 +9,11 @@ class TestWebviewImage < ScarpeWebviewTest
       "shoes_linkable_id" => 1,
       "url" => @url,
     }
-    Scarpe::DisplayService.full_reset!
+    Shoes::DisplayService.full_reset!
   end
 
   def teardown
-    Scarpe::DisplayService.full_reset!
+    Shoes::DisplayService.full_reset!
   end
 
   def test_renders_image
