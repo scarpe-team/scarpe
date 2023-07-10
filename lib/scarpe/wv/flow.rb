@@ -14,6 +14,9 @@ class Scarpe
       styles[:display] = "flex"
       styles["flex-direction"] = "row"
       styles["flex-wrap"] = "wrap"
+      styles["align-content"] = "flex-start"
+      styles["justify-content"] = "flex-start"
+      styles["align-items"] = "flex-start"
 
       styles
     end
