@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe
+module Shoes
   class App < Shoes::Widget
     include Scarpe::Log
 
@@ -20,14 +20,14 @@ class Scarpe
       debug: ENV["SCARPE_DEBUG"] ? true : false,
       &app_code_body
     )
-      if Scarpe::App.instance
-        @log.error("Trying to create a second Scarpe::App in the same process! Fail!")
-        raise "Cannot create multiple Scarpe::App objects!"
+      if Shoes::App.instance
+        @log.error("Trying to create a second Shoes::App in the same process! Fail!")
+        raise "Cannot create multiple Shoes::App objects!"
       else
-        Scarpe::App.instance = self
+        Shoes::App.instance = self
       end
 
-      log_init("Scarpe::App")
+      log_init("Shoes::App")
 
       @do_shutdown = false
 
@@ -70,7 +70,7 @@ class Scarpe
       send_shoes_event(event_name: "init")
       return if @do_shutdown
 
-      ::Scarpe::App.instance.with_slot(@document_root, &@app_code_body)
+      ::Shoes::App.instance.with_slot(@document_root, &@app_code_body)
     end
 
     # "Container" widgets like flows, stacks, masks and the document root
@@ -94,7 +94,7 @@ class Scarpe
       return unless block_given?
 
       push_slot(slot_item)
-      Scarpe::App.instance.instance_eval(&block)
+      Shoes::App.instance.instance_eval(&block)
     ensure
       pop_slot
     end
@@ -162,7 +162,7 @@ class Scarpe
 end
 
 # DSL methods
-class Scarpe::App
+class Shoes::App
   def background(...)
     current_slot.background(...)
   end

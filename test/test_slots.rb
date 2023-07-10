@@ -19,5 +19,5 @@ class TestSlots < LoggedScarpeTest
     TEST_CODE
   end
 
-  # TODO: we need to make sure that self is a Scarpe::App inside the "shape do" block and that helpers work
+  # TODO: we need to make sure that self is a Shoes::App inside the "shape do" block and that helpers work
 end

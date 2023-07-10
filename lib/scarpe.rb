@@ -32,7 +32,7 @@ include Constants
 module Shoes
   class << self
     def app(...)
-      app = Scarpe::App.new(...)
+      app = Shoes::App.new(...)
       app.init
       app.run
       app.destroy

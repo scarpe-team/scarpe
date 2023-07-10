@@ -14,7 +14,7 @@ class Scarpe
 
       create_display_widget
       # Create the display-side widget *before* running the block, which will add child widgets with their display widgets
-      Scarpe::App.instance.with_slot(self, &block) if block_given?
+      Shoes::App.instance.with_slot(self, &block) if block_given?
     end
   end
 end

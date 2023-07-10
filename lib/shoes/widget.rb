@@ -188,7 +188,7 @@ module Shoes
         widget_instance = klass.new(*args, **kwargs, &block)
 
         unless klass.ancestors.include?(Shoes::TextWidget)
-          widget_instance.set_parent Scarpe::App.instance.current_slot
+          widget_instance.set_parent Shoes::App.instance.current_slot
         end
 
         widget_instance

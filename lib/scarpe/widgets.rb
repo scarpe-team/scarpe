@@ -2,7 +2,7 @@
 
 require_relative "colors"
 require "shoes/widget"
-require_relative "app"
+require "shoes/app"
 
 require_relative "spacing"
 require_relative "background"

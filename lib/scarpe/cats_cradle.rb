@@ -164,11 +164,13 @@ module Scarpe::Test
     }
     # What to do about TextWidgets? Link, code, em, strong?
     # Also, wait, what's up with span? What *is* that?
-    WIDGET_FINDERS.each do |finder_name, scarpe_class|
-      define_method(finder_name) do |*args|
-        app = Scarpe::App.instance
+    Shoes::Widget.widget_classes.each do |widget_class|
+      finder_name = widget_class.dsl_name
 
-        widgets = app.find_widgets_by(scarpe_class, *args)
+      define_method(finder_name) do |*args|
+        app = Shoes::App.instance
+
+        widgets = app.find_widgets_by(widget_class, *args)
         raise "Found more than one #{finder_name} matching #{args.inspect}!" if widgets.size > 1
         raise "Found no #{finder_name} matching #{args.inspect}!" if widgets.empty?
 
@@ -239,7 +241,7 @@ module Scarpe::Test
     end
   end
 
-  # This module is mixed into Scarpe::App if we're running CC-based tests
+  # This module is mixed into Shoes::App if we're running CC-based tests
   module CatsCradle
     def event_init
       @cc_instance = CCInstance.instance
