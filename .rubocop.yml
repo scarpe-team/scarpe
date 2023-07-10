@@ -8,6 +8,7 @@ AllCops:
     - 'bin/**/*'
     - 'exe/**/*'
     - 'examples/**/*'
+    - 'docs/**/*'
 
 Layout/LineLength:
   Max: 150

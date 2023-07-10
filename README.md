@@ -125,6 +125,8 @@ Example usage:
 
 The SCARPE_TEST_CONTROL environment variable can contain a path to a test-control-interface script for the Webview display service. If you look at test_helper, it gives some examples of how to use it.
 
+If you run ./exe/scarpe env, you can see all current environment settings.
+
 ## More info
 
 * [Nobody Knows Shoes manual](https://github.com/whymirror/why-archive/raw/master/shoes/nobody-knows-shoes.pdf)
