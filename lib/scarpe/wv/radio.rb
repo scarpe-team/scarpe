@@ -5,11 +5,10 @@ class Scarpe
     attr_reader :text
 
     def initialize(properties)
-      super(properties)
-      @checked = properties[:checked]
+      super
 
       bind("click") do
-        send_display_event(event_name: "click", target: shoes_linkable_id)
+        send_self_event(event_name: "click", target: shoes_linkable_id)
       end
     end
 
@@ -17,6 +16,10 @@ class Scarpe
       items = changes.delete("checked")
       if items
         html_element.unmark_radio_button
+        return
+      end
+      if items == false
+        html_element.mark_radio_button
         return
       end
 

@@ -682,6 +682,10 @@ class Scarpe
       def unmark_radio_button
         @webwrangler.dom_change("document.getElementById('#{html_id}').checked = false;")
       end
+
+      def mark_radio_button
+        @webwrangler.dom_change("document.getElementById('#{html_id}').checked = true;")
+      end
     end
   end
 end

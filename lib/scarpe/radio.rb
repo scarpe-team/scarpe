@@ -4,9 +4,8 @@ class Scarpe
   class Radio < Scarpe::Widget
     display_properties :group, :checked
 
-    def initialize(group = nil, checked = false, &block)
+    def initialize(group = nil, checked = nil, &block)
       @group = group
-      @checked = checked
       @block = block
       super
 
@@ -21,6 +20,10 @@ class Scarpe
 
     def checked?
       @checked ? true : false
+    end
+
+    def checked(value)
+      self.checked = value
     end
 
     private
