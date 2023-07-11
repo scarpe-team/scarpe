@@ -26,7 +26,7 @@ module Shoes
       @block = block
 
       Thread.new do
-        logger = Scarpe::Logger.logger("Shoes::App#download")
+        logger = Shoes::Log.logger("Shoes::App#download")
         begin
           uri = URI(url)
           response = perform_request(uri, method, styles)

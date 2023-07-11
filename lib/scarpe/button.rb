@@ -2,7 +2,7 @@
 
 class Scarpe
   class Button < Shoes::Widget
-    include Scarpe::Log
+    include Shoes::Log
     display_properties :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size
 
     def initialize(text, width: nil, height: nil, top: nil, left: nil, color: nil, padding_top: nil, padding_bottom: nil, size: 12, text_color: nil,

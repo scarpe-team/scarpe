@@ -12,7 +12,7 @@
 
 class Scarpe
   class ControlInterface
-    include Scarpe::Log
+    include Shoes::Log
 
     SUBSCRIBE_EVENTS = [:init, :shutdown, :next_redraw, :every_redraw, :next_heartbeat, :every_heartbeat]
     DISPATCH_EVENTS = [:init, :shutdown, :redraw, :heartbeat]

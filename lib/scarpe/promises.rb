@@ -30,7 +30,7 @@ class Scarpe
   # never explicitly scheduled it. If a promise is *rejected* without
   # ever being scheduled, we won't call those callbacks.
   class Promise
-    include Scarpe::Log
+    include Shoes::Log
 
     # The unscheduled promise state means it's waiting on a parent promise that
     # hasn't completed yet. The pending state means it's waiting to execute.

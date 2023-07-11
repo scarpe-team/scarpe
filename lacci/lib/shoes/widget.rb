@@ -11,7 +11,7 @@ module Shoes
   # defined here.
   #
   class Widget < Shoes::Linkable
-    include Scarpe::Log
+    include Shoes::Log
     include Scarpe::Colors
 
     class << self

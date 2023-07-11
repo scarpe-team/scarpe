@@ -50,7 +50,7 @@ module Scarpe::Test
   # This class defines the CatsCradle DSL. It also holds a "bag of fibers"
   # with promises for when they should next resume.
   class CCInstance
-    include Scarpe::Log
+    include Shoes::Log
     include Scarpe::Test::Helpers
 
     def self.instance

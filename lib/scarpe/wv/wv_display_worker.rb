@@ -24,8 +24,8 @@ end
 # child server. It can also be used via TCP sockets or similar, where a single
 # socket is both input and output.
 class WebviewContainedService < Shoes::Linkable
-  include Scarpe::Log
-  include Scarpe::WVRelayUtil # Needs Scarpe::Log
+  include Shoes::Log
+  include Scarpe::WVRelayUtil # Needs Shoes::Log
 
   attr_reader :log
 

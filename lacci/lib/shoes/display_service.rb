@@ -30,7 +30,7 @@ module Shoes
   class DisplayService
     class << self
       # This is in the eigenclass/metaclass, *not* instances of DisplayService
-      include Scarpe::Log
+      include Shoes::Log
 
       attr_accessor :json_debug_serialize
 

@@ -2,7 +2,7 @@
 
 module Shoes
   class App < Shoes::Widget
-    include Scarpe::Log
+    include Shoes::Log
 
     class << self
       attr_accessor :instance

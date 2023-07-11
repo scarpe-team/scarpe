@@ -5,7 +5,7 @@ class Scarpe
   # its Shoes equivalent, render itself to the Webview DOM, handle
   # Javascript events and generally keep things working in Webview.
   class WebviewWidget < Shoes::Linkable
-    include Scarpe::Log
+    include Shoes::Log
 
     class << self
       # Return the corresponding Webview class for a particular Shoes class name
