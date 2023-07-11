@@ -3,12 +3,12 @@
 require_relative "lib/scarpe/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "scarpe"
+  spec.name = "lacci"
   spec.version = Scarpe::VERSION
   spec.authors = ["Marco Concetto Rudilosso", "Noah Gibbs"]
   spec.email = ["marcoc.r@outlook.com", "the.codefolio.guy@gmail.com"]
 
-  spec.summary = "Scarpe - shoes but running on webview"
+  spec.summary = "Lacci - a portable Shoes DSL with switchable display backends, part of Scarpe"
   spec.homepage = "https://github.com/scarpe-team/scarpe"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2.0"
@@ -30,14 +30,7 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "fastimage"
-  spec.add_dependency "glimmer-dsl-libui"
-  spec.add_dependency "nokogiri"
-  spec.add_dependency "sqlite3"
-
-  spec.add_dependency "bloops", "~>0.5"
-  spec.add_dependency "logging", "~>2.3.1"
-  spec.add_dependency "webview_ruby", "~>0.1.1"
+  #spec.add_dependency ""
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
