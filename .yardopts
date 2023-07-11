@@ -3,6 +3,8 @@
 --protected
 --no-private
 --template-path docs/yard/template
+--tag incompatibility:"Incompatibilities with Shoes"
+--exclude lib/scarpe/libui
 -
 lib/**/*.rb
 docs/yard/*.md

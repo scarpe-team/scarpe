@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "shoes"
+
 require_relative "scarpe/logger"
 
 # This will never be triggered -- we use the (...) feature below, which means this
@@ -15,7 +17,6 @@ require "json"
 # Is there a Shoes::Error class? Should this be two different error classes?
 class Scarpe::Error < StandardError; end
 
-require_relative "scarpe/constants"
 require_relative "scarpe/version"
 require_relative "scarpe/promises"
 require_relative "scarpe/display_service"
@@ -26,16 +27,3 @@ require "bloops"
 d_s = ENV["SCARPE_DISPLAY_SERVICE"] || "wv_local"
 # This is require, not require_relative, to allow gems to supply a new display service
 require "scarpe/#{d_s}"
-
-include Constants
-
-module Shoes
-  class << self
-    def app(...)
-      app = Shoes::App.new(...)
-      app.init
-      app.run
-      app.destroy
-    end
-  end
-end

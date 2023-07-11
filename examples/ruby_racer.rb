@@ -1,7 +1,7 @@
 require "benchmark"
 require "stringio"
 
-Shoes.app(title: "Ruby Racer", debug: true) do
+Shoes.app(title: "Ruby Racer") do
   racer1 = nil
   racer2 = nil
 
