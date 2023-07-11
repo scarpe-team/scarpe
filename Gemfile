@@ -3,7 +3,7 @@
 source "https://rubygems.org"
 
 # Specify your gem's dependencies in scarpe.gemspec
-gemspec
+gemspec name: "scarpe"
 
 gem "bloops", "~> 0.5" #path: "../bloopsaphone" #git: "https://github.com/scarpe-team/bloopsaphone"
 gem "rake", "~> 13.0"
