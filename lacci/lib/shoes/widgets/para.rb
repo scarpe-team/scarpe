@@ -2,14 +2,6 @@
 
 module Shoes
   class Para < Shoes::Widget
-    class << self
-      def inherited(subclass)
-        Scarpe::Widget.widget_classes ||= []
-        Scarpe::Widget.widget_classes << subclass
-        super
-      end
-    end
-
     display_properties :text_items, :stroke, :size, :font, :html_attributes, :hidden
 
     def initialize(*args, stroke: nil, size: :para, font: nil, hidden: false, **html_attributes)

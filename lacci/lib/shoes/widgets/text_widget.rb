@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Scarpe::TextWidget
+# Shoes::TextWidget
 
 module Shoes
   class TextWidget < Shoes::Widget

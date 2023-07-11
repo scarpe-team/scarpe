@@ -1,16 +1,14 @@
 # frozen_string_literal: true
 
-# We're separating Shoes from Scarpe, a little at a time. This should eventually be requirable
+# We're separating Shoes from Scarpe, a little at a time. This should be requirable
 # without using Scarpe at all.
 #
-# This Shoes gem will, if all goes well, be a lot like the old Shoes-core from Shoes4: a way
+# The Lacci gem is like the old Shoes-core from Shoes4: a way
 # to handle the DSL and command-line parts of Shoes without knowing anything about how the
 # display side works at all.
 
-# This will never be triggered -- we use the (...) feature below, which means this
-# file won't even parse in old Rubies.
 if RUBY_VERSION[0..2] < "3.2"
-  Shoes::Log.logger("Scarpe").error("Scarpe requires Ruby 3.2 or higher!")
+  Shoes::Log.logger("Shoes").error("Lacci (Scarpe, Shoes) requires Ruby 3.2 or higher!")
   exit(-1)
 end
 
@@ -52,7 +50,7 @@ module Shoes
     # @incompatibility In Shoes3 the parameters were a hash of options, not keyword arguments.
     #
     # @example Simple one-button app
-    #   Scarpe.app(title: "Button!", width: 200, height: 200) do
+    #   Shoes.app(title: "Button!", width: 200, height: 200) do
     #     @p = para "Press it NOW!"
     #     button("clicky") { @p.replace("You pressed it! CELEBRATION!") }
     #   end
@@ -64,7 +62,7 @@ module Shoes
     # @return [void]
     # @see Shoes::App#new
     def app(
-      title: "Scarpe!",
+      title: "Shoes!",
       width: 480,
       height: 420,
       resizable: true,

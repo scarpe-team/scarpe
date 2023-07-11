@@ -15,11 +15,6 @@ require "minitest/autorun"
 require "minitest/reporters"
 Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
 
-# Soon this should go in the framework, not here
-unless Object.constants.include?(:Shoes)
-  Shoes = Scarpe
-end
-
 # Docs for our Webview lib: https://github.com/Maaarcocr/webview_ruby
 
 SET_UP_TIMEOUT_CHECKS = { setup: false, near_timeout: [] }

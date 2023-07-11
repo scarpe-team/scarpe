@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-# Scarpe Shoes apps operate in multiple layers. A Shoes widget tree exists as fairly
+# Lacci Shoes apps operate in multiple layers. A Shoes widget tree exists as fairly
 # plain, simple Ruby objects. And then a display-service widget tree integrates with
-# the display technology, initially Webview. This lets us use Ruby as our API while
-# not tying it too closely to the limitations of Webview.
+# the display technology. This lets us use Ruby as our API while
+# not tying it too closely to the limitations of Webview, WASM, LibUI, etc.
 #
 # ## Choosing Display Services
 #
-# Before running a Scarpe app, you can set SCARPE_DISPLAY_SERVICE. If you
+# Before running a Lacci app, you can set SCARPE_DISPLAY_SERVICE. If you
 # set it to "whatever_service", Scarpe will require "scarpe/whatever_service",
 # which can be supplied by the Scarpe gem or another Scarpe-based gem.
 # Currently leaving the environment variable empty is equivalent to requesting
@@ -17,7 +17,7 @@
 #
 # Events are a lot of what tie the Shoes widgets and the display service together.
 #
-# Scarpe widgets *expect* to operate in a fairly "hands off" mode where they record
+# Shoes widgets *expect* to operate in a fairly "hands off" mode where they record
 # to an event queue to send to the display service, and the display service records
 # events to send back.
 #

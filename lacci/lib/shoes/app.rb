@@ -13,7 +13,7 @@ module Shoes
     display_properties :title, :width, :height, :resizable, :debug
 
     def initialize(
-      title: "Scarpe!",
+      title: "Shoes!",
       width: 480,
       height: 420,
       resizable: true,
@@ -61,7 +61,7 @@ module Shoes
 
       Signal.trap("INT") do
         @log.warning("App interrupted by signal, stopping...")
-        puts "\nStopping Scarpe app..."
+        puts "\nStopping Shoes app..."
         destroy
       end
     end
@@ -74,7 +74,7 @@ module Shoes
     end
 
     # "Container" widgets like flows, stacks, masks and the document root
-    # are considered "slots" in Scarpe parlance. When a new slot is created,
+    # are considered "slots" in Shoes parlance. When a new slot is created,
     # we push it here in order to track what widgets are found in that slot.
     def push_slot(slot)
       @slots.push(slot)
