@@ -65,7 +65,7 @@ class TestWebviewImage < ScarpeWebviewTest
   def test_image_size
     url = "http://shoesrb.com/manual/static/shoes-icon.png"
     expected_size = [128, 128]
-    img = Scarpe::Image.new(url)
+    img = Shoes::Image.new(url)
     actual_size = img.size
 
     assert_equal expected_size, actual_size

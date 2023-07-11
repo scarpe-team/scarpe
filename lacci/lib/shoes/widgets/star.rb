@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "wv/shape_helper"
-class Scarpe
-  class InvalidAttributeValueError < Scarpe::Error; end
+# TODO: REMOVE THIS REQUIREMENT
+require "scarpe/wv/shape_helper"
 
+module Shoes
   class Star < Shoes::Widget
     include ShapeHelper
     display_properties :left, :top, :points, :outer, :inner, :color

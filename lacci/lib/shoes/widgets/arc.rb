@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class InvalidAttributeValueError < Scarpe::Error; end
+module Shoes
+  class InvalidAttributeValueError < Shoes::Error; end
 
   class Arc < Shoes::Widget
     display_properties :left, :top, :width, :height, :angle1, :angle2

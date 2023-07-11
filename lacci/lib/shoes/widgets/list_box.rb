@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe
+module Shoes
   class ListBox < Shoes::Widget
     display_properties :selected_item, :items, :height, :width
 

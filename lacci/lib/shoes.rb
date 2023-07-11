@@ -14,6 +14,9 @@ if RUBY_VERSION[0..2] < "3.2"
   exit(-1)
 end
 
+module Shoes; end
+class Shoes::Error < StandardError; end
+
 require_relative "shoes/constants"
 module Kernel
   include Shoes::Constants
@@ -27,11 +30,11 @@ require_relative "shoes/background"
 require_relative "shoes/border"
 require_relative "shoes/spacing"
 
-require "shoes/widget"
-require "shoes/app"
-require "shoes/widgets"
+require_relative "shoes/widget"
+require_relative "shoes/app"
+require_relative "shoes/widgets"
 
-class Shoes::Error < StandardError; end
+require_relative "shoes/download"
 
 # The module containing Shoes in all its glory.
 # Shoes is a platform-independent GUI library, designed to create

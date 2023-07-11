@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe
+module Shoes
   class Fill < Shoes::Widget
     display_properties :color
 

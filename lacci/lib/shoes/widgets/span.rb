@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe
+module Shoes
   class Span < Shoes::Widget
     display_properties :text, :stroke, :size, :font, :html_attributes
 

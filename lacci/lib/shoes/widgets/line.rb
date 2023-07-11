@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "wv/shape_helper"
+# TODO: REMOVE THIS
+require "scarpe/wv/shape_helper"
 
-class Scarpe
+module Shoes
   class Line < Shoes::Widget
     include ShapeHelper
 

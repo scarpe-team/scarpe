@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe
+module Shoes
   class Link < Shoes::TextWidget
     display_properties :text, :click, :has_block
 

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "wv/shape_helper"
+require "scarpe/wv/shape_helper"
 
-class Scarpe
+module Shoes
   class Shape < Shoes::Widget
     include ShapeHelper
     display_properties :left, :top
