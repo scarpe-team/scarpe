@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "lib/scarpe/version"
+require_relative "../lib/scarpe/version"
 
 Gem::Specification.new do |spec|
   spec.name = "lacci"
