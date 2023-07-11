@@ -1,18 +1,11 @@
 # frozen_string_literal: true
 
-require "shoes/widget"
-require "shoes/app"
-
-require_relative "spacing"
-require_relative "background"
-require_relative "border"
 require_relative "star"
 require_relative "radio"
 
 require_relative "fill"
 require_relative "font"
 
-require_relative "slot"
 require_relative "para"
 require_relative "stack"
 require_relative "flow"

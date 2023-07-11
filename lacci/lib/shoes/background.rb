@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe
+module Shoes
   module Background
     def self.included(includer)
       includer.display_property(:background_color)

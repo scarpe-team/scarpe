@@ -28,7 +28,8 @@ module Shoes
       attr_reader :current_log_config
 
       def instance=(impl_object)
-        raise Shoes::Error.new("Already have an instance for Shoes::Log!") if @instance
+        raise(Shoes::Error, "Already have an instance for Shoes::Log!") if @instance
+
         @instance = impl_object
       end
 

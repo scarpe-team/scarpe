@@ -23,6 +23,14 @@ require_relative "shoes/log"
 require_relative "shoes/display_service"
 require_relative "shoes/colors"
 
+require_relative "shoes/background"
+require_relative "shoes/border"
+require_relative "shoes/spacing"
+
+require "shoes/widget"
+require "shoes/app"
+require "shoes/slot"
+
 class Shoes::Error < StandardError; end
 
 # The module containing Shoes in all its glory.
