@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe
+module Shoes
   class Stack < Shoes::Slot
     # TODO: sort out various margin and padding properties, including putting stuff into spacing
     display_properties :width, :height, :scroll

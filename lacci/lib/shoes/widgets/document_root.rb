@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class DocumentRoot < Scarpe::Flow
+module Shoes
+  class DocumentRoot < Shoes::Flow
     def initialize
       @height = "100%"
       @width = @margin = @padding = nil
@@ -14,7 +14,7 @@ class Scarpe
 
     # The default inspect string can be absolutely huge in console output, and it's frequently printed.
     def inspect
-      "<Scarpe::DocumentRoot>"
+      "<Shoes::DocumentRoot>"
     end
   end
 end

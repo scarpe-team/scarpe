@@ -149,19 +149,6 @@ module Scarpe::Test
       @waiting_fibers << { promise: event_promise(event), fiber: f }
     end
 
-    WIDGET_FINDERS = {
-      "alert" => ::Scarpe::Alert,
-      "button" => ::Scarpe::Button,
-      "edit_box" => ::Scarpe::EditBox,
-      "edit_line" => ::Scarpe::EditLine,
-      "flow" => ::Scarpe::Flow,
-      "image" => ::Scarpe::Image,
-      "list_box" => ::Scarpe::ListBox,
-      "para" => ::Scarpe::Para,
-      "shape" => ::Scarpe::Shape,
-      "stack" => ::Scarpe::Stack,
-      "star" => ::Scarpe::Star,
-    }
     # What to do about TextWidgets? Link, code, em, strong?
     # Also, wait, what's up with span? What *is* that?
     Shoes::Widget.widget_classes.each do |widget_class|

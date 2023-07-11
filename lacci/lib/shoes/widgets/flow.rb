@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe
+module Shoes
   class Flow < Shoes::Slot
     display_properties :width, :height, :margin, :padding
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe
+module Shoes
   class Para < Shoes::Widget
     class << self
       def inherited(subclass)

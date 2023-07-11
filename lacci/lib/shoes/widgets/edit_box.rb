@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe
+module Shoes
   class EditBox < Shoes::Widget
     display_properties :text, :height, :width
 

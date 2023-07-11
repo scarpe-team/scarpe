@@ -38,8 +38,7 @@ module Shoes
           self.content = new_text
         end
       end
-      # TODO: move this to Shoes module
-      Scarpe.const_set class_name, widget_class
+      Shoes.const_set class_name, widget_class
       widget_class.class_eval do
         display_property :content
       end

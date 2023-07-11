@@ -34,7 +34,7 @@ module Shoes
       super
 
       # This creates the DocumentRoot, including its corresponding display widget
-      @document_root = Scarpe::DocumentRoot.new
+      @document_root = Shoes::DocumentRoot.new
 
       @slots = []
 

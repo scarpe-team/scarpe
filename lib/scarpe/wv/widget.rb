@@ -10,9 +10,9 @@ class Scarpe
     class << self
       # Return the corresponding Webview class for a particular Shoes class name
       def display_class_for(scarpe_class_name)
-        scarpe_class = Scarpe.const_get(scarpe_class_name)
+        scarpe_class = Shoes.const_get(scarpe_class_name)
         unless scarpe_class.ancestors.include?(Shoes::Linkable)
-          raise "Scarpe Webview can only get display classes for Scarpe " +
+          raise "Scarpe Webview can only get display classes for Shoes " +
             "linkable widgets, not #{scarpe_class_name.inspect}!"
         end
 

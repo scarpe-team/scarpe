@@ -29,7 +29,7 @@ require_relative "shoes/spacing"
 
 require "shoes/widget"
 require "shoes/app"
-require "shoes/slot"
+require "shoes/widgets"
 
 class Shoes::Error < StandardError; end
 

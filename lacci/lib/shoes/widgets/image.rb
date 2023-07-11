@@ -3,7 +3,7 @@
 require "fastimage"
 require "open-uri"
 
-class Scarpe
+module Shoes
   class Image < Shoes::Widget
     display_properties :url, :width, :height, :top, :left, :click
 
