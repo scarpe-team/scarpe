@@ -4,7 +4,7 @@ require "test_helper"
 
 class TestColors < Minitest::Test
   class Dummy
-    include Scarpe::Colors
+    include Shoes::Colors
   end
 
   def test_default_colors_are_accessible_via_methods

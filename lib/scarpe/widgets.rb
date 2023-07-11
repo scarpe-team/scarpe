@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "colors"
 require "shoes/widget"
 require "shoes/app"
 

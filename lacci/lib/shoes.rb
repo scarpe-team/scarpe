@@ -21,6 +21,7 @@ end
 
 require_relative "shoes/log"
 require_relative "shoes/display_service"
+require_relative "shoes/colors"
 
 class Shoes::Error < StandardError; end
 

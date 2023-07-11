@@ -12,7 +12,7 @@ module Shoes
   #
   class Widget < Shoes::Linkable
     include Shoes::Log
-    include Scarpe::Colors
+    include Shoes::Colors
 
     class << self
       attr_accessor :widget_classes

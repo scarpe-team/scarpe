@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe
+module Shoes
   module Colors
     COLORS = {
       aliceblue: [240, 248, 255],
