@@ -183,7 +183,7 @@ class Scarpe
       end
     end
 
-    # This binds a Scarpe JS callback, handled via a single dispatch point in the document root
+    # This binds a Scarpe JS callback, handled via a single dispatch point in the app
     #
     # @param event [String] the Scarpe widget event name
     # @yield the block to call when the event occurs

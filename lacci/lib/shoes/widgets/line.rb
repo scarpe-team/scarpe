@@ -1,25 +1,17 @@
 # frozen_string_literal: true
 
-# TODO: REMOVE THIS
-require "scarpe/wv/shape_helper"
-
 module Shoes
   class Line < Shoes::Widget
-    include ShapeHelper
-
-    display_properties :left, :top, :x2, :y2, :color
+    display_properties :left, :top, :x2, :y2, :draw_context
 
     def initialize(left, top, x2, y2)
-      validate_coordinates(x2, y2)
       @left = left
       @top = top
       @x2 = x2
       @y2 = y2
-      @color = color_for_fill
+      @draw_context = Shoes::App.instance.current_draw_context
 
-      # validate_coordinates(x2, y2)
-
-      super()
+      super
       create_display_widget
     end
   end

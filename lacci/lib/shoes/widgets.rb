@@ -7,7 +7,6 @@ require "shoes/widgets/document_root"
 
 require "shoes/widgets/text_widget"
 
-require "shoes/fill"
 require "shoes/widgets/font"
 require "shoes/widgets/subscription_item"
 
