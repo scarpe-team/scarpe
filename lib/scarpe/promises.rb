@@ -1,42 +1,54 @@
 # frozen_string_literal: true
 
-# Funny thing... We need promises as an API concept since we have a JS event
-# loop doing its thing, and we need to respond to actions that it takes.
-# But there's not really a Ruby implementation of Promises *without* an
-# attached form of concurrency. So here we are, writing our own :-/
-#
-# In theory you could probably write some kind of "no-op thread pool"
-# for the ruby-concurrency gem, pass it manually to every promise we
-# created and then raise an exception any time we tried to do something
-# in the background. That's probably more code than writing our own, though,
-# and we'd be fighting it constantly.
-#
-# This class is inspired by concurrent-ruby [Promise](https://ruby-concurrency.github.io/concurrent-ruby/1.1.5/Concurrent/Promise.html)
-# which is inspired by Javascript Promises, which is what we actually need
-# for our use case. We can't easily tell when our WebView begins processing
-# our request, which removes the :processing state. This can be used for
-# executing JS, but also generally waiting on events.
-#
-# We don't fully control ordering here, so it *is* conceivable that a
-# child waiting on a parent can be randomly fulfilled, even if we didn't
-# expect it. We don't consider that an error. Similarly, we'll call
-# on_scheduled callbacks if a promise is fulfilled, even though we
-# never explicitly scheduled it. If a promise is *rejected* without
-# ever being scheduled, we won't call those callbacks.
-
 class Scarpe
+  # Scarpe::Promise is a promises library, but one with no form of built-in
+  # concurrency. Instead, promise callbacks are executed synchronously.
+  # Even execution is usually synchronous, but can also be handled manually
+  # for forms of execution not controlled in Ruby (like Webview.)
+  #
+  # Funny thing... We need promises as an API concept since we have a JS event
+  # loop doing its thing, and we need to respond to actions that it takes.
+  # But there's not really a Ruby implementation of Promises *without* an
+  # attached form of concurrency. So here we are, writing our own :-/
+  #
+  # In theory you could probably write some kind of "no-op thread pool"
+  # for the ruby-concurrency gem, pass it manually to every promise we
+  # created and then raise an exception any time we tried to do something
+  # in the background. That's probably more code than writing our own, though,
+  # and we'd be fighting it constantly.
+  #
+  # This class is inspired by concurrent-ruby [Promise](https://ruby-concurrency.github.io/concurrent-ruby/1.1.5/Concurrent/Promise.html)
+  # which is inspired by Javascript Promises, which is what we actually need
+  # for our use case. We can't easily tell when our WebView begins processing
+  # our request, which removes the :processing state. This can be used for
+  # executing JS, but also generally waiting on events.
+  #
+  # We don't fully control ordering here, so it *is* conceivable that a
+  # child waiting on a parent can be randomly fulfilled, even if we didn't
+  # expect it. We don't consider that an error. Similarly, we'll call
+  # on_scheduled callbacks if a promise is fulfilled, even though we
+  # never explicitly scheduled it. If a promise is *rejected* without
+  # ever being scheduled, we won't call those callbacks.
   class Promise
     include Scarpe::Log
 
+    # The unscheduled promise state means it's waiting on a parent promise that
+    # hasn't completed yet. The pending state means it's waiting to execute.
+    # Fulfilled means it has completed successfully and returned a value,
+    # while rejected means it has failed, normally producing a reason.
     PROMISE_STATES = [:unscheduled, :pending, :fulfilled, :rejected]
 
+    # The state of the promise, which should be one of PROMISE_STATES
     attr_reader :state
-    attr_reader :parents
-    attr_reader :returned_value
-    attr_reader :reason
 
-    # These methods are meant to be a prettier interface to promises,
-    # suitable for day-to-day usage.
+    # The parent promises of this promise, sometimes an empty array
+    attr_reader :parents
+
+    # If the promise is fulfilled, this is the value returned
+    attr_reader :returned_value
+
+    # If the promise is rejected, this is the reason, sometimes an exception
+    attr_reader :reason
 
     # Create a promise and then instantly fulfill it.
     def self.fulfilled(return_val = nil, parents: [], &block)
@@ -52,19 +64,19 @@ class Scarpe
       p
     end
 
-    # Instance methods
-
+    # Fulfill the promise, setting the returned_value to value
     def fulfilled!(value = nil)
       set_state(:fulfilled, value)
     end
 
+    # Reject the promise, setting the reason to reason
     def rejected!(reason = nil)
       set_state(:rejected, reason)
     end
 
+    # Create a new promise with this promise as a parent. It runs the
+    # specified code in block when scheduled.
     def then(&block)
-      # Create a new promise. It's waiting on us. It runs the
-      # specified code when scheduled.
       Promise.new(parents: [self], &block)
     end
 
@@ -73,7 +85,15 @@ class Scarpe
     # the prettiest. However, they ensure that guarantees are made
     # and so on, so they're great as plumbing under the syntactic
     # sugar above.
-
+    #
+    # Note that the state passed in may not be the actual initial
+    # state. If a parent is rejected, the state will become
+    # rejected. If no parents are waiting or failed then a state
+    # of nil or :unscheduled will become :pending.
+    #
+    # @param state [Symbol] One of PROMISE_STATES for the initial state
+    # @param parents [Array] A list of promises that must be fulfilled before this one is scheduled
+    # @yield A block that executes when this promise is scheduled - when its parents, if any, are all fulfilled
     def initialize(state: nil, parents: [], &scheduler)
       log_init("Promise")
 
@@ -131,18 +151,28 @@ class Scarpe
       end
     end
 
+    # Return true if the Promise is either fulfilled or rejected.
+    #
+    # @return [Boolean] true if the promise is fulfilled or rejected
     def complete?
       @state == :fulfilled || @state == :rejected
     end
 
+    # Return true if the promise is already fulfilled.
+    #
+    # @return [Boolean] true if the promise is fulfilled
     def fulfilled?
       @state == :fulfilled
     end
 
+    # Return true if the promise is already rejected.
+    #
+    # @return [Boolean] true if the promise is rejected
     def rejected?
       @state == :rejected
     end
 
+    # An inspect method to give slightly smaller output, for ease of reading in irb
     def inspect
       "#<Scarpe::Promise:#{object_id} " +
         "@state=#{@state.inspect} @parents=#{@parents.inspect} " +
@@ -156,8 +186,8 @@ class Scarpe
     # These promises are mostly designed for external execution.
     # You could put together your own thread-pool, or use RPC,
     # a WebView, a database or similar source of external calculation.
-    # But in some cases, sure, it's reasonable to execute locally.
-    # In those cases, you can register an executor, which will be
+    # But in many cases it's reasonable to execute locally.
+    # In those cases, you can register an executor which will be
     # called when the promise is ready to execute but has not yet
     # done so. Registering an executor on a promise that is
     # already fulfilled is an error. Registering an executor on
@@ -350,6 +380,11 @@ class Scarpe
 
     public
 
+    # Register a handler to be called when the promise is fulfilled.
+    # If called on a fulfilled promise, the handler will be called immediately.
+    #
+    # @yield Handler to be called on fulfilled
+    # @return [Scarpe::Promise] self
     def on_fulfilled(&handler)
       unless handler
         raise "You must pass a block to on_fulfilled!"
@@ -367,6 +402,11 @@ class Scarpe
       self
     end
 
+    # Register a handler to be called when the promise is rejected.
+    # If called on a rejected promise, the handler will be called immediately.
+    #
+    # @yield Handler to be called on rejected
+    # @return [Scarpe::Promise] self
     def on_rejected(&handler)
       unless handler
         raise "You must pass a block to on_rejected!"
@@ -384,6 +424,12 @@ class Scarpe
       self
     end
 
+    # Register a handler to be called when the promise is scheduled.
+    # If called on a promise that was scheduled earlier, the handler
+    # will be called immediately.
+    #
+    # @yield Handler to be called on scheduled
+    # @return [Scarpe::Promise] self
     def on_scheduled(&handler)
       unless handler
         raise "You must pass a block to on_scheduled!"
