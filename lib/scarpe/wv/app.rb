@@ -94,11 +94,16 @@ class Scarpe
       @callbacks[name] = block
     end
 
+    # Request a full redraw if Webview is running. Otherwise
+    # this is a no-op.
+    #
+    # @return [void]
     def request_redraw!
       wrangler = WebviewDisplayService.instance.wrangler
       if wrangler.is_running
         wrangler.replace(@document_root.to_html)
       end
+      nil
     end
   end
 end
