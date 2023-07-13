@@ -4,9 +4,20 @@ require "socket"
 require "rbconfig"
 
 class Scarpe
+  # An error occurred which would normally be handled by shutting down the app
   class AppShutdownError < Scarpe::Error; end
 
-  module WVRelayUtil # Make sure the including class also includes Scarpe::Log
+  # WVRelayUtil defines the datagram format for the sockets that connect a parent
+  # Shoes application with a child display server.
+  #
+  # The class including this module should also include Shoes::Log so that it can
+  # be used.
+  module WVRelayUtil
+    # Checks whether the internal socket is ready to be read from.
+    # If timeout is greater than 0, this will block for up to that long.
+    #
+    # @param timeout [Float] the longest to wait for more input to read
+    # @return [Boolean] whether the socket has data ready for reading
     def ready_to_read?(timeout = 0.0)
       r, _, e = IO.select [@from], [], [@from, @to].uniq, timeout
 
@@ -20,6 +31,10 @@ class Scarpe
       !r.empty?
     end
 
+    # Send bytes on the internal socket to the opposite side.
+    #
+    # @param contents [String] data to send
+    # @return [void]
     def send_datagram(contents)
       str_data = JSON.dump contents
       dgram_str = (str_data.length.to_s + "a" + str_data).encode(Encoding::BINARY)
@@ -38,6 +53,10 @@ class Scarpe
       nil
     end
 
+    # Read data from the internal socket. Read until a whole datagram
+    # has been received and then return it.
+    #
+    # @return [String] the received datagram
     def receive_datagram
       @readbuf ||= String.new.encode(Encoding::BINARY)
       to_read = nil
@@ -75,6 +94,8 @@ class Scarpe
       raise AppShutdownError, "Got exception #{$!.class} when receiving datagram... #{$!.inspect}"
     end
 
+    # Read a datagram from the internal buffer and then dispatch it to the
+    # appropriate handler.
     def respond_to_datagram
       message = receive_datagram
       m_data = JSON.parse(message)
@@ -104,6 +125,9 @@ class Scarpe
       end
     end
 
+    # Loop for up to `t` seconds, reading data and waiting.
+    #
+    # @param t [Float] the number of seconds to loop for
     def event_loop_for(t = 1.5)
       t_start = Time.now
       delay_time = t
@@ -118,14 +142,21 @@ class Scarpe
     end
   end
 
-  # This "display service" actually creates a child process and sends events
-  # back and forth, but creates no widgets of its own.
+  # This display service creates a child process and sends events
+  # back and forth, but creates no widgets of its own. The child
+  # process will spawn a worker with its own WebviewDisplayService
+  # where the real Webview exists. By splitting the Webview
+  # process from the Shoes widgets, it can be easier to return
+  # control to Webview's event handler promptly. Also, the Ruby
+  # process could run background threads if it wanted, and
+  # otherwise behave like a process ***not*** containing Webview.
   class WVRelayDisplayService < Shoes::DisplayService
     include Scarpe::Log
     include WVRelayUtil # Needs Scarpe::Log
 
     attr_accessor :shutdown
 
+    # Create a Webview Relay Display Service
     def initialize
       super()
       log_init("WV::RelayDisplayService")
@@ -158,6 +189,7 @@ class Scarpe
       end
     end
 
+    # Run, sending and responding to datagrams continuously.
     def run_event_loop
       until @shutdown
         respond_to_datagram while ready_to_read?
@@ -169,11 +201,14 @@ class Scarpe
       self.destroy
     end
 
+    # This method sends a message to the worker process to create a widget. No actual
+    # widget is created or registered with the display service.
     def create_display_widget_for(widget_class_name, widget_id, properties)
       send_datagram({ type: :create, class_name: widget_class_name, id: widget_id, properties: })
       # Don't need to return anything. It wouldn't be used anyway.
     end
 
+    # Tell the worker process to quit, and set a flag telling the event loop to shut down.
     def destroy
       unless @shutdown
         send_datagram({ type: :destroy })
