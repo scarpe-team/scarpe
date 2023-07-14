@@ -14,6 +14,7 @@ require_relative "wv/html"
 
 require_relative "wv/spacing"
 require_relative "wv/star"
+require_relative "wv/radio"
 require_relative "wv/background"
 require_relative "wv/border"
 
@@ -41,3 +42,4 @@ require_relative "wv/text_widget"
 require_relative "wv/link"
 require_relative "wv/line"
 require_relative "wv/video"
+require_relative "wv/check"

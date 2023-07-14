@@ -678,6 +678,11 @@ class Scarpe
       def remove
         @webwrangler.dom_change("document.getElementById('" + html_id + "').remove(); true")
       end
+
+      def toggle_input_button(mark)
+        checked_value = mark ? "true" : "false"
+        @webwrangler.dom_change("document.getElementById('#{html_id}').checked = #{checked_value};")
+      end
     end
   end
 end
