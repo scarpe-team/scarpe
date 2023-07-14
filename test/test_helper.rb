@@ -15,11 +15,6 @@ require "minitest/autorun"
 require "minitest/reporters"
 Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
 
-# Soon this should go in the framework, not here
-unless Object.constants.include?(:Shoes)
-  Shoes = Scarpe
-end
-
 # Docs for our Webview lib: https://github.com/Maaarcocr/webview_ruby
 
 SET_UP_TIMEOUT_CHECKS = { setup: false, near_timeout: [] }
@@ -69,7 +64,7 @@ class ScarpeWebviewTest < Minitest::Test
       if exit_immediately
         test_control_code += <<~TEST_EXIT_IMMEDIATELY
           on_event(:next_heartbeat) do
-            Scarpe::Logger.logger("ScarpeTest").info("Dying on heartbeat because :exit_immediately is set")
+            Shoes::Log.logger("ScarpeTest").info("Dying on heartbeat because :exit_immediately is set")
             app.destroy
           end
         TEST_EXIT_IMMEDIATELY
@@ -117,7 +112,7 @@ class ScarpeWebviewTest < Minitest::Test
       end
 
       out_data = JSON.parse File.read(result_path)
-      Scarpe::Logger.logger("TestHelper").info("JSON assertion data: #{out_data.inspect}")
+      Shoes::Log.logger("TestHelper").info("JSON assertion data: #{out_data.inspect}")
 
       unless out_data.respond_to?(:each) && out_data.length == 3
         raise "Scarpe app returned an unexpected data format! #{out_data.inspect}"

@@ -148,7 +148,7 @@ module Scarpe::Test::Helpers
     if results_returned && results_returned[0..1] != result_structs[0..1]
       # Just raising here doesn't reliably fail the test.
       # See: https://github.com/scarpe-team/scarpe/issues/212
-      Scarpe::Logger.logger("Test Results").error("Writing multi-result failure file to #{result_file.inspect}!")
+      Shoes::Log.logger("Test Results").error("Writing multi-result failure file to #{result_file.inspect}!")
 
       new_res_data = { first_result: results_returned, second_result: result_structs }.merge(test_metadata)
       bad_result = [false, "Returned two sets of results!", new_res_data]
@@ -156,10 +156,10 @@ module Scarpe::Test::Helpers
 
       return
     elsif results_returned
-      Scarpe::Logger.logger("Test Results").warn "Returning identical results twice: #{results_returned.inspect}"
+      Shoes::Log.logger("Test Results").warn "Returning identical results twice: #{results_returned.inspect}"
     end
 
-    Scarpe::Logger.logger("Test Results").debug("Writing results file #{result_file.inspect} to disk!")
+    Shoes::Log.logger("Test Results").debug("Writing results file #{result_file.inspect} to disk!")
     File.write(result_file, JSON.pretty_generate(result_structs))
   end
 end
@@ -191,10 +191,10 @@ module Scarpe::Test::LoggedTest
     # Delete stale test failures and logging only the *first* time this is called.
     set_up_test_failures
 
-    @normal_log_config = Scarpe::Logger.current_log_config
-    Scarpe::Logger.configure_logger(log_config_for_test)
+    @normal_log_config = Shoes::Log.current_log_config
+    Shoes::Log.configure_logger(log_config_for_test)
 
-    Scarpe::Logger.logger("LoggedScarpeTest").info("Test: #{self.class.name}##{self.name}")
+    Shoes::Log.logger("LoggedScarpeTest").info("Test: #{self.class.name}##{self.name}")
   end
 
   # If you include this module and don't override setup/teardown, everything will
@@ -215,7 +215,7 @@ module Scarpe::Test::LoggedTest
   # @return [void]
   def logged_test_teardown
     # Restore previous log config
-    Scarpe::Logger.configure_logger(@normal_log_config)
+    Shoes::Log.configure_logger(@normal_log_config)
 
     if self.failure
       save_failure_logs

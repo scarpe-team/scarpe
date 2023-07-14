@@ -151,8 +151,8 @@ class Scarpe
   # process could run background threads if it wanted, and
   # otherwise behave like a process ***not*** containing Webview.
   class WVRelayDisplayService < Shoes::DisplayService
-    include Scarpe::Log
-    include WVRelayUtil # Needs Scarpe::Log
+    include Shoes::Log
+    include WVRelayUtil # Needs Shoes::Log
 
     attr_accessor :shutdown
 

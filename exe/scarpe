@@ -31,7 +31,7 @@ def print_env
   puts <<~SCARPE_ENV
     Scarpe environment:
       #{env_or_default("SCARPE_DISPLAY_SERVICE", "(default)wv_local")}
-      #{env_or_default("SCARPE_LOG_CONFIG", "(default)#{Scarpe::Log::DEFAULT_LOG_CONFIG.inspect}")}
+      #{env_or_default("SCARPE_LOG_CONFIG", "(default)#{Shoes::Log::DEFAULT_LOG_CONFIG.inspect}")}
       #{env_or_none("SCARPE_APP_TEST")}
     Scarpe::WV environment:
       #{env_or_none("SCARPE_TEST_CONTROL")}

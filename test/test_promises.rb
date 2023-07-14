@@ -7,15 +7,15 @@ class TestPromises < Minitest::Test
 
   def setup
     # Save so we can restore it post-test
-    @normal_log_config = Scarpe::Logger.current_log_config
+    @normal_log_config = Shoes::Log.current_log_config
 
     # For these tests, don't log anything
-    Scarpe::Logger.configure_logger("default" => "fatal")
+    Shoes::Log.configure_logger("default" => "fatal")
   end
 
   def teardown
     # Restore previous log config
-    Scarpe::Logger.configure_logger(@normal_log_config)
+    Shoes::Log.configure_logger(@normal_log_config)
   end
 
   def empty_promise_with_checker(state: nil, parents: [])

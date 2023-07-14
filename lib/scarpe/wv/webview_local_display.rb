@@ -11,7 +11,7 @@ class Scarpe
   # Frequently it's better to use a RelayDisplayService to a second
   # process containing one of these.
   class WebviewDisplayService < Shoes::DisplayService
-    include Scarpe::Log
+    include Shoes::Log
 
     class << self
       attr_accessor :instance

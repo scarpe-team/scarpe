@@ -35,7 +35,7 @@ class Scarpe
   # Once run() is called on WebWrangler, we will hand control of the event loop to
   # the Webview. This will also stop any background threads in Ruby.
   class WebWrangler
-    include Scarpe::Log
+    include Shoes::Log
 
     # Whether Webview has been started. Once Webview is running you can't add new
     # Javascript bindings. Until it is running, you can't use eval to run Javascript.
@@ -92,7 +92,7 @@ class Scarpe
 
       # For now, always allow inspect element, so pass debug: true
       @webview = WebviewRuby::Webview.new debug: true
-      @webview = Scarpe::LoggedWrapper.new(@webview, "WebviewAPI") if debug
+      @webview = Shoes::LoggedWrapper.new(@webview, "WebviewAPI") if debug
       @init_refs = {} # Inits don't go away so keep a reference to them to prevent GC
 
       @title = title
@@ -557,7 +557,7 @@ class Scarpe
     # need to execute even if a full update happens should be scheduled through
     # WebWrangler#eval_js_async, not DOMWrangler.
     class DOMWrangler
-      include Scarpe::Log
+      include Shoes::Log
 
       # Changes that have not yet been executed
       attr_reader :waiting_changes

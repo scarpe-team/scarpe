@@ -10,6 +10,12 @@ Rake::TestTask.new(:test) do |t|
   t.test_files = FileList["test/**/test_*.rb"]
 end
 
+Rake::TestTask.new(:lacci_test) do |t|
+  t.libs << "lacci/test"
+  t.libs << "lacci/lib"
+  t.test_files = FileList["lacci/test/**/test_*.rb"]
+end
+
 RuboCop::RakeTask.new
 
-task default: [:test, :rubocop]
+task default: [:test, :lacci_test, :rubocop]

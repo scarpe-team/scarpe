@@ -12,3 +12,4 @@ scarpe_results.txt
 logger/*.log
 /docs/yard/template/default/doc
 /docs/yard/template/default/.yardoc
+**/lacci-*.gem
