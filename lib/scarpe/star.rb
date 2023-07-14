@@ -4,7 +4,7 @@ require_relative "wv/shape_helper"
 class Scarpe
   class InvalidAttributeValueError < Scarpe::Error; end
 
-  class Star < Scarpe::Widget
+  class Star < Shoes::Widget
     include ShapeHelper
     display_properties :left, :top, :points, :outer, :inner, :color
 

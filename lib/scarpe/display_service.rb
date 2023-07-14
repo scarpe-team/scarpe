@@ -26,18 +26,6 @@
 # And when a display-side event occurs (e.g. user pushes a button,) it will be
 # dispatched as a :shoes event, to be sent to the Shoes tree of widgets.
 #
-# It is normally assumed that there will only be a single 'real' consumer for each
-# queue. You wouldn't usually want multiple display services sending back click
-# events, for example. But that's not a technical limitation of the system.
-# You could have no display service and not get any events back, or a debug
-# display service that just records what happened. But in real situations,
-# exactly one display service is a reasonable and appropriate assumption.
-#
-# The event types are "queues" in the sense that they're separate from each
-# other. You need to subscribe separately to :shoes and :display events if
-# you want both. But internally they're immediately dispatched as events
-# rather than keeping a literal array of items.
-#
 module Shoes
   class DisplayService
     class << self
@@ -167,6 +155,10 @@ module Shoes
   # This is for objects that can be referred to via events, using their
   # IDs. There are also convenience functions for binding and sending
   # events.
+  #
+  # Linkable objects may be event targets. Technically anything, linkable
+  # or not, can be an event subscriber, but linkables get easy convenience
+  # functions for subscription.
   class Linkable
     attr_reader :linkable_id
 

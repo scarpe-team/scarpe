@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class Flow < Scarpe::Slot
+  class Flow < Shoes::Slot
     display_properties :width, :height, :margin, :padding
 
     def initialize(width: nil, height: nil, margin: nil, padding: nil, **options, &block)
@@ -12,7 +12,7 @@ class Scarpe
       # Create the display-side widget *before* instance_eval, which will add child widgets with their display widgets
       create_display_widget
 
-      Scarpe::App.instance.with_slot(self, &block) if block_given?
+      Shoes::App.instance.with_slot(self, &block) if block_given?
     end
   end
 end

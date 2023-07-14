@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class Stack < Scarpe::Slot
+  class Stack < Shoes::Slot
     # TODO: sort out various margin and padding properties, including putting stuff into spacing
     display_properties :width, :height, :scroll
 
@@ -14,7 +14,7 @@ class Scarpe
 
       create_display_widget
       # Create the display-side widget *before* running the block, which will add child widgets with their display widgets
-      Scarpe::App.instance.with_slot(self, &block) if block_given?
+      Shoes::App.instance.with_slot(self, &block) if block_given?
     end
   end
 end

@@ -4,7 +4,7 @@ require "net/http"
 require "openssl"
 require "nokogiri"
 
-class Scarpe
+module Shoes
   class Widget
     class ResponseWrapper
       attr_reader :response
@@ -26,7 +26,7 @@ class Scarpe
       @block = block
 
       Thread.new do
-        logger = Scarpe::Logger.logger("Scarpe::App#download")
+        logger = Scarpe::Logger.logger("Shoes::App#download")
         begin
           uri = URI(url)
           response = perform_request(uri, method, styles)

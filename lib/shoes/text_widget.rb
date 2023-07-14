@@ -2,13 +2,13 @@
 
 # Scarpe::TextWidget
 
-class Scarpe
-  class TextWidget < Scarpe::Widget
+module Shoes
+  class TextWidget < Shoes::Widget
     class << self
       # rubocop:disable Lint/MissingSuper
       def inherited(subclass)
-        Scarpe::Widget.widget_classes ||= []
-        Scarpe::Widget.widget_classes << subclass
+        Shoes::Widget.widget_classes ||= []
+        Shoes::Widget.widget_classes << subclass
       end
       # rubocop:enable Lint/MissingSuper
     end
@@ -18,7 +18,7 @@ class Scarpe
     def default_text_widget_with(element)
       class_name = element.capitalize
 
-      widget_class = Class.new(Scarpe::TextWidget) do
+      widget_class = Class.new(Shoes::TextWidget) do
         # Can we just change content to text to match the Shoes API?
         display_property :content
 
@@ -38,6 +38,7 @@ class Scarpe
           self.content = new_text
         end
       end
+      # TODO: move this to Shoes module
       Scarpe.const_set class_name, widget_class
       widget_class.class_eval do
         display_property :content
@@ -46,6 +47,6 @@ class Scarpe
   end
 end
 
-Scarpe.default_text_widget_with(:code)
-Scarpe.default_text_widget_with(:em)
-Scarpe.default_text_widget_with(:strong)
+Shoes.default_text_widget_with(:code)
+Shoes.default_text_widget_with(:em)
+Shoes.default_text_widget_with(:strong)

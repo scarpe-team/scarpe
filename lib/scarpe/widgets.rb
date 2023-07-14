@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require_relative "colors"
-require_relative "widget"
-require_relative "app"
+require "shoes/widget"
+require "shoes/app"
 
 require_relative "spacing"
 require_relative "background"
@@ -30,7 +30,7 @@ require_relative "span"
 require_relative "shape"
 require_relative "arc"
 
-require_relative "text_widget"
+require "shoes/text_widget"
 require_relative "link"
 require_relative "line"
 require_relative "video"

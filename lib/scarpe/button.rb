@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class Button < Scarpe::Widget
+  class Button < Shoes::Widget
     include Scarpe::Log
     display_properties :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size
 

@@ -9,7 +9,7 @@
 #
 # Inheriting from Widget gives these a parent slot and a
 # linkable_id automatically.
-class SubscriptionItem < Scarpe::Widget
+class SubscriptionItem < Shoes::Widget
   display_property :shoes_api_name
 
   def initialize(shoes_api_name:, &block)

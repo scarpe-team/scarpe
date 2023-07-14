@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class Para < Scarpe::Widget
+  class Para < Shoes::Widget
     class << self
       def inherited(subclass)
         Scarpe::Widget.widget_classes ||= []
@@ -59,7 +59,9 @@ class Scarpe
       @hidden_text_items = []
     end
   end
+end
 
+module Shoes
   class Widget
     def banner(*args, **kwargs)
       para(*args, **{ size: :banner }.merge(kwargs))

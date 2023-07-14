@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class EditLine < Scarpe::Widget
+  class EditLine < Shoes::Widget
     display_properties :text, :width
 
     def initialize(text = "", width: nil, &block)

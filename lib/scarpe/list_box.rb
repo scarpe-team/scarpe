@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class ListBox < Scarpe::Widget
+  class ListBox < Shoes::Widget
     display_properties :selected_item, :items, :height, :width
 
     def initialize(args = {}, &block)

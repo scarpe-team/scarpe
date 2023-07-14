@@ -1,12 +1,15 @@
 # frozen_string_literal: true
 
-# Scarpe::Widget
-#
-# Interface:
-# A Scarpe::Widget defines the "element" method to indicate that it has custom markup of
-# some kind. A Widget with no element method renders as its children's markup, joined.
-
-class Scarpe
+module Shoes
+  # Shoes::Widget
+  #
+  # This is the display-service portable Shoes Widget interface. Visible Shoes
+  # widgets like buttons inherit from this. Compound widgets made of multiple
+  # different smaller Widgets inherit from it in their various apps or libraries.
+  # The Shoes Widget helps build a Shoes-side widget tree, with parents and
+  # children. Any API that applies to all widgets (e.g. remove) should be
+  # defined here.
+  #
   class Widget < Shoes::Linkable
     include Scarpe::Log
     include Scarpe::Colors
@@ -15,8 +18,8 @@ class Scarpe
       attr_accessor :widget_classes
 
       def inherited(subclass)
-        Scarpe::Widget.widget_classes ||= []
-        Scarpe::Widget.widget_classes << subclass
+        Shoes::Widget.widget_classes ||= []
+        Shoes::Widget.widget_classes << subclass
         super
       end
 
@@ -58,14 +61,14 @@ class Scarpe
       end
 
       def display_property_names
-        parent_prop_names = self != Scarpe::Widget ? self.superclass.display_property_names : []
+        parent_prop_names = self != Shoes::Widget ? self.superclass.display_property_names : []
 
         parent_prop_names | linkable_properties.map { |prop| prop[:name] }
       end
 
       def display_property_name?(name)
         linkable_properties_hash[name.to_s] ||
-          (self != Scarpe::Widget && superclass.display_property_name?(name))
+          (self != Shoes::Widget && superclass.display_property_name?(name))
       end
     end
 
@@ -140,7 +143,7 @@ class Scarpe
       @children << child
     end
 
-    # Removes the element from the Scarpe::Widget tree
+    # Removes the element from the Shoes::Widget tree
     def destroy
       @parent&.remove_child(self)
       send_shoes_event(event_name: "destroy", target: linkable_id)
@@ -180,12 +183,12 @@ class Scarpe
       klass = Widget.widget_class_by_name(name)
       return super unless klass
 
-      ::Scarpe::Widget.define_method(name) do |*args, **kwargs, &block|
+      ::Shoes::Widget.define_method(name) do |*args, **kwargs, &block|
         # Look up the Shoes widget and create it...
         widget_instance = klass.new(*args, **kwargs, &block)
 
-        unless klass.ancestors.include?(Scarpe::TextWidget)
-          widget_instance.set_parent Scarpe::App.instance.current_slot
+        unless klass.ancestors.include?(Shoes::TextWidget)
+          widget_instance.set_parent Shoes::App.instance.current_slot
         end
 
         widget_instance

@@ -33,7 +33,7 @@ class Scarpe
       "<#ControlInterface>"
     end
 
-    # This should get called once, from Scarpe::App
+    # This should get called once, from Shoes::App
     def set_system_components(app:, doc_root:, wrangler:)
       unless app && wrangler
         @log.error("False app passed to set_system_components!") unless app
