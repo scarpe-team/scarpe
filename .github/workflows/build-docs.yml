@@ -40,14 +40,14 @@ jobs:
         id: pages
         uses: actions/configure-pages@v3
       - name: Build with yardoc
-        run: rm -r .yardoc doc && bundle exec yardoc -o doc
+        run: rm -r .yardoc docs && bundle exec yardoc -o docs
         env:
           FAKE_ENV: example
       - name: Upload artifact
         # Automatically uploads an artifact from the './_site' directory by default
         uses: actions/upload-pages-artifact@v1
         with:
-          path: ./doc
+          path: ./docs
 
   # Deployment job
   deploy:
