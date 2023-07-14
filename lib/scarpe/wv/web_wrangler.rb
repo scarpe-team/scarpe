@@ -9,12 +9,46 @@ require "cgi"
 # use setup-mode callbacks.
 
 class Scarpe
+  # The Scarpe WebWrangler, for Webview, manages a lot of Webviews quirks. It provides
+  # a simpler underlying abstraction for DOMWrangler and the Webview widgets.
+  # Webview can be picky - if you send it too many messages, it can crash. If the
+  # messages you send it are too large, it can crash. If you don't return control
+  # to its event loop, it can crash. It doesn't save references to all event handlers,
+  # so if you don't save references to them, garbage collection will cause it to
+  # crash.
+  #
+  # As well, Webview only supports asynchronous JS code evaluation with no value
+  # being returned. One of WebWrangler's responsibilities is to make asynchronous
+  # JS calls, detect when they return a value or time out, and make the result clear
+  # to other Scarpe code.
+  #
+  # Some Webview API functions will crash on some platforms if called from a
+  # background thread. Webview will halt all background threads when it runs its
+  # event loop. So it's best to assume no Ruby background threads will be available
+  # while Webview is running. If a Ruby app wants ongoing work to occur, that work
+  # should be registered via a heartbeat handler on the Webview.
+  #
+  # A WebWrangler is initially in Setup mode, where the underlying Webview exists
+  # but does not yet control the event loop. In Setup mode you can bind JS functions,
+  # set up initialization code, but nothing is yet running.
+  #
+  # Once run() is called on WebWrangler, we will hand control of the event loop to
+  # the Webview. This will also stop any background threads in Ruby.
   class WebWrangler
     include Scarpe::Log
 
+    # Whether Webview has been started. Once Webview is running you can't add new
+    # Javascript bindings. Until it is running, you can't use eval to run Javascript.
     attr_reader :is_running
+
+    # Once Webview is marked terminated, it's attempting to shut down. If we get
+    # events (e.g. heartbeats) after that, we should ignore them.
     attr_reader :is_terminated
-    attr_reader :heartbeat # This is the heartbeat duration in seconds, usually fractional
+
+    # This is the time between heartbeats in seconds, usually fractional
+    attr_reader :heartbeat
+
+    # A reference to the control_interface that manages internal Scarpe Webview events.
     attr_reader :control_interface
 
     # This error indicates a problem when running ConfirmedEval
@@ -25,7 +59,7 @@ class Scarpe
       end
     end
 
-    # We got an error running the supplied JS code string in confirmed_eval
+    # An error running the supplied JS code string in confirmed_eval
     class JSRuntimeError < JSEvalError
     end
 
@@ -37,18 +71,26 @@ class Scarpe
     class InternalError < JSEvalError
     end
 
-    # This is the JS function name for eval results
+    # This is the JS function name for eval results (internal-only)
     EVAL_RESULT = "scarpeAsyncEvalResult"
 
-    # Allow a half-second for Webview to finish our JS eval before we decide it's not going to
+    # Allow this many seconds for Webview to finish our JS eval before we decide it's not going to
     EVAL_DEFAULT_TIMEOUT = 0.5
 
+    # Create a new WebWrangler.
+    #
+    # @param title [String] window title
+    # @param width [Integer] window width in pixels
+    # @param height [Integer] window height in pixels
+    # @param resizable [Boolean] whether the window should be resizable by the user
+    # @param debug [Boolean] whether to log all Webview API calls
+    # @param heartbeat [Float] time between heartbeats in seconds
     def initialize(title:, width:, height:, resizable: false, debug: false, heartbeat: 0.1)
       log_init("WV::WebWrangler")
 
       @log.debug("Creating WebWrangler...")
 
-      # For now, always allow inspect element
+      # For now, always allow inspect element, so pass debug: true
       @webview = WebviewRuby::Webview.new debug: true
       @webview = Scarpe::LoggedWrapper.new(@webview, "WebviewAPI") if debug
       @init_refs = {} # Inits don't go away so keep a reference to them to prevent GC
@@ -59,8 +101,8 @@ class Scarpe
       @resizable = resizable
       @heartbeat = heartbeat
 
-      # Better to have a single setInterval than many when we don't care too much
-      # about the timing.
+      # JS setInterval uses RPC and is quite expensive. For many periodic operations
+      # we can group them under a single heartbeat handler and avoid extra JS calls or RPC.
       @heartbeat_handlers = []
 
       # Need to keep track of which WebView Javascript evals are still pending,
@@ -100,16 +142,28 @@ class Scarpe
 
     ### Setup-mode Callbacks
 
+    # Bind a Javascript-callable function by name. When JS calls the function,
+    # an async message is sent to Ruby via RPC and will eventually cause the
+    # block to be called. This method only works in setup mode, before the
+    # underlying Webview has been told to run.
+    #
+    # @param name [String] the Javascript name for the new function
+    # @yield The Ruby block to be invoked when JS calls the function
     def bind(name, &block)
       raise "App is running, javascript binding no longer works because it uses WebView init!" if @is_running
 
       @webview.bind(name, &block)
     end
 
+    # Request that this block of code be run initially when the Webview is run.
+    # This operates via #init and will not work if Webview is already running.
+    #
+    # @param name [String] the Javascript name for the init function
+    # @yield The Ruby block to be invoked when Webview runs
     def init_code(name, &block)
       raise "App is running, javascript init no longer works!" if @is_running
 
-      # Save a reference to the init string so that it goesn't get GC'd
+      # Save a reference to the init string so that it doesn't get GC'd
       code_str = "#{name}();"
       @init_refs[name] = code_str
 
@@ -118,8 +172,14 @@ class Scarpe
     end
 
     # Run the specified code periodically, every "interval" seconds.
-    # If interface is unspecified, run per-heartbeat, which is very
-    # slightly more efficient.
+    # If interval is unspecified, run per-heartbeat. This avoids extra
+    # RPC and Javascript overhead. This may use the #init mechanism,
+    # so it should be invoked when the WebWrangler is in setup mode,
+    # before the Webview is running.
+    #
+    # @param name [String] the name of the Javascript init function, if needed
+    # @param interval [Float] the duration between invoking this block
+    # @yield the Ruby block to invoke periodically
     def periodic_code(name, interval = heartbeat, &block)
       if interval == heartbeat
         @heartbeat_handlers << block
@@ -143,7 +203,7 @@ class Scarpe
 
     # Running callbacks
 
-    # js_eventually is a simple JS evaluation. On syntax error, nothing happens.
+    # js_eventually is a native Webview JS evaluation. On syntax error, nothing happens.
     # On runtime error, execution stops at the error with no further
     # effect or notification. This is rarely what you want.
     # The js_eventually code is run asynchronously, returning neither error
@@ -151,6 +211,9 @@ class Scarpe
     #
     # This method does *not* return a promise, and there is no way to track
     # its progress or its success or failure.
+    #
+    # @param code [String] the Javascript code to attempt to execute
+    # @return [void]
     def js_eventually(code)
       raise "WebWrangler isn't running, eval doesn't work!" unless @is_running
 
@@ -163,19 +226,25 @@ class Scarpe
     # promise which will be fulfilled or rejected after the JS executes
     # or times out.
     #
-    # Note that we *both* care whether the JS has finished after it was
+    # We *both* care whether the JS has finished after it was
     # scheduled *and* whether it ever got scheduled at all. If it
-    # depends on tasks that never fulfill or reject then it may wait
-    # in limbo, potentially forever.
+    # depends on tasks that never fulfill or reject then it will
+    # raise a timed-out exception.
     #
-    # Right now we can't/don't handle arguments from previous fulfilled
-    # promises. To do that, we'd probably need to know we were passing
-    # in a JS function.
-    EVAL_OPTS = [:timeout, :wait_for]
-    def eval_js_async(code, opts = {})
-      bad_opts = opts.keys - EVAL_OPTS
-      raise("Bad options given to eval_with_handler! #{bad_opts.inspect}") unless bad_opts.empty?
-
+    # Right now we can't/don't pass arguments through from previous fulfilled
+    # promises. To do that, you can schedule the JS to run after the
+    # other promises succeed.
+    #
+    # Webview does not allow interacting with a JS eval once it has
+    # been scheduled. So there is no way to guarantee that a piece of JS has
+    # not executed, or will not execute in the future. A timeout exception
+    # only means that WebWrangler will no longer wait for confirmation or
+    # fulfill the promise if the JS later completes.
+    #
+    # @param code [String] the Javascript code to execute
+    # @param timeout [Float] how long to allow before raising a timeout exception
+    # @param wait_for [Array<Promise>] promises that must complete successfully before this JS is scheduled
+    def eval_js_async(code, timeout: EVAL_DEFAULT_TIMEOUT, wait_for: [])
       unless @is_running
         raise "WebWrangler isn't running, so evaluating JS won't work!"
       end
@@ -192,9 +261,8 @@ class Scarpe
 
       # We'll need this inside the promise-scheduling block
       pending_evals = @pending_evals
-      timeout = opts[:timeout] || EVAL_DEFAULT_TIMEOUT
 
-      promise = Scarpe::Promise.new(parents: (opts[:wait_for] || [])) do
+      promise = Scarpe::Promise.new(parents: wait_for) do
         # Are we mid-shutdown?
         if @webview
           wrapped_code = WebWrangler.js_wrapped_code(code, this_eval_serial)
@@ -220,6 +288,16 @@ class Scarpe
       promise
     end
 
+    # This method takes a piece of Javascript code and wraps it in the WebWrangler
+    # boilerplate to see if it parses successfully, run it, and see if it succeeds.
+    # This function would normally be used by testing code, to mock Webview and
+    # watch for code being run. Javascript code containing backticks
+    # could potentially break this abstraction layer, which would cause the resulting
+    # code to fail to parse and Webview would return no error. This should not be
+    # used for random or untrusted code.
+    #
+    # @param code [String] the Javascript code to be wrapped
+    # @param eval_id [Integer] the tracking code to use when calling EVAL_RESULT
     def self.js_wrapped_code(code, eval_id)
       <<~JS_CODE
         (function() {
@@ -268,11 +346,11 @@ class Scarpe
       end
     end
 
-    # TODO: would be good to keep 'tombstone' results for awhile after timeout, maybe up to around a minute,
-    # so we can detect if we're timing things out and then having them return successfully after a delay.
-    # Then we could adjust the timeouts. We could also check if later serial numbers have returned, and time
-    # out earlier serial numbers... *if* we're sure Webview will always execute JS evals in order.
-    # This all adds complexity, though. For now, do timeouts on a simple max duration.
+    # @todo would be good to keep 'tombstone' results for awhile after timeout, maybe up to around a minute,
+    #   so we can detect if we're timing things out and then having them return successfully after a delay.
+    #   Then we could adjust the timeouts. We could also check if later serial numbers have returned, and time
+    #   out earlier serial numbers... *if* we're sure Webview will always execute JS evals in order.
+    #   This all adds complexity, though. For now, do timeouts on a simple max duration.
     def time_out_eval_results
       t_now = Time.now
       timed_out_from_scheduling = @pending_evals.keys.select do |id|
@@ -304,8 +382,7 @@ class Scarpe
     public
 
     # After setup, we call run to go to "running" mode.
-    # No more setup callbacks, only running callbacks.
-
+    # No more setup callbacks should be called, only running callbacks.
     def run
       @log.debug("Run...")
 
@@ -329,6 +406,8 @@ class Scarpe
       @webview = nil
     end
 
+    # Request destruction of WebWrangler, including terminating the underlying
+    # Webview and (when possible) destroying it.
     def destroy
       @log.debug("Destroying WebWrangler...")
       @log.debug("  (WebWrangler was already terminated)") if @is_terminated
@@ -389,69 +468,112 @@ class Scarpe
 
     public
 
-    # For now, the WebWrangler gets a bunch of fairly low-level requests
-    # to mess with the HTML DOM. This needs to be turned into a nicer API,
-    # but first we'll get it all into one place and see what we're doing.
-
     # Replace the entire DOM - return a promise for when this has been done.
     # This will often get rid of smaller changes in the queue, which is
     # a good thing since they won't have to be run.
+    #
+    # @param html_text [String] The new HTML for the new full DOM
+    # @return [Scarpe::Promise] a promise that will be fulfilled when the update is complete
     def replace(html_text)
       @dom_wrangler.request_replace(html_text)
     end
 
     # Request a DOM change - return a promise for when this has been done.
+    # If a full replacement (see #replace) is requested, this change may
+    # be lost. Only use it for changes that are preserved by a full update.
+    #
+    # @param js [String] the JS to execute to alter the DOM
+    # @return [Scarpe::Promise] a promise that will be fulfilled when the update is complete
     def dom_change(js)
       @dom_wrangler.request_change(js)
     end
 
     # Return whether the DOM is, right this moment, confirmed to be fully
     # up to date or not.
+    #
+    # @return [Boolean] true if the window is fully updated, false if changes are pending
     def dom_fully_updated?
       @dom_wrangler.fully_updated?
     end
 
     # Return a promise that will be fulfilled when all current DOM changes
-    # have committed (but not necessarily any future DOM changes.)
+    # have committed. If other changes are requested before these
+    # complete, the promise will ***not*** wait for them. If you wish to
+    # wait until all changes from all sources have completed, use
+    # #promise_dom_fully_updated.
+    #
+    # @return [Scarpe::Promise] a promise that will be fulfilled when all current changes complete
     def dom_promise_redraw
       @dom_wrangler.promise_redraw
     end
 
     # Return a promise which will be fulfilled the next time the DOM is
-    # fully up to date. Note that a slow trickle of changes can make this
-    # take a long time, since it is *not* only changes up to this point.
-    # If you want to know that some specific change is done, it's often
-    # easiest to use the promise returned by dom_change(), which will
-    # be fulfilled when that specific change commits.
+    # fully up to date. A slow trickle of changes can make this
+    # take a long time, since it includes all current and future changes,
+    # not just changes before this call.
+    #
+    # If you want to know that some specific individual change is done, it's often
+    # easiest to use the promise returned by #dom_change, which will
+    # be fulfilled when that specific change is verified complete.
+    #
+    # If no changes are pending, promise_dom_fully_updated will
+    # return a promise that is already fulfilled.
+    #
+    # @return [Scarpe::Promise] a promise that will be fulfilled when all changes are complete
     def promise_dom_fully_updated
       @dom_wrangler.promise_fully_updated
     end
 
+    # DOMWrangler will frequently schedule and confirm small JS updates.
+    # A handler registered with on_every_redraw will be called after each
+    # small update.
+    #
+    # @yield Called after each update or batch of updates is verified complete
+    # @return [void]
     def on_every_redraw(&block)
       @dom_wrangler.on_every_redraw(&block)
     end
   end
 end
 
-# Leaving DOM changes as "meh, async, we'll see when it happens" is terrible for testing.
-# Instead, we need to track whether particular changes have committed yet or not.
-# So we add a single gateway for all DOM changes, and we make sure its work is done
-# before we consider a redraw complete.
-#
-# DOMWrangler batches up changes - it's fine to have a redraw "in flight" and have
-# changes waiting to catch the next bus. But we don't want more than one in flight,
-# since it seems like having too many pending RPC requests can crash Webview. So:
-# one redraw scheduled and one redraw promise waiting around, at maximum.
 class Scarpe
   class WebWrangler
+    # Leaving DOM changes as "meh, async, we'll see when it happens" is terrible for testing.
+    # Instead, we need to track whether particular changes have committed yet or not.
+    # So we add a single gateway for all DOM changes, and we make sure its work is done
+    # before we consider a redraw complete.
+    #
+    # DOMWrangler batches up changes into fewer RPC calls. It's fine to have a redraw
+    # "in flight" and have changes waiting to catch the next bus. But we don't want more
+    # than one in flight, since it seems like having too many pending RPC requests can
+    # crash Webview. So we allow one redraw scheduled and one redraw promise waiting,
+    # at maximum.
+    #
+    # A WebWrangler will create and wrap a DOMWrangler, serving as the interface
+    # for all DOM operations.
+    #
+    # A batch of DOMWrangler changes may be removed if a full update is scheduled. That
+    # update is considered to replace the previous incremental changes. Any changes that
+    # need to execute even if a full update happens should be scheduled through
+    # WebWrangler#eval_js_async, not DOMWrangler.
     class DOMWrangler
       include Scarpe::Log
 
+      # Changes that have not yet been executed
       attr_reader :waiting_changes
+
+      # A Scarpe::Promise for JS that has been scheduled to execute but is not yet verified complete
       attr_reader :pending_redraw_promise
+
+      # A Scarpe::Promise for waiting changes - it will be fulfilled when all waiting changes
+      # have been verified complete, or when a full redraw that removed them has been
+      # verified complete. If many small changes are scheduled, the same promise will be
+      # returned for many of them.
       attr_reader :waiting_redraw_promise
 
-      def initialize(web_wrangler, debug: false)
+      # Create a DOMWrangler that is paired with a WebWrangler. The WebWrangler is
+      # treated as an underlying abstraction for reliable JS evaluation.
+      def initialize(web_wrangler)
         log_init("WV::WebWrangler::DOMWrangler")
 
         @wrangler = web_wrangler
@@ -510,6 +632,10 @@ class Scarpe
         @redraw_handlers << block
       end
 
+      # promise_redraw returns a Scarpe::Promise which will be fulfilled after all current
+      # pending or waiting changes have completed. This may require creating a new
+      # promise.
+      #
       # What are the states of redraw?
       # "empty" - no waiting promise, no pending-redraw promise, no pending changes
       # "pending only" - no waiting promise, but we have a pending redraw with some changes; it hasn't committed yet
@@ -643,38 +769,75 @@ class Scarpe
   end
 end
 
-# For now we don't need one of these to add DOM elements, just to manipulate them
-# after initial render.
 class Scarpe
   class WebWrangler
+    # An ElementWrangler provides a way for a Widget to manipulate is DOM element(s)
+    # via their HTML IDs. The most straightforward Widgets can have a single HTML ID
+    # and use a single ElementWrangler to make any needed changes.
+    #
+    # For now we don't need an ElementWrangler to add DOM elements, just to manipulate them
+    # after initial render. New DOM objects for Widgets are normally added via full
+    # redraws rather than incremental updates.
+    #
+    # Any changes made via ElementWrangler may be cancelled if a full redraw occurs,
+    # since it is assumed that small DOM manipulations are no longer needed. If a
+    # change would need to be made even if a full redraw occurred, it should be
+    # scheduled via WebWrangler#eval_js_async, not via an ElementWrangler.
     class ElementWrangler
       attr_reader :html_id
 
+      # Create an ElementWrangler for the given HTML ID
+      #
+      # @param html_id [String] the HTML ID for the DOM element
       def initialize(html_id)
         @webwrangler = WebviewDisplayService.instance.wrangler
         @html_id = html_id
       end
 
+      # Return a promise that will be fulfilled when all changes scheduled via
+      # this ElementWrangler are verified complete.
+      #
+      # @return [Scarpe::Promise] a promise that will be fulfilled when scheduled changes are complete
       def promise_update
         @webwrangler.dom_promise_redraw
       end
 
+      # Update the JS DOM element's value. The given Ruby value will be converted to string and assigned in backquotes.
+      #
+      # @param new_value [String] the new value
+      # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
       def value=(new_value)
         @webwrangler.dom_change("document.getElementById('" + html_id + "').value = `" + new_value + "`; true")
       end
 
+      # Update the JS DOM element's inner_text. The given Ruby value will be converted to string and assigned in single-quotes.
+      #
+      # @param new_text [String] the new inner_text
+      # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
       def inner_text=(new_text)
         @webwrangler.dom_change("document.getElementById('" + html_id + "').innerText = '" + new_text + "'; true")
       end
 
+      # Update the JS DOM element's inner_html. The given Ruby value will be converted to string and assigned in backquotes.
+      #
+      # @param new_html [String] the new inner_html
+      # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
       def inner_html=(new_html)
         @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").innerHTML = `" + new_html + "`; true")
       end
 
+      # Update the JS DOM element's inner_html. The given Ruby value will be inspected and assigned.
+      #
+      # @param attribute [String] the attribute name
+      # @param value [String] the new attribute value
+      # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
       def set_attribute(attribute, value)
         @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").setAttribute(" + attribute.inspect + "," + value.inspect + "); true")
       end
 
+      # Remove the specified DOM element
+      #
+      # @return [Scarpe::Promise] a promise that wil be fulfilled when the element is removed
       def remove
         @webwrangler.dom_change("document.getElementById('" + html_id + "').remove(); true")
       end
