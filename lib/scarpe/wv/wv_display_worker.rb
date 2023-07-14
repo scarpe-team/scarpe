@@ -17,12 +17,22 @@ if ARGV.length != 1
   exit(-1)
 end
 
+# This is the implementation of a freestanding Scarpe Webview display server,
+# which connects via sockets and sends events and properties back and forth
+# with a display-less Shoes app. The interface is designed to allow fork-based
+# usage, where a parent process could create a paired sockets and start the
+# child server. It can also be used via TCP sockets or similar, where a single
+# socket is both input and output.
 class WebviewContainedService < Shoes::Linkable
   include Scarpe::Log
   include Scarpe::WVRelayUtil # Needs Scarpe::Log
 
   attr_reader :log
 
+  # Create a new DisplayService.
+  #
+  # @param from [Socket] a readable socket to get input from the Shoes process
+  # @param to [Socket] a writable socket on which to send output to the Shoes process
   def initialize(from, to)
     super()
     log_init("WV::DisplayWorker")
