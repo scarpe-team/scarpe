@@ -5,7 +5,7 @@ name: Deploy YARD documentation to Pages
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: [$default-branch]
+    branches: [main]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -40,7 +40,7 @@ jobs:
         id: pages
         uses: actions/configure-pages@v3
       - name: Build with yardoc
-        run: rm -r .yardoc doc && bundle exec yardoc -o doc
+        run: rm -rf .yardoc doc && bundle exec yardoc -o doc
         env:
           FAKE_ENV: example
       - name: Upload artifact
