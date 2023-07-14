@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class Radio < Scarpe::Widget
-    display_properties :group, :checked
+module Shoes
+  class Check < Shoes::Widget
+    display_properties :checked
 
-    def initialize(group = nil, checked = nil, &block)
-      @group = group
+    def initialize(checked = nil, &block)
       @block = block
       super
 
@@ -24,12 +23,6 @@ class Scarpe
 
     def checked(value)
       self.checked = value
-    end
-
-    private
-
-    def group_name
-      @group || @parent
     end
   end
 end
