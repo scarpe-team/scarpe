@@ -58,6 +58,8 @@ def highlander_the_selected_item
     end
   end
 
+  $dup_list.selected_item = nil
+  $bottom_display.replace BOTTOM_DISPLAY_INSTRUCTIONS
   update_dup_list
 end
 
