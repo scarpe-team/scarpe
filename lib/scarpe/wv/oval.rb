@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class WebviewOval < Scarpe::WebviewWidget
+  class WebviewOval < WebviewWidget
     def initialize(properties)
       super(properties)
     end

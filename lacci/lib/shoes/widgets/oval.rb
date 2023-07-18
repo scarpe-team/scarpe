@@ -3,7 +3,8 @@
 class Scarpe
   class InvalidAttributeValueError < StandardError; end
 
-  class Oval < Scarpe::Widget
+  class Oval < Shoes::Widget
+    include Shoes::Log
     display_properties :left, :top, :width, :height, :center, :fill, :stroke, :strokewidth
 
     def initialize(left = nil, top = nil, width = nil, height = nil, **options)
