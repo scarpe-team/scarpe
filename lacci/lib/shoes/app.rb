@@ -10,14 +10,13 @@ module Shoes
 
     attr_reader :document_root
 
-    display_properties :title, :width, :height, :resizable, :debug
+    display_properties :title, :width, :height, :resizable
 
     def initialize(
       title: "Shoes!",
       width: 480,
       height: 420,
       resizable: true,
-      debug: ENV["SCARPE_DEBUG"] ? true : false,
       &app_code_body
     )
       if Shoes::App.instance

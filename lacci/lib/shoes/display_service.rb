@@ -32,8 +32,6 @@ module Shoes
       # This is in the eigenclass/metaclass, *not* instances of DisplayService
       include Shoes::Log
 
-      attr_accessor :json_debug_serialize
-
       # An event_target may be nil, to indicate there is no target.
       def dispatch_event(event_name, event_target, *args, **kwargs)
         @@display_event_handlers ||= {}
@@ -46,7 +44,8 @@ module Shoes
 
         @log.debug("Dispatch event: #{event_name.inspect} T: #{event_target.inspect} A: #{args.inspect} KW: #{kwargs.inspect}")
 
-        if DisplayService.json_debug_serialize
+        # When true, this makes sure all events and properties are 100% strings, no symbols.
+        if ENV["SCARPE_DEBUG"]
           args = JSON.parse JSON.dump(args)
           new_kw = {}
           kwargs.each do |k, v|
