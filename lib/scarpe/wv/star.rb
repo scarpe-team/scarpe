@@ -1,19 +1,20 @@
 # frozen_string_literal: true
 
-require_relative "shape_helper"
-
 class Scarpe
   class WebviewStar < Scarpe::WebviewWidget
-    include ShapeHelper
     def initialize(properties)
       super(properties)
     end
 
     def element(&block)
+      fill = @draw_context["fill"]
+      stroke = @draw_context["stroke"]
+      fill = "black" if fill == ""
+      stroke = "black" if stroke == ""
       HTML.render do |h|
         h.div(id: html_id, style: style) do
-          h.svg(width: @outer, height: @outer, style: "fill:#{@color};") do
-            h.polygon(points: star_points, style: "stroke:#{stroke_color};stroke-width:2")
+          h.svg(width: @outer, height: @outer, style: "fill:#{fill};") do
+            h.polygon(points: star_points, style: "stroke:#{stroke};stroke-width:2")
           end
           block.call(h) if block_given?
         end
@@ -55,10 +56,6 @@ class Scarpe
       inner_y = @outer / 2 + Math.sin(inner_angle) * @inner / 2
 
       [outer_x, outer_y, inner_x, inner_y]
-    end
-
-    def stroke_color
-      "black"
     end
   end
 end

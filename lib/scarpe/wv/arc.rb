@@ -1,10 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "shape_helper"
-
 class Scarpe
   class WebviewArc < Scarpe::WebviewWidget
-    include ShapeHelper
     def initialize(properties)
       super(properties)
     end

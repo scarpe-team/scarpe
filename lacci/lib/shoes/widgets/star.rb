@@ -1,20 +1,17 @@
 # frozen_string_literal: true
 
-# TODO: REMOVE THIS REQUIREMENT
-require "scarpe/wv/shape_helper"
-
 module Shoes
   class Star < Shoes::Widget
-    include ShapeHelper
-    display_properties :left, :top, :points, :outer, :inner, :color
+    display_properties :left, :top, :points, :outer, :inner, :draw_context
 
     def initialize(left, top, points = 10, outer = 100, inner = 50)
       @points = convert_to_integer(points, "points", 10)
       @outer = convert_to_float(outer, "outer", 100.0)
       @inner = convert_to_float(inner, "inner", 50.0)
-      @color = color_for_fill
 
-      super()
+      @draw_context = Shoes::App.instance.current_draw_context
+
+      super
       create_display_widget
     end
 

@@ -4,7 +4,7 @@ module Shoes
   class InvalidAttributeValueError < Shoes::Error; end
 
   class Arc < Shoes::Widget
-    display_properties :left, :top, :width, :height, :angle1, :angle2
+    display_properties :left, :top, :width, :height, :angle1, :angle2, :draw_context
 
     def initialize(*args)
       @left, @top, @width, @height, @angle1, @angle2 = args
@@ -16,7 +16,9 @@ module Shoes
       @angle1 = convert_to_float(@angle1, "angle1")
       @angle2 = convert_to_float(@angle2, "angle2")
 
-      super()
+      @draw_context = Shoes::App.instance.current_draw_context
+
+      super
       create_display_widget
     end
 

@@ -33,6 +33,14 @@ module Shoes
 
       super
 
+      # The draw context tracks current settings like fill and stroke,
+      # plus potentially other current state that changes from widget
+      # to widget and slot to slot.
+      @draw_context = {
+        "fill" => "",
+        "stroke" => "",
+      }
+
       # This creates the DocumentRoot, including its corresponding display widget
       @document_root = Shoes::DocumentRoot.new
 
@@ -97,6 +105,10 @@ module Shoes
       Shoes::App.instance.instance_eval(&block)
     ensure
       pop_slot
+    end
+
+    def current_draw_context
+      @draw_context.dup
     end
 
     # This isn't supposed to return. The display service should take control
@@ -182,6 +194,44 @@ class Shoes::App
   def click(&block)
     subscription_item(shoes_api_name: "click", &block)
   end
+
+  # Draw context methods
+
+  def fill(color)
+    @draw_context["fill"] = color
+  end
+
+  def nofill
+    @draw_context["fill"] = ""
+  end
+
+  def stroke(color)
+    @draw_context["stroke"] = color
+  end
+
+  def nostroke
+    @draw_context["stroke"] = ""
+  end
+
+  # Shape DSL methods
+
+  def move_to(x, y)
+    raise("Pass only Numeric arguments to move_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
+
+    if current_slot.is_a?(::Shoes::Shape)
+      current_slot.add_shape_command(["move_to", x, y])
+    end
+  end
+
+  def line_to(x, y)
+    raise("Pass only Numeric arguments to line_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
+
+    if current_slot.is_a?(::Shoes::Shape)
+      current_slot.add_shape_command(["line_to", x, y])
+    end
+  end
+
+  # Not implemented yet: curve_to, arc_to
 
   alias_method :info, :puts
 end

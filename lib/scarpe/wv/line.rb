@@ -1,10 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "shape_helper"
 class Scarpe
   class WebviewLine < Scarpe::WebviewWidget
-    include ShapeHelper
-
     def initialize(properties)
       super(properties)
     end
@@ -30,7 +27,7 @@ class Scarpe
 
     def line_style
       {
-        stroke: " #{@color}",
+        stroke: @draw_context["stroke"],
         "stroke-width": "4",
       }
     end
