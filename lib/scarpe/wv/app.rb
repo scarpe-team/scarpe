@@ -3,7 +3,6 @@
 class Scarpe
   # Scarpe::WebviewApp must only be used from the main thread, due to GTK+ limitations.
   class WebviewApp < WebviewWidget
-    attr_reader :debug
     attr_reader :control_interface
 
     attr_writer :shoes_linkable_id
@@ -29,8 +28,7 @@ class Scarpe
       @view = Scarpe::WebWrangler.new title: @title,
         width: @width,
         height: @height,
-        resizable: @resizable,
-        debug: @debug
+        resizable: @resizable
 
       @callbacks = {}
 

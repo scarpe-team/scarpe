@@ -83,16 +83,15 @@ class Scarpe
     # @param width [Integer] window width in pixels
     # @param height [Integer] window height in pixels
     # @param resizable [Boolean] whether the window should be resizable by the user
-    # @param debug [Boolean] whether to log all Webview API calls
     # @param heartbeat [Float] time between heartbeats in seconds
-    def initialize(title:, width:, height:, resizable: false, debug: false, heartbeat: 0.1)
+    def initialize(title:, width:, height:, resizable: false, heartbeat: 0.1)
       log_init("WV::WebWrangler")
 
       @log.debug("Creating WebWrangler...")
 
       # For now, always allow inspect element, so pass debug: true
       @webview = WebviewRuby::Webview.new debug: true
-      @webview = Shoes::LoggedWrapper.new(@webview, "WebviewAPI") if debug
+      @webview = Shoes::LoggedWrapper.new(@webview, "WebviewAPI") if ENV["SCARPE_DEBUG"]
       @init_refs = {} # Inits don't go away so keep a reference to them to prevent GC
 
       @title = title
