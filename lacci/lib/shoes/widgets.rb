@@ -17,6 +17,7 @@ require "shoes/widgets/star"
 
 require "shoes/widgets/alert"
 require "shoes/widgets/button"
+require "shoes/widgets/oval"
 require "shoes/widgets/check"
 require "shoes/widgets/edit_box"
 require "shoes/widgets/edit_line"
