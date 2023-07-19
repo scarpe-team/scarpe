@@ -55,6 +55,13 @@ end
 use_dev = ARGV.delete("--dev") ? true : false
 use_debug = ARGV.delete("--debug") ? true : false
 
+if use_dev
+  require 'bundler/setup'
+  Bundler.require(:default)
+end
+
+require "scarpe"
+
 verb = "run"
 verb_target = nil
 
