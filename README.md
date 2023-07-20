@@ -65,6 +65,8 @@ cd scarpe; bundle install
 ./exe/scarpe examples/button.rb --dev
 ```
 
+If you are using Visual Studio Code, you can use this [extension](https://github.com/gintama91/Scarpe-Vscode-Extension). This extension simplifies the process of executing commands by eliminating the need to repeatedly type lengthy file paths, resulting in a more efficient and productive development experience.
+
 ### Finer details
 
 First, clone the [main GitHub repository](https://github.com/scarpe-team/scarpe).
