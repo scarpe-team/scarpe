@@ -4,7 +4,7 @@ module Shoes
   class Flow < Shoes::Slot
     display_properties :width, :height, :margin, :padding
 
-    def initialize(width: nil, height: nil, margin: nil, padding: nil, **options, &block)
+    def initialize(width: "100%", height: nil, margin: nil, padding: nil, **options, &block)
       @options = options
 
       super
