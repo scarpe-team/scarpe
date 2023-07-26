@@ -1,5 +1,6 @@
 require 'shoes'
 require 'bloops'
+require 'open3'
 require_relative './how_music_works/lib/all'
 
 # Sorry folks, there is a prerequisite of installing blackhole
@@ -39,36 +40,17 @@ Shoes.app height: 450, width: 450, title: "Soundalizer 🔊" do
     end
   end
 
-  flow do
-    para "Soundfile to mess with:: "
-    @sound = ins "  Nothing to hear yet"
-  end
-
-  flow do
-    caption "Record a new sound"
-  end
-
-  flow do
-    @recording = false
-    @name = edit_line "Name your sound"
-  end
-
-  flow do
-    @recording_note = para "Not recording"
-  end
 
   flow do
     @recorder = button "Record a new sound" do
-      if @recording
-        `q`
-        @recording = false
-        @recording_note.replace "Not recording"
-        @sound.replace @name.text.downcase.tr(" ", "_")
-      else
-        @recording_note.replace "Recording ..."
-        `ffmpeg -f avfoundation -i ":BlackHole 16ch" #{@name.text.downcase.tr(" ", "_")}.wav`
-        @recording = true
+      `rm -rf *.wav`
+      @recorder.text = "Recording ..."
+      Open3.popen3("ffmpeg -i output.wav -af silenceremove=1:0:-50dB output.wav") do |stdin, stdout, stderr, wait_thr|
+        sleep 5
+        stdin.puts "q"
+        stdin.close
       end
+      @recorder.text = "Record a new sound"
     end
   end
 
