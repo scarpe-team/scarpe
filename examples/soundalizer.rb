@@ -10,17 +10,17 @@ require 'bloops'
 # possible audio quality issue https://github.com/ExistentialAudio/BlackHole/wiki/Multi-Output-Device
 
 
-Shoes.app height: 200, width: 450, title: "Soundalizer 🔊" do
+Shoes.app height: 450, width: 450, title: "Soundalizer 🔊" do
 
   # Turn it on and off
   $system_on = false
   flow do
-    stack width: "50%" do
+    stack do
       @on_status = banner "OFF"
     end
   end
   flow do
-    stack width: "50%" do
+    stack do
       button "Toggle on or off" do
         if $system_on
           @on_status.replace "OFF"
@@ -38,25 +38,38 @@ Shoes.app height: 200, width: 450, title: "Soundalizer 🔊" do
     end
   end
 
-  # para "Soundfile to mess with"
-  # @sound = para "Nothing to hear yet"
+  flow do
+    para "Soundfile to mess with:: "
+    @sound = ins "  Nothing to hear yet"
+  end
 
-  # para "Record a new sound"
-  # @recording = false
-  # @name = edit_line "Name your sound"
-  # @recording_note = para "Not recording"
-  # @recorder = button "Record a new sound" do
-  #   if @recording
-  #     `q`
-  #     @recording = false
-  #     @recording_note.replace "Not recording"
-  #     @sound.replace @name.downcase.tr(" ", "_")
-  #   else
-  #     @recording_note.replace "Recording ..."
-  #     `ffmpeg -f avfoundation -i ":BlackHole 16ch" #{@name.downcase.tr(" ", "_")}.wav`
-  #     @recording = true
-  #   end
-  # end
+  flow do
+    caption "Record a new sound"
+  end
+
+  flow do
+    @recording = false
+    @name = edit_line "Name your sound"
+  end
+
+  flow do
+    @recording_note = para "Not recording"
+  end
+
+  flow do
+    @recorder = button "Record a new sound" do
+      if @recording
+        `q`
+        @recording = false
+        @recording_note.replace "Not recording"
+        @sound.replace @name.text.downcase.tr(" ", "_")
+      else
+        @recording_note.replace "Recording ..."
+        `ffmpeg -f avfoundation -i ":BlackHole 16ch" #{@name.text.downcase.tr(" ", "_")}.wav`
+        @recording = true
+      end
+    end
+  end
 
 end
 
