@@ -73,7 +73,7 @@ First, clone the [main GitHub repository](https://github.com/scarpe-team/scarpe)
 
 `bundle install` dependencies like webview from the cloned directory in your Ruby of choice.
 
-You can run without Scarpe being installed by including its directory. For instance, from the "examples" directory you can run `ruby -I../lib hello_world.rb`. You can also install Scarpe locally (`gem build scarpe.gemspec && gem install scarpe-0.1.0.gem`) or using a Gemfile with the "path" option for local Scarpe.
+You can run without Scarpe being installed by including its directory. For instance, from the "examples" directory you can run `ruby -I../lib -I../lacci/lib -rscarpe hello_world.rb`. You can also install Scarpe locally (`gem build scarpe.gemspec && gem install scarpe-0.1.0.gem`) or using a Gemfile with the "path" option for local Scarpe.
 
 Most commonly we are all using this command: `./exe/scarpe examples/button.rb --dev`
 
