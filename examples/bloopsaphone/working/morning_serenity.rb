@@ -1,6 +1,3 @@
-require 'shoes'
-require 'bloops'
-
 Shoes.app height: 200, width: 200, title: "Morning Serenity" do
   @sleepy_person = para "😴"
 
@@ -18,10 +15,7 @@ Shoes.app height: 200, width: 200, title: "Morning Serenity" do
 
     b.tune s1, pattern1
 
-    Thread.new do
-      b.play
-      sleep 1 while !b.stopped?
-    end
+    b.play
   end
 
 end
