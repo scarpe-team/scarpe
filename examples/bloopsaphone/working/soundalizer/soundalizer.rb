@@ -1,5 +1,6 @@
 require 'shoes'
 require 'bloops'
+require_relative './how_music_works/lib/all'
 
 # Sorry folks, there is a prerequisite of installing blackhole
 # and creating a new midi setup. it's not hard, but I don't know

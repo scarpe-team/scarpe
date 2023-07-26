@@ -24,3 +24,6 @@ group :development do
   #gem "commonmarker"
   #gem "github-markup"
 end
+
+gem "wavefile"
+gem "chunky_png"
