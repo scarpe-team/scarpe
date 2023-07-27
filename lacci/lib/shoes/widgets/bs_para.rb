@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Shoes
-  class WebviewBsPara < Shoes::Widget
+  class BsPara < Shoes::Widget
     display_properties :text_items, :stroke, :size, :font, :html_attributes, :hidden
 
     def initialize(*args, stroke: nil, size: 10, font: nil, hidden: false, **html_attributes)

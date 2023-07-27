@@ -3,13 +3,13 @@
 module Shoes
   class Stack < Shoes::Slot
     # TODO: sort out various margin and padding properties, including putting stuff into spacing
-    display_properties :width, :height, :scroll
+    display_properties :width, :height, :scroll, :html_attributes
 
     def initialize(width: nil, height: nil, margin: nil, padding: nil, scroll: false, margin_top: nil, margin_bottom: nil, margin_left: nil,
       margin_right: nil, **options, &block)
 
-      @options = options
-
+      @html_attributes = options || {}
+      @options = @html_attributes.dup
       super
 
       create_display_widget

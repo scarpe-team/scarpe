@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Scarpe
-  class BsPara < WebviewWidget
+  class WebviewBsPara < WebviewWidget
     SIZES = {
       inscription: 10,
       ins: 10,
@@ -47,17 +47,17 @@ class Scarpe
 
     def element(&block)
       HTML.render do |h|
-        h.link(
-          rel: "stylesheet",
-          href: "https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css",
-          integrity: "sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC",
-          crossorigin: "anonymous",
-        )
-        h.p(class: "text-primary") do |_p|
-          "This should be blue if Bootstrap is working."
-        end
+        h.p(**options, &block)
       end
     end
+
+    # def element(&block)
+    #   HTML.render do |h|
+    #     h.p(class: "text-primary") do |_p|
+    #       "This should be blue if Bootstrap is working."
+    #     end
+    #   end
+    # end
 
     def to_html
       @children ||= []
