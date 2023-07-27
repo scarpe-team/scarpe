@@ -1,4 +1,4 @@
 Shoes.app height: 450, width: 450, title: "🥾" do
-  banner "🥾"
+  # banner "🥾"
   bs_para "Hai"
 end

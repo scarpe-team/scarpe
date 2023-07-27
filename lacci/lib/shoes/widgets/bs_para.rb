@@ -4,7 +4,7 @@ module Shoes
   class WebviewBsPara < Shoes::Widget
     display_properties :text_items, :stroke, :size, :font, :html_attributes, :hidden
 
-    def initialize(*args, stroke: nil, size: :para, font: nil, hidden: false, **html_attributes)
+    def initialize(*args, stroke: nil, size: 10, font: nil, hidden: false, **html_attributes)
       @text_children = args || []
       if hidden
         @hidden_text_items = text_children_to_items(@text_children)
@@ -55,27 +55,27 @@ end
 
 module Shoes
   class Widget
-    def banner(*args, **kwargs)
+    def bs_banner(*args, **kwargs)
       bs_para(*args, **{ size: :banner }.merge(kwargs))
     end
 
-    def title(*args, **kwargs)
+    def bs_title(*args, **kwargs)
       bs_para(*args, **{ size: :title }.merge(kwargs))
     end
 
-    def subtitle(*args, **kwargs)
+    def bs_subtitle(*args, **kwargs)
       bs_para(*args, **{ size: :subtitle }.merge(kwargs))
     end
 
-    def tagline(*args, **kwargs)
+    def bs_tagline(*args, **kwargs)
       bs_para(*args, **{ size: :tagline }.merge(kwargs))
     end
 
-    def caption(*args, **kwargs)
+    def bs_caption(*args, **kwargs)
       bs_para(*args, **{ size: :caption }.merge(kwargs))
     end
 
-    def inscription(*args, **kwargs)
+    def bs_inscription(*args, **kwargs)
       bs_para(*args, **{ size: :inscription }.merge(kwargs))
     end
 
