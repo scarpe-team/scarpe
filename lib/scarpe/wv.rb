@@ -23,6 +23,7 @@ require_relative "wv/font"
 
 require_relative "wv/app"
 require_relative "wv/para"
+require_relative "wv/bs_para"
 require_relative "wv/slot"
 require_relative "wv/stack"
 require_relative "wv/flow"
