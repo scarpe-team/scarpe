@@ -65,3 +65,40 @@ class TestWebviewStack < Minitest::Test
   #  assert(stack.to_html.include?("background:linear-gradient(45deg, #AAA, #DDD);"))
   #end
 end
+
+class TestStackMethods < LoggedScarpeTest
+  def test_stack_clear_append
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+      Shoes.app do
+        @slot = stack do
+          para "Hello World"
+        end
+        @b_clear = button("Clear") { @slot.clear }
+        @b_add = button("Add") { @slot.append { para "Woot!" } }
+      end
+    SCARPE_APP
+      on_heartbeat do
+        main = stack("@slot")
+
+        assert_equal 1, main.children.size
+
+        b_clear = button("@b_clear")
+        b_add = button("@b_add")
+        b_clear_js = b_clear.display.handler_js_code("click")
+        b_add_js = b_add.display.handler_js_code("click")
+
+        query_js_value(b_add_js)
+        query_js_value(b_add_js)
+        query_js_value(b_add_js)
+        wait fully_updated
+        assert_equal 4, main.children.size
+
+        query_js_value(b_clear_js) # Run the click-event code
+        wait fully_updated
+        assert_equal 0, main.children.size
+
+        test_finished
+      end
+    TEST_CODE
+  end
+end
