@@ -149,7 +149,19 @@ module Shoes
       send_shoes_event(event_name: "destroy", target: linkable_id)
     end
 
-    alias_method :destroy_self, :destroy
+    alias_method :remove, :destroy
+
+    def clear(&block)
+      @children.dup.each(&:destroy)
+      append(&block) if block_given?
+    end
+
+    def append(&block)
+      raise("append requires a block!") unless block_given?
+      raise("Don't append to something that isn't a slot!") unless self.is_a?(Shoes::Slot)
+
+      Shoes::App.instance.with_slot(self, &block)
+    end
 
     # We use method_missing for widget-creating methods like "button",
     # and also to auto-create display-property getters and setters.
