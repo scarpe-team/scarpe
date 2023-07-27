@@ -152,12 +152,8 @@ module Shoes
     alias_method :remove, :destroy
 
     def clear(&block)
-      @children.dup.each do |child|
-        child.destroy
-      end
-      if block_given?
-        append(&block)
-      end
+      @children.dup.each(&:destroy)
+      append(&block) if block_given?
     end
 
     def append(&block)
