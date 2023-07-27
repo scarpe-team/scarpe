@@ -7,7 +7,6 @@
       @btn = radio; para "The White Balloon by Jafar Panahi"
       button "Mark me" do
         @btn.checked = true
-
       end
       button "unmark me" do
         @btn.checked = false
