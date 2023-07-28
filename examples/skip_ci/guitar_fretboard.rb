@@ -61,6 +61,19 @@ class GuitarString
   end
 end
 
+class Tunings
+  STANDARD  = %w{ e a d g b e }
+  DSTANDARD = %w{ d g c f a d }
+  DADGAD    = %w{ d a d g a d }
+
+  def self.get(constname)
+    tconst = constname.upcase.gsub(" ", "")
+    const_get(tconst).reverse.map.with_index do |n, idx|
+      GuitarString.new(idx, n, 2)
+    end
+  end
+end
+
 def bloops
   @bloops ||= Bloops.new
 end
@@ -79,33 +92,45 @@ def play_chord(notes)
 end
 
 Shoes.app(width: 1280, height: 400) do
-  @strings = {
-    1 => "e",
-    2 => "b",
-    3 => "g",
-    4 => "d",
-    5 => "a",
-    6 => "e"
-  }.map{ |idx, note| GuitarString.new(idx, note, 2) }
-
+  @tuning = "standard"
+  @strings = Tunings::get(@tuning)
   @fretboard = []
 
-  flow do
-    stack width: "100%", margin: 20 do
-      @strings.each do |string|
-        string.render(self)
-      end
+  render_strings = ->(app) {
+    @strings.each do |string|
+      string.render(app)
     end
+  }
 
-    button "Play" do
-      fretted_notes = @strings.flat_map { |s|
-        s.fret_radios.select { |k, v| v.checked? }.keys
-      }.map(&:to_s)
+  flow do
+    @current_tuning = title @tuning
+    @fretboard = stack width: "100%", margin: 20, &render_strings
 
-      play_chord(fretted_notes)
+    stack do
+      button "Play" do
+        fretted_notes = @strings.flat_map { |s|
+          s.fret_radios.select { |k, v| v.checked? }.keys
+        }.map(&:to_s)
 
-      @strings.map do |s|
-        s.fret_radios.map { |_, r| r.checked = false }
+        play_chord(fretted_notes)
+
+        @strings.map do |s|
+          s.fret_radios.map { |_, r| r.checked = false }
+        end
+      end
+
+      flow do
+        caption "Select a tuning:"
+        @tuning_select = list_box(
+                                  items: ["d standard", "dadgad", "standard"]
+                                 ).change { |tuning| @tuning = tuning }
+        
+        button "Change Tuning" do
+          self.instance_variable_set("@strings", Tunings::get(@tuning))
+          @fretboard.clear
+          @fretboard.append(&render_strings)
+          @current_tuning.replace @tuning
+        end
       end
     end
   end
