@@ -2,7 +2,7 @@
 
 class Scarpe
   class WebviewEditBox < Scarpe::WebviewWidget
-    attr_reader :text, :height, :width
+    attr_reader :text, :height, :width, :margin_bottom
 
     def initialize(properties)
       super
@@ -37,6 +37,7 @@ class Scarpe
 
       styles[:height] = Dimensions.length(height)
       styles[:width] = Dimensions.length(width)
+      styles["margin-bottom"] = margin_bottom
 
       styles.compact
     end

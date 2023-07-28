@@ -15,7 +15,7 @@ There is no save button, the jot is saved as you edit.
 
 END
 
-Shoes.app :title => "vJot", 
+Shoes.app :title => "vJot",
   :width => 420, :height => 560, :resizable => false do
 
   @note = NOTES.first
@@ -40,7 +40,7 @@ Shoes.app :title => "vJot",
 
   def load_list
     @list.replace *(NOTES.map { |note|
-      [link(note.first) { @note = load_note(note); load_list }, "\n"] 
+      [link(note.first) { @note = load_note(note); load_list }, "\n"]
     }.flatten +
       [link("+ Add a new Note") { NOTES << (@note = load_note); load_list }])
   end

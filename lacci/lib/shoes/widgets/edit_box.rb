@@ -2,9 +2,9 @@
 
 module Shoes
   class EditBox < Shoes::Widget
-    display_properties :text, :height, :width
+    display_properties :text, :height, :width, :margin_bottom
 
-    def initialize(text = "", height: nil, width: nil, &block)
+    def initialize(text = "", height: nil, width: nil, margin_bottom: nil, &block)
       @text = text
       @callback = block
 
