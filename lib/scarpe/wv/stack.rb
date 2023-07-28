@@ -9,16 +9,14 @@ class Scarpe
     protected
 
     def style
-      styles = super
-
-      styles[:display] = "flex"
-      styles["flex-direction"] = "column"
-      styles["align-content"] = "flex-start"
-      styles["justify-content"] = "flex-start"
-      styles["align-items"] = "flex-start"
-      styles["overflow"] = "auto" if @scroll
-
-      styles
+      {
+        display: "flex",
+        "flex-direction": "column",
+        "align-content": "flex-start",
+        "justify-content": "flex-start",
+        "align-items": "flex-start",
+        overflow: @scroll ? "auto" : nil,
+      }.compact.merge(super)
     end
   end
 end

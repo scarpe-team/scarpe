@@ -36,15 +36,15 @@ class Scarpe
       end
     end
 
-    private
+    protected
 
     def style
-      styles = {}
+      styles = super
 
       styles[:height] = Dimensions.length(height) if height
       styles[:width] = Dimensions.length(width) if width
 
-      styles.compact
+      styles
     end
   end
 end

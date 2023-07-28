@@ -16,13 +16,13 @@ class Scarpe
       end
     end
 
-    private
+    protected
 
     def style
-      {
+      super.merge({
         left: "#{@left}px",
         top: "#{@top}px",
-      }
+      })
     end
 
     def line_style

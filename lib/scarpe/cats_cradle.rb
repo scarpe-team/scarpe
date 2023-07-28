@@ -24,6 +24,7 @@ module Scarpe::Test
   # call some of *those* methods.
   class CCProxy
     attr_reader :display
+    attr_reader :obj
 
     def initialize(obj)
       @obj = obj
@@ -163,6 +164,10 @@ module Scarpe::Test
 
         CCProxy.new(widgets[0])
       end
+    end
+
+    def proxy_for(shoes_widget)
+      CCProxy.new(shoes_widget)
     end
 
     def wait(promise)

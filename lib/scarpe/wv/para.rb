@@ -57,6 +57,22 @@ class Scarpe
       element { child_markup }
     end
 
+    protected
+
+    def style
+      super.merge({
+        color: rgb_to_hex(@stroke),
+        "font-size": font_size,
+        "font-family": @font,
+      }.compact)
+    end
+
+    def font_size
+      font_size = @size.is_a?(Symbol) ? SIZES[@size] : @size
+
+      Dimensions.length(font_size)
+    end
+
     private
 
     def child_markup
@@ -71,20 +87,6 @@ class Scarpe
 
     def options
       @html_attributes.merge(id: html_id, style: style)
-    end
-
-    def style
-      {
-        "color" => rgb_to_hex(@stroke),
-        "font-size" => font_size,
-        "font-family" => @font,
-      }.compact
-    end
-
-    def font_size
-      font_size = @size.is_a?(Symbol) ? SIZES[@size] : @size
-
-      Dimensions.length(font_size)
     end
   end
 end

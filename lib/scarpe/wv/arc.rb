@@ -17,16 +17,18 @@ class Scarpe
       end
     end
 
-    private
+    protected
 
     def style
-      {
+      super.merge({
         left: "#{@left}px",
         top: "#{@top}px",
         width: "#{@width}px",
         height: "#{@height}px",
-      }
+      })
     end
+
+    private
 
     def arc_path
       center_x = @width / 2

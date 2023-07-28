@@ -83,6 +83,19 @@ class Scarpe
     #
     # @param changes [Hash] a Hash of new values for properties that have changed
     def properties_changed(changes)
+      # If a widget does something really nonstandard with its html_id or element, it will
+      # need to override to prevent this from happening. That's easy enough, though.
+      if changes.key?("hidden")
+        hidden = changes.delete("hidden")
+        if hidden
+          html_element.set_style("display", "none")
+        else
+          new_style = style # Get current display CSS property, which may vary by subclass
+          disp = new_style[:display]
+          html_element.set_style("display", disp || "block")
+        end
+      end
+
       needs_update! unless changes.empty?
     end
 
@@ -143,6 +156,15 @@ class Scarpe
       b_int = (b_float * 255.0).to_i.clamp(0, 255)
 
       "#%0.2X%0.2X%0.2X" % [r_int, g_int, b_int]
+    end
+
+    # CSS styles
+    def style
+      styles = {}
+      if @hidden
+        styles[:display] = "none"
+      end
+      styles
     end
 
     public

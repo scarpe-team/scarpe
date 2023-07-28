@@ -58,11 +58,13 @@ class Scarpe
       current_path
     end
 
+    protected
+
     def style
-      {
+      super.merge({
         width: "400",
         height: "900",
-      }
+      })
     end
   end
 end

@@ -10,7 +10,7 @@ module Shoes
       super
 
       bind_self_event("click") do
-        destroy_self
+        remove
       end
 
       create_display_widget

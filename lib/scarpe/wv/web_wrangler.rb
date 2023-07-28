@@ -834,6 +834,15 @@ class Scarpe
         @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").setAttribute(" + attribute.inspect + "," + value.inspect + "); true")
       end
 
+      # Update an attribute of the JS DOM element's style. The given Ruby value will be inspected and assigned.
+      #
+      # @param style_attr [String] the style attribute name
+      # @param value [String] the new style attribute value
+      # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
+      def set_style(style_attr, value)
+        @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").style.#{style_attr} = " + value.inspect + "; true")
+      end
+
       # Remove the specified DOM element
       #
       # @return [Scarpe::Promise] a promise that wil be fulfilled when the element is removed

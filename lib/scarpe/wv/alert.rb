@@ -23,8 +23,9 @@ class Scarpe
       end
     end
 
-    private
+    protected
 
+    # If the whole widget is hidden, the parent style adds display:none
     def overlay_style
       {
         position: "fixed",
@@ -38,7 +39,7 @@ class Scarpe
         display: "flex",
         "align-items": "center",
         "justify-content": "center",
-      }
+      }.merge(style)
     end
 
     def modal_style

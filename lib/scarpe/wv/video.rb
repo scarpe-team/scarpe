@@ -30,13 +30,5 @@ class Scarpe
     def supported_formats
       SUPPORTED_FORMATS.select { |_format, extensions| extensions.include?(File.extname(@url)) }.keys
     end
-
-    def style
-      styles = {}
-
-      # ADD YOUR STYLES HERE
-
-      styles.compact
-    end
   end
 end

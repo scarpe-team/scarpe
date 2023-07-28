@@ -43,18 +43,20 @@ class Scarpe
       element { @text }
     end
 
+    protected
+
+    def style
+      {
+        color: @stroke,
+        "font-size": font_size,
+        "font-family": @font,
+      }.compact
+    end
+
     private
 
     def options
       @html_attributes.merge(id: html_id, style: style)
-    end
-
-    def style
-      {
-        "color" => @stroke,
-        "font-size" => font_size,
-        "font-family" => @font,
-      }.compact
     end
 
     def font_size
