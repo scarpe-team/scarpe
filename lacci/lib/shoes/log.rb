@@ -9,7 +9,7 @@
 # an implementation to be plugged in.
 
 module Shoes
-  LOG_LEVELS = [:debug, :info, :warning, :error, :fatal].freeze
+  LOG_LEVELS = [:debug, :info, :warn, :error, :fatal].freeze
 
   # Include this module to get a @log instance variable to log as your
   # configured component.

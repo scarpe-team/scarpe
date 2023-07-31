@@ -21,7 +21,7 @@ class Scarpe
         :debug
       when "info"
         :info
-      when "warn", "warning"
+      when "warn"
         :warn
       when "err", "error"
         :error
@@ -103,10 +103,6 @@ class Scarpe
       end
     end
   end
-end
-
-class Logging::Logger
-  alias_method :warning, :warn
 end
 
 log_config = if ENV["SCARPE_LOG_CONFIG"]

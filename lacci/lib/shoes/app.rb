@@ -67,7 +67,7 @@ module Shoes
       end
 
       Signal.trap("INT") do
-        @log.warning("App interrupted by signal, stopping...")
+        @log.warn("App interrupted by signal, stopping...")
         puts "\nStopping Shoes app..."
         destroy
       end
