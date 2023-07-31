@@ -1,3 +1,5 @@
+# brew install switchaudio-osx
+
 Shoes.app height: 450, width: 450, title: "Change Audio Source 🔊" do
   flow do
     background beige
