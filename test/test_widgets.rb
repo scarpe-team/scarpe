@@ -49,4 +49,31 @@ class TestWidgets < LoggedScarpeTest
       end
     TEST_CODE
   end
+
+  def test_app_method
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+      class NotAWidget
+        def self.magic(stack)
+          stack.app do
+            @s2.para "Hello!"
+          end
+        end
+      end
+
+      Shoes.app do
+        @s = stack do
+          button("Press Me") { NotAWidget.magic(@s) }
+        end
+        @s2 = stack {}
+      end
+    SCARPE_APP
+      on_heartbeat do
+        assert_equal [], stack("@s2").contents
+        js = button.display.handler_js_code('click')
+        query_js_value(js)
+
+        test_finished
+      end
+    TEST_CODE
+  end
 end

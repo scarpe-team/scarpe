@@ -1,9 +1,15 @@
 # frozen_string_literal: true
 
 module Shoes
-  # Weirdly, in Shoes3 Shape is *not* a Slot subclass, it's a normal Type even though it has a block.
-  # We need to push the Shape as a slot so that we can correctly direct move_to, line_to, etc. to it.
-  class Shape < Shoes::Widget
+  # A Shape acts as a sort of union type for drawn shapes. In Shoes you can use it to merge multiple
+  # ovals, arcs, stars, etc. into a single drawn shape.
+  #
+  # In Shoes3, a Shape isn't really a Slot. It's a kind of DSL with drawing commands that happen
+  # to have the same name as the Art widgets like star, arc, etc. Here we're treating it as
+  # a slot containing those widgets, which is wrong but not *too* wrong.
+  #
+  # @incompatibility A Shoes3 Shape is *not* a slot; Scarpe does *not* do union shapes
+  class Shape < Shoes::Slot
     display_properties :left, :top, :shape_commands, :draw_context
 
     def initialize(left: nil, top: nil, &block)
