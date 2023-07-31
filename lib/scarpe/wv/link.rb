@@ -23,6 +23,7 @@ class Scarpe
         id: html_id,
         href: @click,
         onclick: (handler_js_code("click") if @has_block),
+        style: style,
       }.compact
     end
   end

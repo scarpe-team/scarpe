@@ -30,15 +30,13 @@ class Scarpe
       end
     end
 
-    private
+    protected
 
     def style
-      styles = {}
-
-      styles[:height] = Dimensions.length(height)
-      styles[:width] = Dimensions.length(width)
-
-      styles.compact
+      super.merge({
+        height: Dimensions.length(height),
+        width: Dimensions.length(width),
+      }.compact)
     end
   end
 end

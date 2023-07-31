@@ -21,7 +21,7 @@ class Scarpe
 
     def element
       HTML.render do |h|
-        h.input(type: :radio, id: html_id, onclick: handler_js_code("click"), name: group_name, value: "hmm #{text}", checked: @checked)
+        h.input(type: :radio, id: html_id, onclick: handler_js_code("click"), name: group_name, value: "hmm #{text}", checked: @checked, style: style)
       end
     end
 

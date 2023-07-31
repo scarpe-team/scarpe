@@ -9,16 +9,14 @@ class Scarpe
     protected
 
     def style
-      styles = super
-
-      styles[:display] = "flex"
-      styles["flex-direction"] = "row"
-      styles["flex-wrap"] = "wrap"
-      styles["align-content"] = "flex-start"
-      styles["justify-content"] = "flex-start"
-      styles["align-items"] = "flex-start"
-
-      styles
+      {
+        display: "flex",
+        "flex-direction": "row",
+        "flex-wrap": "wrap",
+        "align-content": "flex-start",
+        "justify-content": "flex-start",
+        "align-items": "flex-start",
+      }.merge(super)
     end
   end
 end

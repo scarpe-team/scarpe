@@ -20,24 +20,26 @@ class Scarpe
       end
     end
 
-    private
+    protected
 
     def style
-      styles = {}
-      styles["background-color"] = @color
-      styles["padding-top"] = @padding_top
-      styles["padding-bottom"] = @padding_bottom
+      styles = super
+
+      styles[:"background-color"] = @color
+      styles[:"padding-top"] = @padding_top
+      styles[:"padding-bottom"] = @padding_bottom
       styles[:color] = @text_color
       styles[:width] = Dimensions.length(@width) if @width
       styles[:height] = Dimensions.length(@height) if @height
-      styles["font-size"] = @font_size
+      styles[:"font-size"] = @font_size
 
       styles[:top] = Dimensions.length(@top) if @top
       styles[:left] = Dimensions.length(@left) if @left
       styles[:position] = "absolute" if @top || @left
-      styles["font-size"] = Dimensions.length(font_size) if @size
-      styles["font-family"] = @font if @font
-      styles["color"] = rgb_to_hex(@stroke) if @stroke
+      styles[:"font-size"] = Dimensions.length(font_size) if @size
+      styles[:"font-family"] = @font if @font
+      styles[:color] = rgb_to_hex(@stroke) if @stroke
+
       styles
     end
 

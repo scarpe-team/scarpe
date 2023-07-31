@@ -21,14 +21,16 @@ class Scarpe
       end
     end
 
-    private
+    protected
 
     def style
-      {
+      super.merge({
         width: Dimensions.length(@width),
         height: Dimensions.length(@height),
-      }
+      })
     end
+
+    private
 
     def star_points
       get_star_points.join(",")

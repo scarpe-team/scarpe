@@ -34,22 +34,6 @@ module Shoes
       # This should signal the display widget to change
       self.text_items = text_children_to_items(@text_children)
     end
-
-    def hide
-      # idempotent
-      return unless @hidden_text_items.empty?
-
-      @hidden_text_items = self.text_items
-      self.text_items = []
-    end
-
-    def show
-      # idempotent
-      return unless self.text_items.empty?
-
-      self.text_items = @hidden_text_items
-      @hidden_text_items = []
-    end
   end
 end
 

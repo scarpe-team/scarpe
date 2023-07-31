@@ -67,10 +67,10 @@ class Scarpe
     def style
       styles = super
 
-      styles["margin-top"] = @margin_top if @margin_top
-      styles["margin-bottom"] = @margin_bottom if @margin_bottom
-      styles["margin-left"] = @margin_left if @margin_left
-      styles["margin-right"] = @margin_right if @margin_right
+      styles[:"margin-top"] = @margin_top if @margin_top
+      styles[:"margin-bottom"] = @margin_bottom if @margin_bottom
+      styles[:"margin-left"] = @margin_left if @margin_left
+      styles[:"margin-right"] = @margin_right if @margin_right
 
       styles[:width] = Dimensions.length(@width) if @width
       styles[:height] = Dimensions.length(@height) if @height

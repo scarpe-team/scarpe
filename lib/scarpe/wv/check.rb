@@ -22,7 +22,7 @@ class Scarpe
 
     def element
       HTML.render do |h|
-        h.input(type: :checkbox, id: html_id, onclick: handler_js_code("click"), value: "hmm #{text}", checked: @checked)
+        h.input(type: :checkbox, id: html_id, onclick: handler_js_code("click"), value: "hmm #{text}", checked: @checked, style:)
       end
     end
   end

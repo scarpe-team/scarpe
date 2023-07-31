@@ -30,10 +30,10 @@ class Scarpe
       end
     end
 
-    private
+    protected
 
     def style
-      styles = {}
+      styles = super
 
       styles[:width] = Dimensions.length(@width) if @width
 
