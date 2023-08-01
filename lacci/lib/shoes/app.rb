@@ -131,7 +131,7 @@ module Shoes
       to_add = @document_root.children
       until to_add.empty?
         out.concat(to_add)
-        to_add = to_add.flat_map(&:children).compact
+        to_add = to_add.flat_map { |w| w.respond_to?(:children) ? w.children : [] }.compact
       end
 
       out

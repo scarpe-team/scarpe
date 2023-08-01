@@ -93,6 +93,8 @@ module Shoes
         "@children=#{@children.inspect} properties=#{display_property_values.inspect}>"
     end
 
+    private
+
     def bind_self_event(event_name, &block)
       raise("Widget has no linkable_id! #{inspect}") unless linkable_id
 
@@ -102,6 +104,8 @@ module Shoes
     def bind_no_target_event(event_name, &block)
       bind_shoes_event(event_name:, &block)
     end
+
+    public
 
     def display_property_values
       all_property_names = self.class.display_property_names
@@ -114,6 +118,8 @@ module Shoes
       properties
     end
 
+    private
+
     def create_display_widget
       klass_name = self.class.name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
 
@@ -121,8 +127,9 @@ module Shoes
       ::Shoes::DisplayService.display_service.create_display_widget_for(klass_name, self.linkable_id, display_property_values)
     end
 
+    public
+
     attr_reader :parent
-    attr_reader :children
 
     def set_parent(new_parent)
       @parent&.remove_child(self)
@@ -131,57 +138,12 @@ module Shoes
       send_shoes_event(new_parent.linkable_id, event_name: "parent", target: linkable_id)
     end
 
-    # Do not call directly, use set_parent
-    def remove_child(child)
-      @children ||= []
-      unless @children.include?(child)
-        @log.warn("remove_child: no such child(#{child.inspect}) for parent(#{parent.inspect})!")
-      end
-      @children.delete(child)
-    end
-
-    # Do not call directly, use set_parent
-    # Can this be private?
-    def add_child(child)
-      @children ||= []
-      @children << child
-    end
-
     # Removes the element from the Shoes::Widget tree
     def destroy
       @parent&.remove_child(self)
       send_shoes_event(event_name: "destroy", target: linkable_id)
     end
-
     alias_method :remove, :destroy
-
-    # Remove all children from this widget. If a block
-    # is given, call the block to replace the children with
-    # new contents from that block.
-    #
-    # Should only be called on Slots, which can
-    # have children.
-    #
-    # @yield The block to call to replace the contents of the widget (optional)
-    # @return [void]
-    def clear(&block)
-      @children.dup.each(&:destroy)
-      append(&block) if block_given?
-      nil
-    end
-
-    # Call the block to append new children to a Slot.
-    #
-    # Should only be called on a Slot, since only Slots can have children.
-    #
-    # @yield the block to call to replace children; will be called on the Shoes::App, appending to the called Slot as the current slot
-    # @return [void]
-    def append(&block)
-      raise("append requires a block!") unless block_given?
-      raise("Don't append to something that isn't a slot!") unless self.is_a?(Shoes::Slot)
-
-      Shoes::App.instance.with_slot(self, &block)
-    end
 
     # Hide the widget.
     def hide
