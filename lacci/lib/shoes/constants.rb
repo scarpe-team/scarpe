@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
-require "tmpdir"
-
 module Shoes
   module Constants
     def self.find_lib_dir
+      begin
+        require "tmpdir"
+      rescue LoadError
+        return nil
+      end
       homes = [
         [ENV["LOCALAPPDATA"], "Shoes"],
         [ENV["APPDATA"], "Shoes"],
