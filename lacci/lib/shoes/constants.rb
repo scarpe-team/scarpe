@@ -15,7 +15,7 @@ module Shoes
       File.join(top, file)
     end
 
-    LIB_DIR = find_lib_dir
+    LIB_DIR = nil # find_lib_dir # Need to stub this in a way that works with Wasm - not currently used by working legacy apps
 
     # Math constants from Shoes3
     RAD2PI = 0.01745329251994329577
