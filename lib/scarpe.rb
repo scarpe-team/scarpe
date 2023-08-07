@@ -18,8 +18,6 @@ class Scarpe::Error < StandardError; end
 require_relative "scarpe/version"
 require_relative "scarpe/promises"
 
-require "bloops"
-
 d_s = ENV["SCARPE_DISPLAY_SERVICE"] || "wv_local"
 # This is require, not require_relative, to allow gems to supply a new display service
 require "scarpe/#{d_s}"
