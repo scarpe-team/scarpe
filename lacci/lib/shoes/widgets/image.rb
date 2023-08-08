@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "fastimage"
 require "open-uri"
 
 module Shoes
@@ -27,6 +26,7 @@ end
 module Shoes
   class Widget
     def size
+      require "fastimage"
       width, height = FastImage.size(@url)
 
       [width, height]
