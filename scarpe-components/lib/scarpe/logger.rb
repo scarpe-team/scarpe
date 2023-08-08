@@ -5,6 +5,8 @@ require "json"
 
 require "shoes/log"
 
+# Requirements: logging gem
+
 class Scarpe
   class LogImpl
     include Shoes::Log # for constants
@@ -104,12 +106,3 @@ class Scarpe
     end
   end
 end
-
-log_config = if ENV["SCARPE_LOG_CONFIG"]
-  JSON.load_file(ENV["SCARPE_LOG_CONFIG"])
-else
-  ENV["SCARPE_DEBUG"] ? Shoes::Log::DEFAULT_DEBUG_LOG_CONFIG : Shoes::Log::DEFAULT_LOG_CONFIG
-end
-
-Shoes::Log.instance = Scarpe::LogImpl.new
-Shoes::Log.configure_logger(log_config)

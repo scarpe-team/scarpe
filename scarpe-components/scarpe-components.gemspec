@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require_relative "lib/scarpe/version"
+require_relative "../lib/scarpe/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "scarpe"
+  spec.name = "scarpe-components"
   spec.version = Scarpe::VERSION
   spec.authors = ["Marco Concetto Rudilosso", "Noah Gibbs"]
   spec.email = ["marcoc.r@outlook.com", "the.codefolio.guy@gmail.com"]
 
-  spec.summary = "Scarpe - shoes but running on webview"
+  spec.summary = "Reusable components for Scarpe display libraries"
   spec.homepage = "https://github.com/scarpe-team/scarpe"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2.0"
@@ -30,18 +30,9 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "fastimage"
-  spec.add_dependency "glimmer-dsl-libui"
-  spec.add_dependency "nokogiri"
-  spec.add_dependency "sqlite3"
+  # Scarpe-Components should add *no* runtime dependencies. Since each component
+  # is optional, the display library should add dependencies relevant to only
+  # the components it directly uses and no others.
 
-  spec.add_dependency "lacci"
-  spec.add_dependency "scarpe-components"
-
-  spec.add_dependency "bloops", "~>0.5"
-  spec.add_dependency "logging", "~>2.3.1"
-  spec.add_dependency "webview_ruby", "~>0.1.1"
-
-  # For more information and examples about making a new gem, check out our
-  # guide at: https://bundler.io/guides/creating_gem.html
+  #spec.add_dependency ""
 end

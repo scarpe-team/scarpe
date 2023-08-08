@@ -7,7 +7,7 @@ end
 
 require "shoes"
 
-require_relative "scarpe/logger"
+require "scarpe/logger"
 
 require "securerandom"
 require "json"
