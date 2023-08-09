@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative "../lib/scarpe/version"
+require_relative "lib/lacci/version"
 
 Gem::Specification.new do |spec|
   spec.name = "lacci"
-  spec.version = Scarpe::VERSION
+  spec.version = Lacci::VERSION
   spec.authors = ["Marco Concetto Rudilosso", "Noah Gibbs"]
   spec.email = ["marcoc.r@outlook.com", "the.codefolio.guy@gmail.com"]
 
