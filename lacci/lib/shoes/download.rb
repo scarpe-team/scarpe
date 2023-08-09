@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-require "net/http"
-require "openssl"
-require "nokogiri"
-
 module Shoes
   class Widget
     class ResponseWrapper
@@ -23,6 +19,10 @@ module Shoes
     end
 
     def download(url, method: "GET", save: nil, styles: {}, &block)
+      require "net/http"
+      require "openssl"
+      require "nokogiri"
+
       @block = block
 
       Thread.new do
