@@ -12,6 +12,8 @@ module Shoes
 
     display_properties :title, :width, :height, :resizable
 
+    CUSTOM_EVENT_LOOP_TYPES = ["displaylib", "return", "wait"]
+
     def initialize(
       title: "Shoes!",
       width: 480,
@@ -29,6 +31,7 @@ module Shoes
       end
 
       @do_shutdown = false
+      @event_loop_type = "displaylib" # the default
 
       super
 
@@ -64,6 +67,12 @@ module Shoes
         Shoes::DisplayService.unsub_from_events(@watch_for_destroy) if @watch_for_destroy
         @watch_for_destroy = nil
         self.destroy(send_event: false)
+      end
+
+      @watch_for_event_loop = bind_shoes_event(event_name: "custom_event_loop") do |loop_type|
+        raise("Unknown event loop type: #{loop_type.inspect}!") unless CUSTOM_EVENT_LOOP_TYPES.include?(loop_type)
+
+        @event_loop_type = loop_type
       end
 
       Signal.trap("INT") do
@@ -110,14 +119,33 @@ module Shoes
       @draw_context.dup
     end
 
-    # This isn't supposed to return. The display service should take control
+    # This usually doesn't return. The display service may take control
     # of the main thread. Local Webview even stops any background threads.
+    # However, some display libraries don't want to shut down and don't
+    # want to (and/or can't) take control of the event loop.
     def run
       if @do_shutdown
         $stderr.puts "Destroy has already been signaled, but we just called Shoes::App.run!"
         return
       end
+
+      # The display lib can send us an event to customise the event loop handling.
+      # But it must do so before the "run" event returns.
       send_shoes_event(event_name: "run")
+
+      case @event_loop_type
+      when "wait"
+        # Display lib wants us to busy-wait instead of it.
+        sleep 0.1 until @do_shutdown
+      when "displaylib"
+        # If run event returned, that means we're done.
+        app.destroy
+      when "return"
+        # We can just return to the main event loop. But we shouldn't call destroy.
+        # Presumably some event loop *outside* our event loop is handling things.
+      else
+        raise "Internal error! Incorrect event loop type: #{@event_loop_type.inspect}!"
+      end
     end
 
     def destroy(send_event: true)

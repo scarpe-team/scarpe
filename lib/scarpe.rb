@@ -6,7 +6,7 @@ if RUBY_VERSION[0..2] < "3.2"
 end
 
 require "shoes"
-require "lacci/scarpe-core"
+require "lacci/scarpe_core"
 
 d_s = ENV["SCARPE_DISPLAY_SERVICE"] || "wv_local"
 # This is require, not require_relative, to allow gems to supply a new display service
