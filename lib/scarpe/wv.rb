@@ -2,12 +2,29 @@
 
 # Scarpe Webview Display Services
 
+# This file is for everything that should be included by *both* wv_local and wv_relay
+
+require "securerandom"
+require "json"
+
+require "bloops"
+require "scarpe/modular_logger"
+require "scarpe/promises"
+
+# Set up hierarchical logging using the SCARPE_LOG_CONFIG var for configuration
+log_config = if ENV["SCARPE_LOG_CONFIG"]
+  JSON.load_file(ENV["SCARPE_LOG_CONFIG"])
+else
+  ENV["SCARPE_DEBUG"] ? Shoes::Log::DEFAULT_DEBUG_LOG_CONFIG : Shoes::Log::DEFAULT_LOG_CONFIG
+end
+
+Shoes::Log.instance = Scarpe::ModularLogImpl.new
+Shoes::Log.configure_logger(log_config)
+
 require_relative "wv/web_wrangler"
 require_relative "wv/control_interface"
 
 require_relative "wv/widget"
-require_relative "wv/webview_local_display"
-require_relative "wv/webview_relay_display"
 
 require_relative "wv/dimensions"
 require_relative "wv/html"

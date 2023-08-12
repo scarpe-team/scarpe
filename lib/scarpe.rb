@@ -6,17 +6,7 @@ if RUBY_VERSION[0..2] < "3.2"
 end
 
 require "shoes"
-
-require "scarpe/logger"
-
-require "securerandom"
-require "json"
-
-# Is there a Shoes::Error class? Should this be two different error classes?
-class Scarpe::Error < StandardError; end
-
-require_relative "scarpe/version"
-require "scarpe/promises"
+require "lacci/scarpe-core"
 
 d_s = ENV["SCARPE_DISPLAY_SERVICE"] || "wv_local"
 # This is require, not require_relative, to allow gems to supply a new display service
