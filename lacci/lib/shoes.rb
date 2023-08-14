@@ -71,7 +71,6 @@ module Shoes
       app = Shoes::App.new(title:, width:, height:, resizable:, &app_code_body)
       app.init
       app.run
-      app.destroy
       nil
     end
   end

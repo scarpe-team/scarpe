@@ -13,7 +13,7 @@ class Scarpe
     end
 
     def encode_file_to_base64(image_filename)
-      directory_path = File.dirname(__FILE__, 3)
+      directory_path = File.dirname(__FILE__, 4)
 
       image_path = File.join(directory_path, image_filename)
 

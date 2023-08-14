@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require_relative "lib/lacci/version"
+require_relative "lib/scarpe/components/version"
 
 Gem::Specification.new do |spec|
-  spec.name = "lacci"
-  spec.version = Lacci::VERSION
+  spec.name = "scarpe-components"
+  spec.version = Scarpe::Components::VERSION
   spec.authors = ["Marco Concetto Rudilosso", "Noah Gibbs"]
   spec.email = ["marcoc.r@outlook.com", "the.codefolio.guy@gmail.com"]
 
-  spec.summary = "Lacci - a portable Shoes DSL with switchable display backends, part of Scarpe"
+  spec.summary = "Reusable components for Scarpe display libraries"
   spec.homepage = "https://github.com/scarpe-team/scarpe"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2.0"
@@ -30,8 +30,9 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  #spec.add_dependency ""
+  # Scarpe-Components should add *no* runtime dependencies. Since each component
+  # is optional, the display library should add dependencies relevant to only
+  # the components it directly uses and no others.
 
-  # For more information and examples about making a new gem, check out our
-  # guide at: https://bundler.io/guides/creating_gem.html
+  #spec.add_dependency ""
 end

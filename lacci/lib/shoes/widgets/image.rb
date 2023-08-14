@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "open-uri"
-
 module Shoes
   class Image < Shoes::Widget
     display_properties :url, :width, :height, :top, :left, :click
@@ -20,11 +18,7 @@ module Shoes
     def replace(url)
       self.url = url
     end
-  end
-end
 
-module Shoes
-  class Widget
     def size
       require "fastimage"
       width, height = FastImage.size(@url)

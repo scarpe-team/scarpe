@@ -2,6 +2,8 @@
 
 require "test_helper"
 
+require "scarpe/promises"
+
 class TestPromises < Minitest::Test
   Promise = Scarpe::Promise
 

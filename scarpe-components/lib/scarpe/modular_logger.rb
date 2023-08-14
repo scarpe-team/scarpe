@@ -5,8 +5,10 @@ require "json"
 
 require "shoes/log"
 
+# Requires the logging gem
+
 class Scarpe
-  class LogImpl
+  class ModularLogImpl
     include Shoes::Log # for constants
 
     def logger_for_component(component)
@@ -105,11 +107,5 @@ class Scarpe
   end
 end
 
-log_config = if ENV["SCARPE_LOG_CONFIG"]
-  JSON.load_file(ENV["SCARPE_LOG_CONFIG"])
-else
-  ENV["SCARPE_DEBUG"] ? Shoes::Log::DEFAULT_DEBUG_LOG_CONFIG : Shoes::Log::DEFAULT_LOG_CONFIG
-end
-
-Shoes::Log.instance = Scarpe::LogImpl.new
-Shoes::Log.configure_logger(log_config)
+#Shoes::Log.instance = Scarpe::PrintLogImpl.new
+#Shoes::Log.configure_logger(Shoes::Log::DEFAULT_LOG_CONFIG)

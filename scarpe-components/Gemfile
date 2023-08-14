@@ -1,0 +1,22 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+gemspec
+
+gem "lacci", path: "../lacci"
+
+gem "rake", "~> 13.0"
+
+gem "nokogiri"
+
+group :test do
+  gem "minitest", "~> 5.0"
+  gem "minitest-reporters"
+end
+
+group :development do
+  gem "debug"
+  gem "rubocop", "~> 1.21"
+  gem "rubocop-shopify"
+end
