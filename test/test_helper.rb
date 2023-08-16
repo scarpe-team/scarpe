@@ -4,6 +4,7 @@ RUBY_MAIN_OBJ = self
 
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "scarpe"
+require "scarpe/evented_assertions"
 require "scarpe/unit_test_helpers"
 
 require "json"
@@ -22,6 +23,7 @@ TIMEOUT_FRACTION_OF_THRESHOLD = 0.5 # Too low?
 
 class ScarpeWebviewTest < Minitest::Test
   include Scarpe::Test::Helpers
+  include Scarpe::Test::EventedAssertions
 
   SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
 
