@@ -7,10 +7,14 @@
 
 require "json"
 
+require "scarpe/unit_test_helpers"
+require "scarpe/evented_assertions"
+
 class Scarpe
   DEFAULT_ASSERTION_TIMEOUT = 1.0
 
   class ControlInterface
+    include Scarpe::Test::EventedAssertions
     include Scarpe::Test::Helpers
 
     def timed_out?
