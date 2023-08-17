@@ -139,7 +139,7 @@ module Shoes
         sleep 0.1 until @do_shutdown
       when "displaylib"
         # If run event returned, that means we're done.
-        app.destroy
+        destroy
       when "return"
         # We can just return to the main event loop. But we shouldn't call destroy.
         # Presumably some event loop *outside* our event loop is handling things.
