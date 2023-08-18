@@ -7,8 +7,11 @@ require "socket"
 SCARPE_DIR = File.join(__dir__, "../..")
 
 $LOAD_PATH.prepend(SCARPE_DIR)
+ENV["SCARPE_DISPLAY_SERVICE"] = "wv_local"
 require "scarpe"
 require "scarpe/wv_local"
+
+require_relative "webview_relay_util"
 
 # This script exists to create a WebviewDisplayService that can be operated remotely over a socket.
 
@@ -23,7 +26,7 @@ end
 # usage, where a parent process could create a paired sockets and start the
 # child server. It can also be used via TCP sockets or similar, where a single
 # socket is both input and output.
-class WebviewContainedService < Shoes::Linkable
+class Scarpe::Webview::ContainedService < Shoes::Linkable
   include Shoes::Log
   include Scarpe::WVRelayUtil # Needs Shoes::Log
 
@@ -70,6 +73,6 @@ end
 
 s = TCPSocket.new("localhost", ARGV[0].to_i)
 
-SERVICE = WebviewContainedService.new(s, s)
+SERVICE = Scarpe::Webview::ContainedService.new(s, s)
 
 SERVICE.log.info("Finished event loop. Exiting!")

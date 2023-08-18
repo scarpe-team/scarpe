@@ -16,6 +16,8 @@ module Shoes; end
 class Shoes::Error < StandardError; end
 
 require_relative "shoes/constants"
+
+# Shoes adds some top-level methods and constants that can be used everywhere. Kernel is where they go.
 module Kernel
   include Shoes::Constants
 end
