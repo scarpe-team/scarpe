@@ -9,11 +9,11 @@
 
 "Scarpe" means shoes in Italian. "Scarpe" also means [Shoes](https://github.com/shoes/shoes-deprecated) in modern Ruby and webview!
 
-Scarpe isn't feature complete with any version of Shoes (yet?). We're initially targeting Shoes Classic.
+Scarpe isn't feature complete with any version of Shoes (yet?). We're initially targeting [Shoes 3](https://github.com/scarpe-team/scarpe/wiki/ShoesImplementations.md), also called "Red Shoes."
 
 ## Wait, What's A Shoes?
 
-Shoes is an old library (really several different ones) that let you build little local desktop computer programs, package them up and give copies to people. Imagine if you can write a tiny little Ruby program (e.g. sneak a peek at the next section) and then it would make a runnable app, opening a window in Ruby, where you could click buttons and play sounds and stuff.
+Shoes is an old library (really [several different ones](https://github.com/scarpe-team/scarpe/wiki/ShoesImplementations.md)) that let you build little local desktop computer programs, package them up and give copies to people. Imagine if you can write a tiny little Ruby program (e.g. sneak a peek at the next section) and then it would make a runnable app, opening a window in Ruby, where you could click buttons and play sounds and stuff.
 
 Scarpe is a rewrite of Shoes, because old Shoes doesn't really work any more. There have been a surprising number of rewrites of Shoes over the years -- people love it and miss having it around. This one is ours. Also it uses Webview.
 
@@ -29,7 +29,7 @@ Shoes.app do
 end
 ```
 
-More examples can be found in the `examples` folder!
+More examples can be found in the [`examples` folder](https://github.com/scarpe-team/scarpe/tree/main/examples)!
 
 ## Screenshots
 
@@ -45,9 +45,9 @@ From the button example:
 
 ### Quickstart
 
-Scarpe requires [Ruby 3.2](https://www.ruby-lang.org/en/downloads/) or higher! use `rvm` or `rbenv` for version control
+Scarpe requires [Ruby 3.2](https://www.ruby-lang.org/en/downloads/) or higher! You can use `rvm`, `rbenv` or your favourite version control just like normal.
 
-This is where most of the action is happening right now, and to have the full Scarpe experience _today_ this is probably what you want to do.
+This repo is where most of the action is happening right now, and to have the full Scarpe experience _today_ this is probably what you want to do.
 
 ```
 # dependencies - Mac version
@@ -75,13 +75,13 @@ First, clone the [main GitHub repository](https://github.com/scarpe-team/scarpe)
 
 You can run without Scarpe being installed by including its directory. For instance, from the "examples" directory you can run `ruby -I../lib -I../lacci/lib -rscarpe hello_world.rb`. You can also install Scarpe locally (`gem build scarpe.gemspec && gem install scarpe-0.1.0.gem`) or using a Gemfile with the "path" option for local Scarpe.
 
-Most commonly we are all using this command: `./exe/scarpe examples/button.rb --dev`
+Most commonly we are all using this command: `./exe/scarpe examples/button.rb --dev --debug`
 
 The `--dev` flag points to your local scarpe rather than an installed Scarpe gem.
 
 The `--debug` flag will dump a ton of useful information to the console if you want to see what's happening with your app.
 
-It's very early in the development process. If you'd like to help develop Scarpe, great! It would be useful to drop us a message/issue/PR on GitHub early on, so we know you're working in a particular area, and we can warn you if anybody else is currently doing so.
+It's very early in the development process. If you'd like to help develop Scarpe, great! It would be useful to drop us a message/issue/PR on GitHub early on, so we know you're working in a particular area, and we can warn you if anybody else is currently doing so. We also have a Discord.
 
 We'd love the help!
 
@@ -91,7 +91,7 @@ By leveraging the `ruby scarpegen.rb` command and the provided resources, you ca
 
 ## Are we done yet?
 
-Huh. Great question. Right now we have a few key things we want to achieve. The first is passing all of the examples we can get our hands on. The second is passing HacketyHack. We're manually keeping tabs on that here.
+Great question! Right now we have a few key things we want to achieve. The first is passing all of the examples we can get our hands on. The second is passing [Hackety-Hack](https://github.com/hacketyhack/hacketyhack). We're manually keeping tabs on that here.
 
 ### Webview Display Service Examples Passing
 
@@ -108,15 +108,15 @@ __92/304__
 
 Scarpe allows you to modify the app's behaviour outside of the normal Shoes API with environment variables.
 
-The SCARPE_DISPLAY_SERVICE environment variable allows you to choose one or more display services, from the default Webview service to potentially other experimental or incomplete services. This may be important if you're developing a new display method for Scarpe. The display service variable will contain a name like "wv_local" or "wv_remote" or "glibui" which corresponds to a require-able Ruby file under lib/scarpe, either in the Scarpe gem or another gem your app requires.
+The SCARPE_DISPLAY_SERVICE environment variable allows you to choose one or more display services, from the default Webview service, to [Scarpe-Wasm](https://github.com/scarpe-team/scarpe-wasm) to potentially other experimental or incomplete services. This may be important if you're developing a new display method for Scarpe. The display service variable will contain a name like "wv_local" or "wv_remote" or "wasm_local" which correspond to a require-able Ruby file under lib/scarpe, either in the Scarpe gem or another gem your app requires.
 
 Example usage:
 
-`SCARPE_DISPLAY_SERVICE=glibui ./exe/scarpe examples/hello_world.rb`
+`SCARPE_DISPLAY_SERVICE=wv_relay ./exe/scarpe examples/hello_world.rb`
 
 The SCARPE_TEST_CONTROL environment variable can contain a path to a test-control-interface script for the Webview display service. If you look at test_helper, it gives some examples of how to use it.
 
-If you run ./exe/scarpe env, you can see all current environment settings.
+If you run ./exe/scarpe --dev env, you can see all current environment settings.
 
 ## More info
 
@@ -152,6 +152,10 @@ You can set SCARPE_LOG_CONFIG to an appropriate YAML file to set log levels per-
 ```
 
 ## Documentation
+
+Usually it's easiest to [just view the latest on GitHub](https://scarpe-team.github.io/scarpe/).
+
+But you can also built it yourself, locally, for testing or to take on the road.
 
 Scarpe uses [YARD](https://yardoc.org/) for basic API documentation. You can run "yard doc" to generate documentation
 locally, and then view it with "yard server". Point your browser at "http://localhost:8808" for local viewing.
