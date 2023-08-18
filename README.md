@@ -93,20 +93,11 @@ By leveraging the `ruby scarpegen.rb` command and the provided resources, you ca
 
 Huh. Great question. Right now we have a few key things we want to achieve. The first is passing all of the examples we can get our hands on. The second is passing HacketyHack. We're manually keeping tabs on that here.
 
-🚨 **This is manually checked and not an automation.** 🚨
-
 ### Webview Display Service Examples Passing
 
-![](https://geps.dev/progress/16?dangerColor=800000&warningColor=ff9900&successColor=006600)
+![](https://geps.dev/progress/30?dangerColor=800000&warningColor=ff9900&successColor=006600)
 
-__41/288__
-
-### GlimmerLibUI Display Service Examples Passing
-
-![](https://geps.dev/progress/2?dangerColor=800000&warningColor=ff9900&successColor=006600)
-
-__4/288__
-
+__92/304__
 ## Teach me more about Shoes, the DSL, what it is and why it is amazing
 
 1. [Nobody Knows Shoes - _why's Manual](https://github.com/whymirror/why-archive/raw/master/shoes/nobody-knows-shoes.pdf)
@@ -116,8 +107,6 @@ __4/288__
 ## Environment Variables
 
 Scarpe allows you to modify the app's behaviour outside of the normal Shoes API with environment variables.
-
-For example, we are working with multiple display services like Webview, Glimmer, and possibly some others.
 
 The SCARPE_DISPLAY_SERVICE environment variable allows you to choose one or more display services, from the default Webview service to potentially other experimental or incomplete services. This may be important if you're developing a new display method for Scarpe. The display service variable will contain a name like "wv_local" or "wv_remote" or "glibui" which corresponds to a require-able Ruby file under lib/scarpe, either in the Scarpe gem or another gem your app requires.
 
