@@ -4,6 +4,8 @@ require "test_helper"
 
 # Tests for the CatsCradle testing language
 class TestCatsCradle < LoggedScarpeTest
+  self.logger_dir = File.expand_path("#{__dir__}/../logger")
+
   def test_para_finder
     run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
       Shoes.app do

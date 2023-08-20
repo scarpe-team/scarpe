@@ -3,6 +3,8 @@
 require "test_helper"
 
 class TestSlots < LoggedScarpeTest
+  self.logger_dir = File.expand_path("#{__dir__}/../logger")
+
   def test_stack_child
     run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
       Shoes.app do

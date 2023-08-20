@@ -5,6 +5,8 @@ require "test_helper"
 # These are a variety of simple apps, and we're just making sure they don't immediately fail.
 
 class TestWebviewScarpe < LoggedScarpeTest
+  self.logger_dir = File.expand_path("#{__dir__}/../logger")
+
   def test_that_it_has_a_version_number
     refute_nil ::Scarpe::VERSION
   end

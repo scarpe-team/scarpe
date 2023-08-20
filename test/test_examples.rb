@@ -3,6 +3,8 @@
 require "test_helper"
 
 class TestExamplesWithWebview < LoggedScarpeTest
+  self.logger_dir = File.expand_path("#{__dir__}/../logger")
+
   match_str = ENV["EXAMPLES_MATCHING"] || ""
 
   examples_to_test = Dir["examples/**/*.rb"]

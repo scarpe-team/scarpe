@@ -3,6 +3,8 @@
 require "test_helper"
 
 class TestEditBox < LoggedScarpeTest
+  self.logger_dir = File.expand_path "#{__dir__}/../logger"
+
   def test_renders_textarea
     run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
       Shoes.app do

@@ -4,6 +4,8 @@ require "test_helper"
 
 # Widgets Testing
 class TestWidgets < LoggedScarpeTest
+  self.logger_dir = File.expand_path("#{__dir__}/../logger")
+
   def test_hide_show
     run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
       Shoes.app do

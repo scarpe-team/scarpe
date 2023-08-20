@@ -6,6 +6,8 @@ require "test_helper"
 # This may go away over time as CatsCradle gets more capable.
 
 class TestWebWranglerInScarpeApp < LoggedScarpeTest
+  self.logger_dir = File.expand_path("#{__dir__}/../logger")
+
   # Need to make sure that even with no widgets we still get at least one redraw
   def test_empty_app
     run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
