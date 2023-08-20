@@ -31,7 +31,6 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "fastimage"
-  spec.add_dependency "glimmer-dsl-libui"
   spec.add_dependency "nokogiri"
   spec.add_dependency "sqlite3"
 
