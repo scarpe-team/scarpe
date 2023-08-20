@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
-  module WebviewSpacing
+module Scarpe::Webview
+  module Spacing
     SPACING_DIRECTIONS = [:left, :right, :top, :bottom]
 
     def style

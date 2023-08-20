@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class WebviewListBox < Scarpe::WebviewWidget
+module Scarpe::Webview
+  class ListBox < Widget
     attr_reader :selected_item, :items, :height, :width
 
     def initialize(properties)
@@ -27,7 +27,7 @@ class Scarpe
       select_attrs = { id: html_id, onchange: onchange, style: style }
       option_attrs = { value: nil, selected: false }
 
-      HTML.render do |h|
+      Scarpe::Components::HTML.render do |h|
         h.select(**select_attrs) do
           items.each do |item|
             h.option(**option_attrs, value: item, selected: (item == selected_item)) { item }

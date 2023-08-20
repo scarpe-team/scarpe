@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class WebviewStack < Scarpe::WebviewSlot
+module Scarpe::Webview
+  class Stack < Slot
     def get_style
       style
     end

@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class WebviewArc < Scarpe::WebviewWidget
+module Scarpe::Webview
+  class Arc < Widget
     def initialize(properties)
       super(properties)
     end
 
     def element(&block)
-      HTML.render do |h|
+      ::Scarpe::Components::HTML.render do |h|
         h.div(id: html_id, style: style) do
           h.svg(width: @width, height: @height) do
             h.path(d: arc_path)

@@ -10,7 +10,7 @@
 # And if you depend on this from the framework, I'll add a check-mode that
 # never dispatches any events to any handlers. Do NOT test me on this.
 
-class Scarpe
+module Scarpe::Webview
   class ControlInterface
     include Shoes::Log
 
@@ -22,7 +22,7 @@ class Scarpe
 
     # The control interface needs to see major system components to hook into their events
     def initialize
-      log_init("WV::ControlInterface")
+      log_init("Webview::ControlInterface")
 
       @do_shutdown = false
       @event_handlers = {}

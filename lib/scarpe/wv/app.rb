@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-class Scarpe
-  # Scarpe::WebviewApp must only be used from the main thread, due to GTK+ limitations.
-  class WebviewApp < WebviewWidget
+module Scarpe::Webview
+  # Scarpe::Webview::App must only be used from the main thread, due to GTK+ limitations.
+  class App < Widget
     attr_reader :control_interface
 
     attr_writer :shoes_linkable_id
@@ -25,7 +25,7 @@ class Scarpe
       end
 
       # TODO: rename @view
-      @view = Scarpe::WebWrangler.new title: @title,
+      @view = Scarpe::Webview::WebWrangler.new title: @title,
         width: @width,
         height: @height,
         resizable: @resizable
@@ -97,7 +97,7 @@ class Scarpe
     #
     # @return [void]
     def request_redraw!
-      wrangler = WebviewDisplayService.instance.wrangler
+      wrangler = DisplayService.instance.wrangler
       if wrangler.is_running
         wrangler.replace(@document_root.to_html)
       end

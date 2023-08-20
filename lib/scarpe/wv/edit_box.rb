@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class WebviewEditBox < Scarpe::WebviewWidget
+module Scarpe::Webview
+  class EditBox < Widget
     attr_reader :text, :height, :width
 
     def initialize(properties)
@@ -25,7 +25,7 @@ class Scarpe
     def element
       oninput = handler_js_code("change", "this.value")
 
-      HTML.render do |h|
+      ::Scarpe::Components::HTML.render do |h|
         h.textarea(id: html_id, oninput: oninput, style: style) { text }
       end
     end

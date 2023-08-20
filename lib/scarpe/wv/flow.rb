@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class WebviewFlow < Scarpe::WebviewSlot
+module Scarpe::Webview
+  class Flow < Slot
     def initialize(properties)
       super
     end

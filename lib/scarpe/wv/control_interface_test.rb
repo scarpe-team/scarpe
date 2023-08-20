@@ -10,7 +10,7 @@ require "json"
 require "scarpe/components/unit_test_helpers"
 require "scarpe/evented_assertions"
 
-class Scarpe
+module Scarpe::Webview
   DEFAULT_ASSERTION_TIMEOUT = 1.0
 
   class ControlInterface

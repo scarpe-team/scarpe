@@ -2,9 +2,9 @@
 
 require "scarpe/components/base64"
 
-class Scarpe
-  class WebviewFont < WebviewWidget
-    include Components::Base64
+module Scarpe::Webview
+  class Font < Widget
+    include Scarpe::Components::Base64
     attr_accessor :font
 
     def initialize(properties)
@@ -17,7 +17,7 @@ class Scarpe
     end
 
     def element
-      HTML.render do |h|
+      ::Scarpe::Components::HTML.render do |h|
         h.link(href: @font, rel: "stylesheet")
         h.style do
           <<~CSS

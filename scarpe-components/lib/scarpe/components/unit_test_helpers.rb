@@ -125,7 +125,7 @@ module Scarpe::Test::LoggedTest
   def log_config_for_test
     {
       "default" => ["debug", "logger/test_failure_#{file_id}.log"],
-      "DisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
+      "DisplayService" => ["debug", "logger/test_failure_display_service_#{file_id}.log"],
     }.merge(@additional_log_config || {})
   end
 

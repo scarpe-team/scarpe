@@ -2,9 +2,9 @@
 
 require "scarpe/components/base64"
 
-class Scarpe
-  class WebviewImage < WebviewWidget
-    include Components::Base64
+module Scarpe::Webview
+  class Image < Widget
+    include Scarpe::Components::Base64
     def initialize(properties)
       super
 
@@ -13,7 +13,7 @@ class Scarpe
 
     def element
       if @click
-        HTML.render do |h|
+        ::Scarpe::Components::HTML.render do |h|
           h.a(id: html_id, href: @click) { h.img(id: html_id, src: @url, style:) }
         end
       else

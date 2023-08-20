@@ -14,8 +14,8 @@ class TestSlots < LoggedScarpeTest
       end
     SCARPE_APP
       on_event(:next_redraw) do
-        para = find_wv_widgets(Scarpe::WebviewPara)[0]
-        assert para.parent.is_a?(Scarpe::WebviewStack), "A widget created in a Stack's block should be a child of the stack!"
+        para = find_wv_widgets(Scarpe::Webview::Para)[0]
+        assert para.parent.is_a?(Scarpe::Webview::Stack), "A widget created in a Stack's block should be a child of the stack!"
         return_when_assertions_done
       end
     TEST_CODE

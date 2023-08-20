@@ -181,14 +181,15 @@ class LoggedScarpeTest < ScarpeWebviewTest
   def setup
     self.extra_log_config = {
       # file_id is the test name, and comes from LoggedTest
-      "WV" => ["debug", "logger/test_failure_wv_misc_#{file_id}.log"],
-      "WV::API" => ["debug", "logger/test_failure_wv_api_#{file_id}.log"],
+      "Webview" => ["debug", "logger/test_failure_wv_misc_#{file_id}.log"],
+      "Webview::API" => ["debug", "logger/test_failure_wv_api_#{file_id}.log"],
 
-      "WV::CatsCradle" => ["debug", "logger/test_failure_catscradle_#{file_id}.log"],
+      "Webview::CatsCradle" => ["debug", "logger/test_failure_catscradle_#{file_id}.log"],
 
-      "WV::RelayDisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
-      "WV::WebviewDisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
-      "WV::ControlInterface" => ["debug", "logger/test_failure_events_#{file_id}.log"],
+      # These all go in an events file
+      "Webview::RelayDisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
+      "Webview::WebviewDisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
+      "Webview::ControlInterface" => ["debug", "logger/test_failure_events_#{file_id}.log"],
     }
     super
   end

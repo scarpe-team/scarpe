@@ -39,7 +39,7 @@ class TestControlInterface < LoggedScarpeTest
       end
     SCARPE_APP
       on_event(:next_redraw) do
-        para = find_wv_widgets(Scarpe::WebviewPara)[0]
+        para = find_wv_widgets(Scarpe::Webview::Para)[0]
         assert para
         return_when_assertions_done
       end
@@ -53,7 +53,7 @@ class TestControlInterface < LoggedScarpeTest
       end
     SCARPE_APP
       on_event(:next_redraw) do
-        para = find_wv_widgets(Scarpe::WebviewPara)[0]
+        para = find_wv_widgets(Scarpe::Webview::Para)[0]
         with_js_dom_html do |html_text|
           assert html_text.include?("Hello World"), "DOM root should contain the text Hello World!"
         end.then_ruby_promise do

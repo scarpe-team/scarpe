@@ -45,7 +45,7 @@ class TestWebWranglerMocked < LoggedScarpeTest
     end
     @mocked_webview.expect :init, nil, [String]
     WebviewRuby::Webview.stub :new, @mocked_webview do
-      @web_wrangler = Scarpe::WebWrangler.new title: "A Window", width: 300, height: 200, **wrangler_opts
+      @web_wrangler = Scarpe::Webview::WebWrangler.new title: "A Window", width: 300, height: 200, **wrangler_opts
       block.call
     end
     @mocked_webview.verify
@@ -79,11 +79,11 @@ class TestWebWranglerMocked < LoggedScarpeTest
   end
 
   def wrapped_js_code(js_code, eval_serial)
-    Scarpe::WebWrangler.js_wrapped_code(js_code, eval_serial)
+    Scarpe::Webview::WebWrangler.js_wrapped_code(js_code, eval_serial)
   end
 
   def replacement_js_code(new_body, eval_serial)
-    wrapped_js_code(Scarpe::WebWrangler::DOMWrangler.replacement_code(new_body), eval_serial)
+    wrapped_js_code(Scarpe::Webview::WebWrangler::DOMWrangler.replacement_code(new_body), eval_serial)
   end
 
   def test_ww_draw_body

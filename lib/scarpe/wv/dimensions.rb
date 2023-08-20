@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class Dimensions
+module Scarpe::Webview
+  module Dimensions
     class << self
       def length(value)
         case value

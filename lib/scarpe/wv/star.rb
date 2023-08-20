@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class WebviewStar < Scarpe::WebviewWidget
+module Scarpe::Webview
+  class Star < Widget
     def initialize(properties)
       super(properties)
     end
@@ -11,7 +11,7 @@ class Scarpe
       stroke = @draw_context["stroke"]
       fill = "black" if fill == ""
       stroke = "black" if stroke == ""
-      HTML.render do |h|
+      ::Scarpe::Components::HTML.render do |h|
         h.div(id: html_id, style: style) do
           h.svg(width: @outer, height: @outer, style: "fill:#{fill};") do
             h.polygon(points: star_points, style: "stroke:#{stroke};stroke-width:2")

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class WebviewAlert < WebviewWidget
+module Scarpe::Webview
+  class Alert < Widget
     def initialize(properties)
       super
 

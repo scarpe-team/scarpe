@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
-  # Should inherit from Slot?
-  class WebviewShape < Scarpe::WebviewWidget
+module Scarpe::Webview
+  class Shape < Widget
     def initialize(properties)
       super(properties)
     end
@@ -12,7 +11,7 @@ class Scarpe
       child_markup = @children.map(&:to_html).join
 
       color = @draw_context["fill"] || "black"
-      self_markup = HTML.render do |h|
+      self_markup = ::Scarpe::Components::HTML.render do |h|
         h.div(id: html_id, style: style) do
           h.svg(width: "400", height: "500") do
             h.path(d: path_from_shape_commands, style: "fill:#{color};stroke-width:2;")
@@ -26,7 +25,7 @@ class Scarpe
 
     def element(&block)
       color = @draw_context["fill"] || "black"
-      HTML.render do |h|
+      ::Scarpe::Components::HTML.render do |h|
         h.div(id: html_id, style: style) do
           h.svg(width: "400", height: "500") do
             h.path(d: path_from_shape_commands, style: "fill:#{color};stroke-width:2;")

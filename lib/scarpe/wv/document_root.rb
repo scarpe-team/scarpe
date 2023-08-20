@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-class Scarpe
-  # A WebviewDocumentRoot is a WebviewFlow, with all the same properties
+module Scarpe::Webview
+  # A DocumentRoot is a {Scarpe::Webview::Flow}, with all the same properties
   # and basic behavior.
-  class WebviewDocumentRoot < Scarpe::WebviewFlow
+  class DocumentRoot < Flow
   end
 end

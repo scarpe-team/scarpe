@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class WebviewPara < WebviewWidget
+module Scarpe::Webview
+  class Para < Widget
+
     SIZES = {
       inscription: 10,
       ins: 10,
@@ -40,13 +41,13 @@ class Scarpe
         if item.is_a?(String)
           item
         else
-          WebviewDisplayService.instance.query_display_widget_for(item)
+          Scarpe::Webview::DisplayService.instance.query_display_widget_for(item)
         end
       end
     end
 
     def element(&block)
-      HTML.render do |h|
+      Scarpe::Components::HTML.render do |h|
         h.p(**options, &block)
       end
     end
