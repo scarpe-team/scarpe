@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+class Scarpe; end
+module Scarpe::Components; end
 class Scarpe
   # Scarpe::Promise is a promises library, but one with no form of built-in
   # concurrency. Instead, promise callbacks are executed synchronously.
@@ -448,4 +450,5 @@ class Scarpe
       self
     end
   end
+  Components::Promise = Promise
 end

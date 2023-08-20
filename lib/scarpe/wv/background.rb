@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "scarpe/base64"
+require "scarpe/components/base64"
 
 class Scarpe
   module WebviewBackground
-    include Base64
+    include Components::Base64
 
     def style
       styles = (super if defined?(super)) || {}

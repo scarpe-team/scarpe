@@ -83,3 +83,6 @@ Style/ReturnNil:
 
 Style/ClassAndModuleChildren:
   Enabled: false
+
+Layout/EmptyLineBetweenDefs:
+  Enabled: false
