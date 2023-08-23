@@ -76,7 +76,7 @@ when "-v"
   puts "Lacci #{Lacci::VERSION}"
 when "run"
   # Run the Scarpe app file
-  load ARGV[0]
+  Shoes.run_app ARGV[0]
 when "env"
   print_env
 else

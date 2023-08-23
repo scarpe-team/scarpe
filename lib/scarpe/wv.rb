@@ -21,6 +21,9 @@ end
 Shoes::Log.instance = Scarpe::Components::ModularLogImpl.new
 Shoes::Log.configure_logger(log_config)
 
+require "scarpe/components/segmented_file_loader"
+Shoes.add_file_loader Scarpe::Components::SEGMENTED_FILE_LOADER
+
 require_relative "wv/web_wrangler"
 require_relative "wv/control_interface"
 
