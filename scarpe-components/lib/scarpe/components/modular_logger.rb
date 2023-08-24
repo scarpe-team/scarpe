@@ -109,5 +109,5 @@ class Scarpe
   end
 end
 
-#Shoes::Log.instance = Scarpe::PrintLogImpl.new
+#Shoes::Log.instance = Scarpe::Components::ModularLogImpl.new
 #Shoes::Log.configure_logger(Shoes::Log::DEFAULT_LOG_CONFIG)
