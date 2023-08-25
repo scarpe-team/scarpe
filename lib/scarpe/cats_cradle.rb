@@ -5,20 +5,6 @@ require "scarpe/evented_assertions"
 
 require "fiber"
 
-# "Cat's Cradle" is a children's game where they interlace string between
-# their fingers to make beautiful complicated shapes. The interlacing
-# of fibers made it a good name for a prototype.
-
-# An attempt at an experimental Fiber-based testing system to deal with
-# Shoes, Display and JS all at the same time.
-#
-# In general, we'll use Fiber.transfer to bounce control back and forth
-# between the evented implementations (e.g. waiting for redraw) that
-# need to return control to Webview, and the procedural test flows
-# that look far better if we don't do that explicitly.
-#
-# Ruby Fiber basic docs: https://ruby-doc.org/core-3.0.0/Fiber.html
-#
 module Scarpe::Test
   # We'd like something we can call Shoes widget methods on, such as para.replace.
   # But we'd also like to be able to grab the corresponding display widget and
@@ -235,7 +221,21 @@ module Scarpe::Test
     end
   end
 
-  # This module is mixed into Shoes::App if we're running CC-based tests
+  # "Cat's Cradle" is a children's game where they interlace string between
+  # their fingers to make beautiful complicated shapes. The interlacing
+  # of fibers made it a good name for a prototype.
+
+  # An attempt at an experimental Fiber-based testing system to deal with
+  # Shoes, Display and JS all at the same time.
+  #
+  # In general, we'll use Fiber.transfer to bounce control back and forth
+  # between the evented implementations (e.g. waiting for redraw) that
+  # need to return control to Webview, and the procedural test flows
+  # that look far better if we don't do that explicitly.
+  #
+  # Ruby Fiber basic docs: https://ruby-doc.org/core-3.0.0/Fiber.html
+  #
+  # This module is mixed into Shoes::App if we're running CatsCradle-based tests
   module CatsCradle
     def event_init
       @cc_instance = CCInstance.instance

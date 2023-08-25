@@ -203,7 +203,7 @@ class Scarpe
     end
   end
 
-  # A Promise but with helper functions
+  # A {Scarpe::Promise} but with helper functions for Webview testing.
   class TestPromise < Scarpe::Promise
     def initialize(iface:, state: nil, wait_for: [], &scheduler)
       @iface = iface

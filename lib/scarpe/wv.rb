@@ -11,6 +11,9 @@ require "bloops"
 require "scarpe/components/modular_logger"
 require "scarpe/components/promises"
 
+# Module to contain the various Scarpe Webview classes
+module Scarpe::Webview; end
+
 # Set up hierarchical logging using the SCARPE_LOG_CONFIG var for configuration
 log_config = if ENV["SCARPE_LOG_CONFIG"]
   JSON.load_file(ENV["SCARPE_LOG_CONFIG"])

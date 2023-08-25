@@ -12,8 +12,9 @@ if RUBY_VERSION[0..2] < "3.2"
   exit(-1)
 end
 
-# Is there a Shoes::Error class? Should this be two different error classes?
 class Scarpe; end
+
+# The base error class for Scarpe errors, but not necessarily {Shoes::Error}s
 class Scarpe::Error < StandardError; end
 
 require "lacci/version"
