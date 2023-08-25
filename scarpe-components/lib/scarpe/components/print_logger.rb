@@ -3,7 +3,9 @@
 require "shoes/log"
 require "json"
 
-class Scarpe::PrintLogImpl
+class Scarpe; end
+module Scarpe::Components; end
+class Scarpe::Components::PrintLogImpl
   include Shoes::Log # for constants
 
   class PrintLogger

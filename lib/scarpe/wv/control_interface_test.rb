@@ -7,7 +7,7 @@
 
 require "json"
 
-require "scarpe/unit_test_helpers"
+require "scarpe/components/unit_test_helpers"
 require "scarpe/evented_assertions"
 
 class Scarpe
@@ -204,7 +204,7 @@ class Scarpe
   end
 
   # A Promise but with helper functions
-  class TestPromise < Promise
+  class TestPromise < Scarpe::Promise
     def initialize(iface:, state: nil, wait_for: [], &scheduler)
       @iface = iface
       super(state: state, parents: wait_for, &scheduler)

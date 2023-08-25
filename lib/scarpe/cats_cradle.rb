@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "scarpe/unit_test_helpers"
+require "scarpe/components/unit_test_helpers"
 require "scarpe/evented_assertions"
 
 require "fiber"
