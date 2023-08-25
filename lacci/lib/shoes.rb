@@ -96,8 +96,8 @@ module Shoes
       nil
     end
 
-    def file_loaders
-      @file_loaders ||= [
+    def default_file_loaders
+      [
         # By default we will always try to load any file, regardless of extension, as a Shoes Ruby file.
         proc do |path|
           load path
@@ -106,8 +106,20 @@ module Shoes
       ]
     end
 
+    def file_loaders
+      @file_loaders ||= default_file_loaders
+    end
+
     def add_file_loader(loader)
       file_loaders.prepend(loader)
+    end
+
+    def reset_file_loaders
+      @file_loaders = default_file_loaders
+    end
+
+    def set_file_loaders(loaders)
+      @file_loaders = loaders
     end
   end
 end
