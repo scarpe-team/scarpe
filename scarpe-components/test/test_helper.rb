@@ -11,6 +11,6 @@ Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
 
 # For tests, default to simple print logger
 require "shoes/log"
-require "scarpe/print_logger"
-Shoes::Log.instance = Scarpe::PrintLogImpl.new
+require "scarpe/components/print_logger"
+Shoes::Log.instance = Scarpe::Components::PrintLogImpl.new
 Shoes::Log.configure_logger(Shoes::Log::DEFAULT_LOG_CONFIG)
