@@ -44,6 +44,17 @@ module Scarpe::Components
       true
     end
 
+    # Segment type handlers can call this to perform an operation after the load
+    # has completed. This is important for ordering, and because loading a Shoes
+    # app often doesn't return. So to have a later section (e.g. tests, additional
+    # data) do something that affects Shoes app loading (e.g. set an env var,
+    # affect the display service) it's important that app loading take place later
+    # in the sequence.
+    def after_load(&block)
+      @after_load ||= []
+      @after_load << block
+    end
+
     private
 
     def gen_name(segmap)
@@ -100,42 +111,43 @@ module Scarpe::Components
         raise "Illegal segmented Scarpe file: must have at least one code segment, not just front matter!"
       end
 
-      # Match up front_matter[:segments] with the segments, or use the default of shoes and app_test.
-
       if front_matter[:segments]
         if front_matter[:segments].size != segmap.size
           raise "Number of front matter :segments must equal number of file segments!"
         end
-
-        sth = segment_type_hash
-        sv = segmap.values
-        front_matter[:segments].each.with_index do |seg_name, idx|
-          unless sth.key?(seg_name)
-            raise "Unrecognized segment type #{seg_name.inspect}! No matching segment type available!"
-          end
-
-          # Match the segment-type loader with the segment contents
-          with_tempfile("scarpe_segment_contents", sv[idx]) do |segment_contents_path|
-            sth[seg_name].call(segment_contents_path)
-          end
-        end
-      elsif segmap.size == 1
-        # If there's only one segment, load it as Shoes code
-        eval segmap.values[0]
-      elsif segmap.size == 2
-        # If there are two segments, the first is Shoes code and the second is APP_TEST_CODE
-        # TODO: write a better loader for app_test code that doesn't set an env var and generally
-        #    break ordering.
-        segs = segmap.values
-        with_tempfile("scarpe_seg_test_code", segs[1]) do |tf|
-          # This will get picked up when Scarpe.app() runs. It will execute in the Scarpe::App.
-          # Note that unlike app_test_code in test_helper this does *not* load CatsCradle or
-          # set it up for testing.
-          ENV["SCARPE_APP_TEST"] = tf
-          eval segs[0]
-        end
       else
-        raise "Segmented files with more than two segments have to specify what they're for!"
+        if segmap.size > 2
+          raise "Segmented files with more than two segments have to specify what they're for!"
+        end
+
+        # Set to default of shoes code only or shoes code and app test code.
+        front_matter[:segments] = segmap.size == 2 ? ["shoes", "app_test"] : ["shoes"]
+      end
+
+      # Match up front_matter[:segments] with the segments, or use the default of shoes and app_test.
+
+      sth = segment_type_hash
+      sv = segmap.values
+
+      tf_specs = []
+      front_matter[:segments].each.with_index do |seg_type, idx|
+        unless sth.key?(seg_type)
+          raise "Unrecognized segment type #{seg_type.inspect}! No matching segment type available!"
+        end
+
+        tf_specs << ["scarpe_#{seg_type}_segment_contents", sv[idx]]
+      end
+
+      with_tempfiles(tf_specs) do |filenames|
+        filenames.each.with_index do |filename, idx|
+          seg_name = front_matter[:segments][idx]
+          sth[seg_name].call(filename)
+        end
+
+        # Need to call @after_load hooks while tempfiles still exist
+        if @after_load && !@after_load.empty?
+          @after_load.each(&:call)
+        end
       end
     end
 
@@ -145,7 +157,7 @@ module Scarpe::Components
     # @return Hash<String, Object> the name/handler pairs
     def segment_type_hash
       @segment_handlers ||= {
-        "shoes" => proc { |seg_file| load seg_file },
+        "shoes" => proc { |seg_file| after_load { load seg_file } },
         "app_test" => proc { |seg_file| ENV["SCARPE_APP_TEST"] = seg_file },
       }
     end
