@@ -36,6 +36,8 @@ class TestWebWranglerInScarpeApp < LoggedScarpeTest
 end
 
 class TestWebWranglerMocked < LoggedScarpeTest
+  self.logger_dir = File.expand_path("#{__dir__}/../logger")
+
   def with_mocked_webview(wrangler_opts: {}, &block)
     @mocked_webview = Minitest::Mock.new
     ["puts", "scarpeAsyncEvalResult", "scarpeHeartbeat"].each do |bound_method|
@@ -227,6 +229,8 @@ class TestWebWranglerMocked < LoggedScarpeTest
 end
 
 class TestWebWranglerAsyncJS < LoggedScarpeTest
+  self.logger_dir = File.expand_path("#{__dir__}/../logger")
+
   def round_trip_app(how_many)
     run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-TEST_CODE)
       Shoes.app do
