@@ -1,0 +1,111 @@
+PATH
+  remote: .
+  specs:
+    scarpe (0.2.1)
+      bloops (~> 0.5)
+      fastimage
+      lacci
+      logging (~> 2.3.1)
+      nokogiri
+      scarpe-components
+      sqlite3
+      webview_ruby (~> 0.1.1)
+
+PATH
+  remote: lacci
+  specs:
+    lacci (0.2.1)
+
+PATH
+  remote: scarpe-components
+  specs:
+    scarpe-components (0.2.1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    ansi (1.5.0)
+    ast (2.4.2)
+    bloops (0.5)
+    builder (3.2.4)
+    debug (1.8.0)
+      irb (>= 1.5.0)
+      reline (>= 0.3.1)
+    fastimage (2.2.7)
+    ffi (1.15.5)
+    ffi-compiler (1.0.1)
+      ffi (>= 1.0.0)
+      rake
+    io-console (0.6.0)
+    irb (1.6.4)
+      reline (>= 0.3.0)
+    json (2.6.3)
+    little-plugger (1.1.4)
+    logging (2.3.1)
+      little-plugger (~> 1.1)
+      multi_json (~> 1.14)
+    minitest (5.18.0)
+    minitest-reporters (1.6.0)
+      ansi
+      builder
+      minitest (>= 5.0)
+      ruby-progressbar
+    multi_json (1.15.0)
+    nokogiri (1.15.2-x86_64-darwin)
+      racc (~> 1.4)
+    parallel (1.22.1)
+    parser (3.2.1.0)
+      ast (~> 2.4.1)
+    racc (1.7.1)
+    rainbow (3.1.1)
+    rake (13.0.6)
+    redcarpet (3.6.0)
+    regexp_parser (2.7.0)
+    reline (0.3.4)
+      io-console (~> 0.5)
+    rexml (3.2.5)
+    rubocop (1.46.0)
+      json (~> 2.3)
+      parallel (~> 1.10)
+      parser (>= 3.2.0.0)
+      rainbow (>= 2.2.2, < 4.0)
+      regexp_parser (>= 1.8, < 3.0)
+      rexml (>= 3.2.5, < 4.0)
+      rubocop-ast (>= 1.26.0, < 2.0)
+      ruby-progressbar (~> 1.7)
+      unicode-display_width (>= 2.4.0, < 3.0)
+    rubocop-ast (1.26.0)
+      parser (>= 3.2.1.0)
+    rubocop-shopify (2.12.0)
+      rubocop (~> 1.44)
+    ruby-progressbar (1.11.0)
+    sqlite3 (1.6.3-x86_64-darwin)
+    unicode-display_width (2.4.2)
+    webrick (1.7.0)
+    webview_ruby (0.1.2)
+      ffi
+      ffi-compiler
+      rake
+    yard (0.9.28)
+      webrick (~> 1.7.0)
+
+PLATFORMS
+  x86_64-darwin-19
+  x86_64-darwin-22
+
+DEPENDENCIES
+  bloops (~> 0.5)
+  debug
+  lacci!
+  minitest (~> 5.0)
+  minitest-reporters
+  rake (~> 13.0)
+  redcarpet
+  rubocop (~> 1.21)
+  rubocop-shopify
+  scarpe!
+  scarpe-components!
+  yard
+
+BUNDLED WITH
+   2.4.10
