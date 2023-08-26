@@ -95,15 +95,15 @@ end
 # may need to explictly call (e.g. with logged_test_setup/teardown)
 # to ensure everything you want happens.
 module Scarpe::Test::LoggedTest
-  LOGGER_DIR = File.expand_path("#{__dir__}/../../logger")
-
-  private
+  def self.included(includer)
+    class << includer
+      attr_accessor :logger_dir
+    end
+  end
 
   def file_id
     "#{self.class.name}_#{self.name}"
   end
-
-  public
 
   # This should be called by the test during setup to make sure that
   # failure logs will be saved if this test fails. It makes sure the
@@ -158,6 +158,15 @@ module Scarpe::Test::LoggedTest
     logged_test_teardown
   end
 
+  # Set additional LoggedTest configuration for specific logs to separate or save.
+  # This is normally going to be display-service-specific log components.
+  # Note that this only really works with the modular logger or another logger
+  # that does something useful with the log config. The simple print logger
+  # doesn't do a lot with it.
+  def extra_log_config=(additional_log_config)
+    @additional_log_config = additional_log_config
+  end
+
   # This is the log config that LoggedTests use. It makes sure all components keep all
   # logs, but also splits the logs into several different files for later ease of scanning.
   #
@@ -168,16 +177,8 @@ module Scarpe::Test::LoggedTest
   def log_config_for_test
     {
       "default" => ["debug", "logger/test_failure_#{file_id}.log"],
-
-      "WebviewAPI" => ["debug", "logger/test_failure_wv_api_#{file_id}.log"],
-
-      "CatsCradle" => ["debug", "logger/test_failure_catscradle_#{file_id}.log"],
-
       "DisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
-      "WV::RelayDisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
-      "WV::WebviewDisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
-      "WV::ControlInterface" => ["debug", "logger/test_failure_events_#{file_id}.log"],
-    }
+    }.merge(@additional_log_config || {})
   end
 
   # The list of logfiles that should be saved. Normally this is called internally by the
@@ -200,18 +201,22 @@ module Scarpe::Test::LoggedTest
   def set_up_test_failures
     return if ALREADY_SET_UP_LOGGED_TEST_FAILURES[:setup]
 
+    log_dir = self.class.logger_dir
+    raise("Must set logger directory!") unless log_dir
+    raise("Can't find logger directory!") unless File.directory?(log_dir)
+
     ALREADY_SET_UP_LOGGED_TEST_FAILURES[:setup] = true
     # Delete stale test failures, if any, before starting the first failure-logged test
-    Dir["#{LOGGER_DIR}/test_failure*.log"].each { |fn| File.unlink(fn) }
+    Dir["#{log_dir}/test_failure*.log"].each { |fn| File.unlink(fn) }
 
     Minitest.after_run do
       # Print test failure notice to console
-      unless Dir["#{LOGGER_DIR}/test_failure*.out.log"].empty?
-        puts "Some tests have failed! See #{LOGGER_DIR}/test_failure*.out.log for test logs!"
+      unless Dir["#{log_dir}/test_failure*.out.log"].empty?
+        puts "Some tests have failed! See #{log_dir}/test_failure*.out.log for test logs!"
       end
 
       # Remove un-saved test logs
-      Dir["#{LOGGER_DIR}/test_failure*.log"].each do |f|
+      Dir["#{log_dir}/test_failure*.log"].each do |f|
         next if f.include?(".out.log")
 
         File.unlink(f) if File.exist?(f)
@@ -243,7 +248,7 @@ module Scarpe::Test::LoggedTest
   # @return [void]
   def save_failure_logs
     saved_log_files.each do |log_file|
-      full_loc = File.expand_path("#{LOGGER_DIR}/#{log_file}")
+      full_loc = File.expand_path("#{self.class.logger_dir}/#{log_file}")
       # TODO: we'd like to skip 0-length logfiles. But also Logging doesn't flush. For now, ignore.
       next unless File.exist?(full_loc)
 
@@ -255,7 +260,7 @@ module Scarpe::Test::LoggedTest
   #
   # @return [void]
   def remove_unsaved_logs
-    Dir["#{LOGGER_DIR}/test_failure*.log"].each do |f|
+    Dir["#{self.class.logger_dir}/test_failure*.log"].each do |f|
       next if f.include?(".out.log") # Don't delete saved logs
 
       File.unlink(f)

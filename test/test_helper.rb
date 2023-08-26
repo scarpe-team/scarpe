@@ -175,4 +175,20 @@ end
 
 class LoggedScarpeTest < ScarpeWebviewTest
   include Scarpe::Test::LoggedTest
+  self.logger_dir = File.expand_path("#{__dir__}/../logger")
+
+  def setup
+    self.extra_log_config = {
+      # file_id is the test name, and comes from LoggedTest
+      "WV" => ["debug", "logger/test_failure_wv_misc_#{file_id}.log"],
+      "WV::API" => ["debug", "logger/test_failure_wv_api_#{file_id}.log"],
+
+      "WV::CatsCradle" => ["debug", "logger/test_failure_catscradle_#{file_id}.log"],
+
+      "WV::RelayDisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
+      "WV::WebviewDisplayService" => ["debug", "logger/test_failure_events_#{file_id}.log"],
+      "WV::ControlInterface" => ["debug", "logger/test_failure_events_#{file_id}.log"],
+    }
+    super
+  end
 end
