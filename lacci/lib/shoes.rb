@@ -75,5 +75,53 @@ module Shoes
       app.run
       nil
     end
+
+    # Load a Shoes app from a file. By default, this will load old-style Shoes apps
+    # from a .rb file with all the appropriate libraries loaded. By setting one or
+    # more loaders, a Lacci-based display library can accept new file formats as
+    # well, not just raw Shoes .rb files.
+    #
+    # @param path [String] The current-dir-relative path to the file
+    # @return [void]
+    # @see Shoes.add_file_loader
+    def run_app(relative_path)
+      path = File.expand_path relative_path
+      loaded = false
+      file_loaders.each do |loader|
+        if loader.call(path)
+          loaded = true
+          break
+        end
+      end
+      raise "Could not find a file loader for #{path.inspect}!" unless loaded
+
+      nil
+    end
+
+    def default_file_loaders
+      [
+        # By default we will always try to load any file, regardless of extension, as a Shoes Ruby file.
+        proc do |path|
+          load path
+          true
+        end,
+      ]
+    end
+
+    def file_loaders
+      @file_loaders ||= default_file_loaders
+    end
+
+    def add_file_loader(loader)
+      file_loaders.prepend(loader)
+    end
+
+    def reset_file_loaders
+      @file_loaders = default_file_loaders
+    end
+
+    def set_file_loaders(loaders)
+      @file_loaders = loaders
+    end
   end
 end

@@ -29,10 +29,11 @@ class ScarpeWebviewTest < Minitest::Test
 
   def run_test_scarpe_code(
     scarpe_app_code,
+    test_extension: ".rb",
     **opts
   )
 
-    with_tempfile("scarpe_test_app.rb", scarpe_app_code) do |test_app_location|
+    with_tempfile(["scarpe_test_app", test_extension], scarpe_app_code) do |test_app_location|
       run_test_scarpe_app(test_app_location, **opts)
     end
   end

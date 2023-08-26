@@ -1,66 +1,44 @@
 #!/usr/bin/env ruby
 
-# We need to not use syntactic features of very recent Rubies in this file, so that it parses
-# correctly in earlier Rubies and can successfully give the version-check error.
-if RUBY_VERSION[0..2] < "3.2"
-  $stderr.puts("Scarpe requires Ruby 3.2 or higher!")
-  exit(-1)
-end
-
-def print_usage
-  puts <<USAGE
-Usage: scarpe [OPTIONS] <scarpe app file>           # Same as "scarpe run"
-       scarpe [OPTIONS] run <scarpe app file>
-       scarpe [OPTIONS] env                         # print Scarpe environment settings
-       scarpe -v                                    # print the Scarpe gem version and exit
-  Options:
-      --dev                          Use development local scarpe, not an installed gem
-      --debug                        Turn on application debug mode
-USAGE
-end
-
-def env_or_default(env_var, default_val)
-  "#{env_var}: #{ENV[env_var] || default_val}"
-end
-
-def env_or_none(env_var)
-  env_or_default(env_var, "(none)")
-end
-
-def print_env
-  puts <<~SCARPE_ENV
-    Scarpe environment:
-      #{env_or_default("SCARPE_DISPLAY_SERVICE", "(default)wv_local")}
-      #{env_or_default("SCARPE_LOG_CONFIG", "(default)#{Shoes::Log::DEFAULT_LOG_CONFIG.inspect}")}
-      #{env_or_none("SCARPE_APP_TEST")}
-    Scarpe::WV environment:
-      #{env_or_none("SCARPE_TEST_CONTROL")}
-      #{env_or_none("SCARPE_TEST_RESULTS")}
-      #{env_or_none("SCARPE_DEBUG")}
-    Ruby and shell environment:
-      RUBY_DESCRIPTION: #{RUBY_DESCRIPTION.inspect}
-      RUBY_PLATFORM: #{RUBY_PLATFORM.inspect}
-      RUBY_ENGINE: #{RUBY_ENGINE.inspect}
-      #{env_or_none("SHELL")}
-      #{env_or_none("PATH")}
-      #{env_or_none("LD_LIBRARY_PATH")}
-      #{env_or_none("DYLD_LIBRARY_PATH")}
-      #{env_or_none("GEM_ROOT")}
-      #{env_or_none("GEM_HOME")}
-      #{env_or_none("GEM_PATH")}
-  SCARPE_ENV
-end
+# First we need to load Scarpe and Lacci, which means figuring out where from.
 
 # --dev option applies to all actions
 use_dev = ARGV.delete("--dev") ? true : false
 use_debug = ARGV.delete("--debug") ? true : false
 
+# Default to local webview display if not otherwise given
+ENV['SCARPE_DISPLAY'] ||= 'wv_local'
+
+if use_debug
+  ENV['SCARPE_DEBUG'] = 'true'
+end
+if use_dev
+  dev_path = File.expand_path("../lib", __dir__)
+  $LOAD_PATH.prepend dev_path
+end
+
 if use_dev
   require 'bundler/setup'
   Bundler.require(:default)
 end
-
 require "scarpe"
+require "lacci/scarpe_cli"
+
+include Scarpe::CLI
+
+# We need to not use syntactic features of very recent Rubies in this file, so that it parses
+# correctly in earlier Rubies and can successfully give the version-check error.
+version_check
+
+def print_usage
+  puts DEFAULT_USAGE
+end
+
+add_env_categories("Scarpe::WV" => [
+  env_or_default("SCARPE_TEST_CONTROL", "(none)"),
+  env_or_default("SCARPE_TEST_RESULTS", "(none)"),
+  env_or_default("SCARPE_TEST_DEBUG", "(none)"),
+])
 
 verb = "run"
 verb_target = nil
@@ -91,24 +69,16 @@ else
   verb_target = ARGV[0]
 end
 
-if use_debug
-  ENV['SCARPE_DEBUG'] = 'true'
-end
-if use_dev
-  dev_path = File.expand_path("../lib", __dir__)
-  $LOAD_PATH.prepend dev_path
-end
-# We mustn't require Scarpe sooner than this so that the --dev setting is respected
-require "scarpe"
-
 case verb
-  when "-v"
-    puts "Scarpe #{Scarpe::VERSION}"
-  when "run"
-    # Run the Scarpe app file
-    load ARGV[0]
-  when "env"
-    print_env
-  else
-    raise "Internal error! Unknown ./exe/scarpe verb!"
+when "-v"
+  puts "Scarpe #{Scarpe::VERSION}"
+  puts "Scarpe-Components #{Scarpe::Components::VERSION}"
+  puts "Lacci #{Lacci::VERSION}"
+when "run"
+  # Run the Scarpe app file
+  Shoes.run_app ARGV[0]
+when "env"
+  print_env
+else
+  raise "Internal error! Unknown ./exe/scarpe verb!"
 end
