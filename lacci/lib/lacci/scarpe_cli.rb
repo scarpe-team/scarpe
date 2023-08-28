@@ -23,6 +23,7 @@ class Scarpe
     end
 
     def default_env_categories
+      require "shoes"
       {
         "Lacci" => [
           env_or_default("SCARPE_DISPLAY_SERVICE", "(none)"),
