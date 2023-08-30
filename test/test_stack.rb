@@ -67,6 +67,8 @@ class TestWebviewStack < Minitest::Test
 end
 
 class TestStackMethods < LoggedScarpeTest
+  self.logger_dir = File.expand_path("#{__dir__}/../logger")
+
   def test_stack_clear_append
     run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
       Shoes.app do
