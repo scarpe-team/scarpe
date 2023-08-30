@@ -3,8 +3,6 @@
 require "test_helper"
 
 class TestWebviewStack < Minitest::Test
-  self.logger_dir = File.expand_path("#{__dir__}/../logger")
-
   def setup
     @default_properties = {
       "height" => 200,
