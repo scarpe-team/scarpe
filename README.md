@@ -53,7 +53,7 @@ This repo is where most of the action is happening right now, and to have the fu
 # dependencies - Mac version
 brew install portaudio pkg-config # for sound!
 # dependencies - Ubuntu Linux version
-sudo apt install libgtk-3-dev libwebkit2gtk-4.0-dev libportaudio2
+sudo apt install libgtk-3-dev libwebkit2gtk-4.0-dev portaudio19-dev
 
 for any other linux or windows. please see the webview docs for your [platform](https://github.com/webview/webview#prerequisites)
 
