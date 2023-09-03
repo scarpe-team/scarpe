@@ -2,7 +2,6 @@
 
 module Scarpe::Webview
   class Para < Widget
-
     SIZES = {
       inscription: 10,
       ins: 10,
