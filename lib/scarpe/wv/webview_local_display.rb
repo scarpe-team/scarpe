@@ -10,7 +10,7 @@ class Scarpe
   # process, too many or too large evals can crash the process, etc.
   # Frequently it's better to use a RelayDisplayService to a second
   # process containing one of these.
-  class WebviewDisplayService < Shoes::DisplayService
+  class Webview::DisplayService < Shoes::DisplayService
     include Shoes::Log
 
     class << self
@@ -23,23 +23,23 @@ class Scarpe
     # The DocumentRoot is the top widget of the Webview-side widget tree
     attr_reader :doc_root
 
-    # app is the Scarpe::WebviewApp
+    # app is the Scarpe::Webview::App
     attr_reader :app
 
     # wrangler is the Scarpe::WebWrangler
     attr_reader :wrangler
 
-    # This is called before any of the various WebviewWidgets are created, to be
+    # This is called before any of the various Webview::Widgets are created, to be
     # able to create them and look them up.
     def initialize
-      if WebviewDisplayService.instance
+      if Webview::DisplayService.instance
         raise "ERROR! This is meant to be a singleton!"
       end
 
-      WebviewDisplayService.instance = self
+      Webview::DisplayService.instance = self
 
       super()
-      log_init("WV::WebviewDisplayService")
+      log_init("Webview::DisplayService")
 
       @display_widget_for = {}
     end
@@ -50,14 +50,14 @@ class Scarpe
     # @param widget_class_name [String] The class name of the Shoes widget, e.g. Shoes::Button
     # @param widget_id [String] the linkable ID for widget events
     # @param properties [Hash] a JSON-serialisable Hash with the widget's display properties
-    # @return [WebviewWidget] the newly-created Webview widget
+    # @return [Webview::Widget] the newly-created Webview widget
     def create_display_widget_for(widget_class_name, widget_id, properties)
       if widget_class_name == "App"
         unless @doc_root
-          raise "WebviewDocumentRoot is supposed to be created before WebviewApp!"
+          raise "Webview::DocumentRoot is supposed to be created before Webview::App!"
         end
 
-        display_app = Scarpe::WebviewApp.new(properties)
+        display_app = Scarpe::Webview::App.new(properties)
         display_app.document_root = @doc_root
         @control_interface = display_app.control_interface
         @control_interface.doc_root = @doc_root
@@ -70,13 +70,13 @@ class Scarpe
       end
 
       # Create a corresponding display widget
-      display_class = Scarpe::WebviewWidget.display_class_for(widget_class_name)
+      display_class = Scarpe::Webview::Widget.display_class_for(widget_class_name)
       display_widget = display_class.new(properties)
       set_widget_pairing(widget_id, display_widget)
 
       if widget_class_name == "DocumentRoot"
-        # WebviewDocumentRoot is created before WebviewApp. Mostly doc_root is just like any other widget,
-        # but we'll want a reference to it when we create WebviewApp.
+        # DocumentRoot is created before App. Mostly doc_root is just like any other widget,
+        # but we'll want a reference to it when we create App.
         @doc_root = display_widget
       end
 
@@ -88,7 +88,7 @@ class Scarpe
     # @return [void]
     def destroy
       @app.destroy
-      WebviewDisplayService.instance = nil
+      Webview::DisplayService.instance = nil
     end
   end
 end

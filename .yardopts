@@ -8,6 +8,7 @@
 --exclude lib/scarpe/glibui
 lib/**/*.rb
 lacci/lib/**/*.rb
+scarpe-components/lib/**/*.rb
 -
 docs/yard/*.md
 docs/static/manual.md

@@ -8,7 +8,7 @@ require "cgi"
 # After creation, it starts in setup mode, and you can
 # use setup-mode callbacks.
 
-class Scarpe
+module Scarpe::Webview
   # The Scarpe WebWrangler, for Webview, manages a lot of Webviews quirks. It provides
   # a simpler underlying abstraction for DOMWrangler and the Webview widgets.
   # Webview can be picky - if you send it too many messages, it can crash. If the
@@ -85,7 +85,7 @@ class Scarpe
     # @param resizable [Boolean] whether the window should be resizable by the user
     # @param heartbeat [Float] time between heartbeats in seconds
     def initialize(title:, width:, height:, resizable: false, heartbeat: 0.1)
-      log_init("WV::WebWrangler")
+      log_init("Webview::WebWrangler")
 
       @log.debug("Creating WebWrangler...")
 
@@ -242,7 +242,7 @@ class Scarpe
     #
     # @param code [String] the Javascript code to execute
     # @param timeout [Float] how long to allow before raising a timeout exception
-    # @param wait_for [Array<Promise>] promises that must complete successfully before this JS is scheduled
+    # @param wait_for [Array<Scarpe::Promise>] promises that must complete successfully before this JS is scheduled
     def eval_js_async(code, timeout: EVAL_DEFAULT_TIMEOUT, wait_for: [])
       unless @is_running
         raise "WebWrangler isn't running, so evaluating JS won't work!"
@@ -535,325 +535,319 @@ class Scarpe
   end
 end
 
-class Scarpe
-  class WebWrangler
-    # Leaving DOM changes as "meh, async, we'll see when it happens" is terrible for testing.
-    # Instead, we need to track whether particular changes have committed yet or not.
-    # So we add a single gateway for all DOM changes, and we make sure its work is done
-    # before we consider a redraw complete.
-    #
-    # DOMWrangler batches up changes into fewer RPC calls. It's fine to have a redraw
-    # "in flight" and have changes waiting to catch the next bus. But we don't want more
-    # than one in flight, since it seems like having too many pending RPC requests can
-    # crash Webview. So we allow one redraw scheduled and one redraw promise waiting,
-    # at maximum.
-    #
-    # A WebWrangler will create and wrap a DOMWrangler, serving as the interface
-    # for all DOM operations.
-    #
-    # A batch of DOMWrangler changes may be removed if a full update is scheduled. That
-    # update is considered to replace the previous incremental changes. Any changes that
-    # need to execute even if a full update happens should be scheduled through
-    # WebWrangler#eval_js_async, not DOMWrangler.
-    class DOMWrangler
-      include Shoes::Log
+class Scarpe::Webview::WebWrangler
+  # Leaving DOM changes as "meh, async, we'll see when it happens" is terrible for testing.
+  # Instead, we need to track whether particular changes have committed yet or not.
+  # So we add a single gateway for all DOM changes, and we make sure its work is done
+  # before we consider a redraw complete.
+  #
+  # DOMWrangler batches up changes into fewer RPC calls. It's fine to have a redraw
+  # "in flight" and have changes waiting to catch the next bus. But we don't want more
+  # than one in flight, since it seems like having too many pending RPC requests can
+  # crash Webview. So we allow one redraw scheduled and one redraw promise waiting,
+  # at maximum.
+  #
+  # A WebWrangler will create and wrap a DOMWrangler, serving as the interface
+  # for all DOM operations.
+  #
+  # A batch of DOMWrangler changes may be removed if a full update is scheduled. That
+  # update is considered to replace the previous incremental changes. Any changes that
+  # need to execute even if a full update happens should be scheduled through
+  # WebWrangler#eval_js_async, not DOMWrangler.
+  class DOMWrangler
+    include Shoes::Log
 
-      # Changes that have not yet been executed
-      attr_reader :waiting_changes
+    # Changes that have not yet been executed
+    attr_reader :waiting_changes
 
-      # A Scarpe::Promise for JS that has been scheduled to execute but is not yet verified complete
-      attr_reader :pending_redraw_promise
+    # A Scarpe::Promise for JS that has been scheduled to execute but is not yet verified complete
+    attr_reader :pending_redraw_promise
 
-      # A Scarpe::Promise for waiting changes - it will be fulfilled when all waiting changes
-      # have been verified complete, or when a full redraw that removed them has been
-      # verified complete. If many small changes are scheduled, the same promise will be
-      # returned for many of them.
-      attr_reader :waiting_redraw_promise
+    # A Scarpe::Promise for waiting changes - it will be fulfilled when all waiting changes
+    # have been verified complete, or when a full redraw that removed them has been
+    # verified complete. If many small changes are scheduled, the same promise will be
+    # returned for many of them.
+    attr_reader :waiting_redraw_promise
 
-      # Create a DOMWrangler that is paired with a WebWrangler. The WebWrangler is
-      # treated as an underlying abstraction for reliable JS evaluation.
-      def initialize(web_wrangler)
-        log_init("WV::WebWrangler::DOMWrangler")
+    # Create a DOMWrangler that is paired with a WebWrangler. The WebWrangler is
+    # treated as an underlying abstraction for reliable JS evaluation.
+    def initialize(web_wrangler)
+      log_init("Webview::WebWrangler::DOMWrangler")
 
-        @wrangler = web_wrangler
+      @wrangler = web_wrangler
 
-        @waiting_changes = []
-        @pending_redraw_promise = nil
-        @waiting_redraw_promise = nil
+      @waiting_changes = []
+      @pending_redraw_promise = nil
+      @waiting_redraw_promise = nil
 
-        @fully_up_to_date_promise = nil
+      @fully_up_to_date_promise = nil
 
-        # Initially we're waiting for a full replacement to happen.
-        # It's possible to request updates/changes before we have
-        # a DOM in place and before Webview is running. If we do
-        # that, we should discard those updates.
-        @first_draw_requested = false
+      # Initially we're waiting for a full replacement to happen.
+      # It's possible to request updates/changes before we have
+      # a DOM in place and before Webview is running. If we do
+      # that, we should discard those updates.
+      @first_draw_requested = false
 
-        @redraw_handlers = []
+      @redraw_handlers = []
 
-        # The "fully up to date" logic is complicated and not
-        # as well tested as I'd like. This makes it far less
-        # likely that the event simply won't fire.
-        # With more comprehensive testing, this should be
-        # removable.
-        web_wrangler.periodic_code("scarpeDOMWranglerHeartbeat") do
-          if @fully_up_to_date_promise && fully_updated?
-            @log.info("Fulfilling up-to-date promise on heartbeat")
-            @fully_up_to_date_promise.fulfilled!
-            @fully_up_to_date_promise = nil
-          end
+      # The "fully up to date" logic is complicated and not
+      # as well tested as I'd like. This makes it far less
+      # likely that the event simply won't fire.
+      # With more comprehensive testing, this should be
+      # removable.
+      web_wrangler.periodic_code("scarpeDOMWranglerHeartbeat") do
+        if @fully_up_to_date_promise && fully_updated?
+          @log.info("Fulfilling up-to-date promise on heartbeat")
+          @fully_up_to_date_promise.fulfilled!
+          @fully_up_to_date_promise = nil
         end
-      end
-
-      def request_change(js_code)
-        # No updates until there's something to update
-        return unless @first_draw_requested
-
-        @waiting_changes << js_code
-
-        promise_redraw
-      end
-
-      def self.replacement_code(html_text)
-        "document.getElementById('wrapper-wvroot').innerHTML = `#{html_text}`; true"
-      end
-
-      def request_replace(html_text)
-        # Replace other pending changes, they're not needed any more
-        @waiting_changes = [DOMWrangler.replacement_code(html_text)]
-        @first_draw_requested = true
-
-        @log.debug("Requesting DOM replacement...")
-        promise_redraw
-      end
-
-      def on_every_redraw(&block)
-        @redraw_handlers << block
-      end
-
-      # promise_redraw returns a Scarpe::Promise which will be fulfilled after all current
-      # pending or waiting changes have completed. This may require creating a new
-      # promise.
-      #
-      # What are the states of redraw?
-      # "empty" - no waiting promise, no pending-redraw promise, no pending changes
-      # "pending only" - no waiting promise, but we have a pending redraw with some changes; it hasn't committed yet
-      # "pending and waiting" - we have a waiting promise for our unscheduled changes; we can add more unscheduled
-      #     changes since we haven't scheduled them yet.
-      #
-      # This is often called after adding a new waiting change or replacing them, so the state may have just changed.
-      # It can also be called when no changes have been made and no updates need to happen.
-      def promise_redraw
-        if fully_updated?
-          # No changes to make, nothing in-process or waiting, so just return a pre-fulfilled promise
-          @log.debug("Requesting redraw but there are no pending changes or promises, return pre-fulfilled")
-          return Promise.fulfilled
-        end
-
-        # Already have a redraw requested *and* one on deck? Then all current changes will have committed
-        # when we (eventually) fulfill the waiting_redraw_promise.
-        if @waiting_redraw_promise
-          @log.debug("Promising eventual redraw of #{@waiting_changes.size} waiting unscheduled changes.")
-          return @waiting_redraw_promise
-        end
-
-        if @waiting_changes.empty?
-          # There's no waiting_redraw_promise. There are no waiting changes. But we're not fully updated.
-          # So there must be a redraw in flight, and we don't need to schedule a new waiting_redraw_promise.
-          @log.debug("Returning in-flight redraw promise")
-          return @pending_redraw_promise
-        end
-
-        @log.debug("Requesting redraw with #{@waiting_changes.size} waiting changes and no waiting promise - need to schedule something!")
-
-        # We have at least one waiting change, possibly newly-added. We have no waiting_redraw_promise.
-        # Do we already have a redraw in-flight?
-        if @pending_redraw_promise
-          # Yes we do. Schedule a new waiting promise. When it turns into the pending_redraw_promise it will
-          # grab all waiting changes. In the mean time, it sits here and waits.
-          #
-          # We *could* do a fancy promise thing and have it update @waiting_changes for itself, etc, when it
-          # schedules itself. But we should always be calling promise_redraw or having a redraw fulfilled (see below)
-          # when these things change. I'd rather keep the logic in this method. It's easier to reason through
-          # all the cases.
-          @waiting_redraw_promise = Promise.new
-
-          @log.debug("Creating a new waiting promise since a pending promise is already in place")
-          return @waiting_redraw_promise
-        end
-
-        # We have no redraw in-flight and no pre-existing waiting line. The new change(s) are presumably right
-        # after things were fully up-to-date. We can schedule them for immediate redraw.
-
-        @log.debug("Requesting redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!")
-        promise = schedule_waiting_changes # This clears the waiting changes
-        @pending_redraw_promise = promise
-
-        promise.on_fulfilled do
-          @redraw_handlers.each(&:call)
-          @pending_redraw_promise = nil
-
-          if @waiting_redraw_promise
-            # While this redraw was in flight, more waiting changes got added and we made a promise
-            # about when they'd complete. Now they get scheduled, and we'll fulfill the waiting
-            # promise when that redraw finishes. Clear the old waiting promise. We'll add a new one
-            # when/if more changes are scheduled during this redraw.
-            old_waiting_promise = @waiting_redraw_promise
-            @waiting_redraw_promise = nil
-
-            @log.debug "Fulfilled redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!"
-
-            new_promise = promise_redraw
-            new_promise.on_fulfilled { old_waiting_promise.fulfilled! }
-          else
-            # The in-flight redraw completed, and there's still no waiting promise. Good! That means
-            # we should be fully up-to-date.
-            @log.debug "Fulfilled redraw with no waiting changes - marking us as up to date!"
-            if @waiting_changes.empty?
-              # We're fully up to date! Fulfill the promise. Now we don't need it again until somebody asks
-              # us for another.
-              if @fully_up_to_date_promise
-                @fully_up_to_date_promise.fulfilled!
-                @fully_up_to_date_promise = nil
-              end
-            else
-              @log.error "WHOAH, WHAT? My logic must be wrong, because there's " +
-                "no waiting promise, but waiting changes!"
-            end
-          end
-
-          @log.debug("Redraw is now fully up-to-date") if fully_updated?
-        end.on_rejected do
-          @log.error "Could not complete JS redraw! #{promise.reason.full_message}"
-          @log.debug("REDRAW FULLY UP TO DATE BUT JS FAILED") if fully_updated?
-
-          raise "JS Redraw failed! Bailing!"
-
-          # Later we should figure out how to handle this. Clear the promises and queues and request another redraw?
-        end
-      end
-
-      def fully_updated?
-        @pending_redraw_promise.nil? && @waiting_redraw_promise.nil? && @waiting_changes.empty?
-      end
-
-      # Return a promise which will be fulfilled when the DOM is fully up-to-date
-      def promise_fully_updated
-        if fully_updated?
-          # No changes to make, nothing in-process or waiting, so just return a pre-fulfilled promise
-          return Promise.fulfilled
-        end
-
-        # Do we already have a promise for this? Return it. Everybody can share one.
-        if @fully_up_to_date_promise
-          return @fully_up_to_date_promise
-        end
-
-        # We're not fully updated, so we need a promise. Create it, return it.
-        @fully_up_to_date_promise = Promise.new
-      end
-
-      private
-
-      # Put together the waiting changes into a new in-flight redraw request.
-      # Return it as a promise.
-      def schedule_waiting_changes
-        return if @waiting_changes.empty?
-
-        js_code = @waiting_changes.join(";")
-        @waiting_changes = [] # They're not waiting any more!
-        @wrangler.eval_js_async(js_code)
       end
     end
+
+    def request_change(js_code)
+      # No updates until there's something to update
+      return unless @first_draw_requested
+
+      @waiting_changes << js_code
+
+      promise_redraw
+    end
+
+    def self.replacement_code(html_text)
+      "document.getElementById('wrapper-wvroot').innerHTML = `#{html_text}`; true"
+    end
+
+    def request_replace(html_text)
+      # Replace other pending changes, they're not needed any more
+      @waiting_changes = [DOMWrangler.replacement_code(html_text)]
+      @first_draw_requested = true
+
+      @log.debug("Requesting DOM replacement...")
+      promise_redraw
+    end
+
+    def on_every_redraw(&block)
+      @redraw_handlers << block
+    end
+
+    # promise_redraw returns a Scarpe::Promise which will be fulfilled after all current
+    # pending or waiting changes have completed. This may require creating a new
+    # promise.
+    #
+    # What are the states of redraw?
+    # "empty" - no waiting promise, no pending-redraw promise, no pending changes
+    # "pending only" - no waiting promise, but we have a pending redraw with some changes; it hasn't committed yet
+    # "pending and waiting" - we have a waiting promise for our unscheduled changes; we can add more unscheduled
+    #     changes since we haven't scheduled them yet.
+    #
+    # This is often called after adding a new waiting change or replacing them, so the state may have just changed.
+    # It can also be called when no changes have been made and no updates need to happen.
+    def promise_redraw
+      if fully_updated?
+        # No changes to make, nothing in-process or waiting, so just return a pre-fulfilled promise
+        @log.debug("Requesting redraw but there are no pending changes or promises, return pre-fulfilled")
+        return ::Scarpe::Promise.fulfilled
+      end
+
+      # Already have a redraw requested *and* one on deck? Then all current changes will have committed
+      # when we (eventually) fulfill the waiting_redraw_promise.
+      if @waiting_redraw_promise
+        @log.debug("Promising eventual redraw of #{@waiting_changes.size} waiting unscheduled changes.")
+        return @waiting_redraw_promise
+      end
+
+      if @waiting_changes.empty?
+        # There's no waiting_redraw_promise. There are no waiting changes. But we're not fully updated.
+        # So there must be a redraw in flight, and we don't need to schedule a new waiting_redraw_promise.
+        @log.debug("Returning in-flight redraw promise")
+        return @pending_redraw_promise
+      end
+
+      @log.debug("Requesting redraw with #{@waiting_changes.size} waiting changes and no waiting promise - need to schedule something!")
+
+      # We have at least one waiting change, possibly newly-added. We have no waiting_redraw_promise.
+      # Do we already have a redraw in-flight?
+      if @pending_redraw_promise
+        # Yes we do. Schedule a new waiting promise. When it turns into the pending_redraw_promise it will
+        # grab all waiting changes. In the mean time, it sits here and waits.
+        #
+        # We *could* do a fancy promise thing and have it update @waiting_changes for itself, etc, when it
+        # schedules itself. But we should always be calling promise_redraw or having a redraw fulfilled (see below)
+        # when these things change. I'd rather keep the logic in this method. It's easier to reason through
+        # all the cases.
+        @waiting_redraw_promise = ::Scarpe::Promise.new
+
+        @log.debug("Creating a new waiting promise since a pending promise is already in place")
+        return @waiting_redraw_promise
+      end
+
+      # We have no redraw in-flight and no pre-existing waiting line. The new change(s) are presumably right
+      # after things were fully up-to-date. We can schedule them for immediate redraw.
+
+      @log.debug("Requesting redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!")
+      promise = schedule_waiting_changes # This clears the waiting changes
+      @pending_redraw_promise = promise
+
+      promise.on_fulfilled do
+        @redraw_handlers.each(&:call)
+        @pending_redraw_promise = nil
+
+        if @waiting_redraw_promise
+          # While this redraw was in flight, more waiting changes got added and we made a promise
+          # about when they'd complete. Now they get scheduled, and we'll fulfill the waiting
+          # promise when that redraw finishes. Clear the old waiting promise. We'll add a new one
+          # when/if more changes are scheduled during this redraw.
+          old_waiting_promise = @waiting_redraw_promise
+          @waiting_redraw_promise = nil
+
+          @log.debug "Fulfilled redraw with #{@waiting_changes.size} waiting changes - scheduling a new redraw for them!"
+
+          new_promise = promise_redraw
+          new_promise.on_fulfilled { old_waiting_promise.fulfilled! }
+        else
+          # The in-flight redraw completed, and there's still no waiting promise. Good! That means
+          # we should be fully up-to-date.
+          @log.debug "Fulfilled redraw with no waiting changes - marking us as up to date!"
+          if @waiting_changes.empty?
+            # We're fully up to date! Fulfill the promise. Now we don't need it again until somebody asks
+            # us for another.
+            if @fully_up_to_date_promise
+              @fully_up_to_date_promise.fulfilled!
+              @fully_up_to_date_promise = nil
+            end
+          else
+            @log.error "WHOAH, WHAT? My logic must be wrong, because there's " +
+              "no waiting promise, but waiting changes!"
+          end
+        end
+
+        @log.debug("Redraw is now fully up-to-date") if fully_updated?
+      end.on_rejected do
+        @log.error "Could not complete JS redraw! #{promise.reason.full_message}"
+        @log.debug("REDRAW FULLY UP TO DATE BUT JS FAILED") if fully_updated?
+
+        raise "JS Redraw failed! Bailing!"
+
+        # Later we should figure out how to handle this. Clear the promises and queues and request another redraw?
+      end
+    end
+
+    def fully_updated?
+      @pending_redraw_promise.nil? && @waiting_redraw_promise.nil? && @waiting_changes.empty?
+    end
+
+    # Return a promise which will be fulfilled when the DOM is fully up-to-date
+    def promise_fully_updated
+      if fully_updated?
+        # No changes to make, nothing in-process or waiting, so just return a pre-fulfilled promise
+        return ::Scarpe::Promise.fulfilled
+      end
+
+      # Do we already have a promise for this? Return it. Everybody can share one.
+      if @fully_up_to_date_promise
+        return @fully_up_to_date_promise
+      end
+
+      # We're not fully updated, so we need a promise. Create it, return it.
+      @fully_up_to_date_promise = ::Scarpe::Promise.new
+    end
+
+    private
+
+    # Put together the waiting changes into a new in-flight redraw request.
+    # Return it as a promise.
+    def schedule_waiting_changes
+      return if @waiting_changes.empty?
+
+      js_code = @waiting_changes.join(";")
+      @waiting_changes = [] # They're not waiting any more!
+      @wrangler.eval_js_async(js_code)
+    end
   end
-end
 
-class Scarpe
-  class WebWrangler
-    # An ElementWrangler provides a way for a Widget to manipulate is DOM element(s)
-    # via their HTML IDs. The most straightforward Widgets can have a single HTML ID
-    # and use a single ElementWrangler to make any needed changes.
+  # An ElementWrangler provides a way for a Widget to manipulate is DOM element(s)
+  # via their HTML IDs. The most straightforward Widgets can have a single HTML ID
+  # and use a single ElementWrangler to make any needed changes.
+  #
+  # For now we don't need an ElementWrangler to add DOM elements, just to manipulate them
+  # after initial render. New DOM objects for Widgets are normally added via full
+  # redraws rather than incremental updates.
+  #
+  # Any changes made via ElementWrangler may be cancelled if a full redraw occurs,
+  # since it is assumed that small DOM manipulations are no longer needed. If a
+  # change would need to be made even if a full redraw occurred, it should be
+  # scheduled via WebWrangler#eval_js_async, not via an ElementWrangler.
+  class ElementWrangler
+    attr_reader :html_id
+
+    # Create an ElementWrangler for the given HTML ID
     #
-    # For now we don't need an ElementWrangler to add DOM elements, just to manipulate them
-    # after initial render. New DOM objects for Widgets are normally added via full
-    # redraws rather than incremental updates.
+    # @param html_id [String] the HTML ID for the DOM element
+    def initialize(html_id)
+      @webwrangler = ::Scarpe::Webview::DisplayService.instance.wrangler
+      @html_id = html_id
+    end
+
+    # Return a promise that will be fulfilled when all changes scheduled via
+    # this ElementWrangler are verified complete.
     #
-    # Any changes made via ElementWrangler may be cancelled if a full redraw occurs,
-    # since it is assumed that small DOM manipulations are no longer needed. If a
-    # change would need to be made even if a full redraw occurred, it should be
-    # scheduled via WebWrangler#eval_js_async, not via an ElementWrangler.
-    class ElementWrangler
-      attr_reader :html_id
+    # @return [Scarpe::Promise] a promise that will be fulfilled when scheduled changes are complete
+    def promise_update
+      @webwrangler.dom_promise_redraw
+    end
 
-      # Create an ElementWrangler for the given HTML ID
-      #
-      # @param html_id [String] the HTML ID for the DOM element
-      def initialize(html_id)
-        @webwrangler = WebviewDisplayService.instance.wrangler
-        @html_id = html_id
-      end
+    # Update the JS DOM element's value. The given Ruby value will be converted to string and assigned in backquotes.
+    #
+    # @param new_value [String] the new value
+    # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
+    def value=(new_value)
+      @webwrangler.dom_change("document.getElementById('" + html_id + "').value = `" + new_value + "`; true")
+    end
 
-      # Return a promise that will be fulfilled when all changes scheduled via
-      # this ElementWrangler are verified complete.
-      #
-      # @return [Scarpe::Promise] a promise that will be fulfilled when scheduled changes are complete
-      def promise_update
-        @webwrangler.dom_promise_redraw
-      end
+    # Update the JS DOM element's inner_text. The given Ruby value will be converted to string and assigned in single-quotes.
+    #
+    # @param new_text [String] the new inner_text
+    # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
+    def inner_text=(new_text)
+      @webwrangler.dom_change("document.getElementById('" + html_id + "').innerText = '" + new_text + "'; true")
+    end
 
-      # Update the JS DOM element's value. The given Ruby value will be converted to string and assigned in backquotes.
-      #
-      # @param new_value [String] the new value
-      # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
-      def value=(new_value)
-        @webwrangler.dom_change("document.getElementById('" + html_id + "').value = `" + new_value + "`; true")
-      end
+    # Update the JS DOM element's inner_html. The given Ruby value will be converted to string and assigned in backquotes.
+    #
+    # @param new_html [String] the new inner_html
+    # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
+    def inner_html=(new_html)
+      @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").innerHTML = `" + new_html + "`; true")
+    end
 
-      # Update the JS DOM element's inner_text. The given Ruby value will be converted to string and assigned in single-quotes.
-      #
-      # @param new_text [String] the new inner_text
-      # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
-      def inner_text=(new_text)
-        @webwrangler.dom_change("document.getElementById('" + html_id + "').innerText = '" + new_text + "'; true")
-      end
+    # Update the JS DOM element's inner_html. The given Ruby value will be inspected and assigned.
+    #
+    # @param attribute [String] the attribute name
+    # @param value [String] the new attribute value
+    # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
+    def set_attribute(attribute, value)
+      @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").setAttribute(" + attribute.inspect + "," + value.inspect + "); true")
+    end
 
-      # Update the JS DOM element's inner_html. The given Ruby value will be converted to string and assigned in backquotes.
-      #
-      # @param new_html [String] the new inner_html
-      # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
-      def inner_html=(new_html)
-        @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").innerHTML = `" + new_html + "`; true")
-      end
+    # Update an attribute of the JS DOM element's style. The given Ruby value will be inspected and assigned.
+    #
+    # @param style_attr [String] the style attribute name
+    # @param value [String] the new style attribute value
+    # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
+    def set_style(style_attr, value)
+      @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").style.#{style_attr} = " + value.inspect + "; true")
+    end
 
-      # Update the JS DOM element's inner_html. The given Ruby value will be inspected and assigned.
-      #
-      # @param attribute [String] the attribute name
-      # @param value [String] the new attribute value
-      # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
-      def set_attribute(attribute, value)
-        @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").setAttribute(" + attribute.inspect + "," + value.inspect + "); true")
-      end
+    # Remove the specified DOM element
+    #
+    # @return [Scarpe::Promise] a promise that wil be fulfilled when the element is removed
+    def remove
+      @webwrangler.dom_change("document.getElementById('" + html_id + "').remove(); true")
+    end
 
-      # Update an attribute of the JS DOM element's style. The given Ruby value will be inspected and assigned.
-      #
-      # @param style_attr [String] the style attribute name
-      # @param value [String] the new style attribute value
-      # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
-      def set_style(style_attr, value)
-        @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").style.#{style_attr} = " + value.inspect + "; true")
-      end
-
-      # Remove the specified DOM element
-      #
-      # @return [Scarpe::Promise] a promise that wil be fulfilled when the element is removed
-      def remove
-        @webwrangler.dom_change("document.getElementById('" + html_id + "').remove(); true")
-      end
-
-      def toggle_input_button(mark)
-        checked_value = mark ? "true" : "false"
-        @webwrangler.dom_change("document.getElementById('#{html_id}').checked = #{checked_value};")
-      end
+    def toggle_input_button(mark)
+      checked_value = mark ? "true" : "false"
+      @webwrangler.dom_change("document.getElementById('#{html_id}').checked = #{checked_value};")
     end
   end
 end

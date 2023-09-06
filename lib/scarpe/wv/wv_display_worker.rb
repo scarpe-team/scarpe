@@ -38,11 +38,11 @@ class Scarpe::Webview::ContainedService < Shoes::Linkable
   # @param to [Socket] a writable socket on which to send output to the Shoes process
   def initialize(from, to)
     super()
-    log_init("WV::DisplayWorker")
+    log_init("Webview::DisplayWorker")
 
     @i_am = :child
     @event_subs = []
-    @wv_display = Scarpe::WebviewDisplayService.new
+    @wv_display = Scarpe::Webview::DisplayService.new
 
     @from = from
     @to = to

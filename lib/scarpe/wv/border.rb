@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
-  module WebviewBorder
+module Scarpe::Webview
+  module Border
     def style
       styles = (super if defined?(super)) || {}
       return styles unless @border_color

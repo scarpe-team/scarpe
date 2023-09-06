@@ -22,7 +22,7 @@ module Scarpe::Components
 
     # Return an Array of segment type labels, such as "code" and "app_test".
     #
-    # @return Array<String> the segment type labels
+    # @return [Array<String>] the segment type labels
     def segment_types
       segment_type_hash.keys
     end
@@ -154,7 +154,7 @@ module Scarpe::Components
     # The hash of segment type labels mapped to handlers which will be called.
     # Normal client code shouldn't ever call this.
     #
-    # @return Hash<String, Object> the name/handler pairs
+    # @return [Hash<String, Object>] the name/handler pairs
     def segment_type_hash
       @segment_handlers ||= {
         "shoes" => proc { |seg_file| after_load { load seg_file } },

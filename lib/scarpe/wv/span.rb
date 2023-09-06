@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class WebviewSpan < Scarpe::WebviewWidget
+module Scarpe::Webview
+  class Span < Widget
     SIZES = {
       inscription: 10,
       ins: 10,
@@ -34,7 +34,7 @@ class Scarpe
     end
 
     def element(&block)
-      HTML.render do |h|
+      ::Scarpe::Components::HTML.render do |h|
         h.span(**options, &block)
       end
     end

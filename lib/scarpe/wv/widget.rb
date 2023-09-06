@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-class Scarpe
-  # The WebviewWidget parent class helps connect a Webview widget with
+module Scarpe::Webview
+  # The Webview::Widget parent class helps connect a Webview widget with
   # its Shoes equivalent, render itself to the Webview DOM, handle
   # Javascript events and generally keep things working in Webview.
-  class WebviewWidget < Shoes::Linkable
+  class Widget < Shoes::Linkable
     include Shoes::Log
 
     class << self
@@ -16,7 +16,7 @@ class Scarpe
             "linkable widgets, not #{scarpe_class_name.inspect}!"
         end
 
-        klass = Scarpe.const_get("Webview" + scarpe_class_name.split("::")[-1])
+        klass = Scarpe::Webview.const_get(scarpe_class_name.split("::")[-1])
         if klass.nil?
           raise "Couldn't find corresponding Scarpe Webview class for #{scarpe_class_name.inspect}!"
         end
@@ -28,16 +28,16 @@ class Scarpe
     # The Shoes ID corresponding to the Shoes widget for this Webview widget
     attr_reader :shoes_linkable_id
 
-    # The WebviewWidget parent of this widget
+    # The Webview::Widget parent of this widget
     attr_reader :parent
 
-    # An array of WebviewWidget children (possibly empty) of this widget
+    # An array of Webview::Widget children (possibly empty) of this widget
     attr_reader :children
 
     # Set instance variables for the display properties of this widget. Bind Shoes
     # events for changes of parent widget and changes of property values.
     def initialize(properties)
-      log_init("WV::Widget")
+      log_init("Webview::Widget")
 
       # Call method, which looks up the parent
       @shoes_linkable_id = properties["shoes_linkable_id"] || properties[:shoes_linkable_id]
@@ -54,7 +54,7 @@ class Scarpe
 
       # The parent field is *almost* simple enough that a typed display property would handle it.
       bind_shoes_event(event_name: "parent", target: shoes_linkable_id) do |new_parent_id|
-        display_parent = WebviewDisplayService.instance.query_display_widget_for(new_parent_id)
+        display_parent = DisplayService.instance.query_display_widget_for(new_parent_id)
         if @parent != display_parent
           set_parent(display_parent)
         end
@@ -174,7 +174,7 @@ class Scarpe
     #
     # @return [Scarpe::WebWrangler::ElementWrangler] a DOM object manager
     def html_element
-      @elt_wrangler ||= Scarpe::WebWrangler::ElementWrangler.new(html_id)
+      @elt_wrangler ||= Scarpe::Webview::WebWrangler::ElementWrangler.new(html_id)
     end
 
     # Return a promise that guarantees all currently-requested changes have completed
@@ -212,7 +212,7 @@ class Scarpe
     def bind(event, &block)
       raise("Widget has no linkable_id! #{inspect}") unless linkable_id
 
-      WebviewDisplayService.instance.app.bind("#{linkable_id}-#{event}", &block)
+      DisplayService.instance.app.bind("#{linkable_id}-#{event}", &block)
     end
 
     # Removes the element from both the Ruby Widget tree and the HTML DOM.
@@ -232,7 +232,7 @@ class Scarpe
     #
     # @return [void]
     def needs_update!
-      WebviewDisplayService.instance.app.request_redraw!
+      DisplayService.instance.app.request_redraw!
     end
 
     # Generate JS code to trigger a specific event name on this widget with the supplies arguments.

@@ -8,11 +8,14 @@ require "securerandom"
 require "json"
 
 require "bloops"
+require "scarpe/components/html" # HTML renderer
 require "scarpe/components/modular_logger"
 require "scarpe/components/promises"
 
 # Module to contain the various Scarpe Webview classes
-module Scarpe::Webview; end
+module Scarpe::Webview
+  HTML = Scarpe::Components::HTML
+end
 
 # Set up hierarchical logging using the SCARPE_LOG_CONFIG var for configuration
 log_config = if ENV["SCARPE_LOG_CONFIG"]
@@ -34,7 +37,6 @@ require_relative "wv/control_interface"
 require_relative "wv/widget"
 
 require_relative "wv/dimensions"
-require_relative "wv/html"
 
 require_relative "wv/spacing"
 require_relative "wv/star"

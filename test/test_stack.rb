@@ -14,25 +14,25 @@ class TestWebviewStack < Minitest::Test
   end
 
   def test_it_accepts_a_height
-    stack = Scarpe::WebviewStack.new(@default_properties.merge("height" => 25))
+    stack = Scarpe::Webview::Stack.new(@default_properties.merge("height" => 25))
 
     assert(stack.to_html.include?("height:25px"))
   end
 
   def test_it_accepts_margin
-    stack = Scarpe::WebviewStack.new(@default_properties.merge("margin" => 25))
+    stack = Scarpe::Webview::Stack.new(@default_properties.merge("margin" => 25))
 
     assert(stack.to_html.include?("margin:25px"))
   end
 
   def test_it_accepts_margin_array
-    stack = Scarpe::WebviewStack.new(@default_properties.merge("margin" => [1, 2, 3, 4]))
+    stack = Scarpe::Webview::Stack.new(@default_properties.merge("margin" => [1, 2, 3, 4]))
 
     assert(stack.to_html.include?("margin-left:1px;margin-right:2px;margin-top:3px;margin-bottom:4px"))
   end
 
   def test_it_accepts_margin_hash
-    stack = Scarpe::WebviewStack.new(@default_properties.merge("margin" => { left: 1, bottom: 4 }))
+    stack = Scarpe::Webview::Stack.new(@default_properties.merge("margin" => { left: 1, bottom: 4 }))
 
     assert(stack.to_html.include?("margin-left:1px;margin-bottom:4px"))
   end

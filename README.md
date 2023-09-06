@@ -147,7 +147,7 @@ You can set SCARPE_LOG_CONFIG to an appropriate YAML file to set log levels per-
 ```
 {
     "default": "warn",
-    "WV::WebWrangler": ["logger/web_wrangler.log", "debug"]
+    "Webview::WebWrangler": ["logger/web_wrangler.log", "debug"]
 }
 ```
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe::WebviewSubscriptionItem < Scarpe::WebviewWidget
+class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Widget
   def initialize(properties)
     super
 

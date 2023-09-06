@@ -37,7 +37,7 @@ module Scarpe::Test::EventedAssertions
   # This uses Scarpe's HTML tag-based renderer to render the tag and options
   # into text, and valides that the text is the same.
   #
-  # @see Scarpe::HTML.render
+  # @see Scarpe::Components::HTML.render
   #
   # @param actual_html [String] the html to compare to
   # @param expected_tag [String,Symbol] the HTML tag, used to send a method call
@@ -45,7 +45,7 @@ module Scarpe::Test::EventedAssertions
   # @yield block passed to the tag method call.
   # @return [void]
   def assert_html(actual_html, expected_tag, **opts, &block)
-    expected_html = Scarpe::HTML.render do |h|
+    expected_html = Scarpe::Components::HTML.render do |h|
       h.public_send(expected_tag, opts, &block)
     end
 

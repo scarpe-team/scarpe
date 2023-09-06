@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class WebviewLink < WebviewWidget
+module Scarpe::Webview
+  class Link < Widget
     def initialize(properties)
       super
 
@@ -11,7 +11,7 @@ class Scarpe
     end
 
     def element
-      HTML.render do |h|
+      ::Scarpe::Components::HTML.render do |h|
         h.a(**attributes) do
           @text
         end

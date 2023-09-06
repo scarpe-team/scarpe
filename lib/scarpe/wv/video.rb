@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class WebviewVideo < Scarpe::WebviewWidget
+module Scarpe::Webview
+  class Video < Widget
     SUPPORTED_FORMATS = {
       "video/mp4" => [".mp4"],
       "video/webp" => [".webp"],
@@ -16,7 +16,7 @@ class Scarpe
     end
 
     def element
-      HTML.render do |h|
+      ::Scarpe::Components::HTML.render do |h|
         h.video(id: html_id, style: style, controls: true) do
           supported_formats.each do |format|
             h.source(src: @url, type: format)

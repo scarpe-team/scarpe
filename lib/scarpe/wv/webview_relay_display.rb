@@ -8,13 +8,13 @@ require_relative "webview_relay_util"
 class Scarpe
   # This display service creates a child process and sends events
   # back and forth, but creates no widgets of its own. The child
-  # process will spawn a worker with its own WebviewDisplayService
+  # process will spawn a worker with its own Webview::DisplayService
   # where the real Webview exists. By splitting the Webview
   # process from the Shoes widgets, it can be easier to return
   # control to Webview's event handler promptly. Also, the Ruby
   # process could run background threads if it wanted, and
   # otherwise behave like a process ***not*** containing Webview.
-  class WVRelayDisplayService < Shoes::DisplayService
+  class Webview::RelayDisplayService < Shoes::DisplayService
     include Shoes::Log
     include WVRelayUtil # Needs Shoes::Log
 
@@ -23,7 +23,7 @@ class Scarpe
     # Create a Webview Relay Display Service
     def initialize
       super()
-      log_init("WV::RelayDisplayService")
+      log_init("Webview::RelayDisplayService")
 
       @event_subs = []
       @shutdown = false

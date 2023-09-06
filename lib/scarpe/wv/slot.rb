@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class WebviewSlot < Scarpe::WebviewWidget
-    include Scarpe::WebviewBackground
-    include Scarpe::WebviewBorder
-    include Scarpe::WebviewSpacing
+module Scarpe::Webview
+  class Slot < Widget
+    include Scarpe::Webview::Background
+    include Scarpe::Webview::Border
+    include Scarpe::Webview::Spacing
 
     def initialize(properties)
       @event_callbacks = {}

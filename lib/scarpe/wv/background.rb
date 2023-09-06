@@ -2,9 +2,9 @@
 
 require "scarpe/components/base64"
 
-class Scarpe
-  module WebviewBackground
-    include Components::Base64
+module Scarpe::Webview
+  module Background
+    include Scarpe::Components::Base64
 
     def style
       styles = (super if defined?(super)) || {}

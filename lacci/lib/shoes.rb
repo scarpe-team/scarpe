@@ -81,7 +81,7 @@ module Shoes
     # more loaders, a Lacci-based display library can accept new file formats as
     # well, not just raw Shoes .rb files.
     #
-    # @param path [String] The current-dir-relative path to the file
+    # @param relative_path [String] The current-dir-relative path to the file
     # @return [void]
     # @see Shoes.add_file_loader
     def run_app(relative_path)
