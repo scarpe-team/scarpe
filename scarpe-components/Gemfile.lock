@@ -1,0 +1,85 @@
+PATH
+  remote: ../lacci
+  specs:
+    lacci (0.2.2)
+
+PATH
+  remote: .
+  specs:
+    scarpe-components (0.2.2)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    ansi (1.5.0)
+    ast (2.4.2)
+    base64 (0.1.1)
+    builder (3.2.4)
+    debug (1.8.0)
+      irb (>= 1.5.0)
+      reline (>= 0.3.1)
+    io-console (0.6.0)
+    irb (1.8.0)
+      rdoc (~> 6.5)
+      reline (>= 0.3.6)
+    json (2.6.3)
+    language_server-protocol (3.17.0.3)
+    minitest (5.19.0)
+    minitest-reporters (1.6.1)
+      ansi
+      builder
+      minitest (>= 5.0)
+      ruby-progressbar
+    nokogiri (1.15.4-x86_64-darwin)
+      racc (~> 1.4)
+    parallel (1.23.0)
+    parser (3.2.2.3)
+      ast (~> 2.4.1)
+      racc
+    psych (5.1.0)
+      stringio
+    racc (1.7.1)
+    rainbow (3.1.1)
+    rake (13.0.6)
+    rdoc (6.5.0)
+      psych (>= 4.0.0)
+    regexp_parser (2.8.1)
+    reline (0.3.8)
+      io-console (~> 0.5)
+    rexml (3.2.6)
+    rubocop (1.56.2)
+      base64 (~> 0.1.1)
+      json (~> 2.3)
+      language_server-protocol (>= 3.17.0)
+      parallel (~> 1.10)
+      parser (>= 3.2.2.3)
+      rainbow (>= 2.2.2, < 4.0)
+      regexp_parser (>= 1.8, < 3.0)
+      rexml (>= 3.2.5, < 4.0)
+      rubocop-ast (>= 1.28.1, < 2.0)
+      ruby-progressbar (~> 1.7)
+      unicode-display_width (>= 2.4.0, < 3.0)
+    rubocop-ast (1.29.0)
+      parser (>= 3.2.1.0)
+    rubocop-shopify (2.14.0)
+      rubocop (~> 1.51)
+    ruby-progressbar (1.13.0)
+    stringio (3.0.8)
+    unicode-display_width (2.4.2)
+
+PLATFORMS
+  x86_64-darwin-22
+
+DEPENDENCIES
+  debug
+  lacci!
+  minitest (~> 5.0)
+  minitest-reporters
+  nokogiri
+  rake (~> 13.0)
+  rubocop (~> 1.21)
+  rubocop-shopify
+  scarpe-components!
+
+BUNDLED WITH
+   2.4.14
