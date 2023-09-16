@@ -4,7 +4,7 @@ require "tempfile"
 
 # These can be used for unit tests, but also more generally.
 
-module Scarpe::Components; end
+class Scarpe; module Components; end; end
 module Scarpe::Components::FileHelpers
   # Create a temporary file with the given prefix and contents.
   # Execute the block of code with it in place. Make sure
