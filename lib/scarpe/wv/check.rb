@@ -21,9 +21,7 @@ module Scarpe::Webview
     end
 
     def element
-      ::Scarpe::Components::HTML.render do |h|
-        h.input(type: :checkbox, id: html_id, onclick: handler_js_code("click"), value: "hmm #{text}", checked: @checked, style:)
-      end
+      render("check")
     end
   end
 end

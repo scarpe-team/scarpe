@@ -2,6 +2,11 @@
 
 module Scarpe::Webview
   class Para < Widget
+    # Currently this is duplicated in Calzini. How to refactor?
+    # Similarly, we make some assumptions about when size is a symbol
+    # versus string that may not survive JSON deserialization.
+    # Do we want to hardcode these sizes in Lacci and have it always
+    # pass numbers?
     SIZES = {
       inscription: 10,
       ins: 10,
@@ -13,10 +18,6 @@ module Scarpe::Webview
       banner: 48,
     }.freeze
     private_constant :SIZES
-
-    def initialize(properties)
-      super
-    end
 
     def properties_changed(changes)
       items = changes.delete("text_items")
@@ -46,31 +47,15 @@ module Scarpe::Webview
     end
 
     def element(&block)
-      Scarpe::Components::HTML.render do |h|
-        h.p(**options, &block)
-      end
+      render("para", &block)
     end
 
+    # Because para's to_html takes a block, and it needs to convert IDs into display
+    # widgets, it needs to also override to_html
     def to_html
       @children ||= []
 
       element { child_markup }
-    end
-
-    protected
-
-    def style
-      super.merge({
-        color: rgb_to_hex(@stroke),
-        "font-size": font_size,
-        "font-family": @font,
-      }.compact)
-    end
-
-    def font_size
-      font_size = @size.is_a?(Symbol) ? SIZES[@size] : @size
-
-      Dimensions.length(font_size)
     end
 
     private
@@ -83,10 +68,6 @@ module Scarpe::Webview
           child.gsub("\n", "<br>")
         end
       end.join
-    end
-
-    def options
-      @html_attributes.merge(id: html_id, style: style)
     end
   end
 end

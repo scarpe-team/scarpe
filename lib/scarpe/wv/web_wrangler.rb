@@ -374,7 +374,7 @@ module Scarpe::Webview
 
       @webview.set_title(@title)
       @webview.set_size(@width, @height, hint)
-      @webview.navigate("data:text/html, #{empty}")
+      @webview.navigate("data:text/html, #{CGI.escape empty}")
 
       monkey_patch_console(@webview)
 
@@ -420,29 +420,7 @@ module Scarpe::Webview
     end
 
     def empty
-      html = <<~HTML
-        <html>
-          <head id='head-wvroot'>
-            <style id='style-wvroot'>
-              /** Style resets **/
-              body {
-                font-family: arial, Helvetica, sans-serif;
-                margin: 0;
-                height: 100%;
-                overflow: hidden;
-              }
-              p {
-                margin: 0;
-              }
-            </style>
-          </head>
-          <body id='body-wvroot'>
-            <div id='wrapper-wvroot'></div>
-          </body>
-        </html>
-      HTML
-
-      CGI.escape(html)
+      Scarpe::Components::Calzini.empty_page_element
     end
 
     public

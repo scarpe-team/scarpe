@@ -18,6 +18,23 @@ Shoes::Log.configure_logger(Shoes::Log::DEFAULT_LOG_CONFIG)
 
 require "scarpe/components/unit_test_helpers"
 
+require "scarpe/components/calzini"
+
+class CalziniRenderer
+  include Scarpe::Components::Calzini
+
+  attr_accessor :html_id
+
+  def initialize
+    @html_id = "elt-1"
+  end
+
+  def handler_js_code(event, *args)
+    js_args = ["'#{event}'", *args].join(", ")
+    "handle(#{js_args})"
+  end
+end
+
 class Minitest::Test
   include Scarpe::Test::Helpers
 end

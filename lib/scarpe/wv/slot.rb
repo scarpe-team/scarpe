@@ -2,10 +2,6 @@
 
 module Scarpe::Webview
   class Slot < Widget
-    include Scarpe::Webview::Background
-    include Scarpe::Webview::Border
-    include Scarpe::Webview::Spacing
-
     def initialize(properties)
       @event_callbacks = {}
 
@@ -13,9 +9,9 @@ module Scarpe::Webview
     end
 
     def element(&block)
-      HTML.render do |h|
-        h.div(attributes.merge(id: html_id, style: style), &block)
-      end
+      props = display_properties.merge("html_attributes" => html_attributes)
+      render_name = self.class.name.split("::")[-1].downcase # usually "stack" or "flow" or "documentroot"
+      render(render_name, props, &block)
     end
 
     def set_event_callback(obj, event_name, js_code)
@@ -54,7 +50,8 @@ module Scarpe::Webview
       html_element.set_attribute(event_name, @event_callbacks[event_name].values.join(";"))
     end
 
-    def attributes
+    # These get added for event handlers and passed to Calzini
+    def html_attributes
       attr = {}
 
       @event_callbacks.each do |event_name, handlers|
@@ -62,20 +59,6 @@ module Scarpe::Webview
       end
 
       attr
-    end
-
-    def style
-      styles = super
-
-      styles[:"margin-top"] = @margin_top if @margin_top
-      styles[:"margin-bottom"] = @margin_bottom if @margin_bottom
-      styles[:"margin-left"] = @margin_left if @margin_left
-      styles[:"margin-right"] = @margin_right if @margin_right
-
-      styles[:width] = Dimensions.length(@width) if @width
-      styles[:height] = Dimensions.length(@height) if @height
-
-      styles
     end
   end
 end

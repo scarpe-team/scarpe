@@ -23,20 +23,7 @@ module Scarpe::Webview
     end
 
     def element
-      oninput = handler_js_code("change", "this.value")
-
-      ::Scarpe::Components::HTML.render do |h|
-        h.textarea(id: html_id, oninput: oninput, style: style) { text }
-      end
-    end
-
-    protected
-
-    def style
-      super.merge({
-        height: Dimensions.length(height),
-        width: Dimensions.length(width),
-      }.compact)
+      render("edit_box")
     end
   end
 end

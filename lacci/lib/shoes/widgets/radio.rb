@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 module Shoes
+  # A Radio button widget. Only a single radio button may be checked in each
+  # group. If no group is specified, or the group is nil, default to all
+  # radio buttons in the same slot being treated as being in the same group.
   class Radio < Shoes::Widget
     display_properties :group, :checked
 
@@ -24,12 +27,6 @@ module Shoes
 
     def checked(value)
       self.checked = value
-    end
-
-    private
-
-    def group_name
-      @group || @parent
     end
   end
 end

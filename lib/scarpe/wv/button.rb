@@ -13,40 +13,7 @@ module Scarpe::Webview
     end
 
     def element
-      HTML.render do |h|
-        h.button(id: html_id, onclick: handler_js_code("click"), style: style) do
-          @text
-        end
-      end
-    end
-
-    protected
-
-    def style
-      styles = super
-
-      styles[:"background-color"] = @color
-      styles[:"padding-top"] = @padding_top
-      styles[:"padding-bottom"] = @padding_bottom
-      styles[:color] = @text_color
-      styles[:width] = Dimensions.length(@width) if @width
-      styles[:height] = Dimensions.length(@height) if @height
-      styles[:"font-size"] = @font_size
-
-      styles[:top] = Dimensions.length(@top) if @top
-      styles[:left] = Dimensions.length(@left) if @left
-      styles[:position] = "absolute" if @top || @left
-      styles[:"font-size"] = Dimensions.length(font_size) if @size
-      styles[:"font-family"] = @font if @font
-      styles[:color] = rgb_to_hex(@stroke) if @stroke
-
-      styles
-    end
-
-    def font_size
-      font_size = @size.is_a?(Symbol) ? SIZES[@size] : @size
-
-      Dimensions.length(font_size)
+      render("button")
     end
   end
 end

@@ -2,6 +2,7 @@
 
 module Scarpe::Webview
   class Radio < Widget
+    # TODO: is this needed?
     attr_reader :text
 
     def initialize(properties)
@@ -20,15 +21,13 @@ module Scarpe::Webview
     end
 
     def element
-      ::Scarpe::Components::HTML.render do |h|
-        h.input(type: :radio, id: html_id, onclick: handler_js_code("click"), name: group_name, value: "hmm #{text}", checked: @checked, style: style)
+      props = display_properties
+
+      # If a group isn't set, default to the linkable ID of the parent slot
+      unless @group
+        props["group"] = @parent ? @parent.shoes_linkable_id : "no_group"
       end
-    end
-
-    private
-
-    def group_name
-      @group || @parent
+      render("radio", props)
     end
   end
 end

@@ -15,6 +15,12 @@ require "scarpe/components/promises"
 # Module to contain the various Scarpe Webview classes
 module Scarpe::Webview
   HTML = Scarpe::Components::HTML
+
+  class Widget < Shoes::Linkable
+    # This is where we would make the HTML renderer modular by choosing another
+    require "scarpe/components/calzini"
+    include Scarpe::Components::Calzini
+  end
 end
 
 # Set up hierarchical logging using the SCARPE_LOG_CONFIG var for configuration
@@ -36,13 +42,8 @@ require_relative "wv/control_interface"
 
 require_relative "wv/widget"
 
-require_relative "wv/dimensions"
-
-require_relative "wv/spacing"
 require_relative "wv/star"
 require_relative "wv/radio"
-require_relative "wv/background"
-require_relative "wv/border"
 
 require_relative "wv/arc"
 require_relative "wv/font"

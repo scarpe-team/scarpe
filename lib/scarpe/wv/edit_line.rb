@@ -23,21 +23,7 @@ module Scarpe::Webview
     end
 
     def element
-      oninput = handler_js_code("change", "this.value")
-
-      ::Scarpe::Components::HTML.render do |h|
-        h.input(id: html_id, oninput: oninput, value: @text, style: style)
-      end
-    end
-
-    protected
-
-    def style
-      styles = super
-
-      styles[:width] = Dimensions.length(@width) if @width
-
-      styles
+      render("edit_line")
     end
   end
 end
