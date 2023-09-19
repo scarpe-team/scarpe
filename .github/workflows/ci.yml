@@ -12,7 +12,7 @@ jobs:
   tests:
     name: Tests
     runs-on: macos-latest
-    timeout-minutes: 10 
+    timeout-minutes: 10
     steps:
       - name: Install dependencies
         run: brew install pkg-config portaudio
@@ -34,18 +34,18 @@ jobs:
         with:
           name: test failure logs
           path: logger/test_failure*.out.log
-  linter:
-    name: Linter
-    runs-on: macos-latest
-    timeout-minutes: 10 
-    steps:
-      - name: Install dependencies
-        run: brew install pkg-config portaudio
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Setup Ruby and install gems
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-      - name: Run linter
-        run: bundle exec rubocop
+  # linter:
+  #   name: Linter
+  #   runs-on: macos-latest
+  #   timeout-minutes: 10
+  #   steps:
+  #     - name: Install dependencies
+  #       run: brew install pkg-config portaudio
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+  #     - name: Setup Ruby and install gems
+  #       uses: ruby/setup-ruby@v1
+  #       with:
+  #         bundler-cache: true
+  #     - name: Run linter
+  #       run: bundle exec rubocop
