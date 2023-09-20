@@ -18,8 +18,6 @@ module Scarpe::Exceptions
 
   class InvalidPromiseError < Scarpe::Error; end
 
-  class MissingAppWranglerError < Scarpe::Error; end
-
   class MissingAppError < Scarpe::Error; end
 
   class MissingDocRootError < Scarpe::Error; end
