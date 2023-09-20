@@ -2,6 +2,8 @@
 
 module Scarpe::Webview
   class Shape < Widget
+    include Scarpe::Exceptions
+
     def initialize(properties)
       super(properties)
     end
@@ -50,7 +52,7 @@ module Scarpe::Webview
           x, y = *args
           current_path += "L #{x} #{y} "
         else
-          raise "Unknown shape command! #{cmd.inspect}"
+          raise UnknownShapeCommandError, "Unknown shape command! #{cmd.inspect}"
         end
       end
 
