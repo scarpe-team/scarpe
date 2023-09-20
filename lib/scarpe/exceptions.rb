@@ -50,15 +50,9 @@ module Scarpe::Exceptions
 
   class DatagramSendError < Scarpe::Error; end
 
-  class ParentProcessCreateDatagramError < Scarpe::Error; end
+  class InvalidOperationError < Scarpe::Error; end
 
-  class ScarpeWebviewClassNotFoundError < Scarpe::Error; end
-
-  class MissingScarpeClassError < Scarpe::Error; end
-
-  class MissingPropertyError < Scarpe::Error; end
-
-  class WidgetLinkableIDError < Scarpe::Error; end
+  class MissingAttributeError < Scarpe::Error; end
 
   class SearchWidgetError < Scarpe::Error; end
 
@@ -77,9 +71,13 @@ module Scarpe::Exceptions
   class JSTimeoutError < JSEvalError; end
 
   # We got weird or nonsensical results that seem like an error on WebWrangler's part
-  class InternalError < JSEvalError; end
+  class JSInternalError < JSEvalError; end
 
   # An error occurred which would normally be handled by shutting down the app
   class AppShutdownError < Scarpe::Error; end
+
+  class InvalidClassError < Scarpe::Error; end
+
+  class MissingClassError < Scarpe::Error; end
 
 end
