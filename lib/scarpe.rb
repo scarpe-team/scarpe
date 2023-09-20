@@ -10,5 +10,5 @@ require "lacci/scarpe_core"
 
 d_s = ENV["SCARPE_DISPLAY_SERVICE"] || "wv_local"
 # This is require, not require_relative, to allow gems to supply a new display service
-require 'scarpe/exceptions'
+require "scarpe/exceptions"
 require "scarpe/#{d_s}"

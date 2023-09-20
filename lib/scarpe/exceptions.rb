@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 module Scarpe::Exceptions
-
   class UnknownShoesEventAPIError < Scarpe::Error; end
 
   class UnknownShapeCommandError < Scarpe::Error; end
@@ -79,5 +78,4 @@ module Scarpe::Exceptions
   class InvalidClassError < Scarpe::Error; end
 
   class MissingClassError < Scarpe::Error; end
-
 end

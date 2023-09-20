@@ -17,9 +17,9 @@ module Scarpe::Webview
 
     SUBSCRIBE_EVENTS = [:init, :shutdown, :next_redraw, :every_redraw, :next_heartbeat, :every_heartbeat]
     DISPATCH_EVENTS = [:init, :shutdown, :redraw, :heartbeat]
-    INVALID_SYSTEM_COMPONENTS_MESSAGE = 'Must pass non-nil app and wrangler to ControlInterface#set_system_components!'
-    CONTROL_INTERFACE_INIT_MESSAGE = 'ControlInterface code needs to be wrapped in handlers like on_event(:init) ' +
-      'to make sure they have access to app, doc_root, wrangler, etc!'
+    INVALID_SYSTEM_COMPONENTS_MESSAGE = "Must pass non-nil app and wrangler to ControlInterface#set_system_components!"
+    CONTROL_INTERFACE_INIT_MESSAGE = "ControlInterface code needs to be wrapped in handlers like on_event(:init) " +
+      "to make sure they have access to app, doc_root, wrangler, etc!"
 
     attr_writer :doc_root
     attr_reader :do_shutdown
@@ -39,7 +39,6 @@ module Scarpe::Webview
 
     # This should get called once, from Shoes::App
     def set_system_components(app:, doc_root:, wrangler:)
-
       unless app
         @log.error("False app passed to set_system_components!")
         raise MissingAppError, INVALID_SYSTEM_COMPONENTS_MESSAGE
