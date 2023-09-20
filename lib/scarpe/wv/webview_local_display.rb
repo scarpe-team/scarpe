@@ -12,6 +12,7 @@ class Scarpe
   # process containing one of these.
   class Webview::DisplayService < Shoes::DisplayService
     include Shoes::Log
+    include Scarpe::Exceptions
 
     class << self
       attr_accessor :instance
@@ -33,7 +34,7 @@ class Scarpe
     # able to create them and look them up.
     def initialize
       if Webview::DisplayService.instance
-        raise "ERROR! This is meant to be a singleton!"
+        raise SingletonError, "ERROR! This is meant to be a singleton!"
       end
 
       Webview::DisplayService.instance = self
@@ -54,7 +55,7 @@ class Scarpe
     def create_display_widget_for(widget_class_name, widget_id, properties)
       if widget_class_name == "App"
         unless @doc_root
-          raise "Webview::DocumentRoot is supposed to be created before Webview::App!"
+          raise MissingDocRootError, "Webview::DocumentRoot is supposed to be created before Webview::App!"
         end
 
         display_app = Scarpe::Webview::App.new(properties)
