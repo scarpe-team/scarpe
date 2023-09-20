@@ -2,64 +2,86 @@
 
 module Scarpe::Exceptions
 
-  class UnknownShoesEventAPIError < Shoes::Error; end
+  class UnknownShoesEventAPIError < Scarpe::Error; end
 
-  class UnknownShapeCommandError < Shoes::Error; end
+  class UnknownShapeCommandError < Scarpe::Error; end
 
-  class UnknownEventTypeError < Shoes::Error; end
+  class UnknownEventTypeError < Scarpe::Error; end
 
-  class UnexpectedSpecifierError < Shoes::Error; end
+  class UnexpectedSpecifierError < Scarpe::Error; end
 
-  class UnexpectedFiberTransferError < Shoes::Error; end
+  class UnexpectedFiberTransferError < Scarpe::Error; end
 
-  class MultipleWidgetsFoundError < Shoes::Error; end
+  class MultipleWidgetsFoundError < Scarpe::Error; end
 
-  class NoWidgetsFoundError < Shoes::Error; end
+  class NoWidgetsFoundError < Scarpe::Error; end
 
-  class InvalidPromiseError < Shoes::Error; end
+  class InvalidPromiseError < Scarpe::Error; end
 
-  class MissingComponentsError < Shoes::Error; end
+  class MissingAppWranglerError < Scarpe::Error; end
 
-  class ControlInterfaceInitializationError < Shoes::Error; end
+  class MissingAppError < Scarpe::Error; end
 
-  class IllegalSubscribeEventError < Shoes::Error; end
+  class MissingDocRootError < Scarpe::Error; end
 
-  class IllegalDispatchEventError < Shoes::Error; end
+  class MissingWranglerError < Scarpe::Error; end
 
-  class MissingBlockError < Shoes::Error; end
+  class IllegalSubscribeEventError < Scarpe::Error; end
 
-  class DuplicateCallbackError < Shoes::Error; end
+  class IllegalDispatchEventError < Scarpe::Error; end
 
-  class JavaScriptBindingError < Shoes::Error; end
+  class MissingBlockError < Scarpe::Error; end
 
-  class JavaScriptInitializationError < Shoes::Error; end
+  class DuplicateCallbackError < Scarpe::Error; end
 
-  class PeriodicHandlerSetupError < Shoes::Error; end
+  class JSBindingError < Scarpe::Error; end
 
-  class PeriodicHandlerSetupError < Shoes::Error; end
+  class JSInitError < Scarpe::Error; end
 
-  class WebWranglerNotRunningError < Shoes::Error; end
+  class PeriodicHandlerSetupError < Scarpe::Error; end
 
-  class NonexistentEvalResultError < Shoes::Error; end
+  class WebWranglerNotRunningError < Scarpe::Error; end
 
-  class JSRedrawError < Shoes::Error; end
+  class NonexistentEvalResultError < Scarpe::Error; end
 
-  class SingletonError < Shoes::Error; end
+  class JSRedrawError < Scarpe::Error; end
 
-  class DocumentRootNotCreatedError < Shoes::Error; end
+  class SingletonError < Scarpe::Error; end
 
-  class ConnectionError < Shoes::Error; end
+  class ConnectionError < Scarpe::Error; end
 
-  class DatagramSendError < Shoes::Error; end
+  class DatagramSendError < Scarpe::Error; end
 
-  class ParentProcessCreateDatagramError < Shoes::Error; end
+  class ParentProcessCreateDatagramError < Scarpe::Error; end
 
-  class ScarpeWebviewClassNotFoundError < Shoes::Error; end
+  class ScarpeWebviewClassNotFoundError < Scarpe::Error; end
 
-  class MissingScarpeClassError < Shoes::Error; end
+  class MissingScarpeClassError < Scarpe::Error; end
 
-  class MissingPropertyError < Shoes::Error; end
+  class MissingPropertyError < Scarpe::Error; end
 
-  class WidgetLinkableIDError < Shoes::Error; end
+  class WidgetLinkableIDError < Scarpe::Error; end
+
+  class SearchWidgetError < Scarpe::Error; end
+
+  # This error indicates a problem when running ConfirmedEval
+  class JSEvalError < Scarpe::Error
+    def initialize(data)
+      @data = data
+      super(data[:msg] || (self.class.name + "!"))
+    end
+  end
+
+  # An error running the supplied JS code string in confirmed_eval
+  class JSRuntimeError < JSEvalError; end
+
+  # The code timed out for some reason
+  class JSTimeoutError < JSEvalError; end
+
+  # We got weird or nonsensical results that seem like an error on WebWrangler's part
+  class InternalError < JSEvalError; end
+
+  # An error occurred which would normally be handled by shutting down the app
+  class AppShutdownError < Scarpe::Error; end
 
 end
