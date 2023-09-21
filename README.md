@@ -52,6 +52,8 @@ This repo is where most of the action is happening right now, and to have the fu
 ```
 # dependencies - Mac version
 brew install portaudio pkg-config # for sound!
+# dependencies - Mac M1 version
+brew install portaudio && bundle config build.bloops --with-portaudio-dir=$(brew --prefix portaudio)
 # dependencies - Ubuntu Linux version
 sudo apt install libgtk-3-dev libwebkit2gtk-4.0-dev portaudio19-dev
 
