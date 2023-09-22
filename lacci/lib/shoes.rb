@@ -37,6 +37,10 @@ require_relative "shoes/drawables"
 
 require_relative "shoes/download"
 
+if ENV["SHOES_SPEC_TEST"]
+  require_relative "shoes-spec"
+end
+
 # The module containing Shoes in all its glory.
 # Shoes is a platform-independent GUI library, designed to create
 # small visual applications in Ruby.

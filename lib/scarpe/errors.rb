@@ -74,4 +74,6 @@ module Scarpe
   class InvalidClassError < Scarpe::Error; end
 
   class MissingClassError < Scarpe::Error; end
+
+  class MultipleShoesSpecRunsError < Scarpe::Error; end
 end

@@ -37,6 +37,11 @@ require "scarpe/components/segmented_file_loader"
 loader = Scarpe::Components::SegmentedFileLoader.new
 Shoes.add_file_loader loader
 
+if ENV["SHOES_SPEC_TEST"]
+  require_relative "shoes_spec"
+  Shoes::Spec.instance = Scarpe::Test
+end
+
 require_relative "wv/web_wrangler"
 require_relative "wv/control_interface"
 

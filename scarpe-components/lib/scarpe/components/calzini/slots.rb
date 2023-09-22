@@ -139,7 +139,6 @@ module Scarpe::Components::Calzini
     end
 
     unless spacing_styles.empty?
-      #STDERR.puts "Props: #{props.inspect} Attr: #{attr} SpStyle: #{spacing_styles.inspect}"
       return styles.merge(spacing_styles)
     end
 
