@@ -3,7 +3,6 @@
 require "socket"
 
 class Scarpe
-  include Scarpe::Exceptions
 
   # WVRelayUtil defines the datagram format for the sockets that connect a parent
   # Shoes application with a child display server.
@@ -23,7 +22,7 @@ class Scarpe
       return if r.nil?
 
       unless e.empty?
-        raise ConnectionError, "#{@i_am}: Got error on connection(s) from IO.select! Dying!"
+        raise Scarpe::ConnectionError, "#{@i_am}: Got error on connection(s) from IO.select! Dying!"
       end
 
       !r.empty?
@@ -42,7 +41,7 @@ class Scarpe
       until written == to_write
         count = @to.write(dgram_str.byteslice(written..-1))
         if count.nil? || count == 0
-          raise DatagramSendError, "Something was wrong in send_datagram! Write returned #{count.inspect}!"
+          raise Scarpe::DatagramSendError, "Something was wrong in send_datagram! Write returned #{count.inspect}!"
         end
 
         written += count
@@ -72,7 +71,7 @@ class Scarpe
         new_bytes = @from.read(10)
         if new_bytes.nil?
           # This is perfectly normal, if the connection closed
-          raise AppShutdownError, "Got an unexpected EOF reading datagram! " +
+          raise Scarpe::AppShutdownError, "Got an unexpected EOF reading datagram! " +
             "Did the #{@i_am == :child ? "parent" : "child"} process die?"
         end
         @readbuf << new_bytes
@@ -89,7 +88,7 @@ class Scarpe
         @readbuf << new_bytes
       end
     rescue
-      raise AppShutdownError, "Got exception #{$!.class} when receiving datagram... #{$!.inspect}"
+      raise Scarpe::AppShutdownError, "Got exception #{$!.class} when receiving datagram... #{$!.inspect}"
     end
 
     # Read a datagram from the internal buffer and then dispatch it to the
@@ -108,7 +107,7 @@ class Scarpe
           **kwargs_hash,
         )
       elsif m_data["type"] == "create"
-        raise InvalidOperationError, "Parent process should never receive :create datagram!" if @i_am == :parent
+        raise Scarpe::InvalidOperationError, "Parent process should never receive :create datagram!" if @i_am == :parent
 
         @wv_display.create_display_widget_for(m_data["class_name"], m_data["id"], m_data["properties"])
       elsif m_data["type"] == "destroy"

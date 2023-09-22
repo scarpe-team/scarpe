@@ -6,20 +6,19 @@ module Scarpe::Webview
   # Javascript events and generally keep things working in Webview.
   class Widget < Shoes::Linkable
     include Shoes::Log
-    include Scarpe::Exceptions
 
     class << self
       # Return the corresponding Webview class for a particular Shoes class name
       def display_class_for(scarpe_class_name)
         scarpe_class = Shoes.const_get(scarpe_class_name)
         unless scarpe_class.ancestors.include?(Shoes::Linkable)
-          raise InvalidClassError, "Scarpe Webview can only get display classes for Shoes " +
+          raise Scarpe::InvalidClassError, "Scarpe Webview can only get display classes for Shoes " +
             "linkable widgets, not #{scarpe_class_name.inspect}!"
         end
 
         klass = Scarpe::Webview.const_get(scarpe_class_name.split("::")[-1])
         if klass.nil?
-          raise MissingClassError, "Couldn't find corresponding Scarpe Webview class for #{scarpe_class_name.inspect}!"
+          raise Scarpe::MissingClassError, "Couldn't find corresponding Scarpe Webview class for #{scarpe_class_name.inspect}!"
         end
 
         klass
@@ -43,7 +42,7 @@ module Scarpe::Webview
       # Call method, which looks up the parent
       @shoes_linkable_id = properties["shoes_linkable_id"] || properties[:shoes_linkable_id]
       unless @shoes_linkable_id
-        raise MissingAttributeError, "Could not find property shoes_linkable_id in #{properties.inspect}!"
+        raise Scarpe::MissingAttributeError, "Could not find property shoes_linkable_id in #{properties.inspect}!"
       end
 
       # Set the display properties
@@ -211,7 +210,7 @@ module Scarpe::Webview
     # @param event [String] the Scarpe widget event name
     # @yield the block to call when the event occurs
     def bind(event, &block)
-      raise(MissingAttributeError, "Widget has no linkable_id! #{inspect}") unless linkable_id
+      raise(Scarpe::MissingAttributeError, "Widget has no linkable_id! #{inspect}") unless linkable_id
 
       DisplayService.instance.app.bind("#{linkable_id}-#{event}", &block)
     end
@@ -242,7 +241,7 @@ module Scarpe::Webview
     # @param args [Array] additional arguments that will be passed to the event in the generated JS
     # @return [String] the generated JS code
     def handler_js_code(handler_function_name, *args)
-      raise(MissingAttributeError, "Widget has no linkable_id! #{inspect}") unless linkable_id
+      raise(Scarpe::MissingAttributeError, "Widget has no linkable_id! #{inspect}") unless linkable_id
 
       js_args = ["'#{linkable_id}-#{handler_function_name}'", *args].join(", ")
       "scarpeHandler(#{js_args})"

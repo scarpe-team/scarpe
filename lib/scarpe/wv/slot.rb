@@ -5,7 +5,6 @@ module Scarpe::Webview
     include Scarpe::Webview::Background
     include Scarpe::Webview::Border
     include Scarpe::Webview::Spacing
-    include Scarpe::Exceptions
 
     def initialize(properties)
       @event_callbacks = {}
@@ -23,7 +22,7 @@ module Scarpe::Webview
       event_name = event_name.to_s
       @event_callbacks[event_name] ||= {}
       if @event_callbacks[event_name][obj]
-        raise DuplicateCallbackError, "Can't have two callbacks on the same event, from the same object, on the same parent!"
+        raise Scarpe::DuplicateCallbackError, "Can't have two callbacks on the same event, from the same object, on the same parent!"
       end
 
       @event_callbacks[event_name][obj] = js_code

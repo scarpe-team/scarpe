@@ -13,7 +13,6 @@
 module Scarpe::Webview
   class ControlInterface
     include Shoes::Log
-    include Scarpe::Exceptions
 
     SUBSCRIBE_EVENTS = [:init, :shutdown, :next_redraw, :every_redraw, :next_heartbeat, :every_heartbeat]
     DISPATCH_EVENTS = [:init, :shutdown, :redraw, :heartbeat]
@@ -41,11 +40,11 @@ module Scarpe::Webview
     def set_system_components(app:, doc_root:, wrangler:)
       unless app
         @log.error("False app passed to set_system_components!")
-        raise MissingAppError, INVALID_SYSTEM_COMPONENTS_MESSAGE
+        raise Scarpe::MissingAppError, INVALID_SYSTEM_COMPONENTS_MESSAGE
       end
       unless wrangler
         @log.error("False wrangler passed to set_system_components!")
-        raise MissingWranglerError, INVALID_SYSTEM_COMPONENTS_MESSAGE
+        raise Scarpe::MissingWranglerError, INVALID_SYSTEM_COMPONENTS_MESSAGE
       end
 
       @app = app
@@ -58,19 +57,19 @@ module Scarpe::Webview
     end
 
     def app
-      raise MissingAppError, CONTROL_INTERFACE_INIT_MESSAGE unless @app
+      raise Scarpe::MissingAppError, CONTROL_INTERFACE_INIT_MESSAGE unless @app
 
       @app
     end
 
     def doc_root
-      raise MissingDocRootError, CONTROL_INTERFACE_INIT_MESSAGE unless @doc_root
+      raise Scarpe::MissingDocRootError, CONTROL_INTERFACE_INIT_MESSAGE unless @doc_root
 
       @doc_root
     end
 
     def wrangler
-      raise MissingWranglerError, CONTROL_INTERFACE_INIT_MESSAGE unless @wrangler
+      raise Scarpe::MissingWranglerError, CONTROL_INTERFACE_INIT_MESSAGE unless @wrangler
 
       @wrangler
     end
@@ -81,7 +80,7 @@ module Scarpe::Webview
     # On recognised events, this sets a handler for that event
     def on_event(event, &block)
       unless SUBSCRIBE_EVENTS.include?(event)
-        raise IllegalSubscribeEventError, "Illegal subscribe to event #{event.inspect}! Valid values are: #{SUBSCRIBE_EVENTS.inspect}"
+        raise Scarpe::IllegalSubscribeEventError, "Illegal subscribe to event #{event.inspect}! Valid values are: #{SUBSCRIBE_EVENTS.inspect}"
       end
 
       @unsub_id ||= 0
@@ -96,7 +95,7 @@ module Scarpe::Webview
       @log.debug("CTL event #{event.inspect} #{args.inspect} #{keywords.inspect}")
 
       unless DISPATCH_EVENTS.include?(event)
-        raise IllegalDispatchEventError, "Illegal dispatch of event #{event.inspect}! Valid values are: #{DISPATCH_EVENTS.inspect}"
+        raise Scarpe::IllegalDispatchEventError, "Illegal dispatch of event #{event.inspect}! Valid values are: #{DISPATCH_EVENTS.inspect}"
       end
 
       if @do_shutdown

@@ -16,7 +16,6 @@ module Scarpe::Webview
   class ControlInterface
     include Scarpe::Test::EventedAssertions
     include Scarpe::Test::Helpers
-    include Scarpe::Exceptions
 
     def timed_out?
       @did_time_out
@@ -77,7 +76,7 @@ module Scarpe::Webview
         if spec.is_a?(Class)
           widgets.select! { |w| spec === w }
         else
-          raise SearchWidgetError, "I don't know how to search for widgets by #{spec.inspect}!"
+          raise Scarpe::SearchWidgetError, "I don't know how to search for widgets by #{spec.inspect}!"
         end
       end
 
@@ -187,7 +186,7 @@ module Scarpe::Webview
 
     # How do we signal an error?
     def with_js_value(js_code, wait_for: [], timeout: DEFAULT_ASSERTION_TIMEOUT, &block)
-      raise MissingBlockError, "Must give a block to with_js_value!" unless block
+      raise Scarpe::MissingBlockError, "Must give a block to with_js_value!" unless block
 
       js_promise = wrangler.eval_js_async(js_code, wait_for: wait_for, timeout: timeout)
       ruby_promise = TestPromise.new(iface: self, wait_for: [js_promise])

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Widget
-  include Scarpe::Exceptions
 
   def initialize(properties)
     super
@@ -41,7 +40,7 @@ class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Widget
     when "click"
       new_parent.set_event_callback(self, "onclick", handler_js_code(@shoes_api_name, "arguments[0].button", "arguments[0].x", "arguments[0].y"))
     else
-      raise UnknownShoesEventAPIError, "Unknown Shoes event API: #{@shoes_api_name}!"
+      raise Scarpe::UnknownShoesEventAPIError, "Unknown Shoes event API: #{@shoes_api_name}!"
     end
   end
 

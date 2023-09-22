@@ -1,13 +1,11 @@
 # frozen_string_literal: true
 
-module Scarpe::Exceptions
+class Scarpe
   class UnknownShoesEventAPIError < Scarpe::Error; end
 
   class UnknownShapeCommandError < Scarpe::Error; end
 
   class UnknownEventTypeError < Scarpe::Error; end
-
-  class UnexpectedSpecifierError < Scarpe::Error; end
 
   class UnexpectedFiberTransferError < Scarpe::Error; end
 
