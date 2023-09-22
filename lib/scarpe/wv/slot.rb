@@ -22,7 +22,7 @@ module Scarpe::Webview
       event_name = event_name.to_s
       @event_callbacks[event_name] ||= {}
       if @event_callbacks[event_name][obj]
-        raise "Can't have two callbacks on the same event, from the same object, on the same parent!"
+        raise Scarpe::DuplicateCallbackError, "Can't have two callbacks on the same event, from the same object, on the same parent!"
       end
 
       @event_callbacks[event_name][obj] = js_code

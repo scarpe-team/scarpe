@@ -74,7 +74,7 @@ module Scarpe::Test
             when ::Scarpe::Promise
               fiber_data[:promise] = result
             else
-              raise "Unexpected object returned from Fiber#transfer for still-living Fiber! #{result.inspect}"
+              raise Scarpe::UnexpectedFiberTransferError, "Unexpected object returned from Fiber#transfer for still-living Fiber! #{result.inspect}"
             end
           end
 
@@ -130,7 +130,7 @@ module Scarpe::Test
     end
 
     def on_event(event, &block)
-      raise "Unknown event type: #{event.inspect}!" unless EVENT_TYPES.include?(event)
+      raise Scarpe::UnknownEventTypeError, "Unknown event type: #{event.inspect}!" unless EVENT_TYPES.include?(event)
 
       f = Fiber.new do
         CCInstance.instance.instance_eval(&block)
@@ -147,8 +147,8 @@ module Scarpe::Test
         app = Shoes::App.instance
 
         widgets = app.find_widgets_by(widget_class, *args)
-        raise "Found more than one #{finder_name} matching #{args.inspect}!" if widgets.size > 1
-        raise "Found no #{finder_name} matching #{args.inspect}!" if widgets.empty?
+        raise Scarpe::MultipleWidgetsFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if widgets.size > 1
+        raise Scarpe::NoWidgetsFoundError, "Found no #{finder_name} matching #{args.inspect}!" if widgets.empty?
 
         CCProxy.new(widgets[0])
       end
@@ -159,7 +159,7 @@ module Scarpe::Test
     end
 
     def wait(promise)
-      raise("Must supply a promise to wait!") unless promise.is_a?(::Scarpe::Promise)
+      raise(Scarpe::InvalidPromiseError, "Must supply a promise to wait!") unless promise.is_a?(::Scarpe::Promise)
 
       # Wait until this promise is complete before running again
       @manager_fiber.transfer(promise)

@@ -46,7 +46,7 @@ class Scarpe
         if event_name == "run"
           run_event_loop
         end
-      rescue AppShutdownError
+      rescue Scarpe::AppShutdownError
         @shutdown = true
         @log.info("Attempting to shut down...")
         self.destroy
@@ -59,7 +59,7 @@ class Scarpe
         respond_to_datagram while ready_to_read?
         sleep 0.1
       end
-    rescue AppShutdownError
+    rescue Scarpe::AppShutdownError
       @shutdown = true
       @log.info("Attempting to shut down...")
       self.destroy

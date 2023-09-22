@@ -51,26 +51,6 @@ module Scarpe::Webview
     # A reference to the control_interface that manages internal Scarpe Webview events.
     attr_reader :control_interface
 
-    # This error indicates a problem when running ConfirmedEval
-    class JSEvalError < Scarpe::Error
-      def initialize(data)
-        @data = data
-        super(data[:msg] || (self.class.name + "!"))
-      end
-    end
-
-    # An error running the supplied JS code string in confirmed_eval
-    class JSRuntimeError < JSEvalError
-    end
-
-    # The code timed out for some reason
-    class JSTimeoutError < JSEvalError
-    end
-
-    # We got weird or nonsensical results that seem like an error on WebWrangler's part
-    class InternalError < JSEvalError
-    end
-
     # This is the JS function name for eval results (internal-only)
     EVAL_RESULT = "scarpeAsyncEvalResult"
 
@@ -149,7 +129,7 @@ module Scarpe::Webview
     # @param name [String] the Javascript name for the new function
     # @yield The Ruby block to be invoked when JS calls the function
     def bind(name, &block)
-      raise "App is running, javascript binding no longer works because it uses WebView init!" if @is_running
+      raise Scarpe::JSBindingError, "App is running, javascript binding no longer works because it uses WebView init!" if @is_running
 
       @webview.bind(name, &block)
     end
@@ -160,7 +140,7 @@ module Scarpe::Webview
     # @param name [String] the Javascript name for the init function
     # @yield The Ruby block to be invoked when Webview runs
     def init_code(name, &block)
-      raise "App is running, javascript init no longer works!" if @is_running
+      raise Scarpe::JSInitError, "App is running, javascript init no longer works!" if @is_running
 
       # Save a reference to the init string so that it doesn't get GC'd
       code_str = "#{name}();"
@@ -188,7 +168,7 @@ module Scarpe::Webview
           # new window. But will there ever be a new page/window? Can we just
           # use eval instead of init to set up a periodic handler and call it
           # good?
-          raise "App is running, can't set up new periodic handlers with init!"
+          raise Scarpe::PeriodicHandlerSetupError, "App is running, can't set up new periodic handlers with init!"
         end
 
         js_interval = (interval.to_f * 1_000.0).to_i
@@ -214,7 +194,7 @@ module Scarpe::Webview
     # @param code [String] the Javascript code to attempt to execute
     # @return [void]
     def js_eventually(code)
-      raise "WebWrangler isn't running, eval doesn't work!" unless @is_running
+      raise Scarpe::WebWranglerNotRunningError, "WebWrangler isn't running, eval doesn't work!" unless @is_running
 
       @log.warn "Deprecated: please do NOT use js_eventually, it's basically never what you want!" unless ENV["CI"]
 
@@ -245,7 +225,7 @@ module Scarpe::Webview
     # @param wait_for [Array<Scarpe::Promise>] promises that must complete successfully before this JS is scheduled
     def eval_js_async(code, timeout: EVAL_DEFAULT_TIMEOUT, wait_for: [])
       unless @is_running
-        raise "WebWrangler isn't running, so evaluating JS won't work!"
+        raise Scarpe::WebWranglerNotRunningError, "WebWrangler isn't running, so evaluating JS won't work!"
       end
 
       this_eval_serial = @eval_counter
@@ -320,7 +300,7 @@ module Scarpe::Webview
     def receive_eval_result(r_type, id, val)
       entry = @pending_evals.delete(id)
       unless entry
-        raise "Received an eval result for a nonexistent ID #{id.inspect}!"
+        raise Scarpe::NonexistentEvalResultError, "Received an eval result for a nonexistent ID #{id.inspect}!"
       end
 
       @log.debug("Got JS value: #{r_type} / #{id} / #{val.inspect}")
@@ -331,13 +311,13 @@ module Scarpe::Webview
       when "success"
         promise.fulfilled!(val)
       when "error"
-        promise.rejected! JSRuntimeError.new(
+        promise.rejected! Scarpe::JSRuntimeError.new(
           msg: "JS runtime error: #{val.inspect}!",
           code: entry[:code],
           ret_value: val,
         )
       else
-        promise.rejected! InternalError.new(
+        promise.rejected! Scarpe::JSInternalError.new(
           msg: "JS eval internal error! r_type: #{r_type.inspect}",
           code: entry[:code],
           ret_value: val,
@@ -373,7 +353,7 @@ module Scarpe::Webview
       timed_out_ids.each do |id|
         @log.error "Timing out JS eval! #{@pending_evals[id][:code]}"
         entry = @pending_evals.delete(id)
-        err = JSTimeoutError.new(msg: "JS timeout error!", code: entry[:code], ret_value: nil)
+        err = Scarpe::JSTimeoutError.new(msg: "JS timeout error!", code: entry[:code], ret_value: nil)
         entry[:promise].rejected!(err)
       end
     end
@@ -726,7 +706,7 @@ class Scarpe::Webview::WebWrangler
         @log.error "Could not complete JS redraw! #{promise.reason.full_message}"
         @log.debug("REDRAW FULLY UP TO DATE BUT JS FAILED") if fully_updated?
 
-        raise "JS Redraw failed! Bailing!"
+        raise Scarpe::JSRedrawError, "JS Redraw failed! Bailing!"
 
         # Later we should figure out how to handle this. Clear the promises and queues and request another redraw?
       end
