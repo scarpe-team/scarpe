@@ -198,7 +198,7 @@ class Scarpe
       case @state
       when :fulfilled
         # Should this be a no-op instead?
-        raise "Registering an executor on an already fulfilled promise means it will never run!"
+        raise Scarpe::NoOperationError, "Registering an executor on an already fulfilled promise means it will never run!"
       when :rejected
         return
       when :unscheduled
@@ -207,7 +207,7 @@ class Scarpe
         @executor = block
         call_executor
       else
-        raise "Internal error, illegal state!"
+        raise Scarpe::InternalError, "Internal error, illegal state!"
       end
 
       self
@@ -222,16 +222,16 @@ class Scarpe
 
       # First, filter out illegal input
       unless PROMISE_STATES.include?(old_state)
-        raise "Internal Promise error! Internal state was #{old_state.inspect}! Legal states: #{PROMISE_STATES.inspect}"
+        raise Scarpe::InternalError, "Internal Promise error! Internal state was #{old_state.inspect}! Legal states: #{PROMISE_STATES.inspect}"
       end
 
       unless PROMISE_STATES.include?(new_state)
-        raise "Internal Promise error! Internal state was set to #{new_state.inspect}! " +
+        raise Scarpe::InternalError, "Internal Promise error! Internal state was set to #{new_state.inspect}! " +
           "Legal states: #{PROMISE_STATES.inspect}"
       end
 
       if new_state != :fulfilled && new_state != :rejected && !value_or_reason.nil?
-        raise "Internal promise error! Non-completed state transitions should not specify a value or reason!"
+        raise Scarpe::InternalError, "Internal promise error! Non-completed state transitions should not specify a value or reason!"
       end
 
       # Here's our state-transition grid for what we're doing here.
@@ -254,11 +254,11 @@ class Scarpe
 
       # Transitioning to any *different* state after being fulfilled or rejected? Nope. Those states are final.
       if complete?
-        raise "Internal Promise error! Trying to change state from #{old_state.inspect} to #{new_state.inspect}!"
+        raise Scarpe::InternalError, "Internal Promise error! Trying to change state from #{old_state.inspect} to #{new_state.inspect}!"
       end
 
       if old_state == :pending && new_state == :unscheduled
-        raise "Can't change state from :pending to :unscheduled! Scheduling is not reversible!"
+        raise Shoes::InvalidAttributeValueError, "Can't change state from :pending to :unscheduled! Scheduling is not reversible!"
       end
 
       # The next three checks should all be followed by calling handlers for the newly-changed state.
@@ -341,7 +341,7 @@ class Scarpe
         @on_scheduled.each { |h| h.call(*@parents.map(&:returned_value)) }
         @on_scheduled = []
       else
-        raise "Internal error! Trying to call handlers for #{state.inspect}!"
+        raise Scarpe::InternalError, "Internal error! Trying to call handlers for #{state.inspect}!"
       end
     end
 
@@ -367,7 +367,7 @@ class Scarpe
     end
 
     def call_executor
-      raise("Internal error! Should not call_executor with no executor!") unless @executor
+      raise(Scarpe::InternalError, "Internal error! Should not call_executor with no executor!") unless @executor
 
       begin
         result = @executor.call(*@parents.map(&:returned_value))
@@ -389,7 +389,7 @@ class Scarpe
     # @return [Scarpe::Promise] self
     def on_fulfilled(&handler)
       unless handler
-        raise "You must pass a block to on_fulfilled!"
+        raise Shoes::InvalidAttributeValueError, "You must pass a block to on_fulfilled!"
       end
 
       case @state
@@ -411,7 +411,7 @@ class Scarpe
     # @return [Scarpe::Promise] self
     def on_rejected(&handler)
       unless handler
-        raise "You must pass a block to on_rejected!"
+        raise Shoes::InvalidAttributeValueError, "You must pass a block to on_rejected!"
       end
 
       case @state
@@ -434,7 +434,7 @@ class Scarpe
     # @return [Scarpe::Promise] self
     def on_scheduled(&handler)
       unless handler
-        raise "You must pass a block to on_scheduled!"
+        raise Shoes::InvalidAttributeValueError, "You must pass a block to on_scheduled!"
       end
 
       # Add a pending handler or call it now

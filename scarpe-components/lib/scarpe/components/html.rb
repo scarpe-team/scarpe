@@ -37,7 +37,7 @@ class Scarpe::Components::HTML
 
   def tag(name, **attrs, &block)
     if VOID_TAGS.include?(name)
-      raise ArgumentError, "void tag #{name} cannot have content" if block_given?
+      raise Shoes::InvalidAttributeValueError, "void tag #{name} cannot have content" if block_given?
 
       @buffer += "<#{name}#{render_attributes(attrs)} />"
     else
@@ -62,10 +62,10 @@ class Scarpe::Components::HTML
   end
 
   def method_missing(name, *args, &block)
-    raise NoMethodError, "no method #{name} for #{self.class.name}" unless TAGS.include?(name)
+    raise Scarpe::InvalidHTMLTag, "no method #{name} for #{self.class.name}" unless TAGS.include?(name)
 
     if VOID_TAGS.include?(name)
-      raise ArgumentError, "void tag #{name} cannot have content" if block_given?
+      raise Shoes::InvalidAttributeValueError, "void tag #{name} cannot have content" if block_given?
 
       @buffer += "<#{name}#{render_attributes(*args)} />"
     else

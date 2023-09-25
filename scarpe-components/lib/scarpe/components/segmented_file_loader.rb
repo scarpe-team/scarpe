@@ -14,7 +14,7 @@ module Scarpe::Components
     # @return <void>
     def add_segment_type(type, handler)
       if segment_type_hash.key?(type)
-        raise "Segment type #{type.inspect} already exists!"
+        raise Shoes::InvalidAttributeValueError, "Segment type #{type.inspect} already exists!"
       end
 
       segment_type_hash[type] = handler
@@ -95,7 +95,7 @@ module Scarpe::Components
           # unnamed segment with separator
           segmap[gen_name(segmap)] = ::Regexp.last_match.post_match
         else
-          raise "Internal error when parsing segments in segmented app file! seg: #{segment.inspect}"
+          raise Scarpe::InternalError, "Internal error when parsing segments in segmented app file! seg: #{segment.inspect}"
         end
       end
 
@@ -108,16 +108,16 @@ module Scarpe::Components
       front_matter, segmap = tokenize_segments(contents)
 
       if segmap.empty?
-        raise "Illegal segmented Scarpe file: must have at least one code segment, not just front matter!"
+        raise Scarpe::FileContentError, "Illegal segmented Scarpe file: must have at least one code segment, not just front matter!"
       end
 
       if front_matter[:segments]
         if front_matter[:segments].size != segmap.size
-          raise "Number of front matter :segments must equal number of file segments!"
+          raise Scarpe::FileContentError, "Number of front matter :segments must equal number of file segments!"
         end
       else
         if segmap.size > 2
-          raise "Segmented files with more than two segments have to specify what they're for!"
+          raise Scarpe::FileContentError, "Segmented files with more than two segments have to specify what they're for!"
         end
 
         # Set to default of shoes code only or shoes code and app test code.
@@ -132,7 +132,7 @@ module Scarpe::Components
       tf_specs = []
       front_matter[:segments].each.with_index do |seg_type, idx|
         unless sth.key?(seg_type)
-          raise "Unrecognized segment type #{seg_type.inspect}! No matching segment type available!"
+          raise Scarpe::FileContentError, "Unrecognized segment type #{seg_type.inspect}! No matching segment type available!"
         end
 
         tf_specs << ["scarpe_#{seg_type}_segment_contents", sv[idx]]

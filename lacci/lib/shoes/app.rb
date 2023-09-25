@@ -25,7 +25,7 @@ module Shoes
 
       if Shoes::App.instance
         @log.error("Trying to create a second Shoes::App in the same process! Fail!")
-        raise "Cannot create multiple Shoes::App objects!"
+        raise Scarpe::TooManyInstancesError, "Cannot create multiple Shoes::App objects!"
       else
         Shoes::App.instance = self
       end
@@ -70,7 +70,7 @@ module Shoes
       end
 
       @watch_for_event_loop = bind_shoes_event(event_name: "custom_event_loop") do |loop_type|
-        raise("Unknown event loop type: #{loop_type.inspect}!") unless CUSTOM_EVENT_LOOP_TYPES.include?(loop_type)
+        raise(InvalidAttributeValueError, "Unknown event loop type: #{loop_type.inspect}!") unless CUSTOM_EVENT_LOOP_TYPES.include?(loop_type)
 
         @event_loop_type = loop_type
       end
@@ -144,7 +144,7 @@ module Shoes
         # We can just return to the main event loop. But we shouldn't call destroy.
         # Presumably some event loop *outside* our event loop is handling things.
       else
-        raise "Internal error! Incorrect event loop type: #{@event_loop_type.inspect}!"
+        raise InvalidAttributeValueError, "Internal error! Incorrect event loop type: #{@event_loop_type.inspect}!"
       end
     end
 
@@ -181,18 +181,18 @@ module Shoes
               global_value = eval s
               widgets &= [global_value]
             rescue
-              raise "Error getting global variable: #{spec.inspect}"
+              raise InvalidAttributeValueError, "Error getting global variable: #{spec.inspect}"
             end
           when "@"
             if Shoes::App.instance.instance_variables.include?(spec.to_sym)
               widgets &= [self.instance_variable_get(spec)]
             else
-              raise "Can't find top-level instance variable: #{spec.inspect}!"
+              raise InvalidAttributeValueError, "Can't find top-level instance variable: #{spec.inspect}!"
             end
           else
           end
         else
-          raise("Don't know how to find widgets by #{spec.inspect}!")
+          raise(InvalidAttributeValueError, "Don't know how to find widgets by #{spec.inspect}!")
         end
       end
       widgets
@@ -243,7 +243,7 @@ class Shoes::App
   # Shape DSL methods
 
   def move_to(x, y)
-    raise("Pass only Numeric arguments to move_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
+    raise(InvalidAttributeValueError, "Pass only Numeric arguments to move_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
 
     if current_slot.is_a?(::Shoes::Shape)
       current_slot.add_shape_command(["move_to", x, y])
@@ -251,7 +251,7 @@ class Shoes::App
   end
 
   def line_to(x, y)
-    raise("Pass only Numeric arguments to line_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
+    raise(InvalidAttributeValueError, "Pass only Numeric arguments to line_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
 
     if current_slot.is_a?(::Shoes::Shape)
       current_slot.add_shape_command(["line_to", x, y])
