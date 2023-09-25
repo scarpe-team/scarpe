@@ -11,6 +11,44 @@ module Scarpe::Test; end
 # logic in the subprocess, and then run Minitest in the parent.
 # It's an unusual setup.
 module Scarpe::Test::EventedAssertions
+  private
+
+  def evented_assertions_initialize
+    @assertion_data = []
+    @assertions_passed = 0
+    @assertions_failed = []
+  end
+
+  public
+
+  def assert(value, msg = nil)
+    msg ||= "Assertion #{value ? "succeeded" : "failed"}"
+    @assertion_data << [(value ? true : false), msg]
+    if value
+      @assertions_passed += 1
+    else
+      @assertions_failed << msg
+    end
+  end
+
+  def assert_equal(expected, actual, msg = nil)
+    msg ||= "Expected #{actual.inspect} to equal #{expected.inspect}!"
+    assert actual == expected, msg
+  end
+
+  def assertion_data_as_a_struct
+    {
+      still_pending: 0,
+      succeeded: @assertions_passed,
+      failed: @assertions_failed.size,
+      failures: @assertions_failed,
+    }
+  end
+
+  def test_metadata
+    {}
+  end
+
   # Assert that `text` includes `subtext`.
   #
   # @param text [String] the longer text
@@ -50,6 +88,16 @@ module Scarpe::Test::EventedAssertions
     end
 
     assert_equal expected_html, actual_html
+  end
+
+  def return_assertion_data
+    if !@assertions_failed.empty?
+      return_results(false, "Assertions failed", assertion_data_as_a_struct)
+    elsif @assertions_passed > 0
+      return_results(true, "All assertions passed", assertion_data_as_a_struct)
+    else
+      return_results(true, "Test finished successfully")
+    end
   end
 
   # This does a final return of results. If it gets called

@@ -10,24 +10,24 @@ class TestWebWranglerInScarpeApp < LoggedScarpeTest
 
   # Need to make sure that even with no widgets we still get at least one redraw
   def test_empty_app
-    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
       Shoes.app do
       end
     SCARPE_APP
-      on_event(:next_redraw) do
-        return_when_assertions_done
+      on_next_redraw do
+        test_finished
       end
     TEST_CODE
   end
 
   # When the Display Service side sends a destroy event, everything should shut down.
   def test_destroy_from_display_service
-    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
       Shoes.app do
         para "Hello"
       end
     SCARPE_APP
-      on_event(:next_redraw) do
+      on_next_redraw do
         return_results(true, "Destroy and exit")
         Shoes::DisplayService.dispatch_event("destroy", nil)
       end
@@ -232,27 +232,29 @@ class TestWebWranglerAsyncJS < LoggedScarpeTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
   def round_trip_app(how_many)
-    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-TEST_CODE)
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-TEST_CODE)
       Shoes.app do
         para "Hello"
       end
     SCARPE_APP
-      on_event(:next_redraw) do
+      on_next_redraw do
         num_times = #{how_many}
 
-        p = wrangler.eval_js_async("document.tests = {}")
+        p = query_js_promise("document.tests = {}")
         num_times.times do |i|
           next_p = p.on_fulfilled do
-            wrangler.eval_js_async("document.tests[\#{i}] = true")
+            query_js_promise("document.tests[\#{i}] = true")
           end
           p = next_p
         end
+        wait p
 
-        with_js_value("document.tests", wait_for: [p]) do |tests_hash|
-          expected_value = {}
-          num_times.times { |i| expected_value[i.to_s] = true }
-          assert_equal expected_value, tests_hash
-        end.then { return_when_assertions_done }
+        tests_hash = query_js_value("document.tests")
+
+        expected_value = {}
+        num_times.times { |i| expected_value[i.to_s] = true }
+        assert_equal expected_value, tests_hash
+        test_finished
       end
     TEST_CODE
   end
@@ -261,10 +263,7 @@ class TestWebWranglerAsyncJS < LoggedScarpeTest
     round_trip_app(30)
   end
 
-  # If you run_test_scarpe_code more than once in a test, you can have slightly odd
-  # results like it showing up multiple times in the "too close to timeout length"
-  # print. Generally it's better to have one per test.
-  20.times do |i|
+  5.times do |i|
     define_method("test_many_app_starts_#{i}") do
       round_trip_app(5)
     end

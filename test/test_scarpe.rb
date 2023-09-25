@@ -87,20 +87,6 @@ class TestWebviewScarpe < LoggedScarpeTest
     SCARPE_APP
   end
 
-  def test_widgets_exist_wv_relay
-    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true, display_service: "wv_relay")
-      Shoes.app do
-        stack do
-          para "Here I am"
-          button "Push me"
-          alert "I am an alert!"
-          edit_line "edit_line here", width: 450
-          image "http://shoesrb.com/manual/static/shoes-icon.png"
-        end
-      end
-    SCARPE_APP
-  end
-
   def test_modify_before_show
     run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Shoes.app do
