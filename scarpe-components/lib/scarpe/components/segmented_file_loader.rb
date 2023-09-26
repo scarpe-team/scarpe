@@ -27,6 +27,18 @@ module Scarpe::Components
       segment_type_hash.keys
     end
 
+    # Normally a Shoes application will want to keep the default segment types,
+    # which allow loading a Shoes app and running a test inside. But sometimes
+    # the default handler will be wrong and a library will want to register
+    # its own "shoes" and "app_test" segment handlers, or not have any at all.
+    # For those applications, it makes sense to clear all segment types before
+    # registering its own.
+    #
+    # @return <void>
+    def remove_all_segment_types!
+      @segment_type_hash = {}
+    end
+
     # Load a .sca file with an optional YAML frontmatter prefix and
     # multiple file sections which can be treated differently.
     #
@@ -62,7 +74,9 @@ module Scarpe::Components
       "%5d" % ctr
     end
 
-    def tokenize_segments(contents)
+    public
+
+    def front_matter_and_segments_from_file(contents)
       require "yaml" # Only load when needed
       require "English"
 
@@ -90,7 +104,11 @@ module Scarpe::Components
       segments.each do |segment|
         if segment =~ /\A-* +(.*?)\n/
           # named segment with separator
-          segmap[::Regexp.last_match(1)] = ::Regexp.last_match.post_match
+          name = ::Regexp.last_match(1)
+
+          raise("Duplicate segment name: #{name.inspect}!") if segmap.key?(name)
+
+          segmap[name] = ::Regexp.last_match.post_match
         elsif segment =~ /\A-* *\n/
           # unnamed segment with separator
           segmap[gen_name(segmap)] = ::Regexp.last_match.post_match
@@ -105,7 +123,7 @@ module Scarpe::Components
     def file_load(path)
       contents = File.read(path)
 
-      front_matter, segmap = tokenize_segments(contents)
+      front_matter, segmap = front_matter_and_segments_from_file(contents)
 
       if segmap.empty?
         raise "Illegal segmented Scarpe file: must have at least one code segment, not just front matter!"
@@ -147,6 +165,7 @@ module Scarpe::Components
         # Need to call @after_load hooks while tempfiles still exist
         if @after_load && !@after_load.empty?
           @after_load.each(&:call)
+          @after_load = []
         end
       end
     end
