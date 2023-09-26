@@ -6,20 +6,17 @@ class TestSlots < LoggedScarpeTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
   def test_stack_child
-    run_test_scarpe_code(<<-'SCARPE_APP', test_code: <<-'TEST_CODE')
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
       Shoes.app do
         stack do
           para "Hello World"
         end
       end
     SCARPE_APP
-      on_event(:next_redraw) do
-        para = find_wv_widgets(Scarpe::Webview::Para)[0]
-        assert para.parent.is_a?(Scarpe::Webview::Stack), "A widget created in a Stack's block should be a child of the stack!"
-        return_when_assertions_done
+      on_next_redraw do
+        assert para.parent.is_a?(Shoes::Stack), "A widget created in a Stack's block should be a child of the stack!"
+        test_finished
       end
     TEST_CODE
   end
-
-  # TODO: we need to make sure that self is a Shoes::App inside the "shape do" block and that helpers work
 end

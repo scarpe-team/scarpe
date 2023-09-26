@@ -23,7 +23,6 @@ TIMEOUT_FRACTION_OF_THRESHOLD = 0.5 # Too low?
 
 class ScarpeWebviewTest < Minitest::Test
   include Scarpe::Test::Helpers
-  include Scarpe::Test::EventedAssertions
 
   SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
 
@@ -40,7 +39,6 @@ class ScarpeWebviewTest < Minitest::Test
 
   def run_test_scarpe_app(
     test_app_location,
-    test_code: "",
     app_test_code: "",
     timeout: 10.0,
     allow_fail: false,
@@ -49,49 +47,36 @@ class ScarpeWebviewTest < Minitest::Test
   )
 
     with_tempfile("scarpe_test_results.json", "") do |result_path|
-      # We're temporarily dealing with two different kinds of test code.
-      # Test_control_code/test_code is a display-library test language.
-      # app_test_code is a test_flow/integrated experimental test language.
-
-      # test_control_code:
-      test_control_code = <<~SCARPE_TEST_CODE
-        require "scarpe/wv/control_interface_test"
-
-        on_event(:init) do
-          die_after #{timeout}
-        end
-      SCARPE_TEST_CODE
-
-      test_control_code += test_code
-
-      if exit_immediately
-        test_control_code += <<~TEST_EXIT_IMMEDIATELY
-          on_event(:next_heartbeat) do
-            Shoes::Log.logger("ScarpeTest").info("Dying on heartbeat because :exit_immediately is set")
-            app.destroy
-          end
-        TEST_EXIT_IMMEDIATELY
-      end
-
       # app_test_code:
       app_test_file_code = <<~SCARPE_APP_TEST_CODE
         require "scarpe/cats_cradle"
         self.class.include Scarpe::Test::CatsCradle
+
         event_init
+
+        on_next_redraw { die_after #{timeout} }
       SCARPE_APP_TEST_CODE
       app_test_file_code += app_test_code
+
+      if exit_immediately
+        app_test_file_code += <<~TEST_EXIT_IMMEDIATELY
+          on_heartbeat do
+            Shoes::Log.logger("ScarpeTest").info("Dying on heartbeat because :exit_immediately is set")
+            test_finished(return_results: false)
+          end
+        TEST_EXIT_IMMEDIATELY
+      end
 
       # Remove old results, if any
       File.unlink(result_path)
 
       with_tempfiles([
-        ["scarpe_control.rb", test_control_code],
         ["scarpe_log_config.json", JSON.dump(log_config_for_test)],
         ["scarpe_app_test.rb", app_test_file_code],
-      ]) do |control_file_path, scarpe_log_config, app_test_path|
+      ]) do |scarpe_log_config, app_test_path|
         # Start the application using the exe/scarpe utility
         # For unit testing always supply --debug so we get the most logging
-        system("SCARPE_TEST_CONTROL=#{control_file_path} SCARPE_TEST_RESULTS=#{result_path} " +
+        system("SCARPE_TEST_RESULTS=#{result_path} " +
           "SCARPE_LOG_CONFIG=\"#{scarpe_log_config}\" SCARPE_APP_TEST=\"#{app_test_path}\" " +
           "LOCALAPPDATA=\"#{Dir.tmpdir}\"" +
           "ruby #{SCARPE_EXE} --debug --dev #{test_app_location}")
@@ -171,6 +156,25 @@ class ScarpeWebviewTest < Minitest::Test
         end
       end
     end
+  end
+
+  # Assert that `actual_html` is the same as `expected_tag` with `opts`.
+  # This uses Scarpe's HTML tag-based renderer to render the tag and options
+  # into text, and valides that the text is the same.
+  #
+  # @see Scarpe::Components::HTML.render
+  #
+  # @param actual_html [String] the html to compare to
+  # @param expected_tag [String,Symbol] the HTML tag, used to send a method call
+  # @param opts keyword options passed to the tag method call
+  # @yield block passed to the tag method call.
+  # @return [void]
+  def assert_html(actual_html, expected_tag, **opts, &block)
+    expected_html = Scarpe::Components::HTML.render do |h|
+      h.public_send(expected_tag, opts, &block)
+    end
+
+    assert_equal expected_html, actual_html
   end
 end
 

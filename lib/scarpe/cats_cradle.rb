@@ -49,9 +49,7 @@ module Scarpe::Test
     def initialize
       log_init("CatsCradle")
 
-      @assertion_data = []
-      @assertions_passed = 0
-      @assertions_failed = []
+      evented_assertions_initialize
 
       @waiting_fibers = []
       @event_promises = {}
@@ -90,7 +88,7 @@ module Scarpe::Test
     end
 
     # If we add "every" events, that's likely to complicate timing and event_promise handling.
-    EVENT_TYPES = [:next_heartbeat, :next_redraw]
+    EVENT_TYPES = [:init, :next_heartbeat, :next_redraw]
 
     # This needs to be called after the basic display service objects exist
     # and we can find the control interface.
@@ -158,6 +156,21 @@ module Scarpe::Test
       CCProxy.new(shoes_widget)
     end
 
+    def die_after(time)
+      t_start = Time.now
+      @die_after = [t_start, time]
+
+      @wrangler.periodic_code("scarpeTestTimeout") do |*_args|
+        t_delta = (Time.now - t_start).to_f
+        if t_delta > time
+          @did_time_out = true
+          @log.warn("die_after - timed out after #{t_delta.inspect} (threshold: #{time.inspect})")
+          return_results(false, "Timed out!")
+          ::Shoes::DisplayService.dispatch_event("destroy", nil)
+        end
+      end
+    end
+
     def wait(promise)
       raise(Scarpe::InvalidPromiseError, "Must supply a promise to wait!") unless promise.is_a?(::Scarpe::Promise)
 
@@ -181,42 +194,13 @@ module Scarpe::Test
       @manager_fiber.transfer(js_promise)
     end
 
-    def assert(value, msg = nil)
-      msg ||= "Assertion #{value ? "succeeded" : "failed"}"
-      @assertion_data << [value ? true : false, msg]
-      if value
-        @assertions_passed += 1
-      else
-        @assertions_failed << msg
-      end
+    def query_js_promise(js_code, timeout: 1.0)
+      @wrangler.eval_js_async(js_code, timeout:)
     end
 
-    def assert_equal(expected, actual, msg = nil)
-      msg ||= "Expected #{actual.inspect} to equal #{expected.inspect}!"
-      assert actual == expected, msg
-    end
+    def test_finished(return_results: true)
+      return_assertion_data if return_results
 
-    def assertion_data_as_a_struct
-      {
-        still_pending: 0,
-        succeeded: @assertions_passed,
-        failed: @assertions_failed.size,
-        failures: @assertions_failed,
-      }
-    end
-
-    def test_metadata
-      {}
-    end
-
-    def test_finished
-      if !@assertions_failed.empty?
-        return_results(false, "Assertions failed", assertion_data_as_a_struct)
-      elsif @assertions_passed > 0
-        return_results(true, "All assertions passed", assertion_data_as_a_struct)
-      else
-        return_results(true, "Test finished successfully")
-      end
       ::Shoes::DisplayService.dispatch_event("destroy", nil)
     end
   end
@@ -244,6 +228,14 @@ module Scarpe::Test
 
     def on_heartbeat(&block)
       @cc_instance.on_event(:next_heartbeat, &block)
+    end
+
+    def on_init(&block)
+      @cc_instance.on_event(:init, &block)
+    end
+
+    def on_next_redraw(&block)
+      @cc_instance.on_event(:next_redraw, &block)
     end
   end
 end
