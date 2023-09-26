@@ -14,6 +14,7 @@ end
 
 module Shoes; end
 class Shoes::Error < StandardError; end
+require_relative "shoes/errors"
 
 require_relative "shoes/constants"
 

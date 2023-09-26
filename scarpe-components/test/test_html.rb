@@ -58,7 +58,7 @@ class TestHTML < Minitest::Test
   end
 
   def test_raises_with_void_tag_blocks
-    assert_raises(ArgumentError, "void tag input cannot have content") do
+    assert_raises(Shoes::InvalidAttributeValueError, "void tag input cannot have content") do
       Scarpe::Components::HTML.render { |h| h.input(type: "text") { "foo" } }
     end
   end

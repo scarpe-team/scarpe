@@ -150,8 +150,8 @@ module Scarpe::Test::LoggedTest
     return if ALREADY_SET_UP_LOGGED_TEST_FAILURES[:setup]
 
     log_dir = self.class.logger_dir
-    raise("Must set logger directory!") unless log_dir
-    raise("Can't find logger directory!") unless File.directory?(log_dir)
+    raise(Scarpe::MustOverrideMethod, "Must set logger directory!") unless log_dir
+    raise(Scarpe::NoSuchFile, "Can't find logger directory!") unless File.directory?(log_dir)
 
     ALREADY_SET_UP_LOGGED_TEST_FAILURES[:setup] = true
     # Delete stale test failures, if any, before starting the first failure-logged test
@@ -181,11 +181,11 @@ module Scarpe::Test::LoggedTest
     out_loc = filepath.gsub(%r{.log\Z}, ".out.log")
 
     if out_loc == filepath
-      raise "Something is wrong! Could not figure out failure-log output path for #{filepath.inspect}!"
+      raise Shoes::InvalidAttributeValueError, "Something is wrong! Could not figure out failure-log output path for #{filepath.inspect}!"
     end
 
     if File.exist?(out_loc)
-      raise "Duplicate test file #{out_loc.inspect}? This file should *not* already exist!"
+      raise Scarpe::DuplicateFileError, "Duplicate test file #{out_loc.inspect}? This file should *not* already exist!"
     end
 
     out_loc

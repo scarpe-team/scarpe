@@ -67,8 +67,8 @@ class Shoes::Slot < Shoes::Widget
   # @yield the block to call to replace children; will be called on the Shoes::App, appending to the called Slot as the current slot
   # @return [void]
   def append(&block)
-    raise("append requires a block!") unless block_given?
-    raise("Don't append to something that isn't a slot!") unless self.is_a?(Shoes::Slot)
+    raise(InvalidAttributeValueError, "append requires a block!") unless block_given?
+    raise(InvalidAttributeValueError, "Don't append to something that isn't a slot!") unless self.is_a?(Shoes::Slot)
 
     Shoes::App.instance.with_slot(self, &block)
   end
