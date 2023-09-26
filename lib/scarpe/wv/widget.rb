@@ -5,6 +5,7 @@ module Scarpe::Webview
   # its Shoes equivalent, render itself to the Webview DOM, handle
   # Javascript events and generally keep things working in Webview.
   class Widget < Shoes::Linkable
+    # This will pick up the log implementation from wv.rb
     include Shoes::Log
 
     class << self
@@ -38,6 +39,8 @@ module Scarpe::Webview
     # events for changes of parent widget and changes of property values.
     def initialize(properties)
       log_init("Webview::Widget")
+
+      @display_property_names = properties.keys.map(&:to_s) - ["shoes_linkable_id"]
 
       # Call method, which looks up the parent
       @shoes_linkable_id = properties["shoes_linkable_id"] || properties[:shoes_linkable_id]
@@ -73,6 +76,14 @@ module Scarpe::Webview
       end
 
       super(linkable_id: @shoes_linkable_id)
+    end
+
+    def display_properties
+      p = {}
+      @display_property_names.each do |prop_name|
+        p[prop_name] = instance_variable_get("@#{prop_name}")
+      end
+      p
     end
 
     # Properties_changed will be called automatically when properties change.

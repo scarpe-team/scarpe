@@ -9,26 +9,25 @@ module Scarpe::Webview
       "video/x-matroska" => [".mkv"],
       # Add more formats and their associated file extensions if needed
     }.freeze
+    FORMAT_FOR_EXT = {}
+    SUPPORTED_FORMATS.each do |format, extensions|
+      extensions.each do |ext|
+        if FORMAT_FOR_EXT.key?(ext)
+          raise "Internal Scarpe-Webview error! Must have a specific format for each extension!"
+        end
+        FORMAT_FOR_EXT[ext] = format
+      end
+    end
+    FORMAT_FOR_EXT.freeze
 
     def initialize(properties)
       @url = properties[:url]
       super
+      @format = FORMAT_FOR_EXT[File.extname(@url)]
     end
 
     def element
-      ::Scarpe::Components::HTML.render do |h|
-        h.video(id: html_id, style: style, controls: true) do
-          supported_formats.each do |format|
-            h.source(src: @url, type: format)
-          end
-        end
-      end
-    end
-
-    private
-
-    def supported_formats
-      SUPPORTED_FORMATS.select { |_format, extensions| extensions.include?(File.extname(@url)) }.keys
+      render "video", display_properties.merge("format" => @format)
     end
   end
 end

@@ -16,25 +16,25 @@ class TestWebviewStack < Minitest::Test
   def test_it_accepts_a_height
     stack = Scarpe::Webview::Stack.new(@default_properties.merge("height" => 25))
 
-    assert(stack.to_html.include?("height:25px"))
+    assert_includes stack.to_html, "height:25px"
   end
 
   def test_it_accepts_margin
     stack = Scarpe::Webview::Stack.new(@default_properties.merge("margin" => 25))
 
-    assert(stack.to_html.include?("margin:25px"))
+    assert_includes stack.to_html, "margin:25px"
   end
 
   def test_it_accepts_margin_array
     stack = Scarpe::Webview::Stack.new(@default_properties.merge("margin" => [1, 2, 3, 4]))
 
-    assert(stack.to_html.include?("margin-left:1px;margin-right:2px;margin-top:3px;margin-bottom:4px"))
+    assert_includes stack.to_html, "margin-left:1px;margin-right:2px;margin-top:3px;margin-bottom:4px"
   end
 
   def test_it_accepts_margin_hash
     stack = Scarpe::Webview::Stack.new(@default_properties.merge("margin" => { left: 1, bottom: 4 }))
 
-    assert(stack.to_html.include?("margin-left:1px;margin-bottom:4px"))
+    assert_includes stack.to_html, "margin-left:1px;margin-bottom:4px"
   end
 
   #def test_it_can_have_a_background
@@ -42,7 +42,7 @@ class TestWebviewStack < Minitest::Test
   #    background "red"
   #  end
   #
-  #  assert(stack.to_html.include?("background:red"))
+  #  assert_includes? stack.to_html, "background:red"
   #end
 
   #def test_it_can_have_a_border

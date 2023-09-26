@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# TODO: MOVE TO COMPONENTS
-
 class Scarpe::Components::HTML
   CONTENT_TAGS = [:div, :p, :button, :ul, :li, :textarea, :a, :video, :strong, :style, :em, :code, :u, :line, :span, :svg].freeze
   VOID_TAGS = [:input, :img, :polygon, :source, :link, :path].freeze

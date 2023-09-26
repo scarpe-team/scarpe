@@ -15,9 +15,7 @@ module Scarpe::Webview
         end
 
         def element
-          Scarpe::Components::HTML.render do |h|
-            h.send(@html_tag) { @content.to_s }
-          end
+          render(@html_tag) { @content.to_s }
         end
       end
       Scarpe::Webview.const_set webview_class_name, webview_widget_class

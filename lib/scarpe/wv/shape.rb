@@ -26,7 +26,7 @@ module Scarpe::Webview
 
     def element(&block)
       color = @draw_context["fill"] || "black"
-      ::Scarpe::Components::HTML.render do |h|
+      HTML.render do |h|
         h.div(id: html_id, style: style) do
           h.svg(width: "400", height: "500") do
             h.path(d: path_from_shape_commands, style: "fill:#{color};stroke-width:2;")
