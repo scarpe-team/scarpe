@@ -5,8 +5,8 @@ module Shoes
     display_properties :url
 
     def initialize(url)
-      @url = url
       super
+      @url = url
       create_display_widget
     end
 

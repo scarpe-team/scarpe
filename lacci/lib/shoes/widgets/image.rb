@@ -5,9 +5,8 @@ module Shoes
     display_properties :url, :width, :height, :top, :left, :click
 
     def initialize(url, width: nil, height: nil, top: nil, left: nil, click: nil)
-      @url = url
-
       super
+      @url = url
 
       # Get the image dimensions
       # @width, @height = size

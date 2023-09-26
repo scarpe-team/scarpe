@@ -16,10 +16,15 @@ module Shoes
 
     class << self
       attr_accessor :widget_classes
+      attr_accessor :widget_default_styles
 
       def inherited(subclass)
         Shoes::Widget.widget_classes ||= []
         Shoes::Widget.widget_classes << subclass
+
+        Shoes::Widget.widget_default_styles ||= {}
+        Shoes::Widget.widget_default_styles[subclass] = {}
+
         super
       end
 
@@ -30,6 +35,17 @@ module Shoes
 
       def widget_class_by_name(name)
         widget_classes.detect { |k| k.dsl_name == name.to_s }
+      end
+
+      def validate_as(prop_name, value)
+        prop_name = prop_name.to_s
+        hashes = display_property_hashes
+
+        h = hashes.detect { |hash| hash[:name] == prop_name }
+        raise(Shoes::NoSuchStyleError, "Can't find property #{prop_name.inspect} in #{self} property list: #{hashes.inspect}!") unless h
+
+        return value if h[:validator].nil?
+        h[:validator].call(value)
       end
 
       private
@@ -45,13 +61,14 @@ module Shoes
       public
 
       # Display properties in Shoes Linkables are automatically sync'd with the display side objects.
-      # TODO: do we want types or other modifiers on specific properties?
-      def display_property(name)
+      # If a block is passed to display_property, that's the validation for the property. It should
+      # convert a given value to a valid value for the property or throw an exception.
+      def display_property(name, &validator)
         name = name.to_s
 
         return if linkable_properties_hash[name]
 
-        linkable_properties << { name: name }
+        linkable_properties << { name: name, validator: }
         linkable_properties_hash[name] = true
       end
 
@@ -66,6 +83,12 @@ module Shoes
         parent_prop_names | linkable_properties.map { |prop| prop[:name] }
       end
 
+      def display_property_hashes
+        parent_hashes = self != Shoes::Widget ? self.superclass.display_property_hashes : []
+
+        parent_hashes + linkable_properties
+      end
+
       def display_property_name?(name)
         linkable_properties_hash[name.to_s] ||
           (self != Shoes::Widget && superclass.display_property_name?(name))
@@ -78,9 +101,16 @@ module Shoes
     def initialize(*args, **kwargs)
       log_init("Widget")
 
+      default_styles = Shoes::Widget.widget_default_styles[self.class]
+
       self.class.display_property_names.each do |prop|
-        if kwargs[prop.to_sym]
-          instance_variable_set("@" + prop, kwargs[prop.to_sym])
+        prop_sym = prop.to_sym
+        if kwargs[prop_sym]
+          val = self.class.validate_as(prop, kwargs[prop_sym])
+          instance_variable_set("@" + prop, val)
+        elsif default_styles[prop_sym]
+          val = self.class.validate_as(prop, default_styles[prop_sym])
+          instance_variable_set("@" + prop, val)
         end
       end
 
@@ -96,7 +126,7 @@ module Shoes
     private
 
     def bind_self_event(event_name, &block)
-      raise("Widget has no linkable_id! #{inspect}") unless linkable_id
+      raise(Shoes::NoLinkableIdError, "Widget has no linkable_id! #{inspect}") unless linkable_id
 
       bind_shoes_event(event_name: event_name, target: linkable_id, &block)
     end
@@ -116,6 +146,31 @@ module Shoes
       end
       properties["shoes_linkable_id"] = self.linkable_id
       properties
+    end
+
+    def style(*args, **kwargs)
+      if args.empty? && kwargs.empty?
+        # Just called as .style()
+        display_property_values
+      elsif args.empty?
+        # This is called to set one or more Shoes styles (display properties.)
+        prop_names = self.class.display_property_names
+        unknown_styles = kwargs.keys.select { |k| !prop_names.include?(k.to_s) }
+        unless unknown_styles.empty?
+          raise Shoes::NoSuchStyleError, "Unknown styles for widget type #{self.class.name}: #{unknown_styles.join(", ")}"
+        end
+
+        kwargs.each do |name, val|
+          instance_variable_set("@#{name}", val)
+        end
+      elsif args.length == 1 && args[0] < Shoes::Widget
+        # Shoes supports calling .style with a Shoes class, e.g. .style(Shoes::Button, displace_left: 5)
+        kwargs.each do |name, val|
+          Shoes::Widget.widget_default_styles[args[0]][name.to_sym] = val
+        end
+      else
+        raise Shoes::InvalidAttributeValueError, "Unexpected arguments to style! args: #{args.inspect}, keyword args: #{kwargs.inspect}"
+      end
     end
 
     private
@@ -169,8 +224,9 @@ module Shoes
         prop_name = name_s[0..-2]
         if self.class.display_property_name?(prop_name)
           self.class.define_method(name) do |new_value|
-            raise "Trying to set display properties in an object with no linkable ID!" unless linkable_id
+            raise Shoes::NoLinkableIdError, "Trying to set display properties in an object with no linkable ID!" unless linkable_id
 
+            new_value = self.class.validate_as(prop_name, new_value)
             instance_variable_set("@" + prop_name, new_value)
             send_shoes_event({ prop_name => new_value }, event_name: "prop_change", target: linkable_id)
           end
@@ -181,7 +237,7 @@ module Shoes
 
       if self.class.display_property_name?(name_s)
         self.class.define_method(name) do
-          raise "Trying to get display properties in an object with no linkable ID!" unless linkable_id
+          raise Shoes::NoLinkableIdError, "Trying to get display properties in an object with no linkable ID!" unless linkable_id
 
           instance_variable_get("@" + name_s)
         end

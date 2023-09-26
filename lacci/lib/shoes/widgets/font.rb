@@ -5,8 +5,8 @@ module Shoes
     display_properties :font
 
     def initialize(font)
-      @font = font
       super
+      @font = font
 
       create_display_widget
     end
