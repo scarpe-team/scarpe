@@ -156,6 +156,8 @@ module Scarpe::Webview
     # so it should be invoked when the WebWrangler is in setup mode,
     # before the Webview is running.
     #
+    # TODO: add a way to stop this loop and unsubscribe.
+    #
     # @param name [String] the name of the Javascript init function, if needed
     # @param interval [Float] the duration between invoking this block
     # @yield the Ruby block to invoke periodically

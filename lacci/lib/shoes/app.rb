@@ -210,16 +210,13 @@ class Shoes::App
     current_slot.border(...)
   end
 
-  def motion(&block)
-    subscription_item(shoes_api_name: "motion", &block)
-  end
+  # Event handler objects
 
-  def hover(&block)
-    subscription_item(shoes_api_name: "hover", &block)
-  end
-
-  def click(&block)
-    subscription_item(shoes_api_name: "click", &block)
+  events = [:motion, :hover, :leave, :click, :release, :keypress, :animate, :every, :timer]
+  events.each do |event|
+    define_method(event) do |*args, &block|
+      subscription_item(args:, shoes_api_name: event.to_s, &block)
+    end
   end
 
   # Draw context methods

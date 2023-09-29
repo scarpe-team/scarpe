@@ -9,18 +9,38 @@
 #
 # Inheriting from Widget gives these a parent slot and a
 # linkable_id automatically.
+#
+# Events not yet implemented: start, finish events for slots -
+# start is first draw, finish is widget destroyed
 class Shoes::SubscriptionItem < Shoes::Widget
-  display_property :shoes_api_name
+  display_properties :shoes_api_name, :args
 
-  def initialize(shoes_api_name:, &block)
+  def initialize(args: [], shoes_api_name:, &block)
     super
 
     @callback = block
 
     case shoes_api_name
+    when "animate"
+      @unsub_id = bind_self_event("animate") do |frame|
+        @callback.call(frame)
+      end
+    when "every"
+      @unsub_id = bind_self_event("every") do |count|
+        @callback.call(count)
+      end
+    when "timer"
+      @unsub_id = bind_self_event("timer") do
+        @callback.call
+      end
     when "hover"
       # Hover passes the Shoes widget as the block param
       @unsub_id = bind_self_event("hover") do
+        @callback&.call(self)
+      end
+    when "leave"
+      # Leave passes the Shoes widget as the block param
+      @unsub_id = bind_self_event("leave") do
         @callback&.call(self)
       end
     when "motion"
@@ -37,8 +57,20 @@ class Shoes::SubscriptionItem < Shoes::Widget
       @unsub_id = bind_self_event("click") do |button, x, y, **_kwargs|
         @callback&.call(button, x, y)
       end
+    when "release"
+      # Click has block params button, left, top
+      # button is the button number, left and top are coords
+      @unsub_id = bind_self_event("click") do |button, x, y, **_kwargs|
+        @callback&.call(button, x, y)
+      end
+    when "keypress"
+      # Keypress passes the key string or symbol to the handler
+      # Do anything special for serialisation here?
+      @unsub_id = bind_self_event("click") do |key|
+        @callback&.call(key)
+      end
     else
-      raise "Unknown Shoes API call #{shoes_api_name.inspect} passed to SubscriptionItem!"
+      raise "Unknown Shoes event #{shoes_api_name.inspect} passed to SubscriptionItem!"
     end
 
     @unsub_id = bind_self_event(shoes_api_name) do |*args|
