@@ -2,9 +2,12 @@
 
 module Shoes
   class Para < Shoes::Widget
-    display_properties :text_items, :stroke, :size, :font, :html_attributes, :hidden
+    display_properties :text_items, :size, :font, :html_attributes, :hidden
+    display_property(:stroke) { |val| Shoes::Colors.to_rgb(val) }
 
     def initialize(*args, stroke: nil, size: :para, font: nil, hidden: false, **html_attributes)
+      super
+
       @text_children = args || []
       if hidden
         @hidden_text_items = text_children_to_items(@text_children)
@@ -15,11 +18,8 @@ module Shoes
         @text_items = text_children_to_items(@text_children)
         @hidden_text_items = []
       end
-      stroke = to_rgb(stroke)
 
       @html_attributes = html_attributes || {}
-
-      super
 
       create_display_widget
     end

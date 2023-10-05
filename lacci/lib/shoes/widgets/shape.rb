@@ -13,8 +13,6 @@ module Shoes
     display_properties :left, :top, :shape_commands, :draw_context
 
     def initialize(left: nil, top: nil, &block)
-      @left = left
-      @top = top
       @shape_commands = []
       @draw_context = Shoes::App.instance.current_draw_context
 

@@ -5,13 +5,13 @@ module Shoes
     display_properties :text, :stroke, :size, :font, :html_attributes
 
     def initialize(text, stroke: nil, size: :span, font: nil, **html_attributes)
+      super
+
       @text = text
       @stroke = stroke
       @size = size
       @font = font
       @html_attributes = html_attributes
-
-      super
 
       create_display_widget
     end
