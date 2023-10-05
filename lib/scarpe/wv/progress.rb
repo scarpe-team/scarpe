@@ -1,0 +1,26 @@
+# frozen_string_literal: true
+
+module Scarpe::Webview
+  class Progress < Widget
+    def initialize(properties)
+      super
+    end
+
+    def element
+      HTML.render do |h|
+        h.progress(id: html_id, style: style) do
+        end
+      end
+    end
+
+    private
+
+    def style
+      styles = {}
+
+      #ADD YOUR STYLES HERE
+
+      styles.compact
+    end
+  end
+end
