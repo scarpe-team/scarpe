@@ -5,10 +5,9 @@ module Shoes
     display_properties :text, :width
 
     def initialize(text = "", width: nil, &block)
+      super
       @block = block
       @text = text
-
-      super
 
       bind_self_event("change") do |new_text|
         self.text = new_text

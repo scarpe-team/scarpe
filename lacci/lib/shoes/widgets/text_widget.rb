@@ -9,6 +9,9 @@ module Shoes
       def inherited(subclass)
         Shoes::Widget.widget_classes ||= []
         Shoes::Widget.widget_classes << subclass
+
+        Shoes::Widget.widget_default_styles ||= {}
+        Shoes::Widget.widget_default_styles[subclass] = {}
       end
       # rubocop:enable Lint/MissingSuper
     end
@@ -23,9 +26,9 @@ module Shoes
         display_property :content
 
         def initialize(content)
-          @content = content
-
           super
+
+          @content = content
 
           create_display_widget
         end

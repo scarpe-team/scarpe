@@ -5,9 +5,10 @@ module Shoes
     display_properties :selected_item, :items, :height, :width
 
     def initialize(args = {}, &block)
+      super
+
       @items = args[:items] || []
       @selected_item = args[:selected_item]
-      super()
 
       bind_self_event("change") do |new_item|
         self.selected_item = new_item

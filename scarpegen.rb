@@ -117,9 +117,9 @@ class ScarpeGenerator
   end
 
   def add_require_relative_to_widgets_file
-    widgets_file_path = "lib/scarpe/widgets.rb"
+    widgets_file_path = "lacci/lib/shoes/widgets.rb"
     filename = @filename.downcase
-    require_line = "require_relative \"#{filename}\""
+    require_line = "require \"shoes/widgets/#{filename}\""
 
     File.open(widgets_file_path, "a") do |file|
       file.puts require_line
@@ -169,7 +169,7 @@ class ScarpeGenerator
     class_template = File.read(class_template_file)
     class_content = ERB.new(class_template).result(binding_with_argument(class_template_choice))
 
-    File.write("lib/scarpe/#{@filename}.rb", class_content)
+    File.write("lacci/lib/shoes/widgets/#{@filename}.rb", class_content)
   end
 
   def generate_module_file

@@ -7,10 +7,10 @@ module Shoes
   class Radio < Shoes::Widget
     display_properties :group, :checked
 
-    def initialize(group = nil, checked = nil, &block)
+    def initialize(group = nil, checked: nil, &block)
+      super
       @group = group
       @block = block
-      super
 
       bind_self_event("click") { click }
       create_display_widget
