@@ -29,8 +29,17 @@ module Shoes
     end
 
     def replace(*children)
-      @text_children = children
+      update_text_children(*children)
+    end
 
+    def text=(children)
+      update_text_children(*children)
+    end
+
+    private
+
+    def update_text_children(*children)
+      @text_children = children
       # This should signal the display widget to change
       self.text_items = text_children_to_items(@text_children)
     end
