@@ -2,7 +2,7 @@
 
 module Shoes
   class Check < Shoes::Drawable
-    display_properties :checked
+    shoes_styles :checked
 
     def initialize(checked = nil, &block)
       @block = block

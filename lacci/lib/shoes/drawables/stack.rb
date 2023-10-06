@@ -7,7 +7,7 @@ module Shoes
     include Shoes::Spacing
 
     # TODO: sort out various margin and padding properties, including putting stuff into spacing
-    display_properties :width, :height, :scroll
+    shoes_styles :width, :height, :scroll
 
     def initialize(width: nil, height: nil, margin: nil, padding: nil, scroll: false, margin_top: nil, margin_bottom: nil, margin_left: nil,
       margin_right: nil, **options, &block)

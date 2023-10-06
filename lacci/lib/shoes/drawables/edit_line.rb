@@ -2,7 +2,7 @@
 
 module Shoes
   class EditLine < Shoes::Drawable
-    display_properties :text, :width
+    shoes_styles :text, :width
 
     def initialize(text = "", width: nil, &block)
       super

@@ -13,7 +13,7 @@
 # Events not yet implemented: start, finish events for slots -
 # start is first draw, finish is widget destroyed
 class Shoes::SubscriptionItem < Shoes::Drawable
-  display_properties :shoes_api_name, :args
+  shoes_style :shoes_api_name, :args
 
   def initialize(args: [], shoes_api_name:, &block)
     super

@@ -5,7 +5,7 @@ module Shoes
   # group. If no group is specified, or the group is nil, default to all
   # radio buttons in the same slot being treated as being in the same group.
   class Radio < Shoes::Drawable
-    display_properties :group, :checked
+    shoes_styles :group, :checked
 
     def initialize(group = nil, checked: nil, &block)
       super

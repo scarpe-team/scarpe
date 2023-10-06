@@ -3,7 +3,7 @@
 module Shoes
   module Border
     def self.included(includer)
-      includer.display_properties :border_color, :options
+      includer.shoes_styles :border_color, :options
     end
 
     # Considering a signature like this:

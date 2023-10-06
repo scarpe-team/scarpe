@@ -2,9 +2,9 @@
 require 'erb'
 
 class ScarpeGenerator
-  def initialize(filename, display_properties)
+  def initialize(filename, shoes_styles)
     @filename = filename
-    @display_properties = display_properties
+    @shoes_styles = shoes_styles
   end
 
   def generate_files(choice, class_template_choice)
@@ -96,7 +96,7 @@ class ScarpeGenerator
     capitalized_argument = @filename.capitalize
     binding.dup.tap do |b|
       b.local_variable_set(:argument, capitalized_argument)
-      b.local_variable_set(:display_properties, @display_properties)
+      b.local_variable_set(:shoes_styles, @shoes_styles)
     end
   end
 end
@@ -109,7 +109,7 @@ Shoes.app(title: 'Templates') do
     end
 
     stack width: 400 do
-      para 'Enter display properties (like :height,:text) '
+      para 'Enter Shoes styles (like :height,:text) '
       $properties_input = edit_line
     end
 
@@ -125,10 +125,10 @@ Shoes.app(title: 'Templates') do
 
     button 'Generate Files!',color:"#FF7116",padding_bottom:"8",padding_top:"8",text_color:"white",font_size:"16" do
       filename = $filename_input.text
-      display_properties = $properties_input.text
+      shoes_styles = $properties_input.text
       choice = $choice_input.selected_item
 
-      generator = ScarpeGenerator.new(filename, display_properties)
+      generator = ScarpeGenerator.new(filename, shoes_styles)
 
       if choice == 'Class'
         generator.generate_files(choice, $class_template_choice_input.selected_item)

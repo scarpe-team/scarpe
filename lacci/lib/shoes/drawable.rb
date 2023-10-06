@@ -39,7 +39,7 @@ module Shoes
 
       def validate_as(prop_name, value)
         prop_name = prop_name.to_s
-        hashes = display_property_hashes
+        hashes = shoes_style_hashes
 
         h = hashes.detect { |hash| hash[:name] == prop_name }
         raise(Shoes::NoSuchStyleError, "Can't find property #{prop_name.inspect} in #{self} property list: #{hashes.inspect}!") unless h
@@ -60,10 +60,10 @@ module Shoes
 
       public
 
-      # Display properties in Shoes Linkables are automatically sync'd with the display side objects.
-      # If a block is passed to display_property, that's the validation for the property. It should
+      # Shoes styles in Shoes Linkables are automatically sync'd with the display side objects.
+      # If a block is passed to shoes_style, that's the validation for the property. It should
       # convert a given value to a valid value for the property or throw an exception.
-      def display_property(name, &validator)
+      def shoes_style(name, &validator)
         name = name.to_s
 
         return if linkable_properties_hash[name]
@@ -72,38 +72,38 @@ module Shoes
         linkable_properties_hash[name] = true
       end
 
-      # Add these names as display properties
-      def display_properties(*names)
-        names.each { |n| display_property(n) }
+      # Add these names as Shoes styles
+      def shoes_styles(*names)
+        names.each { |n| shoes_style(n) }
       end
 
-      def display_property_names
-        parent_prop_names = self != Shoes::Drawable ? self.superclass.display_property_names : []
+      def shoes_style_names
+        parent_prop_names = self != Shoes::Drawable ? self.superclass.shoes_style_names : []
 
         parent_prop_names | linkable_properties.map { |prop| prop[:name] }
       end
 
-      def display_property_hashes
-        parent_hashes = self != Shoes::Drawable ? self.superclass.display_property_hashes : []
+      def shoes_style_hashes
+        parent_hashes = self != Shoes::Drawable ? self.superclass.shoes_style_hashes : []
 
         parent_hashes + linkable_properties
       end
 
-      def display_property_name?(name)
+      def shoes_style_name?(name)
         linkable_properties_hash[name.to_s] ||
-          (self != Shoes::Drawable && superclass.display_property_name?(name))
+          (self != Shoes::Drawable && superclass.shoes_style_name?(name))
       end
     end
 
     # Shoes uses a "hidden" style property for hide/show
-    display_property :hidden
+    shoes_style :hidden
 
     def initialize(*args, **kwargs)
       log_init("Drawable")
 
       default_styles = Shoes::Drawable.drawable_default_styles[self.class]
 
-      self.class.display_property_names.each do |prop|
+      self.class.shoes_style_names.each do |prop|
         prop_sym = prop.to_sym
         if kwargs[prop_sym]
           val = self.class.validate_as(prop, kwargs[prop_sym])
@@ -120,7 +120,7 @@ module Shoes
     def inspect
       "#<#{self.class}:#{self.object_id} " +
         "@linkable_id=#{@linkable_id.inspect} @parent=#{@parent.inspect} " +
-        "@children=#{@children.inspect} properties=#{display_property_values.inspect}>"
+        "@children=#{@children.inspect} properties=#{shoes_style_values.inspect}>"
     end
 
     private
@@ -137,8 +137,8 @@ module Shoes
 
     public
 
-    def display_property_values
-      all_property_names = self.class.display_property_names
+    def shoes_style_values
+      all_property_names = self.class.shoes_style_names
 
       properties = {}
       all_property_names.each do |prop|
@@ -151,10 +151,10 @@ module Shoes
     def style(*args, **kwargs)
       if args.empty? && kwargs.empty?
         # Just called as .style()
-        display_property_values
+        shoes_style_values
       elsif args.empty?
-        # This is called to set one or more Shoes styles (display properties.)
-        prop_names = self.class.display_property_names
+        # This is called to set one or more Shoes styles
+        prop_names = self.class.shoes_style_names
         unknown_styles = kwargs.keys.select { |k| !prop_names.include?(k.to_s) }
         unless unknown_styles.empty?
           raise Shoes::NoSuchStyleError, "Unknown styles for drawable type #{self.class.name}: #{unknown_styles.join(", ")}"
@@ -179,7 +179,7 @@ module Shoes
       klass_name = self.class.name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
 
       # Should we save a reference to drawable for later reference?
-      ::Shoes::DisplayService.display_service.create_display_drawable_for(klass_name, self.linkable_id, display_property_values)
+      ::Shoes::DisplayService.display_service.create_display_drawable_for(klass_name, self.linkable_id, shoes_style_values)
     end
 
     public
@@ -216,15 +216,15 @@ module Shoes
     end
 
     # We use method_missing for drawable-creating methods like "button",
-    # and also to auto-create display-property getters and setters.
+    # and also to auto-create Shoes style getters and setters.
     def method_missing(name, *args, **kwargs, &block)
       name_s = name.to_s
 
       if name_s[-1] == "="
         prop_name = name_s[0..-2]
-        if self.class.display_property_name?(prop_name)
+        if self.class.shoes_style_name?(prop_name)
           self.class.define_method(name) do |new_value|
-            raise Shoes::NoLinkableIdError, "Trying to set display properties in an object with no linkable ID!" unless linkable_id
+            raise Shoes::NoLinkableIdError, "Trying to set Shoes styles in an object with no linkable ID!" unless linkable_id
 
             new_value = self.class.validate_as(prop_name, new_value)
             instance_variable_set("@" + prop_name, new_value)
@@ -235,9 +235,9 @@ module Shoes
         end
       end
 
-      if self.class.display_property_name?(name_s)
+      if self.class.shoes_style_name?(name_s)
         self.class.define_method(name) do
-          raise Shoes::NoLinkableIdError, "Trying to get display properties in an object with no linkable ID!" unless linkable_id
+          raise Shoes::NoLinkableIdError, "Trying to get Shoes styles in an object with no linkable ID!" unless linkable_id
 
           instance_variable_get("@" + name_s)
         end
@@ -264,8 +264,8 @@ module Shoes
 
     def respond_to_missing?(name, include_private = false)
       name_s = name.to_s
-      return true if self.class.display_property_name?(name_s)
-      return true if self.class.display_property_name?(name_s[0..-2]) && name_s[-1] == "="
+      return true if self.class.shoes_style_name?(name_s)
+      return true if self.class.shoes_style_name?(name_s[0..-2]) && name_s[-1] == "="
       return true if Drawable.drawable_class_by_name(name_s)
 
       super

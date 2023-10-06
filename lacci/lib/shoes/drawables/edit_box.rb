@@ -2,7 +2,7 @@
 
 module Shoes
   class EditBox < Shoes::Drawable
-    display_properties :text, :height, :width
+    shoes_styles :text, :height, :width
 
     def initialize(text = "", height: nil, width: nil, &block)
       super

@@ -2,7 +2,7 @@
 
 module Shoes
   class ListBox < Shoes::Drawable
-    display_properties :selected_item, :items, :height, :width, :choose
+    shoes_styles :selected_item, :items, :height, :width, :choose
 
     def initialize(args = {}, &block)
       super

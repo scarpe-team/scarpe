@@ -14,7 +14,7 @@ end
 #
 #     * html_id - the HTML ID for the specific rendered DOM object
 #     * handler_js_code(event_name) - the JS handler code for this DOM object and event name
-#     * (optional) display_properties - the display properties for this object, unless overridden in render()
+#     * (optional) shoes_styles - the Shoes styles for this object, unless overridden in render()
 module Scarpe::Components::Calzini
   extend self
 
@@ -33,7 +33,7 @@ module Scarpe::Components::Calzini
   }.freeze
   private_constant :SIZES
 
-  def render(drawable, properties = display_properties, &block)
+  def render(drawable, properties = shoes_styles, &block)
     send("#{drawable}_element", properties, &block)
   end
 

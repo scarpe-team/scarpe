@@ -2,7 +2,7 @@
 
 module Shoes
   class Font < Shoes::Drawable
-    display_properties :font
+    shoes_styles :font
 
     def initialize(font)
       super

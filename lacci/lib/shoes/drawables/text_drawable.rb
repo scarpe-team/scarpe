@@ -23,7 +23,7 @@ module Shoes
 
       drawable_class = Class.new(Shoes::TextDrawable) do
         # Can we just change content to text to match the Shoes API?
-        display_property :content
+        shoes_style :content
 
         def initialize(content)
           super
@@ -43,7 +43,7 @@ module Shoes
       end
       Shoes.const_set class_name, drawable_class
       drawable_class.class_eval do
-        display_property :content
+        shoes_style :content
       end
     end
   end

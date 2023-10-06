@@ -6,7 +6,7 @@ module Shoes
     include Shoes::Border
     include Shoes::Spacing
 
-    display_properties :width, :height, :margin, :padding
+    shoes_styles :width, :height, :margin, :padding
 
     def initialize(width: "100%", height: nil, margin: nil, padding: nil, **options, &block)
       super

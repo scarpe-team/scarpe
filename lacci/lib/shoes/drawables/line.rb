@@ -2,7 +2,7 @@
 
 module Shoes
   class Line < Shoes::Drawable
-    display_properties :left, :top, :x2, :y2, :draw_context
+    shoes_styles :left, :top, :x2, :y2, :draw_context
 
     def initialize(left, top, x2, y2)
       super

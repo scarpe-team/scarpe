@@ -27,7 +27,7 @@ module Scarpe::Webview
     end
 
     def element
-      render "video", display_properties.merge("format" => @format)
+      render "video", shoes_styles.merge("format" => @format)
     end
   end
 end

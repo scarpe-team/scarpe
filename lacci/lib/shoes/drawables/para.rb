@@ -2,8 +2,8 @@
 
 module Shoes
   class Para < Shoes::Drawable
-    display_properties :text_items, :size, :font, :html_attributes, :hidden
-    display_property(:stroke) { |val| Shoes::Colors.to_rgb(val) }
+    shoes_styles :text_items, :size, :font, :html_attributes, :hidden
+    shoes_style(:stroke) { |val| Shoes::Colors.to_rgb(val) }
 
     def initialize(*args, stroke: nil, size: :para, font: nil, hidden: false, **html_attributes)
       super
@@ -14,7 +14,7 @@ module Shoes
         @text_items = []
       else
         # Text_children alternates strings and TextDrawables, so we can't just pass
-        # it as a display property. It won't serialize.
+        # it as a Shoes style. It won't serialize.
         @text_items = text_children_to_items(@text_children)
         @hidden_text_items = []
       end

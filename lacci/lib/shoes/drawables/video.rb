@@ -2,7 +2,7 @@
 
 module Shoes
   class Video < Shoes::Drawable
-    display_properties :url
+    shoes_styles :url
 
     def initialize(url)
       super

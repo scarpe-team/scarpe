@@ -2,7 +2,7 @@
 
 module Shoes
   class Link < Shoes::TextDrawable
-    display_properties :text, :click, :has_block
+    shoes_styles :text, :click, :has_block
 
     def initialize(text, click: nil, &block)
       super

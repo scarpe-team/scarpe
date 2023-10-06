@@ -2,7 +2,7 @@
 
 module Shoes
   class Image < Shoes::Drawable
-    display_properties :url, :width, :height, :top, :left, :click
+    shoes_styles :url, :width, :height, :top, :left, :click
 
     def initialize(url, width: nil, height: nil, top: nil, left: nil, click: nil)
       super

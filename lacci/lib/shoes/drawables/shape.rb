@@ -10,7 +10,7 @@ module Shoes
   #
   # @incompatibility A Shoes3 Shape is *not* a slot; Scarpe does *not* do union shapes
   class Shape < Shoes::Slot
-    display_properties :left, :top, :shape_commands, :draw_context
+    shoes_styles :left, :top, :shape_commands, :draw_context
 
     def initialize(left: nil, top: nil, &block)
       @shape_commands = []

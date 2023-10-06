@@ -21,7 +21,7 @@ module Scarpe::Webview
     end
 
     def element
-      props = display_properties
+      props = shoes_styles
 
       # If a group isn't set, default to the linkable ID of the parent slot
       unless @group

@@ -49,7 +49,7 @@ module Scarpe
     #
     # @param drawable_class_name [String] The class name of the Shoes drawable, e.g. Shoes::Button
     # @param drawable_id [String] the linkable ID for drawable events
-    # @param properties [Hash] a JSON-serialisable Hash with the drawable's display properties
+    # @param properties [Hash] a JSON-serialisable Hash with the drawable's Shoes styles
     # @return [Webview::Drawable] the newly-created Webview drawable
     def create_display_drawable_for(drawable_class_name, drawable_id, properties)
       existing = query_display_drawable_for(drawable_id, nil_ok: true)

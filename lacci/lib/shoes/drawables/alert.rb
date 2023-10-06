@@ -2,7 +2,7 @@
 
 module Shoes
   class Alert < Shoes::Drawable
-    display_property :text
+    shoes_style :text
 
     def initialize(text)
       @text = text

@@ -4,10 +4,10 @@ module Scarpe
   #class InvalidAttributeValueError < Scarpe::Error; end # add new errors to errors.rb
 
   class <%= argument %> < Shoes::Drawable
-    # Display property with verification or value mapping:
-    # display_property(:left) { |val| convert_to_integer(val, "left") }
+    # Shoes style with verification or value mapping:
+    # shoes_style(:left) { |val| convert_to_integer(val, "left") }
 
-    display_properties <%= display_properties %>  # Write your display properties here
+    shoes_styles <%= shoes_styles %>  # Write your shoes styles here
 
     def initialize(left, top)
       @left = convert_to_integer(left, "left")

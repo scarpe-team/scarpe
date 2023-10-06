@@ -10,7 +10,7 @@ module Shoes
 
     attr_reader :document_root
 
-    display_properties :title, :width, :height, :resizable
+    shoes_styles :title, :width, :height, :resizable
 
     CUSTOM_EVENT_LOOP_TYPES = ["displaylib", "return", "wait"]
 

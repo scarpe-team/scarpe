@@ -2,14 +2,14 @@
 
 module Shoes
   class Arc < Shoes::Drawable
-    display_property :draw_context
+    shoes_style :draw_context
 
     [:left, :top, :width, :height].each do |prop|
-      display_property(prop) { |val| convert_to_integer(val, prop) }
+      shoes_style(prop) { |val| convert_to_integer(val, prop) }
     end
 
     [:angle1, :angle2].each do |prop|
-      display_property(prop) { |val| convert_to_float(val, prop) }
+      shoes_style(prop) { |val| convert_to_float(val, prop) }
     end
 
     def initialize(*args)

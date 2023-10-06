@@ -35,12 +35,12 @@ module Scarpe::Webview
     # An array of Webview::Drawable children (possibly empty) of this drawable
     attr_reader :children
 
-    # Set instance variables for the display properties of this drawable. Bind Shoes
+    # Set instance variables for the Shoes styles of this drawable. Bind Shoes
     # events for changes of parent drawable and changes of property values.
     def initialize(properties)
       log_init("Webview::Drawable")
 
-      @display_property_names = properties.keys.map(&:to_s) - ["shoes_linkable_id"]
+      @shoes_style_names = properties.keys.map(&:to_s) - ["shoes_linkable_id"]
 
       # Call method, which looks up the parent
       @shoes_linkable_id = properties["shoes_linkable_id"] || properties[:shoes_linkable_id]
@@ -48,14 +48,14 @@ module Scarpe::Webview
         raise Scarpe::MissingAttributeError, "Could not find property shoes_linkable_id in #{properties.inspect}!"
       end
 
-      # Set the display properties
+      # Set the Shoes styles as instance variables
       properties.each do |k, v|
         next if k == "shoes_linkable_id"
 
         instance_variable_set("@" + k.to_s, v)
       end
 
-      # The parent field is *almost* simple enough that a typed display property would handle it.
+      # The parent field is *almost* simple enough that a validated Shoes style would handle it.
       bind_shoes_event(event_name: "parent", target: shoes_linkable_id) do |new_parent_id|
         display_parent = DisplayService.instance.query_display_drawable_for(new_parent_id)
         if @parent != display_parent
@@ -78,9 +78,9 @@ module Scarpe::Webview
       super(linkable_id: @shoes_linkable_id)
     end
 
-    def display_properties
+    def shoes_styles
       p = {}
-      @display_property_names.each do |prop_name|
+      @shoes_style_names.each do |prop_name|
         p[prop_name] = instance_variable_get("@#{prop_name}")
       end
       p

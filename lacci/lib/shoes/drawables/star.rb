@@ -2,11 +2,11 @@
 
 module Shoes
   class Star < Shoes::Drawable
-    display_properties :left, :top, :draw_context
+    shoes_styles :left, :top, :draw_context
 
-    display_property(:points) { |val| convert_to_integer(val, "points") }
-    display_property(:outer) { |val| convert_to_float(val, "outer") }
-    display_property(:inner) { |val| convert_to_float(val, "inner") }
+    shoes_style(:points) { |val| convert_to_integer(val, "points") }
+    shoes_style(:outer) { |val| convert_to_float(val, "outer") }
+    shoes_style(:inner) { |val| convert_to_float(val, "inner") }
 
     def initialize(left, top, points = 10, outer = 100, inner = 50)
       super

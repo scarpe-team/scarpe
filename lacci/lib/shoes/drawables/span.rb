@@ -2,7 +2,7 @@
 
 module Shoes
   class Span < Shoes::Drawable
-    display_properties :text, :stroke, :size, :font, :html_attributes
+    shoes_styles :text, :stroke, :size, :font, :html_attributes
 
     def initialize(text, stroke: nil, size: :span, font: nil, **html_attributes)
       super

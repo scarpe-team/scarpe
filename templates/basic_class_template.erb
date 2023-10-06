@@ -4,16 +4,16 @@
 module Shoes
   class <%= argument %> < Shoes::Drawable
 
-    # Display Properties
+    # Shoes styles
     # These properties determine the visual characteristics of the drawable
     # Customize them according to your requirements
 
-    # Example display properties:
+    # Example Shoes styles:
     # :background_color - Sets the background color of the drawable (<%= argument %>)
     # :width - Specifies the width of the drawable(<%= argument %>)
     # :height - Specifies the height of the drawable(<%= argument %>)
 
-    display_properties <%= display_properties %>
+    shoes_styles <%= shoes_styles %>
 
     def initialize
       super
@@ -26,9 +26,8 @@ module Shoes
       #   # Event handling code goes here
       # end
 
-
       # This method uses the DisplayService to create a visual representation of the drawable
-      # It generates a display drawable based on the specified display properties
+      # It generates a display drawable based on the specified Shoes styles
       create_display_drawable
     end
 
