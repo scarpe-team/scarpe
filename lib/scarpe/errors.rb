@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe
+module Scarpe
   class UnknownShoesEventAPIError < Scarpe::Error; end
 
   class UnknownShapeCommandError < Scarpe::Error; end

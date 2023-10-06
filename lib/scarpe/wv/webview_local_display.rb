@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe
+module Scarpe
   # This is the simplest type of Webview DisplayService. It creates Webview widgets
   # corresponding to Shoes widgets, manages the Webview and its DOM tree, and
   # generally keeps the Shoes/Webview connection working.

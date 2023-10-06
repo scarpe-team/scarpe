@@ -2,6 +2,7 @@
 
 require_relative "html"
 require_relative "base64"
+require_relative "errors"
 
 # Require all widget rendering code under calzini directory
 Dir.glob("calzini/*.rb", base: __dir__) do |widget|

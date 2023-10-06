@@ -5,7 +5,7 @@ require "rbconfig"
 
 require_relative "webview_relay_util"
 
-class Scarpe
+module Scarpe
   # This display service creates a child process and sends events
   # back and forth, but creates no widgets of its own. The child
   # process will spawn a worker with its own Webview::DisplayService
