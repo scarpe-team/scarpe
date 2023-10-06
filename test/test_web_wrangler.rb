@@ -8,7 +8,7 @@ require "test_helper"
 class TestWebWranglerInScarpeApp < LoggedScarpeTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
-  # Need to make sure that even with no widgets we still get at least one redraw
+  # Need to make sure that even with no drawables we still get at least one redraw
   def test_empty_app
     run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
       Shoes.app do

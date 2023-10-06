@@ -3,7 +3,7 @@
 require "scarpe/components/base64"
 
 module Scarpe::Webview
-  class Font < Widget
+  class Font < Drawable
     include Scarpe::Components::Base64
     attr_accessor :font
 

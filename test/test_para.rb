@@ -103,7 +103,7 @@ class TestWebviewPara < ScarpeWebviewTest
     mocked_html_element.verify
   end
 
-  def test_children_can_be_text_widgets
+  def test_children_can_be_text_drawables
     strong = Scarpe::Webview::Strong.new("content" => "I am strong", "shoes_linkable_id" => 2)
     para = Scarpe::Webview::Para.new(@default_properties.merge("text_items" => [strong]))
     para.stub :items_to_display_children, [strong], [2] do
@@ -113,7 +113,7 @@ class TestWebviewPara < ScarpeWebviewTest
     end
   end
 
-  def test_can_replace_widgets_with_other_widgets
+  def test_can_replace_drawables_with_other_drawables
     strong = Scarpe::Webview::Strong.new("content" => "I am strong", "shoes_linkable_id" => 2)
     em = Scarpe::Webview::Em.new("content" => "I am em", "shoes_linkable_id" => 3)
     para = Scarpe::Webview::Para.new(@default_properties.merge("text_items" => [strong]))

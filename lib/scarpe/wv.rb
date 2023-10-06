@@ -16,7 +16,7 @@ require "scarpe/components/promises"
 module Scarpe::Webview
   HTML = Scarpe::Components::HTML
 
-  class Widget < Shoes::Linkable
+  class Drawable < Shoes::Linkable
     # This is where we would make the HTML renderer modular by choosing another
     require "scarpe/components/calzini"
     include Scarpe::Components::Calzini
@@ -40,7 +40,7 @@ Shoes.add_file_loader loader
 require_relative "wv/web_wrangler"
 require_relative "wv/control_interface"
 
-require_relative "wv/widget"
+require_relative "wv/drawable"
 
 require_relative "wv/star"
 require_relative "wv/radio"
@@ -64,7 +64,7 @@ require_relative "wv/alert"
 require_relative "wv/span"
 require_relative "wv/shape"
 
-require_relative "wv/text_widget"
+require_relative "wv/text_drawable"
 require_relative "wv/link"
 require_relative "wv/line"
 require_relative "wv/video"

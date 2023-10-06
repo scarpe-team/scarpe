@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Shoes
-  class Image < Shoes::Widget
+  class Image < Shoes::Drawable
     display_properties :url, :width, :height, :top, :left, :click
 
     def initialize(url, width: nil, height: nil, top: nil, left: nil, click: nil)
@@ -11,7 +11,7 @@ module Shoes
       # Get the image dimensions
       # @width, @height = size
 
-      create_display_widget
+      create_display_drawable
     end
 
     def replace(url)

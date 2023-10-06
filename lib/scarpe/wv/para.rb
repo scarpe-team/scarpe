@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Scarpe::Webview
-  class Para < Widget
+  class Para < Drawable
     # Currently this is duplicated in Calzini. How to refactor?
     # Similarly, we make some assumptions about when size is a symbol
     # versus string that may not survive JSON deserialization.
@@ -41,7 +41,7 @@ module Scarpe::Webview
         if item.is_a?(String)
           item
         else
-          Scarpe::Webview::DisplayService.instance.query_display_widget_for(item)
+          Scarpe::Webview::DisplayService.instance.query_display_drawable_for(item)
         end
       end
     end
@@ -51,7 +51,7 @@ module Scarpe::Webview
     end
 
     # Because para's to_html takes a block, and it needs to convert IDs into display
-    # widgets, it needs to also override to_html
+    # drawables, it needs to also override to_html
     def to_html
       @children ||= []
 

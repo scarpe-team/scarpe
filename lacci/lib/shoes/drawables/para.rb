@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Shoes
-  class Para < Shoes::Widget
+  class Para < Shoes::Drawable
     display_properties :text_items, :size, :font, :html_attributes, :hidden
     display_property(:stroke) { |val| Shoes::Colors.to_rgb(val) }
 
@@ -13,7 +13,7 @@ module Shoes
         @hidden_text_items = text_children_to_items(@text_children)
         @text_items = []
       else
-        # Text_children alternates strings and TextWidgets, so we can't just pass
+        # Text_children alternates strings and TextDrawables, so we can't just pass
         # it as a display property. It won't serialize.
         @text_items = text_children_to_items(@text_children)
         @hidden_text_items = []
@@ -21,7 +21,7 @@ module Shoes
 
       @html_attributes = html_attributes || {}
 
-      create_display_widget
+      create_display_drawable
     end
 
     def text_children_to_items(text_children)
@@ -40,14 +40,14 @@ module Shoes
 
     def update_text_children(*children)
       @text_children = children
-      # This should signal the display widget to change
+      # This should signal the display drawable to change
       self.text_items = text_children_to_items(@text_children)
     end
   end
 end
 
 module Shoes
-  class Widget
+  class Drawable
     def banner(*args, **kwargs)
       para(*args, **{ size: :banner }.merge(kwargs))
     end

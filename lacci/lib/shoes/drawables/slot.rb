@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Shoes::Slot < Shoes::Widget
+class Shoes::Slot < Shoes::Drawable
   # @incompatibility Shoes uses #content, not #children, for this
   attr_reader :children
 
@@ -19,7 +19,7 @@ class Shoes::Slot < Shoes::Widget
     @children << child
   end
 
-  # Get a list of child widgets
+  # Get a list of child drawables
   def contents
     @children ||= []
     @children.dup
@@ -41,7 +41,7 @@ class Shoes::Slot < Shoes::Widget
     Shoes::App.instance
   end
 
-  # Remove all children from this widget. If a block
+  # Remove all children from this drawable. If a block
   # is given, call the block to replace the children with
   # new contents from that block.
   #
@@ -50,7 +50,7 @@ class Shoes::Slot < Shoes::Widget
   #
   # @incompatibility Shoes Classic calls the clear block with current self, while Scarpe uses the Shoes::App as self
   #
-  # @yield The block to call to replace the contents of the widget (optional)
+  # @yield The block to call to replace the contents of the drawable (optional)
   # @return [void]
   def clear(&block)
     @children.dup.each(&:destroy)

@@ -73,7 +73,7 @@ class TestEditBox < LoggedScarpeTest
   # Amusingly, this hits a Webview bug. You can do the same thing in the console.
   # The value updates, including on the screen, but querying the innerHTML of the
   # enclosing element shows the *old* value, not the new one.
-  #def test_textarea_widget_change
+  #def test_textarea_drawable_change
   #  run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
   #    Shoes.app do
   #      edit_box "Hello, World!"

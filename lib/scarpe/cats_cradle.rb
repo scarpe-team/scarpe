@@ -6,8 +6,8 @@ require "scarpe/evented_assertions"
 require "fiber"
 
 module Scarpe::Test
-  # We'd like something we can call Shoes widget methods on, such as para.replace.
-  # But we'd also like to be able to grab the corresponding display widget and
+  # We'd like something we can call Shoes drawable methods on, such as para.replace.
+  # But we'd also like to be able to grab the corresponding display drawable and
   # call some of *those* methods.
   class CCProxy
     attr_reader :display
@@ -16,7 +16,7 @@ module Scarpe::Test
     def initialize(obj)
       @obj = obj
       # TODO: how to do this with Webview relay? Proxy object to send a message, maybe?
-      @display = ::Shoes::DisplayService.display_service.query_display_widget_for(obj.linkable_id)
+      @display = ::Shoes::DisplayService.display_service.query_display_drawable_for(obj.linkable_id)
     end
 
     def method_missing(method, ...)
@@ -136,24 +136,24 @@ module Scarpe::Test
       @waiting_fibers << { promise: event_promise(event), fiber: f }
     end
 
-    # What to do about TextWidgets? Link, code, em, strong?
+    # What to do about TextDrawables? Link, code, em, strong?
     # Also, wait, what's up with span? What *is* that?
-    Shoes::Widget.widget_classes.each do |widget_class|
-      finder_name = widget_class.dsl_name
+    Shoes::Drawable.drawable_classes.each do |drawable_class|
+      finder_name = drawable_class.dsl_name
 
       define_method(finder_name) do |*args|
         app = Shoes::App.instance
 
-        widgets = app.find_widgets_by(widget_class, *args)
-        raise Scarpe::MultipleWidgetsFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if widgets.size > 1
-        raise Scarpe::NoWidgetsFoundError, "Found no #{finder_name} matching #{args.inspect}!" if widgets.empty?
+        drawables = app.find_drawables_by(drawable_class, *args)
+        raise Scarpe::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
+        raise Scarpe::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
 
-        CCProxy.new(widgets[0])
+        CCProxy.new(drawables[0])
       end
     end
 
-    def proxy_for(shoes_widget)
-      CCProxy.new(shoes_widget)
+    def proxy_for(shoes_drawable)
+      CCProxy.new(shoes_drawable)
     end
 
     def die_after(time)

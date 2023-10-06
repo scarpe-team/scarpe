@@ -109,7 +109,7 @@ module Scarpe
       elsif m_data["type"] == "create"
         raise Scarpe::InvalidOperationError, "Parent process should never receive :create datagram!" if @i_am == :parent
 
-        @wv_display.create_display_widget_for(m_data["class_name"], m_data["id"], m_data["properties"])
+        @wv_display.create_display_drawable_for(m_data["class_name"], m_data["id"], m_data["properties"])
       elsif m_data["type"] == "destroy"
         if @i_am == :parent
           @shutdown = true

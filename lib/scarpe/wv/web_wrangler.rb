@@ -10,7 +10,7 @@ require "cgi"
 
 module Scarpe::Webview
   # The Scarpe WebWrangler, for Webview, manages a lot of Webviews quirks. It provides
-  # a simpler underlying abstraction for DOMWrangler and the Webview widgets.
+  # a simpler underlying abstraction for DOMWrangler and the Webview drawables.
   # Webview can be picky - if you send it too many messages, it can crash. If the
   # messages you send it are too large, it can crash. If you don't return control
   # to its event loop, it can crash. It doesn't save references to all event handlers,
@@ -725,12 +725,12 @@ class Scarpe::Webview::WebWrangler
     end
   end
 
-  # An ElementWrangler provides a way for a Widget to manipulate is DOM element(s)
-  # via their HTML IDs. The most straightforward Widgets can have a single HTML ID
+  # An ElementWrangler provides a way for a Drawable to manipulate is DOM element(s)
+  # via their HTML IDs. The most straightforward Drawables can have a single HTML ID
   # and use a single ElementWrangler to make any needed changes.
   #
   # For now we don't need an ElementWrangler to add DOM elements, just to manipulate them
-  # after initial render. New DOM objects for Widgets are normally added via full
+  # after initial render. New DOM objects for Drawables are normally added via full
   # redraws rather than incremental updates.
   #
   # Any changes made via ElementWrangler may be cancelled if a full redraw occurs,

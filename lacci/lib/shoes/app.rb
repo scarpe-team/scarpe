@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Shoes
-  class App < Shoes::Widget
+  class App < Shoes::Drawable
     include Shoes::Log
 
     class << self
@@ -36,20 +36,20 @@ module Shoes
       super
 
       # The draw context tracks current settings like fill and stroke,
-      # plus potentially other current state that changes from widget
-      # to widget and slot to slot.
+      # plus potentially other current state that changes from drawable
+      # to drawable and slot to slot.
       @draw_context = {
         "fill" => "",
         "stroke" => "",
       }
 
-      # This creates the DocumentRoot, including its corresponding display widget
+      # This creates the DocumentRoot, including its corresponding display drawable
       @document_root = Shoes::DocumentRoot.new
 
       @slots = []
 
-      # Now create the App display widget
-      create_display_widget
+      # Now create the App display drawable
+      create_display_drawable
 
       # Set up testing events *after* Display Service basic objects exist
       if ENV["SCARPE_APP_TEST"]
@@ -90,9 +90,9 @@ module Shoes
       ::Shoes::App.instance.with_slot(@document_root, &@app_code_body)
     end
 
-    # "Container" widgets like flows, stacks, masks and the document root
+    # "Container" drawables like flows, stacks, masks and the document root
     # are considered "slots" in Shoes parlance. When a new slot is created,
-    # we push it here in order to track what widgets are found in that slot.
+    # we push it here in order to track what drawables are found in that slot.
     def push_slot(slot)
       @slots.push(slot)
     end
@@ -154,7 +154,7 @@ module Shoes
       send_shoes_event(event_name: "destroy") if send_event
     end
 
-    def all_widgets
+    def all_drawables
       out = []
 
       to_add = @document_root.children
@@ -166,13 +166,13 @@ module Shoes
       out
     end
 
-    # We can add various ways to find widgets here.
+    # We can add various ways to find drawables here.
     # These are sort of like Shoes selectors, used for testing.
-    def find_widgets_by(*specs)
-      widgets = all_widgets
+    def find_drawables_by(*specs)
+      drawables = all_drawables
       specs.each do |spec|
         if spec.is_a?(Class)
-          widgets.select! { |w| spec === w }
+          drawables.select! { |w| spec === w }
         elsif spec.is_a?(Symbol) || spec.is_a?(String)
           s = spec.to_s
           case s[0]
@@ -180,23 +180,23 @@ module Shoes
             begin
               # I'm not finding a global_variable_get or similar...
               global_value = eval s
-              widgets &= [global_value]
+              drawables &= [global_value]
             rescue
               raise InvalidAttributeValueError, "Error getting global variable: #{spec.inspect}"
             end
           when "@"
             if Shoes::App.instance.instance_variables.include?(spec.to_sym)
-              widgets &= [self.instance_variable_get(spec)]
+              drawables &= [self.instance_variable_get(spec)]
             else
               raise InvalidAttributeValueError, "Can't find top-level instance variable: #{spec.inspect}!"
             end
           else
           end
         else
-          raise(InvalidAttributeValueError, "Don't know how to find widgets by #{spec.inspect}!")
+          raise(InvalidAttributeValueError, "Don't know how to find drawables by #{spec.inspect}!")
         end
       end
-      widgets
+      drawables
     end
   end
 end

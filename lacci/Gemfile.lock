@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    lacci (0.2.2)
+    lacci (0.3.0)
 
 GEM
   remote: https://rubygems.org/

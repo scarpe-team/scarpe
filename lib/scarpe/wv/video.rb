@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Scarpe::Webview
-  class Video < Widget
+  class Video < Drawable
     SUPPORTED_FORMATS = {
       "video/mp4" => [".mp4"],
       "video/webp" => [".webp"],

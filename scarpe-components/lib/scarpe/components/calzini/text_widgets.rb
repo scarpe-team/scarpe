@@ -40,7 +40,7 @@ module Scarpe::Components::Calzini
       id: html_id,
       href: props["click"],
       onclick: (handler_js_code("click") if props["has_block"]),
-      style: widget_style(props),
+      style: drawable_style(props),
     }.compact
   end
 

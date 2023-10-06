@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Shoes
-  class Link < Shoes::TextWidget
+  class Link < Shoes::TextDrawable
     display_properties :text, :click, :has_block
 
     def initialize(text, click: nil, &block)
@@ -9,17 +9,17 @@ module Shoes
 
       @text = text
       @block = block
-      # We can't send a block to the display widget, but we can send a boolean
+      # We can't send a block to the display drawable, but we can send a boolean
       @has_block = !block.nil?
 
-      # The click property should be changed before it gets sent to the display widget
+      # The click property should be changed before it gets sent to the display drawable
       @click ||= "#"
 
       bind_self_event("click") do
         @block&.call
       end
 
-      create_display_widget
+      create_display_drawable
     end
   end
 

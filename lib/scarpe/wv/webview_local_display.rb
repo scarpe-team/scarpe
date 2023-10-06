@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Scarpe
-  # This is the simplest type of Webview DisplayService. It creates Webview widgets
-  # corresponding to Shoes widgets, manages the Webview and its DOM tree, and
+  # This is the simplest type of Webview DisplayService. It creates Webview drawables
+  # corresponding to Shoes drawables, manages the Webview and its DOM tree, and
   # generally keeps the Shoes/Webview connection working.
   #
   # This is an in-process Webview-based display service, with all the limitations that
@@ -20,7 +20,7 @@ module Scarpe
     # The ControlInterface is used to handle internal events in Webview Scarpe
     attr_reader :control_interface
 
-    # The DocumentRoot is the top widget of the Webview-side widget tree
+    # The DocumentRoot is the top drawable of the Webview-side drawable tree
     attr_reader :doc_root
 
     # app is the Scarpe::Webview::App
@@ -29,7 +29,7 @@ module Scarpe
     # wrangler is the Scarpe::WebWrangler
     attr_reader :wrangler
 
-    # This is called before any of the various Webview::Widgets are created, to be
+    # This is called before any of the various Webview::Drawables are created, to be
     # able to create them and look them up.
     def initialize
       if Webview::DisplayService.instance
@@ -41,18 +41,24 @@ module Scarpe
       super()
       log_init("Webview::DisplayService")
 
-      @display_widget_for = {}
+      @display_drawable_for = {}
     end
 
-    # Create a Webview display widget for a specific Shoes widget, and pair it with
-    # the linkable ID for this Shoes widget.
+    # Create a Webview display drawable for a specific Shoes drawable, and pair it with
+    # the linkable ID for this Shoes drawable.
     #
-    # @param widget_class_name [String] The class name of the Shoes widget, e.g. Shoes::Button
-    # @param widget_id [String] the linkable ID for widget events
-    # @param properties [Hash] a JSON-serialisable Hash with the widget's display properties
-    # @return [Webview::Widget] the newly-created Webview widget
-    def create_display_widget_for(widget_class_name, widget_id, properties)
-      if widget_class_name == "App"
+    # @param drawable_class_name [String] The class name of the Shoes drawable, e.g. Shoes::Button
+    # @param drawable_id [String] the linkable ID for drawable events
+    # @param properties [Hash] a JSON-serialisable Hash with the drawable's display properties
+    # @return [Webview::Drawable] the newly-created Webview drawable
+    def create_display_drawable_for(drawable_class_name, drawable_id, properties)
+      existing = query_display_drawable_for(drawable_id, nil_ok: true)
+      if existing
+        @log.warn("There is already a display drawable for #{drawable_id.inspect}! Returning #{existing.class.name}.")
+        return existing
+      end
+
+      if drawable_class_name == "App"
         unless @doc_root
           raise Scarpe::MissingDocRootError, "Webview::DocumentRoot is supposed to be created before Webview::App!"
         end
@@ -64,23 +70,23 @@ module Scarpe
         @app = @control_interface.app
         @wrangler = @control_interface.wrangler
 
-        set_widget_pairing(widget_id, display_app)
+        set_drawable_pairing(drawable_id, display_app)
 
         return display_app
       end
 
-      # Create a corresponding display widget
-      display_class = Scarpe::Webview::Widget.display_class_for(widget_class_name)
-      display_widget = display_class.new(properties)
-      set_widget_pairing(widget_id, display_widget)
+      # Create a corresponding display drawable
+      display_class = Scarpe::Webview::Drawable.display_class_for(drawable_class_name)
+      display_drawable = display_class.new(properties)
+      set_drawable_pairing(drawable_id, display_drawable)
 
-      if widget_class_name == "DocumentRoot"
-        # DocumentRoot is created before App. Mostly doc_root is just like any other widget,
+      if drawable_class_name == "DocumentRoot"
+        # DocumentRoot is created before App. Mostly doc_root is just like any other drawable,
         # but we'll want a reference to it when we create App.
-        @doc_root = display_widget
+        @doc_root = display_drawable
       end
 
-      display_widget
+      display_drawable
     end
 
     # Destroy the display service and the app. Quit the process (eventually.)

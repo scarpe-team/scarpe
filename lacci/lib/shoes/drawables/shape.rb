@@ -5,8 +5,8 @@ module Shoes
   # ovals, arcs, stars, etc. into a single drawn shape.
   #
   # In Shoes3, a Shape isn't really a Slot. It's a kind of DSL with drawing commands that happen
-  # to have the same name as the Art widgets like star, arc, etc. Here we're treating it as
-  # a slot containing those widgets, which is wrong but not *too* wrong.
+  # to have the same name as the Art drawables like star, arc, etc. Here we're treating it as
+  # a slot containing those drawables, which is wrong but not *too* wrong.
   #
   # @incompatibility A Shoes3 Shape is *not* a slot; Scarpe does *not* do union shapes
   class Shape < Shoes::Slot
@@ -17,7 +17,7 @@ module Shoes
       @draw_context = Shoes::App.instance.current_draw_context
 
       super
-      create_display_widget
+      create_display_drawable
 
       Shoes::App.instance.with_slot(self, &block) if block_given?
     end

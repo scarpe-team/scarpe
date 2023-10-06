@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Shoes
-  class EditLine < Shoes::Widget
+  class EditLine < Shoes::Drawable
     display_properties :text, :width
 
     def initialize(text = "", width: nil, &block)
@@ -14,7 +14,7 @@ module Shoes
         @block&.call(new_text)
       end
 
-      create_display_widget
+      create_display_drawable
     end
 
     def change(&block)

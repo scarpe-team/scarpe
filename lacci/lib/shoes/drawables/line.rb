@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Shoes
-  class Line < Shoes::Widget
+  class Line < Shoes::Drawable
     display_properties :left, :top, :x2, :y2, :draw_context
 
     def initialize(left, top, x2, y2)
@@ -13,7 +13,7 @@ module Shoes
       @y2 = y2
       @draw_context = Shoes::App.instance.current_draw_context
 
-      create_display_widget
+      create_display_drawable
     end
   end
 end

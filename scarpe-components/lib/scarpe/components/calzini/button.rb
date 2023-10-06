@@ -12,7 +12,7 @@ module Scarpe::Components::Calzini
   private
 
   def button_style(props)
-    styles = widget_style(props)
+    styles = drawable_style(props)
 
     styles[:"background-color"] = props["color"] if props["color"]
     styles[:"padding-top"] = props["padding_top"] if props["padding_top"]

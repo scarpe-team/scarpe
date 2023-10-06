@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Scarpe::Webview
-  class Check < Widget
+  class Check < Drawable
     attr_reader :text
 
     def initialize(properties)

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Shoes
-  class Span < Shoes::Widget
+  class Span < Shoes::Drawable
     display_properties :text, :stroke, :size, :font, :html_attributes
 
     def initialize(text, stroke: nil, size: :span, font: nil, **html_attributes)
@@ -13,13 +13,13 @@ module Shoes
       @font = font
       @html_attributes = html_attributes
 
-      create_display_widget
+      create_display_drawable
     end
 
     def replace(text)
       @text = text
 
-      # This should signal the display widget to change
+      # This should signal the display drawable to change
       self.text = @text
     end
   end

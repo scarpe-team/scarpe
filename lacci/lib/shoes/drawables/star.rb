@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Shoes
-  class Star < Shoes::Widget
-    display_properties :left, :top, :points, :outer, :inner, :draw_context
+  class Star < Shoes::Drawable
+    display_properties :left, :top, :draw_context
 
     display_property(:points) { |val| convert_to_integer(val, "points") }
     display_property(:outer) { |val| convert_to_float(val, "outer") }
@@ -14,7 +14,7 @@ module Shoes
 
       @draw_context = Shoes::App.instance.current_draw_context
 
-      create_display_widget
+      create_display_drawable
     end
 
     private

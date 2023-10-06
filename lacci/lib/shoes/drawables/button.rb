@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Shoes
-  class Button < Shoes::Widget
+  class Button < Shoes::Drawable
     include Shoes::Log
     display_properties :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size
 
@@ -22,7 +22,7 @@ module Shoes
         @block&.call
       end
 
-      create_display_widget
+      create_display_drawable
     end
 
     # Set the click handler

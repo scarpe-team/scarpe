@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Shoes
-  class ListBox < Shoes::Widget
+  class ListBox < Shoes::Drawable
     display_properties :selected_item, :items, :height, :width, :choose
 
     def initialize(args = {}, &block)
@@ -17,7 +17,7 @@ module Shoes
         @callback&.call(new_item)
       end
 
-      create_display_widget
+      create_display_drawable
     end
 
     def change(&block)

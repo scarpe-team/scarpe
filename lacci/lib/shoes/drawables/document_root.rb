@@ -9,7 +9,7 @@ module Shoes
 
       super
 
-      create_display_widget
+      create_display_drawable
     end
 
     # The default inspect string can be absolutely huge in console output, and it's frequently printed.

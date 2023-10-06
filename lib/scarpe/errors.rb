@@ -9,9 +9,9 @@ module Scarpe
 
   class UnexpectedFiberTransferError < Scarpe::Error; end
 
-  class MultipleWidgetsFoundError < Scarpe::Error; end
+  class MultipleDrawablesFoundError < Scarpe::Error; end
 
-  class NoWidgetsFoundError < Scarpe::Error; end
+  class NoDrawablesFoundError < Scarpe::Error; end
 
   class InvalidPromiseError < Scarpe::Error; end
 
@@ -50,8 +50,6 @@ module Scarpe
   class InvalidOperationError < Scarpe::Error; end
 
   class MissingAttributeError < Scarpe::Error; end
-
-  class SearchWidgetError < Scarpe::Error; end
 
   # This error indicates a problem when running ConfirmedEval
   class JSEvalError < Scarpe::Error

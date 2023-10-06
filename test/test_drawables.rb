@@ -2,35 +2,35 @@
 
 require "test_helper"
 
-# Widgets Testing
-class TestWidgets < LoggedScarpeTest
+# Drawables Testing
+class TestDrawables < LoggedScarpeTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
   def test_hide_show
     run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
       Shoes.app do
-        @widgets = []
-        @widgets << alert("YOLO!")
-        @widgets << arc(400, 0, 120, 100, 175, 175)
-        @widgets << button("Press Me")
-        @widgets << check
-        @widgets << edit_line("foo")
-        @widgets << edit_box("bar")
-        @widgets << flow {} # Slightly weird thing here: empty flow
-        @widgets << image("https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png")
-        @widgets << line(0, 0, 100, 100)
-        @widgets << list_box(items: ['A', 'B'])
-        @widgets << para("Hello")
-        @widgets << radio("ooga")
-        @widgets << shape { line(0, 0, 10, 10) }
-        @widgets << stack {}
-        @widgets << star(230, 100, 6, 50, 25)
-        @widgets << video("http://techslides.com/demos/sample-videos/small.mp4")
+        @drawables = []
+        @drawables << alert("YOLO!")
+        @drawables << arc(400, 0, 120, 100, 175, 175)
+        @drawables << button("Press Me")
+        @drawables << check
+        @drawables << edit_line("foo")
+        @drawables << edit_box("bar")
+        @drawables << flow {} # Slightly weird thing here: empty flow
+        @drawables << image("https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png")
+        @drawables << line(0, 0, 100, 100)
+        @drawables << list_box(items: ['A', 'B'])
+        @drawables << para("Hello")
+        @drawables << radio("ooga")
+        @drawables << shape { line(0, 0, 10, 10) }
+        @drawables << stack {}
+        @drawables << star(230, 100, 6, 50, 25)
+        @drawables << video("http://techslides.com/demos/sample-videos/small.mp4")
       end
     SCARPE_APP
       on_heartbeat do
-        # Get proxy objects for the Shoes widgets so we can get their display objects, etc.
-        w = Shoes::App.instance.instance_variable_get("@widgets").map { |sw| proxy_for(sw) }
+        # Get proxy objects for the Shoes drawables so we can get their display objects, etc.
+        w = Shoes::App.instance.instance_variable_get("@drawables").map { |sw| proxy_for(sw) }
 
         w.each { |i| i.hide }
         w.each { |i| assert_include i.display.to_html, "display:none" }
@@ -54,7 +54,7 @@ class TestWidgets < LoggedScarpeTest
 
   def test_app_method
     run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
-      class NotAWidget
+      class NotADrawable
         def self.magic(stack)
           stack.app do
             @s2.para "Hello!"
@@ -64,7 +64,7 @@ class TestWidgets < LoggedScarpeTest
 
       Shoes.app do
         @s = stack do
-          button("Press Me") { NotAWidget.magic(@s) }
+          button("Press Me") { NotADrawable.magic(@s) }
         end
         @s2 = stack {}
       end

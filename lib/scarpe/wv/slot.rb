@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Scarpe::Webview
-  class Slot < Widget
+  class Slot < Drawable
     def initialize(properties)
       @event_callbacks = {}
 

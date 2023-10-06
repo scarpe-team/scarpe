@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Scarpe::Webview
-  class Radio < Widget
+  class Radio < Drawable
     # TODO: is this needed?
     attr_reader :text
 

@@ -16,8 +16,8 @@ module Shoes
 
       super
 
-      create_display_widget
-      # Create the display-side widget *before* running the block, which will add child widgets with their display widgets
+      create_display_drawable
+      # Create the display-side drawable *before* running the block, which will add child drawables with their display drawables
       Shoes::App.instance.with_slot(self, &block) if block_given?
     end
   end

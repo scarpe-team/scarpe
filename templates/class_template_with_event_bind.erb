@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Scarpe
-  class <%= argument %> < Shoes::Widget
-     display_properties <%= display_properties %> # Write your display proporties here
+  class <%= argument %> < Shoes::Drawable
+    display_properties <%= display_properties %> # Write your display proporties here
 
     def initialize(text, width: nil, height: nil, top: nil, left: nil, &block)
       # Properties passed as positional args, not keywords, don't get auto-set
@@ -16,7 +16,7 @@ module Scarpe
         @block&.call
       end
 
-      create_display_widget
+      create_display_drawable
     end
 
     # Set the click handler

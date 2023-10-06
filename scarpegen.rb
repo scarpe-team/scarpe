@@ -112,20 +112,20 @@ class ScarpeGenerator
     end
     generate_webview_file
     generate_example_file
-    add_require_relative_to_widgets_file
+    add_require_relative_to_drawables_file
     puts "\n\e[1;32mYayyyy! Files generated successfully!\e[0m\n"
   end
 
-  def add_require_relative_to_widgets_file
-    widgets_file_path = "lacci/lib/shoes/widgets.rb"
+  def add_require_relative_to_drawables_file
+    drawables_file_path = "lacci/lib/shoes/drawables.rb"
     filename = @filename.downcase
-    require_line = "require \"shoes/widgets/#{filename}\""
+    require_line = "require \"shoes/drawables/#{filename}\""
 
-    File.open(widgets_file_path, "a") do |file|
+    File.open(drawables_file_path, "a") do |file|
       file.puts require_line
     end
 
-    puts "Added require_relative to widgets.rb file"
+    puts "Added require_relative to drawables.rb file"
   end
 
   def generate_webview_file
@@ -169,7 +169,7 @@ class ScarpeGenerator
     class_template = File.read(class_template_file)
     class_content = ERB.new(class_template).result(binding_with_argument(class_template_choice))
 
-    File.write("lacci/lib/shoes/widgets/#{@filename}.rb", class_content)
+    File.write("lacci/lib/shoes/drawables/#{@filename}.rb", class_content)
   end
 
   def generate_module_file

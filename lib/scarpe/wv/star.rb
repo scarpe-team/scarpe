@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Scarpe::Webview
-  class Star < Widget
+  class Star < Drawable
     def initialize(properties)
       super(properties)
     end
