@@ -64,11 +64,11 @@ class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Widget
     when "hover"
       new_parent.set_event_callback(self, "onmouseenter", handler_js_code(@shoes_api_name))
     when "leave"
-      raise "Implement me!"
+      new_parent.set_event_callback(self, "onmouseleave", handler_js_code(@shoes_api_name))
     when "click"
       new_parent.set_event_callback(self, "onclick", handler_js_code(@shoes_api_name, "arguments[0].button", "arguments[0].x", "arguments[0].y"))
     when "release"
-      raise "Implement me!"
+      new_parent.set_event_callback(self, "onmouseup", handler_js_code(@shoes_api_name, "arguments[0].button", "arguments[0].x", "arguments[0].y"))
     when "keypress"
       raise "Implement me!"
     when "animate", "every", "timer"
