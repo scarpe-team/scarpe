@@ -55,7 +55,8 @@ module Shoes
       if ENV["SCARPE_APP_TEST"]
         test_code = File.read ENV["SCARPE_APP_TEST"]
         if test_code != ""
-          self.instance_eval test_code
+          @test_obj = Object.new
+          @test_obj.instance_eval test_code
         end
       end
 
