@@ -9,7 +9,9 @@ module Scarpe::Webview
     def initialize(properties)
       super
 
-      @url = valid_url?(@url) ? @url : "data:image/png;base64,#{encode_file_to_base64(@url)}"
+      unless valid_url?(@url)
+        @url = "data:image/png;base64,#{encode_file_to_base64(@url)}"
+      end
     end
 
     def element

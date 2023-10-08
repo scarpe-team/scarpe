@@ -1,7 +1,7 @@
 Shoes.app do
   background "#eee"
   @list = stack do
-    @img = image '../static/man-builds.png'
+    @img = image "#{DIR}/docs/static/man-builds.png"
     para "Enter a image URL to download:", :margin => [10, 8, 10, 0]
     flow :margin => 10 do
       @url = edit_line :width => -120
