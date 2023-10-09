@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative "changelog"
 module Shoes
   module Constants
     def self.find_lib_dir
@@ -28,17 +29,9 @@ module Shoes
     PI = 3.14159265358979323846
   end
 
-  changelog_content = File.read("CHANGELOG.md")
-
-  release_name_pattern = /^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})$/m
-
-  release_matches = changelog_content.scan(release_name_pattern)
-
-  latest_release = release_matches.max_by { |version, _date| Gem::Version.new(version) }
-
-  if latest_release
-    RELEASE_NAME, RELEASE_BUILD_DATE = latest_release
-  else
-    puts "most likely something wrong in constants.rb file. or changelog"
-  end
+  # Access and assign the release constants
+  changelog_instance = Shoes::Changelog.new
+  RELEASE_INFO = changelog_instance.get_latest_release_info
+  RELEASE_NAME = RELEASE_INFO[:RELEASE_NAME]
+  RELEASE_BUILD_DATE = RELEASE_INFO[:RELEASE_BUILD_DATE]
 end
