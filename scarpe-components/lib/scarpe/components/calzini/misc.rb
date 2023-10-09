@@ -51,11 +51,13 @@ module Scarpe::Components::Calzini
     HTML.render do |h|
       h.select(id: html_id, onchange:, style: list_box_style(props)) do
         (props["items"] || []).each do |item|
-          h.option(
-            **option_attrs,
+          option_attrs = {
             value: item,
-            selected: (item == props["selected_item"]),
-          ) do
+          }
+          if item == props["choose"]
+            option_attrs[:selected] = "selected"
+          end
+          h.option(**option_attrs) do
             item
           end
         end
@@ -68,7 +70,15 @@ module Scarpe::Components::Calzini
     group_name = props["group"] || "no_group"
 
     HTML.render do |h|
-      h.input(type: :radio, id: html_id, onclick: handler_js_code("click"), name: group_name, value: props["text"], checked: props["checked"], style: widget_style(props))
+      h.input(
+        type: :radio,
+        id: html_id,
+        onclick: handler_js_code("click"),
+        name: group_name,
+        value: props["text"],
+        checked: props["checked"],
+        style: widget_style(props),
+      )
     end
   end
 

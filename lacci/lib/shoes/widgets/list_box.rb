@@ -2,10 +2,12 @@
 
 module Shoes
   class ListBox < Shoes::Widget
-    display_properties :selected_item, :items, :height, :width
+    display_properties :selected_item, :items, :height, :width, :choose
 
     def initialize(args = {}, &block)
       @items = args[:items] || []
+      @choose = args[:choose]
+
       @selected_item = args[:selected_item]
       super()
 

@@ -2,7 +2,7 @@
 
 module Scarpe::Webview
   class ListBox < Widget
-    attr_reader :selected_item, :items, :height, :width
+    attr_reader :selected_item, :items, :height, :width, :choose
 
     def initialize(properties)
       super(properties)
