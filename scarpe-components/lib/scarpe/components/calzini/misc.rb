@@ -55,7 +55,7 @@ module Scarpe::Components::Calzini
             value: item,
           }
           if item == props["choose"]
-            option_attrs[:selected] = "selected"
+            option_attrs[:selected] = "true"
           end
           h.option(**option_attrs) do
             item
