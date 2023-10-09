@@ -74,6 +74,7 @@ class TestWebWranglerMocked < LoggedScarpeTest
           webview.expect :destroy, nil
         end
       end
+      @web_wrangler.empty_page = CALZINI_EMPTY_PAGE
       @web_wrangler.run
     end
   end
@@ -226,6 +227,28 @@ class TestWebWranglerMocked < LoggedScarpeTest
       assert_equal :fulfilled, update_p3.state, "Update promise should be fulfilled after update is finished (2)"
     end
   end
+
+  CALZINI_EMPTY_PAGE = <<~HTML
+      <html>
+        <head id='head-wvroot'>
+          <style id='style-wvroot'>
+            /** Style resets **/
+            body {
+              font-family: arial, Helvetica, sans-serif;
+              margin: 0;
+              height: 100%;
+              overflow: hidden;
+            }
+            p {
+              margin: 0;
+            }
+          </style>
+        </head>
+        <body id='body-wvroot'>
+          <div id='wrapper-wvroot'></div>
+        </body>
+      </html>
+    HTML
 end
 
 class TestWebWranglerAsyncJS < LoggedScarpeTest

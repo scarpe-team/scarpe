@@ -362,6 +362,8 @@ module Scarpe::Webview
 
     public
 
+    attr_writer :empty_page
+
     # After setup, we call run to go to "running" mode.
     # No more setup callbacks should be called, only running callbacks.
     def run
@@ -376,7 +378,10 @@ module Scarpe::Webview
 
       @webview.set_title(@title)
       @webview.set_size(@width, @height, hint)
-      @webview.navigate("data:text/html, #{CGI.escape empty}")
+      unless @empty_page
+        raise Scarpe::EmptyPageNotSetError, "No empty page markup was set!"
+      end
+      @webview.navigate("data:text/html, #{CGI.escape @empty_page}")
 
       monkey_patch_console(@webview)
 

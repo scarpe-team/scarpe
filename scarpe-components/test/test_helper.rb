@@ -2,6 +2,9 @@
 
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 
+# Prevent Calzini or Tiranti from registering itself with Scarpe::Webview, which isn't present here
+ENV["SCARPE_HTML_RENDERER"] = "NONE"
+
 require "shoes"
 
 require "minitest/autorun"

@@ -38,6 +38,7 @@ add_env_categories("Scarpe::WV" => [
   env_or_default("SCARPE_TEST_CONTROL", "(none)"),
   env_or_default("SCARPE_TEST_RESULTS", "(none)"),
   env_or_default("SCARPE_TEST_DEBUG", "(none)"),
+  env_or_default("SCARPE_HTML_RENDERER", "calzini"),
 ])
 
 verb = "run"
