@@ -18,7 +18,11 @@ module Shoes
       File.join(top, file)
     end
 
+    # A temp dir for Shoes app files
     LIB_DIR = find_lib_dir
+
+    # the Shoes library dir
+    DIR = File.dirname(__FILE__, 4)
 
     # Math constants from Shoes3
     RAD2PI = 0.01745329251994329577

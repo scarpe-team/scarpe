@@ -1,4 +1,4 @@
 Shoes.app do
-  font "fonts/Pacifico.ttf"
+  font "#{DIR}/fonts/Pacifico.ttf"
   para "Hello yayyy"
 end

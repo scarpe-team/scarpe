@@ -87,6 +87,11 @@ module Shoes
     # @see Shoes.add_file_loader
     def run_app(relative_path)
       path = File.expand_path relative_path
+      dir = File.dirname(path)
+
+      # Shoes assumes we're starting from the app code's path
+      Dir.chdir(dir)
+
       loaded = false
       file_loaders.each do |loader|
         if loader.call(path)
