@@ -24,4 +24,4 @@ end
 
 RuboCop::RakeTask.new
 
-task default: [:test, :lacci_test, :component_test, :rubocop]
+task default: [:test, :lacci_test, :component_test]
