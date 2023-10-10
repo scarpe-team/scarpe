@@ -64,7 +64,7 @@ module Shoes
         require "scarpe/components/minitest_export_reporter"
         Minitest::Reporters::ShoesExportReporter.activate!
         test_code = File.read ENV["SHOES_SPEC_TEST"]
-        if test_code != ""
+        unless test_code.empty?
           kwargs = {}
           kwargs[:class_name] = ENV["SHOES_MINITEST_CLASS_NAME"] if ENV["SHOES_MINITEST_CLASS_NAME"]
           kwargs[:test_name] = ENV["SHOES_MINITEST_METHOD_NAME"] if ENV["SHOES_MINITEST_METHOD_NAME"]
