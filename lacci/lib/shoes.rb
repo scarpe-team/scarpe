@@ -42,6 +42,8 @@ require_relative "shoes/download"
 # small visual applications in Ruby.
 #
 module Shoes
+  include Shoes::Constants
+
   class << self
     # Creates a Shoes app with a new window. The block parameter is used to create
     # widgets and set up handlers. Arguments are passed to Shoes::App.new internally.
