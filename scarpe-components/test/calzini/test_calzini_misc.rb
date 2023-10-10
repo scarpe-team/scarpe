@@ -74,22 +74,22 @@ class TestCalziniMiscWidgets < Minitest::Test
 
   def test_list_box_simple
     assert_equal %{<select id="elt-1" onchange="handle('change', this.options[this.selectedIndex].value)"} +
-      %{ style="height:75;width:150"><option value="dog" selected="false">dog</option>} +
-      %{<option value="cat" selected="true">cat</option><option value="bird" selected="false">bird</option></select>},
-      @calzini.render("list_box", { "height" => "75", "width" => "150", "items" => ["dog", "cat", "bird"], "selected_item" => "cat" })
+      %{ style="height:75;width:150"><option value="dog">dog</option>} +
+      %{<option value="cat" selected="true">cat</option><option value="bird">bird</option></select>},
+      @calzini.render("list_box", { "height" => "75", "width" => "150", "items" => ["dog", "cat", "bird"], "choose" => "cat" })
   end
 
   def test_list_box_none_selected
     assert_equal %{<select id="elt-1" onchange="handle('change', this.options[this.selectedIndex].value)"} +
-      %{ style="height:75;width:150"><option value="dog" selected="false">dog</option>} +
-      %{<option value="cat" selected="false">cat</option><option value="bird" selected="false">bird</option></select>},
+      %{ style="height:75;width:150"><option value="dog">dog</option>} +
+      %{<option value="cat">cat</option><option value="bird">bird</option></select>},
       @calzini.render("list_box", { "height" => "75", "width" => "150", "items" => ["dog", "cat", "bird"] })
   end
 
   def test_list_box_just_items
     assert_equal %{<select id="elt-1" onchange="handle('change', this.options[this.selectedIndex].value)">} +
-      %{<option value="dog" selected="false">dog</option>} +
-      %{<option value="cat" selected="false">cat</option><option value="bird" selected="false">bird</option></select>},
+      %{<option value="dog">dog</option>} +
+      %{<option value="cat">cat</option><option value="bird">bird</option></select>},
       @calzini.render("list_box", { "items" => ["dog", "cat", "bird"] })
   end
 
