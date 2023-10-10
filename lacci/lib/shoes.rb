@@ -31,9 +31,9 @@ require_relative "shoes/background"
 require_relative "shoes/border"
 require_relative "shoes/spacing"
 
-require_relative "shoes/widget"
+require_relative "shoes/drawable"
 require_relative "shoes/app"
-require_relative "shoes/widgets"
+require_relative "shoes/drawables"
 
 require_relative "shoes/download"
 
@@ -46,7 +46,7 @@ module Shoes
 
   class << self
     # Creates a Shoes app with a new window. The block parameter is used to create
-    # widgets and set up handlers. Arguments are passed to Shoes::App.new internally.
+    # drawables and set up handlers. Arguments are passed to Shoes::App.new internally.
     #
     # @incompatibility In Shoes3, this method will return normally.
     #   In Scarpe, after the block is executed, the method will not return and Scarpe

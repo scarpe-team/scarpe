@@ -17,7 +17,7 @@ module Scarpe::Components::Calzini
   end
 
   def para_style(props)
-    widget_style(props).merge({
+    drawable_style(props).merge({
       color: rgb_to_hex(props["stroke"]),
       "font-size": para_font_size(props),
       "font-family": props["font"],

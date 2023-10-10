@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Shoes
-  class Widget
+  class Drawable
     class ResponseWrapper
       attr_reader :response
 

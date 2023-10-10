@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# Lacci Shoes apps operate in multiple layers. A Shoes widget tree exists as fairly
-# plain, simple Ruby objects. And then a display-service widget tree integrates with
+# Lacci Shoes apps operate in multiple layers. A Shoes drawable tree exists as fairly
+# plain, simple Ruby objects. And then a display-service drawable tree integrates with
 # the display technology. This lets us use Ruby as our API while
 # not tying it too closely to the limitations of Webview, WASM, LibUI, etc.
 #
@@ -15,16 +15,16 @@
 #
 # ## Events
 #
-# Events are a lot of what tie the Shoes widgets and the display service together.
+# Events are a lot of what tie the Shoes drawables and the display service together.
 #
-# Shoes widgets *expect* to operate in a fairly "hands off" mode where they record
+# Shoes drawables *expect* to operate in a fairly "hands off" mode where they record
 # to an event queue to send to the display service, and the display service records
 # events to send back.
 #
 # When a Shoes handler takes an action (e.g. some_para.replace(),) the relevant
 # call will be dispatched as a :display event, to be sent to the display service.
 # And when a display-side event occurs (e.g. user pushes a button,) it will be
-# dispatched as a :shoes event, to be sent to the Shoes tree of widgets.
+# dispatched as a :shoes event, to be sent to the Shoes tree of drawables.
 #
 module Shoes
   class DisplayService
@@ -128,22 +128,26 @@ module Shoes
 
     # These methods are an interface to DisplayService objects.
 
-    def create_display_widget_for(widget_class_name, widget_id, properties)
+    def create_display_drawable_for(drawable_class_name, drawable_id, properties)
       raise "Override in DisplayService implementation!"
     end
 
-    def set_widget_pairing(id, display_widget)
-      @display_widget_for ||= {}
-      @display_widget_for[id] = display_widget
+    def set_drawable_pairing(id, display_drawable)
+      @display_drawable_for ||= {}
+      if @display_drawable_for[id]
+        @log.warn("There is already a drawable for #{id.inspect}! Not setting a new one.")
+        return
+      end
+      @display_drawable_for[id] = display_drawable
     end
 
-    def query_display_widget_for(id, nil_ok: false)
-      display_widget = @display_widget_for[id]
-      unless display_widget || nil_ok
-        raise "Could not find display widget for linkable ID #{id.inspect}!"
+    def query_display_drawable_for(id, nil_ok: false)
+      display_drawable = @display_drawable_for[id]
+      unless display_drawable || nil_ok
+        raise "Could not find display drawable for linkable ID #{id.inspect}!"
       end
 
-      display_widget
+      display_drawable
     end
 
     def destroy

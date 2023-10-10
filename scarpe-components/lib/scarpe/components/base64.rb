@@ -3,9 +3,9 @@
 require "base64"
 require "uri"
 
-class Scarpe; end
+module Scarpe; end
 module Scarpe::Components; end
-class Scarpe
+module Scarpe
   module Components::Base64
     def valid_url?(string)
       uri = URI.parse(string)

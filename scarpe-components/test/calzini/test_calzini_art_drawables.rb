@@ -2,7 +2,7 @@
 
 require_relative "../test_helper"
 
-class TestCalziniArtWidgets < Minitest::Test
+class TestCalziniArtDrawables < Minitest::Test
   def setup
     @calzini = CalziniRenderer.new
   end

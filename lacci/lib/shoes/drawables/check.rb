@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
 module Shoes
-  class Check < Shoes::Widget
-    display_properties :checked
+  class Check < Shoes::Drawable
+    shoes_styles :checked
 
     def initialize(checked = nil, &block)
       @block = block
       super
 
       bind_self_event("click") { click }
-      create_display_widget
+      create_display_drawable
     end
 
     def click(&block)

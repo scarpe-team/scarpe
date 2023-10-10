@@ -1,17 +1,20 @@
 # frozen_string_literal: true
 
-class Scarpe
-  class InvalidAttributeValueError < StandardError; end
+module Scarpe
+  #class InvalidAttributeValueError < Scarpe::Error; end # add new errors to errors.rb
 
-  class <%= argument %> < Shoes::Widget
-     display_properties <%= display_properties %>  # Write your display proporties here
+  class <%= argument %> < Shoes::Drawable
+    # Shoes style with verification or value mapping:
+    # shoes_style(:left) { |val| convert_to_integer(val, "left") }
+
+    shoes_styles <%= shoes_styles %>  # Write your shoes styles here
 
     def initialize(left, top)
       @left = convert_to_integer(left, "left")
       @top = convert_to_integer(top, "top")
 
       super()
-      create_display_widget
+      create_display_drawable
     end
 
     private
@@ -19,18 +22,6 @@ class Scarpe
     def convert_to_integer(value, attribute_name, default = 0)
       begin
         value = Integer(value)
-        raise InvalidAttributeValueError, "Negative num '#{value}' not allowed for attribute '#{attribute_name}'" if value < 0
-
-        value
-      rescue ArgumentError
-        error_message = "Invalid value '#{value}' provided for attribute '#{attribute_name}'. The value should be a number."
-        raise InvalidAttributeValueError, error_message
-      end
-    end
-
-    def convert_to_float(value, attribute_name, default = 0.0)
-      begin
-        value = Float(value)
         raise InvalidAttributeValueError, "Negative num '#{value}' not allowed for attribute '#{attribute_name}'" if value < 0
 
         value

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module Shoes
-  class Alert < Shoes::Widget
-    display_property :text
+  class Alert < Shoes::Drawable
+    shoes_style :text
 
     def initialize(text)
       @text = text
@@ -13,7 +13,7 @@ module Shoes
         remove
       end
 
-      create_display_widget
+      create_display_drawable
     end
   end
 end

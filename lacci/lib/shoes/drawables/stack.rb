@@ -7,7 +7,7 @@ module Shoes
     include Shoes::Spacing
 
     # TODO: sort out various margin and padding properties, including putting stuff into spacing
-    display_properties :width, :height, :scroll
+    shoes_styles :width, :height, :scroll
 
     def initialize(width: nil, height: nil, margin: nil, padding: nil, scroll: false, margin_top: nil, margin_bottom: nil, margin_left: nil,
       margin_right: nil, **options, &block)
@@ -16,8 +16,8 @@ module Shoes
 
       super
 
-      create_display_widget
-      # Create the display-side widget *before* running the block, which will add child widgets with their display widgets
+      create_display_drawable
+      # Create the display-side drawable *before* running the block, which will add child drawables with their display drawables
       Shoes::App.instance.with_slot(self, &block) if block_given?
     end
   end

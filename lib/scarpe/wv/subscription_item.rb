@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Widget
+class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Drawable
 
   def initialize(properties)
     super
@@ -48,7 +48,7 @@ class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Widget
     case @shoes_api_name
     when "motion"
       # TODO: what do we do for whole-screen mousemove outside the window?
-      # Those should be set on body, which right now doesn't have a widget.
+      # Those should be set on body, which right now doesn't have a drawable.
       # TODO: figure out how to handle alt and meta keys - does Shoes3 recognise those?
       new_parent.set_event_callback(
         self,

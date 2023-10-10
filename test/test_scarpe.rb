@@ -46,7 +46,7 @@ class TestWebviewScarpe < LoggedScarpeTest
     SCARPE_APP
   end
 
-  def test_text_widgets
+  def test_text_drawables
     run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Shoes.app do
         para "This is plain."
@@ -73,7 +73,7 @@ class TestWebviewScarpe < LoggedScarpeTest
     SCARPE_APP
   end
 
-  def test_widgets_exist
+  def test_drawables_exist
     run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
       Shoes.app do
         stack do

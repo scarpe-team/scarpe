@@ -2,18 +2,18 @@
 
 # Certain Shoes calls like motion and keydown are basically an
 # event subscription, with no other visible presence. However,
-# they have a place in the widget tree and can be deleted.
+# they have a place in the drawable tree and can be deleted.
 #
 # Depending on the display library they may not have any
 # direct visual (or similar) presence there either.
 #
-# Inheriting from Widget gives these a parent slot and a
+# Inheriting from Drawable gives these a parent slot and a
 # linkable_id automatically.
 #
 # Events not yet implemented: start, finish events for slots -
 # start is first draw, finish is widget destroyed
-class Shoes::SubscriptionItem < Shoes::Widget
-  display_properties :shoes_api_name, :args
+class Shoes::SubscriptionItem < Shoes::Drawable
+  shoes_styles :shoes_api_name, :args
 
   def initialize(args: [], shoes_api_name:, &block)
     super
@@ -34,7 +34,7 @@ class Shoes::SubscriptionItem < Shoes::Widget
         @callback.call
       end
     when "hover"
-      # Hover passes the Shoes widget as the block param
+      # Hover passes the Shoes drawable as the block param
       @unsub_id = bind_self_event("hover") do
         @callback&.call(self)
       end
@@ -77,9 +77,9 @@ class Shoes::SubscriptionItem < Shoes::Widget
       @callback&.call(*args)
     end
 
-    # This won't create a visible display widget, but will turn into
-    # an invisible widget and a stream of events.
-    create_display_widget
+    # This won't create a visible display drawable, but will turn into
+    # an invisible drawable and a stream of events.
+    create_display_drawable
   end
 
   def destroy

@@ -12,7 +12,7 @@ if RUBY_VERSION[0..2] < "3.2"
   exit(-1)
 end
 
-class Scarpe; end
+module Scarpe; end
 
 # The base error class for Scarpe errors, but not necessarily {Shoes::Error}s
 class Scarpe::Error < StandardError; end

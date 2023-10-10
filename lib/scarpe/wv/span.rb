@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Scarpe::Webview
-  class Span < Widget
+  class Span < Drawable
     SIZES = {
       inscription: 10,
       ins: 10,

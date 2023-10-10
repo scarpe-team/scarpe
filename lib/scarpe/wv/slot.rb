@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Scarpe::Webview
-  class Slot < Widget
+  class Slot < Drawable
     def initialize(properties)
       @event_callbacks = {}
 
@@ -9,7 +9,7 @@ module Scarpe::Webview
     end
 
     def element(&block)
-      props = display_properties.merge("html_attributes" => html_attributes)
+      props = shoes_styles.merge("html_attributes" => html_attributes)
       render_name = self.class.name.split("::")[-1].downcase # usually "stack" or "flow" or "documentroot"
       render(render_name, props, &block)
     end

@@ -3,7 +3,7 @@
 module Shoes
   module Background
     def self.included(includer)
-      includer.display_property(:background_color)
+      includer.shoes_style(:background_color)
     end
 
     # NOTE: this needs to be passed through in order for the styling to work

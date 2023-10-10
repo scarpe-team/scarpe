@@ -29,7 +29,7 @@ module Scarpe::Components::Calzini
   private
 
   def slot_style(props)
-    styles = widget_style(props)
+    styles = drawable_style(props)
     styles = background_style(props, styles)
     styles = border_style(props, styles)
     styles = spacing_styles_for_attr("margin", props, styles)

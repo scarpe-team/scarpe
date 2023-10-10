@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
 module Shoes
-  class Arc < Shoes::Widget
-    display_properties :left, :top, :width, :height, :angle1, :angle2, :draw_context
+  class Arc < Shoes::Drawable
+    shoes_style :draw_context
 
     [:left, :top, :width, :height].each do |prop|
-      display_property(prop) { |val| convert_to_integer(val, prop) }
+      shoes_style(prop) { |val| convert_to_integer(val, prop) }
     end
 
     [:angle1, :angle2].each do |prop|
-      display_property(prop) { |val| convert_to_float(val, prop) }
+      shoes_style(prop) { |val| convert_to_float(val, prop) }
     end
 
     def initialize(*args)
@@ -18,7 +18,7 @@ module Shoes
       super
       self.left, self.top, self.width, self.height, self.angle1, self.angle2 = args
 
-      create_display_widget
+      create_display_drawable
     end
 
     def self.convert_to_integer(value, attribute_name)

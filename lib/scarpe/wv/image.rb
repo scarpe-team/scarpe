@@ -3,7 +3,7 @@
 require "scarpe/components/base64"
 
 module Scarpe::Webview
-  class Image < Widget
+  class Image < Drawable
     include Scarpe::Components::Base64
 
     def initialize(properties)

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Scarpe::Webview
-  class Alert < Widget
+  class Alert < Drawable
     def initialize(properties)
       super
 

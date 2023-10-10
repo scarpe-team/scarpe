@@ -1,45 +1,45 @@
 # frozen_string_literal: true
 
 module Shoes
-  # Shoes::Widget
+  # Shoes::Drawable
   #
-  # This is the display-service portable Shoes Widget interface. Visible Shoes
-  # widgets like buttons inherit from this. Compound widgets made of multiple
-  # different smaller Widgets inherit from it in their various apps or libraries.
-  # The Shoes Widget helps build a Shoes-side widget tree, with parents and
-  # children. Any API that applies to all widgets (e.g. remove) should be
+  # This is the display-service portable Shoes Drawable interface. Visible Shoes
+  # drawables like buttons inherit from this. Compound drawables made of multiple
+  # different smaller Drawables inherit from it in their various apps or libraries.
+  # The Shoes Drawable helps build a Shoes-side drawable tree, with parents and
+  # children. Any API that applies to all drawables (e.g. remove) should be
   # defined here.
   #
-  class Widget < Shoes::Linkable
+  class Drawable < Shoes::Linkable
     include Shoes::Log
     include Shoes::Colors
 
     class << self
-      attr_accessor :widget_classes
-      attr_accessor :widget_default_styles
+      attr_accessor :drawable_classes
+      attr_accessor :drawable_default_styles
 
       def inherited(subclass)
-        Shoes::Widget.widget_classes ||= []
-        Shoes::Widget.widget_classes << subclass
+        Shoes::Drawable.drawable_classes ||= []
+        Shoes::Drawable.drawable_classes << subclass
 
-        Shoes::Widget.widget_default_styles ||= {}
-        Shoes::Widget.widget_default_styles[subclass] = {}
+        Shoes::Drawable.drawable_default_styles ||= {}
+        Shoes::Drawable.drawable_default_styles[subclass] = {}
 
         super
       end
 
       def dsl_name
-        n = name.split("::").last.chomp("Widget")
+        n = name.split("::").last.chomp("Drawable")
         n.gsub(/(.)([A-Z])/, '\1_\2').downcase
       end
 
-      def widget_class_by_name(name)
-        widget_classes.detect { |k| k.dsl_name == name.to_s }
+      def drawable_class_by_name(name)
+        drawable_classes.detect { |k| k.dsl_name == name.to_s }
       end
 
       def validate_as(prop_name, value)
         prop_name = prop_name.to_s
-        hashes = display_property_hashes
+        hashes = shoes_style_hashes
 
         h = hashes.detect { |hash| hash[:name] == prop_name }
         raise(Shoes::NoSuchStyleError, "Can't find property #{prop_name.inspect} in #{self} property list: #{hashes.inspect}!") unless h
@@ -60,10 +60,10 @@ module Shoes
 
       public
 
-      # Display properties in Shoes Linkables are automatically sync'd with the display side objects.
-      # If a block is passed to display_property, that's the validation for the property. It should
+      # Shoes styles in Shoes Linkables are automatically sync'd with the display side objects.
+      # If a block is passed to shoes_style, that's the validation for the property. It should
       # convert a given value to a valid value for the property or throw an exception.
-      def display_property(name, &validator)
+      def shoes_style(name, &validator)
         name = name.to_s
 
         return if linkable_properties_hash[name]
@@ -72,38 +72,38 @@ module Shoes
         linkable_properties_hash[name] = true
       end
 
-      # Add these names as display properties
-      def display_properties(*names)
-        names.each { |n| display_property(n) }
+      # Add these names as Shoes styles
+      def shoes_styles(*names)
+        names.each { |n| shoes_style(n) }
       end
 
-      def display_property_names
-        parent_prop_names = self != Shoes::Widget ? self.superclass.display_property_names : []
+      def shoes_style_names
+        parent_prop_names = self != Shoes::Drawable ? self.superclass.shoes_style_names : []
 
         parent_prop_names | linkable_properties.map { |prop| prop[:name] }
       end
 
-      def display_property_hashes
-        parent_hashes = self != Shoes::Widget ? self.superclass.display_property_hashes : []
+      def shoes_style_hashes
+        parent_hashes = self != Shoes::Drawable ? self.superclass.shoes_style_hashes : []
 
         parent_hashes + linkable_properties
       end
 
-      def display_property_name?(name)
+      def shoes_style_name?(name)
         linkable_properties_hash[name.to_s] ||
-          (self != Shoes::Widget && superclass.display_property_name?(name))
+          (self != Shoes::Drawable && superclass.shoes_style_name?(name))
       end
     end
 
     # Shoes uses a "hidden" style property for hide/show
-    display_property :hidden
+    shoes_style :hidden
 
     def initialize(*args, **kwargs)
-      log_init("Widget")
+      log_init("Drawable")
 
-      default_styles = Shoes::Widget.widget_default_styles[self.class]
+      default_styles = Shoes::Drawable.drawable_default_styles[self.class]
 
-      self.class.display_property_names.each do |prop|
+      self.class.shoes_style_names.each do |prop|
         prop_sym = prop.to_sym
         if kwargs[prop_sym]
           val = self.class.validate_as(prop, kwargs[prop_sym])
@@ -120,13 +120,13 @@ module Shoes
     def inspect
       "#<#{self.class}:#{self.object_id} " +
         "@linkable_id=#{@linkable_id.inspect} @parent=#{@parent.inspect} " +
-        "@children=#{@children.inspect} properties=#{display_property_values.inspect}>"
+        "@children=#{@children.inspect} properties=#{shoes_style_values.inspect}>"
     end
 
     private
 
     def bind_self_event(event_name, &block)
-      raise(Shoes::NoLinkableIdError, "Widget has no linkable_id! #{inspect}") unless linkable_id
+      raise(Shoes::NoLinkableIdError, "Drawable has no linkable_id! #{inspect}") unless linkable_id
 
       bind_shoes_event(event_name: event_name, target: linkable_id, &block)
     end
@@ -137,8 +137,8 @@ module Shoes
 
     public
 
-    def display_property_values
-      all_property_names = self.class.display_property_names
+    def shoes_style_values
+      all_property_names = self.class.shoes_style_names
 
       properties = {}
       all_property_names.each do |prop|
@@ -151,22 +151,22 @@ module Shoes
     def style(*args, **kwargs)
       if args.empty? && kwargs.empty?
         # Just called as .style()
-        display_property_values
+        shoes_style_values
       elsif args.empty?
-        # This is called to set one or more Shoes styles (display properties.)
-        prop_names = self.class.display_property_names
+        # This is called to set one or more Shoes styles
+        prop_names = self.class.shoes_style_names
         unknown_styles = kwargs.keys.select { |k| !prop_names.include?(k.to_s) }
         unless unknown_styles.empty?
-          raise Shoes::NoSuchStyleError, "Unknown styles for widget type #{self.class.name}: #{unknown_styles.join(", ")}"
+          raise Shoes::NoSuchStyleError, "Unknown styles for drawable type #{self.class.name}: #{unknown_styles.join(", ")}"
         end
 
         kwargs.each do |name, val|
           instance_variable_set("@#{name}", val)
         end
-      elsif args.length == 1 && args[0] < Shoes::Widget
+      elsif args.length == 1 && args[0] < Shoes::Drawable
         # Shoes supports calling .style with a Shoes class, e.g. .style(Shoes::Button, displace_left: 5)
         kwargs.each do |name, val|
-          Shoes::Widget.widget_default_styles[args[0]][name.to_sym] = val
+          Shoes::Drawable.drawable_default_styles[args[0]][name.to_sym] = val
         end
       else
         raise Shoes::InvalidAttributeValueError, "Unexpected arguments to style! args: #{args.inspect}, keyword args: #{kwargs.inspect}"
@@ -175,11 +175,11 @@ module Shoes
 
     private
 
-    def create_display_widget
+    def create_display_drawable
       klass_name = self.class.name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
 
-      # Should we save a reference to widget for later reference?
-      ::Shoes::DisplayService.display_service.create_display_widget_for(klass_name, self.linkable_id, display_property_values)
+      # Should we save a reference to drawable for later reference?
+      ::Shoes::DisplayService.display_service.create_display_drawable_for(klass_name, self.linkable_id, shoes_style_values)
     end
 
     public
@@ -193,38 +193,38 @@ module Shoes
       send_shoes_event(new_parent.linkable_id, event_name: "parent", target: linkable_id)
     end
 
-    # Removes the element from the Shoes::Widget tree
+    # Removes the element from the Shoes::Drawable tree
     def destroy
       @parent&.remove_child(self)
       send_shoes_event(event_name: "destroy", target: linkable_id)
     end
     alias_method :remove, :destroy
 
-    # Hide the widget.
+    # Hide the drawable.
     def hide
       self.hidden = true
     end
 
-    # Show the widget.
+    # Show the drawable.
     def show
       self.hidden = false
     end
 
-    # Hide the widget if it is currently shown. Show it if it is currently hidden.
+    # Hide the drawable if it is currently shown. Show it if it is currently hidden.
     def toggle
       self.hidden = !self.hidden
     end
 
-    # We use method_missing for widget-creating methods like "button",
-    # and also to auto-create display-property getters and setters.
+    # We use method_missing for drawable-creating methods like "button",
+    # and also to auto-create Shoes style getters and setters.
     def method_missing(name, *args, **kwargs, &block)
       name_s = name.to_s
 
       if name_s[-1] == "="
         prop_name = name_s[0..-2]
-        if self.class.display_property_name?(prop_name)
+        if self.class.shoes_style_name?(prop_name)
           self.class.define_method(name) do |new_value|
-            raise Shoes::NoLinkableIdError, "Trying to set display properties in an object with no linkable ID!" unless linkable_id
+            raise Shoes::NoLinkableIdError, "Trying to set Shoes styles in an object with no linkable ID!" unless linkable_id
 
             new_value = self.class.validate_as(prop_name, new_value)
             instance_variable_set("@" + prop_name, new_value)
@@ -235,9 +235,9 @@ module Shoes
         end
       end
 
-      if self.class.display_property_name?(name_s)
+      if self.class.shoes_style_name?(name_s)
         self.class.define_method(name) do
-          raise Shoes::NoLinkableIdError, "Trying to get display properties in an object with no linkable ID!" unless linkable_id
+          raise Shoes::NoLinkableIdError, "Trying to get Shoes styles in an object with no linkable ID!" unless linkable_id
 
           instance_variable_get("@" + name_s)
         end
@@ -245,18 +245,18 @@ module Shoes
         return self.send(name, *args, **kwargs, &block)
       end
 
-      klass = Widget.widget_class_by_name(name)
+      klass = Drawable.drawable_class_by_name(name)
       return super unless klass
 
-      ::Shoes::Widget.define_method(name) do |*args, **kwargs, &block|
-        # Look up the Shoes widget and create it...
-        widget_instance = klass.new(*args, **kwargs, &block)
+      ::Shoes::Drawable.define_method(name) do |*args, **kwargs, &block|
+        # Look up the Shoes drawable and create it...
+        drawable_instance = klass.new(*args, **kwargs, &block)
 
-        unless klass.ancestors.include?(Shoes::TextWidget)
-          widget_instance.set_parent Shoes::App.instance.current_slot
+        unless klass.ancestors.include?(Shoes::TextDrawable)
+          drawable_instance.set_parent Shoes::App.instance.current_slot
         end
 
-        widget_instance
+        drawable_instance
       end
 
       send(name, *args, **kwargs, &block)
@@ -264,9 +264,9 @@ module Shoes
 
     def respond_to_missing?(name, include_private = false)
       name_s = name.to_s
-      return true if self.class.display_property_name?(name_s)
-      return true if self.class.display_property_name?(name_s[0..-2]) && name_s[-1] == "="
-      return true if Widget.widget_class_by_name(name_s)
+      return true if self.class.shoes_style_name?(name_s)
+      return true if self.class.shoes_style_name?(name_s[0..-2]) && name_s[-1] == "="
+      return true if Drawable.drawable_class_by_name(name_s)
 
       super
     end

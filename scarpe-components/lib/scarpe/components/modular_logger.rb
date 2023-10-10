@@ -7,9 +7,9 @@ require "shoes/log"
 
 # Requires the logging gem
 
-class Scarpe; end
+module Scarpe; end
 module Scarpe::Components; end
-class Scarpe
+module Scarpe
   class Components::ModularLogImpl
     include Shoes::Log # for constants
 
