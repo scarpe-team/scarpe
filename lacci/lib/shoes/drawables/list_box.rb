@@ -2,7 +2,7 @@
 
 module Shoes
   class ListBox < Shoes::Drawable
-    shoes_styles :selected_item, :items, :height, :width, :choose
+    shoes_styles :selected_item, :text, :items, :height, :width, :choose
 
     def initialize(args = {}, &block)
       super
@@ -11,9 +11,11 @@ module Shoes
       @choose = args[:choose]
 
       @selected_item = args[:selected_item]
+      @text = args[:selected_item]
 
       bind_self_event("change") do |new_item|
         self.selected_item = new_item
+        self.text = new_item
         @callback&.call(new_item)
       end
 

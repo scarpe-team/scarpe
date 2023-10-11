@@ -25,7 +25,11 @@ module Shoes
     end
 
     def text_children_to_items(text_children)
-      text_children.map { |arg| arg.is_a?(String) ? arg : arg.linkable_id }
+      if text_children.is_a?(Array)
+        text_children.flatten.map(&:to_s)
+      else
+        text_children.is_a?(String) ? text_children : text_children.linkable_id
+      end
     end
 
     def replace(*children)
