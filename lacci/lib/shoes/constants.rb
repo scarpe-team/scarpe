@@ -37,5 +37,8 @@ module Shoes
   changelog_instance = Shoes::Changelog.new
   RELEASE_INFO = changelog_instance.get_latest_release_info
   RELEASE_NAME = RELEASE_INFO[:RELEASE_NAME]
+  RELEASE_ID = RELEASE_INFO[:RELEASE_ID]
   RELEASE_BUILD_DATE = RELEASE_INFO[:RELEASE_BUILD_DATE]
+  RELEASE_TYPE = "LOOSE_SHOES" # This isn't really a thing any more
+  REVISION = RELEASE_INFO[:REVISION]
 end
