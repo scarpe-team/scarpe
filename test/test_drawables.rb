@@ -10,7 +10,6 @@ class TestDrawables < LoggedScarpeTest
     run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
       Shoes.app do
         @drawables = []
-        @drawables << alert("YOLO!")
         @drawables << arc(400, 0, 120, 100, 175, 175)
         @drawables << button("Press Me")
         @drawables << check

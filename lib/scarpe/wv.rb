@@ -37,6 +37,12 @@ require "scarpe/components/segmented_file_loader"
 loader = Scarpe::Components::SegmentedFileLoader.new
 Shoes.add_file_loader loader
 
+# Fun trivia: listing the full set of available fonts is a fingerprinting attack, so it's not
+# available from JS. These are all commonly available web fonts, though.
+Shoes::FONTS.concat ["Helvetica", "Arial", "Arial Black", "Verdana", "Tahoma", "Trebuchet MS",
+                     "Impact", "Gill Sans", "Times New Roman", "Georgia", "Palatino", "Baskerville",
+                     "Courier", "Lucida", "Monaco"]
+
 if ENV["SHOES_SPEC_TEST"]
   require_relative "shoes_spec"
   Shoes::Spec.instance = Scarpe::Test
@@ -51,7 +57,6 @@ require_relative "wv/star"
 require_relative "wv/radio"
 
 require_relative "wv/arc"
-require_relative "wv/font"
 
 require_relative "wv/app"
 require_relative "wv/para"

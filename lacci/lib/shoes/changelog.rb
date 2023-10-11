@@ -9,7 +9,7 @@ module Shoes
 
     def initialize
       #TODO : refer to  https://github.com/scarpe-team/scarpe/pull/400
-      #       and figure out how to use scarpe logger here wtihout getting duplicate or nil error
+      #       and figure out how to use scarpe logger here without getting duplicate or nil error
       # Shoes::Log.instance = Scarpe::Components::ModularLogImpl.new
       # log_init("Changelog")
     end

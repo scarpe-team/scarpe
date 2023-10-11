@@ -7,7 +7,6 @@ require "shoes/drawables/document_root"
 
 require "shoes/drawables/text_drawable"
 
-require "shoes/drawables/font"
 require "shoes/drawables/subscription_item"
 
 require "shoes/drawables/arc"
@@ -15,7 +14,6 @@ require "shoes/drawables/line"
 require "shoes/drawables/shape"
 require "shoes/drawables/star"
 
-require "shoes/drawables/alert"
 require "shoes/drawables/button"
 require "shoes/drawables/check"
 require "shoes/drawables/edit_box"

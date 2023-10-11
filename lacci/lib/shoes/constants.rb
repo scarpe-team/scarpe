@@ -31,6 +31,9 @@ module Shoes
     TWO_PI = 6.28318530717958647693
     HALF_PI = 1.57079632679489661923
     PI = 3.14159265358979323846
+
+    # This should be set up by the Display Service when it loads
+    FONTS = []
   end
 
   # Access and assign the release constants

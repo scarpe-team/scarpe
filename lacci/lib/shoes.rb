@@ -27,6 +27,8 @@ require_relative "shoes/log"
 require_relative "shoes/display_service"
 require_relative "shoes/colors"
 
+require_relative "shoes/builtins"
+
 require_relative "shoes/background"
 require_relative "shoes/border"
 require_relative "shoes/spacing"
@@ -46,7 +48,7 @@ end
 # small visual applications in Ruby.
 #
 module Shoes
-  include Shoes::Constants
+  include Shoes::Constants # Doesn't the Kernel include handle this?
 
   class << self
     # Creates a Shoes app with a new window. The block parameter is used to create
