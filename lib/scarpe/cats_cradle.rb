@@ -45,8 +45,8 @@ module Scarpe::Test
         app = Shoes::App.instance
 
         drawables = app.find_drawables_by(drawable_class, *args)
-        raise Scarpe::MultipleWidgetsFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
-        raise Scarpe::NoWidgetsFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
+        raise Scarpe::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
+        raise Scarpe::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
 
         CCProxy.new(drawables[0])
       end

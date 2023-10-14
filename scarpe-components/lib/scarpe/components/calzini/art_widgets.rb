@@ -108,4 +108,57 @@ module Scarpe::Components::Calzini
 
     [outer_x, outer_y, inner_x, inner_y]
   end
+
+  def arrow_element(props)
+    left = props["left"]
+    top = props["top"]
+    width = props["width"]
+    end_x = left + width
+    end_y = top
+    stroke_width = width / 2
+    dc = props["draw_context"] || {}
+    fill = dc["fill"]
+    stroke = dc["stroke"]
+    fill = "black" if !fill || fill == ""
+    stroke = "black" if !stroke || stroke == ""
+    stroke_widthk = width / 4
+
+    HTML.render do |h|
+      h.div(id: html_id, style: arrow_div_style(left, top)) do
+        h.svg do
+          h.defs do
+            h.marker(
+              id: "head",
+              viewBox: "0 0 70 70",
+              markerWidth: stroke_width.to_s,
+              markerHeight: stroke_width.to_s,
+              refX: "5",
+              refY: "5",
+              orient: "auto-start-reverse",
+            ) do
+              h.path(d: "M 0 0 L 10 5 L 0 10 z", fill: fill.to_s)
+            end
+          end
+
+          h.line(
+            x2: left.to_s,
+            y2: top.to_s,
+            x1: end_x.to_s,
+            y1: end_y.to_s,
+            fill: fill.to_s,
+            stroke: stroke.to_s,
+            "stroke-width" => stroke_widthk.to_s,
+            "marker-end" => "url(#head)",
+          )
+        end
+      end
+    end
+  end
+  def arrow_div_style(left, top)
+    {
+      position: "absolute",
+      left: "#{left}px",
+      top: "#{top}px",
+    }
+  end
 end
