@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Scarpe
+module Scarpe
   module CLI
     DEFAULT_USAGE = <<~'USAGE'
       Usage: scarpe_core [OPTIONS] <scarpe app file>           # Same as "scarpe run"

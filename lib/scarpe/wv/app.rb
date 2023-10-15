@@ -2,7 +2,7 @@
 
 module Scarpe::Webview
   # Scarpe::Webview::App must only be used from the main thread, due to GTK+ limitations.
-  class App < Widget
+  class App < Drawable
     attr_reader :control_interface
 
     attr_writer :shoes_linkable_id
@@ -10,19 +10,13 @@ module Scarpe::Webview
     def initialize(properties)
       super
 
-      # It's possible to provide a Ruby script by setting
-      # SCARPE_TEST_CONTROL to its file path. This can
-      # allow pre-setting test options or otherwise
-      # performing additional actions not written into
-      # the Shoes app itself.
-      #
-      # The control interface is what lets these files see
-      # events, specify overrides and so on.
+      # Scarpe's ControlInterface sets up event handlers
+      # for the display service that aren't sent to
+      # Lacci (Shoes). In general it's used for setup
+      # and additional control or testing, outside the
+      # Shoes app. This is how CatsCradle and Shoes-Spec
+      # set up testing, for instance.
       @control_interface = ControlInterface.new
-      if ENV["SCARPE_TEST_CONTROL"]
-        require "scarpe/components/unit_test_helpers"
-        @control_interface.instance_eval File.read(ENV["SCARPE_TEST_CONTROL"])
-      end
 
       # TODO: rename @view
       @view = Scarpe::Webview::WebWrangler.new title: @title,
@@ -80,14 +74,14 @@ module Scarpe::Webview
       end
     end
 
-    # All JS callbacks to Scarpe widgets are dispatched
+    # All JS callbacks to Scarpe drawables are dispatched
     # via this handler
     def handle_callback(name, *args)
       @callbacks[name].call(*args)
     end
 
     # Bind a Scarpe callback name; see handle_callback above.
-    # See Scarpe::Widget for how the naming is set up
+    # See Scarpe::Drawable for how the naming is set up
     def bind(name, &block)
       @callbacks[name] = block
     end

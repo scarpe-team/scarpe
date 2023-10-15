@@ -5,7 +5,7 @@ require "erb"
 class ScarpeGenerator
   def initialize
     @filename = ""
-    @display_properties = ""
+    @shoes_styles = ""
   end
 
   def generate
@@ -14,7 +14,7 @@ class ScarpeGenerator
     choice = get_choice
     if choice == "1"
       class_template_choice = get_class_template_choice
-      get_display_properties if class_template_choice != "1"
+      get_shoes_styles if class_template_choice != "1"
     end
     generate_files(choice, class_template_choice)
   end
@@ -89,14 +89,14 @@ class ScarpeGenerator
     end
   end
 
-  def get_display_properties
-    print "\n\e[33mDo you want to enter display properties? (y/n):\e[0m "
+  def get_shoes_styles
+    print "\n\e[33mDo you want to enter Shoes styles? (y/n):\e[0m "
     response = gets.chomp.downcase
-    @display_properties = response == "y" || response == "yes" ? get_properties_input : ":dummy"
+    @shoes_styles = response == "y" || response == "yes" ? get_properties_input : ":dummy"
   end
 
   def get_properties_input
-    print "\e[33mEnter the display properties:(enter like :width,:height)\e[0m  "
+    print "\e[33mEnter the Shoes styles:(enter like :width,:height)\e[0m  "
     gets.chomp
   end
 
@@ -112,20 +112,20 @@ class ScarpeGenerator
     end
     generate_webview_file
     generate_example_file
-    add_require_relative_to_widgets_file
+    add_require_relative_to_drawables_file
     puts "\n\e[1;32mYayyyy! Files generated successfully!\e[0m\n"
   end
 
-  def add_require_relative_to_widgets_file
-    widgets_file_path = "lacci/lib/shoes/widgets.rb"
+  def add_require_relative_to_drawables_file
+    drawables_file_path = "lacci/lib/shoes/drawables.rb"
     filename = @filename.downcase
-    require_line = "require \"shoes/widgets/#{filename}\""
+    require_line = "require \"shoes/drawables/#{filename}\""
 
-    File.open(widgets_file_path, "a") do |file|
+    File.open(drawables_file_path, "a") do |file|
       file.puts require_line
     end
 
-    puts "Added require_relative to widgets.rb file"
+    puts "Added require_relative to drawables.rb file"
   end
 
   def generate_webview_file
@@ -169,7 +169,7 @@ class ScarpeGenerator
     class_template = File.read(class_template_file)
     class_content = ERB.new(class_template).result(binding_with_argument(class_template_choice))
 
-    File.write("lacci/lib/shoes/widgets/#{@filename}.rb", class_content)
+    File.write("lacci/lib/shoes/drawables/#{@filename}.rb", class_content)
   end
 
   def generate_module_file
@@ -183,7 +183,7 @@ class ScarpeGenerator
     capitalized_argument = @filename.capitalize
     binding.dup.tap do |b|
       b.local_variable_set(:argument, capitalized_argument)
-      b.local_variable_set(:display_properties, @display_properties)
+      b.local_variable_set(:shoes_styles, @shoes_styles)
       b.local_variable_set(:class_template_choice, class_template_choice) unless class_template_choice.nil?
     end
   end

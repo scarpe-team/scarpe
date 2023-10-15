@@ -31,20 +31,26 @@ require_relative "shoes/background"
 require_relative "shoes/border"
 require_relative "shoes/spacing"
 
-require_relative "shoes/widget"
+require_relative "shoes/drawable"
 require_relative "shoes/app"
-require_relative "shoes/widgets"
+require_relative "shoes/drawables"
 
 require_relative "shoes/download"
+
+if ENV["SHOES_SPEC_TEST"]
+  require_relative "shoes-spec"
+end
 
 # The module containing Shoes in all its glory.
 # Shoes is a platform-independent GUI library, designed to create
 # small visual applications in Ruby.
 #
 module Shoes
+  include Shoes::Constants
+
   class << self
     # Creates a Shoes app with a new window. The block parameter is used to create
-    # widgets and set up handlers. Arguments are passed to Shoes::App.new internally.
+    # drawables and set up handlers. Arguments are passed to Shoes::App.new internally.
     #
     # @incompatibility In Shoes3, this method will return normally.
     #   In Scarpe, after the block is executed, the method will not return and Scarpe
@@ -87,6 +93,11 @@ module Shoes
     # @see Shoes.add_file_loader
     def run_app(relative_path)
       path = File.expand_path relative_path
+      dir = File.dirname(path)
+
+      # Shoes assumes we're starting from the app code's path
+      Dir.chdir(dir)
+
       loaded = false
       file_loaders.each do |loader|
         if loader.call(path)

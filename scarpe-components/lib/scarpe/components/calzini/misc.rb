@@ -8,7 +8,7 @@ module Scarpe::Components::Calzini
         onclick: handler_js_code("click"),
         value: props["text"],
         checked: props["checked"],
-        style: widget_style(props)
+        style: drawable_style(props)
     end
   end
 
@@ -51,11 +51,13 @@ module Scarpe::Components::Calzini
     HTML.render do |h|
       h.select(id: html_id, onchange:, style: list_box_style(props)) do
         (props["items"] || []).each do |item|
-          h.option(
-            **option_attrs,
+          option_attrs = {
             value: item,
-            selected: (item == props["selected_item"]),
-          ) do
+          }
+          if item == props["choose"]
+            option_attrs[:selected] = "true"
+          end
+          h.option(**option_attrs) do
             item
           end
         end
@@ -68,13 +70,21 @@ module Scarpe::Components::Calzini
     group_name = props["group"] || "no_group"
 
     HTML.render do |h|
-      h.input(type: :radio, id: html_id, onclick: handler_js_code("click"), name: group_name, value: props["text"], checked: props["checked"], style: widget_style(props))
+      h.input(
+        type: :radio,
+        id: html_id,
+        onclick: handler_js_code("click"),
+        name: group_name,
+        value: props["text"],
+        checked: props["checked"],
+        style: drawable_style(props),
+      )
     end
   end
 
   def video_element(props)
     HTML.render do |h|
-      h.video(id: html_id, style: widget_style(props), controls: true) do
+      h.video(id: html_id, style: drawable_style(props), controls: true) do
         h.source(src: @url, type: props["format"])
       end
     end
@@ -83,14 +93,14 @@ module Scarpe::Components::Calzini
   private
 
   def edit_box_style(props)
-    widget_style(props).merge({
+    drawable_style(props).merge({
       height: dimensions_length(props["height"]),
       width: dimensions_length(props["width"]),
     }.compact)
   end
 
   def edit_line_style(props)
-    styles = widget_style(props)
+    styles = drawable_style(props)
 
     styles[:width] = dimensions_length(props["width"]) if props["width"]
 
@@ -98,7 +108,7 @@ module Scarpe::Components::Calzini
   end
 
   def image_style(props)
-    styles = widget_style(props)
+    styles = drawable_style(props)
 
     styles[:width] = dimensions_length(props["width"]) if props["width"]
     styles[:height] = dimensions_length(props["height"]) if props["height"]
@@ -111,7 +121,7 @@ module Scarpe::Components::Calzini
   end
 
   def list_box_style(props)
-    styles = widget_style(props)
+    styles = drawable_style(props)
 
     styles[:height] = dimensions_length(props["height"]) if props["height"]
     styles[:width] = dimensions_length(props["width"]) if props["width"]

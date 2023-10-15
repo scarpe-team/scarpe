@@ -3,13 +3,15 @@
 require "scarpe/components/base64"
 
 module Scarpe::Webview
-  class Image < Widget
+  class Image < Drawable
     include Scarpe::Components::Base64
 
     def initialize(properties)
       super
 
-      @url = valid_url?(@url) ? @url : "data:image/png;base64,#{encode_file_to_base64(@url)}"
+      unless valid_url?(@url)
+        @url = "data:image/png;base64,#{encode_file_to_base64(@url)}"
+      end
     end
 
     def element

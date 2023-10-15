@@ -101,7 +101,7 @@ module Scarpe::Test::EventedAssertions
   end
 
   # This does a final return of results. If it gets called
-  # multiple times, the test fails because that's not allowed.
+  # multiple times with different results, the test fails because that's not allowed.
   #
   # @param result_bool [Boolean] true if the results are success, false if failure
   # @param msg [String] the message included with the results

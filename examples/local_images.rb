@@ -1,4 +1,3 @@
 Shoes.app do
-    image "docs/static/man-builds.png"
-  end
-  
+  image "#{DIR}/docs/static/man-builds.png"
+end

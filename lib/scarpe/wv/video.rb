@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Scarpe::Webview
-  class Video < Widget
+  class Video < Drawable
     SUPPORTED_FORMATS = {
       "video/mp4" => [".mp4"],
       "video/webp" => [".webp"],
@@ -27,7 +27,7 @@ module Scarpe::Webview
     end
 
     def element
-      render "video", display_properties.merge("format" => @format)
+      render "video", shoes_styles.merge("format" => @format)
     end
   end
 end

@@ -3,9 +3,9 @@
 require "base64"
 require "uri"
 
-class Scarpe; end
+module Scarpe; end
 module Scarpe::Components; end
-class Scarpe
+module Scarpe
   module Components::Base64
     def valid_url?(string)
       uri = URI.parse(string)
@@ -14,11 +14,7 @@ class Scarpe
       false
     end
 
-    def encode_file_to_base64(image_filename)
-      directory_path = File.dirname(__FILE__, 5)
-
-      image_path = File.join(directory_path, image_filename)
-
+    def encode_file_to_base64(image_path)
       image_data = File.binread(image_path)
 
       encoded_data = ::Base64.strict_encode64(image_data)

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    scarpe (0.2.2)
+    scarpe (0.3.0)
       bloops (~> 0.5)
       fastimage
       lacci
@@ -14,12 +14,12 @@ PATH
 PATH
   remote: lacci
   specs:
-    lacci (0.2.2)
+    lacci (0.3.0)
 
 PATH
   remote: scarpe-components
   specs:
-    scarpe-components (0.2.2)
+    scarpe-components (0.3.0)
 
 GEM
   remote: https://rubygems.org/

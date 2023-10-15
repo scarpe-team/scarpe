@@ -1,13 +1,12 @@
 # frozen_string_literal: true
 
 module Scarpe::Webview
-  class ListBox < Widget
-    attr_reader :selected_item, :items, :height, :width
+  class ListBox < Drawable
+    attr_reader :selected_item, :items, :height, :width, :choose
 
     def initialize(properties)
       super(properties)
 
-      # The JS handler sends a "change" event, which we forward to the Shoes widget tree
       bind("change") do |new_item|
         send_self_event(new_item, event_name: "change")
       end

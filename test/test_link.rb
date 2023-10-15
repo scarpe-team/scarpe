@@ -2,8 +2,6 @@
 
 require "test_helper"
 
-# Link display properties: text, click, has_block
-
 class TestWebviewLink < ScarpeWebviewTest
   def setup
     @default_properties = {

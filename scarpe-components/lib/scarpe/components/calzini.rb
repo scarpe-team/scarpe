@@ -2,10 +2,11 @@
 
 require_relative "html"
 require_relative "base64"
+require_relative "errors"
 
-# Require all widget rendering code under calzini directory
-Dir.glob("calzini/*.rb", base: __dir__) do |widget|
-  require_relative widget
+# Require all drawable rendering code under calzini directory
+Dir.glob("calzini/*.rb", base: __dir__) do |drawable|
+  require_relative drawable
 end
 
 # The Calzini module expects to be included by a class defining
@@ -13,7 +14,7 @@ end
 #
 #     * html_id - the HTML ID for the specific rendered DOM object
 #     * handler_js_code(event_name) - the JS handler code for this DOM object and event name
-#     * (optional) display_properties - the display properties for this object, unless overridden in render()
+#     * (optional) shoes_styles - the Shoes styles for this object, unless overridden in render()
 module Scarpe::Components::Calzini
   extend self
 
@@ -32,8 +33,8 @@ module Scarpe::Components::Calzini
   }.freeze
   private_constant :SIZES
 
-  def render(widget, properties = display_properties, &block)
-    send("#{widget}_element", properties, &block)
+  def render(drawable, properties = shoes_styles, &block)
+    send("#{drawable}_element", properties, &block)
   end
 
   def empty_page_element
@@ -88,7 +89,7 @@ module Scarpe::Components::Calzini
     end
   end
 
-  def widget_style(props)
+  def drawable_style(props)
     styles = {}
     if props["hidden"]
       styles[:display] = "none"

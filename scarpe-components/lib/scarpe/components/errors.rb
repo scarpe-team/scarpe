@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# Also defined in scarpe_core
+class Scarpe::Error < StandardError; end
+
 module Scarpe
   class InternalError < Scarpe::Error; end
 

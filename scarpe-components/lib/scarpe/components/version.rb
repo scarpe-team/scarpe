@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-class Scarpe
+module Scarpe
   module Components
-    VERSION = "0.2.2"
+    VERSION = "0.3.0"
   end
 end

@@ -41,7 +41,7 @@ module Scarpe::Components::Calzini
   private
 
   def arc_style(props)
-    widget_style(props).merge({
+    drawable_style(props).merge({
       left: "#{props["left"]}px",
       top: "#{props["top"]}px",
       width: "#{props["width"]}px",
@@ -65,7 +65,7 @@ module Scarpe::Components::Calzini
   end
 
   def line_div_style(props)
-    widget_style(props).merge({
+    drawable_style(props).merge({
       left: "#{props["left"]}px",
       top: "#{props["top"]}px",
     })
@@ -79,7 +79,7 @@ module Scarpe::Components::Calzini
   end
 
   def star_style(props)
-    widget_style(props).merge({
+    drawable_style(props).merge({
       width: dimensions_length(props["width"]),
       height: dimensions_length(props["height"]),
     }).compact

@@ -14,7 +14,7 @@ class TestSlots < LoggedScarpeTest
       end
     SCARPE_APP
       on_next_redraw do
-        assert para.parent.is_a?(Shoes::Stack), "A widget created in a Stack's block should be a child of the stack!"
+        assert para.parent.is_a?(Shoes::Stack), "A drawable created in a Stack's block should be a child of the stack!"
         test_finished
       end
     TEST_CODE

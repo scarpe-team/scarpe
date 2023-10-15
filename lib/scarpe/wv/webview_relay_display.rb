@@ -5,12 +5,12 @@ require "rbconfig"
 
 require_relative "webview_relay_util"
 
-class Scarpe
+module Scarpe
   # This display service creates a child process and sends events
-  # back and forth, but creates no widgets of its own. The child
+  # back and forth, but creates no drawables of its own. The child
   # process will spawn a worker with its own Webview::DisplayService
   # where the real Webview exists. By splitting the Webview
-  # process from the Shoes widgets, it can be easier to return
+  # process from the Shoes drawables, it can be easier to return
   # control to Webview's event handler promptly. Also, the Ruby
   # process could run background threads if it wanted, and
   # otherwise behave like a process ***not*** containing Webview.
@@ -65,10 +65,10 @@ class Scarpe
       self.destroy
     end
 
-    # This method sends a message to the worker process to create a widget. No actual
-    # widget is created or registered with the display service.
-    def create_display_widget_for(widget_class_name, widget_id, properties)
-      send_datagram({ type: :create, class_name: widget_class_name, id: widget_id, properties: })
+    # This method sends a message to the worker process to create a drawable. No actual
+    # drawable is created or registered with the display service.
+    def create_display_drawable_for(drawable_class_name, drawable_id, properties)
+      send_datagram({ type: :create, class_name: drawable_class_name, id: drawable_id, properties: })
       # Don't need to return anything. It wouldn't be used anyway.
     end
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Scarpe::Webview
-  class Shape < Widget
+  class Shape < Drawable
 
     def initialize(properties)
       super(properties)

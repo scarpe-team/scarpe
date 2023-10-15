@@ -16,7 +16,7 @@ module Scarpe::Components::Calzini
 
   private
 
-  # If the whole widget is hidden, the parent style adds display:none
+  # If the whole drawable is hidden, the parent style adds display:none
   def alert_overlay_style(props)
     {
       position: "fixed",
@@ -30,7 +30,7 @@ module Scarpe::Components::Calzini
       display: "flex",
       "align-items": "center",
       "justify-content": "center",
-    }.merge(widget_style(props))
+    }.merge(drawable_style(props))
   end
 
   def alert_modal_style

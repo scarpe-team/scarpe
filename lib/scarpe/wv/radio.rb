@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Scarpe::Webview
-  class Radio < Widget
+  class Radio < Drawable
     # TODO: is this needed?
     attr_reader :text
 
@@ -21,7 +21,7 @@ module Scarpe::Webview
     end
 
     def element
-      props = display_properties
+      props = shoes_styles
 
       # If a group isn't set, default to the linkable ID of the parent slot
       unless @group
