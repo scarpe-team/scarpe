@@ -2,7 +2,9 @@
 
 module Shoes
   class Progress < Shoes::Widget
-    def initialize(*args)
+    display_properties :fraction
+
+    def initialize(fraction: nil)
       super
 
       create_display_widget

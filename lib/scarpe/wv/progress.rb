@@ -8,7 +8,7 @@ module Scarpe::Webview
 
     def element
       HTML.render do |h|
-        h.progress(id: html_id, style: style) do
+        h.progress(id: html_id, style: style, max: 1, value: @fraction) do
         end
       end
     end
