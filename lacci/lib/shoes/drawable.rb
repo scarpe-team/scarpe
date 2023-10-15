@@ -216,8 +216,7 @@ module Shoes
       self.hidden = !self.hidden
     end
 
-    # We use method_missing for drawable-creating methods like "button",
-    # and also to auto-create Shoes style getters and setters.
+    # We use method_missing to auto-create Shoes style getters and setters.
     def method_missing(name, *args, **kwargs, &block)
       name_s = name.to_s
 
@@ -246,21 +245,7 @@ module Shoes
         return self.send(name, *args, **kwargs, &block)
       end
 
-      klass = Drawable.drawable_class_by_name(name)
-      return super unless klass
-
-      ::Shoes::Drawable.define_method(name) do |*args, **kwargs, &block|
-        # Look up the Shoes drawable and create it...
-        drawable_instance = klass.new(*args, **kwargs, &block)
-
-        unless klass.ancestors.include?(Shoes::TextDrawable)
-          drawable_instance.set_parent Shoes::App.instance.current_slot
-        end
-
-        drawable_instance
-      end
-
-      send(name, *args, **kwargs, &block)
+      super(name, *args, **kwargs, &block)
     end
 
     def respond_to_missing?(name, include_private = false)

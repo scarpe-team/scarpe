@@ -129,6 +129,29 @@ module Shoes
       pop_slot
     end
 
+    # We use method_missing for drawable-creating methods like "button".
+    # The parent's method_missing will auto-create Shoes style getters and setters.
+    # This is similar to the method_missing in Shoes::Slot, but different in
+    # where the new drawable appears.
+    def method_missing(name, *args, **kwargs, &block)
+      klass = ::Shoes::Drawable.drawable_class_by_name(name)
+      return super unless klass
+
+      ::Shoes::App.define_method(name) do |*args, **kwargs, &block|
+        # Look up the Shoes drawable and create it...
+        drawable_instance = klass.new(*args, **kwargs, &block)
+
+        unless klass.ancestors.include?(::Shoes::TextDrawable)
+          # Create this drawable in the current app slot
+          drawable_instance.set_parent ::Shoes::App.instance.current_slot
+        end
+
+        drawable_instance
+      end
+
+      send(name, *args, **kwargs, &block)
+    end
+
     def current_draw_context
       @draw_context.dup
     end
