@@ -2,7 +2,6 @@
 
 module Scarpe::Webview
   class Shape < Drawable
-
     def initialize(properties)
       super(properties)
     end

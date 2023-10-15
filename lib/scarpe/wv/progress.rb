@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Scarpe::Webview
-  class Progress < Widget
+  class Progress < Drawable
     def initialize(properties)
       super
     end

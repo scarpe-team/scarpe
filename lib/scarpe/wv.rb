@@ -76,4 +76,3 @@ require_relative "wv/video"
 require_relative "wv/check"
 require_relative "wv/progress"
 require_relative "wv/arrow"
-
