@@ -23,8 +23,14 @@ module Kernel
   include Shoes::Constants
 end
 
-require_relative "shoes/log"
 require_relative "shoes/display_service"
+
+# Pre-declare classes that get referenced outside their own require file
+class Shoes::Drawable < Shoes::Linkable; end
+class Shoes::Slot < Shoes::Drawable; end
+class Shoes::Widget < Shoes::Slot; end
+
+require_relative "shoes/log"
 require_relative "shoes/colors"
 
 require_relative "shoes/builtins"

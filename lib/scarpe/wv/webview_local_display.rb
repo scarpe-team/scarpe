@@ -50,8 +50,9 @@ module Scarpe
     # @param drawable_class_name [String] The class name of the Shoes drawable, e.g. Shoes::Button
     # @param drawable_id [String] the linkable ID for drawable events
     # @param properties [Hash] a JSON-serialisable Hash with the drawable's Shoes styles
+    # @param is_widget [Boolean] whether the class is a user-defined Shoes::Widget subclass
     # @return [Webview::Drawable] the newly-created Webview drawable
-    def create_display_drawable_for(drawable_class_name, drawable_id, properties)
+    def create_display_drawable_for(drawable_class_name, drawable_id, properties, is_widget:)
       existing = query_display_drawable_for(drawable_id, nil_ok: true)
       if existing
         @log.warn("There is already a display drawable for #{drawable_id.inspect}! Returning #{existing.class.name}.")
@@ -76,7 +77,15 @@ module Scarpe
       end
 
       # Create a corresponding display drawable
-      display_class = Scarpe::Webview::Drawable.display_class_for(drawable_class_name)
+
+      if is_widget
+        display_class = Scarpe::Webview::Flow
+      else
+        display_class = Scarpe::Webview::Drawable.display_class_for(drawable_class_name)
+        unless display_class < Scarpe::Webview::Drawable
+          raise Scarpe::BadDisplayClassType, "Wrong display class type #{display_class.inspect} for class name #{drawable_class_name.inspect}!"
+        end
+      end
       display_drawable = display_class.new(properties)
       set_drawable_pairing(drawable_id, display_drawable)
 

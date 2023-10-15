@@ -17,6 +17,7 @@ module Shoes
     class << self
       attr_accessor :drawable_classes
       attr_accessor :drawable_default_styles
+      attr_accessor :widget_classes
 
       def inherited(subclass)
         Shoes::Drawable.drawable_classes ||= []
@@ -24,6 +25,11 @@ module Shoes
 
         Shoes::Drawable.drawable_default_styles ||= {}
         Shoes::Drawable.drawable_default_styles[subclass] = {}
+
+        Shoes::Drawable.widget_classes ||= []
+        if subclass < Shoes::Widget
+          Shoes::Drawable.widget_classes << subclass.name
+        end
 
         super
       end
@@ -35,6 +41,10 @@ module Shoes
 
       def drawable_class_by_name(name)
         drawable_classes.detect { |k| k.dsl_name == name.to_s }
+      end
+
+      def is_widget_class?(name)
+        !(Shoes::Drawable.widget_classes & [name.to_s]).empty?
       end
 
       def validate_as(prop_name, value)
@@ -99,16 +109,16 @@ module Shoes
     shoes_style :hidden
 
     def initialize(*args, **kwargs)
-      log_init("Drawable")
+      log_init("Shoes::#{self.class.name}")
 
       default_styles = Shoes::Drawable.drawable_default_styles[self.class]
 
       self.class.shoes_style_names.each do |prop|
         prop_sym = prop.to_sym
-        if kwargs[prop_sym]
+        if kwargs.key?(prop_sym)
           val = self.class.validate_as(prop, kwargs[prop_sym])
           instance_variable_set("@" + prop, val)
-        elsif default_styles[prop_sym]
+        elsif default_styles.key?(prop_sym)
           val = self.class.validate_as(prop, default_styles[prop_sym])
           instance_variable_set("@" + prop, val)
         end
@@ -178,9 +188,11 @@ module Shoes
     def create_display_drawable
       klass_name = self.class.name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
 
+      is_widget = Shoes::Drawable.is_widget_class?(klass_name)
+
       # Should we send an event so this can be discovered from someplace other than
       # the DisplayService?
-      ::Shoes::DisplayService.display_service.create_display_drawable_for(klass_name, self.linkable_id, shoes_style_values)
+      ::Shoes::DisplayService.display_service.create_display_drawable_for(klass_name, self.linkable_id, shoes_style_values, is_widget:)
     end
 
     public
@@ -224,7 +236,7 @@ module Shoes
         prop_name = name_s[0..-2]
         if self.class.shoes_style_name?(prop_name)
           self.class.define_method(name) do |new_value|
-            raise Shoes::NoLinkableIdError, "Trying to set Shoes styles in an object with no linkable ID!" unless linkable_id
+            raise(Shoes::NoLinkableIdError, "Trying to set Shoes styles in an object with no linkable ID! #{inspect}") unless linkable_id
 
             new_value = self.class.validate_as(prop_name, new_value)
             instance_variable_set("@" + prop_name, new_value)
@@ -237,7 +249,7 @@ module Shoes
 
       if self.class.shoes_style_name?(name_s)
         self.class.define_method(name) do
-          raise Shoes::NoLinkableIdError, "Trying to get Shoes styles in an object with no linkable ID!" unless linkable_id
+          raise(Shoes::NoLinkableIdError, "Trying to get Shoes styles in an object with no linkable ID! #{inspect}") unless linkable_id
 
           instance_variable_get("@" + name_s)
         end

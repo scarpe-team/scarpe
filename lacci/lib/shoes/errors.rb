@@ -10,4 +10,6 @@ module Shoes
   class NoSuchStyleError < Shoes::Error; end
 
   class NoLinkableIdError < Shoes::Error; end
+
+  class BadLinkableIdError < Shoes::Error; end
 end

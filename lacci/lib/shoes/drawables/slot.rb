@@ -31,13 +31,12 @@ class Shoes::Slot < Shoes::Drawable
     klass = ::Shoes::Drawable.drawable_class_by_name(name)
     return super unless klass
 
-    parent_slot = self
     ::Shoes::Slot.define_method(name) do |*args, **kwargs, &block|
       # Look up the Shoes drawable and create it...
       drawable_instance = klass.new(*args, **kwargs, &block)
 
       unless klass.ancestors.include?(::Shoes::TextDrawable)
-        drawable_instance.set_parent parent_slot # Create drawable in THIS SLOT, not current app slot
+        drawable_instance.set_parent self # Create drawable in THIS SLOT, not current app slot
       end
 
       drawable_instance

@@ -237,23 +237,25 @@ module Shoes
   end
 end
 
-# DSL methods
-class Shoes::App
+# Event handler DSLs get defined in both App and Slot - same code, slightly different results
+events = [:motion, :hover, :leave, :click, :release, :keypress, :animate, :every, :timer]
+events.each do |event|
+  Shoes::App.define_method(event) do |*args, &block|
+    subscription_item(args:, shoes_api_name: event.to_s, &block)
+  end
+  Shoes::Slot.define_method(event) do |*args, &block|
+    subscription_item(args:, shoes_api_name: event.to_s, &block)
+  end
+end
+
+# These methods will need to be defined on Slots too, but probably need a rework in general.
+class Shoes::App < Shoes::Drawable
   def background(...)
     current_slot.background(...)
   end
 
   def border(...)
     current_slot.border(...)
-  end
-
-  # Event handler objects
-
-  events = [:motion, :hover, :leave, :click, :release, :keypress, :animate, :every, :timer]
-  events.each do |event|
-    define_method(event) do |*args, &block|
-      subscription_item(args:, shoes_api_name: event.to_s, &block)
-    end
   end
 
   # Draw context methods
