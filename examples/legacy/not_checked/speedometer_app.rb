@@ -1,6 +1,6 @@
 # Source: https://www.hanselman.com/blog/the-weekly-source-code-29-ruby-and-shoes-and-the-first-ruby-virus
 
-class Speedometer < Widget
+class Speedometer < Shoes::Widget
   attr_accessor :range, :tick, :position
   def initialize opts = {}
     @range = opts[:range] || 200
