@@ -11,6 +11,7 @@ require "shoes/drawables/subscription_item"
 
 require "shoes/drawables/arc"
 require "shoes/drawables/line"
+require "shoes/drawables/rect"
 require "shoes/drawables/shape"
 require "shoes/drawables/star"
 require "shoes/drawables/arrow"

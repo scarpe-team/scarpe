@@ -12,6 +12,25 @@ module Scarpe::Components::Calzini
     end
   end
 
+  def rect_element(props)
+    HTML.render do |h|
+      h.div(id: html_id, style: drawable_style(props)) do
+        width = props["width"].to_i
+        height = props["height"].to_i
+        if props["curve"]
+          width += 2 * props["curve"].to_i
+          height += 2 * props["curve"].to_i
+        end
+        h.svg(width:, height:) do
+          attrs = { x: props["left"], y: props["top"], width: props["width"], height: props["height"], style: rect_svg_style(props) }
+          attrs[:rx] = props["curve"] if props["curve"]
+
+          h.rect(**attrs)
+        end
+      end
+    end
+  end
+
   def line_element(props)
     HTML.render do |h|
       h.div(id: html_id, style: line_div_style(props)) do
@@ -75,6 +94,13 @@ module Scarpe::Components::Calzini
     {
       stroke: (props["draw_context"] || {})["stroke"],
       "stroke-width": "4",
+    }.compact
+  end
+
+  def rect_svg_style(props)
+    {
+      stroke: (props["draw_context"] || {})["stroke"],
+      #"stroke-width": "1",
     }.compact
   end
 

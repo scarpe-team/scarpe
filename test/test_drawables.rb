@@ -21,6 +21,7 @@ class TestDrawables < LoggedScarpeTest
         @drawables << list_box(items: ['A', 'B'])
         @drawables << para("Hello")
         @drawables << radio("ooga")
+        @drawables << rect(0, 0, 50, 100, 5)
         @drawables << shape { line(0, 0, 10, 10) }
         @drawables << stack {}
         @drawables << star(230, 100, 6, 50, 25)

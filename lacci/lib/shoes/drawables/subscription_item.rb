@@ -11,7 +11,7 @@
 # linkable_id automatically.
 #
 # Events not yet implemented: start, finish events for slots -
-# start is first draw, finish is widget destroyed
+# start is first draw, finish is drawable destroyed
 class Shoes::SubscriptionItem < Shoes::Drawable
   shoes_styles :shoes_api_name, :args
 
@@ -39,7 +39,7 @@ class Shoes::SubscriptionItem < Shoes::Drawable
         @callback&.call(self)
       end
     when "leave"
-      # Leave passes the Shoes widget as the block param
+      # Leave passes the Shoes drawable as the block param
       @unsub_id = bind_self_event("leave") do
         @callback&.call(self)
       end
