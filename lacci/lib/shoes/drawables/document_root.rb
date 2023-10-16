@@ -8,8 +8,6 @@ module Shoes
       @options = {}
 
       super
-
-      create_display_drawable
     end
 
     # The default inspect string can be absolutely huge in console output, and it's frequently printed.

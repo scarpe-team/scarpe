@@ -135,8 +135,7 @@ module Shoes
     def set_drawable_pairing(id, display_drawable)
       @display_drawable_for ||= {}
       if @display_drawable_for[id]
-        @log.warn("There is already a drawable for #{id.inspect}! Not setting a new one.")
-        return
+        raise DuplicateCreateDrawableError, "There is already a drawable for #{id.inspect}! Not setting a new one."
       end
       @display_drawable_for[id] = display_drawable
     end
