@@ -2,7 +2,7 @@
 
 module Scarpe::Webview
   # Scarpe::Webview::App must only be used from the main thread, due to GTK+ limitations.
-  class App < Drawable
+  class App < Drawable # App inherits from Drawable to set up linkable IDs and event methods
     attr_reader :control_interface
 
     attr_writer :shoes_linkable_id

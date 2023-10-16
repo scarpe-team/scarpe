@@ -2,7 +2,8 @@
 
 module Scarpe::Components::Calzini
   def alert_element(props)
-    onclick = handler_js_code("click")
+    event = props["event_name"] || "click"
+    onclick = handler_js_code(event)
 
     HTML.render do |h|
       h.div(id: html_id, style: alert_overlay_style(props)) do
