@@ -131,3 +131,9 @@ module Scarpe::Components::Calzini
     radians * (180.0 / Math::PI)
   end
 end
+
+if ENV["SCARPE_HTML_RENDERER"].nil? || ENV["SCARPE_HTML_RENDERER"] == "calzini"
+  class Scarpe::Webview::Drawable < Shoes::Linkable
+    include Scarpe::Components::Calzini
+  end
+end

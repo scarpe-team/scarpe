@@ -15,13 +15,12 @@ require "scarpe/components/promises"
 # Module to contain the various Scarpe Webview classes
 module Scarpe::Webview
   HTML = Scarpe::Components::HTML
-
-  class Drawable < Shoes::Linkable
-    # This is where we would make the HTML renderer modular by choosing another
-    require "scarpe/components/calzini"
-    include Scarpe::Components::Calzini
-  end
 end
+
+# Set up Scarpe-Webview's HTML renderer
+ren = ENV["SCARPE_HTML_RENDERER"] || "calzini"
+# This should *not* be require_relative so that other gems can implement HTML renderers.
+require "scarpe/components/#{ren}"
 
 # Set up hierarchical logging using the SCARPE_LOG_CONFIG var for configuration
 log_config = if ENV["SCARPE_LOG_CONFIG"]

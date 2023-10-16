@@ -78,4 +78,6 @@ module Scarpe
   class MissingClassError < Scarpe::Error; end
 
   class MultipleShoesSpecRunsError < Scarpe::Error; end
+
+  class EmptyPageNotSetError < Scarpe::Error; end
 end

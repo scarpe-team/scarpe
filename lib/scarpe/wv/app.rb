@@ -57,6 +57,8 @@ module Scarpe::Webview
     def run
       @control_interface.dispatch_event(:init)
 
+      @view.empty_page = empty_page_element
+
       # This takes control of the main thread and never returns. And it *must* be run from
       # the main thread. And it stops any Ruby background threads.
       # That's totally cool and normal, right?
