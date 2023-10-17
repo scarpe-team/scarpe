@@ -15,13 +15,12 @@ require "scarpe/components/promises"
 # Module to contain the various Scarpe Webview classes
 module Scarpe::Webview
   HTML = Scarpe::Components::HTML
-
-  class Drawable < Shoes::Linkable
-    # This is where we would make the HTML renderer modular by choosing another
-    require "scarpe/components/calzini"
-    include Scarpe::Components::Calzini
-  end
 end
+
+# Set up Scarpe-Webview's HTML renderer
+ren = ENV["SCARPE_HTML_RENDERER"] || "calzini"
+# This should *not* be require_relative so that other gems can implement HTML renderers.
+require "scarpe/components/#{ren}"
 
 # Set up hierarchical logging using the SCARPE_LOG_CONFIG var for configuration
 log_config = if ENV["SCARPE_LOG_CONFIG"]
@@ -37,6 +36,12 @@ require "scarpe/components/segmented_file_loader"
 loader = Scarpe::Components::SegmentedFileLoader.new
 Shoes.add_file_loader loader
 
+# Fun trivia: listing the full set of available fonts is a fingerprinting attack, so it's not
+# available from JS. These are all commonly available web fonts, though.
+Shoes::FONTS.concat ["Helvetica", "Arial", "Arial Black", "Verdana", "Tahoma", "Trebuchet MS",
+                     "Impact", "Gill Sans", "Times New Roman", "Georgia", "Palatino", "Baskerville",
+                     "Courier", "Lucida", "Monaco"]
+
 if ENV["SHOES_SPEC_TEST"]
   require_relative "shoes_spec"
   Shoes::Spec.instance = Scarpe::Test
@@ -51,7 +56,6 @@ require_relative "wv/star"
 require_relative "wv/radio"
 
 require_relative "wv/arc"
-require_relative "wv/font"
 
 require_relative "wv/app"
 require_relative "wv/para"
@@ -72,6 +76,7 @@ require_relative "wv/shape"
 require_relative "wv/text_drawable"
 require_relative "wv/link"
 require_relative "wv/line"
+require_relative "wv/rect"
 require_relative "wv/video"
 require_relative "wv/check"
 require_relative "wv/progress"

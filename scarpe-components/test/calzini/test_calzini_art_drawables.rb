@@ -56,6 +56,27 @@ class TestCalziniArtDrawables < Minitest::Test
       @calzini.render("line", { "top" => "4", "left" => "7", "x1" => "20", "y1" => "17", "x2" => "100", "y2" => "104", "hidden" => true })
   end
 
+  def test_rect_default_stroke
+    assert_equal %{<div id="elt-1" style="display:none">} +
+      %{<svg width="147" height="91"><rect x=\"12\" y=\"9\" width=\"147\" height=\"91\" />} +
+      %{</svg></div>},
+      @calzini.render("rect", { "top" => "9", "left" => "12", "width" => "147", "height" => "91", "draw_context" => { }, "hidden" => true })
+  end
+
+  def test_rect_round_corners
+    assert_equal %{<div id="elt-1" style="display:none">} +
+      %{<svg width="177" height="121"><rect x=\"12\" y=\"9\" width=\"147\" height=\"91\" style="stroke:red" rx=\"15\" />} +
+      %{</svg></div>},
+      @calzini.render("rect", { "top" => "9", "left" => "12", "width" => "147", "height" => "91", "curve" =>"15", "draw_context" => { "stroke" => "red" }, "hidden" => true })
+  end
+
+  def test_rect_hidden
+    assert_equal %{<div id="elt-1" style="display:none">} +
+      %{<svg width="20" height="17"><rect x=\"7\" y=\"4\" width=\"20\" height=\"17\" />} +
+      %{</svg></div>},
+      @calzini.render("rect", { "top" => "4", "left" => "7", "width" => "20", "height" => "17", "hidden" => true })
+  end
+
   def test_star_simple
     start = %{<div id="elt-1"><svg width="2.0" height="2.0" style="fill:black"><polygon points="2.0,1.0,1.4}
     finish = %{" style="stroke:black;stroke-width:2" /></svg></div>}

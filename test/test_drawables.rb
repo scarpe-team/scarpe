@@ -10,7 +10,6 @@ class TestDrawables < LoggedScarpeTest
     run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
       Shoes.app do
         @drawables = []
-        @drawables << alert("YOLO!")
         @drawables << arc(400, 0, 120, 100, 175, 175)
         @drawables << button("Press Me")
         @drawables << check
@@ -22,6 +21,7 @@ class TestDrawables < LoggedScarpeTest
         @drawables << list_box(items: ['A', 'B'])
         @drawables << para("Hello")
         @drawables << radio("ooga")
+        @drawables << rect(0, 0, 50, 100, 5)
         @drawables << shape { line(0, 0, 10, 10) }
         @drawables << stack {}
         @drawables << star(230, 100, 6, 50, 25)

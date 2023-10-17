@@ -178,7 +178,8 @@ module Shoes
     def create_display_drawable
       klass_name = self.class.name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
 
-      # Should we save a reference to drawable for later reference?
+      # Should we send an event so this can be discovered from someplace other than
+      # the DisplayService?
       ::Shoes::DisplayService.display_service.create_display_drawable_for(klass_name, self.linkable_id, shoes_style_values)
     end
 

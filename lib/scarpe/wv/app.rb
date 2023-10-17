@@ -2,7 +2,7 @@
 
 module Scarpe::Webview
   # Scarpe::Webview::App must only be used from the main thread, due to GTK+ limitations.
-  class App < Drawable
+  class App < Drawable # App inherits from Drawable to set up linkable IDs and event methods
     attr_reader :control_interface
 
     attr_writer :shoes_linkable_id
@@ -56,6 +56,8 @@ module Scarpe::Webview
 
     def run
       @control_interface.dispatch_event(:init)
+
+      @view.empty_page = empty_page_element
 
       # This takes control of the main thread and never returns. And it *must* be run from
       # the main thread. And it stops any Ruby background threads.

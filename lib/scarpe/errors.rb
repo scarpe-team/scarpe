@@ -5,6 +5,8 @@ module Scarpe
 
   class UnknownShapeCommandError < Scarpe::Error; end
 
+  class UnknownBuiltinCommandError < Scarpe::Error; end
+
   class UnknownEventTypeError < Scarpe::Error; end
 
   class UnexpectedFiberTransferError < Scarpe::Error; end
@@ -76,4 +78,6 @@ module Scarpe
   class MissingClassError < Scarpe::Error; end
 
   class MultipleShoesSpecRunsError < Scarpe::Error; end
+
+  class EmptyPageNotSetError < Scarpe::Error; end
 end
