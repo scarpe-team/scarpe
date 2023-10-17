@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Shoes
+  # The main class for creating Shoes applications.
   class App < Shoes::Drawable
     include Shoes::Log
 
@@ -8,12 +9,18 @@ module Shoes
       attr_accessor :instance
     end
 
+    # @return [Object] The root of the document for this application.
     attr_reader :document_root
 
     shoes_styles :title, :width, :height, :resizable
 
     CUSTOM_EVENT_LOOP_TYPES = ["displaylib", "return", "wait"]
 
+    # @param title [String] The title of the application window.
+    # @param width [Integer] The width of the application window.
+    # @param height [Integer] The height of the application window.
+    # @param resizable [Boolean] Set to `true` to allow window resizing.
+    # @see https://github.com/scarpe-team/scarpe/tree/main/docs/examples/app.rb
     def initialize(
       title: "Shoes!",
       width: 480,
@@ -23,6 +30,9 @@ module Shoes
     )
       log_init("Shoes::App")
 
+      # Initializes the Shoes application.
+
+      # Checks if another Shoes::App instance already exists in the same process.
       if Shoes::App.instance
         @log.error("Trying to create a second Shoes::App in the same process! Fail!")
         raise Scarpe::TooManyInstancesError, "Cannot create multiple Shoes::App objects!"
@@ -41,6 +51,7 @@ module Shoes
       @draw_context = {
         "fill" => "",
         "stroke" => "",
+        "rotate" => 0,
       }
 
       # This creates the DocumentRoot, including its corresponding display drawable
@@ -95,7 +106,9 @@ module Shoes
       end
     end
 
+    # Initializes the application.
     def init
+      # Sends the "init" event.
       send_shoes_event(event_name: "init")
       return if @do_shutdown
 
@@ -105,20 +118,26 @@ module Shoes
     # "Container" drawables like flows, stacks, masks and the document root
     # are considered "slots" in Shoes parlance. When a new slot is created,
     # we push it here in order to track what drawables are found in that slot.
+    # Pushes a new slot onto the stack.
     def push_slot(slot)
+      # Pushes a new slot onto the stack.
       @slots.push(slot)
     end
 
+    # Pops the last slot from the slots stack.
     def pop_slot
       return if @slots.size <= 1
 
       @slots.pop
     end
 
+    # Returns the current slot.
+    # @return [Drawable] The current slot.
     def current_slot
       @slots[-1]
     end
 
+    # Executes a block within a specific slot.
     def with_slot(slot_item, &block)
       return unless block_given?
 
@@ -128,6 +147,8 @@ module Shoes
       pop_slot
     end
 
+    # Returns a copy of the current drawing context.
+    # @return [Hash] The current drawing context.
     def current_draw_context
       @draw_context.dup
     end
@@ -161,11 +182,15 @@ module Shoes
       end
     end
 
+    # Signals the application to destroy itself.
+    # @param send_event [Boolean] Set to `true` to send a "destroy" event.
     def destroy(send_event: true)
       @do_shutdown = true
       send_shoes_event(event_name: "destroy") if send_event
     end
 
+    # Retrieves all drawables within the application.
+    # @return [Array<Drawable>] An array of all drawables in the application.
     def all_drawables
       out = []
 
@@ -180,6 +205,8 @@ module Shoes
 
     # We can add various ways to find drawables here.
     # These are sort of like Shoes selectors, used for testing.
+    # @param specs [Array] An array of criteria for finding drawables.
+    # @return [Array<Drawable>] An array of drawables that match the criteria.
     def find_drawables_by(*specs)
       drawables = all_drawables
       specs.each do |spec|
@@ -215,43 +242,45 @@ end
 
 # DSL methods
 class Shoes::App
+  # Sets the background of the current slot.
   def background(...)
     current_slot.background(...)
   end
 
+  # Sets the border of the current slot.
   def border(...)
     current_slot.border(...)
   end
 
-  # Event handler objects
-
+  # Defines event handler methods for various events.
   events = [:motion, :hover, :leave, :click, :release, :keypress, :animate, :every, :timer]
   events.each do |event|
     define_method(event) do |*args, &block|
       subscription_item(args:, shoes_api_name: event.to_s, &block)
     end
   end
-
   # Draw context methods
-
+  # Sets the fill color in the drawing context.
   def fill(color)
     @draw_context["fill"] = color
   end
 
+  # Clears the fill color in the drawing context.
   def nofill
     @draw_context["fill"] = ""
   end
 
+  # Sets the stroke color in the drawing context.
   def stroke(color)
     @draw_context["stroke"] = color
   end
 
+  # Clears the stroke color in the drawing context.
   def nostroke
     @draw_context["stroke"] = ""
   end
-
   # Shape DSL methods
-
+  # Moves the current slot to the specified coordinates.
   def move_to(x, y)
     raise(InvalidAttributeValueError, "Pass only Numeric arguments to move_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
 
@@ -260,6 +289,7 @@ class Shoes::App
     end
   end
 
+  # Draws a line from the current position to the specified coordinates.
   def line_to(x, y)
     raise(InvalidAttributeValueError, "Pass only Numeric arguments to line_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
 
@@ -268,7 +298,13 @@ class Shoes::App
     end
   end
 
+  # Rotates the current slot by the specified angle.
+  def rotate(angle)
+    @draw_context["rotate"] = angle
+  end
+
   # Not implemented yet: curve_to, arc_to
 
+  # Outputs information to the console.
   alias_method :info, :puts
 end
