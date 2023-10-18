@@ -53,6 +53,7 @@ require_relative "wv/control_interface"
 require_relative "wv/drawable"
 
 require_relative "wv/star"
+require_relative "wv/oval"
 require_relative "wv/radio"
 
 require_relative "wv/arc"
