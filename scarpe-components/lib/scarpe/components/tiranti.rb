@@ -115,7 +115,7 @@ module Scarpe::Components::Tiranti
   public
 
   def alert_element(props)
-    onclick = handler_js_code("click")
+    onclick = handler_js_code(props["event_name"] || "click")
 
     HTML.render do |h|
       h.div(id: html_id, class: "modal", tabindex: -1, role: "dialog", style: alert_overlay_style(props)) do
