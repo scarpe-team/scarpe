@@ -36,7 +36,6 @@ module Scarpe::Components::Calzini
   end
 
   def line_element(props)
-    puts "line_element: #{props.inspect}"
     HTML.render do |h|
       h.div(id: html_id, style: line_div_style(props)) do
         h.svg(width: props["x2"], height: props["y2"]) do
@@ -96,8 +95,17 @@ module Scarpe::Components::Calzini
   end
 
   def line_svg_style(props)
+    puts "line_svg_style: #{props["draw_context"]["stroke"]}"
+    stroke = if props["draw_context"] && !props["draw_context"]["stroke"].to_s.empty?
+      "#{props["draw_context"]["stroke"]};"
+    else
+      "black;"
+    end
+
+    puts stroke
     {
-      stroke: (props["draw_context"] || {})["stroke"],
+
+      "stroke": stroke,
       "stroke-width": "4",
     }.compact
   end
