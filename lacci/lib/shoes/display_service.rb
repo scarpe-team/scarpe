@@ -166,6 +166,7 @@ module Shoes
 
     def initialize(linkable_id: object_id)
       @linkable_id = linkable_id
+      @subscriptions = {}
     end
 
     def send_self_event(*args, event_name:, **kwargs)
@@ -177,11 +178,22 @@ module Shoes
     end
 
     def bind_shoes_event(event_name:, target: nil, &handler)
-      DisplayService.subscribe_to_event(event_name, target, &handler)
+      sub = DisplayService.subscribe_to_event(event_name, target, &handler)
+      @subscriptions[sub] = true
+      sub
     end
 
     def unsub_shoes_event(unsub_id)
+      unless @subscriptions[unsub_id]
+        STDERR.puts "Unsubscribing from event that isn't in subscriptions! #{unsub_id.inspect}"
+      end
       DisplayService.unsub_from_events(unsub_id)
+      @subscriptions.delete unsub_id
+    end
+
+    def unsub_all_shoes_events
+      @subscriptions.keys.each { |k| DisplayService.unsub_from_events(k) }
+      @subscriptions.clear
     end
   end
 end
