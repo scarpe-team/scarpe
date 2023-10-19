@@ -2,10 +2,12 @@
 
 module Scarpe::Components::Calzini
   def arc_element(props, &block)
+    dc = props["draw_context"] || {}
+    rotate = dc["rotate"]
     HTML.render do |h|
       h.div(id: html_id, style: arc_style(props)) do
         h.svg(width: props["width"], height: props["height"]) do
-          h.path(d: arc_path(props))
+          h.path(d: arc_path(props), transform: "rotate(#{rotate}, #{props["width"] / 2}, #{props["height"] / 2})")
         end
         block.call(h) if block_given?
       end
@@ -13,6 +15,8 @@ module Scarpe::Components::Calzini
   end
 
   def rect_element(props)
+    dc = props["draw_context"] || {}
+    rotate = dc["rotate"]
     HTML.render do |h|
       h.div(id: html_id, style: drawable_style(props)) do
         width = props["width"].to_i
@@ -25,7 +29,7 @@ module Scarpe::Components::Calzini
           attrs = { x: props["left"], y: props["top"], width: props["width"], height: props["height"], style: rect_svg_style(props) }
           attrs[:rx] = props["curve"] if props["curve"]
 
-          h.rect(**attrs)
+          h.rect(**attrs, transform: "rotate(#{rotate} #{width / 2} #{height / 2})")
         end
       end
     end
@@ -91,8 +95,14 @@ module Scarpe::Components::Calzini
   end
 
   def line_svg_style(props)
+    stroke = if props["draw_context"] && !props["draw_context"]["stroke"].to_s.empty?
+      "#{props["draw_context"]["stroke"]}"
+    else
+      "black"
+    end
     {
-      stroke: (props["draw_context"] || {})["stroke"],
+
+      "stroke": stroke,
       "stroke-width": "4",
     }.compact
   end
@@ -145,8 +155,10 @@ module Scarpe::Components::Calzini
     dc = props["draw_context"] || {}
     fill = dc["fill"]
     stroke = dc["stroke"]
+    rotate = dc["rotate"]
     fill = "black" if !fill || fill == ""
     stroke = "black" if !stroke || stroke == ""
+
     stroke_widthk = width / 4
 
     HTML.render do |h|
@@ -175,6 +187,7 @@ module Scarpe::Components::Calzini
             stroke: stroke.to_s,
             "stroke-width" => stroke_widthk.to_s,
             "marker-end" => "url(#head)",
+            transform: "rotate(#{rotate}, #{left + width / 2}, #{top})",
           )
         end
       end
