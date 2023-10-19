@@ -95,14 +95,11 @@ module Scarpe::Components::Calzini
   end
 
   def line_svg_style(props)
-    puts "line_svg_style: #{props["draw_context"]["stroke"]}"
     stroke = if props["draw_context"] && !props["draw_context"]["stroke"].to_s.empty?
-      "#{props["draw_context"]["stroke"]};"
+      "#{props["draw_context"]["stroke"]}"
     else
-      "black;"
+      "black"
     end
-
-    puts stroke
     {
 
       "stroke": stroke,

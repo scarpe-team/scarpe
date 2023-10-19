@@ -12,4 +12,6 @@ Shoes.app(height:600) do
   rotate 45
   arrow :left => 50, :top => 80,
     :width => 40
+  rotate 180
+  line 100, 100, 200, 200
 end
