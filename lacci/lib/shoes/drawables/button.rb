@@ -23,7 +23,7 @@ module Shoes
       end
 
       bind_self_event("hover") do
-        @block&.call
+        @hover&.call
       end
 
       create_display_drawable
@@ -35,7 +35,7 @@ module Shoes
     end
 
     def hover(&block)
-      @block = block
+      @hover = block
     end
   end
 end
