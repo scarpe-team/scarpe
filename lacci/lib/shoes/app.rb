@@ -247,6 +247,14 @@ class Shoes::App
     @draw_context["stroke"] = color
   end
 
+  def strokewidth(width)
+    @draw_context["strokewidth"] = width
+  end
+
+  def cap(cap)
+    @draw_context["cap"] = cap
+  end
+
   def nostroke
     @draw_context["stroke"] = ""
   end
