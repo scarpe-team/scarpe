@@ -3,10 +3,10 @@
 module Shoes
   class Button < Shoes::Drawable
     include Shoes::Log
-    shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size
+    shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size,:tooltip
 
     def initialize(text, width: nil, height: nil, top: nil, left: nil, color: nil, padding_top: nil, padding_bottom: nil, size: 12, text_color: nil,
-      font_size: nil, &block)
+      font_size: nil,tooltip: nil, &block)
 
       log_init("Button")
 
@@ -22,11 +22,19 @@ module Shoes
         @block&.call
       end
 
+      bind_self_event("hover") do
+        @block&.call
+      end
+
       create_display_drawable
     end
 
     # Set the click handler
     def click(&block)
+      @block = block
+    end
+
+    def hover(&block)
       @block = block
     end
   end

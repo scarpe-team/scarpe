@@ -41,6 +41,7 @@ module Shoes
       @draw_context = {
         "fill" => "",
         "stroke" => "",
+        "rotate" => 0,
       }
 
       # This creates the DocumentRoot, including its corresponding display drawable
@@ -268,6 +269,9 @@ class Shoes::App
     end
   end
 
+  def rotate(angle)
+    @draw_context["rotate"] = angle
+  end
   # Not implemented yet: curve_to, arc_to
 
   alias_method :info, :puts
