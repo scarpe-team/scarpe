@@ -3,6 +3,7 @@
 module Shoes
   class EditLine < Shoes::Drawable
     shoes_styles :text, :width
+    shoes_events :change
 
     def initialize(text = "", width: nil, &block)
       super

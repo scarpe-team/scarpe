@@ -15,6 +15,8 @@ module Shoes
       end
       # rubocop:enable Lint/MissingSuper
     end
+
+    shoes_events() # No TextDrawable-specific events yet
   end
 
   class << self
@@ -44,6 +46,8 @@ module Shoes
       Shoes.const_set class_name, drawable_class
       drawable_class.class_eval do
         shoes_style :content
+
+        shoes_events() # No specific events
       end
     end
   end

@@ -3,6 +3,7 @@
 module Shoes
   class Video < Shoes::Drawable
     shoes_styles :url
+    shoes_events() # No specific events yet
 
     def initialize(url)
       super

@@ -5,6 +5,8 @@ module Shoes
     shoes_styles :text_items, :size, :font, :html_attributes, :hidden
     shoes_style(:stroke) { |val| Shoes::Colors.to_rgb(val) }
 
+    shoes_events() # No Para-specific events yet
+
     def initialize(*args, stroke: nil, size: :para, font: nil, hidden: false, **html_attributes)
       super
 

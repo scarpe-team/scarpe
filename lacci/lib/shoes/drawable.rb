@@ -14,6 +14,9 @@ module Shoes
     include Shoes::Log
     include Shoes::Colors
 
+    # All Drawables have these so they go in Shoes::Drawable
+    @shoes_events = ["parent", "destroy", "prop_change"]
+
     class << self
       attr_accessor :drawable_classes
       attr_accessor :drawable_default_styles
@@ -56,6 +59,25 @@ module Shoes
 
         return value if h[:validator].nil?
         h[:validator].call(value)
+      end
+
+      # Return a list of Shoes events for this class.
+      #
+      # @return Array[String] the list of event names
+      def get_shoes_events
+        if @shoes_events.nil?
+          raise UnknownEventsForClass, "Drawable type #{self.class} hasn't defined its list of Shoes events!"
+        end
+
+        @shoes_events
+      end
+
+      # Set the list of Shoes event names that are allowed for this class.
+      #
+      # @param args [Array] an array of event names, which will be coerced to Strings
+      # @return [void]
+      def shoes_events(*args)
+        @shoes_events ||= args.map(&:to_s) + self.superclass.get_shoes_events
       end
 
       # Assign a new Shoes Drawable ID number, starting from 1.
@@ -163,17 +185,33 @@ module Shoes
 
     private
 
+    def validate_event_name(event_name)
+      if !self.class.get_shoes_events.include?(event_name.to_s)
+        raise Shoes::UnregisteredShoesEvent, "Drawable #{self.inspect} tried to bind Shoes event #{event_name}, which is not in #{evetns.inspect}!"
+      end
+    end
+
     def bind_self_event(event_name, &block)
       raise(Shoes::NoLinkableIdError, "Drawable has no linkable_id! #{inspect}") unless linkable_id
+
+      validate_event_name(event_name)
 
       bind_shoes_event(event_name: event_name, target: linkable_id, &block)
     end
 
     def bind_no_target_event(event_name, &block)
+      validate_event_name(event_name)
+
       bind_shoes_event(event_name:, &block)
     end
 
     public
+
+    def event(event_name, *args, **kwargs)
+      validate_event_name(event_name)
+
+      send_shoes_event(*args, **kwargs, event_name:, target: linkable_id)
+    end
 
     def shoes_style_values
       all_property_names = self.class.shoes_style_names
