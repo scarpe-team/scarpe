@@ -8,7 +8,7 @@ class TestCalziniButton < Minitest::Test
   end
 
   def test_button_defaults
-    assert_equal %{<button id="elt-1" onclick="handle('click')"></button>}, @calzini.render("button", {})
+    assert_equal %{<button id="elt-1" onclick="handle('click')" onmouseover="handle('hover')"></button>}, @calzini.render("button", {})
   end
 
   def test_button_all_properties_set
@@ -25,7 +25,7 @@ class TestCalziniButton < Minitest::Test
       "size" => "17",
       "font" => "Lucida",
     }
-    assert_equal %{<button id="elt-1" onclick="handle('click')" } +
+    assert_equal %{<button id="elt-1" onclick="handle('click')" onmouseover="handle('hover')" } +
       %{style="background-color:red;padding-top:4;padding-bottom:5;color:blue;} +
       %{width:201px;height:203px;font-size:17px;top:10;left:11;position:absolute;} +
       %{font-family:Lucida"></button>},
@@ -47,6 +47,6 @@ class TestCalziniButton < Minitest::Test
       "font" => nil,
       "stroke" => nil,
     }
-    assert_equal %{<button id="elt-1" onclick="handle('click')"></button>}, @calzini.render("button", props)
+    assert_equal %{<button id=\"elt-1\" onclick=\"handle('click')\" onmouseover=\"handle('hover')\"></button>}, @calzini.render("button", props)
   end
 end
