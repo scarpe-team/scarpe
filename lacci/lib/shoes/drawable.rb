@@ -222,9 +222,10 @@ module Shoes
       send_shoes_event(new_parent.linkable_id, event_name: "parent", target: linkable_id)
     end
 
-    # Removes the element from the Shoes::Drawable tree
+    # Removes the element from the Shoes::Drawable tree and removes all event subscriptions
     def destroy
       @parent&.remove_child(self)
+      unsub_all_shoes_events
       send_shoes_event(event_name: "destroy", target: linkable_id)
     end
     alias_method :remove, :destroy
