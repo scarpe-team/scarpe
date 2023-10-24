@@ -129,6 +129,29 @@ module Shoes
       pop_slot
     end
 
+    # We use method_missing for drawable-creating methods like "button".
+    # The parent's method_missing will auto-create Shoes style getters and setters.
+    # This is similar to the method_missing in Shoes::Slot, but different in
+    # where the new drawable appears.
+    def method_missing(name, *args, **kwargs, &block)
+      klass = ::Shoes::Drawable.drawable_class_by_name(name)
+      return super unless klass
+
+      ::Shoes::App.define_method(name) do |*args, **kwargs, &block|
+        # Look up the Shoes drawable and create it...
+        drawable_instance = klass.new(*args, **kwargs, &block)
+
+        unless klass.ancestors.include?(::Shoes::TextDrawable)
+          # Create this drawable in the current app slot
+          drawable_instance.set_parent ::Shoes::App.instance.current_slot
+        end
+
+        drawable_instance
+      end
+
+      send(name, *args, **kwargs, &block)
+    end
+
     def current_draw_context
       @draw_context.dup
     end
@@ -214,23 +237,25 @@ module Shoes
   end
 end
 
-# DSL methods
-class Shoes::App
+# Event handler DSLs get defined in both App and Slot - same code, slightly different results
+events = [:motion, :hover, :leave, :click, :release, :keypress, :animate, :every, :timer]
+events.each do |event|
+  Shoes::App.define_method(event) do |*args, &block|
+    subscription_item(args:, shoes_api_name: event.to_s, &block)
+  end
+  Shoes::Slot.define_method(event) do |*args, &block|
+    subscription_item(args:, shoes_api_name: event.to_s, &block)
+  end
+end
+
+# These methods will need to be defined on Slots too, but probably need a rework in general.
+class Shoes::App < Shoes::Drawable
   def background(...)
     current_slot.background(...)
   end
 
   def border(...)
     current_slot.border(...)
-  end
-
-  # Event handler objects
-
-  events = [:motion, :hover, :leave, :click, :release, :keypress, :animate, :every, :timer]
-  events.each do |event|
-    define_method(event) do |*args, &block|
-      subscription_item(args:, shoes_api_name: event.to_s, &block)
-    end
   end
 
   # Draw context methods

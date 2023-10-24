@@ -80,4 +80,6 @@ module Scarpe
   class MultipleShoesSpecRunsError < Scarpe::Error; end
 
   class EmptyPageNotSetError < Scarpe::Error; end
+
+  class BadDisplayClassType < Scarpe::Error; end
 end

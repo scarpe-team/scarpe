@@ -25,6 +25,31 @@ class Shoes::Slot < Shoes::Drawable
     @children.dup
   end
 
+  # We use method_missing for drawable-creating methods like "button".
+  # The parent's method_missing will auto-create Shoes style getters and setters.
+  def method_missing(name, *args, **kwargs, &block)
+    klass = ::Shoes::Drawable.drawable_class_by_name(name)
+    return super unless klass
+
+    ::Shoes::Slot.define_method(name) do |*args, **kwargs, &block|
+      # Look up the Shoes drawable and create it...
+      drawable_instance = klass.new(*args, **kwargs, &block)
+
+      unless klass.ancestors.include?(::Shoes::TextDrawable)
+        drawable_instance.set_parent self # Create drawable in THIS SLOT, not current app slot
+      end
+
+      drawable_instance
+    end
+
+    send(name, *args, **kwargs, &block)
+  end
+
+  def respond_to_missing?(name, include_private = false)
+    return true if Drawable.drawable_class_by_name(name.to_s)
+    false
+  end
+
   # Calling stack.app or flow.app will execute the block
   # with the Shoes::App as self, and with that stack or
   # flow as the current slot.

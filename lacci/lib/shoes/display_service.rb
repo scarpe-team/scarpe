@@ -128,16 +128,20 @@ module Shoes
 
     # These methods are an interface to DisplayService objects.
 
-    def create_display_drawable_for(drawable_class_name, drawable_id, properties)
+    def create_display_drawable_for(drawable_class_name, drawable_id, properties, is_widget:)
       raise "Override in DisplayService implementation!"
     end
 
     def set_drawable_pairing(id, display_drawable)
+      if id.nil?
+        raise BadLinkableIdError, "Linkable ID may not be nil!"
+      end
       @display_drawable_for ||= {}
       if @display_drawable_for[id]
         raise DuplicateCreateDrawableError, "There is already a drawable for #{id.inspect}! Not setting a new one."
       end
       @display_drawable_for[id] = display_drawable
+      nil
     end
 
     def query_display_drawable_for(id, nil_ok: false)
