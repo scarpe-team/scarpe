@@ -48,6 +48,16 @@ module Shoes
         h[:validator].call(value)
       end
 
+      # Assign a new Shoes Drawable ID number, starting from 1.
+      # This allows non-overlapping small integer IDs for Shoes
+      # linkable IDs - the number part of making it clear what
+      # widget you're talking about.
+      def allocate_drawable_id
+        @drawable_id_counter ||= 0
+        @drawable_id_counter += 1
+        @drawable_id_counter
+      end
+
       private
 
       def linkable_properties
@@ -98,6 +108,8 @@ module Shoes
     # Shoes uses a "hidden" style property for hide/show
     shoes_style :hidden
 
+    attr_reader :debug_id
+
     def initialize(*args, **kwargs)
       log_init("Drawable")
 
@@ -114,13 +126,29 @@ module Shoes
         end
       end
 
-      super() # linkable_id defaults to object_id
+      super(linkable_id: Shoes::Drawable.allocate_drawable_id)
+
+      generate_debug_id
     end
 
+    private
+
+    def generate_debug_id
+      cl = caller_locations(3)
+      da = cl.detect { |loc| !loc.path.include?("lacci/lib/shoes") }
+      @drawable_defined_at = "#{File.basename(da.path)}:#{da.lineno}"
+
+      class_name = self.class.name.split("::")[-1]
+
+      @debug_id = "#{class_name}##{@linkable_id}(#{@drawable_defined_at})"
+    end
+
+    public
+
     def inspect
-      "#<#{self.class}:#{self.object_id} " +
-        "@linkable_id=#{@linkable_id.inspect} @parent=#{@parent.inspect} " +
-        "@children=#{@children.inspect} properties=#{shoes_style_values.inspect}>"
+      "#<#{debug_id} " +
+        " @parent=#{@parent ? @parent.debug_id : "(none)"} " +
+        "@children=#{@children ? @children.map(&:debug_id) : "(none)"} properties=#{shoes_style_values.inspect}>"
     end
 
     private
