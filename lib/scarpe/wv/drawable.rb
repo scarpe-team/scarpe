@@ -55,7 +55,9 @@ module Scarpe::Webview
         instance_variable_set("@" + k.to_s, v)
       end
 
-      # The parent field is *almost* simple enough that a validated Shoes style would handle it.
+      # Must call this before bind
+      super(linkable_id: @shoes_linkable_id)
+
       bind_shoes_event(event_name: "parent", target: shoes_linkable_id) do |new_parent_id|
         display_parent = DisplayService.instance.query_display_drawable_for(new_parent_id)
         if @parent != display_parent
@@ -74,8 +76,6 @@ module Scarpe::Webview
       bind_shoes_event(event_name: "destroy", target: shoes_linkable_id) do
         destroy_self
       end
-
-      super(linkable_id: @shoes_linkable_id)
     end
 
     def shoes_styles
@@ -227,11 +227,13 @@ module Scarpe::Webview
     end
 
     # Removes the element from both the Ruby Drawable tree and the HTML DOM.
+    # Unsubscribe from all Shoes events.
     # Return a promise for when that HTML change will be visible.
     #
     # @return [Scarpe::Promise] a promise that is fulfilled when the HTML change is complete
     def destroy_self
       @parent&.remove_child(self)
+      unsub_all_shoes_events
       html_element.remove
     end
 
