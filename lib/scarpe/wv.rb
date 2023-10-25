@@ -11,6 +11,7 @@ require "bloops"
 require "scarpe/components/html" # HTML renderer
 require "scarpe/components/modular_logger"
 require "scarpe/components/promises"
+require "scarpe/components/string_helpers"
 
 # Module to contain the various Scarpe Webview classes
 module Scarpe::Webview
@@ -21,6 +22,12 @@ end
 ren = ENV["SCARPE_HTML_RENDERER"] || "calzini"
 # This should *not* be require_relative so that other gems can implement HTML renderers.
 require "scarpe/components/#{ren}"
+class Scarpe::Webview::Drawable < Shoes::Linkable
+  # By default it's Scarpe::Components::Calzini
+  comp = Scarpe::Components::StringHelpers.camelize(ENV["SCARPE_HTML_RENDERER"] || "calzini")
+  mod = Scarpe::Components.const_get(comp)
+  include mod
+end
 
 # Set up hierarchical logging using the SCARPE_LOG_CONFIG var for configuration
 log_config = if ENV["SCARPE_LOG_CONFIG"]
@@ -69,7 +76,6 @@ require_relative "wv/image"
 require_relative "wv/edit_box"
 require_relative "wv/edit_line"
 require_relative "wv/list_box"
-require_relative "wv/alert"
 require_relative "wv/span"
 require_relative "wv/shape"
 

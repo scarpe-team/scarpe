@@ -2,18 +2,13 @@
 
 require "minitest"
 require "scarpe/cats_cradle" # Currently needed for CCHelpers
+require "scarpe/components/string_helpers"
 
 # Test framework code to allow Scarpe to execute Shoes-Spec test code.
 # This will run inside the exe/scarpe child process, then send
 # results back to the parent Minitest process.
 
 module Scarpe::Test
-  # Cut down from Rails camelize
-  def self.camelize(string)
-    string = string.sub(/^[a-z\d]*/) { |match| match.capitalize }
-    string.gsub(/(?:_|(\/))([a-z\d]*)/) { "#{$1}#{$2.capitalize}" }
-  end
-
   # Is it at all reasonable to define more than one test to run in the same Shoes run? Probably not.
   # They'll leave in-memory residue.
   def self.run_shoes_spec_test_code(code, class_name: "TestShoesSpecCode", test_name: "test_shoes_spec")
@@ -43,7 +38,7 @@ module Scarpe::Test
     end
 
     test_class = Class.new(Scarpe::ShoesSpecTest)
-    Object.const_set(camelize(class_name), test_class)
+    Object.const_set(Scarpe::Components::StringHelpers.camelize(class_name), test_class)
     test_name = "test_" + test_name unless test_name.start_with?("test_")
     test_class.define_method(test_name) do
       eval(code)

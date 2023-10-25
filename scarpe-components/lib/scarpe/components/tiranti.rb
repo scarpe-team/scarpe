@@ -209,9 +209,3 @@ module Scarpe::Components::Tiranti
     end
   end
 end
-
-if ENV["SCARPE_HTML_RENDERER"] == "tiranti"
-  class Scarpe::Webview::Drawable < Shoes::Linkable
-    include Scarpe::Components::Tiranti
-  end
-end

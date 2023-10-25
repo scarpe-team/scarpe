@@ -5,7 +5,7 @@ module Scarpe::Webview
     attr_reader :selected_item, :items, :height, :width, :choose
 
     def initialize(properties)
-      super(properties)
+      super
 
       bind("change") do |new_item|
         send_self_event(new_item, event_name: "change")
