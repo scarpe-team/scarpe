@@ -99,11 +99,11 @@ module Scarpe::Webview
       if changes.key?("hidden")
         hidden = changes.delete("hidden")
         if hidden
-          html_element.set_style("display", "none")
+          html_wrapper_element.set_style("display", "none")
         else
           new_style = style # Get current display CSS property, which may vary by subclass
           disp = new_style[:display]
-          html_element.set_style("display", disp || "block")
+          html_wrapper_element.set_style("display", disp || "block")
         end
       end
 
@@ -180,11 +180,23 @@ module Scarpe::Webview
 
     public
 
-    # This gets a mini-webview for just this element and its children, if any.
+    # This gets an accessor for just this element's HTML ID.
     # It is normally called by the drawable itself to do its DOM management.
+    # Some drawables don't use their html_id for their outermost element,
+    # and so we add an outer wrapping div to make sure that remove(),
+    # hidden() etc. affect every part of the drawable. This accessor
+    # does *not* necessarily affect the outermost elements.
     #
     # @return [Scarpe::WebWrangler::ElementWrangler] a DOM object manager
     def html_element
+      @elt_wrangler ||= Scarpe::Webview::WebWrangler::ElementWrangler.new(html_id)
+    end
+
+    # This gets an accessor for just this element's outer wrapping div.
+    # This allows replacing the entire drawable, not just its "main" element.
+    #
+    # @return [Scarpe::WebWrangler::ElementWrangler] a DOM object manager
+    def html_wrapper_element
       @elt_wrangler ||= Scarpe::Webview::WebWrangler::ElementWrangler.new(html_id)
     end
 
@@ -192,6 +204,8 @@ module Scarpe::Webview
     #
     # @return [Scarpe::Promise] a promise that will be fulfilled when all pending changes have finished
     def promise_update
+      # Doesn't matter what ElementWrangler we use -- they all return an update promise
+      # that includes all pending updates, no matter who they're for.
       html_element.promise_update
     end
 
@@ -199,7 +213,7 @@ module Scarpe::Webview
     #
     # @return [String] the HTML ID
     def html_id
-      object_id.to_s
+      @linkable_id.to_s
     end
 
     # to_html is intended to get the HTML DOM rendering of this object and its children.
@@ -209,11 +223,7 @@ module Scarpe::Webview
     def to_html
       @children ||= []
       child_markup = @children.map(&:to_html).join
-      if respond_to?(:element)
-        element { child_markup }
-      else
-        child_markup
-      end
+      "<div id='#{html_id}-wrap'>" + element { child_markup } + "</div>"
     end
 
     # This binds a Scarpe JS callback, handled via a single dispatch point in the app
@@ -234,18 +244,28 @@ module Scarpe::Webview
     def destroy_self
       @parent&.remove_child(self)
       unsub_all_shoes_events
-      html_element.remove
+      html_wrapper_element.remove
     end
 
-    # Request a full redraw of all drawables.
+    # Request a full redraw of the entire window, including the entire tree of
+    # drawables and the outer "empty page" frame.
     #
-    # It's really hard to do dirty-tracking here because the redraws are fully asynchronous.
-    # And so we can't easily cancel one "in flight," and we can't easily pick up the latest
-    # changes... And we probably don't want to, because we may be halfway through a batch.
+    # @return [void]
+    def full_window_redraw!
+      DisplayService.instance.app.request_redraw!
+    end
+
+    # Request a full redraw of this drawable, including all its children.
+    # Can be overridden in drawable subclasses if needed. An override would normally
+    # only be needed if re-rendering the element with the given html_id
+    # wasn't enough (and then remove would also need to be overridden.)
+    #
+    # This occurs by default if a property is changed and the drawable
+    # doesn't remove its change in property_changed.
     #
     # @return [void]
     def needs_update!
-      DisplayService.instance.app.request_redraw!
+      html_wrapper_element.outer_html = to_html
     end
 
     # Generate JS code to trigger a specific event name on this drawable with the supplies arguments.

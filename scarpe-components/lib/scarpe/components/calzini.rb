@@ -33,10 +33,26 @@ module Scarpe::Components::Calzini
   }.freeze
   private_constant :SIZES
 
-  def render(drawable, properties = shoes_styles, &block)
-    send("#{drawable}_element", properties, &block)
+  # Render the Shoes drawable of type `drawable_name` with
+  # the given properties to HTML and return it. If the
+  # drawable type takes a block (e.g. Stack or Flow) then
+  # the block will be properly rendered.
+  #
+  # @param drawable_name [String] the drawable name like "alert", "button" or "rect"
+  # @param properties [Hash] a drawable-specific hash of property names to values
+  # @block the block which, when called, will return the contents for drawable types with contents
+  # @return [String] the rendered HTML
+  def render(drawable_name, properties = shoes_styles, &block)
+    send("#{drawable_name}_element", properties, &block)
   end
 
+  # Return HTML for an empty page element, to be filled with HTML
+  # renderings of the DOM tree.
+  #
+  # The wrapper-wvroot element is where Scarpe will fill in the
+  # DOM element.
+  #
+  # @return [String] the rendered HTML for the empty page object.
   def empty_page_element
     <<~HTML
       <html>

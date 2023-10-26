@@ -2,6 +2,10 @@
 
 module Scarpe::Webview
   class TextDrawable < Drawable
+    def to_html
+      # Do not render TextDrawables with individual wrapper divs.
+      element
+    end
   end
 
   class << self
