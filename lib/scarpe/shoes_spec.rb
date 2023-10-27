@@ -11,11 +11,17 @@ require "scarpe/components/string_helpers"
 module Scarpe::Test
   # Is it at all reasonable to define more than one test to run in the same Shoes run? Probably not.
   # They'll leave in-memory residue.
-  def self.run_shoes_spec_test_code(code, class_name: "TestShoesSpecCode", test_name: "test_shoes_spec")
+  def self.run_shoes_spec_test_code(code, class_name: nil, test_name: nil)
     if @shoes_spec_init
       raise MultipleShoesSpecRunsError, "Scarpe-Webview can only run a single Shoes spec per process!"
     end
     @shoes_spec_init = true
+
+    require "scarpe/components/minitest_export_reporter"
+    Minitest::Reporters::ShoesExportReporter.activate!
+
+    class_name ||= ENV["SHOES_MINITEST_CLASS_NAME"] || "TestShoesSpecCode"
+    test_name ||= ENV["SHOES_MINITEST_METHOD_NAME"] || "test_shoes_spec"
 
     require_relative "cats_cradle"
 

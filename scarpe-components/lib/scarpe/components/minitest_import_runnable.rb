@@ -4,7 +4,7 @@ require "minitest"
 require "json"
 require "json/add/exception"
 
-class Scarpe; module Components; end; end
+module Scarpe; module Components; end; end
 module Scarpe::Components::ImportRunnables
   # Minitest Runnables are unusual - we expect to declare a class (like a Test) with
   # a lot of methods to run. The ImportRunnable is a single Runnable. But whenever
@@ -20,12 +20,11 @@ module Scarpe::Components::ImportRunnables
   class ImportRunnable #< Minitest::Runnable
     # Import JSON from an exported Minitest run. Note that running this multiple
     # times with overlapping class names may be really bad.
-    def self.import_json(json_file)
+    def self.import_json_data(data)
       @imported_classes ||= {}
       @imported_tests ||= {}
 
-      data = JSON.load(File.read json_file)
-      data.each do |item|
+      JSON.parse(data).each do |item|
         klass = item["klass"]
         meth = item["name"]
         @imported_tests[klass] ||= {}
