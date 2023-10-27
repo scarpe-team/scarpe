@@ -3,6 +3,7 @@
 module Shoes
   class Image < Shoes::Drawable
     shoes_styles :url, :width, :height, :top, :left, :click
+    shoes_events() # No Image-specific events yet
 
     def initialize(url, width: nil, height: nil, top: nil, left: nil, click: nil)
       super

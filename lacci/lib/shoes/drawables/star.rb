@@ -8,6 +8,8 @@ module Shoes
     shoes_style(:outer) { |val| convert_to_float(val, "outer") }
     shoes_style(:inner) { |val| convert_to_float(val, "inner") }
 
+    shoes_events() # No Star-specific events yet
+
     def initialize(left, top, points = 10, outer = 100, inner = 50)
       super
       self.left, self.top, self.points, self.outer, self.inner = left, top, points, outer, inner

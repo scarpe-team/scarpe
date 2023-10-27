@@ -4,6 +4,8 @@ class Shoes::Slot < Shoes::Drawable
   # @incompatibility Shoes uses #content, not #children, for this
   attr_reader :children
 
+  shoes_events() # No Slot-specific events yet
+
   # Do not call directly, use set_parent
   def remove_child(child)
     @children ||= []

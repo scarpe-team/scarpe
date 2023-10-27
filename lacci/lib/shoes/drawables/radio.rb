@@ -6,6 +6,7 @@ module Shoes
   # radio buttons in the same slot being treated as being in the same group.
   class Radio < Shoes::Drawable
     shoes_styles :group, :checked
+    shoes_events :click
 
     def initialize(group = nil, checked: nil, &block)
       super
