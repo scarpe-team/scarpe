@@ -371,8 +371,8 @@ module Scarpe::Webview
 
       # From webview:
       # 0 - Width and height are default size
-      # 1 - Width and height are minimum bonds
-      # 2 - Width and height are maximum bonds
+      # 1 - Width and height are minimum bounds
+      # 2 - Width and height are maximum bounds
       # 3 - Window size can not be changed by a user
       hint = @resizable ? 0 : 3
 
