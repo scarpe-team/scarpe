@@ -3,6 +3,7 @@
 module Shoes
   class Check < Shoes::Drawable
     shoes_styles :checked
+    shoes_events :click
 
     def initialize(checked = nil, &block)
       @block = block

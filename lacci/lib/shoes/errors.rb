@@ -12,4 +12,6 @@ module Shoes
   class NoLinkableIdError < Shoes::Error; end
 
   class BadLinkableIdError < Shoes::Error; end
+
+  class UnregisteredShoesEvent < Shoes::Error; end
 end

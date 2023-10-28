@@ -3,6 +3,7 @@
 module Shoes
   class ListBox < Shoes::Drawable
     shoes_styles :selected_item, :items, :height, :width, :choose
+    shoes_events :change
 
     def initialize(args = {}, &block)
       super

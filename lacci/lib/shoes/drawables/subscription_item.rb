@@ -14,6 +14,7 @@
 # start is first draw, finish is drawable destroyed
 class Shoes::SubscriptionItem < Shoes::Drawable
   shoes_styles :shoes_api_name, :args
+  shoes_events :animate, :every, :timer, :hover, :leave, :motion, :click, :release, :keypress
 
   def initialize(args: [], shoes_api_name:, &block)
     super
@@ -60,13 +61,13 @@ class Shoes::SubscriptionItem < Shoes::Drawable
     when "release"
       # Click has block params button, left, top
       # button is the button number, left and top are coords
-      @unsub_id = bind_self_event("click") do |button, x, y, **_kwargs|
+      @unsub_id = bind_self_event("release") do |button, x, y, **_kwargs|
         @callback&.call(button, x, y)
       end
     when "keypress"
       # Keypress passes the key string or symbol to the handler
       # Do anything special for serialisation here?
-      @unsub_id = bind_self_event("click") do |key|
+      @unsub_id = bind_self_event("keypress") do |key|
         @callback&.call(key)
       end
     else
