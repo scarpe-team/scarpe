@@ -154,6 +154,15 @@ module Scarpe::Components::Tiranti
     end
   end
 
+  def progress_element(props)
+    HTML.render do |h|
+      h.div(class: "progress", style: "width: 90%") do
+        pct = "%.1f" % ((props["fraction"] || 0.0) * 100.0)
+        h.div(class: "progress-bar progress-bar-striped progress-bar-animated", role: "progressbar", "aria-valuenow": pct, "aria-valuemin": 0, "aria-valuemax": 100, style: "width: #{pct}%")
+      end
+    end
+  end
+
   # para_element is a bit of a hard one, since it does not-entirely-trivial
   # mapping between display objects and IDs. But we don't want Calzini
   # messing with the display service or display objects.
