@@ -750,6 +750,7 @@ class Scarpe::Webview::WebWrangler
     # @param html_id [String] the HTML ID for the DOM element
     def initialize(html_id)
       @webwrangler = ::Scarpe::Webview::DisplayService.instance.wrangler
+      raise Scarpe::MissingWranglerError, "Can't get WebWrangler!" unless @webwrangler
       @html_id = html_id
     end
 

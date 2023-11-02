@@ -264,6 +264,7 @@ module Shoes
     public
 
     attr_reader :parent
+    attr_reader :destroyed
 
     def set_parent(new_parent)
       @parent&.remove_child(self)
@@ -275,6 +276,8 @@ module Shoes
     # Removes the element from the Shoes::Drawable tree and removes all event subscriptions
     def destroy
       @parent&.remove_child(self)
+      @parent = nil
+      @destroyed = true
       unsub_all_shoes_events
       send_shoes_event(event_name: "destroy", target: linkable_id)
     end

@@ -35,7 +35,7 @@ module Scarpe::Test
     end
   end
 
-  module CCHelpers
+  module DrawableFinders
     # What to do about TextDrawables? Link, code, em, strong?
     # Also, wait, what's up with span? What *is* that?
     Shoes::Drawable.drawable_classes.each do |drawable_class|
@@ -59,7 +59,7 @@ module Scarpe::Test
     include Shoes::Log
     include Scarpe::Test::EventedAssertions
     include Scarpe::Test::Helpers
-    include Scarpe::Test::CCHelpers
+    include Scarpe::Test::DrawableFinders
 
     def self.instance
       @instance ||= CCInstance.new
