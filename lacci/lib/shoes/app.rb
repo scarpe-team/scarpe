@@ -62,14 +62,9 @@ module Shoes
       end
 
       if ENV["SHOES_SPEC_TEST"]
-        require "scarpe/components/minitest_export_reporter"
-        Minitest::Reporters::ShoesExportReporter.activate!
         test_code = File.read ENV["SHOES_SPEC_TEST"]
         unless test_code.empty?
-          kwargs = {}
-          kwargs[:class_name] = ENV["SHOES_MINITEST_CLASS_NAME"] if ENV["SHOES_MINITEST_CLASS_NAME"]
-          kwargs[:test_name] = ENV["SHOES_MINITEST_METHOD_NAME"] if ENV["SHOES_MINITEST_METHOD_NAME"]
-          Shoes::Spec.instance.run_shoes_spec_test_code test_code, **kwargs
+          Shoes::Spec.instance.run_shoes_spec_test_code test_code
         end
       end
 

@@ -62,7 +62,7 @@ module Minitest
           }
         end
 
-        out_file = ENV["SHOES_MINITEST_EXPORT_FILE"]
+        out_file = File.expand_path ENV["SHOES_MINITEST_EXPORT_FILE"]
         puts "Writing Minitest results to #{out_file.inspect}."
         File.write(out_file, JSON.dump(results))
       end
