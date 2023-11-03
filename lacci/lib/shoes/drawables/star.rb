@@ -17,8 +17,6 @@ module Shoes
       create_display_drawable
     end
 
-    private
-
     def self.convert_to_integer(value, attribute_name)
       begin
         value = Integer(value)

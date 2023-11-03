@@ -64,19 +64,19 @@ module Scarpe::Components::Calzini
     strokewidth = dc["strokewidth"] || "2"
     fill = "black" if !fill || fill == ""
     radius = props["radius"]
-    #  RADIUS assumes circle, height and width assumes non-circle oval or whatever
-    #  it supports BOTH
-    # sort this out
-    # if there's a radius, set the height and width to the radius
+    width = radius * 2
+    height = props["height"] || radius * 2 # If there's a height, it's an oval, if not, circle
+    center = props["center"] || false
+
     HTML.render do |h|
       h.div(id: html_id, style: oval_style(props)) do
-        h.svg(width: @width, height: @height, style: "fill:#{fill_color};") do
+        h.svg(width: width, height: height, style: "fill:#{fill};") do
           h.ellipse(
-            cx: @center ? radius : 0,
-            cy: @center ? @height / 2 : 0,
+            cx: center ? radius : 0,
+            cy: center ? height / 2 : 0,
             rx: radius,
-            ry: radius,
-            style: "stroke:#{stroke_color};stroke_width:2",
+            ry: height ? height / 2 : radius,
+            style: "stroke:#{stroke};stroke_width:#{strokewidth};",
           )
         end
         block.call(h) if block_given?

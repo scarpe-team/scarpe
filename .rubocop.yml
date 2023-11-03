@@ -19,6 +19,12 @@ Style/RedundantHeredocDelimiterQuotes:
 Style/MissingRespondToMissing:
   Enabled: false
 
+Metrics/ParameterLists:
+  Enabled: false
+
+Style/ParallelAssignment:
+  Enabled: false
+
 
 
 Style/MethodCallWithArgsParentheses:
