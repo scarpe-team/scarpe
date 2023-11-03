@@ -4,7 +4,6 @@ class Bloops
   # SAW, SINE, SQUARE and friends
   def const_missing(name)
     begin
-      require "rubygems"
       require "bloops"
       Bloops.const_get(name)
     rescue LoadError
@@ -14,7 +13,6 @@ class Bloops
 
   def initialize
     begin
-      require "rubygems"
       require "bloops"
       Bloops.new
     rescue LoadError
