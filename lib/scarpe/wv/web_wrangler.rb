@@ -786,7 +786,15 @@ class Scarpe::Webview::WebWrangler
       @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").innerHTML = `" + new_html + "`; true")
     end
 
-    # Update the JS DOM element's inner_html. The given Ruby value will be inspected and assigned.
+    # Update the JS DOM element's outer_html. The given Ruby value will be converted to string and assigned in backquotes.
+    #
+    # @param new_html [String] the new outer_html
+    # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
+    def outer_html=(new_html)
+      @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").outerHTML = `" + new_html + "`; true")
+    end
+
+    # Update the JS DOM element's attribute. The given Ruby value will be inspected and assigned.
     #
     # @param attribute [String] the attribute name
     # @param value [String] the new attribute value

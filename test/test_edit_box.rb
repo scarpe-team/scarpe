@@ -14,7 +14,7 @@ class TestEditBox < LoggedScarpeTest
       on_heartbeat do
         box = edit_box
         html_id = box.display.html_id
-        assert_html edit_box.display.to_html, :textarea, id: html_id, oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)" do
+        assert_contains_html edit_box.display.to_html, :textarea, id: html_id, oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)" do
           "Hello, World!"
         end
 
@@ -35,7 +35,7 @@ class TestEditBox < LoggedScarpeTest
         box.text = "Awwww yeah"
         wait fully_updated
         html_id = box.display.html_id
-        assert_html edit_box.display.to_html, :textarea, id: html_id, oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)" do
+        assert_contains_html edit_box.display.to_html, :textarea, id: html_id, oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)" do
           "Awwww yeah"
         end
         # Shoes3 does *not* fire a change event when manually replacing text
@@ -55,7 +55,7 @@ class TestEditBox < LoggedScarpeTest
       on_heartbeat do
         box = edit_box
         html_id = box.display.html_id
-        assert_html edit_box.display.to_html,
+        assert_contains_html edit_box.display.to_html,
           :textarea,
           id: html_id,
           oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)",

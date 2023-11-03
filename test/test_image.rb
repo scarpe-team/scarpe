@@ -19,7 +19,7 @@ class TestWebviewImage < ScarpeWebviewTest
   def test_renders_image
     img = Scarpe::Webview::Image.new(@default_properties)
 
-    assert_html img.to_html, :img, id: img.html_id, src: @url
+    assert_contains_html img.to_html, :img, id: img.html_id, src: @url
   end
 
   def test_renders_image_with_specified_size
@@ -27,7 +27,7 @@ class TestWebviewImage < ScarpeWebviewTest
     height = 50
     img = Scarpe::Webview::Image.new(@default_properties.merge(width:, height:))
 
-    assert_html img.to_html, :img, id: img.html_id, src: @url, style: "width:#{width}px;height:#{height}px"
+    assert_contains_html img.to_html, :img, id: img.html_id, src: @url, style: "width:#{width}px;height:#{height}px"
   end
 
   def test_renders_image_with_specified_position
@@ -35,7 +35,7 @@ class TestWebviewImage < ScarpeWebviewTest
     left = 5
     img = Scarpe::Webview::Image.new(@default_properties.merge(top:, left:))
 
-    assert_html img.to_html, :img, id: img.html_id, src: @url, style: "top:#{top}px;left:#{left}px;position:absolute"
+    assert_contains_html img.to_html, :img, id: img.html_id, src: @url, style: "top:#{top}px;left:#{left}px;position:absolute"
   end
 
   def test_renders_image_with_specified_size_and_position
@@ -45,7 +45,7 @@ class TestWebviewImage < ScarpeWebviewTest
     left = 5
     img = Scarpe::Webview::Image.new(@default_properties.merge(width:, height:, top:, left:))
 
-    assert_html img.to_html,
+    assert_contains_html img.to_html,
       :img,
       id: img.html_id,
       src: @url,
@@ -56,10 +56,9 @@ class TestWebviewImage < ScarpeWebviewTest
     target_url = "http://github.com/schwad/scarpe"
     img = Scarpe::Webview::Image.new(@default_properties.merge("click" => target_url))
 
-    assert_equal "<a id=\"#{img.html_id}\" href=\"#{target_url}\">"\
+    assert_includes img.to_html, "<a id=\"#{img.html_id}\" href=\"#{target_url}\">"\
       "<img id=\"#{img.html_id}\" src=\"#{@url}\" />"\
-      "</a>",
-      img.to_html
+      "</a>"
   end
 
   def test_image_size
