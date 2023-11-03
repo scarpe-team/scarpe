@@ -1,5 +1,3 @@
-require 'bloops'
-
 class Fret
   def initialize(string, fret_idx, note, octave)
     @string = string
@@ -124,7 +122,7 @@ Shoes.app(width: 1280, height: 400) do
         @tuning_select = list_box(
                                   items: ["d standard", "dadgad", "standard"]
                                  ).change { |tuning| @tuning = tuning }
-        
+
         button "Change Tuning" do
           self.instance_variable_set("@strings", Tunings::get(@tuning))
           @fretboard.clear

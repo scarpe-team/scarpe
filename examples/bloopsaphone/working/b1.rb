@@ -1,14 +1,13 @@
-require("bloops")
 require 'singleton'
 
 class PongSounds
   include Singleton
-  
+
   class << self
     def bloops
       @bloops ||= Bloops.new
     end
-    
+
     def sounds
       @sounds ||= begin
         @hit = bloops.sound Bloops::SQUARE
@@ -35,13 +34,13 @@ class PongSounds
         @bounce.punch = 0.5
         @bounce.arp = 0.1
         @bounce.phase = 0.1
-        
+
         {:hit => [@hit, "32 + A#"], :score => [@score, "16 - D#"], :bounce => [@bounce, "16 - F#"]}
       end
-      
+
       @sounds
     end
-    
+
     def play(name)
       Thread.new do
         bloops.tune *sounds[name]
@@ -61,4 +60,3 @@ Shoes.app do
       }
    end
 end
-

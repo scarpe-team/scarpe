@@ -1,5 +1,3 @@
-require 'bloops'
-
 # the song object
 b = Bloops.new
 b.tempo = 320

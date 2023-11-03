@@ -18,6 +18,8 @@ require_relative "shoes/errors"
 
 require_relative "shoes/constants"
 
+require_relative "shoes/unforced_dependencies/bloops"
+
 # Shoes adds some top-level methods and constants that can be used everywhere. Kernel is where they go.
 module Kernel
   include Shoes::Constants

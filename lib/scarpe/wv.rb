@@ -7,7 +7,6 @@
 require "securerandom"
 require "json"
 
-require "bloops"
 require "scarpe/components/html" # HTML renderer
 require "scarpe/components/modular_logger"
 require "scarpe/components/promises"

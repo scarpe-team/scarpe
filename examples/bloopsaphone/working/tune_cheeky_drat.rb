@@ -7,8 +7,6 @@
 #      from Farbrausch with ♥
 #
 
-require 'bloops'
-
 b = Bloops.new
 b.tempo = 172
 
@@ -127,7 +125,7 @@ b.tune snare, %q^
   ^
 
 b.tune chord, %q^
-      1 
+      1
    1 1
   1 1 1
    1 1
@@ -146,7 +144,7 @@ b.tune chord, %q^
   ^
 
 b.tune chord, %q^
-      1 
+      1
    1 1
   1 1 1
    1 1
@@ -165,7 +163,7 @@ b.tune chord, %q^
   ^
 
 b.tune chord, %q^
-      1 
+      1
    1 1
   1 1 1
    1 1
@@ -196,7 +194,7 @@ b.tune lead, %q^
   2a3 1b4 2
   2d5 2g4 1c5
   1a4 1e5
-  1b4 2 4 8 8d4  
+  1b4 2 4 8 8d4
 
   2g3 1a4 2
   2c5 1e4 3d4 5g4

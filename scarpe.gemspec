@@ -37,7 +37,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "lacci"
   spec.add_dependency "scarpe-components"
 
-  spec.add_dependency "bloops", "~>0.5"
   spec.add_dependency "logging", "~>2.3.1"
   spec.add_dependency "webview_ruby", "~>0.1.1"
 
