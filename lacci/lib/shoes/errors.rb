@@ -5,6 +5,8 @@ module Shoes
 
   class TooManyInstancesError < Shoes::Error; end
 
+  class NoSuchListItemError < Shoes::Error; end
+
   class DuplicateCreateDrawableError < Shoes::Error; end
 
   class NoSuchStyleError < Shoes::Error; end

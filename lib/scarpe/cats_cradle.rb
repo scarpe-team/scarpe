@@ -33,6 +33,17 @@ module Scarpe::Test
     def respond_to_missing?(method_name, include_private = false)
       @obj.respond_to_missing?(method_name, include_private)
     end
+
+    def trigger(event_name, *args)
+      name = "#{@obj.linkable_id}-#{event_name}"
+      Scarpe::Webview::DisplayService.instance.app.handle_callback(name, *args)
+    end
+
+    [:click, :hover, :leave, :change].each do |ev|
+      define_method "trigger_#{ev}" do |*args|
+        trigger(ev, *args)
+      end
+    end
   end
 
   module DrawableFinders
