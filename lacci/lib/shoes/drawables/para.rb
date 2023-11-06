@@ -34,7 +34,7 @@ module Shoes
 
       # Text_children alternates strings and TextDrawables, so we can't just pass
       # it as a Shoes style. It won't serialize.
-      update_text_children(*args)
+      update_text_children(args)
 
       @html_attributes = html_attributes || {}
 
@@ -55,7 +55,7 @@ module Shoes
     # @param children [Array] the arguments can be Strings and/or TextDrawables
     # @return [void]
     def replace(*children)
-      update_text_children(*children)
+      update_text_children(children)
     end
 
     # Set the paragraph text to a single String.
@@ -63,16 +63,24 @@ module Shoes
     #
     # @param child [String] the new text to use for this Para
     # @return [void]
-    def text=(child)
-      update_text_children(*child)
+    def text=(*children)
+      update_text_children(children)
+    end
+
+    def text
+      @text_children.map(&:to_s).join
+    end
+
+    def to_s
+      self.text
     end
 
     private
 
     # Text_children alternates strings and TextDrawables, so we can't just pass
     # it as a Shoes style. It won't serialize.
-    def update_text_children(*children)
-      @text_children = children
+    def update_text_children(children)
+      @text_children = children.flatten
       # This should signal the display drawable to change
       self.text_items = text_children_to_items(@text_children)
     end

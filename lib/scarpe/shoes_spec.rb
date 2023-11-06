@@ -67,7 +67,7 @@ class Scarpe::ShoesSpecProxy
   attr_reader :linkable_id
   attr_reader :display
 
-  JS_EVENTS = [:click, :hover, :leave]
+  JS_EVENTS = [:click, :hover, :leave, :change]
 
   def initialize(obj)
     @obj = obj

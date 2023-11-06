@@ -81,6 +81,7 @@ class TestWebviewPara < ScarpeWebviewTest
     end
   end
 
+  # This tests a Webview::Para by sending a prop_change event
   def test_replace_children
     para = Scarpe::Webview::Para.new(@default_properties.merge(
       "text_items" => ["Oh, to fling and be flung"],
@@ -130,5 +131,60 @@ class TestWebviewPara < ScarpeWebviewTest
       end
     end
     mocked_html_element.verify
+  end
+end
+
+# Tests for the CatsCradle testing language
+class TestParaIntegration < LoggedScarpeTest
+  self.logger_dir = File.expand_path("#{__dir__}/../logger")
+
+  def test_para_button_replace
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+      Shoes.app do
+        @p = para "Yo"
+        button "OK" do
+          @p.replace "Clicked"
+        end
+      end
+    SCARPE_APP
+      on_heartbeat do
+        assert_equal "Yo", para().text
+        button().trigger_click
+        assert_equal "Clicked", para().text
+
+        test_finished
+      end
+    TEST_CODE
+  end
+
+  def test_para_multi_replace
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+      Shoes.app do
+        @p = para "Yo"
+      end
+    SCARPE_APP
+      on_heartbeat do
+        para().text = "Do", "Re", "Mi"
+        assert_equal "DoReMi", para().text
+        para.replace([["Fa"], [["So", "La"]], "Ti"])
+        assert_equal "FaSoLaTi", para().text
+
+        test_finished
+      end
+    TEST_CODE
+  end
+
+  def test_para_stacking_text_drawables
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+      Shoes.app do
+        @p = para "Yo ", [em("EmphaYo "), strong("StrongYo")], em("empha"), ", plain"
+      end
+    SCARPE_APP
+      on_heartbeat do
+        assert_include para().display.to_html, "Yo <em>EmphaYo </em><strong>StrongYo</strong><em>empha</em>, plain"
+
+        test_finished
+      end
+    TEST_CODE
   end
 end

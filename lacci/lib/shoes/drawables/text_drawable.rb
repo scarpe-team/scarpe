@@ -39,6 +39,10 @@ module Shoes
           self.content
         end
 
+        def to_s
+          self.content
+        end
+
         def text=(new_text)
           self.content = new_text
         end
