@@ -163,6 +163,22 @@ module Shoes
       generate_debug_id
     end
 
+    # Calling stack.app or drawable.app will execute the block
+    # with the Shoes::App as self, and with that stack or
+    # flow as the current slot.
+    #
+    # @incompatibility In Shoes Classic this is the only way
+    #   to change self, while Scarpe will also change self
+    #   with the other Slot Manipulation methods: #clear,
+    #   #append, #prepend, #before and #after.
+    #
+    # @return [Shoes::App] the Shoes app
+    # @yield the block to call with the Shoes App as self
+    def app(&block)
+      Shoes::App.instance.with_slot(self, &block) if block_given?
+      Shoes::App.instance
+    end
+
     private
 
     def generate_debug_id
