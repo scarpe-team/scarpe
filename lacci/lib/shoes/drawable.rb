@@ -14,7 +14,7 @@ module Shoes
     include Shoes::Log
     include Shoes::Colors
 
-    # All Drawables have these so they go in Shoes::Drawable
+    # All Drawables have these so they go in Shoes::Drawable and are inherited
     @shoes_events = ["parent", "destroy", "prop_change"]
 
     class << self
@@ -90,6 +90,24 @@ module Shoes
         @drawable_id_counter
       end
 
+      def register_drawable_id(id, drawable)
+        @drawables_by_id ||= {}
+        @drawables_by_id[id] = drawable
+      end
+
+      def unregister_drawable_id(id)
+        @drawables_by_id ||= {}
+        @drawables_by_id.delete(id)
+      end
+
+      def drawable_by_id(id, none_ok: false)
+        val = @drawables_by_id[id]
+        unless val || none_ok
+          raise "No Drawable Found! #{@drawables_by_id.inspect}"
+        end
+        val
+      end
+
       private
 
       def linkable_properties
@@ -159,6 +177,7 @@ module Shoes
       end
 
       super(linkable_id: Shoes::Drawable.allocate_drawable_id)
+      Shoes::Drawable.register_drawable_id(self.linkable_id, self)
 
       generate_debug_id
     end
@@ -296,6 +315,7 @@ module Shoes
       @destroyed = true
       unsub_all_shoes_events
       send_shoes_event(event_name: "destroy", target: linkable_id)
+      Shoes::Drawable.unregister_drawable_id(linkable_id)
     end
     alias_method :remove, :destroy
 
