@@ -202,7 +202,9 @@ module Shoes
     def find_drawables_by(*specs)
       drawables = all_drawables
       specs.each do |spec|
-        if spec.is_a?(Class)
+        if spec == Shoes::App
+          drawables = [Shoes::App.instance]
+        elsif spec.is_a?(Class)
           drawables.select! { |w| spec === w }
         elsif spec.is_a?(Symbol) || spec.is_a?(String)
           s = spec.to_s
@@ -222,6 +224,13 @@ module Shoes
               raise InvalidAttributeValueError, "Can't find top-level instance variable: #{spec.inspect}!"
             end
           else
+            if s.start_with?("id:")
+              find_id = Integer(s[3..-1])
+              drawable = Shoes::Drawable.drawable_by_id(find_id)
+              drawables &= [drawable]
+            else
+              raise InvalidAttributeValueError, "Don't know how to find drawables by #{spec.inspect}!"
+            end
           end
         else
           raise(InvalidAttributeValueError, "Don't know how to find drawables by #{spec.inspect}!")

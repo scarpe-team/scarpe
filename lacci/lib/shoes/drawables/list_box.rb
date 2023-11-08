@@ -11,7 +11,7 @@ module Shoes
 
     shoes_events :change
 
-    def initialize(args = {}, &block)
+    def initialize(**args, &block)
       super
 
       @items = args[:items] || []
