@@ -147,6 +147,7 @@ class Shoes
     end
 
     def query_display_drawable_for(id, nil_ok: false)
+      @display_drawable_for ||= {}
       display_drawable = @display_drawable_for[id]
       unless display_drawable || nil_ok
         raise "Could not find display drawable for linkable ID #{id.inspect}!"
@@ -173,6 +174,7 @@ class Shoes
     def initialize(linkable_id: object_id)
       @linkable_id = linkable_id
       @subscriptions = {}
+      @display_drawable_for ||= {}
     end
 
     def send_self_event(*args, event_name:, **kwargs)
