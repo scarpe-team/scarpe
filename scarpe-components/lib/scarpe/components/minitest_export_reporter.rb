@@ -57,12 +57,8 @@ module Minitest
             assertions: result.assertions,
             failures: failures,
             time: result.time,
-            metadata: result.metadata,
-            source_location: begin
-              result.source_location
-            rescue
-              ["unknown", -1]
-            end,
+            metadata: (result.respond_to?(:metadata) ? result.metadata : {}),
+            source_location: (result.source_location rescue ["unknown", -1]),
           }
         end
 
