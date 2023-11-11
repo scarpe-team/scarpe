@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-class Shoes
+class Shoes; end
+class Shoes::Errors
   class InvalidAttributeValueError < Shoes::Error; end
 
   class TooManyInstancesError < Shoes::Error; end
