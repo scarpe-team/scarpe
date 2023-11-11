@@ -6,18 +6,19 @@ require "scarpe/components/promises"
 
 class TestPromises < Minitest::Test
   Promise = Scarpe::Promise
+  PrintLogger = Scarpe::Components::PrintLogImpl::PrintLogger
 
   def setup
     # Save so we can restore it post-test
-    @normal_log_config = Shoes::Log.current_log_config
+    @silenced = PrintLogger.silence
 
     # For these tests, don't log anything
-    Shoes::Log.configure_logger("default" => "fatal")
+    PrintLogger.silence = true
   end
 
   def teardown
-    # Restore previous log config
-    Shoes::Log.configure_logger(@normal_log_config)
+    # Restore previous log state
+    PrintLogger.silence = @silenced
   end
 
   def empty_promise_with_checker(state: nil, parents: [])

@@ -10,6 +10,10 @@ class Shoes::Errors
 
   class DuplicateCreateDrawableError < Shoes::Error; end
 
+  class MultipleDrawablesFoundError < Shoes::Error; end
+
+  class NoDrawablesFoundError < Shoes::Error; end
+
   class NoSuchStyleError < Shoes::Error; end
 
   class NoLinkableIdError < Shoes::Error; end
@@ -17,4 +21,8 @@ class Shoes::Errors
   class BadLinkableIdError < Shoes::Error; end
 
   class UnregisteredShoesEvent < Shoes::Error; end
+
+  class SingletonError < Shoes::Error; end
+
+  class MultipleShoesSpecRunsError < Shoes::Error; end
 end

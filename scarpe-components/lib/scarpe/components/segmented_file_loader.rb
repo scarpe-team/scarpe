@@ -14,7 +14,7 @@ module Scarpe::Components
     # @return <void>
     def add_segment_type(type, handler)
       if segment_type_hash.key?(type)
-        raise Shoes::InvalidAttributeValueError, "Segment type #{type.inspect} already exists!"
+        raise Shoes::Errors::InvalidAttributeValueError, "Segment type #{type.inspect} already exists!"
       end
 
       segment_type_hash[type] = handler
