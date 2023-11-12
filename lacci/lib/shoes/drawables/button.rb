@@ -3,7 +3,7 @@
 class Shoes
   class Button < Shoes::Drawable
     include Shoes::Log
-    shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size,:tooltip
+    shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size, :tooltip
     shoes_events :click, :hover
 
     # Creates a new Button object.
@@ -33,7 +33,7 @@ class Shoes
     #     }
     #   end
     def initialize(text, width: nil, height: nil, top: nil, left: nil, color: nil, padding_top: nil, padding_bottom: nil, size: 12, text_color: nil,
-      font_size: nil,tooltip: nil, &block)
+      font_size: nil, tooltip: nil, &block)
 
       log_init("Button")
 

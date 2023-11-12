@@ -27,19 +27,19 @@ class Shoes::Builtins
     shoes_builtin("ask_color", title_bar)
   end
 
-  def ask_open_file()
+  def ask_open_file
     shoes_builtin("ask_open_file")
   end
 
-  def ask_save_file()
+  def ask_save_file
     shoes_builtin("ask_save_file")
   end
 
-  def ask_open_folder()
+  def ask_open_folder
     shoes_builtin("ask_open_folder")
   end
 
-  def ask_save_folder()
+  def ask_save_folder
     shoes_builtin("ask_save_folder")
   end
 

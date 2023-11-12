@@ -33,6 +33,7 @@ class Shoes
       unless self.items.include?(item)
         raise Shoes::NoSuchListItemError, "List items (#{self.items.inspect}) do not contain item #{item.inspect}!"
       end
+
       @chosen = item
     end
 

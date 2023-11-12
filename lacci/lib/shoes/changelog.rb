@@ -33,7 +33,7 @@ class Shoes
         if latest_release
           #puts "Found release #{latest_release[0]} in CHANGELOG.md"
           # @log.debug("Found release #{latest_release[0]} in CHANGELOG.md") # Logger isn't initialized yet
-          version_parts = latest_release[0].split(".").map &:to_i
+          version_parts = latest_release[0].split(".").map(&:to_i)
           rel_id = ("%02d%02d%02d" % version_parts).to_i
 
           return({

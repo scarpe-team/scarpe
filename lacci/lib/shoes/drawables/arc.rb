@@ -3,7 +3,7 @@
 class Shoes
   class Arc < Shoes::Drawable
     shoes_style :draw_context
-    shoes_events() # No Arc-specific events yet
+    shoes_events # No Arc-specific events yet
 
     [:left, :top, :width, :height].each do |prop|
       shoes_style(prop) { |val| convert_to_integer(val, prop) }

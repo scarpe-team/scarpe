@@ -229,26 +229,26 @@ class TestWebWranglerMocked < LoggedScarpeTest
   end
 
   CALZINI_EMPTY_PAGE = <<~HTML
-      <html>
-        <head id='head-wvroot'>
-          <style id='style-wvroot'>
-            /** Style resets **/
-            body {
-              font-family: arial, Helvetica, sans-serif;
-              margin: 0;
-              height: 100%;
-              overflow: hidden;
-            }
-            p {
-              margin: 0;
-            }
-          </style>
-        </head>
-        <body id='body-wvroot'>
-          <div id='wrapper-wvroot'></div>
-        </body>
-      </html>
-    HTML
+    <html>
+      <head id='head-wvroot'>
+        <style id='style-wvroot'>
+          /** Style resets **/
+          body {
+            font-family: arial, Helvetica, sans-serif;
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+          }
+          p {
+            margin: 0;
+          }
+        </style>
+      </head>
+      <body id='body-wvroot'>
+        <div id='wrapper-wvroot'></div>
+      </body>
+    </html>
+  HTML
 end
 
 class TestWebWranglerAsyncJS < LoggedScarpeTest

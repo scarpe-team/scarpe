@@ -40,7 +40,7 @@ class Shoes::Widget < Shoes::Slot
   include Shoes::Border
   include Shoes::Spacing
 
-  shoes_events()
+  shoes_events
 
   def self.method_added(name)
     # We're only looking for the initialize() method, and only on subclasses

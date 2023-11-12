@@ -3,7 +3,7 @@
 class Shoes
   class Rect < Shoes::Drawable
     shoes_styles :left, :top, :width, :height, :draw_context, :curve
-    shoes_events() # No Rect-specific events yet
+    shoes_events # No Rect-specific events yet
 
     def initialize(*args)
       @draw_context = Shoes::App.instance.current_draw_context

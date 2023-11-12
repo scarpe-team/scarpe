@@ -381,6 +381,7 @@ module Scarpe::Webview
       unless @empty_page
         raise Scarpe::EmptyPageNotSetError, "No empty page markup was set!"
       end
+
       @webview.navigate("data:text/html, #{CGI.escape @empty_page}")
 
       monkey_patch_console(@webview)
@@ -751,6 +752,7 @@ class Scarpe::Webview::WebWrangler
     def initialize(html_id)
       @webwrangler = ::Scarpe::Webview::DisplayService.instance.wrangler
       raise Scarpe::MissingWranglerError, "Can't get WebWrangler!" unless @webwrangler
+
       @html_id = html_id
     end
 

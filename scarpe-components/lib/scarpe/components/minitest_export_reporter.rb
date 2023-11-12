@@ -58,7 +58,11 @@ module Minitest
             failures: failures,
             time: result.time,
             metadata: result.metadata,
-            source_location: (result.source_location rescue ["unknown", -1]),
+            source_location: begin
+              result.source_location
+            rescue
+              ["unknown", -1]
+            end,
           }
         end
 

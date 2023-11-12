@@ -78,8 +78,6 @@ module Scarpe::Components::Tiranti
   # def render_flow
   # end
 
-  public
-
   # How do we want to handle theme-specific colours and primary/secondary buttons in Bootstrap?
   # "Disabled" could be checked in properties. Is there any way we can/should use "outline" buttons?
   def button_element(props)
@@ -158,7 +156,14 @@ module Scarpe::Components::Tiranti
     HTML.render do |h|
       h.div(class: "progress", style: "width: 90%") do
         pct = "%.1f" % ((props["fraction"] || 0.0) * 100.0)
-        h.div(class: "progress-bar progress-bar-striped progress-bar-animated", role: "progressbar", "aria-valuenow": pct, "aria-valuemin": 0, "aria-valuemax": 100, style: "width: #{pct}%")
+        h.div(
+          class: "progress-bar progress-bar-striped progress-bar-animated",
+          role: "progressbar",
+          "aria-valuenow": pct,
+          "aria-valuemin": 0,
+          "aria-valuemax": 100,
+          style: "width: #{pct}%",
+        )
       end
     end
   end

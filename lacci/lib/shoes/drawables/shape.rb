@@ -11,7 +11,7 @@ class Shoes
   # @incompatibility A Shoes3 Shape is *not* a slot; Scarpe does *not* do union shapes
   class Shape < Shoes::Slot
     shoes_styles :left, :top, :shape_commands, :draw_context
-    shoes_events() # No Shape-specific events yet
+    shoes_events # No Shape-specific events yet
 
     def initialize(left: nil, top: nil, &block)
       @shape_commands = []

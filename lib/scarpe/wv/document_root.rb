@@ -49,6 +49,7 @@ module Scarpe::Webview
     # so we can't call bind() for app events yet.
     def bind_ok_event
       return if @ok_event_setup_done
+
       @ok_event_setup_done = true
 
       # Done with the alert(s), delete them
