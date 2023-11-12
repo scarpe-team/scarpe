@@ -13,13 +13,3 @@
 ### Checklist
 
 - [ ] Run tests locally
-- [ ] Run linter(check for linter errors)
-<!--
-for Linter
-
-bundle exec rubocop
-
-this would autocorrect offenses if they are autocorrectable.
-bundle exec rubocop . --autocorrect-all
-
--->
