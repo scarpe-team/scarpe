@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "changelog"
-module Shoes
+class Shoes
   module Constants
     def self.find_lib_dir
       begin

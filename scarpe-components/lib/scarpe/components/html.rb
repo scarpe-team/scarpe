@@ -1,8 +1,32 @@
 # frozen_string_literal: true
 
 class Scarpe::Components::HTML
-
-  CONTENT_TAGS = [:div, :p, :button, :ul, :li, :textarea, :a, :video, :strong, :style, :progress, :em, :code, :defs, :marker, :u, :line, :span, :svg, :h1, :h2, :h3, :h4, :h5].freeze
+  CONTENT_TAGS = [
+    :div,
+    :p,
+    :button,
+    :ul,
+    :li,
+    :textarea,
+    :a,
+    :video,
+    :strong,
+    :style,
+    :progress,
+    :em,
+    :code,
+    :defs,
+    :marker,
+    :u,
+    :line,
+    :span,
+    :svg,
+    :h1,
+    :h2,
+    :h3,
+    :h4,
+    :h5,
+  ].freeze
   VOID_TAGS = [:input, :img, :polygon, :source, :link, :path, :rect].freeze
 
   TAGS = (CONTENT_TAGS + VOID_TAGS).freeze

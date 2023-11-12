@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   # Shoes::Drawable
   #
   # This is the display-service portable Shoes Drawable interface. Visible Shoes
@@ -47,7 +47,7 @@ module Shoes
       end
 
       def is_widget_class?(name)
-        !(Shoes::Drawable.widget_classes & [name.to_s]).empty?
+        !!Shoes::Drawable.widget_classes.intersect?([name.to_s])
       end
 
       def validate_as(prop_name, value)
@@ -58,6 +58,7 @@ module Shoes
         raise(Shoes::NoSuchStyleError, "Can't find property #{prop_name.inspect} in #{self} property list: #{hashes.inspect}!") unless h
 
         return value if h[:validator].nil?
+
         h[:validator].call(value)
       end
 
@@ -105,6 +106,7 @@ module Shoes
         unless val || none_ok
           raise "No Drawable Found! #{@drawables_by_id.inspect}"
         end
+
         val
       end
 
@@ -221,7 +223,7 @@ module Shoes
     private
 
     def validate_event_name(event_name)
-      if !self.class.get_shoes_events.include?(event_name.to_s)
+      unless self.class.get_shoes_events.include?(event_name.to_s)
         raise Shoes::UnregisteredShoesEvent, "Drawable #{self.inspect} tried to bind Shoes event #{event_name}, which is not in #{evetns.inspect}!"
       end
     end

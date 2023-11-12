@@ -4,7 +4,7 @@ class Shoes::Slot < Shoes::Drawable
   # @incompatibility Shoes uses #content, not #children, for this
   attr_reader :children
 
-  shoes_events() # No Slot-specific events yet
+  shoes_events # No Slot-specific events yet
 
   # Do not call directly, use set_parent
   def remove_child(child)
@@ -49,6 +49,7 @@ class Shoes::Slot < Shoes::Drawable
 
   def respond_to_missing?(name, include_private = false)
     return true if Drawable.drawable_class_by_name(name.to_s)
+
     false
   end
 

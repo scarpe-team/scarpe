@@ -64,7 +64,11 @@ module Scarpe::Components::ImportRunnables
     end
 
     def self.json_to_err(err_json)
-      klass = Object.const_get(err_json['json_class']) rescue nil
+      klass = begin
+        Object.const_get(err_json["json_class"])
+      rescue
+        nil
+      end
       if klass && klass <= Minitest::Assertion
         klass.json_create(err_json)
       else

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   module Spec
     def self.instance
       @instance
@@ -10,6 +10,7 @@ module Shoes
       if @instance && @instance != spec_inst
         raise "Lacci can only use a single ShoesSpec implementation at one time!"
       end
+
       @instance = spec_inst
     end
   end

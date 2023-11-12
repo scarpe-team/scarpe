@@ -26,7 +26,7 @@
 # And when a display-side event occurs (e.g. user pushes a button,) it will be
 # dispatched as a :shoes event, to be sent to the Shoes tree of drawables.
 #
-module Shoes
+class Shoes
   class DisplayService
     class << self
       # This is in the eigenclass/metaclass, *not* instances of DisplayService
@@ -136,10 +136,12 @@ module Shoes
       if id.nil?
         raise BadLinkableIdError, "Linkable ID may not be nil!"
       end
+
       @display_drawable_for ||= {}
       if @display_drawable_for[id]
         raise DuplicateCreateDrawableError, "There is already a drawable for #{id.inspect}! Not setting a new one."
       end
+
       @display_drawable_for[id] = display_drawable
       nil
     end
@@ -189,7 +191,7 @@ module Shoes
 
     def unsub_shoes_event(unsub_id)
       unless @subscriptions[unsub_id]
-        STDERR.puts "Unsubscribing from event that isn't in subscriptions! #{unsub_id.inspect}"
+        $stderr.puts "Unsubscribing from event that isn't in subscriptions! #{unsub_id.inspect}"
       end
       DisplayService.unsub_from_events(unsub_id)
       @subscriptions.delete unsub_id

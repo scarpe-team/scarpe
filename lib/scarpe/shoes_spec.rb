@@ -15,6 +15,7 @@ module Scarpe::Test
     if @shoes_spec_init
       raise MultipleShoesSpecRunsError, "Scarpe-Webview can only run a single Shoes spec per process!"
     end
+
     @shoes_spec_init = true
 
     require "scarpe/components/minitest_export_reporter"
@@ -118,5 +119,4 @@ class Scarpe::ShoesSpecTest < Minitest::Test
       Scarpe::ShoesSpecProxy.new(drawables[0])
     end
   end
-
 end

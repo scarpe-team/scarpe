@@ -47,6 +47,6 @@ class TestCalziniButton < Minitest::Test
       "font" => nil,
       "stroke" => nil,
     }
-    assert_equal %{<button id=\"elt-1\" onclick=\"handle('click')\" onmouseover=\"handle('hover')\"></button>}, @calzini.render("button", props)
+    assert_equal %{<button id="elt-1" onclick="handle('click')" onmouseover="handle('hover')"></button>}, @calzini.render("button", props)
   end
 end

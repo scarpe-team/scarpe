@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   # A Shape acts as a sort of union type for drawn shapes. In Shoes you can use it to merge multiple
   # ovals, arcs, stars, etc. into a single drawn shape.
   #
@@ -11,7 +11,7 @@ module Shoes
   # @incompatibility A Shoes3 Shape is *not* a slot; Scarpe does *not* do union shapes
   class Shape < Shoes::Slot
     shoes_styles :left, :top, :shape_commands, :draw_context
-    shoes_events() # No Shape-specific events yet
+    shoes_events # No Shape-specific events yet
 
     def initialize(left: nil, top: nil, &block)
       @shape_commands = []

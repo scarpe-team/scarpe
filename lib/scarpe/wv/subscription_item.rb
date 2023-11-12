@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Drawable
-
   def initialize(properties)
     super
 

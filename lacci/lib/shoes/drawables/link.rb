@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class Link < Shoes::TextDrawable
     shoes_styles :text, :click, :has_block
     shoes_events :click
