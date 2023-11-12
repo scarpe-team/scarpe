@@ -2,7 +2,7 @@
 
 # Shoes::TextDrawable
 
-module Shoes
+class Shoes
   class TextDrawable < Shoes::Drawable
     class << self
       # rubocop:disable Lint/MissingSuper

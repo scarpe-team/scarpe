@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class App < Shoes::Drawable
     include Shoes::Log
 

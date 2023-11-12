@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class Star < Shoes::Drawable
     shoes_styles :left, :top, :draw_context
 

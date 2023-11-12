@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class Para < Shoes::Drawable
     shoes_styles :text_items, :size, :font, :html_attributes, :hidden
     shoes_style(:stroke) { |val| Shoes::Colors.to_rgb(val) }
@@ -87,7 +87,7 @@ module Shoes
   end
 end
 
-module Shoes
+class Shoes
   class Drawable
     def banner(*args, **kwargs)
       para(*args, **{ size: :banner }.merge(kwargs))

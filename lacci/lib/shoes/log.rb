@@ -8,7 +8,7 @@
 # If used alone, this will fail because the @instance is nil. It needs
 # an implementation to be plugged in.
 
-module Shoes
+class Shoes
   LOG_LEVELS = [:debug, :info, :warn, :error, :fatal].freeze
 
   # Include this module to get a @log instance variable to log as your

@@ -3,7 +3,7 @@
 require_relative "log"
 # require "scarpe/components/modular_logger"
 
-module Shoes
+class Shoes
   class Changelog
     # include Shoes::Log
 

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class Video < Shoes::Drawable
     shoes_styles :url
     shoes_events() # No specific events yet

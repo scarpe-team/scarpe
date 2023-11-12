@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   # Shoes::Drawable
   #
   # This is the display-service portable Shoes Drawable interface. Visible Shoes

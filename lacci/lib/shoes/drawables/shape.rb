@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   # A Shape acts as a sort of union type for drawn shapes. In Shoes you can use it to merge multiple
   # ovals, arcs, stars, etc. into a single drawn shape.
   #

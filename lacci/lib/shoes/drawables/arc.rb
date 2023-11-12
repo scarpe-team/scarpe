@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class Arc < Shoes::Drawable
     shoes_style :draw_context
     shoes_events() # No Arc-specific events yet

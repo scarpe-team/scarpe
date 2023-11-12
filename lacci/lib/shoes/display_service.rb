@@ -26,7 +26,7 @@
 # And when a display-side event occurs (e.g. user pushes a button,) it will be
 # dispatched as a :shoes event, to be sent to the Shoes tree of drawables.
 #
-module Shoes
+class Shoes
   class DisplayService
     class << self
       # This is in the eigenclass/metaclass, *not* instances of DisplayService

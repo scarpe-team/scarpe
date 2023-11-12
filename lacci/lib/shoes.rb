@@ -12,7 +12,7 @@ if RUBY_VERSION[0..2] < "3.2"
   exit(-1)
 end
 
-module Shoes; end
+class Shoes; end
 class Shoes::Error < StandardError; end
 require_relative "shoes/errors"
 
@@ -53,7 +53,7 @@ end
 # Shoes is a platform-independent GUI library, designed to create
 # small visual applications in Ruby.
 #
-module Shoes
+class Shoes
   include Shoes::Constants # Doesn't the Kernel include handle this?
 
   class << self

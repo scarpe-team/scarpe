@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class Image < Shoes::Drawable
     shoes_styles :url, :width, :height, :top, :left, :click
     shoes_events() # No Image-specific events yet

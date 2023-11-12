@@ -2,7 +2,7 @@
 
 # Shoes has a number of built-in methods that are intended to be available everywhere,
 # in every Shoes and non-Shoes class, for every Shoes app.
-module Shoes::Builtins
+class Shoes::Builtins
   # Register the given font with Shoes so that text that wants it can use it.
   # Also add it to the FONTS constant.
   #

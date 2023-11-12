@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class Flow < Shoes::Slot
     include Shoes::Background
     include Shoes::Border

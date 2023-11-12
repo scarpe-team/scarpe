@@ -1,4 +1,4 @@
- Shoes.app do
+Shoes.app do
   stack do
     para "Among these films, which do you prefer?"
     flow do
@@ -13,6 +13,6 @@
       radio :films
       para "Children of Heaven by Majid Majidi"
     end
-    puts radio(:films).checked?
+    para "Is radio button checked? #{radio(:films).checked?}"
   end
 end

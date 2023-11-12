@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class ListBox < Shoes::Drawable
     shoes_styles :items, :height, :width
 
