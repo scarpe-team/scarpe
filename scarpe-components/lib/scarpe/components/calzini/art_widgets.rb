@@ -7,7 +7,7 @@ module Scarpe::Components::Calzini
     HTML.render do |h|
       h.div(id: html_id, style: arc_style(props)) do
         h.svg(width: props["width"], height: props["height"]) do
-          h.path(d: arc_path(props), transform: "rotate(#{rotate}, #{props["width"] / 2}, #{props["height"] / 2})")
+          h.path(d: arc_path(props), transform: "rotate(#{rotate}, #{props["width"] / 2}, #{props["height"] / 2})","transform-box": "fill-box","transform-origin": "50% 50%")
         end
         block.call(h) if block_given?
       end
@@ -36,10 +36,20 @@ module Scarpe::Components::Calzini
   end
 
   def line_element(props)
+    dc = props["draw_context"] || {}
+    cap = dc["cap"]
+    if cap == :curve
+      cap = "round"
+    elsif cap == :rect
+      cap = "butt"
+    elsif cap == :project
+      cap = "square"
+    end
+
     HTML.render do |h|
       h.div(id: html_id, style: line_div_style(props)) do
         h.svg(width: props["x2"], height: props["y2"]) do
-          h.line(x1: props["left"], y1: props["top"], x2: props["x2"], y2: props["y2"], style: line_svg_style(props))
+          h.line(x1: props["left"], y1: props["top"], x2: props["x2"], y2: props["y2"], style: line_svg_style(props), "stroke-linecap":cap,"transform-origin": "center right")
         end
       end
     end
@@ -163,7 +173,8 @@ module Scarpe::Components::Calzini
 
     HTML.render do |h|
       h.div(id: html_id, style: arrow_div_style(left, top)) do
-        h.svg do
+        h.svg("transform-box":"fill-box","transform-origin": "center right"
+        ) do
           h.defs do
             h.marker(
               id: "head",
@@ -188,6 +199,8 @@ module Scarpe::Components::Calzini
             "stroke-width" => stroke_widthk.to_s,
             "marker-end" => "url(#head)",
             transform: "rotate(#{rotate}, #{left + width / 2}, #{top})",
+            # "transform-origin": "center right"
+
           )
         end
       end
