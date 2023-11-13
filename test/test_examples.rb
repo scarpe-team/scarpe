@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class TestExamplesWithWebview < LoggedScarpeTest
+class TestExamplesWithWebview < ShoesSpecLoggedTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
   match_str = ENV["EXAMPLES_MATCHING"] || ""

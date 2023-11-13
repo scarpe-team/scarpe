@@ -3,7 +3,7 @@
 require "test_helper"
 
 # Drawables Testing
-class TestDrawables < LoggedScarpeTest
+class TestDrawables < ShoesSpecLoggedTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
   def test_hide_show
@@ -28,27 +28,26 @@ class TestDrawables < LoggedScarpeTest
         @drawables << video("http://techslides.com/demos/sample-videos/small.mp4")
       end
     SCARPE_APP
-      on_heartbeat do
-        # Get proxy objects for the Shoes drawables so we can get their display objects, etc.
-        w = Shoes::App.instance.instance_variable_get("@drawables").map { |sw| proxy_for(sw) }
-
-        w.each { |i| i.hide }
-        w.each { |i| assert_include i.display.to_html, "display:none" }
-        w.each { |i| i.toggle() }
-        w.each { |i| assert_not_include i.display.to_html, "display:none" }
-
-        # Nothing hidden, make sure no display:none
-        wait fully_updated
-        assert_not_include dom_html, "display:none"
-
-        # Exactly one thing hidden
-        para.hide
-        wait fully_updated
-        # Okay, so what's weird about this is that if we use the DOM style setter to set display, it gets a space...
-        assert_include dom_html, "display: none"
-
-        test_finished
+      # Get proxy objects for the Shoes drawables so we can get their display objects, etc.
+      w = Shoes::App.instance.instance_variable_get("@drawables").map do |sw|
+        drawable("id:#{sw.linkable_id}")
       end
+
+      w.each { |i| i.hide }
+      w.each do |i|
+        assert i.display.to_html.include?("display:none")
+      end
+      w.each { |i| i.toggle() }
+      w.each { |i| assert !i.display.to_html.include?("display:none") }
+
+      # Nothing hidden, make sure no display:none
+      assert !dom_html.include?("display:none")
+
+      # Exactly one thing hidden
+      para.hide
+
+      # Okay, so what's weird about this is that if we use the DOM style setter to set display, it gets a space...
+      assert_includes dom_html, "display: none"
     TEST_CODE
   end
 
@@ -69,13 +68,10 @@ class TestDrawables < LoggedScarpeTest
         @s2 = stack {}
       end
     SCARPE_APP
-      on_heartbeat do
-        assert_equal [], stack("@s2").contents
-        js = button.display.handler_js_code('click')
-        query_js_value(js)
+      assert_equal [], stack("@s2").contents
+      button.trigger_click
 
-        test_finished
-      end
+      assert_equal "Hello!", para.text
     TEST_CODE
   end
 end

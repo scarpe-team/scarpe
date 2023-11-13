@@ -2,6 +2,11 @@
 
 require "test_helper"
 
+# This uses low-level CatsCradle test code that should be removed
+# before long. But it's the specific CatsCradle test file, so that's
+# understandable. Soon CatsCradle will only exist as an underlayer
+# for ShoesSpec, so testing can be done via ShoesSpec.
+
 # Tests for the CatsCradle testing language
 class TestCatsCradle < LoggedScarpeTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")

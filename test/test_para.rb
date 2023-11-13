@@ -135,7 +135,7 @@ class TestWebviewPara < ScarpeWebviewTest
 end
 
 # Tests for the CatsCradle testing language
-class TestParaIntegration < LoggedScarpeTest
+class TestParaIntegration < ShoesSpecLoggedTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
   def test_para_button_replace
@@ -147,13 +147,9 @@ class TestParaIntegration < LoggedScarpeTest
         end
       end
     SCARPE_APP
-      on_heartbeat do
-        assert_equal "Yo", para().text
-        button().trigger_click
-        assert_equal "Clicked", para().text
-
-        test_finished
-      end
+      assert_equal "Yo", para().text
+      button().trigger_click
+      assert_equal "Clicked", para().text
     TEST_CODE
   end
 
@@ -163,14 +159,10 @@ class TestParaIntegration < LoggedScarpeTest
         @p = para "Yo"
       end
     SCARPE_APP
-      on_heartbeat do
-        para().text = "Do", "Re", "Mi"
-        assert_equal "DoReMi", para().text
-        para.replace([["Fa"], [["So", "La"]], "Ti"])
-        assert_equal "FaSoLaTi", para().text
-
-        test_finished
-      end
+      para().text = "Do", "Re", "Mi"
+      assert_equal "DoReMi", para().text
+      para.replace([["Fa"], [["So", "La"]], "Ti"])
+      assert_equal "FaSoLaTi", para().text
     TEST_CODE
   end
 
@@ -180,11 +172,7 @@ class TestParaIntegration < LoggedScarpeTest
         @p = para "Yo ", [em("EmphaYo "), strong("StrongYo")], em("empha"), ", plain"
       end
     SCARPE_APP
-      on_heartbeat do
-        assert_include para().display.to_html, "Yo <em>EmphaYo </em><strong>StrongYo</strong><em>empha</em>, plain"
-
-        test_finished
-      end
+      assert_includes para().display.to_html, "Yo <em>EmphaYo </em><strong>StrongYo</strong><em>empha</em>, plain"
     TEST_CODE
   end
 end
