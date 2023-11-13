@@ -29,17 +29,26 @@ Shoes.app do
 end
 ```
 
-More examples can be found in the [`examples` folder](https://github.com/scarpe-team/scarpe/tree/main/examples)!
-
-## Screenshots
-
-From the hello world example:
-
 <img width="480" alt="hello_world" src="https://user-images.githubusercontent.com/9624267/158565981-57240f72-fbaf-4b72-b66e-8c0d517a90d7.png">
 
-From the button example:
+A bit more...
+
+```ruby
+Shoes.app do
+  @push = button "Push me"
+  @note = para "Nothing pushed so far"
+  @push.click {
+    @note.replace(
+      "Aha! Click! ",
+      link("Go back") { @note.replace "Nothing pushed so far" }
+    )
+  }
+end
+```
 
 <img width="480" alt="hello_world" src="https://user-images.githubusercontent.com/9624267/158566011-0372d0c7-fbeb-4ed6-a082-73908f04a0b6.gif">
+
+More examples can be found in the [`examples` folder](https://github.com/scarpe-team/scarpe/tree/main/examples)!
 
 ## Scarpe in Development
 
