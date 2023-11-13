@@ -168,7 +168,9 @@ class Shoes
       case @event_loop_type
       when "wait"
         # Display lib wants us to busy-wait instead of it.
-        sleep 0.1 until @do_shutdown
+        until @do_shutdown
+          Shoes::DisplayService.dispatch_event("heartbeat", nil)
+        end
       when "displaylib"
         # If run event returned, that means we're done.
         destroy
