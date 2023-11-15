@@ -12,7 +12,7 @@ module Niente
 
     def initialize
       if Niente::DisplayService.instance
-        raise Scarpe::SingletonError, "ERROR! This is meant to be a singleton!"
+        raise Shoes::SingletonError, "ERROR! This is meant to be a singleton!"
       end
 
       Niente::DisplayService.instance = self

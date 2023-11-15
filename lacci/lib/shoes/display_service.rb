@@ -134,12 +134,12 @@ class Shoes
 
     def set_drawable_pairing(id, display_drawable)
       if id.nil?
-        raise BadLinkableIdError, "Linkable ID may not be nil!"
+        raise Shoes::Errors::BadLinkableIdError, "Linkable ID may not be nil!"
       end
 
       @display_drawable_for ||= {}
       if @display_drawable_for[id]
-        raise DuplicateCreateDrawableError, "There is already a drawable for #{id.inspect}! Not setting a new one."
+        raise Shoes::Errors::DuplicateCreateDrawableError, "There is already a drawable for #{id.inspect}! Not setting a new one."
       end
 
       @display_drawable_for[id] = display_drawable

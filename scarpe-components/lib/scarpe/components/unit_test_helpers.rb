@@ -181,7 +181,7 @@ module Scarpe::Test::LoggedTest
     out_loc = filepath.gsub(%r{.log\Z}, ".out.log")
 
     if out_loc == filepath
-      raise Shoes::InvalidAttributeValueError, "Something is wrong! Could not figure out failure-log output path for #{filepath.inspect}!"
+      raise Shoes::Errors::InvalidAttributeValueError, "Something is wrong! Could not figure out failure-log output path for #{filepath.inspect}!"
     end
 
     if File.exist?(out_loc)

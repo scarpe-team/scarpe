@@ -32,7 +32,7 @@ module Scarpe
       when "fatal"
         :fatal
       else
-        raise Shoes::InvalidAttributeValueError, "Don't know how to treat #{data.inspect} as a logger severity!"
+        raise Shoes::Errors::InvalidAttributeValueError, "Don't know how to treat #{data.inspect} as a logger severity!"
       end
     end
 
@@ -45,7 +45,7 @@ module Scarpe
       when String
         Logging.appenders.file data, layout: @custom_log_layout
       else
-        raise Shoes::InvalidAttributeValueError, "Don't know how to convert #{data.inspect} to an appender!"
+        raise Shoes::Errors::InvalidAttributeValueError, "Don't know how to convert #{data.inspect} to an appender!"
       end
     end
 
@@ -64,7 +64,7 @@ module Scarpe
 
         logger.level = name_to_severity(level)
       else
-        raise Shoes::InvalidAttributeValueError, "Don't know how to use #{data.inspect} to specify a logger!"
+        raise Shoes::Errors::InvalidAttributeValueError, "Don't know how to use #{data.inspect} to specify a logger!"
       end
     end
 

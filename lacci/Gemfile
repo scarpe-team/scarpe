@@ -4,6 +4,8 @@ source "https://rubygems.org"
 
 gemspec
 
+gem "scarpe-components", path: "../scarpe-components"
+
 gem "rake", "~> 13.0"
 
 group :test do

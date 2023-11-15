@@ -13,7 +13,7 @@ module Scarpe::Test
   # They'll leave in-memory residue.
   def self.run_shoes_spec_test_code(code, class_name: nil, test_name: nil)
     if @shoes_spec_init
-      raise MultipleShoesSpecRunsError, "Scarpe-Webview can only run a single Shoes spec per process!"
+      raise Shoes::Errors::MultipleShoesSpecRunsError, "Scarpe-Webview can only run a single Shoes spec per process!"
     end
 
     @shoes_spec_init = true
@@ -113,8 +113,8 @@ class Scarpe::ShoesSpecTest < Minitest::Test
       app = Shoes::App.instance
 
       drawables = app.find_drawables_by(drawable_class, *args)
-      raise Scarpe::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
-      raise Scarpe::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
+      raise Shoes::Errors::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
+      raise Shoes::Errors::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
 
       Scarpe::ShoesSpecProxy.new(drawables[0])
     end

@@ -30,7 +30,7 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  #spec.add_dependency ""
+  spec.add_dependency "scarpe-components" # Scarpe-Components has no dependencies, and includes useful infrastructure
 
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html

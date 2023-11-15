@@ -258,7 +258,7 @@ module Scarpe
       end
 
       if old_state == :pending && new_state == :unscheduled
-        raise Shoes::InvalidAttributeValueError, "Can't change state from :pending to :unscheduled! Scheduling is not reversible!"
+        raise Shoes::Errors::InvalidAttributeValueError, "Can't change state from :pending to :unscheduled! Scheduling is not reversible!"
       end
 
       # The next three checks should all be followed by calling handlers for the newly-changed state.
@@ -389,7 +389,7 @@ module Scarpe
     # @return [Scarpe::Promise] self
     def on_fulfilled(&handler)
       unless handler
-        raise Shoes::InvalidAttributeValueError, "You must pass a block to on_fulfilled!"
+        raise Shoes::Errors::InvalidAttributeValueError, "You must pass a block to on_fulfilled!"
       end
 
       case @state
@@ -411,7 +411,7 @@ module Scarpe
     # @return [Scarpe::Promise] self
     def on_rejected(&handler)
       unless handler
-        raise Shoes::InvalidAttributeValueError, "You must pass a block to on_rejected!"
+        raise Shoes::Errors::InvalidAttributeValueError, "You must pass a block to on_rejected!"
       end
 
       case @state
@@ -434,7 +434,7 @@ module Scarpe
     # @return [Scarpe::Promise] self
     def on_scheduled(&handler)
       unless handler
-        raise Shoes::InvalidAttributeValueError, "You must pass a block to on_scheduled!"
+        raise Shoes::Errors::InvalidAttributeValueError, "You must pass a block to on_scheduled!"
       end
 
       # Add a pending handler or call it now
