@@ -13,10 +13,8 @@ require_relative "niente/drawable"
 require_relative "niente/app"
 require_relative "niente/display_service"
 
-if ENV["SHOES_SPEC_TEST"]
-  require_relative "niente/shoes_spec"
-  Shoes::Spec.instance = Niente::Test
-end
+require_relative "niente/shoes_spec"
+Shoes::Spec.instance = Niente::Test
 
 Shoes::DisplayService.set_display_service_class(Niente::DisplayService)
 

@@ -25,7 +25,7 @@ class TestCatsCradle < LoggedScarpeTest
     TEST_CODE
   end
 
-  def test_catscradle_segmented_app
+  def test_shoes_spec_segmented_app
     run_test_scarpe_code(<<~'SCARPE_APP', test_extension: ".scas")
       ---
       ----- app_code
@@ -33,15 +33,13 @@ class TestCatsCradle < LoggedScarpeTest
           button "clicky"
         end
       ----- test code
-        require "scarpe/cats_cradle"
-        self.class.include Scarpe::Test::CatsCradle
-        event_init
+      assert_equal button().text, "clicky"
 
-        on_heartbeat do
-          assert_include button().text, "clicky"
-
-          test_finished
-        end
+      # When we convert the outer test class to a ShoesSpec class,
+      # this can go away
+      catscradle_dsl do
+        test_finished
+      end
     SCARPE_APP
   end
 
