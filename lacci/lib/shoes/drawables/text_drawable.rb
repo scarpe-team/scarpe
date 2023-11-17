@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
-# Shoes::TextDrawable
-
 class Shoes
+  # TextDrawable is the parent class of various classes of
+  # text that can go inside a para. This includes normal
+  # text, but also links, italic text, bold text, etc.
   class TextDrawable < Shoes::Drawable
     class << self
       # rubocop:disable Lint/MissingSuper

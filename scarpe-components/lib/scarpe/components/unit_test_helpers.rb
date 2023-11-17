@@ -181,7 +181,7 @@ module Scarpe::Test::LoggedTest
     out_loc = filepath.gsub(%r{.log\Z}, ".out.log")
 
     if out_loc == filepath
-      raise Shoes::InvalidAttributeValueError, "Something is wrong! Could not figure out failure-log output path for #{filepath.inspect}!"
+      raise Shoes::Errors::InvalidAttributeValueError, "Something is wrong! Could not figure out failure-log output path for #{filepath.inspect}!"
     end
 
     if File.exist?(out_loc)
@@ -213,5 +213,45 @@ module Scarpe::Test::LoggedTest
 
       File.unlink(f)
     end
+  end
+end
+
+module Scarpe::Test::HTMLAssertions
+  # Assert that `actual_html` is the same as `expected_tag` with `opts`.
+  # This uses Scarpe's HTML tag-based renderer to render the tag and options
+  # into text, and valides that the text is the same.
+  #
+  # @see Scarpe::Components::HTML.render
+  #
+  # @param actual_html [String] the html to compare to
+  # @param expected_tag [String,Symbol] the HTML tag, used to send a method call
+  # @param opts keyword options passed to the tag method call
+  # @yield block passed to the tag method call.
+  # @return [void]
+  def assert_html(actual_html, expected_tag, **opts, &block)
+    expected_html = Scarpe::Components::HTML.render do |h|
+      h.public_send(expected_tag, opts, &block)
+    end
+
+    assert_equal expected_html, actual_html
+  end
+
+  # Assert that `actual_html` includes `expected_tag` with `opts`.
+  # This uses Scarpe's HTML tag-based renderer to render the tag and options
+  # into text, and valides that the full HTML contains that tag.
+  #
+  # @see Scarpe::Components::HTML.render
+  #
+  # @param actual_html [String] the html to compare to
+  # @param expected_tag [String,Symbol] the HTML tag, used to send a method call
+  # @param opts keyword options passed to the tag method call
+  # @yield block passed to the tag method call.
+  # @return [void]
+  def assert_contains_html(actual_html, expected_tag, **opts, &block)
+    expected_html = Scarpe::Components::HTML.render do |h|
+      h.public_send(expected_tag, opts, &block)
+    end
+
+    assert actual_html.include?(expected_html), "Expected #{actual_html.inspect} to include #{expected_html.inspect}!"
   end
 end

@@ -13,3 +13,4 @@ logger/*.log
 /docs/yard/template/default/.yardoc
 **/lacci-*.gem
 *scarpe*.gem
+**/sspec.json

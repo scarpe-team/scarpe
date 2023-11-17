@@ -4,6 +4,8 @@ require "minitest"
 require "scarpe/cats_cradle"
 require "scarpe/components/string_helpers"
 
+require "scarpe/components/unit_test_helpers"
+
 # Test framework code to allow Scarpe to execute Shoes-Spec test code.
 # This will run inside the exe/scarpe child process, then send
 # results back to the parent Minitest process.
@@ -13,7 +15,7 @@ module Scarpe::Test
   # They'll leave in-memory residue.
   def self.run_shoes_spec_test_code(code, class_name: nil, test_name: nil)
     if @shoes_spec_init
-      raise MultipleShoesSpecRunsError, "Scarpe-Webview can only run a single Shoes spec per process!"
+      raise Shoes::Errors::MultipleShoesSpecRunsError, "Scarpe-Webview can only run a single Shoes spec per process!"
     end
 
     @shoes_spec_init = true
@@ -43,6 +45,7 @@ module Scarpe::Test
     class << test_obj
       include Scarpe::Test::CatsCradle
     end
+    Scarpe::ShoesSpecTest.test_obj = test_obj
     test_obj.instance_eval do
       event_init
 
@@ -50,6 +53,7 @@ module Scarpe::Test
         Minitest.run ARGV
 
         test_finished_no_results
+        Scarpe::ShoesSpecTest.test_obj = nil
       end
     end
 
@@ -74,6 +78,10 @@ class Scarpe::ShoesSpecProxy
     @obj = obj
     @linkable_id = obj.linkable_id
     @display = ::Shoes::DisplayService.display_service.query_display_drawable_for(obj.linkable_id)
+
+    unless @display
+      raise "Can't find display widget for #{obj.inspect}!"
+    end
   end
 
   def method_missing(method, ...)
@@ -106,6 +114,11 @@ end
 # When running ShoesSpec tests, we create a parent class for all of them
 # with the appropriate convenience methods and accessors.
 class Scarpe::ShoesSpecTest < Minitest::Test
+  include Scarpe::Test::HTMLAssertions
+
+  class << self
+    attr_accessor :test_obj
+  end
   Shoes::Drawable.drawable_classes.each do |drawable_class|
     finder_name = drawable_class.dsl_name
 
@@ -113,10 +126,57 @@ class Scarpe::ShoesSpecTest < Minitest::Test
       app = Shoes::App.instance
 
       drawables = app.find_drawables_by(drawable_class, *args)
+      raise Shoes::Errors::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
+      raise Shoes::Errors::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
+
+      Scarpe::ShoesSpecProxy.new(drawables[0])
+    end
+
+    def drawable(*specs)
+      drawables = app.find_drawables_by(*specs)
       raise Scarpe::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
       raise Scarpe::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
 
       Scarpe::ShoesSpecProxy.new(drawables[0])
+    end
+  end
+
+  def catscradle_dsl(&block)
+    Scarpe::Test::CCInstance.instance.instance_eval(&block)
+  end
+
+  def dom_html
+    catscradle_dsl do
+      wait fully_updated
+      dom_html
+    end
+  end
+
+  # This isn't working. Neither is calling die_after. Are the other fibers not
+  # running or something like that? Should run a test from the command line
+  # and see what's happening... Or check logfiles?
+  def timeout(t_timeout = 5.0, exit_code: -1)
+    catscradle_dsl do
+      t0 = Time.now
+      on_event(:every_heartbeat) do
+        if Time.now - t0 >= t_timeout
+          if exit_code == 0
+            @log.info "Timed out after #{t_timeout} seconds!"
+          else
+            @log.error "Timed out after #{t_timeout} seconds!"
+          end
+          exit exit_code
+        end
+      end
+    end
+  end
+
+  def exit_on_first_heartbeat(exit_code: 0)
+    catscradle_dsl do
+      on_event(:next_heartbeat) do
+        @log.info "Exiting on first heartbeat (exit code #{exit_code})"
+        exit exit_code
+      end
     end
   end
 end

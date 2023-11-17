@@ -55,7 +55,7 @@ class Shoes
         hashes = shoes_style_hashes
 
         h = hashes.detect { |hash| hash[:name] == prop_name }
-        raise(Shoes::NoSuchStyleError, "Can't find property #{prop_name.inspect} in #{self} property list: #{hashes.inspect}!") unless h
+        raise(Shoes::Errors::NoSuchStyleError, "Can't find property #{prop_name.inspect} in #{self} property list: #{hashes.inspect}!") unless h
 
         return value if h[:validator].nil?
 
@@ -229,7 +229,7 @@ class Shoes
     end
 
     def bind_self_event(event_name, &block)
-      raise(Shoes::NoLinkableIdError, "Drawable has no linkable_id! #{inspect}") unless linkable_id
+      raise(Shoes::Errors::NoLinkableIdError, "Drawable has no linkable_id! #{inspect}") unless linkable_id
 
       validate_event_name(event_name)
 
@@ -270,7 +270,7 @@ class Shoes
         prop_names = self.class.shoes_style_names
         unknown_styles = kwargs.keys.select { |k| !prop_names.include?(k.to_s) }
         unless unknown_styles.empty?
-          raise Shoes::NoSuchStyleError, "Unknown styles for drawable type #{self.class.name}: #{unknown_styles.join(", ")}"
+          raise Shoes::Errors::NoSuchStyleError, "Unknown styles for drawable type #{self.class.name}: #{unknown_styles.join(", ")}"
         end
 
         kwargs.each do |name, val|
@@ -282,7 +282,7 @@ class Shoes
           Shoes::Drawable.drawable_default_styles[args[0]][name.to_sym] = val
         end
       else
-        raise Shoes::InvalidAttributeValueError, "Unexpected arguments to style! args: #{args.inspect}, keyword args: #{kwargs.inspect}"
+        raise Shoes::Errors::InvalidAttributeValueError, "Unexpected arguments to style! args: #{args.inspect}, keyword args: #{kwargs.inspect}"
       end
     end
 
@@ -344,7 +344,7 @@ class Shoes
         prop_name = name_s[0..-2]
         if self.class.shoes_style_name?(prop_name)
           self.class.define_method(name) do |new_value|
-            raise(Shoes::NoLinkableIdError, "Trying to set Shoes styles in an object with no linkable ID! #{inspect}") unless linkable_id
+            raise(Shoes::Errors::NoLinkableIdError, "Trying to set Shoes styles in an object with no linkable ID! #{inspect}") unless linkable_id
 
             new_value = self.class.validate_as(prop_name, new_value)
             instance_variable_set("@" + prop_name, new_value)
@@ -357,7 +357,7 @@ class Shoes
 
       if self.class.shoes_style_name?(name_s)
         self.class.define_method(name) do
-          raise(Shoes::NoLinkableIdError, "Trying to get Shoes styles in an object with no linkable ID! #{inspect}") unless linkable_id
+          raise(Shoes::Errors::NoLinkableIdError, "Trying to get Shoes styles in an object with no linkable ID! #{inspect}") unless linkable_id
 
           instance_variable_get("@" + name_s)
         end

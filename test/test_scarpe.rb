@@ -4,7 +4,7 @@ require "test_helper"
 
 # These are a variety of simple apps, and we're just making sure they don't immediately fail.
 
-class TestWebviewScarpe < LoggedScarpeTest
+class TestWebviewScarpe < ShoesSpecLoggedTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
   def test_that_it_has_a_version_number
@@ -13,14 +13,6 @@ class TestWebviewScarpe < LoggedScarpeTest
 
   def test_hello_world_app
     run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
-      Shoes.app do
-        para "Hello World"
-      end
-    SCARPE_APP
-  end
-
-  def test_hello_world_app_wv_relay
-    run_test_scarpe_code(<<-'SCARPE_APP', display_service: "wv_relay", exit_immediately: true)
       Shoes.app do
         para "Hello World"
       end

@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class TestListBoxIntegration < LoggedScarpeTest
+class TestListBoxShoesSpecIntegration < ShoesSpecLoggedTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
   def test_list_box_choose
@@ -26,23 +26,19 @@ class TestListBoxIntegration < LoggedScarpeTest
         @win = para "Will you guess it?"
       end
     SCARPE_APP
-      on_heartbeat do
-        p = para("@win")
-        lb = list_box
-        assert_equal "Will you guess it?", p.text
+      p = para("@win")
+      lb = list_box
+      assert_equal "Will you guess it?", p.text
 
-        lb.trigger_change("banana")
-        assert_equal "banana", lb.text
-        button.trigger_click
-        assert_include p.text, "better luck next time"
+      lb.trigger_change("banana")
+      assert_equal "banana", lb.text
+      button.trigger_click
+      assert_includes p.text, "better luck next time"
 
-        lb.trigger_change("apple")
-        assert_equal "apple", lb.text
-        button.trigger_click
-        assert_include p.text, "that's right"
-
-        test_finished
-      end
+      lb.trigger_change("apple")
+      assert_equal "apple", lb.text
+      button.trigger_click
+      assert_includes p.text, "that's right"
     TEST_CODE
   end
 
@@ -52,11 +48,7 @@ class TestListBoxIntegration < LoggedScarpeTest
         list_box items: ["apple", "banana", "orange"]
       end
     SCARPE_APP
-      on_heartbeat do
-        assert_equal "apple", list_box().chosen
-
-        test_finished
-      end
+      assert_equal "apple", list_box().chosen
     TEST_CODE
   end
 end

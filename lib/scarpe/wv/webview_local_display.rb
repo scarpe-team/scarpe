@@ -33,7 +33,7 @@ module Scarpe
     # able to create them and look them up.
     def initialize
       if Webview::DisplayService.instance
-        raise Scarpe::SingletonError, "ERROR! This is meant to be a singleton!"
+        raise Shoes::Errors::SingletonError, "ERROR! This is meant to be a singleton!"
       end
 
       Webview::DisplayService.instance = self

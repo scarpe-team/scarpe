@@ -25,7 +25,7 @@ class Shoes
 
       if Shoes::App.instance
         @log.error("Trying to create a second Shoes::App in the same process! Fail!")
-        raise Scarpe::TooManyInstancesError, "Cannot create multiple Shoes::App objects!"
+        raise Shoes::Errors::TooManyInstancesError, "Cannot create multiple Shoes::App objects!"
       else
         Shoes::App.instance = self
       end
@@ -79,7 +79,7 @@ class Shoes
       end
 
       @watch_for_event_loop = bind_shoes_event(event_name: "custom_event_loop") do |loop_type|
-        raise(InvalidAttributeValueError, "Unknown event loop type: #{loop_type.inspect}!") unless CUSTOM_EVENT_LOOP_TYPES.include?(loop_type)
+        raise(Shoes::Errors::InvalidAttributeValueError, "Unknown event loop type: #{loop_type.inspect}!") unless CUSTOM_EVENT_LOOP_TYPES.include?(loop_type)
 
         @event_loop_type = loop_type
       end
@@ -168,7 +168,9 @@ class Shoes
       case @event_loop_type
       when "wait"
         # Display lib wants us to busy-wait instead of it.
-        sleep 0.1 until @do_shutdown
+        until @do_shutdown
+          Shoes::DisplayService.dispatch_event("heartbeat", nil)
+        end
       when "displaylib"
         # If run event returned, that means we're done.
         destroy
@@ -176,7 +178,7 @@ class Shoes
         # We can just return to the main event loop. But we shouldn't call destroy.
         # Presumably some event loop *outside* our event loop is handling things.
       else
-        raise InvalidAttributeValueError, "Internal error! Incorrect event loop type: #{@event_loop_type.inspect}!"
+        raise Shoes::Errors::InvalidAttributeValueError, "Internal error! Incorrect event loop type: #{@event_loop_type.inspect}!"
       end
     end
 
@@ -215,13 +217,13 @@ class Shoes
               global_value = eval s
               drawables &= [global_value]
             rescue
-              raise InvalidAttributeValueError, "Error getting global variable: #{spec.inspect}"
+              raise Shoes::Errors::InvalidAttributeValueError, "Error getting global variable: #{spec.inspect}"
             end
           when "@"
             if Shoes::App.instance.instance_variables.include?(spec.to_sym)
               drawables &= [self.instance_variable_get(spec)]
             else
-              raise InvalidAttributeValueError, "Can't find top-level instance variable: #{spec.inspect}!"
+              raise Shoes::Errors::InvalidAttributeValueError, "Can't find top-level instance variable: #{spec.inspect}!"
             end
           else
             if s.start_with?("id:")
@@ -229,11 +231,11 @@ class Shoes
               drawable = Shoes::Drawable.drawable_by_id(find_id)
               drawables &= [drawable]
             else
-              raise InvalidAttributeValueError, "Don't know how to find drawables by #{spec.inspect}!"
+              raise Shoes::Errors::InvalidAttributeValueError, "Don't know how to find drawables by #{spec.inspect}!"
             end
           end
         else
-          raise(InvalidAttributeValueError, "Don't know how to find drawables by #{spec.inspect}!")
+          raise(Shoes::Errors::InvalidAttributeValueError, "Don't know how to find drawables by #{spec.inspect}!")
         end
       end
       drawables
@@ -283,7 +285,7 @@ class Shoes::App < Shoes::Drawable
   # Shape DSL methods
 
   def move_to(x, y)
-    raise(InvalidAttributeValueError, "Pass only Numeric arguments to move_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
+    raise(Shoes::Errors::InvalidAttributeValueError, "Pass only Numeric arguments to move_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
 
     if current_slot.is_a?(::Shoes::Shape)
       current_slot.add_shape_command(["move_to", x, y])
@@ -291,7 +293,7 @@ class Shoes::App < Shoes::Drawable
   end
 
   def line_to(x, y)
-    raise(InvalidAttributeValueError, "Pass only Numeric arguments to line_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
+    raise(Shoes::Errors::InvalidAttributeValueError, "Pass only Numeric arguments to line_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
 
     if current_slot.is_a?(::Shoes::Shape)
       current_slot.add_shape_command(["line_to", x, y])
