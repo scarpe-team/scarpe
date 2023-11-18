@@ -50,6 +50,11 @@ end
 
 More examples can be found in the [`examples` folder](https://github.com/scarpe-team/scarpe/tree/main/examples)!
 
+## Wiki
+
+Explore more in the [Scarpe Wiki](https://github.com/scarpe-team/scarpe/wiki) for in-depth documentation, tutorials, and additional resources. Whether you're a new contributor or an experienced user, the Wiki provides valuable information to enhance your Scarpe experience.
+
+
 ## Scarpe in Development
 
 ### Quickstart
