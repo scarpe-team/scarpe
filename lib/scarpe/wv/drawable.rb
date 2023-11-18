@@ -99,11 +99,11 @@ module Scarpe::Webview
       if changes.key?("hidden")
         hidden = changes.delete("hidden")
         if hidden
-          html_wrapper_element.set_style("display", "none")
+          html_element.set_style("display", "none")
         else
           new_style = style # Get current display CSS property, which may vary by subclass
           disp = new_style[:display]
-          html_wrapper_element.set_style("display", disp || "block")
+          html_element.set_style("display", disp || "block")
         end
       end
 
@@ -182,21 +182,11 @@ module Scarpe::Webview
 
     # This gets an accessor for just this element's HTML ID.
     # It is normally called by the drawable itself to do its DOM management.
-    # Some drawables don't use their html_id for their outermost element,
-    # and so we add an outer wrapping div to make sure that remove(),
-    # hidden() etc. affect every part of the drawable. This accessor
-    # does *not* necessarily affect the outermost elements.
+    # Drawables are required to use their html_id for their outermost element,
+    # to make sure that remove(), hidden() etc. affect every part of the drawable.
     #
     # @return [Scarpe::WebWrangler::ElementWrangler] a DOM object manager
     def html_element
-      @elt_wrangler ||= Scarpe::Webview::WebWrangler::ElementWrangler.new(html_id)
-    end
-
-    # This gets an accessor for just this element's outer wrapping div.
-    # This allows replacing the entire drawable, not just its "main" element.
-    #
-    # @return [Scarpe::WebWrangler::ElementWrangler] a DOM object manager
-    def html_wrapper_element
       @elt_wrangler ||= Scarpe::Webview::WebWrangler::ElementWrangler.new(html_id)
     end
 
@@ -223,7 +213,7 @@ module Scarpe::Webview
     def to_html
       @children ||= []
       child_markup = @children.map(&:to_html).join
-      "<div id='#{html_id}-wrap'>" + element { child_markup } + "</div>"
+      element { child_markup }
     end
 
     # This binds a Scarpe JS callback, handled via a single dispatch point in the app
@@ -244,7 +234,7 @@ module Scarpe::Webview
     def destroy_self
       @parent&.remove_child(self)
       unsub_all_shoes_events
-      html_wrapper_element.remove
+      html_element.remove
     end
 
     # Request a full redraw of the entire window, including the entire tree of
@@ -265,7 +255,7 @@ module Scarpe::Webview
     #
     # @return [void]
     def needs_update!
-      html_wrapper_element.outer_html = to_html
+      html_element.outer_html = to_html
     end
 
     # Generate JS code to trigger a specific event name on this drawable with the supplies arguments.

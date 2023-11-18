@@ -11,10 +11,6 @@ module Scarpe
 
   class UnexpectedFiberTransferError < Scarpe::Error; end
 
-  class MultipleDrawablesFoundError < Scarpe::Error; end
-
-  class NoDrawablesFoundError < Scarpe::Error; end
-
   class InvalidPromiseError < Scarpe::Error; end
 
   class MissingAppError < Scarpe::Error; end
@@ -42,8 +38,6 @@ module Scarpe
   class NonexistentEvalResultError < Scarpe::Error; end
 
   class JSRedrawError < Scarpe::Error; end
-
-  class SingletonError < Scarpe::Error; end
 
   class ConnectionError < Scarpe::Error; end
 
@@ -76,8 +70,6 @@ module Scarpe
   class InvalidClassError < Scarpe::Error; end
 
   class MissingClassError < Scarpe::Error; end
-
-  class MultipleShoesSpecRunsError < Scarpe::Error; end
 
   class EmptyPageNotSetError < Scarpe::Error; end
 

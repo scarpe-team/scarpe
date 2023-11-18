@@ -9,8 +9,8 @@ require "json/add/exception"
 module Minitest
   module Reporters
     # To use this Scarpe component, you'll need minitest-reporters in your Gemfile,
-    # probably in the "test" group. You'll need to require and activate it to
-    # register it as Minitest's reporter:
+    # probably in the "test" group. You'll need to require and activate ShoesExportReporter
+    # to register it as Minitest's reporter:
     #
     #     require "scarpe/components/minitest_export_reporter"
     #     Minitest::Reporters::ShoesExportReporter.activate!
@@ -57,7 +57,7 @@ module Minitest
             assertions: result.assertions,
             failures: failures,
             time: result.time,
-            metadata: result.metadata,
+            metadata: result.respond_to?(:metadata) ? result.metadata : {},
             source_location: begin
               result.source_location
             rescue

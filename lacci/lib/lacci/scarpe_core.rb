@@ -15,6 +15,7 @@ end
 module Scarpe; end
 
 # The base error class for Scarpe errors, but not necessarily {Shoes::Error}s
+class Shoes::Error < StandardError; end
 class Scarpe::Error < StandardError; end
 
 require "lacci/version"

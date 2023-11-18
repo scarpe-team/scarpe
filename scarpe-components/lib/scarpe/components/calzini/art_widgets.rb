@@ -159,10 +159,10 @@ module Scarpe::Components::Calzini
     fill = "black" if !fill || fill == ""
     stroke = "black" if !stroke || stroke == ""
 
-    stroke_widthk = width / 4
+    stroke_width = width / 4
 
     HTML.render do |h|
-      h.div(id: html_id, style: arrow_div_style(left, top)) do
+      h.div(id: html_id, style: arrow_div_style(props)) do
         h.svg do
           h.defs do
             h.marker(
@@ -185,7 +185,7 @@ module Scarpe::Components::Calzini
             y1: end_y.to_s,
             fill: fill.to_s,
             stroke: stroke.to_s,
-            "stroke-width" => stroke_widthk.to_s,
+            "stroke-width" => stroke_width.to_s,
             "marker-end" => "url(#head)",
             transform: "rotate(#{rotate}, #{left + width / 2}, #{top})",
           )
@@ -193,11 +193,11 @@ module Scarpe::Components::Calzini
       end
     end
   end
-  def arrow_div_style(left, top)
-    {
+  def arrow_div_style(props)
+    drawable_style(props).merge({
       position: "absolute",
-      left: "#{left}px",
-      top: "#{top}px",
-    }
+      left: "#{props["left"]}px",
+      top: "#{props["top"]}px",
+    })
   end
 end

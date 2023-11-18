@@ -134,12 +134,12 @@ class Shoes
 
     def set_drawable_pairing(id, display_drawable)
       if id.nil?
-        raise BadLinkableIdError, "Linkable ID may not be nil!"
+        raise Shoes::Errors::BadLinkableIdError, "Linkable ID may not be nil!"
       end
 
       @display_drawable_for ||= {}
       if @display_drawable_for[id]
-        raise DuplicateCreateDrawableError, "There is already a drawable for #{id.inspect}! Not setting a new one."
+        raise Shoes::Errors::DuplicateCreateDrawableError, "There is already a drawable for #{id.inspect}! Not setting a new one."
       end
 
       @display_drawable_for[id] = display_drawable
@@ -147,6 +147,7 @@ class Shoes
     end
 
     def query_display_drawable_for(id, nil_ok: false)
+      @display_drawable_for ||= {}
       display_drawable = @display_drawable_for[id]
       unless display_drawable || nil_ok
         raise "Could not find display drawable for linkable ID #{id.inspect}!"
@@ -173,6 +174,7 @@ class Shoes
     def initialize(linkable_id: object_id)
       @linkable_id = linkable_id
       @subscriptions = {}
+      @display_drawable_for ||= {}
     end
 
     def send_self_event(*args, event_name:, **kwargs)
