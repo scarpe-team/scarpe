@@ -61,13 +61,15 @@ class TestSegmentedAppFiles < Minitest::Test
     assert_equal({ app_ran: true }, SEG_TEST_DATA)
   end
 
+  # TODO: this test is partially updated to ShoesSpec rather
+  # than CatsCradle, but we could use a proper version.
   def test_default_double_segment_with_front_matter
     app = <<~SEG_TEST_FILE
       ---
       front_matter: yes
       ----- app code
       SEG_TEST_DATA[:app_ran] = true
-      eval File.read(ENV['SCARPE_APP_TEST']) # run test code
+      eval File.read(ENV['SHOES_SPEC_TEST']) # run test code
       ----- test code
       SEG_TEST_DATA[:test_ran] = true
     SEG_TEST_FILE
@@ -83,7 +85,7 @@ class TestSegmentedAppFiles < Minitest::Test
       ---
       ----- app code
       SEG_TEST_DATA[:app_ran] = true
-      eval File.read(ENV['SCARPE_APP_TEST']) # run test code
+      eval File.read(ENV['SHOES_SPEC_TEST']) # run test code
       ----- test code
       SEG_TEST_DATA[:test_ran] = true
     SEG_TEST_FILE
@@ -98,7 +100,7 @@ class TestSegmentedAppFiles < Minitest::Test
     app = <<~SEG_TEST_FILE
       ----- app code
       SEG_TEST_DATA[:app_ran] = true
-      eval File.read(ENV['SCARPE_APP_TEST']) # run test code
+      eval File.read(ENV['SHOES_SPEC_TEST']) # run test code
       ----- test code
       SEG_TEST_DATA[:test_ran] = true
     SEG_TEST_FILE
@@ -113,7 +115,7 @@ class TestSegmentedAppFiles < Minitest::Test
     app = <<~SEG_TEST_FILE
       -----
       SEG_TEST_DATA[:app_ran] = true
-      eval File.read(ENV['SCARPE_APP_TEST']) # run test code
+      eval File.read(ENV['SHOES_SPEC_TEST']) # run test code
       -----
       SEG_TEST_DATA[:test_ran] = true
     SEG_TEST_FILE
@@ -127,7 +129,7 @@ class TestSegmentedAppFiles < Minitest::Test
   def test_default_double_segment_no_front_matter_no_initial_name
     app = <<~SEG_TEST_FILE
       SEG_TEST_DATA[:app_ran] = true
-      eval File.read(ENV['SCARPE_APP_TEST']) # run test code
+      eval File.read(ENV['SHOES_SPEC_TEST']) # run test code
       ----- test code
       SEG_TEST_DATA[:test_ran] = true
     SEG_TEST_FILE
@@ -144,7 +146,7 @@ class TestSegmentedAppFiles < Minitest::Test
         front_matter: yes
       ---------------- app code
       SEG_TEST_DATA[:app_ran] = true
-      eval File.read(ENV['SCARPE_APP_TEST']) # run test code
+      eval File.read(ENV['SHOES_SPEC_TEST']) # run test code
       ------- test code
       SEG_TEST_DATA[:test_ran] = true
     SEG_TEST_FILE

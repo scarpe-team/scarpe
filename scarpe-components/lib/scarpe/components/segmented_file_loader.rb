@@ -50,7 +50,7 @@ module Scarpe::Components
     # @param path [String] the file or directory to treat as a Scarpe app
     # @return [Boolean] return true if the file is loaded as a segmented Scarpe app file
     def call(path)
-      return false unless path.end_with?(".scas")
+      return false unless path.end_with?(".scas") || path.end_with?(".sspec")
 
       file_load(path)
       true
@@ -67,16 +67,12 @@ module Scarpe::Components
       @after_load << block
     end
 
-    private
-
-    def gen_name(segmap)
+    def self.gen_name(segmap)
       ctr = (1..10_000).detect { |i| !segmap.key?("%5d" % i) }
       "%5d" % ctr
     end
 
-    public
-
-    def front_matter_and_segments_from_file(contents)
+    def self.front_matter_and_segments_from_file(contents)
       require "yaml" # Only load when needed
       require "English"
 
@@ -123,7 +119,7 @@ module Scarpe::Components
     def file_load(path)
       contents = File.read(path)
 
-      front_matter, segmap = front_matter_and_segments_from_file(contents)
+      front_matter, segmap = self.class.front_matter_and_segments_from_file(contents)
 
       if segmap.empty?
         raise Scarpe::FileContentError, "Illegal segmented Scarpe file: must have at least one code segment, not just front matter!"
@@ -171,13 +167,17 @@ module Scarpe::Components
     end
 
     # The hash of segment type labels mapped to handlers which will be called.
-    # Normal client code shouldn't ever call this.
+    # This could be called by a display service, a test framework or similar
+    # code that wants to define a non-Scarpe-standard file format.
     #
     # @return [Hash<String, Object>] the name/handler pairs
     def segment_type_hash
       @segment_handlers ||= {
         "shoes" => proc { |seg_file| after_load { load seg_file } },
-        "app_test" => proc { |seg_file| ENV["SCARPE_APP_TEST"] = seg_file },
+        "app_test" => proc do |seg_file|
+          ENV["SHOES_SPEC_TEST"] = seg_file
+          ENV["SHOES_MINITEST_EXPORT_FILE"] = "sspec.json"
+        end,
       }
     end
   end

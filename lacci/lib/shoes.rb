@@ -45,9 +45,10 @@ require_relative "shoes/drawables"
 
 require_relative "shoes/download"
 
-if ENV["SHOES_SPEC_TEST"]
-  require_relative "shoes-spec"
-end
+# No easy way to tell at this point whether
+# we will later load Shoes-Spec code, e.g.
+# by running a segmented app with test code.
+require_relative "shoes-spec"
 
 # The module containing Shoes in all its glory.
 # Shoes is a platform-independent GUI library, designed to create

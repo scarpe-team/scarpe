@@ -63,10 +63,8 @@ Shoes::FONTS.push(
   "Monaco",
 )
 
-if ENV["SHOES_SPEC_TEST"]
-  require_relative "shoes_spec"
-  Shoes::Spec.instance = Scarpe::Test
-end
+require_relative "shoes_spec"
+Shoes::Spec.instance = Scarpe::Test
 
 require_relative "wv/web_wrangler"
 require_relative "wv/control_interface"
