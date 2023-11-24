@@ -17,6 +17,7 @@ class Shoes::Error < StandardError; end
 require_relative "shoes/errors"
 
 require_relative "shoes/constants"
+require_relative "shoes/ruby_extensions"
 
 # Shoes adds some top-level methods and constants that can be used everywhere. Kernel is where they go.
 module Kernel
@@ -55,8 +56,6 @@ require_relative "shoes-spec"
 # small visual applications in Ruby.
 #
 class Shoes
-  include Shoes::Constants # Doesn't the Kernel include handle this?
-
   class << self
     # Creates a Shoes app with a new window. The block parameter is used to create
     # drawables and set up handlers. Arguments are passed to Shoes::App.new internally.

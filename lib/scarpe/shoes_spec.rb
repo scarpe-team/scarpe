@@ -131,14 +131,13 @@ class Scarpe::ShoesSpecTest < Minitest::Test
 
       Scarpe::ShoesSpecProxy.new(drawables[0])
     end
+  end
+  def drawable(*specs)
+    drawables = app.find_drawables_by(*specs)
+    raise Scarpe::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
+    raise Scarpe::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
 
-    def drawable(*specs)
-      drawables = app.find_drawables_by(*specs)
-      raise Scarpe::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
-      raise Scarpe::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
-
-      Scarpe::ShoesSpecProxy.new(drawables[0])
-    end
+    Scarpe::ShoesSpecProxy.new(drawables[0])
   end
 
   def catscradle_dsl(&block)
