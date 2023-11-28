@@ -50,6 +50,13 @@ class Niente::ShoesSpecTest < Minitest::Test
       Niente::ShoesSpecProxy.new(drawables[0])
     end
   end
+
+  def drawable(*specs)
+    drawables = Shoes::App.instance.find_drawables_by(*specs)
+    raise Shoes::Errors::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
+    raise Shoes::Errors::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
+    Niente::ShoesSpecProxy.new(drawables[0])
+  end
 end
 
 class Niente::ShoesSpecProxy
