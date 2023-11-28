@@ -16,5 +16,9 @@ require_relative "niente/display_service"
 require_relative "niente/shoes_spec"
 Shoes::Spec.instance = Niente::Test
 
+require "scarpe/components/segmented_file_loader"
+loader = Scarpe::Components::SegmentedFileLoader.new
+Shoes.add_file_loader loader
+
 Shoes::DisplayService.set_display_service_class(Niente::DisplayService)
 
