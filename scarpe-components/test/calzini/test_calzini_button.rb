@@ -11,7 +11,11 @@ class TestCalziniButton < Minitest::Test
     assert_equal %{<button id="elt-1" onclick="handle('click')" onmouseover="handle('hover')"></button>}, @calzini.render("button", {})
   end
 
-  def test_button_all_properties_set
+ def test_button_with_html_class
+    assert_equal %{<button id="elt-1" onclick="handle('click')" onmouseover="handle('hover')" class="buttonish"></button>}, @calzini.render("button", { "html_class" => "buttonish" })
+  end
+
+  def test_button_all_standard_properties_set
     props = {
       "color" => "red",
       "padding_top" => "4",
@@ -32,7 +36,7 @@ class TestCalziniButton < Minitest::Test
       @calzini.render("button", props)
   end
 
-  def test_button_all_properties_nil
+  def test_button_all_standard_properties_nil
     props = {
       "color" => nil,
       "padding_top" => nil,

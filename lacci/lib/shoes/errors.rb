@@ -27,4 +27,6 @@ module Shoes::Errors
   class SingletonError < Shoes::Error; end
 
   class MultipleShoesSpecRunsError < Shoes::Error; end
+
+  class UnsupportedFeature < Shoes::Error; end
 end

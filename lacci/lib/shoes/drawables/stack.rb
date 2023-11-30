@@ -14,6 +14,9 @@ class Shoes
       margin_right: nil, **options, &block)
 
       @options = options
+      unless @options.empty?
+        STDERR.puts "STACK OPTIONS: #{@options.inspect}"
+      end
 
       super
 

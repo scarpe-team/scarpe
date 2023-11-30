@@ -10,7 +10,12 @@ class Shoes
 
     attr_reader :document_root
 
-    shoes_styles :title, :width, :height, :resizable
+    shoes_styles :title, :width, :height, :resizable, :features
+
+    # This is defined to avoid the linkable-id check in the Shoes-style method_missing def'n
+    def features
+      @features
+    end
 
     CUSTOM_EVENT_LOOP_TYPES = ["displaylib", "return", "wait"]
 
@@ -20,6 +25,7 @@ class Shoes
       width: 480,
       height: 420,
       resizable: true,
+      features: [],
       &app_code_body
     )
       log_init("Shoes::App")
@@ -33,6 +39,18 @@ class Shoes
 
       @do_shutdown = false
       @event_loop_type = "displaylib" # the default
+
+      @features = features
+
+      unknown_ext = features - Shoes::FEATURES - Shoes::EXTENSIONS
+      unsupported_features = unknown_ext & Shoes::KNOWN_FEATURES
+      unless unsupported_features.empty?
+        @log.error("Shoes app requires feature(s) not supported by this display service: #{unsupported_features.inspect}!")
+        raise Shoes::Errors::UnsupportedFeature, "Shoes app needs features: #{unsupported_features.inspect}"
+      end
+      unless unknown_ext.empty?
+        @log.warn("Shoes app requested unknown features #{unknown_ext.inspect}! Known: #{(Shoes::FEATURES + Shoes::EXTENSIONS).inspect}")
+      end
 
       super
 
