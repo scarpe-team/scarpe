@@ -2,7 +2,7 @@
 
 class Shoes
   class Para < Shoes::Drawable
-    shoes_styles :text_items, :size, :font, :html_attributes, :hidden
+    shoes_styles :text_items, :size, :font, :html_attributes
     shoes_style(:stroke) { |val| Shoes::Colors.to_rgb(val) }
 
     shoes_events # No Para-specific events yet

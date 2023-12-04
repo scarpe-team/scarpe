@@ -43,7 +43,8 @@ class Shoes
       end
 
       def drawable_class_by_name(name)
-        drawable_classes.detect { |k| k.dsl_name == name.to_s }
+        name = name.to_s
+        drawable_classes.detect { |k| k.dsl_name == name }
       end
 
       def is_widget_class?(name)
@@ -125,6 +126,9 @@ class Shoes
       # Shoes styles in Shoes Linkables are automatically sync'd with the display side objects.
       # If a block is passed to shoes_style, that's the validation for the property. It should
       # convert a given value to a valid value for the property or throw an exception.
+      #
+      # @param name [String,Symbol] the style name
+      # @block if block is given, call it to map the given style value to a valid value, or raise an exception
       def shoes_style(name, &validator)
         name = name.to_s
 
@@ -134,9 +138,9 @@ class Shoes
         linkable_properties_hash[name] = true
       end
 
-      # Add these names as Shoes styles
-      def shoes_styles(*names)
-        names.each { |n| shoes_style(n) }
+      # Add these names as Shoes styles with the given validator, if any
+      def shoes_styles(*names, &validator)
+        names.each { |n| shoes_style(n, &validator) }
       end
 
       def shoes_style_names
@@ -166,16 +170,25 @@ class Shoes
       log_init("Shoes::#{self.class.name}")
 
       default_styles = Shoes::Drawable.drawable_default_styles[self.class]
+      this_drawable_styles = self.class.shoes_style_names.map(&:to_sym)
 
-      self.class.shoes_style_names.each do |prop|
-        prop_sym = prop.to_sym
-        if kwargs.key?(prop_sym)
-          val = self.class.validate_as(prop, kwargs[prop_sym])
-          instance_variable_set("@" + prop, val)
-        elsif default_styles.key?(prop_sym)
-          val = self.class.validate_as(prop, default_styles[prop_sym])
-          instance_variable_set("@" + prop, val)
-        end
+      # No keyword arg specified for a property with a default value? Set it to default.
+      (default_styles.keys - kwargs.keys).each do |key|
+        val = self.class.validate_as(prop, default_styles[key])
+        instance_variable_set("@#{key}", val)
+      end
+
+      # If we have a keyword arg for a style, set it normally.
+      (this_drawable_styles & kwargs.keys).each do |key|
+        val = self.class.validate_as(key, kwargs[key])
+        instance_variable_set("@#{key}", val)
+      end
+
+      # We'd like to avoid unexpected keywords. But we're not disciplined enough to do
+      # this by default yet.
+      unexpected = (kwargs.keys - this_drawable_styles)
+      unless unexpected.empty?
+        STDERR.puts "Unexpected non-style keyword(s) in #{self.class} initialize: #{unexpected.inspect}"
       end
 
       super(linkable_id: Shoes::Drawable.allocate_drawable_id)
