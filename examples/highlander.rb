@@ -35,7 +35,7 @@ def update_dup_list
 end
 
 def highlander_the_selected_item
-  selected = $dup_list.selected_item
+  selected = $dup_list.text
   if !selected || selected == "" || !selected.include?(DIVIDER)
     $bottom_display.replace("Select an item first!")
     return
@@ -58,7 +58,7 @@ def highlander_the_selected_item
     end
   end
 
-  $dup_list.selected_item = nil
+  $dup_list.choose nil
   $bottom_display.replace BOTTOM_DISPLAY_INSTRUCTIONS
   update_dup_list
 end
@@ -67,7 +67,7 @@ Shoes.app(title: "Highlander") do
   stack :margin => 40 do
     $top_text = para "Loading..."
     $dup_list = list_box(:items => []).change do
-      $bottom_display.replace "Selected duplicates: #{$dup_list.selected_item.inspect}"
+      $bottom_display.replace "Selected duplicates: #{$dup_list.text.inspect}"
     end
 
     update_dup_list

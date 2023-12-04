@@ -127,5 +127,4 @@ class TestCalziniSlots < Minitest::Test
       %{contents</div>},
       @calzini.render("stack", { "margin" => 25, "margin_left" => 15 }) { "contents" }
   end
-
 end

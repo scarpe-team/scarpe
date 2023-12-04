@@ -6,21 +6,14 @@ module Scarpe::Webview
       super
     end
 
+    # For now do *not* catch properties_changed and do a small update.
+    # Tiranti updates some additional fields (e.g. aria-valuenow) that
+    # Calzini does not. We'll want Calzini and Tiranti to handle the
+    # updates more for themselves. See issue #419 for updates on how
+    # we'll handle this. But for right now we re-render the whole
+    # drawable every time we change the progress fraction.
     def element
-      HTML.render do |h|
-        h.progress(id: html_id, style: style, max: 1, value: @fraction) do
-        end
-      end
-    end
-
-    private
-
-    def style
-      styles = {}
-
-      #ADD YOUR STYLES HERE
-
-      styles.compact
+      render("progress")
     end
   end
 end

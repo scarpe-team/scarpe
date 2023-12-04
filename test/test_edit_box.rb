@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class TestEditBox < LoggedScarpeTest
+class TestEditBoxShoesSpec < ShoesSpecLoggedTest
   self.logger_dir = File.expand_path "#{__dir__}/../logger"
 
   def test_renders_textarea
@@ -11,14 +11,9 @@ class TestEditBox < LoggedScarpeTest
         edit_box "Hello, World!"
       end
     SCARPE_APP
-      on_heartbeat do
-        box = edit_box
-        html_id = box.display.html_id
-        assert_html edit_box.display.to_html, :textarea, id: html_id, oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)" do
-          "Hello, World!"
-        end
-
-        test_finished
+      box_disp = edit_box.display
+      assert_contains_html box_disp.to_html, :textarea, id: box_disp.html_id, oninput: "scarpeHandler('#{box_disp.shoes_linkable_id}-change', this.value)" do
+        "Hello, World!"
       end
     TEST_CODE
   end
@@ -30,19 +25,14 @@ class TestEditBox < LoggedScarpeTest
         edit_box { @p.replace "Double Yo!" }
       end
     SCARPE_APP
-      on_heartbeat do
-        box = edit_box
-        box.text = "Awwww yeah"
-        wait fully_updated
-        html_id = box.display.html_id
-        assert_html edit_box.display.to_html, :textarea, id: html_id, oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)" do
-          "Awwww yeah"
-        end
-        # Shoes3 does *not* fire a change event when manually replacing text
-        assert_not_include para.display.to_html, "Double Yo!"
-
-        test_finished
+      box = edit_box
+      box.text = "Awwww yeah"
+      html_id = box.display.html_id
+      assert_contains_html edit_box.display.to_html, :textarea, id: html_id, oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)" do
+        "Awwww yeah"
       end
+      # Shoes3 does *not* fire a change event when manually replacing text
+      assert !para.display.to_html.include?("Double Yo!")
     TEST_CODE
   end
 
@@ -52,18 +42,14 @@ class TestEditBox < LoggedScarpeTest
         edit_box "Hello, World!", width: 100, height: 120
       end
     SCARPE_APP
-      on_heartbeat do
-        box = edit_box
-        html_id = box.display.html_id
-        assert_html edit_box.display.to_html,
-          :textarea,
-          id: html_id,
-          oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)",
-          style: "height:120px;width:100px" do
-          "Hello, World!"
-        end
-
-        test_finished
+      box = edit_box
+      html_id = box.display.html_id
+      assert_contains_html edit_box.display.to_html,
+        :textarea,
+        id: html_id,
+        oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)",
+        style: "height:120px;width:100px" do
+        "Hello, World!"
       end
     TEST_CODE
   end
@@ -79,13 +65,8 @@ class TestEditBox < LoggedScarpeTest
   #      edit_box "Hello, World!"
   #    end
   #  SCARPE_APP
-  #    on_heartbeat do
-  #      edit_box.text = "Justified Unicorn Homicide is the best band name"
-  #      wait fully_updated
-  #      assert_include dom_html, "Justified Unicorn Homicide"
-  #
-  #      test_finished
-  #    end
+  #    edit_box.text = "Justified Unicorn Homicide is the best band name"
+  #    assert_includes dom_html, "Justified Unicorn Homicide"
   #  TEST_CODE
   #end
 end

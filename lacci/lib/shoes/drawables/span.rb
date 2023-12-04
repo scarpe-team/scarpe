@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class Span < Shoes::Drawable
     shoes_styles :text, :stroke, :size, :font, :html_attributes
+    shoes_events # No Span-specific events yet
 
     def initialize(text, stroke: nil, size: :span, font: nil, **html_attributes)
       super

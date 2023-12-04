@@ -15,6 +15,7 @@ module Scarpe::Webview
         if FORMAT_FOR_EXT.key?(ext)
           raise "Internal Scarpe-Webview error! Must have a specific format for each extension!"
         end
+
         FORMAT_FOR_EXT[ext] = format
       end
     end

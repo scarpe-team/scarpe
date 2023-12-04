@@ -2,6 +2,11 @@
 
 require "test_helper"
 
+# This uses low-level CatsCradle test code that should be removed
+# before long. But it's the specific CatsCradle test file, so that's
+# understandable. Soon CatsCradle will only exist as an underlayer
+# for ShoesSpec, so testing can be done via ShoesSpec.
+
 # Tests for the CatsCradle testing language
 class TestCatsCradle < LoggedScarpeTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
@@ -20,7 +25,7 @@ class TestCatsCradle < LoggedScarpeTest
     TEST_CODE
   end
 
-  def test_catscradle_segmented_app
+  def test_shoes_spec_segmented_app
     run_test_scarpe_code(<<~'SCARPE_APP', test_extension: ".scas")
       ---
       ----- app_code
@@ -28,15 +33,13 @@ class TestCatsCradle < LoggedScarpeTest
           button "clicky"
         end
       ----- test code
-        require "scarpe/cats_cradle"
-        self.class.include Scarpe::Test::CatsCradle
-        event_init
+      assert_equal button().text, "clicky"
 
-        on_heartbeat do
-          assert_include button().text, "clicky"
-
-          test_finished
-        end
+      # When we convert the outer test class to a ShoesSpec class,
+      # this can go away
+      catscradle_dsl do
+        test_finished
+      end
     SCARPE_APP
   end
 

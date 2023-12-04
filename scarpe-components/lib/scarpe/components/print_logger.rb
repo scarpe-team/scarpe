@@ -9,24 +9,28 @@ class Scarpe::Components::PrintLogImpl
   include Shoes::Log # for constants
 
   class PrintLogger
+    class << self
+      attr_accessor :silence
+    end
+
     def initialize(component_name)
       @comp_name = component_name
     end
 
     def error(msg)
-      puts "#{@comp_name} error: #{msg}"
+      puts "#{@comp_name} error: #{msg}" unless PrintLogger.silence
     end
 
     def warn(msg)
-      puts "#{@comp_name} warn: #{msg}"
+      puts "#{@comp_name} warn: #{msg}" unless PrintLogger.silence
     end
 
     def debug(msg)
-      puts "#{@comp_name} debug: #{msg}"
+      puts "#{@comp_name} debug: #{msg}" unless PrintLogger.silence
     end
 
     def info(msg)
-      puts "#{@comp_name} info: #{msg}"
+      puts "#{@comp_name} info: #{msg}" unless PrintLogger.silence
     end
   end
 

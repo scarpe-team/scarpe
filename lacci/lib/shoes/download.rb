@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class Drawable
     class ResponseWrapper
       attr_reader :response

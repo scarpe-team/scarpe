@@ -78,8 +78,6 @@ module Scarpe::Components::Tiranti
   # def render_flow
   # end
 
-  public
-
   # How do we want to handle theme-specific colours and primary/secondary buttons in Bootstrap?
   # "Disabled" could be checked in properties. Is there any way we can/should use "outline" buttons?
   def button_element(props)
@@ -115,7 +113,7 @@ module Scarpe::Components::Tiranti
   public
 
   def alert_element(props)
-    onclick = handler_js_code("click")
+    onclick = handler_js_code(props["event_name"] || "click")
 
     HTML.render do |h|
       h.div(id: html_id, class: "modal", tabindex: -1, role: "dialog", style: alert_overlay_style(props)) do
@@ -150,6 +148,22 @@ module Scarpe::Components::Tiranti
           value: props["text"],
           checked: props["checked"],
           style: drawable_style(props)
+      end
+    end
+  end
+
+  def progress_element(props)
+    HTML.render do |h|
+      h.div(class: "progress", style: "width: 90%") do
+        pct = "%.1f" % ((props["fraction"] || 0.0) * 100.0)
+        h.div(
+          class: "progress-bar progress-bar-striped progress-bar-animated",
+          role: "progressbar",
+          "aria-valuenow": pct,
+          "aria-valuemin": 0,
+          "aria-valuemax": 100,
+          style: "width: #{pct}%",
+        )
       end
     end
   end
@@ -207,11 +221,5 @@ module Scarpe::Components::Tiranti
         [:p, sz]
       end
     end
-  end
-end
-
-if ENV["SCARPE_HTML_RENDERER"] == "tiranti"
-  class Scarpe::Webview::Drawable < Shoes::Linkable
-    include Scarpe::Components::Tiranti
   end
 end

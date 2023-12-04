@@ -1,7 +1,13 @@
 PATH
+  remote: ../scarpe-components
+  specs:
+    scarpe-components (0.3.0)
+
+PATH
   remote: .
   specs:
     lacci (0.3.0)
+      scarpe-components
 
 GEM
   remote: https://rubygems.org/
@@ -66,6 +72,7 @@ DEPENDENCIES
   redcarpet
   rubocop (~> 1.21)
   rubocop-shopify
+  scarpe-components!
   yard
 
 BUNDLED WITH
