@@ -61,6 +61,32 @@ module Scarpe::Components::Calzini
     end
   end
 
+  def oval_element(props, &block)
+    dc = props["draw_context"] || {}
+    fill = props["fill"] || (dc["fill"] == "" ? nil : dc["fill"]) || "black"
+    stroke = props["stroke"] || (dc["stroke"] == "" ? nil : dc["stroke"]) || "black"
+    strokewidth = props["strokewidth"] || dc["strokewidth"] || "2"
+    fill = "black" if !fill || fill == ""
+    radius = props["radius"]
+    width = radius * 2
+    height = props["height"] || radius * 2 # If there's a height, it's an oval, if not, circle
+    center = props["center"] || false
+    HTML.render do |h|
+      h.div(id: html_id, style: oval_style(props)) do
+        h.svg(width: width, height: height, style: "fill:#{fill};") do
+          h.ellipse(
+            cx: center ? radius : 0,
+            cy: center ? height / 2 : 0,
+            rx: radius,
+            ry: height ? height / 2 : radius,
+            style: "stroke:#{stroke};stroke-width:#{strokewidth};",
+          )
+        end
+        block.call(h) if block_given?
+      end
+    end
+  end
+
   private
 
   def arc_style(props)
@@ -119,6 +145,13 @@ module Scarpe::Components::Calzini
       width: dimensions_length(props["width"]),
       height: dimensions_length(props["height"]),
     }).compact
+  end
+
+  def oval_style(props)
+    drawable_style(props).merge({
+      width: dimensions_length(props["width"]),
+      height: dimensions_length(props["height"]),
+    })
   end
 
   def star_points(props)
