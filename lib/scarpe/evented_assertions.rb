@@ -4,6 +4,8 @@ require "tempfile"
 require "json"
 require "fileutils"
 
+require "scarpe/components/unit_test_helpers"
+
 module Scarpe::Test; end
 
 # We need a separate assertion system for the kind of Scarpe
@@ -11,6 +13,8 @@ module Scarpe::Test; end
 # logic in the subprocess, and then run Minitest in the parent.
 # It's an unusual setup.
 module Scarpe::Test::EventedAssertions
+  include Scarpe::Test::HTMLAssertions
+
   private
 
   def evented_assertions_initialize
@@ -69,25 +73,6 @@ module Scarpe::Test::EventedAssertions
   def assert_not_include(text, subtext, msg = nil)
     msg ||= "Expected #{text.inspect} not to include #{subtext.inspect}"
     assert !text.include?(subtext), msg
-  end
-
-  # Assert that `actual_html` is the same as `expected_tag` with `opts`.
-  # This uses Scarpe's HTML tag-based renderer to render the tag and options
-  # into text, and valides that the text is the same.
-  #
-  # @see Scarpe::Components::HTML.render
-  #
-  # @param actual_html [String] the html to compare to
-  # @param expected_tag [String,Symbol] the HTML tag, used to send a method call
-  # @param opts keyword options passed to the tag method call
-  # @yield block passed to the tag method call.
-  # @return [void]
-  def assert_html(actual_html, expected_tag, **opts, &block)
-    expected_html = Scarpe::Components::HTML.render do |h|
-      h.public_send(expected_tag, opts, &block)
-    end
-
-    assert_equal expected_html, actual_html
   end
 
   def return_assertion_data

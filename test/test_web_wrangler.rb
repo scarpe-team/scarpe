@@ -5,17 +5,19 @@ require "test_helper"
 # Test WebWrangler and its weird, involved testing language.
 # This may go away over time as CatsCradle gets more capable.
 
-class TestWebWranglerInScarpeApp < LoggedScarpeTest
+class TestWebWranglerInScarpeApp < ShoesSpecLoggedTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
   # Need to make sure that even with no drawables we still get at least one redraw
   def test_empty_app
-    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE', timeout: 5.0)
       Shoes.app do
       end
     SCARPE_APP
-      on_next_redraw do
-        test_finished
+      catscradle_dsl do
+        on_event(:next_redraw) do
+          test_finished
+        end
       end
     TEST_CODE
   end
@@ -27,9 +29,11 @@ class TestWebWranglerInScarpeApp < LoggedScarpeTest
         para "Hello"
       end
     SCARPE_APP
-      on_next_redraw do
-        return_results(true, "Destroy and exit")
-        Shoes::DisplayService.dispatch_event("destroy", nil)
+      catscradle_dsl do
+        on_event(:next_redraw) do
+          return_results(true, "Destroy and exit")
+          Shoes::DisplayService.dispatch_event("destroy", nil)
+        end
       end
     TEST_CODE
   end
@@ -229,29 +233,29 @@ class TestWebWranglerMocked < LoggedScarpeTest
   end
 
   CALZINI_EMPTY_PAGE = <<~HTML
-      <html>
-        <head id='head-wvroot'>
-          <style id='style-wvroot'>
-            /** Style resets **/
-            body {
-              font-family: arial, Helvetica, sans-serif;
-              margin: 0;
-              height: 100%;
-              overflow: hidden;
-            }
-            p {
-              margin: 0;
-            }
-          </style>
-        </head>
-        <body id='body-wvroot'>
-          <div id='wrapper-wvroot'></div>
-        </body>
-      </html>
-    HTML
+    <html>
+      <head id='head-wvroot'>
+        <style id='style-wvroot'>
+          /** Style resets **/
+          body {
+            font-family: arial, Helvetica, sans-serif;
+            margin: 0;
+            height: 100%;
+            overflow: hidden;
+          }
+          p {
+            margin: 0;
+          }
+        </style>
+      </head>
+      <body id='body-wvroot'>
+        <div id='wrapper-wvroot'></div>
+      </body>
+    </html>
+  HTML
 end
 
-class TestWebWranglerAsyncJS < LoggedScarpeTest
+class TestWebWranglerAsyncJS < ShoesSpecLoggedTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
   def round_trip_app(how_many)
@@ -260,24 +264,26 @@ class TestWebWranglerAsyncJS < LoggedScarpeTest
         para "Hello"
       end
     SCARPE_APP
-      on_next_redraw do
-        num_times = #{how_many}
+      catscradle_dsl do
+        on_event(:next_redraw) do
+          num_times = #{how_many}
 
-        p = query_js_promise("document.tests = {}")
-        num_times.times do |i|
-          next_p = p.on_fulfilled do
-            query_js_promise("document.tests[\#{i}] = true")
+          p = query_js_promise("document.tests = {}")
+          num_times.times do |i|
+            next_p = p.on_fulfilled do
+              query_js_promise("document.tests[\#{i}] = true")
+            end
+            p = next_p
           end
-          p = next_p
+          wait p
+
+          tests_hash = query_js_value("document.tests")
+
+          expected_value = {}
+          num_times.times { |i| expected_value[i.to_s] = true }
+          assert_equal expected_value, tests_hash
+          test_finished
         end
-        wait p
-
-        tests_hash = query_js_value("document.tests")
-
-        expected_value = {}
-        num_times.times { |i| expected_value[i.to_s] = true }
-        assert_equal expected_value, tests_hash
-        test_finished
       end
     TEST_CODE
   end

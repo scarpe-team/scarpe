@@ -55,7 +55,9 @@ module Scarpe::Webview
         instance_variable_set("@" + k.to_s, v)
       end
 
-      # The parent field is *almost* simple enough that a validated Shoes style would handle it.
+      # Must call this before bind
+      super(linkable_id: @shoes_linkable_id)
+
       bind_shoes_event(event_name: "parent", target: shoes_linkable_id) do |new_parent_id|
         display_parent = DisplayService.instance.query_display_drawable_for(new_parent_id)
         if @parent != display_parent
@@ -74,8 +76,6 @@ module Scarpe::Webview
       bind_shoes_event(event_name: "destroy", target: shoes_linkable_id) do
         destroy_self
       end
-
-      super(linkable_id: @shoes_linkable_id)
     end
 
     def shoes_styles
@@ -119,7 +119,7 @@ module Scarpe::Webview
 
     # A shorter inspect text for prettier irb output
     def inspect
-      "#<#{self.class}:#{self.object_id} @shoes_linkable_id=#{@shoes_linkable_id} @parent=#{@parent.inspect} @children=#{@children.inspect}>"
+      "#<#{self.class}:#{self.object_id} @shoes_linkable_id=#{@shoes_linkable_id} @children=#{@children.inspect}>"
     end
 
     protected
@@ -180,8 +180,10 @@ module Scarpe::Webview
 
     public
 
-    # This gets a mini-webview for just this element and its children, if any.
+    # This gets an accessor for just this element's HTML ID.
     # It is normally called by the drawable itself to do its DOM management.
+    # Drawables are required to use their html_id for their outermost element,
+    # to make sure that remove(), hidden() etc. affect every part of the drawable.
     #
     # @return [Scarpe::WebWrangler::ElementWrangler] a DOM object manager
     def html_element
@@ -192,6 +194,8 @@ module Scarpe::Webview
     #
     # @return [Scarpe::Promise] a promise that will be fulfilled when all pending changes have finished
     def promise_update
+      # Doesn't matter what ElementWrangler we use -- they all return an update promise
+      # that includes all pending updates, no matter who they're for.
       html_element.promise_update
     end
 
@@ -199,7 +203,7 @@ module Scarpe::Webview
     #
     # @return [String] the HTML ID
     def html_id
-      object_id.to_s
+      @linkable_id.to_s
     end
 
     # to_html is intended to get the HTML DOM rendering of this object and its children.
@@ -209,11 +213,7 @@ module Scarpe::Webview
     def to_html
       @children ||= []
       child_markup = @children.map(&:to_html).join
-      if respond_to?(:element)
-        element { child_markup }
-      else
-        child_markup
-      end
+      element { child_markup }
     end
 
     # This binds a Scarpe JS callback, handled via a single dispatch point in the app
@@ -227,23 +227,35 @@ module Scarpe::Webview
     end
 
     # Removes the element from both the Ruby Drawable tree and the HTML DOM.
+    # Unsubscribe from all Shoes events.
     # Return a promise for when that HTML change will be visible.
     #
     # @return [Scarpe::Promise] a promise that is fulfilled when the HTML change is complete
     def destroy_self
       @parent&.remove_child(self)
+      unsub_all_shoes_events
       html_element.remove
     end
 
-    # Request a full redraw of all drawables.
+    # Request a full redraw of the entire window, including the entire tree of
+    # drawables and the outer "empty page" frame.
     #
-    # It's really hard to do dirty-tracking here because the redraws are fully asynchronous.
-    # And so we can't easily cancel one "in flight," and we can't easily pick up the latest
-    # changes... And we probably don't want to, because we may be halfway through a batch.
+    # @return [void]
+    def full_window_redraw!
+      DisplayService.instance.app.request_redraw!
+    end
+
+    # Request a full redraw of this drawable, including all its children.
+    # Can be overridden in drawable subclasses if needed. An override would normally
+    # only be needed if re-rendering the element with the given html_id
+    # wasn't enough (and then remove would also need to be overridden.)
+    #
+    # This occurs by default if a property is changed and the drawable
+    # doesn't remove its change in property_changed.
     #
     # @return [void]
     def needs_update!
-      DisplayService.instance.app.request_redraw!
+      html_element.outer_html = to_html
     end
 
     # Generate JS code to trigger a specific event name on this drawable with the supplies arguments.

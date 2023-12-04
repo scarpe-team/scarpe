@@ -10,12 +10,15 @@ straightforward as possible.
 
 ### Fixed
 
-## [0.3.0] - 2023-10-11 - You
+## [0.3.0] - 2023-11-24 - You
 
+- Progress bars
 - Various new APIs and many bug fixes
+- Added Tiranti, a Bootstrap-based Calzini HTML renderer replacement
 - Added Calzini, a Drawable-to-HTML renderer
 - Rename of Widget to Drawable
 - Extremely early Shoes-Spec testing support
+- Niente, a "no-op" testing display service
 
 ## [0.2.1] - 2023-07-02 - Give
 

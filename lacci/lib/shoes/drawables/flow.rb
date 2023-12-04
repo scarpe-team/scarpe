@@ -1,12 +1,13 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class Flow < Shoes::Slot
     include Shoes::Background
     include Shoes::Border
     include Shoes::Spacing
 
     shoes_styles :width, :height, :margin, :padding
+    shoes_events
 
     def initialize(width: "100%", height: nil, margin: nil, padding: nil, **options, &block)
       super

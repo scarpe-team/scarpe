@@ -3,7 +3,6 @@
 require "socket"
 
 module Scarpe
-
   # WVRelayUtil defines the datagram format for the sockets that connect a parent
   # Shoes application with a child display server.
   #

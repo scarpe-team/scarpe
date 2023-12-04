@@ -6,6 +6,7 @@ $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "scarpe"
 require "scarpe/evented_assertions"
 require "scarpe/components/unit_test_helpers"
+require "scarpe/components/minitest_result"
 
 require "json"
 require "fileutils"
@@ -23,6 +24,7 @@ TIMEOUT_FRACTION_OF_THRESHOLD = 0.5 # Too low?
 
 class ScarpeWebviewTest < Minitest::Test
   include Scarpe::Test::Helpers
+  include Scarpe::Test::HTMLAssertions
 
   SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
 
@@ -157,24 +159,93 @@ class ScarpeWebviewTest < Minitest::Test
       end
     end
   end
+end
 
-  # Assert that `actual_html` is the same as `expected_tag` with `opts`.
-  # This uses Scarpe's HTML tag-based renderer to render the tag and options
-  # into text, and valides that the text is the same.
-  #
-  # @see Scarpe::Components::HTML.render
-  #
-  # @param actual_html [String] the html to compare to
-  # @param expected_tag [String,Symbol] the HTML tag, used to send a method call
-  # @param opts keyword options passed to the tag method call
-  # @yield block passed to the tag method call.
-  # @return [void]
-  def assert_html(actual_html, expected_tag, **opts, &block)
-    expected_html = Scarpe::Components::HTML.render do |h|
-      h.public_send(expected_tag, opts, &block)
+# While Scarpe-Webview has some extra methods available from its ShoesSpec
+# classes, this basically uses the ShoesSpec syntax.
+class ShoesSpecLoggedTest < Minitest::Test
+  include Scarpe::Test::Helpers
+  include Scarpe::Test::LoggedTest
+  self.logger_dir = File.expand_path("#{__dir__}/../logger")
+
+  SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
+
+  def run_test_scarpe_code(
+    scarpe_app_code,
+    test_extension: ".rb",
+    **opts
+  )
+    with_tempfile(["scarpe_test_app", test_extension], scarpe_app_code) do |test_app_location|
+      run_test_scarpe_app(test_app_location, **opts)
+    end
+  end
+
+  EXIT_IMMEDIATELY_CODE = <<~CODE
+    on_heartbeat do
+      log.info("Dying on heartbeat because :exit_immediately is set")
+      quit
+    end
+  CODE
+
+  def run_test_scarpe_app(
+    test_app_location,
+    app_test_code: "",
+    timeout: 10.0,
+    exit_immediately: false,
+    allow_fail: false,
+    display_service: "wv_local"
+  )
+    full_test_code = <<~TEST_CODE
+      timeout #{timeout}
+      #{exit_immediately ? "exit_on_first_heartbeat" : ""}
+      #{app_test_code}
+    TEST_CODE
+
+    sspec_file = File.expand_path(File.join __dir__, "sspec.json")
+    File.unlink sspec_file rescue nil
+
+    test_method_name = self.name
+    test_class_name = self.class.name
+
+    with_tempfiles([
+      ["scarpe_log_config.json", JSON.dump(log_config_for_test)],
+      ["scarpe_app_test.rb", full_test_code],
+    ]) do |scarpe_log_config, app_test_path|
+      # Start the application using the exe/scarpe utility
+      # For unit testing always supply --debug so we get the most logging
+      system(
+        "SCARPE_DISPLAY_SERVICE=#{display_service} " +
+        "SCARPE_LOG_CONFIG=\"#{scarpe_log_config}\" " +
+        "SHOES_SPEC_TEST=\"#{app_test_path}\" " +
+        "SHOES_MINITEST_EXPORT_FILE=\"#{sspec_file}\" " +
+        "SHOES_MINITEST_CLASS_NAME=\"#{test_class_name}\" " +
+        "SHOES_MINITEST_METHOD_NAME=\"#{test_method_name}\" " +
+        "LOCALAPPDATA=\"#{Dir.tmpdir}\"" +
+        "ruby #{SCARPE_EXE} --debug --dev #{test_app_location}")
     end
 
-    assert_equal expected_html, actual_html
+    if allow_fail
+      assert true
+      return
+    end
+
+    # Check if the process exited normally or crashed (segfault, failure, timeout)
+    unless $?.success?
+      assert(false, "Scarpe app failed with exit code: #{$?.exitstatus}")
+      return
+    end
+
+    result = Scarpe::Components::MinitestResult.new(sspec_file)
+    if result.error?
+      raise result.error_message
+    elsif result.fail?
+      assert false, result.fail_message
+    elsif result.skip?
+      skip
+    else
+      # Count out the correct number of assertions
+      result.assertions.times { assert true }
+    end
   end
 end
 

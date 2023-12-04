@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class DocumentRoot < Shoes::Flow
+    shoes_events # No DocumentRoot-specific events yet
+
     def initialize
       @height = "100%"
       @width = @margin = @padding = nil

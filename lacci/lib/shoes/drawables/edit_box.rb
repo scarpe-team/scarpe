@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class EditBox < Shoes::Drawable
     shoes_styles :text, :height, :width
+    shoes_events :change
 
     def initialize(text = "", height: nil, width: nil, &block)
       super

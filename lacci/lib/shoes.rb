@@ -12,19 +12,26 @@ if RUBY_VERSION[0..2] < "3.2"
   exit(-1)
 end
 
-module Shoes; end
+class Shoes; end
 class Shoes::Error < StandardError; end
 require_relative "shoes/errors"
 
 require_relative "shoes/constants"
+require_relative "shoes/ruby_extensions"
 
 # Shoes adds some top-level methods and constants that can be used everywhere. Kernel is where they go.
 module Kernel
   include Shoes::Constants
 end
 
-require_relative "shoes/log"
 require_relative "shoes/display_service"
+
+# Pre-declare classes that get referenced outside their own require file
+class Shoes::Drawable < Shoes::Linkable; end
+class Shoes::Slot < Shoes::Drawable; end
+class Shoes::Widget < Shoes::Slot; end
+
+require_relative "shoes/log"
 require_relative "shoes/colors"
 
 require_relative "shoes/builtins"
@@ -39,17 +46,16 @@ require_relative "shoes/drawables"
 
 require_relative "shoes/download"
 
-if ENV["SHOES_SPEC_TEST"]
-  require_relative "shoes-spec"
-end
+# No easy way to tell at this point whether
+# we will later load Shoes-Spec code, e.g.
+# by running a segmented app with test code.
+require_relative "shoes-spec"
 
 # The module containing Shoes in all its glory.
 # Shoes is a platform-independent GUI library, designed to create
 # small visual applications in Ruby.
 #
-module Shoes
-  include Shoes::Constants # Doesn't the Kernel include handle this?
-
+class Shoes
   class << self
     # Creates a Shoes app with a new window. The block parameter is used to create
     # drawables and set up handlers. Arguments are passed to Shoes::App.new internally.

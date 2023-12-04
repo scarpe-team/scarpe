@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class Stack < Shoes::Slot
     include Shoes::Background
     include Shoes::Border
@@ -8,6 +8,8 @@ module Shoes
 
     # TODO: sort out various margin and padding properties, including putting stuff into spacing
     shoes_styles :width, :height, :scroll
+
+    shoes_events # No Stack-specific events yet
 
     def initialize(width: nil, height: nil, margin: nil, padding: nil, scroll: false, margin_top: nil, margin_bottom: nil, margin_left: nil,
       margin_right: nil, **options, &block)

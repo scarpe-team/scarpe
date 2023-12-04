@@ -66,7 +66,7 @@ class TestWebviewStack < Minitest::Test
   #end
 end
 
-class TestStackMethods < LoggedScarpeTest
+class TestStackMethods < ShoesSpecLoggedTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
   def test_stack_clear_append
@@ -79,28 +79,20 @@ class TestStackMethods < LoggedScarpeTest
         @b_add = button("Add") { @slot.append { para "Woot!" } }
       end
     SCARPE_APP
-      on_heartbeat do
-        main = stack("@slot")
+      main = stack("@slot")
 
-        assert_equal 1, main.children.size
+      assert_equal 1, main.children.size
 
-        b_clear = button("@b_clear")
-        b_add = button("@b_add")
-        b_clear_js = b_clear.display.handler_js_code("click")
-        b_add_js = b_add.display.handler_js_code("click")
+      b_clear = button("@b_clear")
+      b_add = button("@b_add")
 
-        query_js_value(b_add_js)
-        query_js_value(b_add_js)
-        query_js_value(b_add_js)
-        wait fully_updated
-        assert_equal 4, main.children.size
+      b_add.trigger_click
+      b_add.trigger_click
+      b_add.trigger_click
+      assert_equal 4, main.children.size
 
-        query_js_value(b_clear_js) # Run the click-event code
-        wait fully_updated
-        assert_equal 0, main.children.size
-
-        test_finished
-      end
+      b_clear.trigger_click
+      assert_equal 0, main.children.size
     TEST_CODE
   end
 end

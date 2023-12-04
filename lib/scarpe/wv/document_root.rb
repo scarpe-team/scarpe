@@ -15,11 +15,14 @@ module Scarpe::Webview
         case cmd_name
         when "font"
           @fonts << args[0]
-          needs_update!
+          # Can't just create font_updater and alert_updater on initialize - not everything is set up
+          @font_updater ||= Scarpe::Webview::WebWrangler::ElementWrangler.new("root-fonts")
+          @font_updater.inner_html = font_contents
         when "alert"
           bind_ok_event
           @alerts << args[0]
-          needs_update!
+          @alert_updater ||= Scarpe::Webview::WebWrangler::ElementWrangler.new("root-alerts")
+          @alert_updater.inner_html = alert_contents
         else
           raise Scarpe::UnknownBuiltinCommandError, "Unexpected builtin command: #{cmd_name.inspect}!"
         end
@@ -28,8 +31,16 @@ module Scarpe::Webview
 
     def element(&block)
       contents = block ? block.call : ""
-      contents += builtin_contents
-      super { contents }
+      super do
+        contents + HTML.render do |h|
+          h.div(id: "root-fonts") do
+            font_contents
+          end
+          h.div(id: "root-alerts") do
+            alert_contents
+          end
+        end
+      end
     end
 
     private
@@ -38,6 +49,7 @@ module Scarpe::Webview
     # so we can't call bind() for app events yet.
     def bind_ok_event
       return if @ok_event_setup_done
+
       @ok_event_setup_done = true
 
       # Done with the alert(s), delete them
@@ -47,9 +59,9 @@ module Scarpe::Webview
       end
     end
 
-    def builtin_contents
-      font_contents = @fonts.map do |font|
-        HTML.render do |h|
+    def font_contents
+      HTML.render do |h|
+        @fonts.each do |font|
           h.link(href: font, rel: "stylesheet")
           h.style do
             font_name = File.basename(font, ".*")
@@ -61,12 +73,13 @@ module Scarpe::Webview
             CSS
           end
         end
-      end.join
-      alert_contents = @alerts.map do |alert_text|
-        render("alert", { "text" => alert_text, "event_name" => "OK" })
-      end.join
+      end
+    end
 
-      font_contents + alert_contents
+    def alert_contents
+      @alerts.map do |alert_text|
+        render("alert", { "text" => alert_text, "event_name" => "OK" })
+      end.join + " "
     end
   end
 end

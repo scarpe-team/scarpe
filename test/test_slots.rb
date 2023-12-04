@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class TestSlots < LoggedScarpeTest
+class TestSlots < ShoesSpecLoggedTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
   def test_stack_child
@@ -13,10 +13,7 @@ class TestSlots < LoggedScarpeTest
         end
       end
     SCARPE_APP
-      on_next_redraw do
-        assert para.parent.is_a?(Shoes::Stack), "A drawable created in a Stack's block should be a child of the stack!"
-        test_finished
-      end
+      assert_equal para.parent.linkable_id, stack.linkable_id, "A drawable created in a Stack's block should be a child of the stack!"
     TEST_CODE
   end
 end

@@ -371,8 +371,8 @@ module Scarpe::Webview
 
       # From webview:
       # 0 - Width and height are default size
-      # 1 - Width and height are minimum bonds
-      # 2 - Width and height are maximum bonds
+      # 1 - Width and height are minimum bounds
+      # 2 - Width and height are maximum bounds
       # 3 - Window size can not be changed by a user
       hint = @resizable ? 0 : 3
 
@@ -381,6 +381,7 @@ module Scarpe::Webview
       unless @empty_page
         raise Scarpe::EmptyPageNotSetError, "No empty page markup was set!"
       end
+
       @webview.navigate("data:text/html, #{CGI.escape @empty_page}")
 
       monkey_patch_console(@webview)
@@ -750,6 +751,8 @@ class Scarpe::Webview::WebWrangler
     # @param html_id [String] the HTML ID for the DOM element
     def initialize(html_id)
       @webwrangler = ::Scarpe::Webview::DisplayService.instance.wrangler
+      raise Scarpe::MissingWranglerError, "Can't get WebWrangler!" unless @webwrangler
+
       @html_id = html_id
     end
 
@@ -785,7 +788,15 @@ class Scarpe::Webview::WebWrangler
       @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").innerHTML = `" + new_html + "`; true")
     end
 
-    # Update the JS DOM element's inner_html. The given Ruby value will be inspected and assigned.
+    # Update the JS DOM element's outer_html. The given Ruby value will be converted to string and assigned in backquotes.
+    #
+    # @param new_html [String] the new outer_html
+    # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
+    def outer_html=(new_html)
+      @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").outerHTML = `" + new_html + "`; true")
+    end
+
+    # Update the JS DOM element's attribute. The given Ruby value will be inspected and assigned.
     #
     # @param attribute [String] the attribute name
     # @param value [String] the new attribute value

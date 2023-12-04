@@ -126,12 +126,12 @@ Shoes.app(title: 'Templates') do
     button 'Generate Files!',color:"#FF7116",padding_bottom:"8",padding_top:"8",text_color:"white",font_size:"16" do
       filename = $filename_input.text
       shoes_styles = $properties_input.text
-      choice = $choice_input.selected_item
+      choice = $choice_input.text
 
       generator = ScarpeGenerator.new(filename, shoes_styles)
 
       if choice == 'Class'
-        generator.generate_files(choice, $class_template_choice_input.selected_item)
+        generator.generate_files(choice, $class_template_choice_input.text)
       else
         generator.generate_files(choice, nil)
       end
