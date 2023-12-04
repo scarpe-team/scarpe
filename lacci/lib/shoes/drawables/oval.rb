@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   # Docs: https://github.com/scarpe-team/scarpe/blob/main/docs/static/manual.md#ovalleft-top-radius--shoesshape
   class Oval < Shoes::Drawable
     shoes_styles :height, :center, :draw_context, :stroke
