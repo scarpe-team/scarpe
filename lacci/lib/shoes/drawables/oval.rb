@@ -26,10 +26,6 @@ module Shoes
     end
 
     def self.convert_to_integer(value, attribute_name)
-      puts "*" * 100
-      puts "value: #{value}"
-      puts "attribute_name: #{attribute_name}"
-      puts "*" * 100
       begin
         value = Integer(value)
         raise InvalidAttributeValueError, "Negative num '#{value}' not allowed for attribute '#{attribute_name}'" if value < 0
