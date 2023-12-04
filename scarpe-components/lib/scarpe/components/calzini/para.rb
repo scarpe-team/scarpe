@@ -13,7 +13,7 @@ module Scarpe::Components::Calzini
   private
 
   def para_options(props)
-    (props["html_attributes"] || {}).merge(id: html_id, style: para_style(props))
+    { id: html_id, style: para_style(props) }.compact
   end
 
   def para_style(props)
@@ -21,6 +21,7 @@ module Scarpe::Components::Calzini
       color: rgb_to_hex(props["stroke"]),
       "font-size": para_font_size(props),
       "font-family": props["font"],
+      "text-align": props["align"],
     }.compact)
   end
 

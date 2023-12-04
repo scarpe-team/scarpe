@@ -8,10 +8,11 @@ class Shoes
     shoes_styles :group, :checked
     shoes_events :click
 
-    def initialize(group = nil, checked: nil, &block)
-      super
-      @group = group
+    init_args :group
+    def initialize(*args, **kwargs, &block)
       @block = block
+
+      super
 
       bind_self_event("click") { click }
       create_display_drawable

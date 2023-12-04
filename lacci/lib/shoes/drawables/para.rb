@@ -2,8 +2,10 @@
 
 class Shoes
   class Para < Shoes::Drawable
-    shoes_styles :text_items, :size, :font, :html_attributes
+    shoes_styles :text_items, :size, :font
     shoes_style(:stroke) { |val| Shoes::Colors.to_rgb(val) }
+
+    Shoes::Drawable.drawable_default_styles[Shoes::Para][:size] = :para
 
     shoes_events # No Para-specific events yet
 
@@ -30,7 +32,10 @@ class Shoes
     #      p.replace "On top we'll switch to ", strong("bold"), "!"
     #    end
     def initialize(*args, stroke: nil, size: :para, font: nil, **html_attributes)
-      super
+      kwargs = { stroke:, size:, font:, **html_attributes }.compact
+
+      # Don't pass text_children args to Drawable#initialize
+      super(*[], **kwargs)
 
       # Text_children alternates strings and TextDrawables, so we can't just pass
       # it as a Shoes style. It won't serialize.

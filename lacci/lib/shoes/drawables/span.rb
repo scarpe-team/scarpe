@@ -5,13 +5,12 @@ class Shoes
     shoes_styles :text, :stroke, :size, :font, :html_attributes
     shoes_events # No Span-specific events yet
 
-    def initialize(text, stroke: nil, size: :span, font: nil, **html_attributes)
+    Shoes::Drawable.drawable_default_styles[Shoes::Span][:size] = :span
+
+    init_args :text, :stroke, :size, :font
+    def initialize(*args, **html_attributes)
       super
 
-      @text = text
-      @stroke = stroke
-      @size = size
-      @font = font
       @html_attributes = html_attributes
 
       create_display_drawable

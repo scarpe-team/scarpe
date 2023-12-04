@@ -5,10 +5,10 @@ class Shoes
     shoes_styles :text, :height, :width
     shoes_events :change
 
-    def initialize(text = "", height: nil, width: nil, &block)
-      super
-      @text = text
+    init_args :text
+    def initialize(*args, **kwargs, &block)
       @callback = block
+      super
 
       bind_self_event("change") do |new_text|
         self.text = new_text

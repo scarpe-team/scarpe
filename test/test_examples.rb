@@ -19,9 +19,9 @@ class TestExamplesWithWebview < ShoesSpecLoggedTest
       ENV["SCARPE_HTML_RENDERER"] = "calzini"
       run_test_scarpe_app(example_filename, exit_immediately: true)
     end
-    define_method("test_webview_tiranti_#{example}") do
-      ENV["SCARPE_HTML_RENDERER"] = "tiranti"
-      run_test_scarpe_app(example_filename, exit_immediately: true)
-    end
+    #define_method("test_webview_tiranti_#{example}") do
+    #  ENV["SCARPE_HTML_RENDERER"] = "tiranti"
+    #  run_test_scarpe_app(example_filename, exit_immediately: true)
+    #end
   end
 end

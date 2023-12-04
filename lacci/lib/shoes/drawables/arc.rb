@@ -13,11 +13,11 @@ class Shoes
       shoes_style(prop) { |val| convert_to_float(val, prop) }
     end
 
-    def initialize(*args)
+    init_args :left, :top, :width, :height, :angle1, :angle2
+    def initialize(*args, **kwargs)
       @draw_context = Shoes::App.instance.current_draw_context
 
       super
-      self.left, self.top, self.width, self.height, self.angle1, self.angle2 = args
 
       create_display_drawable
     end

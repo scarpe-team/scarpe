@@ -9,19 +9,11 @@ class Shoes
       shoes_style(prop) { |val| val.is_a?(Hash) ? val : convert_to_integer(val, prop) }
     end
 
-    def initialize(*args)
+    init_args :left, :top, :width
+    def initialize(*args, **kwargs)
       @draw_context = Shoes::App.instance.current_draw_context
 
       super
-
-      if args.length == 1 && args[0].is_a?(Hash)
-        options = args[0]
-        self.left = options[:left]
-        self.top = options[:top]
-        self.width = options[:width]
-      else
-        self.left, self.top, self.width = args
-      end
 
       create_display_drawable
     end

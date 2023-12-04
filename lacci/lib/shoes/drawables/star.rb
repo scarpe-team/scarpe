@@ -8,15 +8,15 @@ class Shoes
     shoes_style(:outer) { |val| convert_to_float(val, "outer") }
     shoes_style(:inner) { |val| convert_to_float(val, "inner") }
 
-    shoes_events # No Star-specific events yet
+    Shoes::Drawable.drawable_default_styles[Shoes::Star][:points] = 10
+    Shoes::Drawable.drawable_default_styles[Shoes::Star][:outer] = 100
+    Shoes::Drawable.drawable_default_styles[Shoes::Star][:inner] = 50
 
-    def initialize(left, top, points = 10, outer = 100, inner = 50)
+    shoes_events # No Star-specific events
+
+    init_args :left, :top, :points, :outer, :inner
+    def initialize(*args, **kwargs)
       super
-      self.left = left
-      self.top = top
-      self.points = points
-      self.outer = outer
-      self.inner = inner
 
       @draw_context = Shoes::App.instance.current_draw_context
 

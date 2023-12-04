@@ -13,7 +13,8 @@ class Shoes
     shoes_styles :left, :top, :shape_commands, :draw_context
     shoes_events # No Shape-specific events yet
 
-    def initialize(left: nil, top: nil, &block)
+    init_args # No positional args
+    def initialize(**kwargs, &block)
       @shape_commands = []
       @draw_context = Shoes::App.instance.current_draw_context
 

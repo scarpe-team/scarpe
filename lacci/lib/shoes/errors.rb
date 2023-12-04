@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Shoes; end
-class Shoes::Errors
+module Shoes::Errors
   class InvalidAttributeValueError < Shoes::Error; end
 
   class TooManyInstancesError < Shoes::Error; end
@@ -21,6 +21,8 @@ class Shoes::Errors
   class BadLinkableIdError < Shoes::Error; end
 
   class UnregisteredShoesEvent < Shoes::Error; end
+
+  class BadArgumentListError < Shoes::Error; end
 
   class SingletonError < Shoes::Error; end
 

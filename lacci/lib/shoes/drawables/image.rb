@@ -5,9 +5,9 @@ class Shoes
     shoes_styles :url, :width, :height, :top, :left, :click
     shoes_events # No Image-specific events yet
 
-    def initialize(url, width: nil, height: nil, top: nil, left: nil, click: nil)
+    init_args :url
+    def initialize(*args, **kwargs)
       super
-      @url = url
 
       # Get the image dimensions
       # @width, @height = size

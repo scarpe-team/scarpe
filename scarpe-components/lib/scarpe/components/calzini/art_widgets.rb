@@ -77,7 +77,7 @@ module Scarpe::Components::Calzini
           h.ellipse(
             cx: center ? radius : 0,
             cy: center ? height / 2 : 0,
-            rx: radius,
+            rx: width ? width / 2 : radius,
             ry: height ? height / 2 : radius,
             style: "stroke:#{stroke};stroke-width:#{strokewidth};",
           )
