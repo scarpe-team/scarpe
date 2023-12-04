@@ -7,7 +7,7 @@ AllCops:
   Exclude:
     - 'bin/**/*'
     - 'exe/**/*'
-    - 'examples/**/*'
+    # - 'examples/**/*' Since I'm only doing this locally.
     - 'docs/**/*'
 
 Layout/LineLength:
