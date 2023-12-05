@@ -7,7 +7,7 @@ AllCops:
   Exclude:
     - 'bin/**/*'
     - 'exe/**/*'
-    - 'examples/**/*'
+    # - 'examples/**/*' Since I'm only doing this locally.
     - 'docs/**/*'
 
 Layout/LineLength:
@@ -17,6 +17,12 @@ Style/RedundantHeredocDelimiterQuotes:
   Enabled: false
 
 Style/MissingRespondToMissing:
+  Enabled: false
+
+Metrics/ParameterLists:
+  Enabled: false
+
+Style/ParallelAssignment:
   Enabled: false
 
 

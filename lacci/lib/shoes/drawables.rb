@@ -15,6 +15,7 @@ require "shoes/drawables/line"
 require "shoes/drawables/rect"
 require "shoes/drawables/shape"
 require "shoes/drawables/star"
+require "shoes/drawables/oval"
 require "shoes/drawables/arrow"
 
 require "shoes/drawables/button"
