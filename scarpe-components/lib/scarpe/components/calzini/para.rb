@@ -21,7 +21,23 @@ module Scarpe::Components::Calzini
       color: rgb_to_hex(props["stroke"]),
       "font-size": para_font_size(props),
       "font-family": props["font"],
+      "margin": calculate_margin(props['html_attributes']) 
     }.compact)
+  end
+
+  def calculate_margin(props)
+    margin = {top: props[:margin_top], right: props[:margin_right], bottom: props[:margin_bottom], left: props[:margin_left]}
+    margin = margin.transform_values { |val| (val || 0).to_i }
+
+    case props[:margin]
+    when Integer
+      margin = margin.transform_values{|val| val + props[:margin]}
+    when Array
+      new_margin = {top: props[:margin][0].to_i, right: props[:margin][1].to_i, bottom: props[:margin][2].to_i, left: props[:margin][3].to_i}
+      margin.merge!(margin, new_margin) { |key, old_value, new_value| old_value + new_value }
+    end
+
+    "#{margin[:top]}px #{margin[:right]}px #{margin[:bottom]}px #{margin[:left]}px"
   end
 
   def para_font_size(props)
