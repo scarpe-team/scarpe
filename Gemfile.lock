@@ -52,6 +52,8 @@ GEM
       minitest (>= 5.0)
       ruby-progressbar
     multi_json (1.15.0)
+    nokogiri (1.15.2-arm64-darwin)
+      racc (~> 1.4)
     nokogiri (1.15.2-x86_64-darwin)
       racc (~> 1.4)
     nokogiri (1.15.2-x86_64-linux)
@@ -82,6 +84,7 @@ GEM
     rubocop-shopify (2.12.0)
       rubocop (~> 1.44)
     ruby-progressbar (1.11.0)
+    sqlite3 (1.6.3-arm64-darwin)
     sqlite3 (1.6.3-x86_64-darwin)
     sqlite3 (1.6.3-x86_64-linux)
     unicode-display_width (2.4.2)
@@ -94,7 +97,10 @@ GEM
       webrick (~> 1.7.0)
 
 PLATFORMS
+  arm64-darwin-21
+  arm64-darwin-22
   x86_64-darwin-19
+  x86_64-darwin-20
   x86_64-darwin-22
   x86_64-linux
 

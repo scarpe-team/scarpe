@@ -27,7 +27,7 @@ class Scarpe::Components::HTML
     :h4,
     :h5,
   ].freeze
-  VOID_TAGS = [:input, :img, :polygon, :source, :link, :path, :rect].freeze
+  VOID_TAGS = [:input, :img, :polygon, :source, :link, :path, :rect, :ellipse].freeze
 
   TAGS = (CONTENT_TAGS + VOID_TAGS).freeze
 
