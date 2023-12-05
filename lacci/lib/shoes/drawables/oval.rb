@@ -12,7 +12,8 @@ class Shoes
     shoes_style(:width) { |val| convert_to_integer(val, "width") }
     shoes_style(:strokewidth) { |val| convert_to_integer(val, "strokewidth") }
 
-    init_args :left, :top, :radius, :height
+    init_args :left, :top
+    opt_init_args :radius, :height
     def initialize(*args, **options)
       @draw_context = Shoes::App.instance.current_draw_context
 
@@ -26,17 +27,16 @@ class Shoes
       # For an axis-aligned oval the two may be different.
 
       # If we have no width, but a radius, default the width to be the radius * 2
-      @width ||= @radius * 2
+      @width ||= @radius * 2 if @radius
 
-      # If we have width or height, set the other (and optionally radius) from what we have.
-      if @width || @height
-        @width ||= @height
-        @height ||= @width
-        @radius ||= @width / 2
-      else
-        # No width or height, so it's all from radius
-        @width = @height = @radius
-      end
+      # We now know we have width or height, but maybe not both.
+
+      # Default to a circle - set height from width or vice-versa
+      @width ||= @height
+      @height ||= @width
+
+      # If we don't have radius yet, set it from width
+      @radius ||= @width / 2
 
       create_display_drawable
     end

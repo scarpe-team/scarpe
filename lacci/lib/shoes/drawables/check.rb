@@ -5,7 +5,8 @@ class Shoes
     shoes_styles :checked
     shoes_events :click
 
-    init_args(:checked)
+    init_args
+    opt_init_args :checked
     def initialize(*args, **kwargs, &block)
       @block = block
       super

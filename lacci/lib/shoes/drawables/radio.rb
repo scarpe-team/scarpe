@@ -8,7 +8,8 @@ class Shoes
     shoes_styles :group, :checked
     shoes_events :click
 
-    init_args :group
+    init_args
+    opt_init_args :group
     def initialize(*args, **kwargs, &block)
       @block = block
 

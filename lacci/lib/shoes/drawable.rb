@@ -82,22 +82,41 @@ class Shoes
         @shoes_events ||= args.map(&:to_s) + self.superclass.get_shoes_events
       end
 
-      # Allow supplying a list of Shoes style values as positional arguments to
+      # Require supplying these Shoes style values as positional arguments to
       # initialize. Initialize will get the arg list, then set the specified styles
-      # if args are given for them.
+      # if args are given for them. @see opt_init_args for additional non-required
+      # init args.
       #
       # @param args [Array<String,Symbol>] an array of Shoes style names
       # @return [void]
       def init_args(*args)
-        raise Shoes::Errors::BadArgumentListError, "Positional init args already set for #{self}!" if @positional_init_args
-        @positional_init_args = args.map(&:to_s)
+        raise Shoes::Errors::BadArgumentListError, "Positional init args already set for #{self}!" if @required_init_args
+        @required_init_args = args.map(&:to_s)
       end
 
-      # Return the list of style names for positional init args for this class
+      # Allow supplying these Shoes style values as optional positional arguments to
+      # initialize after the mandatory args. @see init_args for setting required
+      # init args.
+      #
+      # @param args [Array<String,Symbol>] an array of Shoes style names
+      # @return [void]
+      def opt_init_args(*args)
+        raise Shoes::Errors::BadArgumentListError, "Positional init args already set for #{self}!" if @opt_init_args
+        @opt_init_args = args.map(&:to_s)
+      end
+
+      # Return the list of style names for required init args for this class
       #
       # @return [Array<String>] the array of style names as strings
-      def positional_init_args
-        @positional_init_args ||= [] # TODO: eventually remove the ||= here
+      def required_init_args
+        @required_init_args ||= [] # TODO: eventually remove the ||= here
+      end
+
+      # Return the list of style names for optional init args for this class
+      #
+      # @return [Array<String>] the array of style names as strings
+      def optional_init_args
+        @opt_init_args ||= []
       end
 
       # Assign a new Shoes Drawable ID number, starting from 1.
@@ -189,10 +208,22 @@ class Shoes
 
       supplied_args = kwargs.keys
 
-      pos_args = self.class.positional_init_args
-      if pos_args != ["any"]
+      req_args = self.class.required_init_args
+      opt_args = self.class.optional_init_args
+      pos_args = req_args + opt_args
+      if req_args != ["any"]
         if args.size > pos_args.size
           raise Shoes::Errors::BadArgumentListError, "Too many arguments given for #{self.class}#initialize! #{args.inspect}"
+        end
+
+        if args.size == 0
+          # It's fine to use keyword args instead, but we should make sure they're actually there
+          needed_args = req_args.map(&:to_sym) - kwargs.keys
+          unless needed_args.empty?
+            raise Shoes::Errors::BadArgumentListError, "Keyword arguments for #{self.class}#initialize should also supply #{needed_args.inspect}! #{args.inspect}"
+          end
+        elsif args.size < req_args.size
+          raise Shoes::Errors::BadArgumentListError, "Too few arguments given for #{self.class}#initialize! #{args.inspect}"
         end
 
         # Set each positional argument

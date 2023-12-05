@@ -14,7 +14,8 @@ class Shoes
 
     shoes_events # No Star-specific events
 
-    init_args :left, :top, :points, :outer, :inner
+    init_args :left, :top
+    opt_init_args :points, :outer, :inner
     def initialize(*args, **kwargs)
       super
 

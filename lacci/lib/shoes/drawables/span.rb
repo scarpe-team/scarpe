@@ -7,7 +7,8 @@ class Shoes
 
     Shoes::Drawable.drawable_default_styles[Shoes::Span][:size] = :span
 
-    init_args :text, :stroke, :size, :font
+    init_args
+    opt_init_args :text, :stroke, :size, :font
     def initialize(*args, **html_attributes)
       super
 

@@ -5,7 +5,8 @@ class Shoes
     shoes_styles :text, :width
     shoes_events :change
 
-    init_args(:text)
+    init_args
+    opt_init_args :text
     def initialize(*args, **kwargs, &block)
       @block = block
       super

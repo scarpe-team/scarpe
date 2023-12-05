@@ -34,7 +34,7 @@ class TestLacciOval < NienteTest
     SHOES_SPEC
   end
 
-  def test_simple_oval_values
+  def test_simple_oval_keyword_values
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
         oval left: 5, top: 10, radius: 25
@@ -46,6 +46,21 @@ class TestLacciOval < NienteTest
       assert_equal 25, ov.radius
       assert_equal 50, ov.height
       assert_equal 50, ov.width
+    SHOES_SPEC
+  end
+
+  def test_oval_keywords_with_height_but_no_radius
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        oval left: 5, top: 10, height: 25
+      end
+    SHOES_APP
+      ov = oval()
+      assert_equal 5, ov.left
+      assert_equal 10, ov.top
+      assert_equal 12, ov.radius
+      assert_equal 25, ov.height
+      assert_equal 25, ov.width
     SHOES_SPEC
   end
 

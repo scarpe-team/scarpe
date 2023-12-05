@@ -19,7 +19,7 @@ class TestLacci < NienteTest
   def test_positional_default_values
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
-        star
+        star 15, 35
       end
     SHOES_APP
       s = star()
@@ -57,4 +57,29 @@ class TestLacci < NienteTest
     SHOES_SPEC
   end
 
+  def test_too_many_positional_args
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @s = stack {}
+      end
+    SHOES_APP
+      s = stack("@s")
+      assert_raises Shoes::Errors::BadArgumentListError do
+        s.star 5, 6, 7, 8, 9, 10, 11
+      end
+    SHOES_SPEC
+  end
+
+  def test_too_few_positional_args
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @s = stack {}
+      end
+    SHOES_APP
+      s = stack("@s")
+      assert_raises Shoes::Errors::BadArgumentListError do
+        s.star 5
+      end
+    SHOES_SPEC
+  end
 end
