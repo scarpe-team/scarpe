@@ -5,14 +5,11 @@ class Shoes
     shoes_styles :left, :top, :x2, :y2, :draw_context
     shoes_events # No Line-specific events yet
 
-    def initialize(left, top, x2, y2)
-      super
-
-      @left = left
-      @top = top
-      @x2 = x2
-      @y2 = y2
+    init_args :left, :top, :x2, :y2
+    def initialize(*args, **kwargs)
       @draw_context = Shoes::App.instance.current_draw_context
+
+      super
 
       create_display_drawable
     end

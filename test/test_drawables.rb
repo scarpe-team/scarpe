@@ -66,6 +66,44 @@ class TestDrawables < ShoesSpecLoggedTest
     TEST_CODE
   end
 
+  # Not only does this test the hidden: property, it also makes sure that every drawable
+  # can accept Shoes styles defined on the parent class (or that every drawable defines
+  # hidden, I guess.)
+  def test_create_hidden
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+      Shoes.app do
+        @drawables = []
+        @drawables << arc(400, 0, 120, 100, 175, 175, hidden: true)
+        @drawables << arrow(100, 100, 30, hidden: true)
+        @drawables << button("Press Me", hidden: true)
+        @drawables << check(hidden: true)
+        @drawables << edit_line("foo", hidden: true)
+        @drawables << edit_box("bar", hidden: true)
+        @drawables << flow(hidden: true) {} # Slightly weird thing here: empty flow
+        @drawables << image("https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png", hidden: true)
+        @drawables << line(0, 0, 100, 100, hidden: true)
+        @drawables << list_box(items: ['A', 'B'], hidden: true)
+        @drawables << para("Hello", hidden: true)
+        @drawables << progress(hidden: true)
+        @drawables << radio("ooga", hidden: true)
+        @drawables << rect(0, 0, 50, 100, 5, hidden: true)
+        @drawables << shape(hidden: true) { line(0, 0, 10, 10) }
+        @drawables << stack(hidden: true) {}
+        @drawables << star(230, 100, 6, 50, 25, hidden: true)
+        @drawables << video("http://techslides.com/demos/sample-videos/small.mp4", hidden: true)
+      end
+    SCARPE_APP
+      # Get proxy objects for the Shoes drawables so we can get their display objects, etc.
+      w = Shoes::App.instance.instance_variable_get("@drawables").map do |sw|
+        drawable("id:#{sw.linkable_id}")
+      end
+
+      w.each do |i|
+        assert i.display.to_html.include?("display:none"), "expected drawable #{i.class} to be hidden!"
+      end
+    TEST_CODE
+  end
+
   def test_app_method
     run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
       class NotADrawable

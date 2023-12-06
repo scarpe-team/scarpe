@@ -28,8 +28,9 @@ class Shoes
         # Can we just change content to text to match the Shoes API?
         shoes_style :content
 
+        init_args # We're going to pass an empty array to super
         def initialize(content)
-          super
+          super()
 
           @content = content
 

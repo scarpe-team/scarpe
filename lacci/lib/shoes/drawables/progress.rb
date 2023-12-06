@@ -5,7 +5,8 @@ class Shoes
     shoes_styles :fraction
     shoes_events # No Progress-specific events yet
 
-    def initialize(fraction: nil)
+    init_args # No positional args
+    def initialize(**kwargs)
       super
 
       create_display_drawable

@@ -2,10 +2,10 @@
 
 class Shoes
   class Button < Shoes::Drawable
-    include Shoes::Log
     shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size, :tooltip
     shoes_events :click, :hover
 
+    init_args :text
     # Creates a new Button object.
     #
     # @param text [String] The text displayed on the button.
@@ -32,13 +32,8 @@ class Shoes
     #       )
     #     }
     #   end
-    def initialize(text, width: nil, height: nil, top: nil, left: nil, color: nil, padding_top: nil, padding_bottom: nil, size: 12, text_color: nil,
-      font_size: nil, tooltip: nil, &block)
-
-      log_init("Button")
-
+    def initialize(*args, **kwargs, &block)
       # Properties passed as positional args, not keywords, don't get auto-set
-      @text = text
       @block = block
 
       super

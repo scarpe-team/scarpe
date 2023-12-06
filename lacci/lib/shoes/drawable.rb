@@ -43,7 +43,8 @@ class Shoes
       end
 
       def drawable_class_by_name(name)
-        drawable_classes.detect { |k| k.dsl_name == name.to_s }
+        name = name.to_s
+        drawable_classes.detect { |k| k.dsl_name == name }
       end
 
       def is_widget_class?(name)
@@ -79,6 +80,43 @@ class Shoes
       # @return [void]
       def shoes_events(*args)
         @shoes_events ||= args.map(&:to_s) + self.superclass.get_shoes_events
+      end
+
+      # Require supplying these Shoes style values as positional arguments to
+      # initialize. Initialize will get the arg list, then set the specified styles
+      # if args are given for them. @see opt_init_args for additional non-required
+      # init args.
+      #
+      # @param args [Array<String,Symbol>] an array of Shoes style names
+      # @return [void]
+      def init_args(*args)
+        raise Shoes::Errors::BadArgumentListError, "Positional init args already set for #{self}!" if @required_init_args
+        @required_init_args = args.map(&:to_s)
+      end
+
+      # Allow supplying these Shoes style values as optional positional arguments to
+      # initialize after the mandatory args. @see init_args for setting required
+      # init args.
+      #
+      # @param args [Array<String,Symbol>] an array of Shoes style names
+      # @return [void]
+      def opt_init_args(*args)
+        raise Shoes::Errors::BadArgumentListError, "Positional init args already set for #{self}!" if @opt_init_args
+        @opt_init_args = args.map(&:to_s)
+      end
+
+      # Return the list of style names for required init args for this class
+      #
+      # @return [Array<String>] the array of style names as strings
+      def required_init_args
+        @required_init_args ||= [] # TODO: eventually remove the ||= here
+      end
+
+      # Return the list of style names for optional init args for this class
+      #
+      # @return [Array<String>] the array of style names as strings
+      def optional_init_args
+        @opt_init_args ||= []
       end
 
       # Assign a new Shoes Drawable ID number, starting from 1.
@@ -125,6 +163,9 @@ class Shoes
       # Shoes styles in Shoes Linkables are automatically sync'd with the display side objects.
       # If a block is passed to shoes_style, that's the validation for the property. It should
       # convert a given value to a valid value for the property or throw an exception.
+      #
+      # @param name [String,Symbol] the style name
+      # @block if block is given, call it to map the given style value to a valid value, or raise an exception
       def shoes_style(name, &validator)
         name = name.to_s
 
@@ -134,9 +175,9 @@ class Shoes
         linkable_properties_hash[name] = true
       end
 
-      # Add these names as Shoes styles
-      def shoes_styles(*names)
-        names.each { |n| shoes_style(n) }
+      # Add these names as Shoes styles with the given validator, if any
+      def shoes_styles(*names, &validator)
+        names.each { |n| shoes_style(n, &validator) }
       end
 
       def shoes_style_names
@@ -163,19 +204,61 @@ class Shoes
     attr_reader :debug_id
 
     def initialize(*args, **kwargs)
-      log_init("Shoes::#{self.class.name}")
+      log_init("Shoes::#{self.class.name}") unless @log
+
+      supplied_args = kwargs.keys
+
+      req_args = self.class.required_init_args
+      opt_args = self.class.optional_init_args
+      pos_args = req_args + opt_args
+      if req_args != ["any"]
+        if args.size > pos_args.size
+          raise Shoes::Errors::BadArgumentListError, "Too many arguments given for #{self.class}#initialize! #{args.inspect}"
+        end
+
+        if args.size == 0
+          # It's fine to use keyword args instead, but we should make sure they're actually there
+          needed_args = req_args.map(&:to_sym) - kwargs.keys
+          unless needed_args.empty?
+            raise Shoes::Errors::BadArgumentListError, "Keyword arguments for #{self.class}#initialize should also supply #{needed_args.inspect}! #{args.inspect}"
+          end
+        elsif args.size < req_args.size
+          raise Shoes::Errors::BadArgumentListError, "Too few arguments given for #{self.class}#initialize! #{args.inspect}"
+        end
+
+        # Set each positional argument
+        args.each.with_index do |val, idx|
+          style_name = pos_args[idx]
+          next if style_name.nil? || style_name == "" # It's possible to have non-style positional args
+
+          val = self.class.validate_as(style_name, args[idx])
+          instance_variable_set("@#{style_name}", val)
+          supplied_args << style_name.to_sym
+        end
+      end
 
       default_styles = Shoes::Drawable.drawable_default_styles[self.class]
+      this_drawable_styles = self.class.shoes_style_names.map(&:to_sym)
 
-      self.class.shoes_style_names.each do |prop|
-        prop_sym = prop.to_sym
-        if kwargs.key?(prop_sym)
-          val = self.class.validate_as(prop, kwargs[prop_sym])
-          instance_variable_set("@" + prop, val)
-        elsif default_styles.key?(prop_sym)
-          val = self.class.validate_as(prop, default_styles[prop_sym])
-          instance_variable_set("@" + prop, val)
-        end
+      # No arg specified for a property with a default value? Set it to default.
+      (default_styles.keys - supplied_args).each do |key|
+        val = self.class.validate_as(key, default_styles[key])
+        instance_variable_set("@#{key}", val)
+      end
+
+      # If we have a keyword arg for a style, set it normally.
+      (this_drawable_styles & kwargs.keys).each do |key|
+        val = self.class.validate_as(key, kwargs[key])
+        instance_variable_set("@#{key}", val)
+      end
+
+      # We'd like to avoid unexpected keywords. But we're not disciplined enough to
+      # raise an error by default yet. Non-style keywords passed to Drawable#initialize
+      # are deprecated at this point, but I need to hunt down the last of them
+      # and prevent them.
+      unexpected = (kwargs.keys - this_drawable_styles)
+      unless unexpected.empty?
+        STDERR.puts "Unexpected non-style keyword(s) in #{self.class} initialize: #{unexpected.inspect}"
       end
 
       super(linkable_id: Shoes::Drawable.allocate_drawable_id)

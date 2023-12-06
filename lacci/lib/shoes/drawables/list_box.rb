@@ -11,11 +11,14 @@ class Shoes
 
     shoes_events :change
 
-    def initialize(**args, &block)
-      super
+    init_args # No positional args
+    def initialize(**kwargs, &block)
+      # These aren't being set as styles -- remove them from kwargs before calling super
+      # TODO: set [] as default value for items?
+      @items = kwargs.delete(:items) || []
+      @chosen = kwargs.delete(:choose) || @items&.first
 
-      @items = args[:items] || []
-      @chosen = args[:choose] || args[:items]&.first
+      super(**kwargs, &block)
 
       bind_self_event("change") do |new_item|
         self.chosen = new_item

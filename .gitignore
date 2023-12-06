@@ -14,3 +14,4 @@ logger/*.log
 **/lacci-*.gem
 *scarpe*.gem
 **/sspec.json
+examples/legacy/working/shoes_manual/nasa50th.gif

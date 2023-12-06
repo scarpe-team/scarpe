@@ -48,7 +48,7 @@ class Shoes::Slot < Shoes::Drawable
   end
 
   def respond_to_missing?(name, include_private = false)
-    return true if Drawable.drawable_class_by_name(name.to_s)
+    return true if ::Shoes::Drawable.drawable_class_by_name(name.to_s)
 
     false
   end

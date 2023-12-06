@@ -42,6 +42,13 @@ class Shoes::Widget < Shoes::Slot
 
   shoes_events
 
+  def self.inherited(subclass)
+    super
+
+    # Widgets are special - we can't know in advance what sort of initialize args they take
+    subclass.init_args :any
+  end
+
   def self.method_added(name)
     # We're only looking for the initialize() method, and only on subclasses
     # of Shoes::Widget, not Shoes::Widget itself.
@@ -57,7 +64,7 @@ class Shoes::Widget < Shoes::Slot
     @midway_through_adding_initialize = true
     define_method(:initialize) do |*args, **kwargs, &block|
       super(*args, **kwargs, &block)
-      @options = kwargs
+      @options = kwargs # Get rid of options?
       create_display_drawable
       __widget_initialize(*args, **kwargs, &block)
 

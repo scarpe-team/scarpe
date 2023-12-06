@@ -14,6 +14,7 @@ class Shoes
 
     CUSTOM_EVENT_LOOP_TYPES = ["displaylib", "return", "wait"]
 
+    init_args
     def initialize(
       title: "Shoes!",
       width: 480,
@@ -41,6 +42,7 @@ class Shoes
       @draw_context = {
         "fill" => "",
         "stroke" => "",
+        "strokewidth" => 2,
         "rotate" => 0,
       }
 
@@ -276,6 +278,10 @@ class Shoes::App < Shoes::Drawable
 
   def stroke(color)
     @draw_context["stroke"] = color
+  end
+
+  def strokewidth(width)
+    @draw_context["strokewidth"] = width
   end
 
   def nostroke
