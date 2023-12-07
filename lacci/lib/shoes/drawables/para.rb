@@ -9,7 +9,10 @@ class Shoes
 
     shoes_events # No Para-specific events yet
 
-    # Initializes a new instance of the `Para` widget.
+    # Initializes a new instance of the `Para` drawable. There are different
+    # methods to instantiate slightly different styles of Para, such as
+    # `tagline`, `caption` and `subtitle`. These will always be different
+    # sizes, but may be generally styled differently for some display services.
     #
     # @param args The text content of the paragraph.
     # @param stroke [String, nil] The color of the text stroke.
@@ -20,7 +23,7 @@ class Shoes
     #
     # @example
     #    Shoes.app do
-    #      p = para "Hello, This is at the top!", stroke: "red", size: :title, font: "Arial"
+    #      p = para "Hello, This is at the top!", stroke: red, size: :title, font: "Arial"
     #
     #      banner("Welcome to Shoes!")
     #      title("Shoes Examples")
@@ -72,10 +75,20 @@ class Shoes
       update_text_children(children)
     end
 
+    # Return the text, but not the styling, of the para's
+    # contents. For example, if the contents had strong
+    # and emphasized text, the bold and emphasized would
+    # be removed but the text would be returned.
+    #
+    # @return [String] the text from this para
     def text
       @text_children.map(&:to_s).join
     end
 
+    # Return the text but not styling from the para. This
+    # is the same as #text.
+    #
+    # @return [String] the text from this para
     def to_s
       self.text
     end
@@ -94,26 +107,56 @@ end
 
 class Shoes
   class Drawable
+    # Return a banner-sized para. This can use all the normal
+    # Para styles and arguments. See {Para#initialize} for
+    # details.
+    #
+    # @return [Shoes::Para] the new para drawable
     def banner(*args, **kwargs)
       para(*args, **{ size: :banner }.merge(kwargs))
     end
 
+    # Return a title-sized para. This can use all the normal
+    # Para styles and arguments. See {Para#initialize} for
+    # details.
+    #
+    # @return [Shoes::Para] the new para drawable
     def title(*args, **kwargs)
       para(*args, **{ size: :title }.merge(kwargs))
     end
 
+    # Return a subtitle-sized para. This can use all the normal
+    # Para styles and arguments. See {Para#initialize} for
+    # details.
+    #
+    # @return [Shoes::Para] the new para drawable
     def subtitle(*args, **kwargs)
       para(*args, **{ size: :subtitle }.merge(kwargs))
     end
 
+    # Return a tagline-sized para. This can use all the normal
+    # Para styles and arguments. See {Para#initialize} for
+    # details.
+    #
+    # @return [Shoes::Para] the new para drawable
     def tagline(*args, **kwargs)
       para(*args, **{ size: :tagline }.merge(kwargs))
     end
 
+    # Return a caption-sized para. This can use all the normal
+    # Para styles and arguments. See {Para#initialize} for
+    # details.
+    #
+    # @return [Shoes::Para] the new para drawable
     def caption(*args, **kwargs)
       para(*args, **{ size: :caption }.merge(kwargs))
     end
 
+    # Return an inscription-sized para. This can use all the normal
+    # Para styles and arguments. See {Para#initialize} for
+    # details.
+    #
+    # @return [Shoes::Para] the new para drawable
     def inscription(*args, **kwargs)
       para(*args, **{ size: :inscription }.merge(kwargs))
     end
