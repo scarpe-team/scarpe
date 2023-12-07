@@ -38,6 +38,10 @@ module Scarpe::Components::Calzini
     styles[:width] = dimensions_length(props["width"]) if props["width"]
     styles[:height] = dimensions_length(props["height"]) if props["height"]
 
+    ## A new slot defines a new coordinate system, so absolutely-positioned children
+    ## are relative to it. But that's going to need a lot of testing and Shoes3 comparison.
+    #styles[:position] = "relative"
+
     styles
   end
 

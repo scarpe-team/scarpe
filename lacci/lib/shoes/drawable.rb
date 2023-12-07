@@ -227,6 +227,9 @@ class Shoes
       end
     end
 
+    # Every Shoes drawable has positioning properties
+    shoes_styles :top, :left, :width, :height
+
     # Shoes uses a "hidden" style property for hide/show
     shoes_style :hidden
 

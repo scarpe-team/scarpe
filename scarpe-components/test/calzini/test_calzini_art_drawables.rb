@@ -26,20 +26,20 @@ class TestCalziniArtDrawables < Minitest::Test
         "angle2" => 3.14 / 4,
       },
     )
-    ex_html_start = %{<div id="elt-1" style="left:17px;top:42px;width:200px;height:150px"><svg width="200" height="150"><path d="M100 75 L200 75 A100 75 0 1 0 170.73882691671997 128.01188858290243 Z" transform="rotate(, 100, 75)" /></svg></div>}
+    ex_html_start = %{<div id="elt-1" style="position:absolute;top:42px;left:17px;width:200px;height:150px"><svg width="200" height="150"><path d="M100 75 L200 75 A100 75 0 1 0 170.73882691671997 128.01188858290243 Z" transform="rotate(, 100, 75)" /></svg></div>}
     ex_html_end = %{" /></svg></div>}
     assert_start_and_finish(ex_html_start, ex_html_end, arc_example)
   end
 
   def test_line_example
-    assert_equal %{<div id="elt-1" style="left:7px;top:4px">} +
+    assert_equal %{<div id="elt-1" style="position:absolute;top:4px;left:7px">} +
       %{<svg width="100" height="104"><line x1="7" y1="4" x2="100" y2="104" style="stroke:black;stroke-width:4">} +
       %{</line></svg></div>},
       @calzini.render("line", { "top" => "4", "left" => "7", "x1" => "20", "y1" => "17", "x2" => "100", "y2" => "104" })
   end
 
   def test_line_draw_context
-    assert_equal %{<div id="elt-1" style="left:7px;top:4px">} +
+    assert_equal %{<div id="elt-1" style="position:absolute;top:4px;left:7px">} +
       %{<svg width="100" height="104"><line x1="7" y1="4" x2="100" y2="104" style="stroke:red;stroke-width:4">} +
       %{</line></svg></div>},
       @calzini.render(
@@ -49,21 +49,21 @@ class TestCalziniArtDrawables < Minitest::Test
   end
 
   def test_line_hidden
-    assert_equal %{<div id="elt-1" style="display:none;left:7px;top:4px">} +
+    assert_equal %{<div id="elt-1" style="display:none;position:absolute;top:4px;left:7px">} +
       %{<svg width="100" height="104"><line x1="7" y1="4" x2="100" y2="104" style="stroke:black;stroke-width:4">} +
       %{</line></svg></div>},
       @calzini.render("line", { "top" => "4", "left" => "7", "x1" => "20", "y1" => "17", "x2" => "100", "y2" => "104", "hidden" => true })
   end
 
   def test_rect_default_stroke
-    assert_equal %{<div id="elt-1" style="display:none">} +
+    assert_equal %{<div id="elt-1" style="display:none;position:absolute;top:9;left:12;width:147;height:91">} +
       %{<svg width="147" height="91"><rect x="12" y="9" width="147" height="91" transform="rotate( 73 45)" />} +
       %{</svg></div>},
       @calzini.render("rect", { "top" => "9", "left" => "12", "width" => "147", "height" => "91", "draw_context" => {}, "hidden" => true })
   end
 
   def test_rect_round_corners
-    assert_equal %{<div id="elt-1" style="display:none">} +
+    assert_equal %{<div id="elt-1" style="display:none;position:absolute;top:9;left:12;width:147;height:91">} +
       %{<svg width="177" height="121"><rect x="12" y="9" width="147" height="91" style="stroke:red" rx="15" transform="rotate( 88 60)" />} +
       %{</svg></div>},
       @calzini.render(
@@ -81,7 +81,7 @@ class TestCalziniArtDrawables < Minitest::Test
   end
 
   def test_rect_hidden
-    assert_equal %{<div id="elt-1" style="display:none">} +
+    assert_equal %{<div id="elt-1" style="display:none;position:absolute;top:4;left:7;width:20;height:17">} +
       %{<svg width="20" height="17"><rect x="7" y="4" width="20" height="17" transform="rotate( 10 8)" />} +
       %{</svg></div>},
       @calzini.render("rect", { "top" => "4", "left" => "7", "width" => "20", "height" => "17", "hidden" => true })

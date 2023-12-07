@@ -30,9 +30,7 @@ class TestCalziniButton < Minitest::Test
       "font" => "Lucida",
     }
     assert_equal %{<button id="elt-1" onclick="handle('click')" onmouseover="handle('hover')" } +
-      %{style="background-color:red;padding-top:4;padding-bottom:5;color:blue;} +
-      %{width:201px;height:203px;font-size:17px;top:10;left:11;position:absolute;} +
-      %{font-family:Lucida"></button>},
+      %{style="position:absolute;top:10;left:11;width:201px;height:203px;background-color:red;padding-top:4;padding-bottom:5;color:blue;font-size:17px;font-family:Lucida"></button>},
       @calzini.render("button", props)
   end
 

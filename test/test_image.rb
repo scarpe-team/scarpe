@@ -35,7 +35,7 @@ class TestWebviewImage < ScarpeWebviewTest
     left = 5
     img = Scarpe::Webview::Image.new(@default_properties.merge(top:, left:))
 
-    assert_contains_html img.to_html, :img, id: img.html_id, src: @url, style: "top:#{top}px;left:#{left}px;position:absolute"
+    assert_contains_html img.to_html, :img, id: img.html_id, src: @url, style: "position:absolute;top:#{top}px;left:#{left}px"
   end
 
   def test_renders_image_with_specified_size_and_position
@@ -49,7 +49,7 @@ class TestWebviewImage < ScarpeWebviewTest
       :img,
       id: img.html_id,
       src: @url,
-      style: "width:#{width}px;height:#{height}px;top:#{top}px;left:#{left}px;position:absolute"
+      style: "position:absolute;top:#{top}px;left:#{left}px;width:#{width}px;height:#{height}px"
   end
 
   def test_renders_clickable_image

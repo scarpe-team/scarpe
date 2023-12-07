@@ -68,6 +68,10 @@ module Scarpe::Components::Calzini
             p {
               margin: 0;
             }
+            #wrapper-wvroot {
+              height: 100%;
+              width: 100%;
+            }
           </style>
         </head>
         <body id='body-wvroot'>
@@ -110,6 +114,19 @@ module Scarpe::Components::Calzini
     if props["hidden"]
       styles[:display] = "none"
     end
+
+    # Do we need to set CSS positioning here, especially if displace is set? Position: relative maybe?
+    # We need some Shoes3 screenshots and HTML-based tests here...
+
+    if props["top"] || props["left"]
+      styles[:position] = "absolute"
+    end
+
+    styles[:top] = dimensions_length(props["top"]) if props["top"]
+    styles[:left] = dimensions_length(props["left"]) if props["left"]
+    styles[:width] = dimensions_length(props["width"]) if props["width"]
+    styles[:height] = dimensions_length(props["height"]) if props["height"]
+
     styles
   end
 

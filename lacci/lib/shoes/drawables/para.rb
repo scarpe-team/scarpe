@@ -9,6 +9,7 @@ class Shoes
       unless ["left", "center", "right"].include?(val)
         raise(Shoes::Errors::InvalidAttributeValueError, "Align must be one of left, center or right!")
       end
+      val
     end
 
     Shoes::Drawable.drawable_default_styles[Shoes::Para][:size] = :para
