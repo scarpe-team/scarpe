@@ -54,13 +54,14 @@ class Shoes
       def validate_as(prop_name, value)
         prop_name = prop_name.to_s
         hashes = shoes_style_hashes
-
+      
         h = hashes.detect { |hash| hash[:name] == prop_name }
         raise(Shoes::Errors::NoSuchStyleError, "Can't find property #{prop_name.inspect} in #{self} property list: #{hashes.inspect}!") unless h
-
+      
         return value if h[:validator].nil?
-
-        h[:validator].call(value)
+      
+        # Pass both the property name and value to the validator block
+        h[:validator].call(prop_name, value)
       end
 
       # Return a list of Shoes events for this class.
@@ -458,6 +459,30 @@ class Shoes
       return true if Drawable.drawable_class_by_name(name_s)
 
       super
+    end
+
+    def self.convert_to_integer(value, attribute_name)
+      begin
+        value = Integer(value)
+        raise Shoes::Errors::InvalidAttributeValueError, "Negative number '#{value}' not allowed for attribute '#{attribute_name}'" if value < 0
+
+        value
+      rescue ArgumentError
+        error_message = "Invalid value '#{value}' provided for attribute '#{attribute_name}'. The value should be a number."
+        raise Shoes::Errors::InvalidAttributeValueError, error_message
+      end
+    end
+
+    def self.convert_to_float(value, attribute_name)
+      begin
+        value = Float(value)
+        raise Shoes::Errors::InvalidAttributeValueError, "Negative number '#{value}' not allowed for attribute '#{attribute_name}'" if value < 0
+
+        value
+      rescue ArgumentError
+        error_message = "Invalid value '#{value}' provided for attribute '#{attribute_name}'. The value should be a number."
+        raise Shoes::Errors::InvalidAttributeValueError, error_message
+      end
     end
   end
 end

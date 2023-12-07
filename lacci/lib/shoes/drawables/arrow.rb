@@ -17,17 +17,5 @@ class Shoes
 
       create_display_drawable
     end
-
-    def self.convert_to_integer(value, attribute_name)
-      begin
-        value = Integer(value)
-        raise Shoes::Errors::InvalidAttributeValueError, "Negative number '#{value}' not allowed for attribute '#{attribute_name}'" if value < 0
-
-        value
-      rescue ArgumentError
-        error_message = "Invalid value '#{value}' provided for attribute '#{attribute_name}'. The value should be a number."
-        raise Shoes::Errors::InvalidAttributeValueError, error_message
-      end
-    end
   end
 end
