@@ -45,6 +45,7 @@ Shoes.add_file_loader loader
 
 # Fun trivia: listing the full set of available fonts is a fingerprinting attack, so it's not
 # available from JS. These are all commonly available web fonts, though.
+
 Shoes::FONTS.push(
   "Helvetica",
   "Arial",
@@ -100,3 +101,4 @@ require_relative "wv/video"
 require_relative "wv/check"
 require_relative "wv/progress"
 require_relative "wv/arrow"
+require_relative "wv/codes"

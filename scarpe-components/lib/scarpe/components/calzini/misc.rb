@@ -143,4 +143,38 @@ module Scarpe::Components::Calzini
 
     styles
   end
+
+  def codes_element(props)
+    HTML.render do |h|
+      h.pre(id: html_id, style: code_pre_style(props)) do
+        h.code do
+          props["text"]
+        end
+      end
+    end
+  end
+
+  def code_pre_style(props)
+    styles = drawable_style(props)
+    styles["background-color"] = "#2E2E2E"
+    styles["color"] = "#FFFFFF"
+    styles["font-family"] = "'Courier New', monospace"
+    styles["max-width"] = "80vw"
+    styles["max-height"] = "60vh"
+    styles["overflow"] = "auto"
+    styles["padding"] = "20px"
+    styles["border-radius"] = "10px"
+    styles["box-shadow"] = "0 0 15px rgba(0, 0, 0, 0.4)"
+    styles["border"] = "2px solid #444"
+    styles["line-height"] = "1.4"
+
+    styles
+  end
+
+  def code_code_style(props)
+    styles = drawable_style(props)
+    styles["background-color"] = "#2E2E2E"
+
+    styles
+  end
 end
