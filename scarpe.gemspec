@@ -33,6 +33,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "fastimage"
   spec.add_dependency "nokogiri"
   spec.add_dependency "sqlite3"
+  spec.add_dependency "webrick"
 
   spec.add_dependency "lacci"
   spec.add_dependency "scarpe-components"
