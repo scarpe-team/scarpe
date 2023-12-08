@@ -3,7 +3,13 @@
 module Scarpe::Components::Calzini
   def button_element(props)
     HTML.render do |h|
-      h.button(id: html_id, onclick: handler_js_code("click"), style: button_style(props)) do
+      h.button(
+        id: html_id,
+        onclick: handler_js_code("click"),
+        onmouseover: handler_js_code("hover"),
+        style: button_style(props),
+        title: props["tooltip"],
+      ) do
         props["text"]
       end
     end

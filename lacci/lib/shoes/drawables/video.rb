@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class Video < Shoes::Drawable
     shoes_styles :url
+    shoes_events # No specific events yet
 
-    def initialize(url)
+    init_args :url
+    def initialize(*args, **kwargs)
       super
-      @url = url
+
       create_display_drawable
     end
 

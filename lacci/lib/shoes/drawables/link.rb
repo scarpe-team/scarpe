@@ -1,19 +1,19 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class Link < Shoes::TextDrawable
     shoes_styles :text, :click, :has_block
+    shoes_events :click
 
+    Shoes::Drawable.drawable_default_styles[Shoes::Link][:click] = "#"
+
+    init_args :text
     def initialize(text, click: nil, &block)
-      super
-
-      @text = text
       @block = block
       # We can't send a block to the display drawable, but we can send a boolean
       @has_block = !block.nil?
 
-      # The click property should be changed before it gets sent to the display drawable
-      @click ||= "#"
+      super
 
       bind_self_event("click") do
         @block&.call

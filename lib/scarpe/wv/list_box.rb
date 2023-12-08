@@ -2,10 +2,10 @@
 
 module Scarpe::Webview
   class ListBox < Drawable
-    attr_reader :selected_item, :items, :height, :width, :choose
+    attr_reader :items, :height, :width, :chosen
 
     def initialize(properties)
-      super(properties)
+      super
 
       bind("change") do |new_item|
         send_self_event(new_item, event_name: "change")
@@ -13,7 +13,7 @@ module Scarpe::Webview
     end
 
     def properties_changed(changes)
-      selected = changes.delete("selected_item")
+      selected = changes.delete("chosen")
       if selected
         html_element.value = selected
       end

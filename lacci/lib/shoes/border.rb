@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   module Border
     def self.included(includer)
       includer.shoes_styles :border_color, :options

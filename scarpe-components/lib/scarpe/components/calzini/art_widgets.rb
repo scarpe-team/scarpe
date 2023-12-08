@@ -2,10 +2,12 @@
 
 module Scarpe::Components::Calzini
   def arc_element(props, &block)
+    dc = props["draw_context"] || {}
+    rotate = dc["rotate"]
     HTML.render do |h|
       h.div(id: html_id, style: arc_style(props)) do
         h.svg(width: props["width"], height: props["height"]) do
-          h.path(d: arc_path(props))
+          h.path(d: arc_path(props), transform: "rotate(#{rotate}, #{props["width"] / 2}, #{props["height"] / 2})")
         end
         block.call(h) if block_given?
       end
@@ -13,6 +15,8 @@ module Scarpe::Components::Calzini
   end
 
   def rect_element(props)
+    dc = props["draw_context"] || {}
+    rotate = dc["rotate"]
     HTML.render do |h|
       h.div(id: html_id, style: drawable_style(props)) do
         width = props["width"].to_i
@@ -25,7 +29,7 @@ module Scarpe::Components::Calzini
           attrs = { x: props["left"], y: props["top"], width: props["width"], height: props["height"], style: rect_svg_style(props) }
           attrs[:rx] = props["curve"] if props["curve"]
 
-          h.rect(**attrs)
+          h.rect(**attrs, transform: "rotate(#{rotate} #{width / 2} #{height / 2})")
         end
       end
     end
@@ -51,6 +55,32 @@ module Scarpe::Components::Calzini
       h.div(id: html_id, style: star_style(props)) do
         h.svg(width: props["outer"], height: props["outer"], style: "fill:#{fill}") do
           h.polygon(points: star_points(props), style: "stroke:#{stroke};stroke-width:2")
+        end
+        block.call(h) if block_given?
+      end
+    end
+  end
+
+  def oval_element(props, &block)
+    dc = props["draw_context"] || {}
+    fill = props["fill"] || (dc["fill"] == "" ? nil : dc["fill"]) || "black"
+    stroke = props["stroke"] || (dc["stroke"] == "" ? nil : dc["stroke"]) || "black"
+    strokewidth = props["strokewidth"] || dc["strokewidth"] || "2"
+    fill = "black" if !fill || fill == ""
+    radius = props["radius"]
+    width = radius * 2
+    height = props["height"] || radius * 2 # If there's a height, it's an oval, if not, circle
+    center = props["center"] || false
+    HTML.render do |h|
+      h.div(id: html_id, style: oval_style(props)) do
+        h.svg(width: width, height: height, style: "fill:#{fill};") do
+          h.ellipse(
+            cx: center ? radius : 0,
+            cy: center ? height / 2 : 0,
+            rx: width ? width / 2 : radius,
+            ry: height ? height / 2 : radius,
+            style: "stroke:#{stroke};stroke-width:#{strokewidth};",
+          )
         end
         block.call(h) if block_given?
       end
@@ -91,8 +121,14 @@ module Scarpe::Components::Calzini
   end
 
   def line_svg_style(props)
+    stroke = if props["draw_context"] && !props["draw_context"]["stroke"].to_s.empty?
+      (props["draw_context"]["stroke"]).to_s
+    else
+      "black"
+    end
     {
-      stroke: (props["draw_context"] || {})["stroke"],
+
+      "stroke": stroke,
       "stroke-width": "4",
     }.compact
   end
@@ -109,6 +145,13 @@ module Scarpe::Components::Calzini
       width: dimensions_length(props["width"]),
       height: dimensions_length(props["height"]),
     }).compact
+  end
+
+  def oval_style(props)
+    drawable_style(props).merge({
+      width: dimensions_length(props["width"]),
+      height: dimensions_length(props["height"]),
+    })
   end
 
   def star_points(props)
@@ -145,12 +188,14 @@ module Scarpe::Components::Calzini
     dc = props["draw_context"] || {}
     fill = dc["fill"]
     stroke = dc["stroke"]
+    rotate = dc["rotate"]
     fill = "black" if !fill || fill == ""
     stroke = "black" if !stroke || stroke == ""
-    stroke_widthk = width / 4
+
+    stroke_width = width / 4
 
     HTML.render do |h|
-      h.div(id: html_id, style: arrow_div_style(left, top)) do
+      h.div(id: html_id, style: arrow_div_style(props)) do
         h.svg do
           h.defs do
             h.marker(
@@ -173,18 +218,19 @@ module Scarpe::Components::Calzini
             y1: end_y.to_s,
             fill: fill.to_s,
             stroke: stroke.to_s,
-            "stroke-width" => stroke_widthk.to_s,
+            "stroke-width" => stroke_width.to_s,
             "marker-end" => "url(#head)",
+            transform: "rotate(#{rotate}, #{left + width / 2}, #{top})",
           )
         end
       end
     end
   end
-  def arrow_div_style(left, top)
-    {
+  def arrow_div_style(props)
+    drawable_style(props).merge({
       position: "absolute",
-      left: "#{left}px",
-      top: "#{top}px",
-    }
+      left: "#{props["left"]}px",
+      top: "#{props["top"]}px",
+    })
   end
 end

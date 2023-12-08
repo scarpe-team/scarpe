@@ -90,6 +90,21 @@ module Scarpe::Components::Calzini
     end
   end
 
+  def progress_element(props)
+    HTML.render do |h|
+      h.progress(
+        id: html_id,
+        style: drawable_style(props),
+        role: "progressbar",
+        "aria-valuenow": props["fraction"],
+        "aria-valuemin": 0.0,
+        "aria-valuemax": 1.0,
+        max: 1,
+        value: props["fraction"],
+      )
+    end
+  end
+
   private
 
   def edit_box_style(props)

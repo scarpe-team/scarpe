@@ -3,6 +3,7 @@
 require "shoes/drawables/slot"
 require "shoes/drawables/stack"
 require "shoes/drawables/flow"
+require "shoes/drawables/widget"
 require "shoes/drawables/document_root"
 
 require "shoes/drawables/text_drawable"
@@ -14,6 +15,7 @@ require "shoes/drawables/line"
 require "shoes/drawables/rect"
 require "shoes/drawables/shape"
 require "shoes/drawables/star"
+require "shoes/drawables/oval"
 require "shoes/drawables/arrow"
 
 require "shoes/drawables/button"

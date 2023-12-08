@@ -12,5 +12,5 @@ Shoes.app do
       @add.text = ""
     end
   end
-  @notes = stack :margin => 20, :widht => -250
+  @notes = stack :margin => 20, :width => -250
 end

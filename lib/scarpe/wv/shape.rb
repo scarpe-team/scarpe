@@ -2,16 +2,12 @@
 
 module Scarpe::Webview
   class Shape < Drawable
-    def initialize(properties)
-      super(properties)
-    end
-
     def to_html
       @children ||= []
       child_markup = @children.map(&:to_html).join
 
       color = @draw_context["fill"] || "black"
-      self_markup = ::Scarpe::Components::HTML.render do |h|
+      self_markup = HTML.render do |h|
         h.div(id: html_id, style: style) do
           h.svg(width: "400", height: "500") do
             h.path(d: path_from_shape_commands, style: "fill:#{color};stroke-width:2;")

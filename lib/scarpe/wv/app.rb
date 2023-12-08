@@ -79,7 +79,11 @@ module Scarpe::Webview
     # All JS callbacks to Scarpe drawables are dispatched
     # via this handler
     def handle_callback(name, *args)
-      @callbacks[name].call(*args)
+      if @callbacks.key?(name)
+        @callbacks[name].call(*args)
+      else
+        raise Scarpe::UnknownEventTypeError, "No such Webview callback: #{name.inspect}!"
+      end
     end
 
     # Bind a Scarpe callback name; see handle_callback above.

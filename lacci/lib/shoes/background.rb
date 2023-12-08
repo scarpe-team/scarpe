@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   module Background
     def self.included(includer)
       includer.shoes_style(:background_color)

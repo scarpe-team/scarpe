@@ -33,9 +33,20 @@ module Scarpe::Test
     def respond_to_missing?(method_name, include_private = false)
       @obj.respond_to_missing?(method_name, include_private)
     end
+
+    def trigger(event_name, *args)
+      name = "#{@obj.linkable_id}-#{event_name}"
+      Scarpe::Webview::DisplayService.instance.app.handle_callback(name, *args)
+    end
+
+    [:click, :hover, :leave, :change].each do |ev|
+      define_method "trigger_#{ev}" do |*args|
+        trigger(ev, *args)
+      end
+    end
   end
 
-  module CCHelpers
+  module DrawableFinders
     # What to do about TextDrawables? Link, code, em, strong?
     # Also, wait, what's up with span? What *is* that?
     Shoes::Drawable.drawable_classes.each do |drawable_class|
@@ -45,8 +56,8 @@ module Scarpe::Test
         app = Shoes::App.instance
 
         drawables = app.find_drawables_by(drawable_class, *args)
-        raise Scarpe::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
-        raise Scarpe::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
+        raise Shoes::Errors::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
+        raise Shoes::Errors::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
 
         CCProxy.new(drawables[0])
       end
@@ -59,7 +70,7 @@ module Scarpe::Test
     include Shoes::Log
     include Scarpe::Test::EventedAssertions
     include Scarpe::Test::Helpers
-    include Scarpe::Test::CCHelpers
+    include Scarpe::Test::DrawableFinders
 
     def self.instance
       @instance ||= CCInstance.new
@@ -107,7 +118,7 @@ module Scarpe::Test
     end
 
     # If we add "every" events, that's likely to complicate timing and event_promise handling.
-    EVENT_TYPES = [:init, :next_heartbeat, :next_redraw]
+    EVENT_TYPES = [:init, :next_heartbeat, :next_redraw, :every_heartbeat, :every_redraw]
 
     # This needs to be called after the basic display service objects exist
     # and we can find the control interface.
@@ -126,6 +137,9 @@ module Scarpe::Test
           p = @event_promises.delete(:next_heartbeat)
           p&.fulfilled!
 
+          p = @event_promises.delete(:every_heartbeat)
+          p&.fulfilled!
+
           # Give every ready fiber a chance to run once.
           @manager_fiber.resume
         end
@@ -134,6 +148,9 @@ module Scarpe::Test
       @control_interface.on_event(:every_redraw) do
         cc_instance.instance_eval do
           p = @event_promises.delete(:next_redraw)
+          p&.fulfilled!
+
+          p = @event_promises.delete(:every_redraw)
           p&.fulfilled!
 
           # Give every ready fiber a chance to run once.
@@ -228,6 +245,8 @@ module Scarpe::Test
   #
   # This module is mixed into a test object if we're running CatsCradle-based tests
   module CatsCradle
+    attr_reader :cc_instance
+
     def event_init
       @cc_instance ||= CCInstance.instance
       @cc_instance.event_init
@@ -235,6 +254,10 @@ module Scarpe::Test
 
     def on_heartbeat(&block)
       @cc_instance.on_event(:next_heartbeat, &block)
+    end
+
+    def on_every_heartbeat(&block)
+      @cc_instance.on_event(:every_heartbeat, &block)
     end
 
     def on_init(&block)

@@ -11,6 +11,7 @@ require "bloops"
 require "scarpe/components/html" # HTML renderer
 require "scarpe/components/modular_logger"
 require "scarpe/components/promises"
+require "scarpe/components/string_helpers"
 
 # Module to contain the various Scarpe Webview classes
 module Scarpe::Webview
@@ -21,6 +22,12 @@ end
 ren = ENV["SCARPE_HTML_RENDERER"] || "calzini"
 # This should *not* be require_relative so that other gems can implement HTML renderers.
 require "scarpe/components/#{ren}"
+class Scarpe::Webview::Drawable < Shoes::Linkable
+  # By default it's Scarpe::Components::Calzini
+  comp = Scarpe::Components::StringHelpers.camelize(ENV["SCARPE_HTML_RENDERER"] || "calzini")
+  mod = Scarpe::Components.const_get(comp)
+  include mod
+end
 
 # Set up hierarchical logging using the SCARPE_LOG_CONFIG var for configuration
 log_config = if ENV["SCARPE_LOG_CONFIG"]
@@ -38,7 +45,8 @@ Shoes.add_file_loader loader
 
 # Fun trivia: listing the full set of available fonts is a fingerprinting attack, so it's not
 # available from JS. These are all commonly available web fonts, though.
-Shoes::FONTS.concat [
+
+Shoes::FONTS.push(
   "Helvetica",
   "Arial",
   "Arial Black",
@@ -54,12 +62,10 @@ Shoes::FONTS.concat [
   "Courier",
   "Lucida",
   "Monaco",
-]
+)
 
-if ENV["SHOES_SPEC_TEST"]
-  require_relative "shoes_spec"
-  Shoes::Spec.instance = Scarpe::Test
-end
+require_relative "shoes_spec"
+Shoes::Spec.instance = Scarpe::Test
 
 require_relative "wv/web_wrangler"
 require_relative "wv/control_interface"
@@ -67,6 +73,7 @@ require_relative "wv/control_interface"
 require_relative "wv/drawable"
 
 require_relative "wv/star"
+require_relative "wv/oval"
 require_relative "wv/radio"
 
 require_relative "wv/arc"
@@ -83,11 +90,10 @@ require_relative "wv/image"
 require_relative "wv/edit_box"
 require_relative "wv/edit_line"
 require_relative "wv/list_box"
-require_relative "wv/alert"
-require_relative "wv/span"
 require_relative "wv/shape"
 
 require_relative "wv/text_drawable"
+require_relative "wv/span"
 require_relative "wv/link"
 require_relative "wv/line"
 require_relative "wv/rect"

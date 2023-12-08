@@ -3,7 +3,7 @@
 require "test_helper"
 
 # Drawables Testing
-class TestDrawables < LoggedScarpeTest
+class TestDrawables < ShoesSpecLoggedTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
   def test_hide_show
@@ -11,6 +11,7 @@ class TestDrawables < LoggedScarpeTest
       Shoes.app do
         @drawables = []
         @drawables << arc(400, 0, 120, 100, 175, 175)
+        @drawables << arrow(100, 100, 30)
         @drawables << button("Press Me")
         @drawables << check
         @drawables << edit_line("foo")
@@ -20,6 +21,7 @@ class TestDrawables < LoggedScarpeTest
         @drawables << line(0, 0, 100, 100)
         @drawables << list_box(items: ['A', 'B'])
         @drawables << para("Hello")
+        @drawables << progress
         @drawables << radio("ooga")
         @drawables << rect(0, 0, 50, 100, 5)
         @drawables << shape { line(0, 0, 10, 10) }
@@ -28,26 +30,76 @@ class TestDrawables < LoggedScarpeTest
         @drawables << video("http://techslides.com/demos/sample-videos/small.mp4")
       end
     SCARPE_APP
-      on_heartbeat do
-        # Get proxy objects for the Shoes drawables so we can get their display objects, etc.
-        w = Shoes::App.instance.instance_variable_get("@drawables").map { |sw| proxy_for(sw) }
+      # Get proxy objects for the Shoes drawables so we can get their display objects, etc.
+      w = Shoes::App.instance.instance_variable_get("@drawables").map do |sw|
+        drawable("id:#{sw.linkable_id}")
+      end
 
-        w.each { |i| i.hide }
-        w.each { |i| assert_include i.display.to_html, "display:none" }
-        w.each { |i| i.toggle() }
-        w.each { |i| assert_not_include i.display.to_html, "display:none" }
+      w.each { |i| i.hide }
+      w.each do |i|
+        assert i.display.to_html.include?("display:none"), "expected drawable #{i.class} to be hidden!"
+      end
+      w.each { |i| i.toggle() }
+      w.each { |i| assert !i.display.to_html.include?("display:none"), "Expected drawable #{i.class} to be shown!" }
 
-        # Nothing hidden, make sure no display:none
-        wait fully_updated
-        assert_not_include dom_html, "display:none"
+      # Nothing hidden, make sure no display:none
+      assert !dom_html.include?("display:none")
 
-        # Exactly one thing hidden
-        para.hide
-        wait fully_updated
-        # Okay, so what's weird about this is that if we use the DOM style setter to set display, it gets a space...
-        assert_include dom_html, "display: none"
+      # Exactly one thing hidden
+      para.hide
 
-        test_finished
+      # Okay, so what's weird about this is that if we use the DOM style setter to set display, it gets a space...
+      assert_includes dom_html, "display: none", "expected DOM HTML to have a single display:none after hiding para!"
+
+      # Let's test that every drawable has a div with its HTML ID as the outermost element
+      # so that a .remove() works correctly.
+      w.each do |i|
+        d = i.display
+        html = d.to_html
+        unless html =~ /\A<([^>]+)>/
+          assert false, "Can't parse first tag from #{html.inspect}!"
+        end
+        first_tag = $1
+
+        assert html.include?("id=\"#{d.html_id}"), "#{d.class} doesn't use an outer div with html_id correctly! #{html}"
+      end
+    TEST_CODE
+  end
+
+  # Not only does this test the hidden: property, it also makes sure that every drawable
+  # can accept Shoes styles defined on the parent class (or that every drawable defines
+  # hidden, I guess.)
+  def test_create_hidden
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+      Shoes.app do
+        @drawables = []
+        @drawables << arc(400, 0, 120, 100, 175, 175, hidden: true)
+        @drawables << arrow(100, 100, 30, hidden: true)
+        @drawables << button("Press Me", hidden: true)
+        @drawables << check(hidden: true)
+        @drawables << edit_line("foo", hidden: true)
+        @drawables << edit_box("bar", hidden: true)
+        @drawables << flow(hidden: true) {} # Slightly weird thing here: empty flow
+        @drawables << image("https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png", hidden: true)
+        @drawables << line(0, 0, 100, 100, hidden: true)
+        @drawables << list_box(items: ['A', 'B'], hidden: true)
+        @drawables << para("Hello", hidden: true)
+        @drawables << progress(hidden: true)
+        @drawables << radio("ooga", hidden: true)
+        @drawables << rect(0, 0, 50, 100, 5, hidden: true)
+        @drawables << shape(hidden: true) { line(0, 0, 10, 10) }
+        @drawables << stack(hidden: true) {}
+        @drawables << star(230, 100, 6, 50, 25, hidden: true)
+        @drawables << video("http://techslides.com/demos/sample-videos/small.mp4", hidden: true)
+      end
+    SCARPE_APP
+      # Get proxy objects for the Shoes drawables so we can get their display objects, etc.
+      w = Shoes::App.instance.instance_variable_get("@drawables").map do |sw|
+        drawable("id:#{sw.linkable_id}")
+      end
+
+      w.each do |i|
+        assert i.display.to_html.include?("display:none"), "expected drawable #{i.class} to be hidden!"
       end
     TEST_CODE
   end
@@ -69,13 +121,10 @@ class TestDrawables < LoggedScarpeTest
         @s2 = stack {}
       end
     SCARPE_APP
-      on_heartbeat do
-        assert_equal [], stack("@s2").contents
-        js = button.display.handler_js_code('click')
-        query_js_value(js)
+      assert_equal [], stack("@s2").contents
+      button.trigger_click
 
-        test_finished
-      end
+      assert_equal "Hello!", para.text
     TEST_CODE
   end
 end

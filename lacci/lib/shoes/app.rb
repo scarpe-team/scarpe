@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shoes
+class Shoes
   class App < Shoes::Drawable
     include Shoes::Log
 
@@ -14,6 +14,7 @@ module Shoes
 
     CUSTOM_EVENT_LOOP_TYPES = ["displaylib", "return", "wait"]
 
+    init_args
     def initialize(
       title: "Shoes!",
       width: 480,
@@ -25,7 +26,7 @@ module Shoes
 
       if Shoes::App.instance
         @log.error("Trying to create a second Shoes::App in the same process! Fail!")
-        raise Scarpe::TooManyInstancesError, "Cannot create multiple Shoes::App objects!"
+        raise Shoes::Errors::TooManyInstancesError, "Cannot create multiple Shoes::App objects!"
       else
         Shoes::App.instance = self
       end
@@ -41,6 +42,8 @@ module Shoes
       @draw_context = {
         "fill" => "",
         "stroke" => "",
+        "strokewidth" => 2,
+        "rotate" => 0,
       }
 
       # This creates the DocumentRoot, including its corresponding display drawable
@@ -61,14 +64,9 @@ module Shoes
       end
 
       if ENV["SHOES_SPEC_TEST"]
-        require "scarpe/components/minitest_export_reporter"
-        Minitest::Reporters::ShoesExportReporter.activate!
         test_code = File.read ENV["SHOES_SPEC_TEST"]
         unless test_code.empty?
-          kwargs = {}
-          kwargs[:class_name] = ENV["SHOES_MINITEST_CLASS_NAME"] if ENV["SHOES_MINITEST_CLASS_NAME"]
-          kwargs[:test_name] = ENV["SHOES_MINITEST_METHOD_NAME"] if ENV["SHOES_MINITEST_METHOD_NAME"]
-          Shoes::Spec.instance.run_shoes_spec_test_code test_code, **kwargs
+          Shoes::Spec.instance.run_shoes_spec_test_code test_code
         end
       end
 
@@ -83,7 +81,7 @@ module Shoes
       end
 
       @watch_for_event_loop = bind_shoes_event(event_name: "custom_event_loop") do |loop_type|
-        raise(InvalidAttributeValueError, "Unknown event loop type: #{loop_type.inspect}!") unless CUSTOM_EVENT_LOOP_TYPES.include?(loop_type)
+        raise(Shoes::Errors::InvalidAttributeValueError, "Unknown event loop type: #{loop_type.inspect}!") unless CUSTOM_EVENT_LOOP_TYPES.include?(loop_type)
 
         @event_loop_type = loop_type
       end
@@ -128,6 +126,29 @@ module Shoes
       pop_slot
     end
 
+    # We use method_missing for drawable-creating methods like "button".
+    # The parent's method_missing will auto-create Shoes style getters and setters.
+    # This is similar to the method_missing in Shoes::Slot, but different in
+    # where the new drawable appears.
+    def method_missing(name, *args, **kwargs, &block)
+      klass = ::Shoes::Drawable.drawable_class_by_name(name)
+      return super unless klass
+
+      ::Shoes::App.define_method(name) do |*args, **kwargs, &block|
+        # Look up the Shoes drawable and create it...
+        drawable_instance = klass.new(*args, **kwargs, &block)
+
+        unless klass.ancestors.include?(::Shoes::TextDrawable)
+          # Create this drawable in the current app slot
+          drawable_instance.set_parent ::Shoes::App.instance.current_slot
+        end
+
+        drawable_instance
+      end
+
+      send(name, *args, **kwargs, &block)
+    end
+
     def current_draw_context
       @draw_context.dup
     end
@@ -149,7 +170,9 @@ module Shoes
       case @event_loop_type
       when "wait"
         # Display lib wants us to busy-wait instead of it.
-        sleep 0.1 until @do_shutdown
+        until @do_shutdown
+          Shoes::DisplayService.dispatch_event("heartbeat", nil)
+        end
       when "displaylib"
         # If run event returned, that means we're done.
         destroy
@@ -157,7 +180,7 @@ module Shoes
         # We can just return to the main event loop. But we shouldn't call destroy.
         # Presumably some event loop *outside* our event loop is handling things.
       else
-        raise InvalidAttributeValueError, "Internal error! Incorrect event loop type: #{@event_loop_type.inspect}!"
+        raise Shoes::Errors::InvalidAttributeValueError, "Internal error! Incorrect event loop type: #{@event_loop_type.inspect}!"
       end
     end
 
@@ -183,7 +206,9 @@ module Shoes
     def find_drawables_by(*specs)
       drawables = all_drawables
       specs.each do |spec|
-        if spec.is_a?(Class)
+        if spec == Shoes::App
+          drawables = [Shoes::App.instance]
+        elsif spec.is_a?(Class)
           drawables.select! { |w| spec === w }
         elsif spec.is_a?(Symbol) || spec.is_a?(String)
           s = spec.to_s
@@ -194,18 +219,25 @@ module Shoes
               global_value = eval s
               drawables &= [global_value]
             rescue
-              raise InvalidAttributeValueError, "Error getting global variable: #{spec.inspect}"
+              raise Shoes::Errors::InvalidAttributeValueError, "Error getting global variable: #{spec.inspect}"
             end
           when "@"
             if Shoes::App.instance.instance_variables.include?(spec.to_sym)
               drawables &= [self.instance_variable_get(spec)]
             else
-              raise InvalidAttributeValueError, "Can't find top-level instance variable: #{spec.inspect}!"
+              raise Shoes::Errors::InvalidAttributeValueError, "Can't find top-level instance variable: #{spec.inspect}!"
             end
           else
+            if s.start_with?("id:")
+              find_id = Integer(s[3..-1])
+              drawable = Shoes::Drawable.drawable_by_id(find_id)
+              drawables &= [drawable]
+            else
+              raise Shoes::Errors::InvalidAttributeValueError, "Don't know how to find drawables by #{spec.inspect}!"
+            end
           end
         else
-          raise(InvalidAttributeValueError, "Don't know how to find drawables by #{spec.inspect}!")
+          raise(Shoes::Errors::InvalidAttributeValueError, "Don't know how to find drawables by #{spec.inspect}!")
         end
       end
       drawables
@@ -213,23 +245,25 @@ module Shoes
   end
 end
 
-# DSL methods
-class Shoes::App
+# Event handler DSLs get defined in both App and Slot - same code, slightly different results
+events = [:motion, :hover, :leave, :click, :release, :keypress, :animate, :every, :timer]
+events.each do |event|
+  Shoes::App.define_method(event) do |*args, &block|
+    subscription_item(args:, shoes_api_name: event.to_s, &block)
+  end
+  Shoes::Slot.define_method(event) do |*args, &block|
+    subscription_item(args:, shoes_api_name: event.to_s, &block)
+  end
+end
+
+# These methods will need to be defined on Slots too, but probably need a rework in general.
+class Shoes::App < Shoes::Drawable
   def background(...)
     current_slot.background(...)
   end
 
   def border(...)
     current_slot.border(...)
-  end
-
-  # Event handler objects
-
-  events = [:motion, :hover, :leave, :click, :release, :keypress, :animate, :every, :timer]
-  events.each do |event|
-    define_method(event) do |*args, &block|
-      subscription_item(args:, shoes_api_name: event.to_s, &block)
-    end
   end
 
   # Draw context methods
@@ -246,6 +280,10 @@ class Shoes::App
     @draw_context["stroke"] = color
   end
 
+  def strokewidth(width)
+    @draw_context["strokewidth"] = width
+  end
+
   def nostroke
     @draw_context["stroke"] = ""
   end
@@ -253,7 +291,7 @@ class Shoes::App
   # Shape DSL methods
 
   def move_to(x, y)
-    raise(InvalidAttributeValueError, "Pass only Numeric arguments to move_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
+    raise(Shoes::Errors::InvalidAttributeValueError, "Pass only Numeric arguments to move_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
 
     if current_slot.is_a?(::Shoes::Shape)
       current_slot.add_shape_command(["move_to", x, y])
@@ -261,13 +299,16 @@ class Shoes::App
   end
 
   def line_to(x, y)
-    raise(InvalidAttributeValueError, "Pass only Numeric arguments to line_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
+    raise(Shoes::Errors::InvalidAttributeValueError, "Pass only Numeric arguments to line_to!") unless x.is_a?(Numeric) && y.is_a?(Numeric)
 
     if current_slot.is_a?(::Shoes::Shape)
       current_slot.add_shape_command(["line_to", x, y])
     end
   end
 
+  def rotate(angle)
+    @draw_context["rotate"] = angle
+  end
   # Not implemented yet: curve_to, arc_to
 
   alias_method :info, :puts

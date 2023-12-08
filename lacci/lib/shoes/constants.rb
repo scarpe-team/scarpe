@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "changelog"
-module Shoes
+class Shoes
   module Constants
     def self.find_lib_dir
       begin
@@ -32,7 +32,11 @@ module Shoes
     HALF_PI = 1.57079632679489661923
     PI = 3.14159265358979323846
 
-    # This should be set up by the Display Service when it loads
+    # These should be set up by the Display Service when it loads. They are intentionally
+    # *not* frozen so that the Display Service can add to them (and then optionally
+    # freeze them.)
+
+    # Fonts currently loaded and available
     FONTS = []
   end
 

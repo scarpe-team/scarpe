@@ -9,8 +9,8 @@ require "json/add/exception"
 module Minitest
   module Reporters
     # To use this Scarpe component, you'll need minitest-reporters in your Gemfile,
-    # probably in the "test" group. You'll need to require and activate it to
-    # register it as Minitest's reporter:
+    # probably in the "test" group. You'll need to require and activate ShoesExportReporter
+    # to register it as Minitest's reporter:
     #
     #     require "scarpe/components/minitest_export_reporter"
     #     Minitest::Reporters::ShoesExportReporter.activate!
@@ -24,7 +24,7 @@ module Minitest
     # the reporter will be automatically overridden and print to console instead.
     #
     # Based on https://gist.github.com/davidwessman/09a13840a8a80080e3842ac3051714c7
-    class ShoesExportReporter < DefaultReporter
+    class ShoesExportReporter < BaseReporter
       def self.activate!
         unless ENV["SHOES_MINITEST_EXPORT_FILE"]
           raise "ShoesExportReporter is available, but no export file was specified! Set SHOES_MINITEST_EXPORT_FILE!"
@@ -57,13 +57,17 @@ module Minitest
             assertions: result.assertions,
             failures: failures,
             time: result.time,
-            metadata: result.metadata,
-            source_location: (result.source_location rescue ["unknown", -1]),
+            metadata: result.respond_to?(:metadata) ? result.metadata : {},
+            source_location: begin
+              result.source_location
+            rescue
+              ["unknown", -1]
+            end,
           }
         end
 
-        out_file = ENV["SHOES_MINITEST_EXPORT_FILE"]
-        puts "Writing Minitest results to #{out_file.inspect}."
+        out_file = File.expand_path ENV["SHOES_MINITEST_EXPORT_FILE"]
+        #puts "Writing Minitest results to #{out_file.inspect}."
         File.write(out_file, JSON.dump(results))
       end
     end

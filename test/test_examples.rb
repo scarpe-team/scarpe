@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class TestExamplesWithWebview < LoggedScarpeTest
+class TestExamplesWithWebview < ShoesSpecLoggedTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
   match_str = ENV["EXAMPLES_MATCHING"] || ""
@@ -15,8 +15,13 @@ class TestExamplesWithWebview < LoggedScarpeTest
 
   examples_to_test.each do |example_filename|
     example = example_filename.gsub("/", "_").gsub("-", "_").gsub(/.rb\Z/, "")
-    define_method("test_webview_#{example}") do
+    define_method("test_webview_calzini_#{example}") do
+      ENV["SCARPE_HTML_RENDERER"] = "calzini"
       run_test_scarpe_app(example_filename, exit_immediately: true)
     end
+    #define_method("test_webview_tiranti_#{example}") do
+    #  ENV["SCARPE_HTML_RENDERER"] = "tiranti"
+    #  run_test_scarpe_app(example_filename, exit_immediately: true)
+    #end
   end
 end
