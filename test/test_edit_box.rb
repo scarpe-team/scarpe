@@ -48,7 +48,7 @@ class TestEditBoxShoesSpec < ShoesSpecLoggedTest
         :textarea,
         id: html_id,
         oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)",
-        style: "height:120px;width:100px" do
+        style: "width:100px;height:120px" do
         "Hello, World!"
       end
     TEST_CODE

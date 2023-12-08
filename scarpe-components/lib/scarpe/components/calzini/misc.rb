@@ -29,7 +29,7 @@ module Scarpe::Components::Calzini
   end
 
   def image_element(props)
-    style = image_style(props)
+    style = drawable_style(props)
 
     if props["click"]
       HTML.render do |h|
@@ -118,19 +118,6 @@ module Scarpe::Components::Calzini
     styles = drawable_style(props)
 
     styles[:width] = dimensions_length(props["width"]) if props["width"]
-
-    styles
-  end
-
-  def image_style(props)
-    styles = drawable_style(props)
-
-    styles[:width] = dimensions_length(props["width"]) if props["width"]
-    styles[:height] = dimensions_length(props["height"]) if props["height"]
-
-    styles[:top] = dimensions_length(props["top"]) if props["top"]
-    styles[:left] = dimensions_length(props["left"]) if props["left"]
-    styles[:position] = "absolute" if props["top"] || props["left"]
 
     styles
   end
