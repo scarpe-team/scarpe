@@ -38,7 +38,6 @@ require_relative "shoes/builtins"
 
 require_relative "shoes/background"
 require_relative "shoes/border"
-require_relative "shoes/spacing"
 
 require_relative "shoes/drawable"
 require_relative "shoes/app"
