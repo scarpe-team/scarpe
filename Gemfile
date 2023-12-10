@@ -22,6 +22,7 @@ group :development do
   gem "debug"
   gem "rubocop", "~> 1.21"
   gem "htmlbeautifier"
+  gem "diff-lcs"
   #gem "commonmarker"
   #gem "github-markup"
 end

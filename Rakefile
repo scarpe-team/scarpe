@@ -27,6 +27,11 @@ namespace :test do
   task :regen_fixtures do
     load 'tasks/regenerate_html_fixtures.rb'
   end
+
+  desc 'Check HTML fixtures against latest output'
+  task :check_html_fixtures do
+    load 'tasks/check_html_fixtures.rb'
+  end
 end
 
 RuboCop::RakeTask.new
