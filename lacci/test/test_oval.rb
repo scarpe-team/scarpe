@@ -26,7 +26,6 @@ class TestLacciOval < NienteTest
       end
     SHOES_APP
       ov = oval()
-      binding.irb
       assert_equal 5, ov.left
       assert_equal 10, ov.top
       assert_equal 25, ov.radius
