@@ -22,6 +22,13 @@ Rake::TestTask.new(:component_test) do |t|
   t.test_files = FileList["scarpe-components/test/**/test_*.rb"]
 end
 
+namespace :test do
+  desc 'Regenerate HTML fixtures'
+  task :regen_fixtures do
+    load 'tasks/regenerate_html_fixtures.rb'
+  end
+end
+
 RuboCop::RakeTask.new
 
 task default: [:test, :lacci_test, :component_test]

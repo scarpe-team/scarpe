@@ -38,6 +38,7 @@ GEM
     ffi-compiler (1.0.1)
       ffi (>= 1.0.0)
       rake
+    htmlbeautifier (1.4.2)
     io-console (0.6.0)
     irb (1.6.4)
       reline (>= 0.3.0)
@@ -82,8 +83,6 @@ GEM
       unicode-display_width (>= 2.4.0, < 3.0)
     rubocop-ast (1.26.0)
       parser (>= 3.2.1.0)
-    rubocop-shopify (2.12.0)
-      rubocop (~> 1.44)
     ruby-progressbar (1.11.0)
     sqlite3 (1.6.3-arm64-darwin)
     sqlite3 (1.6.3-x86_64-darwin)
@@ -108,13 +107,13 @@ PLATFORMS
 DEPENDENCIES
   bloops (~> 0.5)
   debug
+  htmlbeautifier
   lacci!
   minitest (~> 5.0)
   minitest-reporters
   rake (~> 13.0)
   redcarpet
   rubocop (~> 1.21)
-  rubocop-shopify
   scarpe!
   scarpe-components!
   yard
