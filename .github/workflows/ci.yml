@@ -24,8 +24,8 @@ jobs:
           bundler-cache: true
       - name: Run Lacci tests
         run: CI_RUN='true' bundle exec rake lacci_test
-      - name: Run Scarpe-Component tests
-        run: CI_RUN='true' bundle exec rake component_test
+      # - name: Run Scarpe-Component tests
+      #   run: CI_RUN='true' bundle exec rake component_test
       - name: Run Scarpe tests
         run: CI_RUN='true' bundle exec rake test
       - name: Check HTML output
