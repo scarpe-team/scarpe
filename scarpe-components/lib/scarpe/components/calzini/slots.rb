@@ -15,7 +15,7 @@ module Scarpe::Components::Calzini
 
   def stack_element(props, &block)
     HTML.render do |h|
-      h.div((props["html_attributes"] || {}).merge(id: html_id, style: stack_style(props), fish: "flop"), &block)
+      h.div((props["html_attributes"] || {}).merge(id: html_id, style: stack_style(props)), &block)
     end
   end
 
