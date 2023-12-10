@@ -4,11 +4,9 @@ class Shoes
   class Flow < Shoes::Slot
     include Shoes::Background
     include Shoes::Border
-    include Shoes::Spacing
 
     Shoes::Drawable.drawable_default_styles[Shoes::Flow][:width] = "100%"
 
-    shoes_styles :width, :height, :margin, :padding
     shoes_events
 
     def initialize(*args, **kwargs, &block)

@@ -38,7 +38,6 @@
 class Shoes::Widget < Shoes::Slot
   include Shoes::Background
   include Shoes::Border
-  include Shoes::Spacing
 
   shoes_events
 

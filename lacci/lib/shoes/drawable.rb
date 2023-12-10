@@ -230,6 +230,12 @@ class Shoes
     # Every Shoes drawable has positioning properties
     shoes_styles :top, :left, :width, :height
 
+    # Margins around drawable
+    shoes_styles :margin, :margin_top, :margin_bottom, :margin_left, :margin_right
+
+    # Padding around drawable
+    shoes_styles :padding, :padding_top, :padding_bottom, :padding_left, :padding_right
+
     # Shoes uses a "hidden" style property for hide/show
     shoes_style :hidden
 
