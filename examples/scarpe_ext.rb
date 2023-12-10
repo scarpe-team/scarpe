@@ -1,4 +1,3 @@
-Shoes.app(features: :scarpe) do
-  para "This text could be CSS-ified", html_attributes: { class: "button_css_class" }
-  button "OK"
+Shoes.app(features: :html) do
+  button "OK", html_class: "btn-warning"
 end

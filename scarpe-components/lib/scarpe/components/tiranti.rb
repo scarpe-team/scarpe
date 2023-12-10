@@ -73,16 +73,16 @@ module Scarpe::Components::Tiranti
     HTML
   end
 
-  # def render_stack
-  # end
-  # def render_flow
-  # end
-
   # How do we want to handle theme-specific colours and primary/secondary buttons in Bootstrap?
   # "Disabled" could be checked in properties. Is there any way we can/should use "outline" buttons?
   def button_element(props)
     HTML.render do |h|
-      h.button(id: html_id, type: "button", class: "btn btn-primary", onclick: handler_js_code("click"), style: button_style(props)) do
+      h.button(
+        id: html_id,
+        type: "button",
+        class: props["html_class"] ? "btn #{props["html_class"]}" : "btn btn-primary",
+          onclick: handler_js_code("click"), style: button_style(props)
+      ) do
         props["text"]
       end
     end
