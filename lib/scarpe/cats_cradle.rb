@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "scarpe/components/unit_test_helpers"
-require "scarpe/evented_assertions"
 
 require "fiber"
 
@@ -68,7 +67,6 @@ module Scarpe::Test
   # with promises for when they should next resume.
   class CCInstance
     include Shoes::Log
-    include Scarpe::Test::EventedAssertions
     include Scarpe::Test::Helpers
     include Scarpe::Test::DrawableFinders
 
@@ -78,8 +76,6 @@ module Scarpe::Test
 
     def initialize
       log_init("CatsCradle")
-
-      evented_assertions_initialize
 
       @waiting_fibers = []
       @event_promises = {}

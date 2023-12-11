@@ -4,7 +4,6 @@ RUBY_MAIN_OBJ = self
 
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 require "scarpe"
-require "scarpe/evented_assertions"
 require "scarpe/components/unit_test_helpers"
 require "scarpe/components/minitest_result"
 
