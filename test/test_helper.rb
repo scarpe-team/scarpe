@@ -22,7 +22,12 @@ Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
 SET_UP_TIMEOUT_CHECKS = { setup: false, near_timeout: [] }
 TIMEOUT_FRACTION_OF_THRESHOLD = 0.5 # Too low?
 
-class ScarpeWebviewTest < Minitest::Test
+class ScarpeTest < Minitest::Test
+  include Scarpe::Test::Helpers
+  include Scarpe::Test::HTMLAssertions
+end
+
+class ScarpeWebviewTest < ScarpeTest
   include Scarpe::Test::Helpers
   include Scarpe::Test::HTMLAssertions
 
@@ -249,7 +254,7 @@ class ShoesSpecLoggedTest < Minitest::Test
   end
 end
 
-class LoggedScarpeTest < ScarpeWebviewTest
+class LoggedScarpeTest < ScarpeTest
   include Scarpe::Test::LoggedTest
   self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
