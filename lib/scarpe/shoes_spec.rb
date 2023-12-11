@@ -43,7 +43,7 @@ module Scarpe::Test
     # an option. We may need to revisit all of this later...
     test_obj = Object.new
     class << test_obj
-      include Scarpe::Test::CatsCradle
+      include Scarpe::CatsCradle
     end
     Scarpe::ShoesSpecTest.test_obj = test_obj
     test_obj.instance_eval do
@@ -52,7 +52,7 @@ module Scarpe::Test
       on_heartbeat do
         Minitest.run ARGV
 
-        test_finished_no_results
+        shut_down_shoes_code
         Scarpe::ShoesSpecTest.test_obj = nil
       end
     end
@@ -141,7 +141,7 @@ class Scarpe::ShoesSpecTest < Minitest::Test
   end
 
   def catscradle_dsl(&block)
-    Scarpe::Test::CCInstance.instance.instance_eval(&block)
+    Scarpe::CCInstance.instance.instance_eval(&block)
   end
 
   def dom_html

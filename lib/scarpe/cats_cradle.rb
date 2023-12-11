@@ -4,71 +4,12 @@ require "scarpe/components/unit_test_helpers"
 
 require "fiber"
 
-module Scarpe::Test
-  # We'd like something we can call Shoes drawable methods on, such as para.replace.
-  # But we'd also like to be able to grab the corresponding display drawable and
-  # call some of *those* methods.
-  class CCProxy
-    attr_reader :display
-    attr_reader :obj
-
-    def initialize(obj)
-      @obj = obj
-      # TODO: how to do this with Webview relay? Proxy object to send a message, maybe?
-      @display = ::Shoes::DisplayService.display_service.query_display_drawable_for(obj.linkable_id)
-    end
-
-    def method_missing(method, ...)
-      if @obj.respond_to?(method)
-        self.singleton_class.define_method(method) do |*args, **kwargs, &block|
-          @obj.send(method, *args, **kwargs, &block)
-        end
-        send(method, ...)
-      else
-        super # raise an exception
-      end
-    end
-
-    def respond_to_missing?(method_name, include_private = false)
-      @obj.respond_to_missing?(method_name, include_private)
-    end
-
-    def trigger(event_name, *args)
-      name = "#{@obj.linkable_id}-#{event_name}"
-      Scarpe::Webview::DisplayService.instance.app.handle_callback(name, *args)
-    end
-
-    [:click, :hover, :leave, :change].each do |ev|
-      define_method "trigger_#{ev}" do |*args|
-        trigger(ev, *args)
-      end
-    end
-  end
-
-  module DrawableFinders
-    # What to do about TextDrawables? Link, code, em, strong?
-    # Also, wait, what's up with span? What *is* that?
-    Shoes::Drawable.drawable_classes.each do |drawable_class|
-      finder_name = drawable_class.dsl_name
-
-      define_method(finder_name) do |*args|
-        app = Shoes::App.instance
-
-        drawables = app.find_drawables_by(drawable_class, *args)
-        raise Shoes::Errors::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
-        raise Shoes::Errors::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
-
-        CCProxy.new(drawables[0])
-      end
-    end
-  end
-
+module Scarpe
   # This class defines the CatsCradle DSL. It also holds a "bag of fibers"
   # with promises for when they should next resume.
   class CCInstance
     include Shoes::Log
     include Scarpe::Test::Helpers
-    include Scarpe::Test::DrawableFinders
 
     def self.instance
       @instance ||= CCInstance.new
@@ -168,25 +109,6 @@ module Scarpe::Test
       @waiting_fibers << { promise: event_promise(event), fiber: f }
     end
 
-    def proxy_for(shoes_drawable)
-      CCProxy.new(shoes_drawable)
-    end
-
-    def die_after(time)
-      t_start = Time.now
-      @die_after = [t_start, time]
-
-      @wrangler.periodic_code("scarpeTestTimeout") do |*_args|
-        t_delta = (Time.now - t_start).to_f
-        if t_delta > time
-          @did_time_out = true
-          @log.warn("die_after - timed out after #{t_delta.inspect} (threshold: #{time.inspect})")
-          return_results(false, "Timed out!")
-          ::Shoes::DisplayService.dispatch_event("destroy", nil)
-        end
-      end
-    end
-
     def wait(promise)
       raise(Scarpe::InvalidPromiseError, "Must supply a promise to wait!") unless promise.is_a?(::Scarpe::Promise)
 
@@ -214,13 +136,7 @@ module Scarpe::Test
       @wrangler.eval_js_async(js_code, timeout:)
     end
 
-    def test_finished(return_results: true)
-      return_assertion_data if return_results
-
-      ::Shoes::DisplayService.dispatch_event("destroy", nil)
-    end
-
-    def test_finished_no_results
+    def shut_down_shoes_code
       ::Shoes::DisplayService.dispatch_event("destroy", nil)
     end
   end
@@ -228,8 +144,8 @@ module Scarpe::Test
   # "Cat's Cradle" is a children's game where they interlace string between
   # their fingers to make beautiful complicated shapes. The interlacing
   # of fibers made it a good name for a prototype.
-
-  # An attempt at an experimental Fiber-based testing system to deal with
+  #
+  # An attempt at an experimental Fiber-based control-flow system to deal with
   # Shoes, Display and JS all at the same time.
   #
   # In general, we'll use Fiber.transfer to bounce control back and forth
@@ -239,7 +155,7 @@ module Scarpe::Test
   #
   # Ruby Fiber basic docs: https://ruby-doc.org/core-3.0.0/Fiber.html
   #
-  # This module is mixed into a test object if we're running CatsCradle-based tests
+  # This module is mixed into an object to coordinate fibers app-wide.
   module CatsCradle
     attr_reader :cc_instance
 
