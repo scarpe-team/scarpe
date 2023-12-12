@@ -7,13 +7,16 @@ require 'fileutils'
 # Get top-level Ruby examples
 file_paths = Dir["examples/*.rb"]
 
-# Get each filename
-file_names = file_paths.map do |file|
-  File.basename(file)
+# Get each filename, or one if supplied as argument
+file_names = if ENV['SELECTED_FILE']
+  [ENV['SELECTED_FILE']]
+else
+  file_paths.map do |file|
+    File.basename(file) # Exclude the file extension
+  end
 end
 
 collection_of_html = []
-
 file_names.each do |file_name|
   # Read the entire file
   content = File.read(File.join(File.expand_path("../examples", __dir__),"#{file_name}"))

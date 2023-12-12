@@ -10,9 +10,13 @@ puts "== Checking HTML fixtures =="
 # Get top-level Ruby examples
 file_paths = Dir["examples/*.rb"]
 
-# Get each filename
-file_names = file_paths.map do |file|
-  File.basename(file)
+# Get each filename, or one if supplied as argument
+file_names = if ENV['SELECTED_FILE']
+  [ENV['SELECTED_FILE']]
+else
+  file_paths.map do |file|
+    File.basename(file) # Exclude the file extension
+  end
 end
 
 collection_of_html = []

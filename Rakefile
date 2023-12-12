@@ -24,12 +24,14 @@ end
 
 namespace :test do
   desc 'Regenerate HTML fixtures'
-  task :regenerate_html_fixtures do
+  task :regenerate_html_fixtures do |t|
+    ENV['SELECTED_FILE'] = ARGV[-1] if ARGV[-1].include?(".rb")
     load 'tasks/regenerate_html_fixtures.rb'
   end
 
   desc 'Check HTML fixtures against latest output'
-  task :check_html_fixtures do
+  task :check_html_fixtures do |t|
+    ENV['SELECTED_FILE'] = ARGV[-1] if ARGV[-1].include?(".rb")
     load 'tasks/check_html_fixtures.rb'
   end
 end
