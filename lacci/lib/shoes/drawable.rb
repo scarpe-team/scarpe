@@ -61,7 +61,7 @@ class Shoes
         return value if h[:validator].nil?
       
         # Pass both the property name and value to the validator block
-        h[:validator].call(prop_name, value)
+        h[:validator].call(value,prop_name)
       end
 
       # Return a list of Shoes events for this class.
