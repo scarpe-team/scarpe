@@ -73,16 +73,16 @@ module Scarpe::Components::Tiranti
     HTML
   end
 
-  # def render_stack
-  # end
-  # def render_flow
-  # end
-
   # How do we want to handle theme-specific colours and primary/secondary buttons in Bootstrap?
   # "Disabled" could be checked in properties. Is there any way we can/should use "outline" buttons?
   def button_element(props)
     HTML.render do |h|
-      h.button(id: html_id, type: "button", class: "btn btn-primary", onclick: handler_js_code("click"), style: button_style(props)) do
+      h.button(
+        id: html_id,
+        type: "button",
+        class: props["html_class"] ? "btn #{props["html_class"]}" : "btn btn-primary",
+          onclick: handler_js_code("click"), style: button_style(props)
+      ) do
         props["text"]
       end
     end
@@ -97,14 +97,11 @@ module Scarpe::Components::Tiranti
     styles[:"padding-top"] = props["padding_top"] if props["padding_top"]
     styles[:"padding-bottom"] = props["padding_bottom"] if props["padding_bottom"]
     styles[:color] = props["text_color"] if props["text_color"]
-    styles[:width] = dimensions_length(props["width"]) if props["width"]
-    styles[:height] = dimensions_length(props["height"]) if props["height"]
-    styles[:"font-size"] = props["font_size"] if props["font_size"]
 
-    styles[:top] = dimensions_length(props["top"]) if props["top"]
-    styles[:left] = dimensions_length(props["left"]) if props["left"]
-    styles[:position] = "absolute" if props["top"] || props["left"]
+    # How do we want to handle font size?
+    styles[:"font-size"] = props["font_size"] if props["font_size"]
     styles[:"font-size"] = dimensions_length(text_size(props["size"])) if props["size"]
+
     styles[:"font-family"] = props["font"] if props["font"]
 
     styles
@@ -198,7 +195,7 @@ module Scarpe::Components::Tiranti
 
     para_style = drawable_style(props).merge({
       color: rgb_to_hex(props["stroke"]),
-      "font-size": para_font_size(props),
+      "font-size": size,
       "font-family": props["font"],
     }.compact)
 

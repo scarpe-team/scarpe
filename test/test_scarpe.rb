@@ -96,4 +96,29 @@ class TestWebviewScarpe < ShoesSpecLoggedTest
       end
     SCARPE_APP
   end
+
+  def test_html_class_extension
+    run_test_scarpe_code(<<-'SCARPE_APP', exit_immediately: true)
+      Shoes.app(features: :html) do
+        stack do
+          para "Hello World"
+          button("OK", html_class: "itsabutton")
+        end
+      end
+    SCARPE_APP
+  end
+
+  def test_html_class_extension_fail
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE', exit_immediately: true)
+      Shoes.app do
+        @s = stack do
+          para "Hello World"
+        end
+      end
+    SCARPE_APP
+      assert_raises Shoes::Errors::UnsupportedFeature do
+        stack("@s").button("OK", html_class: "itsabutton")
+      end
+    TEST_CODE
+  end
 end

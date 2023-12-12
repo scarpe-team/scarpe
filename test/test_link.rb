@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class TestWebviewLink < ScarpeWebviewTest
+class TestWebviewLink < ScarpeTest
   def setup
     @default_properties = {
       "text" => "click here",

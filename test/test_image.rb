@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class TestWebviewImage < ScarpeWebviewTest
+class TestWebviewImage < ScarpeTest
   def setup
     @url = "http://shoesrb.com/manual/static/shoes-icon.png"
     @default_properties = {
@@ -35,7 +35,7 @@ class TestWebviewImage < ScarpeWebviewTest
     left = 5
     img = Scarpe::Webview::Image.new(@default_properties.merge(top:, left:))
 
-    assert_contains_html img.to_html, :img, id: img.html_id, src: @url, style: "top:#{top}px;left:#{left}px;position:absolute"
+    assert_contains_html img.to_html, :img, id: img.html_id, src: @url, style: "position:absolute;top:#{top}px;left:#{left}px"
   end
 
   def test_renders_image_with_specified_size_and_position
@@ -49,7 +49,7 @@ class TestWebviewImage < ScarpeWebviewTest
       :img,
       id: img.html_id,
       src: @url,
-      style: "width:#{width}px;height:#{height}px;top:#{top}px;left:#{left}px;position:absolute"
+      style: "position:absolute;top:#{top}px;left:#{left}px;width:#{width}px;height:#{height}px"
   end
 
   def test_renders_clickable_image
@@ -60,13 +60,18 @@ class TestWebviewImage < ScarpeWebviewTest
       "<img id=\"#{img.html_id}\" src=\"#{@url}\" />"\
       "</a>"
   end
+end
+
+class TestImageShoesSpec < ShoesSpecLoggedTest
+  self.logger_dir = File.expand_path("#{__dir__}/../logger")
 
   def test_image_size
-    url = "http://shoesrb.com/manual/static/shoes-icon.png"
-    expected_size = [128, 128]
-    img = Shoes::Image.new(url)
-    actual_size = img.size
-
-    assert_equal expected_size, actual_size
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+      Shoes.app do
+        image "http://shoesrb.com/manual/static/shoes-icon.png"
+      end
+    SCARPE_APP
+      assert_equal [128, 128], image().size
+    TEST_CODE
   end
 end

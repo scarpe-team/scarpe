@@ -63,6 +63,9 @@ Shoes::FONTS.push(
   "Monaco",
 )
 
+Shoes::FEATURES.push(:html)
+Shoes::EXTENSIONS.push(:scarpe)
+
 require_relative "shoes_spec"
 Shoes::Spec.instance = Scarpe::Test
 
@@ -100,3 +103,5 @@ require_relative "wv/video"
 require_relative "wv/check"
 require_relative "wv/progress"
 require_relative "wv/arrow"
+
+require_relative "wv/scarpe_extensions"

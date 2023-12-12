@@ -38,6 +38,23 @@ class Shoes
 
     # Fonts currently loaded and available
     FONTS = []
+
+    # Standard features available in this display service - see KNOWN_FEATURES.
+    # These may or may not require the Shoes.app requesting them per-app.
+    FEATURES = []
+
+    # Nonstandard extensions, e.g. Scarpe extensions, supported by this display lib.
+    # An application may have to request the extensions for them to be available so
+    # that a casual reader can see Shoes.app(features: :scarpe) and realize why
+    # there are nonstandard styles or drawables.
+    EXTENSIONS = []
+
+    # These are all known features supported by this version of Lacci.
+    # Features on this list are allowed to be in FEATURES. Anything else
+    # goes in EXTENSIONS and is nonstandard.
+    KNOWN_FEATURES = [
+      :html, # Supports .to_html on display objects, HTML classes on drawables, etc.
+    ].freeze
   end
 
   # Access and assign the release constants

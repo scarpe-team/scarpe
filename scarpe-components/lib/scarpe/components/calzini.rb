@@ -68,6 +68,10 @@ module Scarpe::Components::Calzini
             p {
               margin: 0;
             }
+            #wrapper-wvroot {
+              height: 100%;
+              width: 100%;
+            }
           </style>
         </head>
         <body id='body-wvroot'>
@@ -110,7 +114,74 @@ module Scarpe::Components::Calzini
     if props["hidden"]
       styles[:display] = "none"
     end
+
+    # Do we need to set CSS positioning here, especially if displace is set? Position: relative maybe?
+    # We need some Shoes3 screenshots and HTML-based tests here...
+
+    if props["top"] || props["left"]
+      styles[:position] = "absolute"
+    end
+
+    styles[:top] = dimensions_length(props["top"]) if props["top"]
+    styles[:left] = dimensions_length(props["left"]) if props["left"]
+    styles[:width] = dimensions_length(props["width"]) if props["width"]
+    styles[:height] = dimensions_length(props["height"]) if props["height"]
+
+    styles = spacing_styles_for_attr("margin", props, styles)
+    styles = spacing_styles_for_attr("padding", props, styles)
+
     styles
+  end
+
+  SPACING_DIRECTIONS = [:left, :right, :top, :bottom]
+
+  # We extract the appropriate margin and padding from the margin and
+  # padding properties. If there are no margin or padding properties,
+  # we fall back to props["options"] margin or padding, if it exists.
+  #
+  # Margin or padding (in either props or props["options"]) can be
+  # a Hash with directions as keys, or an Array of left/right/top/bottom,
+  # or a constant, which means all four are that constant. You can
+  # also specify a "margin" plus "margin-top" which is constant but
+  # margin-top is overridden, or similar.
+  #
+  # If any margin or padding property exists in props then we don't
+  # check props["options"].
+  def spacing_styles_for_attr(attr, props, styles, with_options: true)
+    spacing_styles = {}
+
+    case props[attr]
+    when Hash
+      props[attr].each do |dir, value|
+        spacing_styles[:"#{attr}-#{dir}"] = dimensions_length value
+      end
+    when Array
+      SPACING_DIRECTIONS.zip(props[attr]).to_h.compact.each do |dir, value|
+        spacing_styles[:"#{attr}-#{dir}"] = dimensions_length(value)
+      end
+    when String, Numeric
+      spacing_styles[attr.to_sym] = dimensions_length(props[attr])
+    end
+
+    SPACING_DIRECTIONS.each do |dir|
+      if props["#{attr}_#{dir}"]
+        spacing_styles[:"#{attr}-#{dir}"] = dimensions_length props["#{attr}_#{dir}"]
+      end
+    end
+
+    unless spacing_styles.empty?
+      return styles.merge(spacing_styles)
+    end
+
+    # We should see if there are spacing properties in props["options"],
+    # unless we're currently doing that.
+    if with_options && props["options"]
+      spacing_styles = spacing_styles_for_attr(attr, props["options"], {}, with_options: false)
+      styles.merge spacing_styles
+    else
+      # No "options" or we already checked it? Return the styles we were given.
+      styles
+    end
   end
 
   # Convert an [r, g, b, a] array to an HTML hex color code

@@ -33,7 +33,7 @@ class TestCalziniMiscDrawables < Minitest::Test
   end
 
   def test_edit_box_simple
-    assert_equal %{<textarea id="elt-1" oninput="handle('change', this.value)" style="height:50;width:75">default</textarea>},
+    assert_equal %{<textarea id="elt-1" oninput="handle('change', this.value)" style="width:75;height:50">default</textarea>},
       @calzini.render("edit_box", { "height" => "50", "width" => "75", "text" => "default" })
   end
 
@@ -63,7 +63,7 @@ class TestCalziniMiscDrawables < Minitest::Test
   end
 
   def test_image_with_abs_positioning
-    assert_equal %{<img id="elt-1" src="https://example.com/example.png" style="width:150;height:200;top:15;left:20;position:absolute" />},
+    assert_equal %{<img id="elt-1" src="https://example.com/example.png" style="position:absolute;top:15;left:20;width:150;height:200" />},
       @calzini.render("image", { "url" => "https://example.com/example.png", "height" => "200", "width" => "150", "top" => "15", "left" => "20" })
   end
 
@@ -74,14 +74,14 @@ class TestCalziniMiscDrawables < Minitest::Test
 
   def test_list_box_simple
     assert_equal %{<select id="elt-1" onchange="handle('change', this.options[this.selectedIndex].value)"} +
-      %{ style="height:75;width:150"><option value="dog">dog</option>} +
+      %{ style="width:150;height:75"><option value="dog">dog</option>} +
       %{<option value="cat" selected="true">cat</option><option value="bird">bird</option></select>},
       @calzini.render("list_box", { "height" => "75", "width" => "150", "items" => ["dog", "cat", "bird"], "choose" => "cat" })
   end
 
   def test_list_box_none_selected
     assert_equal %{<select id="elt-1" onchange="handle('change', this.options[this.selectedIndex].value)"} +
-      %{ style="height:75;width:150"><option value="dog">dog</option>} +
+      %{ style="width:150;height:75"><option value="dog">dog</option>} +
       %{<option value="cat">cat</option><option value="bird">bird</option></select>},
       @calzini.render("list_box", { "height" => "75", "width" => "150", "items" => ["dog", "cat", "bird"] })
   end
