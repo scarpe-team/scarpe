@@ -67,7 +67,7 @@ module Scarpe::Test::LoggedTest
     @normal_log_config = Shoes::Log.current_log_config
     Shoes::Log.configure_logger(log_config_for_test)
 
-    Shoes::Log.logger("LoggedScarpeTest").info("Test: #{self.class.name}##{self.name}")
+    Shoes::Log.logger("LoggedTest").info("Test: #{self.class.name}##{self.name}")
   end
 
   # If you include this module and don't override setup/teardown, everything will

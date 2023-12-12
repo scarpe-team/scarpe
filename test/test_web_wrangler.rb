@@ -29,12 +29,7 @@ class TestWebWranglerInScarpeApp < ShoesSpecLoggedTest
         para "Hello"
       end
     SCARPE_APP
-      catscradle_dsl do
-        on_event(:next_redraw) do
-          return_results(true, "Destroy and exit")
-          Shoes::DisplayService.dispatch_event("destroy", nil)
-        end
-      end
+      Shoes::DisplayService.dispatch_event("destroy", nil)
     TEST_CODE
   end
 end

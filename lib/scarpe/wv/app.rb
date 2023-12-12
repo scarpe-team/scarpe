@@ -55,6 +55,7 @@ module Scarpe::Webview
     end
 
     def run
+      # This is run before the Webview event loop is up and running
       @control_interface.dispatch_event(:init)
 
       @view.empty_page = empty_page_element

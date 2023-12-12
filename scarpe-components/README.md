@@ -2,9 +2,9 @@
 
 Scarpe is several things. We package up the Shoes API with as few implementation details as possible (called Lacci.) We have a Webview-based display library, in both local and over-a-socket (relay) versions. We have a Wasm display library (Scarpe-Wasm) in a separate gem.
 
-And we have various default implementations of different reusable components. Scarpe's hierarchical logger isn't particularly specific to your display library or underlying GUI library, but we'd like it to be usable by multiple display libs. CatsCradle is only useful if you're trying to fix up an impedance mismatch between Ruby and an evented under-layer, but it's not really specific to Webview. Scarpe's default downloader, using Ruby's built-in HTTP libraries, is good in many cases but you might want to replace it (e.g. with Typhoeus for better parallel downloads or Hystrix for robustness to bad network connections) in some cases.
+And we have various default implementations of different reusable components. Calzini is a Shoes-to-HTML renderer shared between Scarpe-Webview and Scarpe-Wasm. Scarpe's hierarchical logger isn't particularly specific to your display library or underlying GUI library and we'd like it to be usable by multiple display libs. Scarpe's default downloader, using Ruby's built-in HTTP libraries, is good in many cases but you might want to replace it (e.g. with Typhoeus for better parallel downloads or Hystrix for robustness to bad network connections) in some cases.
 
-Part of our solution is the Scarpe-Components gem, which lives in the same repository as Scarpe (for now?). These components can live there. Any specific display library can pick and choose what it wants or needs and handle its dependencies as it sees fit.
+Part of our solution is the Scarpe-Components gem, which lives in the same repository as Scarpe and Lacci for now. These components can live there. Any specific display library can pick and choose what it wants or needs and handle its dependencies as it sees fit.
 
 ## Dependency Hell
 
