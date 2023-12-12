@@ -24,7 +24,7 @@ end
 
 namespace :test do
   desc 'Regenerate HTML fixtures'
-  task :regen_fixtures do
+  task :regenerate_html_fixtures do
     load 'tasks/regenerate_html_fixtures.rb'
   end
 

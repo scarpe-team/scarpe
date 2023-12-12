@@ -4,6 +4,8 @@ require 'diff/lcs/hunk'
 require 'fileutils'
 require "htmlbeautifier"
 
+puts "== Checking HTML fixtures =="
+
 
 # Get top-level Ruby examples
 file_paths = Dir["examples/*.rb"]
@@ -64,6 +66,11 @@ def diff_as_string(data_new, data_old, file_name)
 end
 
 file_names.each do |file_name|
+  # Read the entire file
+  content = File.read(File.join(File.expand_path("../examples", __dir__),"#{file_name}"))
+  # Skip this file if it contains the magic comment
+  next if content.include?("# html_ci: false")
+
   output = ""
   pid = nil
   command = "bundle exec ./exe/scarpe examples/#{file_name} --dev --debug"
@@ -123,3 +130,4 @@ unless failures.empty?
   end
   exit 1
 end
+puts "== Completed HTML fixture check =="

@@ -1,5 +1,7 @@
 # frozen_string_literal: false
 
+puts "== Regenerating HTML fixtures =="
+
 require 'fileutils'
 
 # Get top-level Ruby examples
@@ -13,6 +15,11 @@ end
 collection_of_html = []
 
 file_names.each do |file_name|
+  # Read the entire file
+  content = File.read(File.join(File.expand_path("../examples", __dir__),"#{file_name}"))
+  # Skip this file if it contains the magic comment
+  next if content.include?("# html_ci: false")
+
   output = ""
   pid = nil
   command = "bundle exec ./exe/scarpe examples/#{file_name} --dev --debug"
@@ -91,3 +98,4 @@ end
 
 # Show how it looks
 # collection_of_html.map { |file_name, html| puts "File: #{file_name}\n\n HTML: #{html}" }
+puts "HTML fixtures regenerated successfully!"

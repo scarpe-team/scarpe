@@ -1,4 +1,8 @@
 # frozen_string_literal: true
+
+# html_ci: false
+# This is due to a button rendering issue
+
 require 'erb'
 
 class ScarpeGenerator

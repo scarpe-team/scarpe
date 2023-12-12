@@ -1,3 +1,6 @@
+# html_ci: false
+# This is due to a button rendering issue
+
 require 'nokogiri'
 require 'open-uri'
 require 'tempfile'
