@@ -195,7 +195,7 @@ module Scarpe::Components::Tiranti
 
     para_style = drawable_style(props).merge({
       color: rgb_to_hex(props["stroke"]),
-      "font-size": para_font_size(props),
+      "font-size": size,
       "font-family": props["font"],
     }.compact)
 
