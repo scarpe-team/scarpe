@@ -17,45 +17,22 @@ module Scarpe::Components::Tiranti
   include Scarpe::Components::Calzini
   extend self
 
-  # Currently we're using Bootswatch 5
-  BOOTSWATCH_THEMES = [
-    "cerulean",
-    "cosmo",
-    "cyborg",
-    "darkly",
-    "flatly",
-    "journal",
-    "litera",
-    "lumen",
-    "lux",
-    "materia",
-    "minty",
-    "morph",
-    "pulse",
-    "quartz",
-    "sandstone",
-    "simplex",
-    "sketchy",
-    "slate",
-    "solar",
-    "spacelab",
-    "superhero",
-    "united",
-    "vapor",
-    "yeti",
-    "zephyr",
-  ]
+  # Currently we're using Bootswatch 5.
+  # Bootswatch themes downloaded from https://bootswatch.com/5/THEME_NAME/bootstrap.css
 
-  BOOTSWATCH_THEME = ENV["SCARPE_BOOTSTRAP_THEME"] || "sketchy"
+  def empty_page_element(theme: ENV["SCARPE_BOOTSTRAP_THEME"] || "sketchy")
+    comp_dir = File.expand_path("#{__dir__}/../../..")
+    bootstrap_js_url = Scarpe::Webview.asset_server.asset_url("#{comp_dir}/assets/bootstrap-themes/bootstrap.bundle.min.js", url_type: :asset)
+    theme_url = Scarpe::Webview.asset_server.asset_url("#{comp_dir}/assets/bootstrap-themes/bootstrap-#{theme}.css", url_type: :asset)
+    icons_url = Scarpe::Webview.asset_server.asset_url("#{comp_dir}/assets/bootstrap-themes/bootstrap-icons.min.css", url_type: :asset)
 
-  def empty_page_element
     <<~HTML
       <html>
         <head id='head-wvroot'>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-          <link rel="stylesheet" href="https://bootswatch.com/5/#{BOOTSWATCH_THEME}/bootstrap.css">
-          <link rel="stylesheet" href="https://bootswatch.com/_vendor/bootstrap-icons/font/bootstrap-icons.min.css">
+          <link rel="stylesheet" href=#{theme_url.inspect}>
+          <link rel="stylesheet" href=#{icons_url.inspect}>
           <style id='style-wvroot'>
             /** Style resets **/
             body {
@@ -67,7 +44,7 @@ module Scarpe::Components::Tiranti
         <body id='body-wvroot'>
           <div id='wrapper-wvroot'></div>
 
-          <script src="https://bootswatch.com/_vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+          <script src=#{bootstrap_js_url}></script>
         </body>
       </html>
     HTML
@@ -150,8 +127,11 @@ module Scarpe::Components::Tiranti
   end
 
   def progress_element(props)
+    progress_style = drawable_style(props).merge({
+      width: "90%",
+    })
     HTML.render do |h|
-      h.div(class: "progress", style: "width: 90%") do
+      h.div(id: html_id, class: "progress", style: progress_style) do
         pct = "%.1f" % ((props["fraction"] || 0.0) * 100.0)
         h.div(
           class: "progress-bar progress-bar-striped progress-bar-animated",

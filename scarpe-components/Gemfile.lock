@@ -31,8 +31,6 @@ GEM
       builder
       minitest (>= 5.0)
       ruby-progressbar
-    nokogiri (1.15.4-x86_64-darwin)
-      racc (~> 1.4)
     parallel (1.23.0)
     parser (3.2.2.3)
       ast (~> 2.4.1)
@@ -67,6 +65,7 @@ GEM
     ruby-progressbar (1.13.0)
     stringio (3.0.8)
     unicode-display_width (2.4.2)
+    webrick (1.8.1)
 
 PLATFORMS
   x86_64-darwin-22
@@ -76,11 +75,11 @@ DEPENDENCIES
   lacci!
   minitest (~> 5.0)
   minitest-reporters
-  nokogiri
   rake (~> 13.0)
   rubocop (~> 1.21)
   rubocop-shopify
   scarpe-components!
+  webrick
 
 BUNDLED WITH
    2.4.14

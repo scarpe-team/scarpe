@@ -3,8 +3,12 @@
 # Also defined in scarpe_core
 class Scarpe::Error < StandardError; end
 
+# TODO: this should be under Scarpe::Errors, and also probably merged into the normal
+# Scarpe errors file.
 module Scarpe
   class InternalError < Scarpe::Error; end
+
+  class OperationNotAllowedError < Scarpe::Error; end
 
   class FileContentError < Scarpe::Error; end
 

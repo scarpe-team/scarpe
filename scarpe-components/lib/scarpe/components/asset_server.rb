@@ -11,8 +11,10 @@ class Scarpe::Components::AssetServer
   attr_reader :server_started
   attr_reader :dir
 
+  URL_TYPES = [:auto, :asset, :data]
+
   # Port 0 will auto-assign a free port
-  def initialize(port: 0, dir: Dir.pwd, connect_timeout: 5)
+  def initialize(port: 0, app_dir:, never_start_server: false, connect_timeout: 5)
     log_init("AssetServer")
 
     require "scarpe/components/base64"
@@ -20,8 +22,10 @@ class Scarpe::Components::AssetServer
     @server_started = false
     @server_thread = nil
     @port = port != 0 ? port : find_open_port
-    @dir = File.expand_path dir
+    @app_dir = File.expand_path app_dir
+    @components_dir = File.expand_path "#{__dir__}/../../.."
     @connect_timeout = connect_timeout
+    @never_start_server = never_start_server
 
     # For now, always use 16kb as the cutoff for preferring to serve a file with the asset server
     @auto_asset_url_size = 16 * 1024
@@ -46,6 +50,10 @@ class Scarpe::Components::AssetServer
   # @param url [String] the filename or URL
   # @param url_type [Symbol] the type of URL to return - one of :auto, :asset, :data
   def asset_url(url, url_type: :auto)
+    unless URL_TYPES.include?(url_type)
+      raise ArgumentError, "The url_type arg must be one of #{URL_TYPES.inspect}!"
+    end
+
     if valid_url?(url)
       # This is already not local, use it directly
       return url
@@ -54,10 +62,16 @@ class Scarpe::Components::AssetServer
     # Invalid URLs are assumed to be file paths.
     url = File.expand_path url
     file_size = File.size(url)
-    relative_path = relative_path_from_to(@dir, url)
 
-    # The MIME media type for this file
-    file_type = mime_type_for_filename(url)
+    # Calculate the app-relative path to the file. If it's not outside the app
+    # dir, great, use that. If it *is* outside the app dir, see if the
+    # scarpe-components dir is better (e.g. for Tiranti Bootstrap CSS assets.)
+    relative_app_path = relative_path_from_to(@app_dir, url)
+    relative_path = relative_app_path
+    if relative_app_path.start_with?("../")
+      relative_comp_path = relative_path_from_to(@components_dir, url)
+      relative_path = relative_comp_path unless relative_comp_path.start_with?("../")
+    end
 
     # If url_type is :auto, we will use a data URL for small files and files that
     # would be outside the asset server's directory. Data URLs are less efficient
@@ -65,19 +79,27 @@ class Scarpe::Components::AssetServer
     if url_type == :data ||
       (url_type == :auto && file_size < @auto_asset_url_size) ||
       (url_type == :auto && relative_path.start_with?("../"))
+
+      # The MIME media type for this file
+      file_type = mime_type_for_filename(url)
+
       # Up to 16kb per file, inline it directly to avoid an extra HTTP request
       return "data:#{file_type};base64,#{encode_file_to_base64(url)}"
     end
 
     # Start the server if we're returning an asset-server URL
-    unless @server_started
+    unless @server_started || @never_start_server
       start_server_thread
     end
 
     if relative_path.start_with?("../")
-      raise "Large asset is outside of application directory and asset URL was requested: #{url.inspect}" # What error class?
+      raise Scarpe::OperationNotAllowedError, "Large asset is outside of application directory and asset URL was requested: #{url.inspect}"
     end
-    "http://127.0.0.1:#{@port}/#{relative_path}"
+    if relative_path == relative_app_path
+      "http://127.0.0.1:#{@port}/app/#{relative_path}"
+    else
+      "http://127.0.0.1:#{@port}/comp/#{relative_path}"
+    end
   end
 
   def find_open_port
@@ -130,8 +152,9 @@ class Scarpe::Components::AssetServer
       [Tempfile.new("scarpe_asset_server_access_log"), WEBrick::AccessLog::COMBINED_LOG_FORMAT]
     ]
 
-    @server = WEBrick::HTTPServer.new(Port: @port, DocumentRoot: @dir, Logger: log, AccessLog: access_log)
-    @server.mount('/', FileServlet)
+    @server = WEBrick::HTTPServer.new(Port: @port, DocumentRoot: @app_dir, Logger: log, AccessLog: access_log)
+    @server.mount('/app', FileServlet, { Type: :app, Prefix: "/app", DocumentRoot: @app_dir })
+    @server.mount('/comp', FileServlet, { Type: :scarpe_components, Prefix: "/comp", DocumentRoot: @components_dir })
 
     @server.start
 
@@ -153,9 +176,27 @@ class Scarpe::Components::AssetServer
   # Define a custom servlet to handle file requests
   # Webrick config adapted from ChetankumarSB's local_file_server example
   class FileServlet < WEBrick::HTTPServlet::AbstractServlet
+    FS_TYPES = [:app, :scarpe_components]
+
+    def inspect
+      "<FileServlet #{@fs_opts[:Type].inspect}>"
+    end
+
+    def initialize(server, options)
+      @fs_opts = options
+      unless options[:Type]
+        raise "Internal error! FileServlet expects to know what root it's serving!"
+      end
+      unless FS_TYPES.include?(options[:Type])
+        raise "Internal error! Unknown FileServlet root type #{options[:Type].inspect}!"
+      end
+
+      super
+    end
+
     def do_GET(request, response)
-      relative_path = request.path
-      path = File.join(@config[:DocumentRoot], relative_path)
+      relative_path = request.path.delete_prefix(@fs_opts[:Prefix])
+      path = File.join(@fs_opts[:DocumentRoot], relative_path)
 
       if File.exist?(path) && !File.directory?(path)
         begin

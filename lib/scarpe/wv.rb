@@ -105,3 +105,4 @@ require_relative "wv/progress"
 require_relative "wv/arrow"
 
 require_relative "wv/scarpe_extensions"
+require_relative "assets"

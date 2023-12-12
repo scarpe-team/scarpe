@@ -1,6 +1,12 @@
+Scarpe, Lacci and Scarpe-Components code is available under the MIT license.
+
+Bootswatch themes are made by Thomas Park and are released under MIT license.
+Bootstrap Icons are by Bootstrap Icons and are released under MIT license.
+
+=================
 The MIT License (MIT)
 
-Copyright (c) 2022 TODO: Write your name
+Copyright (c) 2022-present, Scarpe team and contributors.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
