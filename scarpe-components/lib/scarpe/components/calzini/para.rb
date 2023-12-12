@@ -6,22 +6,23 @@ module Scarpe::Components::Calzini
   # messing with the display service or display objects.
   def para_element(props, &block)
     HTML.render do |h|
-      h.p(**para_options(props), &block)
+      if props["align"]
+        h.div(id: html_id, style: {"text-align": props["align"], width: "100%"}) do
+          h.p(style: para_style(props), &block)
+        end
+      else
+        h.p(id: html_id, style: para_style(props), &block)
+      end
     end
   end
 
   private
-
-  def para_options(props)
-    { id: html_id, style: para_style(props) }.compact
-  end
 
   def para_style(props)
     drawable_style(props).merge({
       color: rgb_to_hex(props["stroke"]),
       "font-size": para_font_size(props),
       "font-family": props["font"],
-      "text-align": props["align"],
     }.compact)
   end
 

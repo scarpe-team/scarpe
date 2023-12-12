@@ -19,16 +19,5 @@ module Scarpe
 
     private
 
-    def convert_to_integer(value, attribute_name, default = 0)
-      begin
-        value = Integer(value)
-        raise InvalidAttributeValueError, "Negative num '#{value}' not allowed for attribute '#{attribute_name}'" if value < 0
-
-        value
-      rescue ArgumentError
-        error_message = "Invalid value '#{value}' provided for attribute '#{attribute_name}'. The value should be a number."
-        raise InvalidAttributeValueError, error_message
-      end
-    end
   end
 end

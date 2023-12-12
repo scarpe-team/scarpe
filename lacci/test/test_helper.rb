@@ -35,6 +35,7 @@ class NienteTest < Minitest::Test
     timeout: 5.0,
     class_name: self.class,
     method_name: self.name,
+    expect_process_fail: false,
     display_service: "niente"
   )
     with_tempfiles([
@@ -52,12 +53,15 @@ class NienteTest < Minitest::Test
       )
     end
 
-    # Check if the process exited normally or crashed (segfault, failure, timeout)
-    unless $?.success?
-      assert(false, "Niente app failed with exit code: #{$?.exitstatus}")
+    if expect_process_fail
+      assert(false, "Expected app to fail but it succeeded!") if $?.success?
       return
     end
 
-
+    # Check if the process exited normally or crashed (segfault, failure, timeout)
+    unless $?.success?
+      assert(false, "App failed with exit code: #{$?.exitstatus}")
+      return
+    end
   end
 end

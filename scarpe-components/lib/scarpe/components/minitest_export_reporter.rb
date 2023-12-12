@@ -24,7 +24,7 @@ module Minitest
     # the reporter will be automatically overridden and print to console instead.
     #
     # Based on https://gist.github.com/davidwessman/09a13840a8a80080e3842ac3051714c7
-    class ShoesExportReporter < DefaultReporter
+    class ShoesExportReporter < BaseReporter
       def self.activate!
         unless ENV["SHOES_MINITEST_EXPORT_FILE"]
           raise "ShoesExportReporter is available, but no export file was specified! Set SHOES_MINITEST_EXPORT_FILE!"
@@ -67,7 +67,7 @@ module Minitest
         end
 
         out_file = File.expand_path ENV["SHOES_MINITEST_EXPORT_FILE"]
-        puts "Writing Minitest results to #{out_file.inspect}."
+        #puts "Writing Minitest results to #{out_file.inspect}."
         File.write(out_file, JSON.dump(results))
       end
     end

@@ -9,6 +9,7 @@ PATH
       nokogiri
       scarpe-components
       sqlite3
+      webrick
       webview_ruby (~> 0.1.1)
 
 PATH

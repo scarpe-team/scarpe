@@ -14,7 +14,7 @@ class TestCalziniPara < Minitest::Test
   end
 
   def test_para_with_align
-    assert_equal %{<p id="elt-1" style="text-align:right">OK</p>},
+    assert_equal %{<div id=\"elt-1\" style=\"text-align:right;width:100%\"><p>OK</p></div>},
       @calzini.render("para", { "align" => "right" }) { "OK" }
   end
 

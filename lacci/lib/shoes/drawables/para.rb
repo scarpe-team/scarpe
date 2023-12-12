@@ -5,6 +5,13 @@ class Shoes
     shoes_styles :text_items, :size, :font
     shoes_style(:stroke) { |val| Shoes::Colors.to_rgb(val) }
 
+    shoes_style(:align) do |val|
+      unless ["left", "center", "right"].include?(val)
+        raise(Shoes::Errors::InvalidAttributeValueError, "Align must be one of left, center or right!")
+      end
+      val
+    end
+
     Shoes::Drawable.drawable_default_styles[Shoes::Para][:size] = :para
 
     shoes_events # No Para-specific events yet
@@ -15,11 +22,7 @@ class Shoes
     # sizes, but may be generally styled differently for some display services.
     #
     # @param args The text content of the paragraph.
-    # @param stroke [String, nil] The color of the text stroke.
-    # @param size [Symbol] The size of the paragraph text.
-    # @param font [String, nil] The font of the paragraph text.
-    # @param hidden [Boolean] Determines if the paragraph is initially hidden.
-    # @param html_attributes [Hash] Additional HTML attributes for the paragraph.
+    # @param kwargs [Hash] the various Shoes styles for this paragraph.
     #
     # @example
     #    Shoes.app do
@@ -34,17 +37,13 @@ class Shoes
     #
     #      p.replace "On top we'll switch to ", strong("bold"), "!"
     #    end
-    def initialize(*args, stroke: nil, size: :para, font: nil, **html_attributes)
-      kwargs = { stroke:, size:, font:, **html_attributes }.compact
-
+    def initialize(*args, **kwargs)
       # Don't pass text_children args to Drawable#initialize
       super(*[], **kwargs)
 
       # Text_children alternates strings and TextDrawables, so we can't just pass
       # it as a Shoes style. It won't serialize.
       update_text_children(args)
-
-      @html_attributes = html_attributes || {}
 
       create_display_drawable
     end

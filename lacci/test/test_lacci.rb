@@ -82,4 +82,24 @@ class TestLacci < NienteTest
       end
     SHOES_SPEC
   end
+
+  def test_unsupported_feature
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC, expect_process_fail: true)
+      Shoes.app(features: :html) do
+        para "Not supported by Niente, though."
+      end
+    SHOES_APP
+      assert true
+    SHOES_SPEC
+  end
+
+  def test_unknown_feature
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app(features: :squid) do
+        para "No such feature, though."
+      end
+    SHOES_APP
+      assert true
+    SHOES_SPEC
+  end
 end

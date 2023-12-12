@@ -54,13 +54,14 @@ class Shoes
       def validate_as(prop_name, value)
         prop_name = prop_name.to_s
         hashes = shoes_style_hashes
-
+      
         h = hashes.detect { |hash| hash[:name] == prop_name }
         raise(Shoes::Errors::NoSuchStyleError, "Can't find property #{prop_name.inspect} in #{self} property list: #{hashes.inspect}!") unless h
-
+      
         return value if h[:validator].nil?
-
-        h[:validator].call(value)
+      
+        # Pass both the property name and value to the validator block
+        h[:validator].call(value,prop_name)
       end
 
       # Return a list of Shoes events for this class.
@@ -164,26 +165,55 @@ class Shoes
       # If a block is passed to shoes_style, that's the validation for the property. It should
       # convert a given value to a valid value for the property or throw an exception.
       #
+      # If feature is non-nil, it's the feature that an app must request in order to see this
+      # property.
+      #
       # @param name [String,Symbol] the style name
+      # @param feature [Symbol,NilClass] the feature that must be defined for an app to request this style, or nil
       # @block if block is given, call it to map the given style value to a valid value, or raise an exception
-      def shoes_style(name, &validator)
+      def shoes_style(name, feature: nil, &validator)
         name = name.to_s
 
         return if linkable_properties_hash[name]
 
-        linkable_properties << { name: name, validator: }
+        linkable_properties << { name: name, validator:, feature: }
         linkable_properties_hash[name] = true
       end
 
-      # Add these names as Shoes styles with the given validator, if any
-      def shoes_styles(*names, &validator)
-        names.each { |n| shoes_style(n, &validator) }
+      # Add these names as Shoes styles with the given validator and feature, if any
+      def shoes_styles(*names, feature: nil, &validator)
+        names.each { |n| shoes_style(n, feature:, &validator) }
       end
 
-      def shoes_style_names
-        parent_prop_names = self != Shoes::Drawable ? self.superclass.shoes_style_names : []
+      # Query what feature, if any, is required to use a specific shoes_style.
+      # If no specific feature is needed, nil will be returned.
+      def feature_for_shoes_style(style_name)
+        style_name = style_name.to_s
+        lp = linkable_properties.detect { |prop| prop[:name] == style_name }
+        return lp[:feature] if lp
 
-        parent_prop_names | linkable_properties.map { |prop| prop[:name] }
+        # If we get to the top of the superclass tree and we didn't find it, it's not here
+        if self.class == ::Shoes::Drawable
+          raise Shoes::Errors::NoSuchStyleError, "Can't find information for style #{style_name.inspect}!"
+        end
+
+        super
+      end
+
+      # Return a list of shoes_style names with the given features. If with_features is nil,
+      # return them with a list of features for the current Shoes::App. For the list of
+      # styles available with no features requested, pass nil to with_features.
+      def shoes_style_names(with_features: nil)
+        # No with_features given? Use the ones requested by this Shoes::App
+        with_features ||= Shoes::App.instance.features
+        parent_prop_names = self != Shoes::Drawable ? self.superclass.shoes_style_names(with_features:) : []
+
+        if with_features == :all
+          subclass_props = linkable_properties
+        else
+          subclass_props = linkable_properties.select { |prop| !prop[:feature] || with_features.include?(prop[:feature]) }
+        end
+        parent_prop_names | subclass_props.map { |prop| prop[:name] }
       end
 
       def shoes_style_hashes
@@ -198,6 +228,15 @@ class Shoes
       end
     end
 
+    # Every Shoes drawable has positioning properties
+    shoes_styles :top, :left, :width, :height
+
+    # Margins around drawable
+    shoes_styles :margin, :margin_top, :margin_bottom, :margin_left, :margin_right
+
+    # Padding around drawable
+    shoes_styles :padding, :padding_top, :padding_bottom, :padding_left, :padding_right
+
     # Shoes uses a "hidden" style property for hide/show
     shoes_style :hidden
 
@@ -205,6 +244,22 @@ class Shoes
 
     def initialize(*args, **kwargs)
       log_init("Shoes::#{self.class.name}") unless @log
+
+      # First, get the list of allowed and disallowed styles for the given features
+      # and make sure no disallowed styles were given.
+
+      app_features = Shoes::App.instance.features
+      this_app_styles = self.class.shoes_style_names.map(&:to_sym)
+      not_this_app_styles = self.class.shoes_style_names(with_features: :all).map(&:to_sym) - this_app_styles
+
+      bad_styles = kwargs.keys & not_this_app_styles
+      unless bad_styles.empty?
+        features_needed = bad_styles.map { |s| self.class.feature_for_shoes_style(s) }.uniq
+        raise Shoes::Errors::UnsupportedFeature, "The style(s) #{bad_styles.inspect} are only defined for applications that request specific features: #{features_needed.inspect} (you requested #{app_features.inspect})!"
+      end
+
+      # Next, check positional arguments and make sure the correct number and type
+      # were passed and match positional args with style names.
 
       supplied_args = kwargs.keys
 
@@ -237,6 +292,8 @@ class Shoes
         end
       end
 
+      # Styles that were *not* passed should be set to defaults
+
       default_styles = Shoes::Drawable.drawable_default_styles[self.class]
       this_drawable_styles = self.class.shoes_style_names.map(&:to_sym)
 
@@ -246,7 +303,7 @@ class Shoes
         instance_variable_set("@#{key}", val)
       end
 
-      # If we have a keyword arg for a style, set it normally.
+      # If we have a keyword arg for a style, set it as specified.
       (this_drawable_styles & kwargs.keys).each do |key|
         val = self.class.validate_as(key, kwargs[key])
         instance_variable_set("@#{key}", val)
@@ -427,7 +484,7 @@ class Shoes
         prop_name = name_s[0..-2]
         if self.class.shoes_style_name?(prop_name)
           self.class.define_method(name) do |new_value|
-            raise(Shoes::Errors::NoLinkableIdError, "Trying to set Shoes styles in an object with no linkable ID! #{inspect}") unless linkable_id
+            raise(Shoes::Errors::NoLinkableIdError, "Trying to set Shoes styles in a #{self.class} with no linkable ID!") unless linkable_id
 
             new_value = self.class.validate_as(prop_name, new_value)
             instance_variable_set("@" + prop_name, new_value)
@@ -458,6 +515,30 @@ class Shoes
       return true if Drawable.drawable_class_by_name(name_s)
 
       super
+    end
+
+    def self.convert_to_integer(value, attribute_name)
+      begin
+        value = Integer(value)
+        raise Shoes::Errors::InvalidAttributeValueError, "Negative number '#{value}' not allowed for attribute '#{attribute_name}'" if value < 0
+
+        value
+      rescue ArgumentError
+        error_message = "Invalid value '#{value}' provided for attribute '#{attribute_name}'. The value should be a number."
+        raise Shoes::Errors::InvalidAttributeValueError, error_message
+      end
+    end
+
+    def self.convert_to_float(value, attribute_name)
+      begin
+        value = Float(value)
+        raise Shoes::Errors::InvalidAttributeValueError, "Negative number '#{value}' not allowed for attribute '#{attribute_name}'" if value < 0
+
+        value
+      rescue ArgumentError
+        error_message = "Invalid value '#{value}' provided for attribute '#{attribute_name}'. The value should be a number."
+        raise Shoes::Errors::InvalidAttributeValueError, error_message
+      end
     end
   end
 end

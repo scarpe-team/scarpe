@@ -4,12 +4,11 @@ class Shoes
   class DocumentRoot < Shoes::Flow
     shoes_events # No DocumentRoot-specific events yet
 
-    init_args
-    def initialize
-      @height = "100%"
-      @width = @margin = @padding = nil
-      @options = {}
+    Shoes::Drawable.drawable_default_styles[Shoes::DocumentRoot][:height] = "100%"
+    Shoes::Drawable.drawable_default_styles[Shoes::DocumentRoot][:width] = "100%"
 
+    init_args
+    def initialize(**kwargs, &block)
       super
     end
 
