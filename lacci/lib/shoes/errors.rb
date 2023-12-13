@@ -29,4 +29,6 @@ module Shoes::Errors
   class MultipleShoesSpecRunsError < Shoes::Error; end
 
   class UnsupportedFeature < Shoes::Error; end
+
+  class BadFilenameError < Shoes::Error; end
 end

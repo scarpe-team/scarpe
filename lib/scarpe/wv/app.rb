@@ -57,6 +57,7 @@ module Scarpe::Webview
     def run
       # This is run before the Webview event loop is up and running
       @control_interface.dispatch_event(:init)
+      Scarpe::CCInstance.instance.event_init # Set up Fiber-based handling of events for CatsCradle
 
       @view.empty_page = empty_page_element
 

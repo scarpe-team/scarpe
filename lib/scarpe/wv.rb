@@ -39,9 +39,8 @@ end
 Shoes::Log.instance = Scarpe::Components::ModularLogImpl.new
 Shoes::Log.configure_logger(log_config)
 
-require "scarpe/components/segmented_file_loader"
-loader = Scarpe::Components::SegmentedFileLoader.new
-Shoes.add_file_loader loader
+require_relative "file_loader"
+Shoes.set_file_loaders [Scarpe::CatsCradleFileLoader.new]
 
 # Fun trivia: listing the full set of available fonts is a fingerprinting attack, so it's not
 # available from JS. These are all commonly available web fonts, though.

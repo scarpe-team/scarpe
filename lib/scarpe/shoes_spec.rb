@@ -26,34 +26,11 @@ module Scarpe::Test
     class_name ||= ENV["SHOES_MINITEST_CLASS_NAME"] || "TestShoesSpecCode"
     test_name ||= ENV["SHOES_MINITEST_METHOD_NAME"] || "test_shoes_spec"
 
-    require_relative "cats_cradle"
-
-    # We want Minitest assertions available in the test code.
-    # But this will normally run in a subprocess. So we need
-    # to run Minitest tests and then export the results.
-
-    # We create a test object based on CatsCradle, which will
-    # run the test as straight-line code, wait for appropriate
-    # events and generally make things well-behaved. But the
-    # test DSL isn't CatsCradle. It's based on Minitest and
-    # ShoesSpecTest (see below).
-    #
-    # Note that that means that using CatsCradle to "bounce"
-    # control back and forth for evented tricks isn't really
-    # an option. We may need to revisit all of this later...
-    test_obj = Object.new
-    class << test_obj
-      include Scarpe::CatsCradle
-    end
-    Scarpe::ShoesSpecTest.test_obj = test_obj
-    test_obj.instance_eval do
-      event_init
-
-      on_heartbeat do
+    Scarpe::CCInstance.instance.instance_eval do
+      on_event(:next_heartbeat) do
         Minitest.run ARGV
 
         shut_down_shoes_code
-        Scarpe::ShoesSpecTest.test_obj = nil
       end
     end
 
@@ -66,7 +43,6 @@ module Scarpe::Test
   end
 end
 
-# This is based on the CatsCradle proxies initially, but will diverge over time
 class Scarpe::ShoesSpecProxy
   attr_reader :obj
   attr_reader :linkable_id
@@ -116,9 +92,6 @@ end
 class Scarpe::ShoesSpecTest < Minitest::Test
   include Scarpe::Test::HTMLAssertions
 
-  class << self
-    attr_accessor :test_obj
-  end
   Shoes::Drawable.drawable_classes.each do |drawable_class|
     finder_name = drawable_class.dsl_name
 
