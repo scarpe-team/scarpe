@@ -1,32 +1,22 @@
 # frozen_string_literal: true
 
 module Scarpe::Components::Calzini
-  def slot_element(props, &block)
-    HTML.render do |h|
-      h.div((props["html_attributes"] || {}).merge(id: html_id, style: slot_style(props)), &block)
-    end
-  end
-
-  def flow_element(props, &block)
-    HTML.render do |h|
-      h.div((props["html_attributes"] || {}).merge(id: html_id, style: flow_style(props)), &block)
-    end
-  end
-
-  def stack_element(props, &block)
-    HTML.render do |h|
-      h.div((props["html_attributes"] || {}).merge(id: html_id, style: stack_style(props)), &block)
-    end
-  end
-
-  def documentroot_element(props, &block)
-    HTML.render do |h|
-      # DocumentRoot rendering intentionally uses flow styles.
-      h.div((props["html_attributes"] || {}).merge(id: html_id, style: flow_style(props)), &block)
+  def render_drawable(drawable)
+    case drawable
+    when Shoes::Border
+      border_element(drawable.style)
+    else
+      super
     end
   end
 
   private
+
+  def border_element(props)
+    HTML.render do |h|
+      h.div((props["html_attributes"] || {}).merge(id: html_id, style: border_style(props, {})))
+    end
+  end
 
   def slot_style(props)
     styles = drawable_style(props)
