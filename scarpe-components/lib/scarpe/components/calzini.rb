@@ -115,9 +115,6 @@ module Scarpe::Components::Calzini
       styles[:display] = "none"
     end
 
-    # Do we need to set CSS positioning here, especially if displace is set? Position: relative maybe?
-    # We need some Shoes3 screenshots and HTML-based tests here...
-
     if props["top"] || props["left"]
       styles[:position] = "absolute"
     end

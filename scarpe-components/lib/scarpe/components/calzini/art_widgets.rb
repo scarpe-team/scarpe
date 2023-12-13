@@ -50,7 +50,7 @@ module Scarpe::Components::Calzini
     fill = first_color_of(props["fill"], dc["fill"], "black")
     stroke = first_color_of(props["stroke"], dc["stroke"], "black")
     HTML.render do |h|
-      h.div(id: html_id, style: star_style(props)) do
+      h.div(id: html_id, style: drawable_style(props)) do
         h.svg(width: props["outer"], height: props["outer"], style: "fill:#{fill}") do
           h.polygon(points: star_points(props), style: "stroke:#{stroke};stroke-width:2")
         end
@@ -68,12 +68,27 @@ module Scarpe::Components::Calzini
     width = radius * 2
     height = props["height"] || radius * 2 # If there's a height, it's an oval, if not, circle
     center = props["center"] || false
+
+    s = drawable_style(props)
+    c = {
+      cx: 0,
+      cy: 0,
+      rx: width ? width / 2 : radius,
+      ry: height ? height / 2 : radius,
+    }
+    if center
+      s[:width] = width ? width / 2 : radius
+      s[:height] = height ? height / 2 : radius
+      s[:left] = nil
+      s[:top] = nil
+    end
+
     HTML.render do |h|
-      h.div(id: html_id, style: oval_style(props)) do
+      h.div(id: html_id, style: s) do
         h.svg(width: width, height: height, style: "fill:#{fill};") do
           h.ellipse(
-            cx: center ? radius : 0,
-            cy: center ? height / 2 : 0,
+            cx: center ? 0 : radius,
+            cy: center ? 0 : height / 2,
             rx: width ? width / 2 : radius,
             ry: height ? height / 2 : radius,
             style: "stroke:#{stroke};stroke-width:#{strokewidth};",
@@ -131,20 +146,6 @@ module Scarpe::Components::Calzini
       #"stroke-width": "1",
       fill: first_color_of(props["fill"], (props["draw_context"] || {})["fill"]),
     }.compact
-  end
-
-  def star_style(props)
-    drawable_style(props).merge({
-      width: dimensions_length(props["width"]),
-      height: dimensions_length(props["height"]),
-    }).compact
-  end
-
-  def oval_style(props)
-    drawable_style(props).merge({
-      width: dimensions_length(props["width"]),
-      height: dimensions_length(props["height"]),
-    })
   end
 
   def star_points(props)

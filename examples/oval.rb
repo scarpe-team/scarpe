@@ -14,13 +14,13 @@ Shoes.app(
   end
   flow(height: 200) do
     para "As a circle"
-    stroke "blue"
-    fill "pink"
+    stroke blue
+    fill pink
     oval 30, 30, 80, center: true
   end
   flow(height: 200) do
     para "Keyword arguments:"
-    fill "green"
-    oval top: 20, left: 20, height: 160, width: 90, center: true, stroke: "red", strokewidth: 4
+    fill green
+    oval top: 20, left: 20, height: 160, width: 90, center: true, stroke: red, strokewidth: 4
   end
 end

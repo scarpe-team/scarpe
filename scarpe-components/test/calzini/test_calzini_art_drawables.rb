@@ -102,4 +102,25 @@ class TestCalziniArtDrawables < Minitest::Test
       finish,
       @calzini.render("star", { "points" => 5, "outer" => 2.0, "inner" => 1.0, "draw_context" => { "fill" => "red", "stroke" => "green" } })
   end
+
+  def test_oval_simple
+    assert_equal %{<div id="elt-1" style="position:absolute;top:4;left:7;width:;height:">} +
+      %{<svg width="50" height="50" style="fill:black;">} +
+      %{<ellipse cx="0" cy="0" rx="25" ry="25" style="stroke:black;stroke-width:2;" /></svg></div>},
+      @calzini.render("oval", { "top" => "4", "left" => "7", "radius" => 25 })
+  end
+
+  def test_oval_simple
+    assert_equal %{<div id="elt-1" style="position:absolute;top:4;left:7">} +
+      %{<svg width="50" height="50" style="fill:black;">} +
+      %{<ellipse cx="0" cy="0" rx="25" ry="25" style="stroke:black;stroke-width:2;" /></svg></div>},
+      @calzini.render("oval", { "top" => "4", "left" => "7", "radius" => 25 })
+  end
+
+  def test_oval_centered
+    assert_equal %{<div id="elt-1" style="position:absolute;top:90;left:100">} +
+      %{<svg width="50" height="50" style="fill:black;">} +
+      %{<ellipse cx="0" cy="0" rx="25" ry="25" style="stroke:black;stroke-width:2;" /></svg></div>},
+      @calzini.render("oval", { "top" => "90", "left" => "100", "radius" => 25, "center" => true })
+  end
 end
