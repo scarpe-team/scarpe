@@ -101,9 +101,9 @@ module Scarpe::Webview
         if hidden
           html_element.set_style("display", "none")
         else
-          new_style = style # Get current display CSS property, which may vary by subclass
-          disp = new_style[:display]
-          html_element.set_style("display", disp || "block")
+          # With Calzini we can't easily tell what the display property should be.
+          # Could be flex or inline, not only block or none. Re-render this drawable.
+          needs_update!
         end
       end
 
@@ -141,41 +141,6 @@ module Scarpe::Webview
 
       # If we add a child, we should redraw ourselves
       needs_update!
-    end
-
-    # Convert an [r, g, b, a] array to an HTML hex color code
-    # Arrays support alpha. HTML hex does not. So premultiply.
-    def rgb_to_hex(color)
-      return color if color.nil?
-
-      r, g, b, a = *color
-      if r.is_a?(Float)
-        a ||= 1.0
-        r_float = r * a
-        g_float = g * a
-        b_float = b * a
-      else
-        a ||= 255
-        a_float = (a / 255.0)
-        r_float = (r.to_f / 255.0) * a_float
-        g_float = (g.to_f / 255.0) * a_float
-        b_float = (b.to_f / 255.0) * a_float
-      end
-
-      r_int = (r_float * 255.0).to_i.clamp(0, 255)
-      g_int = (g_float * 255.0).to_i.clamp(0, 255)
-      b_int = (b_float * 255.0).to_i.clamp(0, 255)
-
-      "#%0.2X%0.2X%0.2X" % [r_int, g_int, b_int]
-    end
-
-    # CSS styles
-    def style
-      styles = {}
-      if @hidden
-        styles[:display] = "none"
-      end
-      styles
     end
 
     public

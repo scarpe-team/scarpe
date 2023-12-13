@@ -53,7 +53,7 @@ module Scarpe::Components::Calzini
   end
 
   def span_options(props)
-    (props["html_attributes"] || {}).merge(id: html_id, style: span_style(props))
+    { id: html_id, style: span_style(props) }
   end
 
   def span_font_size(props)

@@ -3,27 +3,30 @@
 module Scarpe::Components::Calzini
   def slot_element(props, &block)
     HTML.render do |h|
-      h.div((props["html_attributes"] || {}).merge(id: html_id, style: slot_style(props)), &block)
+      h.div((props["html_attributes"] || {}).merge(id: html_id, style: slot_style(props))) do
+        h.div(style: { height: "100%", width: "100%" }, &block)
+      end
     end
   end
 
   def flow_element(props, &block)
     HTML.render do |h|
-      h.div((props["html_attributes"] || {}).merge(id: html_id, style: flow_style(props)), &block)
+      h.div((props["html_attributes"] || {}).merge(id: html_id, style: flow_style(props))) do
+        h.div(style: { height: "100%", width: "100%", position: "relative" }, &block)
+      end
     end
   end
 
   def stack_element(props, &block)
     HTML.render do |h|
-      h.div((props["html_attributes"] || {}).merge(id: html_id, style: stack_style(props)), &block)
+      h.div((props["html_attributes"] || {}).merge(id: html_id, style: stack_style(props))) do
+        h.div(style: { height: "100%", width: "100%", position: "relative" }, &block)
+      end
     end
   end
 
   def documentroot_element(props, &block)
-    HTML.render do |h|
-      # DocumentRoot rendering intentionally uses flow styles.
-      h.div((props["html_attributes"] || {}).merge(id: html_id, style: flow_style(props)), &block)
-    end
+    flow_element(props, &block)
   end
 
   private
