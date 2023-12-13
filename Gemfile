@@ -21,7 +21,8 @@ group :development do
   gem "redcarpet"
   gem "debug"
   gem "rubocop", "~> 1.21"
-  gem "rubocop-shopify"
+  gem "htmlbeautifier"
+  gem "diff-lcs"
   #gem "commonmarker"
   #gem "github-markup"
 end

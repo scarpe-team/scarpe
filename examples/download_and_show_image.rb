@@ -1,3 +1,6 @@
+# html_ci: false
+# This is due to a button rendering issue
+
 Shoes.app do
   stack do
     title "Downloading Google image", size: 16

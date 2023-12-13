@@ -28,6 +28,8 @@ jobs:
         run: CI_RUN='true' bundle exec rake component_test
       - name: Run Scarpe tests
         run: CI_RUN='true' bundle exec rake test
+      - name: Check HTML output
+        run: bundle exec rake test:check_html_fixtures
       - name: upload test-fail logs
         if: '!cancelled()'
         uses: actions/upload-artifact@v3
