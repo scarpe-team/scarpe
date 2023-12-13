@@ -63,8 +63,8 @@ module Scarpe::Components::Calzini
 
   def oval_element(props, &block)
     dc = props["draw_context"] || {}
-    fill = props["fill"] || (dc["fill"] == "" ? nil : dc["fill"]) || "black"
-    stroke = props["stroke"] || (dc["stroke"] == "" ? nil : dc["stroke"]) || "black"
+    fill = props["fill"] || (dc["fill"] == "" ? nil : Shoes::Colors.stringified(dc["fill"])) || "black"
+    stroke = props["stroke"] || (dc["stroke"] == "" ? nil : Shoes::Colors.stringified(dc["stroke"])) || "black"
     strokewidth = props["strokewidth"] || dc["strokewidth"] || "2"
     fill = "black" if !fill || fill == ""
     radius = props["radius"]

@@ -174,6 +174,21 @@ class Shoes
       end
     end
 
+    def stringified(color)
+      case color
+      when String
+        color
+      when Array
+        if color.length == 3
+          "rgb(#{color[0]}, #{color[1]}, #{color[2]})"
+        elsif color.length == 4
+          "rgba(#{color[0]}, #{color[1]}, #{color[2]}, #{color[3]})"
+        end
+      else
+        raise("Don't know how to convert #{color.inspect} to a color string!")
+      end
+    end
+
     def to_rgb(color)
       case color
       when nil
