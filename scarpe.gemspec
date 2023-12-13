@@ -5,8 +5,8 @@ require_relative "lib/scarpe/version"
 Gem::Specification.new do |spec|
   spec.name = "scarpe"
   spec.version = Scarpe::VERSION
-  spec.authors = ["Marco Concetto Rudilosso", "Noah Gibbs"]
-  spec.email = ["marcoc.r@outlook.com", "the.codefolio.guy@gmail.com"]
+  spec.authors = ["Marco Concetto Rudilosso", "Noah Gibbs", "Nicholas Schwaderer"]
+  spec.email = ["marcoc.r@outlook.com", "the.codefolio.guy@gmail.com", "nicholas.schwaderer@gmail.com"]
 
   spec.summary = "Scarpe - shoes but running on webview"
   spec.homepage = "https://github.com/scarpe-team/scarpe"
