@@ -2,7 +2,7 @@
 
 class Shoes
   class Rect < Shoes::Drawable
-    shoes_styles :left, :top, :width, :height, :draw_context, :curve
+    shoes_styles :draw_context, :curve, :stroke, :fill
     shoes_events # No Rect-specific events
 
     init_args :left, :top, :width, :height

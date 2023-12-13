@@ -47,10 +47,8 @@ module Scarpe::Components::Calzini
 
   def star_element(props, &block)
     dc = props["draw_context"] || {}
-    fill = dc["fill"]
-    stroke = dc["stroke"]
-    fill = "black" if !fill || fill == ""
-    stroke = "black" if !stroke || stroke == ""
+    fill = first_color_of(props["fill"], dc["fill"], "black")
+    stroke = first_color_of(props["stroke"], dc["stroke"], "black")
     HTML.render do |h|
       h.div(id: html_id, style: star_style(props)) do
         h.svg(width: props["outer"], height: props["outer"], style: "fill:#{fill}") do
@@ -63,10 +61,9 @@ module Scarpe::Components::Calzini
 
   def oval_element(props, &block)
     dc = props["draw_context"] || {}
-    fill = props["fill"] || (dc["fill"] == "" ? nil : dc["fill"]) || "black"
-    stroke = props["stroke"] || (dc["stroke"] == "" ? nil : dc["stroke"]) || "black"
+    fill = first_color_of(props["fill"], dc["fill"], "black")
+    stroke = first_color_of(props["stroke"], dc["stroke"], "black")
     strokewidth = props["strokewidth"] || dc["strokewidth"] || "2"
-    fill = "black" if !fill || fill == ""
     radius = props["radius"]
     width = radius * 2
     height = props["height"] || radius * 2 # If there's a height, it's an oval, if not, circle
@@ -121,22 +118,18 @@ module Scarpe::Components::Calzini
   end
 
   def line_svg_style(props)
-    stroke = if props["draw_context"] && !props["draw_context"]["stroke"].to_s.empty?
-      (props["draw_context"]["stroke"]).to_s
-    else
-      "black"
-    end
     {
 
-      "stroke": stroke,
+      "stroke": first_color_of(props["stroke"], (props["draw_context"] || {})["stroke"], "black"),
       "stroke-width": "4",
     }.compact
   end
 
   def rect_svg_style(props)
     {
-      stroke: (props["draw_context"] || {})["stroke"],
+      stroke: first_color_of(props["stroke"], (props["draw_context"] || {})["stroke"]),
       #"stroke-width": "1",
+      fill: first_color_of(props["fill"], (props["draw_context"] || {})["fill"]),
     }.compact
   end
 
@@ -186,11 +179,9 @@ module Scarpe::Components::Calzini
     end_y = top
     stroke_width = width / 2
     dc = props["draw_context"] || {}
-    fill = dc["fill"]
-    stroke = dc["stroke"]
+    fill = first_color_of(props["fill"], dc["fill"], "black")
+    stroke = first_color_of(props["stroke"], dc["stroke"], "black")
     rotate = dc["rotate"]
-    fill = "black" if !fill || fill == ""
-    stroke = "black" if !stroke || stroke == ""
 
     stroke_width = width / 4
 
@@ -207,7 +198,7 @@ module Scarpe::Components::Calzini
               refY: "5",
               orient: "auto-start-reverse",
             ) do
-              h.path(d: "M 0 0 L 10 5 L 0 10 z", fill: fill.to_s)
+              h.path(d: "M 0 0 L 10 5 L 0 10 z", fill: fill)
             end
           end
 
@@ -216,8 +207,8 @@ module Scarpe::Components::Calzini
             y2: top.to_s,
             x1: end_x.to_s,
             y1: end_y.to_s,
-            fill: fill.to_s,
-            stroke: stroke.to_s,
+            fill: fill,
+            stroke: stroke,
             "stroke-width" => stroke_width.to_s,
             "marker-end" => "url(#head)",
             transform: "rotate(#{rotate}, #{left + width / 2}, #{top})",

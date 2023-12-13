@@ -184,10 +184,21 @@ module Scarpe::Components::Calzini
     end
   end
 
+  def first_color_of(*colors)
+    colors.compact!
+    colors.select! { |c| c != "" }
+    rgb_to_hex(colors[0])
+  end
+
   # Convert an [r, g, b, a] array to an HTML hex color code
   # Arrays support alpha. HTML hex does not. So premultiply.
   def rgb_to_hex(color)
-    return color if color.nil?
+    return nil if color.nil?
+    return "#000000" if color == ""
+
+    # TODO: need to figure out if it's a color name like "aquamarine"
+    # or a hex code or an image file to use as a pattern or what.
+    return color if color.is_a?(String)
 
     r, g, b, a = *color
     if r.is_a?(Float)
