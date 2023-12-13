@@ -128,7 +128,7 @@ unless failures.empty?
   puts "\n=== #{bold}Summary#{reset} ==="
   puts "The following files have had their HTML output change with your changes"
   puts "This may indicate an error. Please check the diff and update the fixture if necessary."
-  puts "You can update the fixture by running #{bold}`rake test:regen_html_fixtures`#{reset}\n\n"
+  puts "You can update the fixture by running #{bold}`rake test:regenerate_html_fixtures`#{reset}\n\n"
   failures.each do |file|
     puts "#{red}#{file}#{reset}"
   end
