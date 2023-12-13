@@ -23,8 +23,6 @@ module Scarpe::Components::Calzini
     styles = drawable_style(props)
 
     styles[:"background-color"] = props["color"] if props["color"]
-    styles[:"padding-top"] = props["padding_top"] if props["padding_top"]
-    styles[:"padding-bottom"] = props["padding_bottom"] if props["padding_bottom"]
     styles[:color] = props["text_color"] if props["text_color"]
 
     styles[:"font-size"] = props["font_size"] if props["font_size"]
