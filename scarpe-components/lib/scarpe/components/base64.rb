@@ -15,7 +15,7 @@ module Scarpe
     end
 
     def mime_type_for_filename(filename)
-      ext = File.extname(filename)
+      ext = File.extname(filename)[1..-1] # Cut off leading dot
 
       case ext
       when "jpg", "jpeg"

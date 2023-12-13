@@ -8,11 +8,14 @@ gem "lacci", path: "../lacci"
 
 gem "rake", "~> 13.0"
 
-gem "nokogiri"
+#gem "nokogiri"
 
 group :test do
   gem "minitest", "~> 5.0"
   gem "minitest-reporters"
+
+  # Dependencies for specific components being tested
+  gem "webrick"
 end
 
 group :development do

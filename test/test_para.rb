@@ -65,9 +65,9 @@ class TestWebviewPara < ScarpeTest
       "size" => 48,
     ))
 
-    assert_html para.to_html, :p, id: para.html_id, style: "font-size:48px" do
-      "Oh, to fling and be flung"
-    end
+    # We shouldn't assert_html here because Calzini and Tiranti render text this size
+    # with different HTML tags, p or h2.
+    assert_includes para.to_html, 'style="font-size:48px"'
   end
 
   def test_renders_paragraph_with_size_symbol
@@ -76,9 +76,9 @@ class TestWebviewPara < ScarpeTest
       "size" => :banner,
     ))
 
-    assert_html para.to_html, :p, id: para.html_id, style: "font-size:48px" do
-      "Oh, to fling and be flung"
-    end
+    # We shouldn't assert_html here because Calzini and Tiranti render text this size
+    # with different HTML tags, p or h2.
+    assert_includes para.to_html, 'style="font-size:48px"'
   end
 
   # This tests a Webview::Para by sending a prop_change event
@@ -97,9 +97,9 @@ class TestWebviewPara < ScarpeTest
         target: 1,
       )
 
-      assert_html para.to_html, :p, id: para.html_id, style: "font-size:48px" do
-        "Oh, to be flung and to fling"
-      end
+      # We shouldn't assert_html here because Calzini and Tiranti render text this size
+      # with different HTML tags, p or h2.
+      assert_includes para.to_html, "Oh, to be flung and to fling"
     end
     mocked_html_element.verify
   end

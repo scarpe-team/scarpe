@@ -8,7 +8,12 @@ class Shoes
       attr_accessor :instance
     end
 
+    # The Shoes root of the drawable tree
     attr_reader :document_root
+
+    # The application directory for this app. Often this will be the directory
+    # containing the launched application file.
+    attr_reader :dir
 
     shoes_styles :title, :width, :height, :resizable, :features
 
@@ -36,6 +41,9 @@ class Shoes
       else
         Shoes::App.instance = self
       end
+
+      # We cd to the app's containing dir when running the app
+      @dir = Dir.pwd
 
       @do_shutdown = false
       @event_loop_type = "displaylib" # the default

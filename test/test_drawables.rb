@@ -37,10 +37,10 @@ class TestDrawables < ShoesSpecLoggedTest
 
       w.each { |i| i.hide }
       w.each do |i|
-        assert i.display.to_html.include?("display:none"), "expected drawable #{i.class} to be hidden!"
+        assert i.display.to_html.include?("display:none"), "expected drawable #{i.obj.class} to be hidden!"
       end
       w.each { |i| i.toggle() }
-      w.each { |i| assert !i.display.to_html.include?("display:none"), "Expected drawable #{i.class} to be shown!" }
+      w.each { |i| assert !i.display.to_html.include?("display:none"), "Expected drawable #{i.obj.class} to be shown!" }
 
       # Nothing hidden, make sure no display:none
       assert !dom_html.include?("display:none")
@@ -99,7 +99,7 @@ class TestDrawables < ShoesSpecLoggedTest
       end
 
       w.each do |i|
-        assert i.display.to_html.include?("display:none"), "expected drawable #{i.class} to be hidden!"
+        assert i.display.to_html.include?("display:none"), "expected drawable #{i.obj.class} to be hidden!"
       end
     TEST_CODE
   end
