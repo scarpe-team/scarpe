@@ -28,7 +28,6 @@ module Scarpe
         "Lacci" => [
           env_or_default("SCARPE_DISPLAY_SERVICE", "(none)"),
           env_or_default("SCARPE_LOG_CONFIG", "(default)#{Shoes::Log::DEFAULT_LOG_CONFIG.inspect}"),
-          env_or_default("SCARPE_APP_TEST", "(none)"),
         ],
         "Ruby and Shell" => [
           ["RUBY_DESCRIPTION", RUBY_DESCRIPTION],

@@ -80,15 +80,7 @@ class Shoes
       # Now create the App display drawable
       create_display_drawable
 
-      # Set up testing events *after* Display Service basic objects exist
-      # This is the pre-ShoesSpec testing method
-      if ENV["SCARPE_APP_TEST"]
-        test_code = File.read ENV["SCARPE_APP_TEST"]
-        if test_code != ""
-          @test_obj = Object.new
-          @test_obj.instance_eval test_code
-        end
-      end
+      # Set up testing *after* Display Service basic objects exist
 
       if ENV["SHOES_SPEC_TEST"]
         test_code = File.read ENV["SHOES_SPEC_TEST"]

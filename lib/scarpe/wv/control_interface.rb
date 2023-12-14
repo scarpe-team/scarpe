@@ -1,15 +1,7 @@
 # frozen_string_literal: true
 
-# The ControlInterface is used for testing. It's a way to register interest
-# in important events like redraw, init and shutdown, and to configure a
-# Shoes app for testing. Note that no part of the Scarpe framework should
-# ever *depend* on ControlInterface. It's for testing, not normal operation.
-# If no ControlInterface were ever created or called, Scarpe apps should run
-# fine with no modifications.
-#
-# And if you depend on this from the framework, I'll add a check-mode that
-# never dispatches any events to any handlers. Do NOT test me on this.
-
+# The ControlInterface is used to coordinate events. It's a way to register interest
+# in important events like redraw, init and shutdown. It's used extensively for testing.
 module Scarpe::Webview
   class ControlInterface
     include Shoes::Log
