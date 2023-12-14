@@ -11,26 +11,41 @@ class Scarpe::Components::PrintLogImpl
   class PrintLogger
     class << self
       attr_accessor :silence
+      attr_accessor :min_level
     end
+
+    LEVELS = {
+      :never => 1000,
+      :error => 4,
+      :warn => 3,
+      :info => 2,
+      :debug => 1,
+      :always => -1,
+    }
+    PrintLogger.min_level = LEVELS[:always]
 
     def initialize(component_name)
       @comp_name = component_name
     end
 
     def error(msg)
-      puts "#{@comp_name} error: #{msg}" unless PrintLogger.silence
+      return if PrintLogger.silence || PrintLogger.min_level > LEVELS[:error]
+      puts "#{@comp_name} error: #{msg}"
     end
 
     def warn(msg)
+      return if PrintLogger.silence || PrintLogger.min_level > LEVELS[:warn]
       puts "#{@comp_name} warn: #{msg}" unless PrintLogger.silence
     end
 
     def debug(msg)
+      return if PrintLogger.silence || PrintLogger.min_level > LEVELS[:debug]
       puts "#{@comp_name} debug: #{msg}" unless PrintLogger.silence
     end
 
     def info(msg)
-      puts "#{@comp_name} info: #{msg}" unless PrintLogger.silence
+      return if PrintLogger.silence || PrintLogger.min_level > LEVELS[:info]
+      puts "#{@comp_name} info: #{msg}"
     end
   end
 

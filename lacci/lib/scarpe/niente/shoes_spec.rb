@@ -30,7 +30,6 @@ class Niente::Test
     Object.const_set(Scarpe::Components::StringHelpers.camelize(class_name), test_class)
     test_name = "test_" + test_name unless test_name.start_with?("test_")
     test_class.define_method(test_name) do
-      STDERR.puts "Started running #{class_name.inspect}::#{test_name.inspect}"
       eval(code)
     end
   end
