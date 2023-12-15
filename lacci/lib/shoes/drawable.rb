@@ -242,6 +242,10 @@ class Shoes
 
     attr_reader :debug_id
 
+    # These styles can be set to a current per-slot value and inherited from parent slots.
+    # Their value is set at drawable-create time.
+    DRAW_CONTEXT_STYLES = [:fill, :stroke, :strokewidth, :rotate, :transform, :translate]
+
     def initialize(*args, **kwargs)
       log_init("Shoes::#{self.class.name}") unless @log
 
@@ -292,10 +296,33 @@ class Shoes
         end
       end
 
+      this_drawable_styles = self.class.shoes_style_names.map(&:to_sym)
+      dc = Shoes::App.instance.current_draw_context || {}
+
+      # Styles not passed as arguments can come from the draw context
+
+      # What styles are in the draw context, are used by this drawable, and weren't
+      # given as positional or keyword arguments?
+      draw_context_styles = (DRAW_CONTEXT_STYLES & this_drawable_styles) - supplied_args
+      unless draw_context_styles.empty?
+        # When we first call this, there is no parent. We don't want to set the parent
+        # yet because that will send a notification, and *that* should wait until after
+        # we've told the display service that this drawable was created. So instead
+        # we'll query the parent object's draw context directly.
+
+        draw_context_styles.each do |style|
+          dc_val = dc[style.to_s]
+          next if dc_val.nil?
+
+          val = self.class.validate_as(style, dc[style.to_s])
+          instance_variable_set("@#{style}", val)
+          supplied_args << style
+        end
+      end
+
       # Styles that were *not* passed should be set to defaults
 
       default_styles = Shoes::Drawable.drawable_default_styles[self.class]
-      this_drawable_styles = self.class.shoes_style_names.map(&:to_sym)
 
       # No arg specified for a property with a default value? Set it to default.
       (default_styles.keys - supplied_args).each do |key|

@@ -4,7 +4,27 @@ class Shoes::Slot < Shoes::Drawable
   # @incompatibility Shoes uses #content, not #children, for this. Scarpe does both.
   attr_reader :children
 
+  # This only shows this specific slot's settings, not its parent's.
+  # Use current_draw_context to allow inheritance.
+  attr_reader :draw_context
+
   shoes_events # No Slot-specific events
+
+  def initialize(...)
+    # The draw context tracks current settings like fill and stroke,
+    # plus potentially other current state that changes from drawable
+    # to drawable and slot to slot.
+    @draw_context = {
+      "fill" => nil,
+      "stroke" => nil,
+      "strokewidth" => nil,
+      "rotate" => nil,
+      # "transform" => nil, # "corner",
+      # "translate" => nil, # [0, 0],
+    }
+
+    super
+  end
 
   # Do not call directly, use set_parent
   def remove_child(child)
@@ -56,6 +76,71 @@ class Shoes::Slot < Shoes::Drawable
 
     false
   end
+
+  # Draw context methods
+
+  # Set the default fill color in this slot and child slots.
+  # Pass nil for "no setting", so that it can inherit defaults.
+  #
+  # @param color [Nil,Color] a Shoes color for the fill color or nil to use parent setting
+  # @return [void]
+  def fill(color)
+    @draw_context["fill"] = color
+  end
+
+  # Set the default fill in this slot and child slots to transparent.
+  #
+  # @return [void]
+  def nofill
+    @draw_context["fill"] = rgb(0, 0, 0, 0)
+  end
+
+  # Set the default stroke color in this slot and child slots.
+  # Pass nil for "no setting" so it can inherit defaults.
+  #
+  # @param color [Nil,Color] a Shoes color for the stroke color or nil to use parent setting
+  # @return [void]
+  def stroke(color)
+    @draw_context["stroke"] = color
+  end
+
+  # Set the default strokewidth in this slot and child slots.
+  # Pass nil for "no setting".
+  #
+  # @param width [Numeric,Nil] the new width, or nil to use parent setting
+  # @return [void]
+  def strokewidth(width)
+    @draw_context["strokewidth"] = width
+  end
+
+  # Set the default stroke in this slot and child slots
+  # to transparent.
+  #
+  # @return [void]
+  def nostroke
+    @draw_context["stroke"] = rgb(0, 0, 0, 0)
+  end
+
+  # Set the current rotation in this slot and any child slots.
+  # Pass nil to reset the angle to default.
+  #
+  # @param angle [Numeric,Nil] the new default rotation for shapes or nil to use parent setting
+  # @return [void]
+  def rotate(angle)
+    @draw_context["rotate"] = angle
+  end
+
+  # Get the current draw context styles, based on this slot and its parent slots.
+  #
+  # @return [Hash] a hash of Shoes styles for the context
+  def current_draw_context
+    s = @parent ? @parent.current_draw_context : {}
+    @draw_context.each { |k, v| s[k] = v unless v.nil? }
+
+    s
+  end
+
+  # Methods to add or remove children
 
   # Remove all children from this drawable. If a block
   # is given, call the block to replace the children with

@@ -64,16 +64,6 @@ class Shoes
 
       super
 
-      # The draw context tracks current settings like fill and stroke,
-      # plus potentially other current state that changes from drawable
-      # to drawable and slot to slot.
-      @draw_context = {
-        "fill" => "",
-        "stroke" => "",
-        "strokewidth" => 2,
-        "rotate" => 0,
-      }
-
       # This creates the DocumentRoot, including its corresponding display drawable
       @document_root = Shoes::DocumentRoot.new
 
@@ -172,7 +162,7 @@ class Shoes
     #
     # @return [Hash] a hash of Shoes styles for the current draw context
     def current_draw_context
-      @draw_context.dup
+      current_slot&.current_draw_context
     end
 
     # This usually doesn't return. The display service may take control
@@ -290,26 +280,11 @@ class Shoes::App < Shoes::Drawable
     current_slot.border(...)
   end
 
-  # Draw context methods
-
-  def fill(color)
-    @draw_context["fill"] = color
-  end
-
-  def nofill
-    @draw_context["fill"] = ""
-  end
-
-  def stroke(color)
-    @draw_context["stroke"] = color
-  end
-
-  def strokewidth(width)
-    @draw_context["strokewidth"] = width
-  end
-
-  def nostroke
-    @draw_context["stroke"] = ""
+  # Draw Context methods -- forward to the current slot
+  [:fill, :nofill, :stroke, :strokewidth, :nostroke, :rotate].each do |dc_method|
+    define_method(dc_method) do |*args|
+      current_slot.send(dc_method, *args)
+    end
   end
 
   # Shape DSL methods
@@ -330,9 +305,6 @@ class Shoes::App < Shoes::Drawable
     end
   end
 
-  def rotate(angle)
-    @draw_context["rotate"] = angle
-  end
   # Not implemented yet: curve_to, arc_to
 
   alias_method :info, :puts
