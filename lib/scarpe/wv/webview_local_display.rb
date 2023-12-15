@@ -52,7 +52,7 @@ module Scarpe
     # @param properties [Hash] a JSON-serialisable Hash with the drawable's Shoes styles
     # @param is_widget [Boolean] whether the class is a user-defined Shoes::Widget subclass
     # @return [Webview::Drawable] the newly-created Webview drawable
-    def create_display_drawable_for(drawable_class_name, drawable_id, properties, is_widget:)
+    def create_display_drawable_for(drawable_class_name, drawable_id, properties, parent_id:, is_widget:)
       existing = query_display_drawable_for(drawable_id, nil_ok: true)
       if existing
         @log.warn("There is already a display drawable for #{drawable_id.inspect}! Returning #{existing.class.name}.")
@@ -94,6 +94,10 @@ module Scarpe
         # but we'll want a reference to it when we create App.
         @doc_root = display_drawable
       end
+
+      # Nil parent is fine for DocumentRoot and any TextDrawable, so we have to specify it.
+      display_parent = Scarpe::Webview::DisplayService.instance.query_display_drawable_for(parent_id, nil_ok: true)
+      display_drawable.set_parent(display_parent)
 
       display_drawable
     end

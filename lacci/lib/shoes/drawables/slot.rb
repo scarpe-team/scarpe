@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 class Shoes::Slot < Shoes::Drawable
-  # @incompatibility Shoes uses #content, not #children, for this
+  # @incompatibility Shoes uses #content, not #children, for this. Scarpe does both.
   attr_reader :children
 
-  shoes_events # No Slot-specific events yet
+  shoes_events # No Slot-specific events
 
   # Do not call directly, use set_parent
   def remove_child(child)
@@ -29,19 +29,23 @@ class Shoes::Slot < Shoes::Drawable
 
   # We use method_missing for drawable-creating methods like "button".
   # The parent's method_missing will auto-create Shoes style getters and setters.
+  # This is similar to the method_missing in Shoes::App, but differs in where
+  # the new drawable will appear.
   def method_missing(name, *args, **kwargs, &block)
     klass = ::Shoes::Drawable.drawable_class_by_name(name)
     return super unless klass
 
     ::Shoes::Slot.define_method(name) do |*args, **kwargs, &block|
-      # Look up the Shoes drawable and create it...
-      drawable_instance = klass.new(*args, **kwargs, &block)
+      instance = nil
 
-      unless klass.ancestors.include?(::Shoes::TextDrawable)
-        drawable_instance.set_parent self # Create drawable in THIS SLOT, not current app slot
+      # Look up the Shoes drawable and create it. But first set
+      # this slot as the current one so that draw context
+      # is handled properly.
+      Shoes::App.instance.with_slot(self) do
+        instance = klass.new(*args, **kwargs, &block)
       end
 
-      drawable_instance
+      instance
     end
 
     send(name, *args, **kwargs, &block)
@@ -65,6 +69,7 @@ class Shoes::Slot < Shoes::Drawable
   # @yield The block to call to replace the contents of the drawable (optional)
   # @return [void]
   def clear(&block)
+    @children ||= []
     @children.dup.each(&:destroy)
     append(&block) if block_given?
     nil
