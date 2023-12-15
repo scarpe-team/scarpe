@@ -13,7 +13,6 @@ class Shoes
         [ENV["LOCALAPPDATA"], "Shoes"],
         [ENV["APPDATA"], "Shoes"],
         [ENV["HOME"], ".shoes"],
-        [Dir.tmpdir, "shoes"],
       ]
 
       top, file = homes.detect { |home_top, _| home_top && File.exist?(home_top) }
