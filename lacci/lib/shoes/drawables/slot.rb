@@ -4,11 +4,12 @@ class Shoes::Slot < Shoes::Drawable
   # @incompatibility Shoes uses #content, not #children, for this. Scarpe does both.
   attr_reader :children
 
+  shoes_events # No Slot-specific events
+
   # This only shows this specific slot's settings, not its parent's.
   # Use current_draw_context to allow inheritance.
   attr_reader :draw_context
 
-  shoes_events # No Slot-specific events
 
   def initialize(...)
     # The draw context tracks current settings like fill and stroke,
