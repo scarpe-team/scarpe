@@ -145,58 +145,23 @@ module Scarpe::Components::Tiranti
     end
   end
 
-  # para_element is a bit of a hard one, since it does not-entirely-trivial
-  # mapping between display objects and IDs. But we don't want Calzini
-  # messing with the display service or display objects.
   def para_element(props, &block)
-    tag, opts = para_elt_and_opts(props)
-
-    HTML.render do |h|
-      h.send(tag, **opts, &block)
-    end
-  end
-
-  private
-
-  ELT_AND_SIZE = {
-    inscription: [:p, 10],
-    ins: [:p, 10],
-    para: [:p, 12],
-    caption: [:p, 14],
-    tagline: [:p, 18],
-    subtitle: [:h3, 26],
-    title: [:h2, 34],
-    banner: [:h1, 48],
-  }.freeze
-
-  def para_elt_and_opts(props)
-    elt, size = para_elt_and_size(props)
-    size = dimensions_length(size)
-
-    para_style = drawable_style(props).merge({
-      color: rgb_to_hex(props["stroke"]),
-      "font-size": size,
-      "font-family": props["font"],
-    }.compact)
-
-    opts = (props["html_attributes"] || {}).merge(id: html_id, style: para_style)
-
-    [elt, opts]
-  end
-
-  def para_elt_and_size(props)
-    return [:p, nil] unless props["size"]
-
-    ps = props["size"].to_s.to_sym
-    if ELT_AND_SIZE.key?(ps)
-      ELT_AND_SIZE[ps]
+    ps, _extra = para_style(props)
+    size = ps[:"font-size"] || "12px"
+    size_int = size.to_i # Mostly useful if it's something like "12px"
+    if size.include?("calc") || size.end_with?("%")
+      # Very big text!
+      props["tag"] = "h2"
+    elsif size_int >= 48
+      props["tag"] = "h1"
+    elsif size_int >= 34
+      props["tag"] = "h2"
+    elsif size_int >= 26
+      props["tag"] = "h3"
     else
-      sz = props["size"].to_i
-      if sz > 18
-        [:h2, sz]
-      else
-        [:p, sz]
-      end
+      props["tag"] = "p"
     end
+
+    super
   end
 end

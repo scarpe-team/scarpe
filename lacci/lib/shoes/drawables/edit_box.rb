@@ -24,7 +24,7 @@ class Shoes
     end
 
     def append(new_text)
-      self.text = self.text + new_text
+      self.text = (self.text || "") + new_text
     end
   end
 end

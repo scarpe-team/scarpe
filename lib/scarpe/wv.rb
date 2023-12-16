@@ -95,7 +95,6 @@ require_relative "wv/list_box"
 require_relative "wv/shape"
 
 require_relative "wv/text_drawable"
-require_relative "wv/span"
 require_relative "wv/link"
 require_relative "wv/line"
 require_relative "wv/rect"

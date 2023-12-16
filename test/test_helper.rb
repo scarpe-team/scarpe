@@ -47,7 +47,8 @@ class ShoesSpecLoggedTest < Minitest::Test
     expect_assertions_min: nil,
     expect_assertions_max: nil,
     expect_result: :success,
-    display_service: "wv_local"
+    display_service: "wv_local",
+    html_renderer: "calzini"
   )
     test_output = File.expand_path(File.join __dir__, "sspec.json")
     test_method_name = self.name
@@ -58,6 +59,7 @@ class ShoesSpecLoggedTest < Minitest::Test
       # For unit testing always supply --debug so we get the most logging
       cmd = \
         "SCARPE_DISPLAY_SERVICE=#{display_service} " +
+        "SCARPE_HTML_RENDERER=#{html_renderer} " +
         "SCARPE_LOG_CONFIG=\"#{scarpe_log_config}\" " +
         "SHOES_MINITEST_EXPORT_FILE=\"#{test_output}\" " +
         "SHOES_MINITEST_CLASS_NAME=\"#{test_class_name}\" " +

@@ -61,5 +61,4 @@ class TestSSpecInfrastructure < ShoesSpecLoggedTest
       assert_equal true, false, "This should always fail!"
     SSPEC
   end
-
 end

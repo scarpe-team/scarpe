@@ -61,6 +61,7 @@ module Scarpe::Webview
     private
 
     def child_markup
+      # The children should be only text strings or TextDrawables.
       items_to_display_children(@text_items).map do |child|
         if child.respond_to?(:to_html)
           child.to_html

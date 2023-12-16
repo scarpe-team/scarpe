@@ -16,12 +16,12 @@ module Scarpe::Webview
         when "font"
           @fonts << args[0]
           # Can't just create font_updater and alert_updater on initialize - not everything is set up
-          @font_updater ||= Scarpe::Webview::WebWrangler::ElementWrangler.new("root-fonts")
+          @font_updater ||= Scarpe::Webview::WebWrangler::ElementWrangler.new(html_id: "root-fonts")
           @font_updater.inner_html = font_contents
         when "alert"
           bind_ok_event
           @alerts << args[0]
-          @alert_updater ||= Scarpe::Webview::WebWrangler::ElementWrangler.new("root-alerts")
+          @alert_updater ||= Scarpe::Webview::WebWrangler::ElementWrangler.new(html_id: "root-alerts")
           @alert_updater.inner_html = alert_contents
         else
           raise Scarpe::UnknownBuiltinCommandError, "Unexpected builtin command: #{cmd_name.inspect}!"

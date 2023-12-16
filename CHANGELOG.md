@@ -23,11 +23,12 @@ still making big changes.
 ### Enhancements
 
 - Ovals!
+- Lots more text methods: del, sub, sup; lots more text styles: underline, strikethrough, strikecolor, align
 - Features! Shoes.app(feature: [:html, :scarpe]) lets apps declare dependencies on non-classic Shoes!
+- Better handling of :left, :top, :width and :height, :margin and :padding on more drawables
 - The html_class style is a feature to make it easier to do Bootstrap styling on your drawables
 - Directly run Shoes Specs, including with Niente
 - We use Minitest assertion DSL rather than our own everywhere now
-- Better handling of :left, :top, :width and :height, :margin and :padding on more drawables
 
 ### Bugs Fixed
 
@@ -36,6 +37,7 @@ still making big changes.
 
 ### Incompatibilities
 
+TextDrawables now draw with very different Calzini (HTML renderer) properties
 We're deprecating the CatsCradle test DSL in favour of Shoes-Spec.
 Some error names have changed, with more to come.
 We've changed the Lacci drawable-create event to include the parent ID.

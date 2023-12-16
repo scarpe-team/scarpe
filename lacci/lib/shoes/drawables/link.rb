@@ -5,10 +5,10 @@ class Shoes
     shoes_styles :text, :click, :has_block
     shoes_events :click
 
-    Shoes::Drawable.drawable_default_styles[Shoes::Link][:click] = "#"
+    #Shoes::Drawable.drawable_default_styles[Shoes::Link][:click] = "#"
 
-    init_args :text
-    def initialize(text, click: nil, &block)
+    init_args # Empty by the time it reaches Drawable#initialize
+    def initialize(*args, **kwargs, &block)
       @block = block
       # We can't send a block to the display drawable, but we can send a boolean
       @has_block = !block.nil?
@@ -18,8 +18,6 @@ class Shoes
       bind_self_event("click") do
         @block&.call
       end
-
-      create_display_drawable
     end
   end
 
@@ -27,7 +25,7 @@ class Shoes
   # hovered over. The functionality isn't present in Lacci yet.
   class LinkHover < Link
     def initialize
-      raise "This class should never be instantiated! Use link, not link_hover!"
+      raise "This class should never be instantiated directly! Use link, not link_hover!"
     end
   end
 end

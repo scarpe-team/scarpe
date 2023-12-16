@@ -55,7 +55,7 @@ module Scarpe
     def create_display_drawable_for(drawable_class_name, drawable_id, properties, parent_id:, is_widget:)
       existing = query_display_drawable_for(drawable_id, nil_ok: true)
       if existing
-        @log.warn("There is already a display drawable for #{drawable_id.inspect}! Returning #{existing.class.name}.")
+        @log.warn("There is already a Scarpe drawable for #{drawable_id.inspect}! Returning #{existing.class.name} rather than creating a #{drawable_class_name}.")
         return existing
       end
 

@@ -172,7 +172,7 @@ class TestParaIntegration < ShoesSpecLoggedTest
         @p = para "Yo ", [em("EmphaYo "), strong("StrongYo")], em("empha"), ", plain"
       end
     SCARPE_APP
-      assert_includes para().display.to_html, "Yo <em>EmphaYo </em><strong>StrongYo</strong><em>empha</em>, plain"
+      assert_includes para().display.to_html, "Yo <em class=\"id_3\">EmphaYo </em><strong class=\"id_4\">StrongYo</strong><em class=\"id_5\">empha</em>, plain"
     TEST_CODE
   end
 end
