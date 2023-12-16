@@ -96,6 +96,10 @@ module Scarpe
       end
     end
 
+    def fiber_start
+      @manager_fiber.resume
+    end
+
     def event_promise(event)
       @event_promises[event] ||= ::Scarpe::Promise.new
     end
@@ -109,11 +113,26 @@ module Scarpe
       @waiting_fibers << { promise: event_promise(event), fiber: f }
     end
 
+    def active_fiber(&block)
+      f = Fiber.new do
+        CCInstance.instance.instance_eval(&block)
+      end
+      p = ::Scarpe::Promise.new
+      p.fulfilled!
+      @waiting_fibers << { promise: p, fiber: f }
+    end
+
     def wait(promise)
       raise(Scarpe::InvalidPromiseError, "Must supply a promise to wait!") unless promise.is_a?(::Scarpe::Promise)
 
       # Wait until this promise is complete before running again
       @manager_fiber.transfer(promise)
+    end
+
+    def yield
+      p = ::Scarpe::Promise.new
+      p.fulfilled!
+      @manager_fiber.transfer(p)
     end
 
     # This returns a promise, which can be waited on using wait()
