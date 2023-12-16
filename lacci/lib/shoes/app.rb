@@ -60,22 +60,12 @@ class Shoes
         @log.warn("Shoes app requested unknown features #{unknown_ext.inspect}! Known: #{(Shoes::FEATURES + Shoes::EXTENSIONS).inspect}")
       end
 
-      super
+      @slots = []
 
-      # The draw context tracks current settings like fill and stroke,
-      # plus potentially other current state that changes from drawable
-      # to drawable and slot to slot.
-      @draw_context = {
-        "fill" => "",
-        "stroke" => "",
-        "strokewidth" => 2,
-        "rotate" => 0,
-      }
+      super
 
       # This creates the DocumentRoot, including its corresponding display drawable
       @document_root = Shoes::DocumentRoot.new
-
-      @slots = []
 
       # Now create the App display drawable
       create_display_drawable
@@ -154,22 +144,17 @@ class Shoes
       return super unless klass
 
       ::Shoes::App.define_method(name) do |*args, **kwargs, &block|
-        # Look up the Shoes drawable and create it...
-        drawable_instance = klass.new(*args, **kwargs, &block)
-
-        unless klass.ancestors.include?(::Shoes::TextDrawable)
-          # Create this drawable in the current app slot
-          drawable_instance.set_parent ::Shoes::App.instance.current_slot
-        end
-
-        drawable_instance
+        klass.new(*args, **kwargs, &block)
       end
 
       send(name, *args, **kwargs, &block)
     end
 
+    # Get the current draw context for the current slot
+    #
+    # @return [Hash] a hash of Shoes styles for the current draw context
     def current_draw_context
-      @draw_context.dup
+      current_slot&.current_draw_context
     end
 
     # This usually doesn't return. The display service may take control
@@ -211,7 +196,7 @@ class Shoes
     def all_drawables
       out = []
 
-      to_add = @document_root.children
+      to_add = [@document_root, @document_root.children]
       until to_add.empty?
         out.concat(to_add)
         to_add = to_add.flat_map { |w| w.respond_to?(:children) ? w.children : [] }.compact
@@ -277,34 +262,21 @@ end
 
 # These methods will need to be defined on Slots too, but probably need a rework in general.
 class Shoes::App < Shoes::Drawable
+  # This is going to go away. See issue #496
   def background(...)
     current_slot.background(...)
   end
 
+  # This is going to go away. See issue #498
   def border(...)
     current_slot.border(...)
   end
 
-  # Draw context methods
-
-  def fill(color)
-    @draw_context["fill"] = color
-  end
-
-  def nofill
-    @draw_context["fill"] = ""
-  end
-
-  def stroke(color)
-    @draw_context["stroke"] = color
-  end
-
-  def strokewidth(width)
-    @draw_context["strokewidth"] = width
-  end
-
-  def nostroke
-    @draw_context["stroke"] = ""
+  # Draw Context methods -- forward to the current slot
+  [:fill, :nofill, :stroke, :strokewidth, :nostroke, :rotate].each do |dc_method|
+    define_method(dc_method) do |*args|
+      current_slot.send(dc_method, *args)
+    end
   end
 
   # Shape DSL methods
@@ -325,9 +297,6 @@ class Shoes::App < Shoes::Drawable
     end
   end
 
-  def rotate(angle)
-    @draw_context["rotate"] = angle
-  end
   # Not implemented yet: curve_to, arc_to
 
   alias_method :info, :puts

@@ -242,6 +242,10 @@ class Shoes
 
     attr_reader :debug_id
 
+    # These styles can be set to a current per-slot value and inherited from parent slots.
+    # Their value is set at drawable-create time.
+    DRAW_CONTEXT_STYLES = [:fill, :stroke, :strokewidth, :rotate, :transform, :translate]
+
     def initialize(*args, **kwargs)
       log_init("Shoes::#{self.class.name}") unless @log
 
@@ -292,10 +296,33 @@ class Shoes
         end
       end
 
+      this_drawable_styles = self.class.shoes_style_names.map(&:to_sym)
+      dc = Shoes::App.instance.current_draw_context || {}
+
+      # Styles not passed as arguments can come from the draw context
+
+      # What styles are in the draw context, are used by this drawable, and weren't
+      # given as positional or keyword arguments?
+      draw_context_styles = (DRAW_CONTEXT_STYLES & this_drawable_styles) - supplied_args
+      unless draw_context_styles.empty?
+        # When we first call this, there is no parent. We don't want to set the parent
+        # yet because that will send a notification, and *that* should wait until after
+        # we've told the display service that this drawable was created. So instead
+        # we'll query the parent object's draw context directly.
+
+        draw_context_styles.each do |style|
+          dc_val = dc[style.to_s]
+          next if dc_val.nil?
+
+          val = self.class.validate_as(style, dc[style.to_s])
+          instance_variable_set("@#{style}", val)
+          supplied_args << style
+        end
+      end
+
       # Styles that were *not* passed should be set to defaults
 
       default_styles = Shoes::Drawable.drawable_default_styles[self.class]
-      this_drawable_styles = self.class.shoes_style_names.map(&:to_sym)
 
       # No arg specified for a property with a default value? Set it to default.
       (default_styles.keys - supplied_args).each do |key|
@@ -322,6 +349,18 @@ class Shoes
       Shoes::Drawable.register_drawable_id(self.linkable_id, self)
 
       generate_debug_id
+
+      parent = ::Shoes::App.instance.current_slot
+      if self.class.expects_parent?
+        set_parent(parent, notify: false)
+      end
+    end
+
+    def self.expects_parent?
+      return false if [::Shoes::App, ::Shoes::DocumentRoot].include?(self)
+      return false if self < ::Shoes::TextDrawable
+
+      true
     end
 
     # Calling stack.app or drawable.app will execute the block
@@ -432,10 +471,11 @@ class Shoes
       klass_name = self.class.name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
 
       is_widget = Shoes::Drawable.is_widget_class?(klass_name)
+      parent_id = @parent&.linkable_id
 
       # Should we send an event so this can be discovered from someplace other than
       # the DisplayService?
-      ::Shoes::DisplayService.display_service.create_display_drawable_for(klass_name, self.linkable_id, shoes_style_values, is_widget:)
+      ::Shoes::DisplayService.display_service.create_display_drawable_for(klass_name, self.linkable_id, shoes_style_values, parent_id:, is_widget:)
     end
 
     public
@@ -443,11 +483,17 @@ class Shoes
     attr_reader :parent
     attr_reader :destroyed
 
-    def set_parent(new_parent)
+    # Set the Drawable's parent drawable. Notify the display service
+    # that the parent has changed unless instructed not to.
+    # We don't notify when first creating the Drawable. The create
+    # event that is first sent will include the parent.
+    def set_parent(new_parent, notify: true)
       @parent&.remove_child(self)
       new_parent&.add_child(self)
       @parent = new_parent
-      send_shoes_event(new_parent.linkable_id, event_name: "parent", target: linkable_id)
+      return unless notify
+
+      send_shoes_event(new_parent&.linkable_id, event_name: "parent", target: linkable_id)
     end
 
     # Removes the element from the Shoes::Drawable tree and removes all event subscriptions

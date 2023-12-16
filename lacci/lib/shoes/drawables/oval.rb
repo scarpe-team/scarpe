@@ -3,7 +3,7 @@
 class Shoes
   # Docs: https://github.com/scarpe-team/scarpe/blob/main/docs/static/manual.md#ovalleft-top-radius--shoesshape
   class Oval < Shoes::Drawable
-    shoes_styles :center, :draw_context, :stroke
+    shoes_styles :center, :draw_context, :stroke, :fill
 
     shoes_style(:left) { |val| convert_to_integer(val, "left") }
     shoes_style(:top) { |val| convert_to_integer(val, "top") }
@@ -11,6 +11,9 @@ class Shoes
     shoes_style(:height) { |val| convert_to_integer(val, "height") }
     shoes_style(:width) { |val| convert_to_integer(val, "width") }
     shoes_style(:strokewidth) { |val| convert_to_integer(val, "strokewidth") }
+
+    Shoes::Drawable.drawable_default_styles[Shoes::Oval][:fill] = "black"
+    Shoes::Drawable.drawable_default_styles[Shoes::Oval][:stroke] = "black"
 
     init_args :left, :top
     opt_init_args :radius, :height

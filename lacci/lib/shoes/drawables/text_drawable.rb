@@ -4,6 +4,14 @@ class Shoes
   # TextDrawable is the parent class of various classes of
   # text that can go inside a para. This includes normal
   # text, but also links, italic text, bold text, etc.
+  #
+  # In Shoes3 this corresponds to cText, and it would
+  # have methods app, contents, children, parent,
+  # style, to_s, text, text= and replace.
+  #
+  # We don't currently allow things like em("oh", strong("hi!")),
+  # so we'll need a rework to match the old interface at
+  # some point.
   class TextDrawable < Shoes::Drawable
     class << self
       # rubocop:disable Lint/MissingSuper
@@ -25,8 +33,8 @@ class Shoes
       class_name = element.capitalize
 
       drawable_class = Class.new(Shoes::TextDrawable) do
-        # Can we just change content to text to match the Shoes API?
         shoes_style :content
+        shoes_events # No specific events
 
         init_args # We're going to pass an empty array to super
         def initialize(content)
@@ -50,14 +58,11 @@ class Shoes
         end
       end
       Shoes.const_set class_name, drawable_class
-      drawable_class.class_eval do
-        shoes_style :content
-
-        shoes_events # No specific events
-      end
     end
   end
 end
+
+# Shoes3 subclasses of cText were: code, del, em, ins, span, strong, sup, sub
 
 Shoes.default_text_drawable_with(:code)
 Shoes.default_text_drawable_with(:em)

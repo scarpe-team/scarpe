@@ -35,8 +35,9 @@ still making big changes.
 
 ### Incompatibilities
 
-We're starting to deprecate the CatsCradle test DSL in favour of Shoes-Spec.
+We're deprecating the CatsCradle test DSL in favour of Shoes-Spec.
 Some error names have changed, with more to come.
+We've changed the Lacci drawable-create event to include the parent ID.
 
 ## [0.3.0] - 2023-11-24 - You
 

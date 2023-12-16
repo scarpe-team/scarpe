@@ -42,7 +42,6 @@ module Scarpe::Webview
 
       @shoes_style_names = properties.keys.map(&:to_s) - ["shoes_linkable_id"]
 
-      # Call method, which looks up the parent
       @shoes_linkable_id = properties["shoes_linkable_id"] || properties[:shoes_linkable_id]
       unless @shoes_linkable_id
         raise Scarpe::MissingAttributeError, "Could not find property shoes_linkable_id in #{properties.inspect}!"
@@ -58,6 +57,8 @@ module Scarpe::Webview
       # Must call this before bind
       super(linkable_id: @shoes_linkable_id)
 
+      # This will only be used if moving a drawable from one parent to another.
+      # Shoes doesn't normally do that.
       bind_shoes_event(event_name: "parent", target: shoes_linkable_id) do |new_parent_id|
         display_parent = DisplayService.instance.query_display_drawable_for(new_parent_id)
         if @parent != display_parent

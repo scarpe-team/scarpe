@@ -12,6 +12,7 @@ module Niente
 
       super(linkable_id: @shoes_linkable_id)
 
+      # This should only be used for reparenting after a drawable was initially created.
       bind_shoes_event(event_name: "parent", target: shoes_linkable_id) do |new_parent_id|
         display_parent = DisplayService.instance.query_display_drawable_for(new_parent_id)
         if @parent != display_parent
@@ -28,6 +29,7 @@ module Niente
       end
 
       bind_shoes_event(event_name: "destroy", target: shoes_linkable_id) do
+        set_parent(nil)
       end
     end
 

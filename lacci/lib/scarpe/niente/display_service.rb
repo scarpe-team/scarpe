@@ -29,7 +29,7 @@ module Niente
     # @param properties [Hash] a JSON-serialisable Hash with the drawable's Shoes styles
     # @param is_widget [Boolean] whether the class is a user-defined Shoes::Widget subclass
     # @return [Webview::Drawable] the newly-created Webview drawable
-    def create_display_drawable_for(drawable_class_name, drawable_id, properties, is_widget:)
+    def create_display_drawable_for(drawable_class_name, drawable_id, properties, parent_id:, is_widget:)
       existing = query_display_drawable_for(drawable_id, nil_ok: true)
       if existing
         @log.warn("There is already a display drawable for #{drawable_id.inspect}! Returning #{existing.class.name}.")
@@ -46,6 +46,10 @@ module Niente
       display_drawable = Niente::Drawable.new(properties)
       display_drawable.shoes_type = drawable_class_name
       set_drawable_pairing(drawable_id, display_drawable)
+
+      # Nil parent is okay for DocumentRoot and TextDrawables, so we have to specify it.
+      parent = DisplayService.instance.query_display_drawable_for(parent_id, nil_ok: true)
+      display_drawable.set_parent(parent)
 
       return display_drawable
     end

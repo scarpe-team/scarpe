@@ -32,7 +32,14 @@ class Shoes
       # This is in the eigenclass/metaclass, *not* instances of DisplayService
       include Shoes::Log
 
+      # Send a Shoes event to all subscribers.
       # An event_target may be nil, to indicate there is no target.
+      #
+      # @param event_name [String] the name of the event
+      # @param event_target [String] the specific target, if any
+      # @param args [Array] arguments to pass to the subscribing block
+      # @param args [Array] keyword arguments to pass to the subscribing block
+      # @return [void]
       def dispatch_event(event_name, event_target, *args, **kwargs)
         @@display_event_handlers ||= {}
 
@@ -69,10 +76,20 @@ class Shoes
         kwargs[:event_name] = event_name
         kwargs[:event_target] = event_target if event_target
         handlers.each { |h| h[:handler].call(*args, **kwargs) }
+        nil
       end
 
-      # It's permitted to subscribe to event_name :any for all event names, and event_target :any for all targets.
-      # An event_target of nil means "no target", and only matches events dispatched with a nil target.
+      # Subscribe to the given event name and target.
+      # It's permitted to subscribe to event_name :any for all event names,
+      # and event_target :any for all targets. An event_target of nil means
+      # "no target", and only matches events dispatched with a nil target.
+      # The subscription will return an unsubscribe ID, which can be used
+      # later to unsubscribe from the notification.
+      #
+      # @param event_name [String,Symbol] the event name to subscribe to, or :any for all event names
+      # @param event_target [String,Symbol,NilClass] the event target to subscribe to, or :any for all targets - nil is a valid target
+      # @block the block to call when the event occurs - it will receive arguments from the event-dispatch call
+      # @return [Integer] an unsubscription ID which can be used later to cancel the subscription
       def subscribe_to_event(event_name, event_target, &handler)
         @@display_event_handlers ||= {}
         @@display_event_unsub_id ||= 0
@@ -96,6 +113,10 @@ class Shoes
         id
       end
 
+      # Unsubscribe from any event subscriptions matching the unsub ID.
+      #
+      # @param unsub_id [Integer] the unsub ID returned when subscribing
+      # @return [void]
       def unsub_from_events(unsub_id)
         raise "Must provide an unsubscribe ID!" if unsub_id.nil?
 
@@ -106,17 +127,32 @@ class Shoes
         end
       end
 
+      # Reset the display service, for instance between unit tests.
+      # This destroys all existing subscriptions.
+      #
+      # @return [void]
       def full_reset!
         @@display_event_handlers = {}
         @json_debug_serialize = nil
       end
 
+      # Set the Display Service class which will handle display service functions
+      # for this process. This can only be set once. The display service can be
+      # a subclass of Shoes::DisplayService, but isn't required to be.
+      #
+      # Shoes will create an instance of this class with no arguments passed to
+      # initialize, and use it as the display service for the lifetime of the
+      # process.
+      #
+      # @param klass [Class] the class for the display service
       def set_display_service_class(klass)
         raise "Can only set a single display service class!" if @display_service_klass
 
         @display_service_klass = klass
       end
 
+      # Get the current display service instance. This requires a display service
+      # class having been set first. @see set_display_service_class
       def display_service
         return @service if @service
 
@@ -128,7 +164,7 @@ class Shoes
 
     # These methods are an interface to DisplayService objects.
 
-    def create_display_drawable_for(drawable_class_name, drawable_id, properties, is_widget:)
+    def create_display_drawable_for(drawable_class_name, drawable_id, properties, parent_id:, is_widget:)
       raise "Override in DisplayService implementation!"
     end
 
