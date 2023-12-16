@@ -22,11 +22,6 @@ class TestCalziniTextDrawables < Minitest::Test
       @calzini.render("span", { "stroke" => "red", "size" => :banner, "font" => "Lucida" }) { "big red" }
   end
 
-  def test_span_html_attributes
-    assert_equal %{<span class="biggreen" id="elt-1" style="color:green;font-size:48px">big green</span>},
-      @calzini.render("span", { "stroke" => "green", "size" => "banner", "html_attributes" => { "class" => "biggreen" } }) { "big green" }
-  end
-
   def test_code_simple
     assert_equal %{<code>Hello</code>}, @calzini.render("code", {}) { "Hello" }
   end

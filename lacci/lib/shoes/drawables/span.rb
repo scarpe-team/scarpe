@@ -2,7 +2,7 @@
 
 class Shoes
   class Span < Shoes::Drawable
-    shoes_styles :text, :stroke, :size, :font, :html_attributes
+    shoes_styles :text, :stroke, :fill, :size, :font, :html_attributes
     shoes_events # No Span-specific events yet
 
     Shoes::Drawable.drawable_default_styles[Shoes::Span][:size] = :span

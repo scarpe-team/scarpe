@@ -2,13 +2,16 @@
 
 module Scarpe::Webview
   class Shape < Drawable
+    # Shape is the only (?) remaining drawable that doesn't use Calzini.
+    # It's also kind of broken - it doesn't do what a Shoes Shape is
+    # supposed to do yet. This can really use a rework at some point.
     def to_html
       @children ||= []
       child_markup = @children.map(&:to_html).join
 
       color = @draw_context["fill"] || "black"
       self_markup = HTML.render do |h|
-        h.div(id: html_id, style: style) do
+        h.div(id: html_id, style: shape_style) do
           h.svg(width: "400", height: "500") do
             h.path(d: path_from_shape_commands, style: "fill:#{color};stroke-width:2;")
           end
@@ -22,7 +25,7 @@ module Scarpe::Webview
     def element(&block)
       color = @draw_context["fill"] || "black"
       HTML.render do |h|
-        h.div(id: html_id, style: style) do
+        h.div(id: html_id, style: shape_style) do
           h.svg(width: "400", height: "500") do
             h.path(d: path_from_shape_commands, style: "fill:#{color};stroke-width:2;")
           end
@@ -55,11 +58,13 @@ module Scarpe::Webview
 
     protected
 
-    def style
-      super.merge({
+    def shape_style
+      s = {
         width: "400",
         height: "900",
-      })
+      }
+      s[:display] = "none" if @hidden
+      s
     end
   end
 end
