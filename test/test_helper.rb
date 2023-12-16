@@ -45,13 +45,6 @@ class ShoesSpecLoggedTest < Minitest::Test
     end
   end
 
-  EXIT_IMMEDIATELY_CODE = <<~CODE
-    on_heartbeat do
-      log.info("Dying on heartbeat because :exit_immediately is set")
-      quit
-    end
-  CODE
-
   def run_test_scarpe_app(
     test_app_location,
     app_test_code: "",
