@@ -6,8 +6,16 @@
 # how a real display service should act.
 module Niente; end
 
-require_relative "niente/logger"
-Shoes::Log.instance = Niente::LogImpl.new
+require "scarpe/components/print_logger"
+Shoes::Log.instance = Scarpe::Components::PrintLogImpl.new
+if ENV["NIENTE_LOG_LEVEL"]
+  pl = Scarpe::Components::PrintLogImpl::PrintLogger
+  level = ENV["NIENTE_LOG_LEVEL"].strip.downcase.to_sym
+  unless pl::LEVELS.key?(level)
+    raise "Unrecognized Niente log level: #{level.inspect}!"
+  end
+  pl.min_level = pl::LEVELS[level]
+end
 
 require_relative "niente/drawable"
 require_relative "niente/app"
