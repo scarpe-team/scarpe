@@ -56,6 +56,32 @@ class Scarpe::Components::MinitestResult
     end
   end
 
+  def one_word_result
+    return "error" if self.error?
+    return "fail" if self.fail?
+    return "skip" if self.skip?
+    "success"
+  end
+
+  def check(expect_result: :success, min_asserts: nil, max_asserts: nil)
+    unless [:error, :fail, :skip, :success].include?(expect_result)
+      raise Scarpe::InternalError, "Expected test result should be one of [:success, :fail, :error, :skip]!"
+    end
+
+    if expect_result.to_s != one_word_result
+      return [false, "Expected #{expect_result} but got #{one_word_result}!"]
+    end
+
+    if min_asserts && @assertions < min_asserts
+      return [false, "Expected success with at least #{min_asserts} assertions but found only #{@assertions}!"]
+    end
+    if max_asserts && @assertions > max_asserts
+      return [false, "Expected success with no more than #{max_asserts} assertions but found only #{@assertions}!"]
+    end
+
+    [true, ""]
+  end
+
   def error?
     !@exceptions.empty?
   end

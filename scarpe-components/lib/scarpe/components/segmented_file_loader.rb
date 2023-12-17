@@ -176,7 +176,7 @@ module Scarpe::Components
         "shoes" => proc { |seg_file| after_load { load seg_file } },
         "app_test" => proc do |seg_file|
           ENV["SHOES_SPEC_TEST"] = seg_file
-          ENV["SHOES_MINITEST_EXPORT_FILE"] = "sspec.json"
+          ENV["SHOES_MINITEST_EXPORT_FILE"] ||= "sspec.json"
         end,
       }
     end
