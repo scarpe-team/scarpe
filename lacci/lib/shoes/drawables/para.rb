@@ -3,7 +3,8 @@
 class Shoes
   class Para < Shoes::Drawable
     shoes_styles :text_items, :size, :font
-    shoes_style(:stroke) { |val| Shoes::Colors.to_rgb(val) }
+    shoes_style(:stroke) { |val, _name| Shoes::Colors.to_rgb(val) }
+    shoes_style(:fill) { |val, _name| Shoes::Colors.to_rgb(val) }
 
     shoes_style(:align) do |val|
       unless ["left", "center", "right"].include?(val)
@@ -51,7 +52,7 @@ class Shoes
     private
 
     def text_children_to_items(text_children)
-      text_children.map { |arg| arg.is_a?(String) ? arg : arg.linkable_id }
+      text_children.map { |arg| arg.is_a?(TextDrawable) ? arg.linkable_id : arg.to_s }
     end
 
     public
@@ -159,7 +160,5 @@ class Shoes
     def inscription(*args, **kwargs)
       para(*args, **{ size: :inscription }.merge(kwargs))
     end
-
-    alias_method :ins, :inscription
   end
 end

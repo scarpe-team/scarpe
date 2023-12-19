@@ -10,8 +10,10 @@ module Scarpe::Webview
       end
     end
 
-    def element
-      render "link"
+    def to_calzini_hash
+      h = super
+      h[:tag] = "a"
+      h
     end
   end
 end

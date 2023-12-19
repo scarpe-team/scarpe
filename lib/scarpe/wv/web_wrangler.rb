@@ -747,15 +747,36 @@ class Scarpe::Webview::WebWrangler
   class ElementWrangler
     attr_reader :html_id
 
-    # Create an ElementWrangler for the given HTML ID
+    # Create an ElementWrangler for the given HTML ID or selector.
+    # The caller should provide exactly one of the html_id or selector.
     #
     # @param html_id [String] the HTML ID for the DOM element
-    def initialize(html_id)
+    def initialize(html_id: nil, selector: nil, multi: false)
       @webwrangler = ::Scarpe::Webview::DisplayService.instance.wrangler
       raise Scarpe::MissingWranglerError, "Can't get WebWrangler!" unless @webwrangler
 
-      @html_id = html_id
+      if html_id && !selector
+        @selector = "document.getElementById('" + html_id + "')"
+      elsif selector && !html_id
+        @selector = selector
+      else
+        raise ArgumentError, "Must provide exactly one of html_id or selector!"
+      end
+
+      @multi = multi
     end
+
+    private
+
+    def on_each(fragment)
+      if @multi
+        @webwrangler.dom_change("a = Array.from(#{@selector}); a.forEach((item) => item#{fragment}); true")
+      else
+        @webwrangler.dom_change(@selector + fragment + ";true")
+      end
+    end
+
+    public
 
     # Return a promise that will be fulfilled when all changes scheduled via
     # this ElementWrangler are verified complete.
@@ -770,7 +791,7 @@ class Scarpe::Webview::WebWrangler
     # @param new_value [String] the new value
     # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
     def value=(new_value)
-      @webwrangler.dom_change("document.getElementById('" + html_id + "').value = `" + new_value + "`; true")
+      on_each(".value = `" + new_value + "`")
     end
 
     # Update the JS DOM element's inner_text. The given Ruby value will be converted to string and assigned in single-quotes.
@@ -778,7 +799,7 @@ class Scarpe::Webview::WebWrangler
     # @param new_text [String] the new inner_text
     # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
     def inner_text=(new_text)
-      @webwrangler.dom_change("document.getElementById('" + html_id + "').innerText = '" + new_text + "'; true")
+      on_each(".innerText = '" + new_text + "'")
     end
 
     # Update the JS DOM element's inner_html. The given Ruby value will be converted to string and assigned in backquotes.
@@ -786,7 +807,7 @@ class Scarpe::Webview::WebWrangler
     # @param new_html [String] the new inner_html
     # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
     def inner_html=(new_html)
-      @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").innerHTML = `" + new_html + "`; true")
+      on_each(".innerHTML = `" + new_html + "`")
     end
 
     # Update the JS DOM element's outer_html. The given Ruby value will be converted to string and assigned in backquotes.
@@ -794,7 +815,7 @@ class Scarpe::Webview::WebWrangler
     # @param new_html [String] the new outer_html
     # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
     def outer_html=(new_html)
-      @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").outerHTML = `" + new_html + "`; true")
+      on_each(".outerHTML = `" + new_html + "`")
     end
 
     # Update the JS DOM element's attribute. The given Ruby value will be inspected and assigned.
@@ -803,7 +824,7 @@ class Scarpe::Webview::WebWrangler
     # @param value [String] the new attribute value
     # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
     def set_attribute(attribute, value)
-      @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").setAttribute(" + attribute.inspect + "," + value.inspect + "); true")
+      on_each(".setAttribute(" + attribute.inspect + "," + value.inspect + ")")
     end
 
     # Update an attribute of the JS DOM element's style. The given Ruby value will be inspected and assigned.
@@ -812,19 +833,19 @@ class Scarpe::Webview::WebWrangler
     # @param value [String] the new style attribute value
     # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
     def set_style(style_attr, value)
-      @webwrangler.dom_change("document.getElementById(\"" + html_id + "\").style.#{style_attr} = " + value.inspect + "; true")
+      on_each(".style.#{style_attr} = " + value.inspect + ";")
     end
 
     # Remove the specified DOM element
     #
     # @return [Scarpe::Promise] a promise that wil be fulfilled when the element is removed
     def remove
-      @webwrangler.dom_change("document.getElementById('" + html_id + "').remove(); true")
+      on_each(".remove()")
     end
 
     def toggle_input_button(mark)
       checked_value = mark ? "true" : "false"
-      @webwrangler.dom_change("document.getElementById('#{html_id}').checked = #{checked_value};")
+      on_each(".checked = #{checked_value}")
     end
   end
 end
