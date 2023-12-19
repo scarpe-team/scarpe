@@ -25,10 +25,17 @@ module Minitest
     #
     # Based on https://gist.github.com/davidwessman/09a13840a8a80080e3842ac3051714c7
     class ShoesExportReporter < BaseReporter
+      class << self
+        attr_accessor :metadata
+        attr_accessor :export_file
+      end
+
       def self.activate!
         unless ENV["SHOES_MINITEST_EXPORT_FILE"]
           raise "ShoesExportReporter is available, but no export file was specified! Set SHOES_MINITEST_EXPORT_FILE!"
         end
+        ShoesExportReporter.export_file = File.expand_path(ENV["SHOES_MINITEST_EXPORT_FILE"])
+        ShoesExportReporter.metadata ||= {}
 
         Minitest::Reporters.use!
       end
@@ -58,6 +65,7 @@ module Minitest
             failures: failures,
             time: result.time,
             metadata: result.respond_to?(:metadata) ? result.metadata : {},
+            exporter_metadata: ShoesExportReporter.metadata,
             source_location: begin
               result.source_location
             rescue
@@ -66,7 +74,7 @@ module Minitest
           }
         end
 
-        out_file = File.expand_path ENV["SHOES_MINITEST_EXPORT_FILE"]
+        out_file = ShoesExportReporter.export_file
         #puts "Writing Minitest results to #{out_file.inspect}."
         File.write(out_file, JSON.dump(results))
       end

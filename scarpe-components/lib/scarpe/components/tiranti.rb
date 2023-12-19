@@ -2,8 +2,8 @@
 
 # In Italian, tiranti are bootstraps -- the literal pull-on-a-boot kind, not a step to something better.
 # Tiranti.rb builds on calzini.rb, but renders a Bootstrap-decorated version of the HTML output.
-# You would ordinarily set either Calzini or Tiranti as the top-level HTML renderer, not both.
-# You'll include both if you use Tiranti, because it falls back to Calzini for a lot of its rendering.
+# You can set Tiranti as your HTML renderer and you'll get Bootstrap versions of all the drawables.
+# Tiranti requires Calzini's files because it falls back to Calzini for a lot of its rendering.
 
 require "scarpe/components/calzini"
 

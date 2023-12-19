@@ -261,6 +261,7 @@ module Scarpe::Webview
           @log.debug("Scheduled JS: (#{this_eval_serial})\n#{wrapped_code}")
         else
           # We're mid-shutdown. No more scheduling things.
+          @log.warn "Mid-shutdown JS eval. Not scheduling JS!"
         end
       end
 

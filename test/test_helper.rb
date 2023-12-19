@@ -35,6 +35,56 @@ class ShoesSpecLoggedTest < Minitest::Test
 
   SCARPE_EXE = File.expand_path("../exe/scarpe", __dir__)
 
+  def run_scarpe_sspec_code(sspec_code, **kwargs)
+    with_tempfile(["scarpe_sspec_test_#{self.class.name}_#{self.name}", ".sspec"], sspec_code) do |filename|
+      run_scarpe_sspec(filename, **kwargs)
+    end
+  end
+
+  def run_scarpe_sspec(
+    filename,
+    process_success: true,
+    expect_assertions_min: nil,
+    expect_assertions_max: nil,
+    expect_result: :success,
+    display_service: "wv_local"
+  )
+    test_output = File.expand_path(File.join __dir__, "sspec.json")
+    test_method_name = self.name
+    test_class_name = self.class.name
+
+    with_tempfile("scarpe_log_config.json", JSON.dump(log_config_for_test)) do |scarpe_log_config|
+      # Start the application using the exe/scarpe utility
+      # For unit testing always supply --debug so we get the most logging
+      cmd = \
+        "SCARPE_DISPLAY_SERVICE=#{display_service} " +
+        "SCARPE_LOG_CONFIG=\"#{scarpe_log_config}\" " +
+        "SHOES_MINITEST_EXPORT_FILE=\"#{test_output}\" " +
+        "SHOES_MINITEST_CLASS_NAME=\"#{test_class_name}\" " +
+        "SHOES_MINITEST_METHOD_NAME=\"#{test_method_name}\" " +
+        "LOCALAPPDATA=\"#{Dir.tmpdir}\"" +
+        "ruby #{SCARPE_EXE} --debug --dev #{filename}"
+      process_result = system(cmd)
+
+      if process_result != process_success
+        if process_success
+          assert false, "Expected sspec test process to return success and it failed! Exit code: #{$?.exitstatus}"
+        else
+          assert false, "Expected sspec test process to return failure and it succeeded!"
+        end
+      end
+    end
+
+    result = Scarpe::Components::MinitestResult.new(test_output)
+    correct, msg = result.check(expect_result:, min_asserts: expect_assertions_min, max_asserts: expect_assertions_max)
+
+    if correct
+      assert_equal true, true # Yup, worked fine
+    else
+      assert false, "Minitest result: #{msg}"
+    end
+  end
+
   def run_test_scarpe_code(
     scarpe_app_code,
     test_extension: ".rb",
@@ -59,8 +109,8 @@ class ShoesSpecLoggedTest < Minitest::Test
       #{app_test_code}
     TEST_CODE
 
-    sspec_file = File.expand_path(File.join __dir__, "sspec.json")
-    File.unlink sspec_file rescue nil
+    test_output = File.expand_path(File.join __dir__, "sspec.json")
+    File.unlink test_output rescue nil
 
     test_method_name = self.name
     test_class_name = self.class.name
@@ -75,13 +125,14 @@ class ShoesSpecLoggedTest < Minitest::Test
         "SCARPE_DISPLAY_SERVICE=#{display_service} " +
         "SCARPE_LOG_CONFIG=\"#{scarpe_log_config}\" " +
         "SHOES_SPEC_TEST=\"#{app_test_path}\" " +
-        "SHOES_MINITEST_EXPORT_FILE=\"#{sspec_file}\" " +
+        "SHOES_MINITEST_EXPORT_FILE=\"#{test_output}\" " +
         "SHOES_MINITEST_CLASS_NAME=\"#{test_class_name}\" " +
         "SHOES_MINITEST_METHOD_NAME=\"#{test_method_name}\" " +
         "LOCALAPPDATA=\"#{Dir.tmpdir}\"" +
         "ruby #{SCARPE_EXE} --debug --dev #{test_app_location}")
     end
 
+    # TODO: this should *require* the process to fail, not allow it.
     if allow_fail
       assert true
       return
@@ -93,7 +144,7 @@ class ShoesSpecLoggedTest < Minitest::Test
       return
     end
 
-    result = Scarpe::Components::MinitestResult.new(sspec_file)
+    result = Scarpe::Components::MinitestResult.new(test_output)
     if result.error?
       raise result.error_message
     elsif result.fail?

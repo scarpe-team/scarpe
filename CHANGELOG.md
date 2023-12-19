@@ -24,9 +24,10 @@ still making big changes.
 
 - Ovals!
 - Features! Shoes.app(feature: [:html, :scarpe]) lets apps declare dependencies on non-classic Shoes!
+- The html_class style is a feature to make it easier to do Bootstrap styling on your drawables
 - Directly run Shoes Specs, including with Niente
-- We use Minitest assertion DSL rather than our own nearly everywhere now
-- Better handling of :left, :top, :width and :height on more drawables
+- We use Minitest assertion DSL rather than our own everywhere now
+- Better handling of :left, :top, :width and :height, :margin and :padding on more drawables
 
 ### Bugs Fixed
 
