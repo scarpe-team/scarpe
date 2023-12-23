@@ -20,14 +20,17 @@ module Scarpe
 
       @waiting_fibers = []
       @event_promises = {}
+      @shutdown = false
 
       @manager_fiber = Fiber.new do
+        Fiber[:catscradle] = true
+
         loop do
           # A fiber can run briefly and then exit. It can run and then block on an API call.
           # These fibers return promises to indicate to CatsCradle when they can run again.
           # A fiber that is no longer #alive? is assumed to be successfully finished.
           @waiting_fibers.each do |fiber_data|
-            next unless fiber_data[:promise].fulfilled?
+            next if !fiber_data[:promise].fulfilled? || !fiber_data[:fiber].alive? || @shutdown
 
             @log.debug("Resuming fiber with value #{fiber_data[:promise].returned_value.inspect}")
             result = fiber_data[:fiber].transfer fiber_data[:promise].returned_value
@@ -54,6 +57,17 @@ module Scarpe
       end
     end
 
+    private
+
+    def cc_fiber(&block)
+      Fiber.new do
+        Fiber[:catscradle] = true
+        CCInstance.instance.instance_eval(&block)
+      end
+    end
+
+    public
+
     # If we add "every" events, that's likely to complicate timing and event_promise handling.
     EVENT_TYPES = [:init, :next_heartbeat, :next_redraw, :every_heartbeat, :every_redraw]
 
@@ -77,9 +91,16 @@ module Scarpe
           p = @event_promises.delete(:every_heartbeat)
           p&.fulfilled!
 
+          # Reschedule on_every_heartbeat fibers for next heartbeat, too.
+          # This fiber won't be called again by a heartbeat, though it may
+          # continue if it waits on another promise.
+          @waiting_fibers.select { |f| f[:on_event] == :every_heartbeat }.each do |f|
+            on_event(:every_heartbeat, &f[:block])
+          end
+
           # Give every ready fiber a chance to run once.
-          @manager_fiber.resume
-        end
+          @manager_fiber.resume unless @shutdown
+        end unless @shutdown
       end
 
       @control_interface.on_event(:every_redraw) do
@@ -90,14 +111,19 @@ module Scarpe
           p = @event_promises.delete(:every_redraw)
           p&.fulfilled!
 
+          # Reschedule on_every_redraw fibers for next redraw, too.
+          @waiting_fibers.select { |f| f[:on_event] == :every_redraw }.each do |f|
+            on_event(:every_redraw, &f[:block])
+          end
+
           # Give every ready fiber a chance to run once.
-          @manager_fiber.resume
-        end
+          @manager_fiber.resume unless @shutdown
+        end unless @shutdown
       end
     end
 
     def fiber_start
-      @manager_fiber.resume
+      @manager_fiber.resume unless @shutdown
     end
 
     def event_promise(event)
@@ -106,20 +132,17 @@ module Scarpe
 
     def on_event(event, &block)
       raise Scarpe::UnknownEventTypeError, "Unknown event type: #{event.inspect}!" unless EVENT_TYPES.include?(event)
+      return if @shutdown
 
-      f = Fiber.new do
-        CCInstance.instance.instance_eval(&block)
-      end
-      @waiting_fibers << { promise: event_promise(event), fiber: f }
+      @waiting_fibers << { promise: event_promise(event), fiber: cc_fiber(&block), on_event: event, block: }
     end
 
     def active_fiber(&block)
-      f = Fiber.new do
-        CCInstance.instance.instance_eval(&block)
-      end
+      return if @shutdown
+
       p = ::Scarpe::Promise.new
       p.fulfilled!
-      @waiting_fibers << { promise: p, fiber: f }
+      @waiting_fibers << { promise: p, fiber: cc_fiber(&block), on_event: nil, block: }
     end
 
     def wait(promise)
@@ -156,6 +179,11 @@ module Scarpe
     end
 
     def shut_down_shoes_code
+      if @shutdown
+        exit 0
+      end
+
+      @shutdown = true
       ::Shoes::DisplayService.dispatch_event("destroy", nil)
     end
   end

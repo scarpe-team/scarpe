@@ -26,17 +26,26 @@ module Scarpe::Test
     class_name ||= ENV["SHOES_MINITEST_CLASS_NAME"] || "TestShoesSpecCode"
     test_name ||= ENV["SHOES_MINITEST_METHOD_NAME"] || "test_shoes_spec"
 
+    Scarpe::CCInstance.include Scarpe::ShoesSpecTest
+
     Scarpe::CCInstance.instance.instance_eval do
       event_init
+
+      t_timeout = ENV["SCARPE_SSPEC_TIMEOUT"] || "30"
+      timeout(t_timeout.to_f) unless t_timeout.downcase == "none"
 
       on_event(:next_heartbeat) do
         Minitest.run ARGV
 
-        shut_down_shoes_code
+        wait_after = ENV["SCARPE_SSPEC_TIMEOUT_WAIT_AFTER_TEST"]
+        if !(wait_after && wait_after.downcase != "n" && wait_after.downcase != "no")
+          shut_down_shoes_code
+        end
       end
     end
 
-    test_class = Class.new(Scarpe::ShoesSpecTest)
+    test_class = Class.new(Minitest::Test)
+    test_class.include Scarpe::ShoesSpecTest
     Object.const_set(Scarpe::Components::StringHelpers.camelize(class_name), test_class)
     test_name = "test_" + test_name unless test_name.start_with?("test_")
     test_class.define_method(test_name) do
@@ -91,7 +100,7 @@ end
 
 # When running ShoesSpec tests, we create a parent class for all of them
 # with the appropriate convenience methods and accessors.
-class Scarpe::ShoesSpecTest < Minitest::Test
+module Scarpe::ShoesSpecTest
   include Scarpe::Test::HTMLAssertions
 
   Shoes::Drawable.drawable_classes.each do |drawable_class|
@@ -126,30 +135,25 @@ class Scarpe::ShoesSpecTest < Minitest::Test
     end
   end
 
-  # This isn't working. Neither is calling die_after. Are the other fibers not
-  # running or something like that? Should run a test from the command line
-  # and see what's happening... Or check logfiles?
-  def timeout(t_timeout = 5.0, exit_code: -1)
+  # A timeout won't cause an error by itself. If you want an error, make sure
+  # to check for a minimum number of assertions or otherwise look for progress.
+  def timeout(t_timeout = 5.0)
     catscradle_dsl do
       t0 = Time.now
       on_event(:every_heartbeat) do
         if Time.now - t0 >= t_timeout
-          if exit_code == 0
-            @log.info "Timed out after #{t_timeout} seconds!"
-          else
-            @log.error "Timed out after #{t_timeout} seconds!"
-          end
-          exit exit_code
+          @log.info "Timed out after #{t_timeout} seconds!"
+          shut_down_shoes_code
         end
       end
     end
   end
 
-  def exit_on_first_heartbeat(exit_code: 0)
+  def exit_on_first_heartbeat
     catscradle_dsl do
       on_event(:next_heartbeat) do
         @log.info "Exiting on first heartbeat (exit code #{exit_code})"
-        exit exit_code
+        exit 0
       end
     end
   end
