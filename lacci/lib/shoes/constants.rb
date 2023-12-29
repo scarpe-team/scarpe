@@ -16,6 +16,7 @@ class Shoes
       ]
 
       top, file = homes.detect { |home_top, _| home_top && File.exist?(home_top) }
+      return nil if top.nil?
       File.join(top, file)
     end
 

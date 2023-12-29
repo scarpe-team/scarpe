@@ -162,6 +162,10 @@ class Shoes
       end
     end
 
+    def initialize
+      @display_drawable_for = {}
+    end
+
     # These methods are an interface to DisplayService objects.
 
     def create_display_drawable_for(drawable_class_name, drawable_id, properties, parent_id:, is_widget:)
@@ -210,7 +214,6 @@ class Shoes
     def initialize(linkable_id: object_id)
       @linkable_id = linkable_id
       @subscriptions = {}
-      @display_drawable_for ||= {}
     end
 
     def send_self_event(*args, event_name:, **kwargs)
