@@ -47,6 +47,8 @@ class ShoesSpecLoggedTest < Minitest::Test
     expect_assertions_min: nil,
     expect_assertions_max: nil,
     expect_result: :success,
+    timeout: 10.0, # or :none for no timeout
+    wait_after_test: false,
     display_service: "wv_local",
     html_renderer: "calzini"
   )
@@ -61,6 +63,8 @@ class ShoesSpecLoggedTest < Minitest::Test
         "SCARPE_DISPLAY_SERVICE=#{display_service} " +
         "SCARPE_HTML_RENDERER=#{html_renderer} " +
         "SCARPE_LOG_CONFIG=\"#{scarpe_log_config}\" " +
+        "SCARPE_SSPEC_TIMEOUT=\"#{timeout}\" " +
+        "#{wait_after_test ? "SCARPE_SSPEC_TIMEOUT_WAIT_AFTER_TEST=Y" : ""} " +
         "SHOES_MINITEST_EXPORT_FILE=\"#{test_output}\" " +
         "SHOES_MINITEST_CLASS_NAME=\"#{test_class_name}\" " +
         "SHOES_MINITEST_METHOD_NAME=\"#{test_method_name}\" " +
@@ -72,7 +76,7 @@ class ShoesSpecLoggedTest < Minitest::Test
         if process_success
           assert false, "Expected sspec test process to return success and it failed! Exit code: #{$?.exitstatus}"
         else
-          assert false, "Expected sspec test process to return failure and it succeeded!"
+          assert false, "Expected sspec test process to return failure and it succeeded! Exit code: #{$?.exitstatus}"
         end
       end
     end
