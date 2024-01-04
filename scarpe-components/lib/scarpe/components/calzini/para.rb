@@ -44,6 +44,16 @@ module Scarpe::Components::Calzini
       "font-family": props["font"],
       "text-decoration-line": strikethrough ? "line-through" : nil,
       "text-decoration-color": props["strikecolor"] ? rgb_to_hex(props["strikecolor"]) : nil,
+      :'font-style' => case props["emphasis"]
+            when "normal"
+                "normal"
+            when "oblique"
+                "oblique"
+            when "italic"
+                "italic"
+            else
+                nil
+            end
     }.compact
 
     s2 = {}
@@ -74,19 +84,6 @@ module Scarpe::Components::Calzini
     else
       # This should normally be unreachable
       raise Shoes::Errors::InvalidAttributeValueError, "Unexpected underline type #{props["underline"].inspect}!"
-    end
-
-    s1[:'font-style'] = case props["emphasis"]
-    when "normal"
-      "normal"
-    when "oblique"
-      "oblique"
-    when "italic"
-      "italic"
-    when nil
-      "normal" # Set a default value for nil
-    else
-      "normal" # Handle any unexpected value with a default
     end
 
     [s1, s2]
