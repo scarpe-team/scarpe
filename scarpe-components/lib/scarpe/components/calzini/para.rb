@@ -76,6 +76,22 @@ module Scarpe::Components::Calzini
       raise Shoes::Errors::InvalidAttributeValueError, "Unexpected underline type #{props["underline"].inspect}!"
     end
 
+    s1[:'font-style'] = case props["emphasis"]
+    when "normal"
+      "normal"
+    when "oblique"
+      "oblique"
+    when "italic"
+      "italic"
+    when nil
+      "normal" # Set a default value for nil
+    else
+      "normal" # Handle any unexpected value with a default
+    end
+
+    [s1, s2]
+  end
+
     [s1, s2]
   end
 
