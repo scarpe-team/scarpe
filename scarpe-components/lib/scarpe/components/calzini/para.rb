@@ -92,9 +92,6 @@ module Scarpe::Components::Calzini
     [s1, s2]
   end
 
-    [s1, s2]
-  end
-
   def para_font_size(props)
     return nil unless props["size"]
 
