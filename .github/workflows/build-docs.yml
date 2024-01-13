@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get -y install portaudio19-dev libgtk-3-dev libwebkit2gtk-4.0-dev
       - name: Setup Ruby
@@ -38,7 +38,7 @@ jobs:
           cache-version: 0 # Increment this number if you need to re-download cached gems
       - name: Setup Pages
         id: pages
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v4
       - name: Build with yardoc
         run: rm -rf .yardoc doc && bundle exec yardoc -o doc
         env:

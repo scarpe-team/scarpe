@@ -17,7 +17,7 @@ jobs:
       - name: Install dependencies
         run: brew install pkg-config portaudio
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Ruby and install gems
         uses: ruby/setup-ruby@v1
         with:
@@ -32,7 +32,7 @@ jobs:
         run: bundle exec rake test:check_html_fixtures
       - name: upload test-fail logs
         if: '!cancelled()'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test failure logs
           path: logger/test_failure*.out.log
@@ -44,7 +44,7 @@ jobs:
   #     - name: Install dependencies
   #       run: brew install pkg-config portaudio
   #     - name: Checkout code
-  #       uses: actions/checkout@v3
+  #       uses: actions/checkout@v4
   #     - name: Setup Ruby and install gems
   #       uses: ruby/setup-ruby@v1
   #       with:

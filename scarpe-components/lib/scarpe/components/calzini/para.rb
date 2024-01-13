@@ -44,6 +44,16 @@ module Scarpe::Components::Calzini
       "font-family": props["font"],
       "text-decoration-line": strikethrough ? "line-through" : nil,
       "text-decoration-color": props["strikecolor"] ? rgb_to_hex(props["strikecolor"]) : nil,
+      :'font-style' => case props["emphasis"]
+            when "normal"
+                "normal"
+            when "oblique"
+                "oblique"
+            when "italic"
+                "italic"
+            else
+                nil
+            end
     }.compact
 
     s2 = {}
