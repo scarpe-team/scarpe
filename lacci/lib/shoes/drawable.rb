@@ -15,7 +15,7 @@ class Shoes
     include Shoes::Colors
 
     # All Drawables have these so they go in Shoes::Drawable and are inherited
-    @shoes_events = ["parent", "destroy", "prop_change"]
+    @shoes_events = ["parent", "destroy", "prop_change", "hover", "leave", "motion"]
 
     class << self
       attr_accessor :drawable_classes
@@ -69,10 +69,17 @@ class Shoes
       # @return Array[String] the list of event names
       def get_shoes_events
         if @shoes_events.nil?
-          raise UnknownEventsForClass, "Drawable type #{self.class} hasn't defined its list of Shoes events!"
+          raise Shoes::Errors::UnknownEventsForClass, "Drawable type #{self} hasn't defined its list of Shoes events!"
         end
 
         @shoes_events
+      end
+
+      # Return whether Shoes events have already been registered for this class
+      #
+      # @return [Boolean] true if events have been registered, false if not
+      def registered_shoes_events?
+        !@shoes_events.nil?
       end
 
       # Set the list of Shoes event names that are allowed for this class.
@@ -80,7 +87,10 @@ class Shoes
       # @param args [Array] an array of event names, which will be coerced to Strings
       # @return [void]
       def shoes_events(*args)
-        @shoes_events ||= args.map(&:to_s) + self.superclass.get_shoes_events
+        if @shoes_events
+          raise Shoes::Errors::DoubleRegisteredShoesEvents, "Registering shoes events #{args.inspect} for class #{self} but already registered events as #{@shoes_events.inspect}!"
+        end
+        @shoes_events = args.map(&:to_s) + self.superclass.get_shoes_events
       end
 
       # Require supplying these Shoes style values as positional arguments to
@@ -354,6 +364,34 @@ class Shoes
       if self.class.expects_parent?
         set_parent(parent, notify: false)
       end
+
+      unless self.class.registered_shoes_events?
+        # No Shoes events declared and we're creating an instance?
+        # Default to no class-specific events.
+        self.class.shoes_events
+      end
+
+      # Binding the motion events here isn't perfect.
+      # What about drawables like SubscriptionItem that
+      # have no motion events? With the current Lacci
+      # implementation, the answer is that those events
+      # will never be sent. Calling .hover on one will
+      # be useless, harmless, and allowed. If you want
+      # to make it disallowed, you can do something like
+      # define a SubscriptionItem#hover that raises an
+      # exception instead.
+
+      bind_self_event("hover") do
+        @hover&.call
+      end
+
+      bind_self_event("leave") do
+        @leave&.call
+      end
+
+      bind_self_event("motion") do |x, y|
+        @motion&.call(x, y)
+      end
     end
 
     def self.expects_parent?
@@ -402,8 +440,9 @@ class Shoes
     private
 
     def validate_event_name(event_name)
-      unless self.class.get_shoes_events.include?(event_name.to_s)
-        raise Shoes::UnregisteredShoesEvent, "Drawable #{self.inspect} tried to bind Shoes event #{event_name}, which is not in #{evetns.inspect}!"
+      events = self.class.get_shoes_events
+      unless events.include?(event_name.to_s)
+        raise Shoes::Errors::UnregisteredShoesEvent, "Drawable #{self.inspect} tried to bind Shoes event #{event_name}, which is not in #{events.inspect}!"
       end
     end
 
@@ -520,6 +559,28 @@ class Shoes
     # Hide the drawable if it is currently shown. Show it if it is currently hidden.
     def toggle
       self.hidden = !self.hidden
+    end
+
+    # Set the hover handler. Not every drawable may do something useful with this.
+    #
+    # @yield A block to be called when the cursor moves to be over the drawable.
+    def hover(&block)
+      @hover = block
+    end
+
+    # Set the leave handler. Not every drawable may do something useful with this.
+    #
+    # @yield A block to be called when the cursor moves to be off of the drawable.
+    def leave(&block)
+      @leave = block
+    end
+
+    # Set the motion handler, called with x and y coordinates as params.
+    # Not every drawable may do something useful with this.
+    #
+    # @yield A block to be called when the cursor moves around over the drawable.
+    def motion(&block)
+      @motion = block
     end
 
     # We use method_missing to auto-create Shoes style getters and setters.
