@@ -53,7 +53,9 @@ module Scarpe::Components::Calzini
                 "italic"
             else
                 nil
-            end
+            end,
+      :'letter-spacing' => props["kerning"] ? "#{props["kerning"]}px" : nil,
+      :'baseline-shift' => props["rise"] ? "#{props["rise"]}px" : nil
     }.compact
 
     s2 = {}
