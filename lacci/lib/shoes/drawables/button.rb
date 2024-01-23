@@ -3,7 +3,7 @@
 class Shoes
   class Button < Shoes::Drawable
     shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size, :tooltip
-    shoes_events :click, :hover
+    shoes_events :click
 
     init_args :text
     # Creates a new Button object.
@@ -38,14 +38,10 @@ class Shoes
 
       super
 
-      # Bind to a handler named "click"
+      # Bind block to a handler named "click"
       bind_self_event("click") do
         @log.debug("Button clicked, calling handler") if @block
         @block&.call
-      end
-
-      bind_self_event("hover") do
-        @hover&.call
       end
 
       create_display_drawable
@@ -56,13 +52,6 @@ class Shoes
     # @yield A block to be called when the button is clicked.
     def click(&block)
       @block = block
-    end
-
-    # Set the hover handler
-    #
-    # @yield A block to be called when the cursor moves to be over the button.
-    def hover(&block)
-      @hover = block
     end
   end
 end
