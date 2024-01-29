@@ -26,6 +26,7 @@ module Scarpe::Components::Calzini
   private
 
   def para_style(props)
+  
     ds = drawable_style(props)
     s1, s2 = text_specific_styles(props)
     [ds.merge(s1), s2]
@@ -44,6 +45,7 @@ module Scarpe::Components::Calzini
       "font-family": props["font"],
       "text-decoration-line": strikethrough ? "line-through" : nil,
       "text-decoration-color": props["strikecolor"] ? rgb_to_hex(props["strikecolor"]) : nil,
+      "font-weight": props["font_weight"]? props["font_weight"] : nil,
       :'font-style' => case props["emphasis"]
             when "normal"
                 "normal"
