@@ -39,10 +39,12 @@ module Scarpe::Components::Calzini
     strikethrough = props["strikethrough"]
     strikethrough = nil if strikethrough == "" || strikethrough == "none"
     s1 = {
+      "font": props["font"],
+      "font-variant": props["font_variant"],
       "color": rgb_to_hex(props["stroke"]),
       "background-color": rgb_to_hex(props["fill"]),
       "font-size": para_font_size(props),
-      "font-family": props["font"],
+      "font-family": props["family"],
       "text-decoration-line": strikethrough ? "line-through" : nil,
       "text-decoration-color": props["strikecolor"] ? rgb_to_hex(props["strikecolor"]) : nil,
       "font-weight": props["font_weight"]? props["font_weight"] : nil,
