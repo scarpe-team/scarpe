@@ -19,7 +19,7 @@ class TestCalziniPara < Minitest::Test
 
   def test_para_with_stroke_and_font
     assert_equal %{<p id="elt-1" style="color:#FF0000;font-family:Lucida">OK</p>},
-      @calzini.render("para", { "stroke" => [1.0, 0.0, 0.0], "font" => "Lucida" }) { "OK" }
+      @calzini.render("para", { "stroke" => [1.0, 0.0, 0.0], "family" => "Lucida" }) { "OK" }
   end
 
   def test_para_with_string_banner

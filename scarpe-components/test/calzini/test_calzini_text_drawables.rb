@@ -31,7 +31,7 @@ class TestCalziniTextDrawables < Minitest::Test
           html_id: "1",
           items: ["is"],
           props: {
-            "font" => "Lucida",
+            "family" => "Lucida",
             "size" => 13,
             "stroke" => "#FF00FF",
             "fill" => "#0000FF"

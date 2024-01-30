@@ -71,7 +71,10 @@ end
 
 file_names.each do |file_name|
   # Read the entire file
+
   content = File.read(File.join(File.expand_path("../examples", __dir__),"#{file_name}"))
+ 
+
   # Skip this file if it contains the magic comment
   next if content.include?("# html_ci: false")
 
@@ -108,8 +111,10 @@ file_names.each do |file_name|
   # Compare to fixture
   dir_path = "test/wv/html_fixtures"
   file_path = "#{dir_path}/#{file_name.split(".")[0]}.html"
-  expected_output = File.read(file_path)
 
+
+  expected_output = File.read(file_path)
+ 
   # Do the comparison
   # diff = Diff::LCS.diff(pretty_html, expected_output)
   diff_output = diff_as_string(pretty_html, expected_output, file_name)
