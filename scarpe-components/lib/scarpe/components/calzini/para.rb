@@ -134,15 +134,20 @@ module Scarpe::Components::Calzini
         fss = i
         next
       else
-        if contains_number?(i) 
-          puts contains_number?(i)
+        if contains_number?(i)
+          
           fss=i;
 
         elsif i != "normal" && i != "medium"
+
           if ff == "Arial"
+
             ff = i
+
           else
+            
             ff = ff+ i
+
           end
         end
       end
