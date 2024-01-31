@@ -39,10 +39,12 @@ module Scarpe::Components::Calzini
     strikethrough = props["strikethrough"]
     strikethrough = nil if strikethrough == "" || strikethrough == "none"
     s1 = {
+      "font": props["font"]? parse_font(props) : nil,
+      "font-variant": props["font_variant"],
       "color": rgb_to_hex(props["stroke"]),
       "background-color": rgb_to_hex(props["fill"]),
       "font-size": para_font_size(props),
-      "font-family": props["font"],
+      "font-family": props["family"],
       "text-decoration-line": strikethrough ? "line-through" : nil,
       "text-decoration-color": props["strikecolor"] ? rgb_to_hex(props["strikecolor"]) : nil,
       "font-weight": props["font_weight"]? props["font_weight"] : nil,
@@ -91,6 +93,65 @@ module Scarpe::Components::Calzini
     end
 
     [s1, s2]
+  end
+
+
+  def parse_font(props)
+
+    def contains_number?(str)
+
+      !!(str =~ /\d/)
+
+    end
+  
+
+    input = props["font"]
+    regex = /\s+(?=(?:[^']*'[^']*')*[^']*$)(?![^']*,[^']*')/
+    result = input.split(regex)
+   
+    fs = "normal"
+    fv = "normal"
+    fw = "normal"
+    fss = "medium"
+    ff = "Arial"
+    
+    fos = ["italic", "oblique"]
+    fov = ["small-caps", "initial", "inherit"]
+    fow = ["bold", "bolder", "lighter", "100", "200", "300", "400", "500", "600", "700", "800", "900"]
+    foss = ["xx-small", "x-small", "small","large", "x-large", "xx-large", "smaller", "larger"]
+    
+    result.each do |i|
+      if fos.include?(i)
+        fs = i
+        next
+      elsif fov.include?(i)
+        fv = i
+        next
+      elsif fow.include?(i)
+        fw = i
+        next
+      elsif foss.include?(i)
+        fss = i
+        next
+      else
+        if contains_number?(i) 
+          puts contains_number?(i)
+          fss=i;
+
+        elsif i != "normal" && i != "medium"
+          if ff == "Arial"
+            ff = i
+          else
+            ff = ff+ i
+          end
+        end
+      end
+      
+    end
+    
+    
+    "#{fs} #{fv} #{fw} #{fss} #{ff}"
+    
   end
 
   def para_font_size(props)
