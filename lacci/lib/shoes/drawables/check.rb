@@ -11,13 +11,15 @@ class Shoes
       @block = block
       super
 
-      bind_self_event("click") { click }
+      bind_self_event("click") do
+        self.checked = !checked?
+        @block.call(self) if @block
+      end
       create_display_drawable
     end
 
     def click(&block)
       @block = block
-      self.checked = !checked?
     end
 
     def checked?

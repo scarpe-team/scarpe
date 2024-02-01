@@ -5,6 +5,8 @@ Shoes.app do
       flow { check; para "Kin-Dza-Dza by Georgi Danelia" }
       flow { check; para "Children of Heaven by Majid Majidi" }
       @btn = check; para "The White Balloon by Jafar Panahi"
+      @p = para ""
+      @btn.click { @p.replace("Clicked! Yay!") }
       flow do
         button "Mark me" do
           @btn.checked = true

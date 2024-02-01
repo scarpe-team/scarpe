@@ -2,7 +2,7 @@
 
 class Shoes
   class Para < Shoes::Drawable
-    shoes_styles :text_items, :size, :font
+    shoes_styles :text_items, :size, :family, :font_weight, :font, :font_variant, :emphasis
     shoes_style(:stroke) { |val, _name| Shoes::Colors.to_rgb(val) }
     shoes_style(:fill) { |val, _name| Shoes::Colors.to_rgb(val) }
 

@@ -107,9 +107,12 @@ file_names.each do |file_name|
 
   # Compare to fixture
   dir_path = "test/wv/html_fixtures"
+  begin
   file_path = "#{dir_path}/#{file_name.split(".")[0]}.html"
   expected_output = File.read(file_path)
-
+  rescue => e
+    raise "Hey, you need to regenerate fixtures, do this using command 'rake test:regenerate_html_fixtures' "
+  end
   # Do the comparison
   # diff = Diff::LCS.diff(pretty_html, expected_output)
   diff_output = diff_as_string(pretty_html, expected_output, file_name)

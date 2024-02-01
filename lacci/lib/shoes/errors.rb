@@ -31,4 +31,8 @@ module Shoes::Errors
   class UnsupportedFeature < Shoes::Error; end
 
   class BadFilenameError < Shoes::Error; end
+
+  class UnknownEventsForClass < Shoes::Error; end
+
+  class DoubleRegisteredShoesEvents < Shoes::Error; end
 end
