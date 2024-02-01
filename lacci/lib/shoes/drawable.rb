@@ -88,7 +88,7 @@ class Shoes
       # @return [void]
       def shoes_events(*args)
         if @shoes_events
-          raise Shoes::Errors::DoubleRegisteredShoesError, "Registering shoes events #{args.inspect} for class #{self} but already registered events as #{@shoes_events.inspect}!"
+          raise Shoes::Errors::DoubleRegisteredShoesEventError, "Registering shoes events #{args.inspect} for class #{self} but already registered events as #{@shoes_events.inspect}!"
         end
         @shoes_events = args.map(&:to_s) + self.superclass.get_shoes_events
       end
@@ -442,7 +442,7 @@ class Shoes
     def validate_event_name(event_name)
       events = self.class.get_shoes_events
       unless events.include?(event_name.to_s)
-        raise Shoes::Errors::UnregisteredShoesError, "Drawable #{self.inspect} tried to bind Shoes event #{event_name}, which is not in #{events.inspect}!"
+        raise Shoes::Errors::UnregisteredShoesEventError, "Drawable #{self.inspect} tried to bind Shoes event #{event_name}, which is not in #{events.inspect}!"
       end
     end
 

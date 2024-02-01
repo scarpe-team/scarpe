@@ -20,7 +20,7 @@ module Shoes::Errors
 
   class BadLinkableIdError < Shoes::Error; end
 
-  class UnregisteredShoesError < Shoes::Error; end
+  class UnregisteredShoesEventError < Shoes::Error; end
 
   class BadArgumentListError < Shoes::Error; end
 
@@ -34,5 +34,5 @@ module Shoes::Errors
 
   class UnknownEventsForClassError < Shoes::Error; end
 
-  class DoubleRegisteredShoesError < Shoes::Error; end
+  class DoubleRegisteredShoesEventError < Shoes::Error; end
 end
