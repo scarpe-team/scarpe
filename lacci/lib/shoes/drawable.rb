@@ -69,7 +69,7 @@ class Shoes
       # @return Array[String] the list of event names
       def get_shoes_events
         if @shoes_events.nil?
-          raise Shoes::Errors::UnknownEventsForClass, "Drawable type #{self} hasn't defined its list of Shoes events!"
+          raise Shoes::Errors::UnknownEventsForClassError, "Drawable type #{self} hasn't defined its list of Shoes events!"
         end
 
         @shoes_events
@@ -88,7 +88,7 @@ class Shoes
       # @return [void]
       def shoes_events(*args)
         if @shoes_events
-          raise Shoes::Errors::DoubleRegisteredShoesEvents, "Registering shoes events #{args.inspect} for class #{self} but already registered events as #{@shoes_events.inspect}!"
+          raise Shoes::Errors::DoubleRegisteredShoesError, "Registering shoes events #{args.inspect} for class #{self} but already registered events as #{@shoes_events.inspect}!"
         end
         @shoes_events = args.map(&:to_s) + self.superclass.get_shoes_events
       end
@@ -269,7 +269,7 @@ class Shoes
       bad_styles = kwargs.keys & not_this_app_styles
       unless bad_styles.empty?
         features_needed = bad_styles.map { |s| self.class.feature_for_shoes_style(s) }.uniq
-        raise Shoes::Errors::UnsupportedFeature, "The style(s) #{bad_styles.inspect} are only defined for applications that request specific features: #{features_needed.inspect} (you requested #{app_features.inspect})!"
+        raise Shoes::Errors::UnsupportedFeatureError, "The style(s) #{bad_styles.inspect} are only defined for applications that request specific features: #{features_needed.inspect} (you requested #{app_features.inspect})!"
       end
 
       # Next, check positional arguments and make sure the correct number and type
@@ -442,12 +442,12 @@ class Shoes
     def validate_event_name(event_name)
       events = self.class.get_shoes_events
       unless events.include?(event_name.to_s)
-        raise Shoes::Errors::UnregisteredShoesEvent, "Drawable #{self.inspect} tried to bind Shoes event #{event_name}, which is not in #{events.inspect}!"
+        raise Shoes::Errors::UnregisteredShoesError, "Drawable #{self.inspect} tried to bind Shoes event #{event_name}, which is not in #{events.inspect}!"
       end
     end
 
     def bind_self_event(event_name, &block)
-      raise(Shoes::Errors::NoLinkableIdError, "Drawable has no linkable_id! #{inspect}") unless linkable_id
+      raise(Shoes::Errors::NoSuchLinkableIdError, "Drawable has no linkable_id! #{inspect}") unless linkable_id
 
       validate_event_name(event_name)
 
@@ -591,7 +591,7 @@ class Shoes
         prop_name = name_s[0..-2]
         if self.class.shoes_style_name?(prop_name)
           self.class.define_method(name) do |new_value|
-            raise(Shoes::Errors::NoLinkableIdError, "Trying to set Shoes styles in a #{self.class} with no linkable ID!") unless linkable_id
+            raise(Shoes::Errors::NoSuchLinkableIdError, "Trying to set Shoes styles in a #{self.class} with no linkable ID!") unless linkable_id
 
             new_value = self.class.validate_as(prop_name, new_value)
             instance_variable_set("@" + prop_name, new_value)
@@ -604,7 +604,7 @@ class Shoes
 
       if self.class.shoes_style_name?(name_s)
         self.class.define_method(name) do
-          raise(Shoes::Errors::NoLinkableIdError, "Trying to get Shoes styles in an object with no linkable ID! #{inspect}") unless linkable_id
+          raise(Shoes::Errors::NoSuchLinkableIdError, "Trying to get Shoes styles in an object with no linkable ID! #{inspect}") unless linkable_id
 
           instance_variable_get("@" + name_s)
         end
