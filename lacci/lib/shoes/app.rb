@@ -54,7 +54,7 @@ class Shoes
       unsupported_features = unknown_ext & Shoes::KNOWN_FEATURES
       unless unsupported_features.empty?
         @log.error("Shoes app requires feature(s) not supported by this display service: #{unsupported_features.inspect}!")
-        raise Shoes::Errors::UnsupportedFeature, "Shoes app needs features: #{unsupported_features.inspect}"
+        raise Shoes::Errors::UnsupportedFeatureError, "Shoes app needs features: #{unsupported_features.inspect}"
       end
       unless unknown_ext.empty?
         @log.warn("Shoes app requested unknown features #{unknown_ext.inspect}! Known: #{(Shoes::FEATURES + Shoes::EXTENSIONS).inspect}")

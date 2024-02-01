@@ -16,11 +16,11 @@ module Shoes::Errors
 
   class NoSuchStyleError < Shoes::Error; end
 
-  class NoLinkableIdError < Shoes::Error; end
+  class NoSuchLinkableIdError < Shoes::Error; end
 
   class BadLinkableIdError < Shoes::Error; end
 
-  class UnregisteredShoesEvent < Shoes::Error; end
+  class UnregisteredShoesEventError < Shoes::Error; end
 
   class BadArgumentListError < Shoes::Error; end
 
@@ -28,11 +28,11 @@ module Shoes::Errors
 
   class MultipleShoesSpecRunsError < Shoes::Error; end
 
-  class UnsupportedFeature < Shoes::Error; end
+  class UnsupportedFeatureError < Shoes::Error; end
 
   class BadFilenameError < Shoes::Error; end
 
-  class UnknownEventsForClass < Shoes::Error; end
+  class UnknownEventsForClassError < Shoes::Error; end
 
-  class DoubleRegisteredShoesEvents < Shoes::Error; end
+  class DoubleRegisteredShoesEventError < Shoes::Error; end
 end
