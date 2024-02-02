@@ -23,17 +23,17 @@ class TestCalziniMiscDrawables < Minitest::Test
   end
 
   def test_edit_box_default
-    assert_equal %{<textarea id="elt-1" oninput="handle('change', this.value)"></textarea>},
+    assert_equal %{<textarea id="elt-1" oninput="handle('change', this.value)"  onmouseover="handle('hover')"></textarea>},
       @calzini.render("edit_box", {})
   end
 
   def test_edit_box_hidden
-    assert_equal %{<textarea id="elt-1" oninput="handle('change', this.value)" style="display:none"></textarea>},
+    assert_equal %{<textarea id="elt-1" oninput="handle('change', this.value)" style="display:none"  onmouseover="handle('hover')" ></textarea>},
       @calzini.render("edit_box", { "hidden" => true })
   end
 
   def test_edit_box_simple
-    assert_equal %{<textarea id="elt-1" oninput="handle('change', this.value)" style="width:75;height:50">default</textarea>},
+    assert_equal %{<textarea id="elt-1" oninput="handle('change', this.value)" onmouseover="handle('hover')" style="width:75;height:50">default</textarea>},
       @calzini.render("edit_box", { "height" => "50", "width" => "75", "text" => "default" })
   end
 
