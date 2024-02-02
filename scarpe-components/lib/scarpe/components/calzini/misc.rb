@@ -16,7 +16,7 @@ module Scarpe::Components::Calzini
     oninput = handler_js_code("change", "this.value")
 
     HTML.render do |h|
-      h.textarea(id: html_id, oninput: oninput, style: edit_box_style(props)) { props["text"] }
+      h.textarea(id: html_id, oninput: oninput,onmouseover: handler_js_code("hover"), style: edit_box_style(props),title: props["tooltip"]) { props["text"] }
     end
   end
 
@@ -111,6 +111,7 @@ module Scarpe::Components::Calzini
     drawable_style(props).merge({
       height: dimensions_length(props["height"]),
       width: dimensions_length(props["width"]),
+      font: props["font"]? parse_font(props) : nil
     }.compact)
   end
 
