@@ -83,6 +83,42 @@ cd scarpe; bundle install
 
 If you are using Visual Studio Code, you can use this [extension](https://github.com/gintama91/Scarpe-Vscode-Extension). This extension simplifies the process of executing commands by eliminating the need to repeatedly type lengthy file paths, resulting in a more efficient and productive development experience.
 
+## Run Test
+
+To Run all availble tests run command 
+
+```
+bundle exec rake ci_test
+
+```
+
+### To Run Tests separately 
+
+
+run lacci tests
+
+```
+bundle exec rake lacci_test
+
+```
+
+Run Scarpe-Component Tests
+
+```
+bundle exec rake component_test
+```
+
+Run Scarpe Tests
+
+```
+bundle exec rake test
+```
+
+Check HTML Output
+
+```
+bundle exec rake test:check_html_fixtures
+```
 ### Finer details
 
 First, clone the [main GitHub repository](https://github.com/scarpe-team/scarpe).
