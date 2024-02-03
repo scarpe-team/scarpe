@@ -119,7 +119,6 @@ Check HTML Output
 ```
 bundle exec rake test:check_html_fixtures
 ```
-
 ### Finer details
 
 First, clone the [main GitHub repository](https://github.com/scarpe-team/scarpe).
