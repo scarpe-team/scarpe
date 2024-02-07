@@ -44,7 +44,6 @@ class Shoes
 
       if kwargs[:font]
         arr= Font_helper.parse_font(kwargs[:font])
-        p arr
         
         if arr[0] != nil
 
