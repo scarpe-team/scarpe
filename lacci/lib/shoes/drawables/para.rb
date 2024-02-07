@@ -2,6 +2,7 @@
 
 class Shoes
   class Para < Shoes::Drawable 
+    require_relative 'font_helper.rb'
     shoes_styles :text_items, :size, :family, :font_weight, :font, :font_variant, :emphasis
     shoes_style(:stroke) { |val, _name| Shoes::Colors.to_rgb(val) }
     shoes_style(:fill) { |val, _name| Shoes::Colors.to_rgb(val) }
@@ -42,7 +43,8 @@ class Shoes
     def initialize(*args, **kwargs)
 
       if kwargs[:font]
-        arr= parse_font(kwargs[:font])
+        arr= Font_helper.parse_font(kwargs[:font])
+        p arr
         
         if arr[0] != nil
 
@@ -86,66 +88,7 @@ class Shoes
       create_display_drawable
     end
 
-    def parse_font(font)
-
-      def contains_number?(str)
-  
-          !!(str =~ /\d/)
-  
-      end
-  
-      input = font
-      regex = /\s+(?=(?:[^']*'[^']*')*[^']*$)(?![^']*,[^']*')/
-      result = input.split(regex)
-
-      fs = nil
-      fv = nil
-      fw = nil
-      fss = nil
-      ff = ""
-      
-      fos = ["italic", "oblique"]
-      fov = ["small-caps", "initial", "inherit"]
-      fow = ["bold", "bolder", "lighter", "100", "200", "300", "400", "500", "600", "700", "800", "900"]
-      foss = ["xx-small", "x-small", "small","large", "x-large", "xx-large", "smaller", "larger"]
-      
-      result.each do |i|
-        if fos.include?(i)
-          fs = i
-          next
-        elsif fov.include?(i)
-          fv = i
-          next
-        elsif fow.include?(i)
-          fw = i
-          next
-        elsif foss.include?(i)
-          fss = i
-          next
-        else
-          if contains_number?(i)
-            
-            fss=i;
-  
-          elsif i != "normal" && i != "medium"
-  
-            if ff == "Arial"
-  
-              ff = i
-  
-            else
-              
-              ff = ff+ i
-  
-            end
-          end
-        end
-        
-      end
-      
-      [fs, fv , fw , fss , ff]
-  
-    end
+    
 
     private
 
