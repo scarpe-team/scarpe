@@ -39,7 +39,6 @@ module Scarpe::Components::Calzini
     strikethrough = props["strikethrough"]
     strikethrough = nil if strikethrough == "" || strikethrough == "none"
     s1 = {
-      "font": props["font"]? parse_font(props) : nil,
       "font-variant": props["font_variant"],
       "color": rgb_to_hex(props["stroke"]),
       "background-color": rgb_to_hex(props["fill"]),
@@ -138,7 +137,7 @@ module Scarpe::Components::Calzini
           
           fss=i;
 
-        elsif i != "normal" && i != "medium"
+        elsif i != "normal" && i != "medium" && i.strip != ""
 
           if ff == "Arial"
 
