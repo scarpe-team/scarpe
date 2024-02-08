@@ -3,7 +3,7 @@ require_relative 'font_helper.rb'
 class Shoes
   class Para < Shoes::Drawable 
   include FontHelper
-    shoes_styles :text_items, :size, :family, :font_weight, :font, :font_variant, :emphasis
+    shoes_styles :text_items, :size, :family, :font_weight, :font, :font_variant, :emphasis, :kerning
     shoes_style(:stroke) { |val, _name| Shoes::Colors.to_rgb(val) }
     shoes_style(:fill) { |val, _name| Shoes::Colors.to_rgb(val) }
 
