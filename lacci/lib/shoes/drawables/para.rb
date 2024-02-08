@@ -1,8 +1,8 @@
 # frozen_string_literal: true
-
+require_relative 'font_helper.rb'
 class Shoes
   class Para < Shoes::Drawable 
-    require_relative 'font_helper.rb'
+  include FontHelper
     shoes_styles :text_items, :size, :family, :font_weight, :font, :font_variant, :emphasis
     shoes_style(:stroke) { |val, _name| Shoes::Colors.to_rgb(val) }
     shoes_style(:fill) { |val, _name| Shoes::Colors.to_rgb(val) }
@@ -43,7 +43,7 @@ class Shoes
     def initialize(*args, **kwargs)
 
       if kwargs[:font]
-        arr= Font_helper.parse_font(kwargs[:font])
+        arr= parse_font(kwargs[:font])
         
         if arr[0] != nil
 

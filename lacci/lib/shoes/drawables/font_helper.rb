@@ -1,6 +1,6 @@
-module Font_helper
+module FontHelper
 
-    def self.parse_font(font)
+    def parse_font(font)
         
         input = font
         regex = /\s+(?=(?:[^']*'[^']*')*[^']*$)(?![^']*,[^']*')/
@@ -54,7 +54,7 @@ module Font_helper
           [fs, fv , fw , fss , ff.strip]
     end
 
-    def self.contains_number?(str)
+    def contains_number?(str)
     
       !!(str =~ /\d/)
 
