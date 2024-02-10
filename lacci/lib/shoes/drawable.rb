@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-
+require_relative 'margin_helper'
 class Shoes
   # Shoes::Drawable
   #
@@ -256,7 +256,12 @@ class Shoes
     # Their value is set at drawable-create time.
     DRAW_CONTEXT_STYLES = [:fill, :stroke, :strokewidth, :rotate, :transform, :translate]
 
+  include MarginHelper
+
     def initialize(*args, **kwargs)
+
+      kwargs = margin_parse(kwargs)
+      
       log_init("Shoes::#{self.class.name}") unless @log
 
       # First, get the list of allowed and disallowed styles for the given features

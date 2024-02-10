@@ -1290,7 +1290,37 @@ will flow in with the other objects surrounding it.
 
 You might also want to give it a :top, if it's acting a bit funny. Sometimes it needs both. :)
 
-### :margin » a number or an array of four numbers
+### :margin » a number , array or string
+
+==Latest==
+
+This is margin shorthand property which is used in place of using four specific properties(left,top,right,bottom) and just like og shoes this will only overwrite those specific properties that aren't being used, which means "specific margin properties have more priorty than shorthand property".
+
+for e.g ==> margin:20, margin_top:30
+
+properties which will be applied  ==>  margin_left:20, margin_top:30, margin_right:20, margin_bottom:20
+
+
+Input allowed as a single number
+   1. 20
+   2. "20px"
+   3. [ 20] or [ "20px"]
+   
+note: when using only a single number , all margin properties will be set to that number.
+
+Input allowed as a array in both number (20) or string (20px)
+   1. [left, top, right, bottom]  ==> four entries
+   2. [left, right-bottom, top]   ==> three entries
+   3. [left-top, right-bottom]    ==> two entries
+
+Input allowed as a String in both number (20) or string (20px)
+   1. "left top right bottom" or "left,top,right,bottom" or "left-top-right-bottom"  ==> four entries
+   2. "left right/bottom top" or "left,right/bottom,top" or "left-right/bottom-top"  ==> three entries
+   3. "left/top right/bottom" or "left/top,right/bottom" or "left/top-right/bottom" ==> two entries
+
+note: Properties separated by "/" share the same input.
+
+==Legacy stuff==
 
 For: `all slots and elements`.
 
