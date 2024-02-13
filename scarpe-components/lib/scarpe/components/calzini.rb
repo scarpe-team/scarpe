@@ -126,8 +126,14 @@ module Scarpe::Components::Calzini
     styles[:left] = dimensions_length(props["left"]) if props["left"]
     styles[:width] = dimensions_length(props["width"]) if props["width"]
     styles[:height] = dimensions_length(props["height"]) if props["height"]
+    styles[:"margin"] = dimensions_length(props["margin"]) if props["margin"]
+    styles[:"margin-left"] = dimensions_length(props["margin_left"]) if props["margin_left"]
+    styles[:"margin-right"] = dimensions_length(props["margin_right"]) if props["margin_right"]
+    styles[:"margin-top"] = dimensions_length(props["margin_top"]) if props["margin_top"]
+    styles[:"margin-bottom"] = dimensions_length(props["margin_bottom"]) if props["margin_bottom"]
 
-    styles = spacing_styles_for_attr("margin", props, styles)
+
+    
     styles = spacing_styles_for_attr("padding", props, styles)
 
     styles

@@ -3,7 +3,7 @@ Shoes.app do
 
   @stack1 = stack(width: 100, height: 100) do
     background red
-    b = button("Push me", margin: [10, 5, 25, 10]) do
+    b = button("Push me", margin: [10, 25, 5, 10]) do
       alert "Aha! Click!"
     end
   end
