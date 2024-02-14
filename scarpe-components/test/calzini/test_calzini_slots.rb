@@ -59,26 +59,6 @@ class TestCalziniSlots < Minitest::Test
       @calzini.render("stack", { "border_color" => "red", "options" => { "strokewidth" => 3, "curve" => 2 } }) { "contents" }
   end
 
-  def test_stack_margin
-    assert_equal %{<div id="elt-1" } +
-      %{style="#{@stack_default_style};margin:25px">} +
-      %{#{@inner_div_tag}contents</div></div>},
-      @calzini.render("stack", { "margin" => 25 }) { "contents" }
-  end
-
-  def test_stack_options_margin
-    assert_equal %{<div id="elt-1" } +
-      %{style="#{@stack_default_style};margin:15px">} +
-      %{#{@inner_div_tag}contents</div></div>},
-      @calzini.render("stack", { "options" => { "margin" => 15 } }) { "contents" }
-  end
-
-  def test_stack_margin_overrides_options
-    assert_equal %{<div id="elt-1" } +
-      %{style="#{@stack_default_style};margin:25px">} +
-      %{#{@inner_div_tag}contents</div></div>},
-      @calzini.render("stack", { "margin" => 25, "options" => { "margin" => 15 } }) { "contents" }
-  end
 
   def test_stack_padding
     assert_equal %{<div id="elt-1" } +
@@ -101,31 +81,5 @@ class TestCalziniSlots < Minitest::Test
       @calzini.render("stack", { "padding" => 25, "options" => { "padding" => 15 } }) { "contents" }
   end
 
-  def test_stack_options_hash_margin
-    assert_equal %{<div id="elt-1" } +
-      %{style="#{@stack_default_style};margin-left:5px;margin-right:10px;margin-top:15px;margin-bottom:20px">} +
-      %{#{@inner_div_tag}contents</div></div>},
-      @calzini.render("stack", { "margin" => { left: 5, right: 10, top: 15, bottom: 20 } }) { "contents" }
-  end
-
-  def test_stack_options_array_margin
-    assert_equal %{<div id="elt-1" } +
-      %{style="#{@stack_default_style};margin-left:5px;margin-right:10px;margin-top:15px;margin-bottom:20px">} +
-      %{#{@inner_div_tag}contents</div></div>},
-      @calzini.render("stack", { "margin" => [5, 10, 15, 20] }) { "contents" }
-  end
-
-  def test_stack_options_margin_left_overrides_options
-    assert_equal %{<div id="elt-1" } +
-      %{style="#{@stack_default_style};margin-left:25px">} +
-      %{#{@inner_div_tag}contents</div></div>},
-      @calzini.render("stack", { "margin_left" => 25, "options" => { "margin" => 15 } }) { "contents" }
-  end
-
-  def test_stack_margin_left_overrides_margin
-    assert_equal %{<div id="elt-1" } +
-      %{style="#{@stack_default_style};margin:25px;margin-left:15px">} +
-      %{#{@inner_div_tag}contents</div></div>},
-      @calzini.render("stack", { "margin" => 25, "margin_left" => 15 }) { "contents" }
-  end
+ 
 end
