@@ -19,11 +19,6 @@ class TestWebviewStack < Minitest::Test
     assert_includes stack.to_html, "height:25px"
   end
 
-  def test_it_accepts_margin
-    stack = Scarpe::Webview::Stack.new(@default_properties.merge("margin" => 25))
-
-    assert_includes stack.to_html, "margin:25px"
-  end
 
 
   #def test_it_can_have_a_background

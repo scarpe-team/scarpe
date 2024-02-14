@@ -10,7 +10,7 @@ include MarginHelper
 
         kwargs = {:margin => 20}
 
-        assert_equal({:margin => 20},margin_parse(kwargs))
+        assert_equal({:margin => nil, :margin_left => 20, :margin_top => 20, :margin_right => 20, :margin_bottom => 20},margin_parse(kwargs))
 
     end
 
@@ -26,7 +26,7 @@ include MarginHelper
 
         kwargs = {:margin => [20]}
 
-        assert_equal({:margin => 20},margin_parse(kwargs))
+        assert_equal({:margin => nil, :margin_left => 20, :margin_top => 20, :margin_right => 20, :margin_bottom => 20},margin_parse(kwargs))
 
     end
 
@@ -43,7 +43,7 @@ include MarginHelper
 
         kwargs = {:margin => "20"}
 
-        assert_equal({:margin => "20"},margin_parse(kwargs))
+        assert_equal({:margin => nil, :margin_left => "20", :margin_top => "20", :margin_right => "20", :margin_bottom => "20"},margin_parse(kwargs))
 
     end
 

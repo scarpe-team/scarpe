@@ -6,7 +6,19 @@ module MarginHelper
 
         if kwargs[:margin].is_a?(Numeric)
 
-          return kwargs
+          if !kwargs[:margin_top]
+            kwargs[:margin_top] = kwargs[:margin]
+          end
+          if !kwargs[:margin_bottom]
+            kwargs[:margin_bottom] = kwargs[:margin]
+          end
+          if !kwargs[:margin_left]
+            kwargs[:margin_left] = kwargs[:margin]
+          end
+          if !kwargs[:margin_right]
+            kwargs[:margin_right] = kwargs[:margin]
+          end
+
         elsif kwargs[:margin].is_a?(Hash)
 
           kwargs[:margin].each do |key,value|
@@ -17,8 +29,18 @@ module MarginHelper
           margin_props = kwargs[:margin].is_a?(String) ? kwargs[:margin].split(/\s+|\,|-/) : kwargs[:margin]
           if margin_props.length == 1
 
-            kwargs[:margin] = margin_props[0]
-            return kwargs
+            if !kwargs[:margin_top]
+              kwargs[:margin_top] = margin_props[0]
+            end
+            if !kwargs[:margin_bottom]
+              kwargs[:margin_bottom] = margin_props[0]
+            end
+            if !kwargs[:margin_left]
+              kwargs[:margin_left] = margin_props[0]
+            end
+            if !kwargs[:margin_right]
+              kwargs[:margin_right] = margin_props[0]
+            end
 
           elsif margin_props.length == 2
   
