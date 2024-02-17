@@ -2,7 +2,7 @@
 
 module Scarpe::Webview
   class EditLine < Drawable
-    attr_reader :text, :width
+    attr_reader :text, :width, :stoke, :font, :tooltip
 
     def initialize(properties)
       super
@@ -11,8 +11,11 @@ module Scarpe::Webview
       bind("change") do |new_text|
         send_self_event(new_text, event_name: "change")
       end
+      bind("hover") do |new_text|
+        send_self_event(new_text, event_name: "hover")
+      end
     end
-
+    
     def properties_changed(changes)
       t = changes.delete("text")
       if t
