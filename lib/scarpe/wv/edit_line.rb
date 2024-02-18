@@ -2,7 +2,7 @@
 
 module Scarpe::Webview
   class EditLine < Drawable
-    attr_reader :text, :width, :stoke, :font, :tooltip
+    attr_reader :text, :width, :stroke, :font, :tooltip
 
     def initialize(properties)
       super
