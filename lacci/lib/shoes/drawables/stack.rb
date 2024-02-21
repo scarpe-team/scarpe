@@ -3,7 +3,6 @@
 class Shoes
   class Stack < Shoes::Slot
     include Shoes::Background
-    include Shoes::Border
 
     shoes_styles :scroll
 
