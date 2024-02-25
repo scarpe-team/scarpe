@@ -9,7 +9,6 @@ module Scarpe::Components::Calzini
 
   def style(props)
     styles = { 
-      border: "#{props['strokewidth']}px solid #{Shoes::Colors.const_get('COLORS').key(props['stroke'][0..-2])}",
       height: :inherit,
       width: :inherit,
       position: :absolute, 
@@ -17,6 +16,22 @@ module Scarpe::Components::Calzini
       left: 0,
       'box-sizing': 'border-box'
     }
+
+    bc = props["stroke"]
+
+    border_style_hash = case bc
+    when Range
+      { "border-image": "linear-gradient(45deg, #{bc.first}, #{bc.last})" }
+    when Array
+      { "border-color": "rgba(#{bc.join(", ")})" }
+    else
+      { "border-color": bc }
+    end
+    styles = styles.merge(
+      "border-style": "solid",
+      "border-width": "#{props["strokewidth"]}px",
+      "border-radius": "#{props["curve"]}px",
+    ).merge(border_style_hash)
 
     styles.compact
   end
