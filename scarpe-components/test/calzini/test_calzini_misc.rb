@@ -76,7 +76,7 @@ class TestCalziniMiscDrawables < Minitest::Test
     assert_equal %{<select id="elt-1" onchange="handle('change', this.options[this.selectedIndex].value)"} +
       %{ style="height:75;width:150"><option value="dog">dog</option>} +
       %{<option value="cat" selected="true">cat</option><option value="bird">bird</option></select>},
-      @calzini.render("list_box", { "height" => "75", "width" => "150", "items" => ["dog", "cat", "bird"], "choose" => "cat" })
+      @calzini.render("list_box", { "height" => "75", "width" => "150", "items" => ["dog", "cat", "bird"], "chosen" => "cat" })
   end
 
   def test_list_box_none_selected
