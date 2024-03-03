@@ -37,7 +37,6 @@
 
 class Shoes::Widget < Shoes::Slot
   include Shoes::Background
-  include Shoes::Border
 
   shoes_events
 
