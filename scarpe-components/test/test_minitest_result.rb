@@ -58,4 +58,11 @@ class TestMinitestResult < Minitest::Test
     refute res.passed?
     assert_equal "Just skipping", res.skip_message
   end
+
+  def test_mtr_console_summary
+    path = File.join __dir__, "mtr_data/skipped_w_msg.json"
+    res = Scarpe::Components::MinitestResult.new(path)
+
+    assert res.console_summary.include?("Skip:")
+  end
 end
