@@ -105,3 +105,5 @@ require_relative "wv/arrow"
 
 require_relative "wv/scarpe_extensions"
 require_relative "assets"
+require_relative "wv/border"
+require_relative "wv/background"
