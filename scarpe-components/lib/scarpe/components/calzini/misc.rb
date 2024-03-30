@@ -22,9 +22,9 @@ module Scarpe::Components::Calzini
 
   def edit_line_element(props)
     oninput = handler_js_code("change", "this.value")
-
+    
     HTML.render do |h|
-      h.input(id: html_id, oninput: oninput, value: props["text"], style: edit_line_style(props))
+      h.input(id: html_id, oninput: oninput, onmouseover: handler_js_code("hover"), value: props["text"], style: edit_line_style(props),title: props["tooltip"])
     end
   end
 
@@ -118,7 +118,9 @@ module Scarpe::Components::Calzini
   def edit_line_style(props)
     styles = drawable_style(props)
 
+    styles[:font] = props["font"]? parse_font(props) : nil
     styles[:width] = dimensions_length(props["width"]) if props["width"]
+    styles[:color] =  rgb_to_hex(props["stroke"])
 
     styles
   end

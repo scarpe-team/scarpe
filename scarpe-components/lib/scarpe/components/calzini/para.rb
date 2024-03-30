@@ -98,9 +98,10 @@ module Scarpe::Components::Calzini
   def parse_font(props)
 
     def contains_number?(str)
-
       !!(str =~ /\d/)
-
+    end
+    def contains_only_numbers?(string)
+      /^\d+\z/ =~ string
     end
   
 
@@ -134,8 +135,12 @@ module Scarpe::Components::Calzini
         next
       else
         if contains_number?(i)
-          
-          fss=i;
+
+          if contains_only_numbers?(i)
+              fss = i + "px"
+          else
+              fss = i
+          end
 
         elsif i != "normal" && i != "medium" && i.strip != ""
 
@@ -153,7 +158,7 @@ module Scarpe::Components::Calzini
       
     end
     
-    
+
     "#{fs} #{fv} #{fw} #{fss} #{ff}"
     
   end
