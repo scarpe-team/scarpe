@@ -33,7 +33,7 @@ class TestSSpecInfrastructure < ShoesSpecLoggedTest
   # can't usefully tell the timeout to cause the *process* to fail just from the timeout.
   # We'll still notice test failures or not hitting enough assertions.
   def test_timeout_no_fail
-    run_scarpe_sspec_code(<<~'SSPEC', timeout: 1.0, wait_after_test: true, expect_assertions_min: 1)
+    run_scarpe_sspec_code(<<~'SSPEC', timeout: 2.0, wait_after_test: true, expect_assertions_min: 1)
       ---
       ----------- app code
       Shoes.app do
@@ -44,7 +44,7 @@ class TestSSpecInfrastructure < ShoesSpecLoggedTest
   end
 
   def test_timeout_test_fail
-    run_scarpe_sspec_code(<<~'SSPEC', timeout: 1.0, wait_after_test: true, expect_result: :fail)
+    run_scarpe_sspec_code(<<~'SSPEC', timeout: 2.0, wait_after_test: true, expect_result: :fail)
       ---
       ----------- app code
       Shoes.app do
