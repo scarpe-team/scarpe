@@ -5,6 +5,7 @@ require "json"
 require "fileutils"
 
 require "scarpe/components/file_helpers"
+require "scarpe/components/process_helpers"
 
 module Scarpe::Test; end
 
@@ -20,6 +21,7 @@ ALREADY_SET_UP_LOGGED_TEST_FAILURES = { setup: false }
 module Scarpe::Test::Helpers
   # Very useful for tests
   include Scarpe::Components::FileHelpers
+  include Scarpe::Components::ProcessHelpers
 
   # Temporarily set env vars for the block of code inside. The old environment
   # variable values will be restored after the block finishes.
