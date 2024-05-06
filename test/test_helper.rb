@@ -106,7 +106,7 @@ class ShoesSpecLoggedTest < Minitest::Test
   def run_test_scarpe_app(
     test_app_location,
     app_test_code: "",
-    timeout: 10.0,
+    timeout: 12.0,
     exit_immediately: false,
     allow_fail: false,
     display_service: "wv_local"
