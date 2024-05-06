@@ -16,7 +16,7 @@ Gem::Specification.new do |spec|
   # spec.metadata["allowed_push_host"] = "TODO: Set to your gem server 'https://example.com'"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/scarpe-team/scarpe"
+  #spec.metadata["source_code_uri"] = "https://github.com/scarpe-team/scarpe"
   spec.metadata["changelog_uri"] = "https://github.com/scarpe-team/scarpe/blob/main/CHANGELOG.md"
 
   # Specify which files should be added to the gem when it is released.
@@ -30,13 +30,13 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "fastimage"
-  spec.add_dependency "nokogiri"
-  spec.add_dependency "sqlite3"
-  spec.add_dependency "webrick"
+  spec.add_dependency "fastimage", "~>2.2.7"
+  spec.add_dependency "nokogiri", "~>1.15.2"
+  spec.add_dependency "sqlite3", "~>1.6.3"
+  spec.add_dependency "webrick", "~>1.7.0"
 
-  spec.add_dependency "lacci"
-  spec.add_dependency "scarpe-components"
+  spec.add_dependency "lacci", "~>0.4.0"
+  spec.add_dependency "scarpe-components", "~>0.4.0"
 
   spec.add_dependency "bloops", "~>0.5"
   spec.add_dependency "logging", "~>2.3.1"
