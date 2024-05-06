@@ -1,27 +1,27 @@
 PATH
   remote: .
   specs:
-    scarpe (0.3.0)
+    scarpe (0.4.0)
       bloops (~> 0.5)
-      fastimage
-      lacci
+      fastimage (~> 2.2.7)
+      lacci (~> 0.4.0)
       logging (~> 2.3.1)
-      nokogiri
-      scarpe-components
-      sqlite3
-      webrick
+      nokogiri (~> 1.15.2)
+      scarpe-components (~> 0.4.0)
+      sqlite3 (~> 1.6.3)
+      webrick (~> 1.7.0)
       webview_ruby (~> 0.1.1)
 
 PATH
   remote: lacci
   specs:
-    lacci (0.3.0)
-      scarpe-components
+    lacci (0.4.0)
+      scarpe-components (~> 0.4.0)
 
 PATH
   remote: scarpe-components
   specs:
-    scarpe-components (0.3.0)
+    scarpe-components (0.4.0)
 
 GEM
   remote: https://rubygems.org/
