@@ -52,11 +52,13 @@ class ShoesSpecLoggedTest < Minitest::Test
     display_service: "wv_local",
     html_renderer: "calzini"
   )
-    test_output = File.expand_path(File.join __dir__, "sspec.json")
     test_method_name = self.name
     test_class_name = self.class.name
 
-    with_tempfile("scarpe_log_config.json", JSON.dump(log_config_for_test)) do |scarpe_log_config|
+    with_tempfiles([
+      [["scarpe_log_config", "json"], JSON.dump(log_config_for_test)],
+      [["sspec_test_output", "json"], ""]
+    ]) do |scarpe_log_config, test_output|
       # Start the application using the exe/scarpe utility
       # For unit testing always supply --debug so we get the most logging
       cmd = \
@@ -79,15 +81,15 @@ class ShoesSpecLoggedTest < Minitest::Test
           assert false, "Expected sspec test process to return failure and it succeeded! Exit code: #{$?.exitstatus}"
         end
       end
-    end
 
-    result = Scarpe::Components::MinitestResult.new(test_output)
-    correct, msg = result.check(expect_result:, min_asserts: expect_assertions_min, max_asserts: expect_assertions_max)
+      result = Scarpe::Components::MinitestResult.new(test_output)
+      correct, msg = result.check(expect_result:, min_asserts: expect_assertions_min, max_asserts: expect_assertions_max)
 
-    if correct
-      assert_equal true, true # Yup, worked fine
-    else
-      assert false, "Minitest result: #{msg}"
+      if correct
+        assert_equal true, true # Yup, worked fine
+      else
+        assert false, "Minitest result: #{msg}"
+      end
     end
   end
 
