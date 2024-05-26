@@ -10,6 +10,10 @@ straightforward as possible.
 
 ### Incompatibilities
 
+## [0.4.0] - 2024-05-06 - Strangers
+
+Core Scarpe has been relatively stable for awhile. A lot of this release is bugfixes and refactors.
+
 ## [0.3.1] - 2023-??-?? - Up
 
 Lots of bug fixes. We're also still implementing major Shoes3 features.
