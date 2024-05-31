@@ -1,8 +1,8 @@
-<div id="2" style="display:flex;flex-direction:row;flex-wrap:wrap;align-content:flex-start;justify-content:flex-start;align-items:flex-start;width:100%;height:100%">
+<div id="2" style="display:flex;flex-direction:row;flex-wrap:wrap;align-content:flex-start;justify-content:flex-start;align-items:flex-start;isolation:isolate;width:100%;height:100%">
   <div style="height:100%;width:100%;position:relative">
-    <p id="3" style="color:#FF0000;font-size:12px">This text will start red<br>
+    <p id="3" style="isolation:isolate;color:#FF0000;font-size:12px">This text will start red<br>
     </p>
-    <button id="4" onclick="scarpeHandler('4-click')" onmouseover="scarpeHandler('4-hover')">OK</button>
+    <button id="4" onclick="scarpeHandler('4-click')" onmouseover="scarpeHandler('4-hover')" style="isolation:isolate">OK</button>
     <div id="root-fonts"></div>
     <div id="root-alerts"> </div>
   </div>
