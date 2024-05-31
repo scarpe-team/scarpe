@@ -14,7 +14,6 @@ module Scarpe::Components::Calzini
         position: :absolute,
         top: 0,
         left: 0,
-        'z-index': -99,
         'box-sizing': 'border-box',
       }
 
