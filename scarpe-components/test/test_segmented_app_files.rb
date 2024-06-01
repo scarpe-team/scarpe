@@ -7,6 +7,8 @@ require "scarpe/components/segmented_file_loader"
 SEG_TEST_DATA = {}
 
 class TestSegmentedAppFiles < Minitest::Test
+  include Scarpe::Test::Helpers
+
   def setup
     @orig_file_loaders = Shoes.file_loaders
     Shoes.reset_file_loaders # create new loaders array with no overlap with @orig_file_loaders

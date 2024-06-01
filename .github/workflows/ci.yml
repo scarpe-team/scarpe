@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: brew install pkg-config portaudio
+      - name: Configure library dirs from Homebrew for gems w/ native extensions
+        run: bundle config build.bloops --with-portaudio-dir=`brew --prefix portaudio`
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Setup Ruby and install gems
