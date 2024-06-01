@@ -2,8 +2,6 @@
 
 class Shoes
   class Flow < Shoes::Slot
-    include Shoes::Background
-
     Shoes::Drawable.drawable_default_styles[Shoes::Flow][:width] = "100%"
 
     shoes_events

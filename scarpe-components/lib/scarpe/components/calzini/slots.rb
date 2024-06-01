@@ -33,7 +33,6 @@ module Scarpe::Components::Calzini
 
   def slot_style(props)
     styles = drawable_style(props)
-    styles = background_style(props, styles)
     styles = border_style(props, styles)
 
     styles[:width] = dimensions_length(props["width"]) if props["width"]
@@ -87,23 +86,5 @@ module Scarpe::Components::Calzini
       "border-width": "#{opts["strokewidth"] || 1}px",
       "border-radius": "#{opts["curve"] || 0}px",
     ).merge(border_style_hash)
-  end
-
-  def background_style(props, styles)
-    bc = props["background_color"]
-    return styles unless bc
-
-    color = case bc
-    when Array
-      "rgba(#{bc.join(", ")})"
-    when Range
-      "linear-gradient(45deg, #{bc.first}, #{bc.last})"
-    when ->(value) { File.exist?(value) }
-      "url(data:image/png;base64,#{encode_file_to_base64(bc)})"
-    else
-      bc
-    end
-
-    styles.merge(background: color)
   end
 end

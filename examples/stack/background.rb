@@ -1,10 +1,10 @@
 Shoes.app do
   stack width: 0.33 do
-    background "purple"
+    background "purple", :curve => 15
     button "a button"
   end
-  stack width: 0.33 do
-    background "red".."green"
+  stack width: 0.33, :height => 20 do
+    background "red".."green", :curve => 20, :margin => 20
     para "Red to green gradient"
   end
   stack width: 0.33 do
