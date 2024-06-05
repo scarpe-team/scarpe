@@ -17,7 +17,11 @@ class Shoes
 
     shoes_styles :title, :width, :height, :resizable, :features
 
-    # This is defined to avoid the linkable-id check in the Shoes-style method_missing def'n
+    # This is entirely different for different Shoes implementations. But it allows passing
+    # implementation-specific settings information that Lacci can't directly use.
+    attr_reader :settings
+
+    # This is defined ahead of time to avoid the linkable-id check in the Shoes-style method_missing def'n
     def features
       @features
     end
@@ -31,6 +35,7 @@ class Shoes
       height: 420,
       resizable: true,
       features: [],
+      settings: {},
       &app_code_body
     )
       log_init("Shoes::App")
@@ -49,6 +54,7 @@ class Shoes
       @event_loop_type = "displaylib" # the default
 
       @features = features
+      @settings = settings
 
       unknown_ext = features - Shoes::FEATURES - Shoes::EXTENSIONS
       unsupported_features = unknown_ext & Shoes::KNOWN_FEATURES

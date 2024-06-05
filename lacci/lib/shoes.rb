@@ -75,6 +75,7 @@ class Shoes
     # @param height [Integer] The new app window height
     # @param resizable [Boolean] Whether the app window should be resizeable
     # @param features [Symbol,Array<Symbol>] Additional Shoes extensions requested by the app
+    # @param settings [Object] Additional Shoes settings, specific to the Shoes implementation
     # @return [void]
     # @see Shoes::App#new
     def app(
@@ -83,10 +84,11 @@ class Shoes
       height: 420,
       resizable: true,
       features: [],
+      settings: {},
       &app_code_body
     )
       f = [features].flatten # Make sure this is a list, not a single symbol
-      app = Shoes::App.new(title:, width:, height:, resizable:, features: f, &app_code_body)
+      app = Shoes::App.new(title:, width:, height:, resizable:, features: f, settings:,  &app_code_body)
       app.init
       app.run
       nil
