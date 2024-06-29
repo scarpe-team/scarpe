@@ -19,7 +19,7 @@ class Shoes
     def initialize(*args, **kwargs)
       super
 
-      @draw_context = Shoes::App.instance.current_draw_context
+      @draw_context = @app.current_draw_context
 
       create_display_drawable
     end

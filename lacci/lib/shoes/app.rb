@@ -4,10 +4,6 @@ class Shoes
   class App < Shoes::Drawable
     include Shoes::Log
 
-    class << self
-      attr_accessor :instance
-    end
-
     # The Shoes root of the drawable tree
     attr_reader :document_root
 
@@ -22,7 +18,22 @@ class Shoes
       @features
     end
 
+    # These are the allowed values for custom_event_loop events.
+    #
+    # * displaylib means the display library is not going to return from running the app
+    # * return means the display library will return and the loop will be handled outside Lacci's control
+    # * wait means Lacci should busy-wait and send eternal heartbeats from the "run" event
+    #
+    # If the display service grabs control and keeps it, Webview-style, that means "displaylib"
+    # should be the value. A Scarpe-Wasm-style "return" is appropriate if the code can finish
+    # without Ruby ending the process at the end of the source file. A "wait" can prevent Ruby
+    # from finishing early, but also prevents multiple applications. Only "return" will normally
+    # allow multiple Shoes applications.
     CUSTOM_EVENT_LOOP_TYPES = ["displaylib", "return", "wait"]
+
+    class << self
+      attr_accessor :set_test_code
+    end
 
     init_args
     def initialize(
@@ -35,11 +46,11 @@ class Shoes
     )
       log_init("Shoes::App")
 
-      if Shoes::App.instance
+      if Shoes::FEATURES.include?(:multi_app) || Shoes.APPS.empty?
+        Shoes.APPS.push self
+      else
         @log.error("Trying to create a second Shoes::App in the same process! Fail!")
         raise Shoes::Errors::TooManyInstancesError, "Cannot create multiple Shoes::App objects!"
-      else
-        Shoes::App.instance = self
       end
 
       # We cd to the app's containing dir when running the app
@@ -65,16 +76,19 @@ class Shoes
       super
 
       # This creates the DocumentRoot, including its corresponding display drawable
-      @document_root = Shoes::DocumentRoot.new
+      Drawable.with_current_app(self) do
+        @document_root = Shoes::DocumentRoot.new
+      end
 
       # Now create the App display drawable
       create_display_drawable
 
       # Set up testing *after* Display Service basic objects exist
 
-      if ENV["SHOES_SPEC_TEST"]
+      if ENV["SHOES_SPEC_TEST"] && !Shoes::App.set_test_code
         test_code = File.read ENV["SHOES_SPEC_TEST"]
         unless test_code.empty?
+          Shoes::App.set_test_code = true
           Shoes::Spec.instance.run_shoes_spec_test_code test_code
         end
       end
@@ -106,7 +120,7 @@ class Shoes
       send_shoes_event(event_name: "init")
       return if @do_shutdown
 
-      ::Shoes::App.instance.with_slot(@document_root, &@app_code_body)
+      with_slot(@document_root, &@app_code_body)
     end
 
     # "Container" drawables like flows, stacks, masks and the document root
@@ -130,7 +144,7 @@ class Shoes
       return unless block_given?
 
       push_slot(slot_item)
-      Shoes::App.instance.instance_eval(&block)
+      instance_eval(&block)
     ensure
       pop_slot
     end
@@ -144,7 +158,9 @@ class Shoes
       return super unless klass
 
       ::Shoes::App.define_method(name) do |*args, **kwargs, &block|
-        klass.new(*args, **kwargs, &block)
+        Drawable.with_current_app(self) do
+          klass.new(*args, **kwargs, &block)
+        end
       end
 
       send(name, *args, **kwargs, &block)
@@ -207,11 +223,20 @@ class Shoes
 
     # We can add various ways to find drawables here.
     # These are sort of like Shoes selectors, used for testing.
+    # This method finds a drawable across all active Shoes apps.
+    def self.find_drawables_by(*specs)
+      Shoes.APPS.flat_map do |app|
+        app.find_drawables_by(*specs)
+      end
+    end
+
+    # We can add various ways to find drawables here.
+    # These are sort of like Shoes selectors, used for testing.
     def find_drawables_by(*specs)
       drawables = all_drawables
       specs.each do |spec|
         if spec == Shoes::App
-          drawables = [Shoes::App.instance]
+          drawables = [@app]
         elsif spec.is_a?(Class)
           drawables.select! { |w| spec === w }
         elsif spec.is_a?(Symbol) || spec.is_a?(String)
@@ -223,13 +248,15 @@ class Shoes
               global_value = eval s
               drawables &= [global_value]
             rescue
-              raise Shoes::Errors::InvalidAttributeValueError, "Error getting global variable: #{spec.inspect}"
+              #raise Shoes::Errors::InvalidAttributeValueError, "Error getting global variable: #{spec.inspect}"
+              drawables = []
             end
           when "@"
-            if Shoes::App.instance.instance_variables.include?(spec.to_sym)
-              drawables &= [self.instance_variable_get(spec)]
+            if @app.instance_variables.include?(spec.to_sym)
+              drawables &= [@app.instance_variable_get(spec)]
             else
-              raise Shoes::Errors::InvalidAttributeValueError, "Can't find top-level instance variable: #{spec.inspect}!"
+              #raise Shoes::Errors::InvalidAttributeValueError, "Can't find top-level instance variable: #{spec.inspect}!"
+              drawables = []
             end
           else
             if s.start_with?("id:")

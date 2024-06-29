@@ -8,7 +8,7 @@ module Niente; end
 class Niente::Test
   def self.run_shoes_spec_test_code(code, class_name: nil, test_name: nil)
     if @shoes_spec_init
-      raise Shoes::Errors::MultipleShoesSpecRunsError, "Scarpe-Webview can only run a single Shoes spec per process!"
+      raise Shoes::Errors::MultipleShoesSpecRunsError, "Niente can only run a single Shoes spec per process!"
     end
     @shoes_spec_init = true
 
@@ -21,7 +21,7 @@ class Niente::Test
     Shoes::DisplayService.subscribe_to_event("heartbeat", nil) do
       unless @hb_init
         Minitest.run []
-        Shoes::App.instance.destroy
+        Shoes.APPS.each(&:destroy)
       end
       @hb_init = true
     end
@@ -40,9 +40,8 @@ class Niente::ShoesSpecTest < Minitest::Test
     finder_name = drawable_class.dsl_name
 
     define_method(finder_name) do |*args|
-      app = Shoes::App.instance
+      drawables = Shoes::App.find_drawables_by(drawable_class, *args)
 
-      drawables = app.find_drawables_by(drawable_class, *args)
       raise Shoes::Errors::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
       raise Shoes::Errors::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
 
@@ -51,7 +50,7 @@ class Niente::ShoesSpecTest < Minitest::Test
   end
 
   def drawable(*specs)
-    drawables = Shoes::App.instance.find_drawables_by(*specs)
+    drawables = Shoes::App.find_drawables_by(*specs)
     raise Shoes::Errors::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
     raise Shoes::Errors::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
     Niente::ShoesSpecProxy.new(drawables[0])

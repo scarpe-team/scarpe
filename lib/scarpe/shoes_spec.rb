@@ -107,7 +107,8 @@ module Scarpe::ShoesSpecTest
     finder_name = drawable_class.dsl_name
 
     define_method(finder_name) do |*args|
-      app = Shoes::App.instance
+      # Scarpe-Webview only supports a single Shoes::App instance
+      app = Shoes.APPS[0]
 
       drawables = app.find_drawables_by(drawable_class, *args)
       raise Shoes::Errors::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1

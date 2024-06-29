@@ -7,9 +7,9 @@ class Shoes
 
     init_args :left, :top, :x2, :y2
     def initialize(*args, **kwargs)
-      @draw_context = Shoes::App.instance.current_draw_context
-
       super
+
+      @draw_context = @app.current_draw_context
 
       create_display_drawable
     end

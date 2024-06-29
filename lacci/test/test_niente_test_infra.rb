@@ -23,4 +23,18 @@ class TestNienteTestInfra < NienteTest
       raise "ERROR!"
     SHOES_SPEC
   end
+
+  def test_multi_app_find
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @b = button "OK"
+      end
+      Shoes.app do
+        @b2 = button "Nope"
+      end
+    SHOES_APP
+      assert_equal "OK", button("@b").text
+      assert_equal "Nope", button("@b2").text
+    SHOES_SPEC
+  end
 end
