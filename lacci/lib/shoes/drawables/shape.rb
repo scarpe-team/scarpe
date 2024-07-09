@@ -16,12 +16,12 @@ class Shoes
     init_args # No positional args
     def initialize(**kwargs, &block)
       @shape_commands = []
-      @draw_context = Shoes::App.instance.current_draw_context
 
       super
+      @draw_context = @app.current_draw_context
       create_display_drawable
 
-      Shoes::App.instance.with_slot(self, &block) if block_given?
+      @app.with_slot(self, &block) if block_given?
     end
 
     # The cmd should be an array of the form:

@@ -62,8 +62,10 @@ class Shoes::Slot < Shoes::Drawable
       # Look up the Shoes drawable and create it. But first set
       # this slot as the current one so that draw context
       # is handled properly.
-      Shoes::App.instance.with_slot(self) do
-        instance = klass.new(*args, **kwargs, &block)
+      @app.with_slot(self) do
+        Shoes::Drawable.with_current_app(self.app) do
+          instance = klass.new(*args, **kwargs, &block)
+        end
       end
 
       instance
@@ -173,6 +175,6 @@ class Shoes::Slot < Shoes::Drawable
     raise(Shoes::Errors::InvalidAttributeValueError, "append requires a block!") unless block_given?
     raise(Shoes::Errors::InvalidAttributeValueError, "Don't append to something that isn't a slot!") unless self.is_a?(Shoes::Slot)
 
-    Shoes::App.instance.with_slot(self, &block)
+    @app.with_slot(self, &block)
   end
 end

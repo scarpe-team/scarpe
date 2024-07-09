@@ -17,19 +17,21 @@ class TestShoesErrors < NienteTest
     SHOES_SPEC
   end
 
-  def test_too_many_instances_error
-    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
-    $ruby_main = self
-    Shoes.app do
-    end
-    SHOES_APP
-    assert_raises Shoes::Errors::TooManyInstancesError do
-      $ruby_main.instance_eval do
-        Shoes.app {}
-      end
-    end
-    SHOES_SPEC
-  end
+  # Niente can no longer test the TooManyInstancesError because it now
+  # supports multiple Shoes apps.
+  #def test_too_many_instances_error
+  #  run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+  #  $ruby_main = self
+  #  Shoes.app do
+  #  end
+  #  SHOES_APP
+  #  assert_raises Shoes::Errors::TooManyInstancesError do
+  #    $ruby_main.instance_eval do
+  #      Shoes.app {}
+  #    end
+  #  end
+  #  SHOES_SPEC
+  #end
 
   def test_drawables_found_errors
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)

@@ -55,6 +55,8 @@ require_relative "shoes-spec"
 #
 class Shoes
   class << self
+    attr_accessor :APPS
+
     # Creates a Shoes app with a new window. The block parameter is used to create
     # drawables and set up handlers. Arguments are passed to Shoes::App.new internally.
     #
@@ -145,4 +147,6 @@ class Shoes
       @file_loaders = loaders
     end
   end
+
+  Shoes.APPS ||= []
 end

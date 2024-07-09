@@ -31,7 +31,7 @@ class TestDrawables < ShoesSpecLoggedTest
       end
     SCARPE_APP
       # Get proxy objects for the Shoes drawables so we can get their display objects, etc.
-      w = Shoes::App.instance.instance_variable_get("@drawables").map do |sw|
+      w = Shoes.APPS[0].instance_variable_get("@drawables").map do |sw|
         drawable("id:#{sw.linkable_id}")
       end
 
@@ -94,7 +94,7 @@ class TestDrawables < ShoesSpecLoggedTest
       end
     SCARPE_APP
       # Get proxy objects for the Shoes drawables so we can get their display objects, etc.
-      w = Shoes::App.instance.instance_variable_get("@drawables").map do |sw|
+      w = Shoes.APPS[0].instance_variable_get("@drawables").map do |sw|
         drawable("id:#{sw.linkable_id}")
       end
 

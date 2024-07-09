@@ -30,3 +30,4 @@ Shoes.add_file_loader loader
 
 Shoes::DisplayService.set_display_service_class(Niente::DisplayService)
 
+Shoes::FEATURES.push(:multi_app)

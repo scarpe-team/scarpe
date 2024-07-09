@@ -215,7 +215,7 @@ class Shoes
       # styles available with no features requested, pass nil to with_features.
       def shoes_style_names(with_features: nil)
         # No with_features given? Use the ones requested by this Shoes::App
-        with_features ||= Shoes::App.instance.features
+        with_features ||= @app.features
         parent_prop_names = self != Shoes::Drawable ? self.superclass.shoes_style_names(with_features:) : []
 
         if with_features == :all
@@ -235,6 +235,24 @@ class Shoes
       def shoes_style_name?(name)
         linkable_properties_hash[name.to_s] ||
           (self != Shoes::Drawable && superclass.shoes_style_name?(name))
+      end
+
+      # Current_app is set every time a drawable is created - we don't want to keep a default
+      # long because it's possible for apps to alternate who is creating. So make sure it's
+      # not kept long, and used up when used once.
+
+      def with_current_app(app)
+        old_cur_app = @current_app
+        @current_app = app
+        ret = yield
+        @current_app = old_cur_app
+        ret
+      end
+
+      def use_current_app
+        cur_app = @current_app
+        @current_app = nil
+        cur_app
       end
     end
 
@@ -256,17 +274,20 @@ class Shoes
     # Their value is set at drawable-create time.
     DRAW_CONTEXT_STYLES = [:fill, :stroke, :strokewidth, :rotate, :transform, :translate]
 
-  include MarginHelper
+    include MarginHelper
 
     def initialize(*args, **kwargs)
       kwargs = margin_parse(kwargs)
       log_init("Shoes::#{self.class.name}") unless @log
 
+      # Grab the current app, mark it as used
+      @app = self.is_a?(Shoes::App) ? self : Drawable.use_current_app
+
       # First, get the list of allowed and disallowed styles for the given features
       # and make sure no disallowed styles were given.
 
-      app_features = Shoes::App.instance.features
-      this_app_styles = self.class.shoes_style_names.map(&:to_sym)
+      app_features = @app.features
+      this_app_styles = self.class.shoes_style_names(with_features: @app.features).map(&:to_sym)
       not_this_app_styles = self.class.shoes_style_names(with_features: :all).map(&:to_sym) - this_app_styles
 
       bad_styles = kwargs.keys & not_this_app_styles
@@ -309,8 +330,8 @@ class Shoes
         end
       end
 
-      this_drawable_styles = self.class.shoes_style_names.map(&:to_sym)
-      dc = Shoes::App.instance.current_draw_context || {}
+      this_drawable_styles = self.class.shoes_style_names(with_features: @app.features).map(&:to_sym)
+      dc = @app.current_draw_context || {}
 
       # Styles not passed as arguments can come from the draw context
 
@@ -318,11 +339,6 @@ class Shoes
       # given as positional or keyword arguments?
       draw_context_styles = (DRAW_CONTEXT_STYLES & this_drawable_styles) - supplied_args
       unless draw_context_styles.empty?
-        # When we first call this, there is no parent. We don't want to set the parent
-        # yet because that will send a notification, and *that* should wait until after
-        # we've told the display service that this drawable was created. So instead
-        # we'll query the parent object's draw context directly.
-
         draw_context_styles.each do |style|
           dc_val = dc[style.to_s]
           next if dc_val.nil?
@@ -363,7 +379,7 @@ class Shoes
 
       generate_debug_id
 
-      parent = ::Shoes::App.instance.current_slot
+      parent = @app.current_slot
       if self.class.expects_parent?
         set_parent(parent, notify: false)
       end
@@ -416,8 +432,8 @@ class Shoes
     # @return [Shoes::App] the Shoes app
     # @yield the block to call with the Shoes App as self
     def app(&block)
-      Shoes::App.instance.with_slot(self, &block) if block_given?
-      Shoes::App.instance
+      @app.with_slot(self, &block) if block_given?
+      @app
     end
 
     private
@@ -471,8 +487,8 @@ class Shoes
       send_shoes_event(*args, **kwargs, event_name:, target: linkable_id)
     end
 
-    def shoes_style_values
-      all_property_names = self.class.shoes_style_names
+    def shoes_style_values(with_features: @app.features)
+      all_property_names = self.class.shoes_style_names(with_features:)
 
       properties = {}
       all_property_names.each do |prop|

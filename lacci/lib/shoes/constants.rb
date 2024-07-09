@@ -54,6 +54,7 @@ class Shoes
     # goes in EXTENSIONS and is nonstandard.
     KNOWN_FEATURES = [
       :html, # Supports .to_html on display objects, HTML classes on drawables, etc.
+      :multi_app, # Supports multiple applications at once
     ].freeze
   end
 
