@@ -110,7 +110,7 @@ module Scarpe::Components::Calzini
   end
 
   def drawable_style(props)
-    styles = {}
+    styles = { :isolation => "isolate" }
     if props["hidden"]
       styles[:display] = "none"
     end

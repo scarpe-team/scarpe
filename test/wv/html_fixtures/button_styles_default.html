@@ -1,10 +1,10 @@
-<div id="2" style="display:flex;flex-direction:row;flex-wrap:wrap;align-content:flex-start;justify-content:flex-start;align-items:flex-start;width:100%;height:100%">
+<div id="2" style="display:flex;flex-direction:row;flex-wrap:wrap;align-content:flex-start;justify-content:flex-start;align-items:flex-start;isolation:isolate;width:100%;height:100%">
   <div style="height:100%;width:100%;position:relative">
-    <p id="3" style="color:#FF0000;font-size:12px">This text should be red<br>
+    <p id="3" style="isolation:isolate;color:#FF0000;font-size:12px">This text should be red<br>
     </p>
-    <p id="4" style="color:#008000;font-size:12px">But this text should be green<br>
+    <p id="4" style="isolation:isolate;color:#008000;font-size:12px">But this text should be green<br>
     </p>
-    <button id="5" onclick="scarpeHandler('5-click')" onmouseover="scarpeHandler('5-hover')">OK</button>
+    <button id="5" onclick="scarpeHandler('5-click')" onmouseover="scarpeHandler('5-hover')" style="isolation:isolate">OK</button>
     <div id="root-fonts"></div>
     <div id="root-alerts"> </div>
   </div>

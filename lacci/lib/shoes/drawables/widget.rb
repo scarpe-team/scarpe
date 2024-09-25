@@ -36,8 +36,6 @@
 # widget propertly, sets the linkable_id, etc.
 
 class Shoes::Widget < Shoes::Slot
-  include Shoes::Background
-
   shoes_events
 
   def self.inherited(subclass)

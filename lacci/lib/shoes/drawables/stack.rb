@@ -2,8 +2,6 @@
 
 class Shoes
   class Stack < Shoes::Slot
-    include Shoes::Background
-
     shoes_styles :scroll
 
     shoes_events # No Stack-specific events
