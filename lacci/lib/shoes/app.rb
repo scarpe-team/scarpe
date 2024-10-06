@@ -73,6 +73,8 @@ class Shoes
 
       @slots = []
 
+      @content_container = nil
+
       super
 
       # This creates the DocumentRoot, including its corresponding display drawable
@@ -120,7 +122,10 @@ class Shoes
       send_shoes_event(event_name: "init")
       return if @do_shutdown
 
-      with_slot(@document_root, &@app_code_body)
+      with_slot(@document_root) do
+        @content_container = flow(width: 1.0, height: 1.0)
+        with_slot(@content_container, &@app_code_body)
+      end
     end
 
     # "Container" drawables like flows, stacks, masks and the document root
@@ -272,6 +277,25 @@ class Shoes
         end
       end
       drawables
+    end
+
+    def page(name, &block)
+      @pages ||= {}
+      @pages[name] = proc do
+        stack(width: 1.0, height: 1.0) do
+          instance_eval(&block)
+        end
+      end
+    end
+
+    def visit(name)
+      if @pages && @pages[name]
+        @content_container.clear do
+          instance_eval(&@pages[name])
+        end
+      else
+        puts "Error: URL '#{name}' not found"
+      end
     end
   end
 end

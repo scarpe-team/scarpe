@@ -54,12 +54,12 @@ class Shoes
       def validate_as(prop_name, value)
         prop_name = prop_name.to_s
         hashes = shoes_style_hashes
-      
+
         h = hashes.detect { |hash| hash[:name] == prop_name }
         raise(Shoes::Errors::NoSuchStyleError, "Can't find property #{prop_name.inspect} in #{self} property list: #{hashes.inspect}!") unless h
-      
+
         return value if h[:validator].nil?
-      
+
         # Pass both the property name and value to the validator block
         h[:validator].call(value,prop_name)
       end
@@ -242,17 +242,15 @@ class Shoes
       # not kept long, and used up when used once.
 
       def with_current_app(app)
-        old_cur_app = @current_app
-        @current_app = app
-        ret = yield
-        @current_app = old_cur_app
-        ret
+        old_app = Thread.current[:shoes_app]
+        Thread.current[:shoes_app] = app
+        yield
+      ensure
+        Thread.current[:shoes_app] = old_app
       end
 
       def use_current_app
-        cur_app = @current_app
-        @current_app = nil
-        cur_app
+        Thread.current[:shoes_app]
       end
     end
 
