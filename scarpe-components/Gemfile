@@ -20,6 +20,4 @@ end
 
 group :development do
   gem "debug"
-  gem "rubocop", "~> 1.21"
-  gem "rubocop-shopify"
 end
