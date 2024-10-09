@@ -74,7 +74,6 @@ class Shoes
       @content_container = nil
 
       @routes = {}
-      @current_page = nil
 
       super
 
