@@ -130,6 +130,8 @@ class Shoes
         @content_container = flow(width: 1.0, height: 1.0)
         with_slot(@content_container, &@app_code_body)
       end
+
+      render_index_if_defined_on_first_boot
     end
 
     # "Container" drawables like flows, stacks, masks and the document root
@@ -383,4 +385,14 @@ class Shoes::App < Shoes::Drawable
   # Not implemented yet: curve_to, arc_to
 
   alias info puts
+
+  private
+
+  def render_index_if_defined_on_first_boot
+    return if $first_boot_finished
+
+    visit('/') if @routes['/'] == :index
+
+    $first_boot_finished = true
+  end
 end

@@ -59,7 +59,4 @@ Shoes.app(title: 'Advanced URL Routing Example', width: 300, height: 200) do
       visit '/'
     end
   end
-
-  # Start at the home page
-  visit '/'
 end
