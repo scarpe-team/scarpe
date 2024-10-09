@@ -122,10 +122,7 @@ class Shoes
       send_shoes_event(event_name: "init")
       return if @do_shutdown
 
-      with_slot(@document_root) do
-        @content_container = flow(width: 1.0, height: 1.0)
-        with_slot(@content_container, &@app_code_body)
-      end
+      with_slot(@document_root, &@app_code_body)
     end
 
     # "Container" drawables like flows, stacks, masks and the document root
@@ -290,7 +287,7 @@ class Shoes
 
     def visit(name)
       if @pages && @pages[name]
-        @content_container.clear do
+        @document_root.clear do
           instance_eval(&@pages[name])
         end
       else

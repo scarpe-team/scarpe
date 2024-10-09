@@ -242,15 +242,17 @@ class Shoes
       # not kept long, and used up when used once.
 
       def with_current_app(app)
-        old_app = Thread.current[:shoes_app]
-        Thread.current[:shoes_app] = app
-        yield
-      ensure
-        Thread.current[:shoes_app] = old_app
+        old_cur_app = @current_app
+        @current_app = app
+        ret = yield
+        @current_app = old_cur_app
+        ret
       end
 
       def use_current_app
-        Thread.current[:shoes_app]
+        cur_app = @current_app
+        @current_app = nil
+        cur_app
       end
     end
 
