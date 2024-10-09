@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: Shoes::Slot
+  
+    &mdash; Documentation by YARD 0.9.28
+  
+</title>
+
+  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Shoes::Slot";
+  relpath = '../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../_index.html">Index (S)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span>
+     &raquo; 
+    <span class="title">Slot</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="docpages_list_link"
+        href="../docpages_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: Shoes::Slot
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName"><span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next"><span class='object_link'><a href="Linkable.html" title="Shoes::Linkable (class)">Linkable</a></span></li>
+          
+            <li class="next"><span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></li>
+          
+            <li class="next">Shoes::Slot</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lacci/lib/shoes.rb<span class="defines">,<br />
+  lacci/lib/shoes/drawables/slot.rb</span>
+</dd>
+  </dl>
+  
+</div>
+
+<div id="subclasses">
+  <h2>Direct Known Subclasses</h2>
+  <p class="children"><span class='object_link'><a href="Flow.html" title="Shoes::Flow (class)">Flow</a></span>, <span class='object_link'><a href="Shape.html" title="Shoes::Shape (class)">Shape</a></span>, <span class='object_link'><a href="Stack.html" title="Shoes::Stack (class)">Stack</a></span>, <span class='object_link'><a href="Widget.html" title="Shoes::Widget (class)">Widget</a></span></p>
+</div>
+
+
+
+  <h2>Constant Summary</h2>
+  
+  <h3 class="inherited">Constants inherited
+     from <span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Drawable.html#DRAW_CONTEXT_STYLES-constant" title="Shoes::Drawable::DRAW_CONTEXT_STYLES (constant)">Drawable::DRAW_CONTEXT_STYLES</a></span></p>
+
+  
+  
+  <h3 class="inherited">Constants included
+     from <span class='object_link'><a href="Log.html" title="Shoes::Log (module)">Log</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Log.html#DEFAULT_COMPONENT-constant" title="Shoes::Log::DEFAULT_COMPONENT (constant)">Log::DEFAULT_COMPONENT</a></span>, <span class='object_link'><a href="Log.html#DEFAULT_DEBUG_LOG_CONFIG-constant" title="Shoes::Log::DEFAULT_DEBUG_LOG_CONFIG (constant)">Log::DEFAULT_DEBUG_LOG_CONFIG</a></span>, <span class='object_link'><a href="Log.html#DEFAULT_LOG_CONFIG-constant" title="Shoes::Log::DEFAULT_LOG_CONFIG (constant)">Log::DEFAULT_LOG_CONFIG</a></span></p>
+
+
+  <h2>Instance Attribute Summary <small><a href="#" class="summary_toggle">collapse</a></small></h2>
+  <ul class="summary">
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#children-instance_method" title="#children (instance method)">#<strong>children</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#draw_context-instance_method" title="#draw_context (instance method)">#<strong>draw_context</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>This only shows this specific slot&#39;s settings, not its parent&#39;s.</p>
+</div></span>
+  
+</li>
+
+    
+  </ul>
+
+
+
+  
+  
+  <h3 class="inherited">Attributes inherited from <span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Drawable.html#debug_id-instance_method" title="Shoes::Drawable#debug_id (method)">#debug_id</a></span>, <span class='object_link'><a href="Drawable.html#destroyed-instance_method" title="Shoes::Drawable#destroyed (method)">#destroyed</a></span>, <span class='object_link'><a href="Drawable.html#parent-instance_method" title="Shoes::Drawable#parent (method)">#parent</a></span></p>
+
+  
+  
+  <h3 class="inherited">Attributes inherited from <span class='object_link'><a href="Linkable.html" title="Shoes::Linkable (class)">Linkable</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Linkable.html#linkable_id-instance_method" title="Shoes::Linkable#linkable_id (method)">#linkable_id</a></span></p>
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#add_child-instance_method" title="#add_child (instance method)">#<strong>add_child</strong>(child)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Do not call directly, use set_parent.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#append-instance_method" title="#append (instance method)">#<strong>append</strong> { ... } &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Call the block to append new children to a Slot.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#clear-instance_method" title="#clear (instance method)">#<strong>clear</strong> { ... } &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Remove all children from this drawable.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#contents-instance_method" title="#contents (instance method)">#<strong>contents</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Get a list of child drawables.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#current_draw_context-instance_method" title="#current_draw_context (instance method)">#<strong>current_draw_context</strong>  &#x21d2; Hash </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Get the current draw context styles, based on this slot and its parent slots.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#fill-instance_method" title="#fill (instance method)">#<strong>fill</strong>(color)  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Set the default fill color in this slot and child slots.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>  &#x21d2; Slot </a>
+    
+
+    
+  </span>
+  
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>A new instance of Slot.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#method_missing-instance_method" title="#method_missing (instance method)">#<strong>method_missing</strong>(name, *args, **kwargs, &amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>We use method_missing for drawable-creating methods like &quot;button&quot;.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#nofill-instance_method" title="#nofill (instance method)">#<strong>nofill</strong>  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Set the default fill in this slot and child slots to transparent.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#nostroke-instance_method" title="#nostroke (instance method)">#<strong>nostroke</strong>  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Set the default stroke in this slot and child slots to transparent.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#remove_child-instance_method" title="#remove_child (instance method)">#<strong>remove_child</strong>(child)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Do not call directly, use set_parent.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#respond_to_missing%3F-instance_method" title="#respond_to_missing? (instance method)">#<strong>respond_to_missing?</strong>(name, include_private = false)  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#rotate-instance_method" title="#rotate (instance method)">#<strong>rotate</strong>(angle)  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Set the current rotation in this slot and any child slots.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#stroke-instance_method" title="#stroke (instance method)">#<strong>stroke</strong>(color)  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Set the default stroke color in this slot and child slots.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#strokewidth-instance_method" title="#strokewidth (instance method)">#<strong>strokewidth</strong>(width)  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Set the default strokewidth in this slot and child slots.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods inherited from <span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Drawable.html#allocate_drawable_id-class_method" title="Shoes::Drawable.allocate_drawable_id (method)">allocate_drawable_id</a></span>, <span class='object_link'><a href="Drawable.html#app-instance_method" title="Shoes::Drawable#app (method)">#app</a></span>, <span class='object_link'><a href="Drawable.html#banner-instance_method" title="Shoes::Drawable#banner (method)">#banner</a></span>, <span class='object_link'><a href="Drawable.html#caption-instance_method" title="Shoes::Drawable#caption (method)">#caption</a></span>, <span class='object_link'><a href="Drawable.html#convert_to_float-class_method" title="Shoes::Drawable.convert_to_float (method)">convert_to_float</a></span>, <span class='object_link'><a href="Drawable.html#convert_to_integer-class_method" title="Shoes::Drawable.convert_to_integer (method)">convert_to_integer</a></span>, <span class='object_link'><a href="Drawable.html#destroy-instance_method" title="Shoes::Drawable#destroy (method)">#destroy</a></span>, <span class='object_link'><a href="Drawable.html#download-instance_method" title="Shoes::Drawable#download (method)">#download</a></span>, <span class='object_link'><a href="Drawable.html#drawable_by_id-class_method" title="Shoes::Drawable.drawable_by_id (method)">drawable_by_id</a></span>, <span class='object_link'><a href="Drawable.html#drawable_class_by_name-class_method" title="Shoes::Drawable.drawable_class_by_name (method)">drawable_class_by_name</a></span>, <span class='object_link'><a href="Drawable.html#dsl_name-class_method" title="Shoes::Drawable.dsl_name (method)">dsl_name</a></span>, <span class='object_link'><a href="Drawable.html#event-instance_method" title="Shoes::Drawable#event (method)">#event</a></span>, <span class='object_link'><a href="Drawable.html#expects_parent%3F-class_method" title="Shoes::Drawable.expects_parent? (method)">expects_parent?</a></span>, <span class='object_link'><a href="Drawable.html#feature_for_shoes_style-class_method" title="Shoes::Drawable.feature_for_shoes_style (method)">feature_for_shoes_style</a></span>, <span class='object_link'><a href="Drawable.html#get_shoes_events-class_method" title="Shoes::Drawable.get_shoes_events (method)">get_shoes_events</a></span>, <span class='object_link'><a href="Drawable.html#hide-instance_method" title="Shoes::Drawable#hide (method)">#hide</a></span>, <span class='object_link'><a href="Drawable.html#hover-instance_method" title="Shoes::Drawable#hover (method)">#hover</a></span>, <span class='object_link'><a href="Drawable.html#init_args-class_method" title="Shoes::Drawable.init_args (method)">init_args</a></span>, <span class='object_link'><a href="Drawable.html#inscription-instance_method" title="Shoes::Drawable#inscription (method)">#inscription</a></span>, <span class='object_link'><a href="Drawable.html#inspect-instance_method" title="Shoes::Drawable#inspect (method)">#inspect</a></span>, <span class='object_link'><a href="Drawable.html#is_widget_class%3F-class_method" title="Shoes::Drawable.is_widget_class? (method)">is_widget_class?</a></span>, <span class='object_link'><a href="Drawable.html#leave-instance_method" title="Shoes::Drawable#leave (method)">#leave</a></span>, <span class='object_link'><a href="Drawable.html#motion-instance_method" title="Shoes::Drawable#motion (method)">#motion</a></span>, <span class='object_link'><a href="Drawable.html#opt_init_args-class_method" title="Shoes::Drawable.opt_init_args (method)">opt_init_args</a></span>, <span class='object_link'><a href="Drawable.html#optional_init_args-class_method" title="Shoes::Drawable.optional_init_args (method)">optional_init_args</a></span>, <span class='object_link'><a href="Drawable.html#register_drawable_id-class_method" title="Shoes::Drawable.register_drawable_id (method)">register_drawable_id</a></span>, <span class='object_link'><a href="Drawable.html#registered_shoes_events%3F-class_method" title="Shoes::Drawable.registered_shoes_events? (method)">registered_shoes_events?</a></span>, <span class='object_link'><a href="Drawable.html#required_init_args-class_method" title="Shoes::Drawable.required_init_args (method)">required_init_args</a></span>, <span class='object_link'><a href="Drawable.html#set_parent-instance_method" title="Shoes::Drawable#set_parent (method)">#set_parent</a></span>, <span class='object_link'><a href="Drawable.html#shoes_events-class_method" title="Shoes::Drawable.shoes_events (method)">shoes_events</a></span>, <span class='object_link'><a href="Drawable.html#shoes_style-class_method" title="Shoes::Drawable.shoes_style (method)">shoes_style</a></span>, <span class='object_link'><a href="Drawable.html#shoes_style_hashes-class_method" title="Shoes::Drawable.shoes_style_hashes (method)">shoes_style_hashes</a></span>, <span class='object_link'><a href="Drawable.html#shoes_style_name%3F-class_method" title="Shoes::Drawable.shoes_style_name? (method)">shoes_style_name?</a></span>, <span class='object_link'><a href="Drawable.html#shoes_style_names-class_method" title="Shoes::Drawable.shoes_style_names (method)">shoes_style_names</a></span>, <span class='object_link'><a href="Drawable.html#shoes_style_values-instance_method" title="Shoes::Drawable#shoes_style_values (method)">#shoes_style_values</a></span>, <span class='object_link'><a href="Drawable.html#shoes_styles-class_method" title="Shoes::Drawable.shoes_styles (method)">shoes_styles</a></span>, <span class='object_link'><a href="Drawable.html#show-instance_method" title="Shoes::Drawable#show (method)">#show</a></span>, <span class='object_link'><a href="Drawable.html#style-instance_method" title="Shoes::Drawable#style (method)">#style</a></span>, <span class='object_link'><a href="Drawable.html#subtitle-instance_method" title="Shoes::Drawable#subtitle (method)">#subtitle</a></span>, <span class='object_link'><a href="Drawable.html#tagline-instance_method" title="Shoes::Drawable#tagline (method)">#tagline</a></span>, <span class='object_link'><a href="Drawable.html#title-instance_method" title="Shoes::Drawable#title (method)">#title</a></span>, <span class='object_link'><a href="Drawable.html#toggle-instance_method" title="Shoes::Drawable#toggle (method)">#toggle</a></span>, <span class='object_link'><a href="Drawable.html#unregister_drawable_id-class_method" title="Shoes::Drawable.unregister_drawable_id (method)">unregister_drawable_id</a></span>, <span class='object_link'><a href="Drawable.html#use_current_app-class_method" title="Shoes::Drawable.use_current_app (method)">use_current_app</a></span>, <span class='object_link'><a href="Drawable.html#validate_as-class_method" title="Shoes::Drawable.validate_as (method)">validate_as</a></span>, <span class='object_link'><a href="Drawable.html#with_current_app-class_method" title="Shoes::Drawable.with_current_app (method)">with_current_app</a></span></p>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods included from <span class='object_link'><a href="../MarginHelper.html" title="MarginHelper (module)">MarginHelper</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="../MarginHelper.html#margin_parse-instance_method" title="MarginHelper#margin_parse (method)">#margin_parse</a></span></p>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods included from <span class='object_link'><a href="Colors.html" title="Shoes::Colors (module)">Colors</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Colors.html#gray-instance_method" title="Shoes::Colors#gray (method)">#gray</a></span>, <span class='object_link'><a href="Colors.html#rgb-instance_method" title="Shoes::Colors#rgb (method)">#rgb</a></span>, <span class='object_link'><a href="Colors.html#to_rgb-instance_method" title="Shoes::Colors#to_rgb (method)">#to_rgb</a></span></p>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods included from <span class='object_link'><a href="Log.html" title="Shoes::Log (module)">Log</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Log.html#configure_logger-class_method" title="Shoes::Log.configure_logger (method)">configure_logger</a></span>, <span class='object_link'><a href="Log.html#log_init-instance_method" title="Shoes::Log#log_init (method)">#log_init</a></span>, <span class='object_link'><a href="Log.html#logger-class_method" title="Shoes::Log.logger (method)">logger</a></span></p>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods inherited from <span class='object_link'><a href="Linkable.html" title="Shoes::Linkable (class)">Linkable</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Linkable.html#bind_shoes_event-instance_method" title="Shoes::Linkable#bind_shoes_event (method)">#bind_shoes_event</a></span>, <span class='object_link'><a href="Linkable.html#send_self_event-instance_method" title="Shoes::Linkable#send_self_event (method)">#send_self_event</a></span>, <span class='object_link'><a href="Linkable.html#send_shoes_event-instance_method" title="Shoes::Linkable#send_shoes_event (method)">#send_shoes_event</a></span>, <span class='object_link'><a href="Linkable.html#unsub_all_shoes_events-instance_method" title="Shoes::Linkable#unsub_all_shoes_events (method)">#unsub_all_shoes_events</a></span>, <span class='object_link'><a href="Linkable.html#unsub_shoes_event-instance_method" title="Shoes::Linkable#unsub_shoes_event (method)">#unsub_shoes_event</a></span></p>
+<div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <h3 class="signature first" id="initialize-instance_method">
+  
+    #<strong>initialize</strong>  &#x21d2; <tt><span class='object_link'><a href="" title="Shoes::Slot (class)">Slot</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns a new instance of Slot.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 14</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='op'>...</span><span class='rparen'>)</span>
+  <span class='comment'># The draw context tracks current settings like fill and stroke,
+</span>  <span class='comment'># plus potentially other current state that changes from drawable
+</span>  <span class='comment'># to drawable and slot to slot.
+</span>  <span class='ivar'>@draw_context</span> <span class='op'>=</span> <span class='lbrace'>{</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>fill</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='kw'>nil</span><span class='comma'>,</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>stroke</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='kw'>nil</span><span class='comma'>,</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>strokewidth</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='kw'>nil</span><span class='comma'>,</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>rotate</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='kw'>nil</span><span class='comma'>,</span>
+    <span class='comment'># &quot;transform&quot; =&gt; nil, # &quot;corner&quot;,
+</span>    <span class='comment'># &quot;translate&quot; =&gt; nil, # [0, 0],
+</span>  <span class='rbrace'>}</span>
+
+  <span class='kw'>super</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+<div id="method_missing_details" class="method_details_list">
+  <h2>Dynamic Method Handling</h2>
+  <p class="notice this">
+    This class handles dynamic methods through the <tt>method_missing</tt> method
+    
+  </p>
+  
+    <div class="method_details first">
+  <h3 class="signature first" id="method_missing-instance_method">
+  
+    #<strong>method_missing</strong>(name, *args, **kwargs, &amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>We use method_missing for drawable-creating methods like &quot;button&quot;.
+The parent&#39;s method_missing will auto-create Shoes style getters and setters.
+This is similar to the method_missing in Shoes::App, but differs in where
+the new drawable will appear.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 55</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_method_missing'>method_missing</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_kwargs'>kwargs</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_klass'>klass</span> <span class='op'>=</span> <span class='op'>::</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></span><span class='period'>.</span><span class='id identifier rubyid_drawable_class_by_name'><span class='object_link'><a href="Drawable.html#drawable_class_by_name-class_method" title="Shoes::Drawable.drawable_class_by_name (method)">drawable_class_by_name</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>super</span> <span class='kw'>unless</span> <span class='id identifier rubyid_klass'>klass</span>
+
+  <span class='op'>::</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="" title="Shoes::Slot (class)">Slot</a></span></span><span class='period'>.</span><span class='id identifier rubyid_define_method'>define_method</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_kwargs'>kwargs</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='op'>|</span>
+    <span class='id identifier rubyid_instance'>instance</span> <span class='op'>=</span> <span class='kw'>nil</span>
+
+    <span class='comment'># Look up the Shoes drawable and create it. But first set
+</span>    <span class='comment'># this slot as the current one so that draw context
+</span>    <span class='comment'># is handled properly.
+</span>    <span class='ivar'>@app</span><span class='period'>.</span><span class='id identifier rubyid_with_slot'>with_slot</span><span class='lparen'>(</span><span class='kw'>self</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></span><span class='period'>.</span><span class='id identifier rubyid_with_current_app'><span class='object_link'><a href="Drawable.html#with_current_app-class_method" title="Shoes::Drawable.with_current_app (method)">with_current_app</a></span></span><span class='lparen'>(</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_app'>app</span><span class='rparen'>)</span> <span class='kw'>do</span>
+        <span class='id identifier rubyid_instance'>instance</span> <span class='op'>=</span> <span class='id identifier rubyid_klass'>klass</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_kwargs'>kwargs</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+
+    <span class='id identifier rubyid_instance'>instance</span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_send'>send</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_kwargs'>kwargs</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+  <div id="instance_attr_details" class="attr_details">
+    <h2>Instance Attribute Details</h2>
+    
+      
+      <span id=""></span>
+      <div class="method_details first">
+  <h3 class="signature first" id="children-instance_method">
+  
+    #<strong>children</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Incompatibilities with Shoes:</p>
+<ul class="incompatibility">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'><p>Shoes uses #content, not #children, for this. Scarpe does both.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+5
+6
+7</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 5</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_children'>children</span>
+  <span class='ivar'>@children</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="draw_context-instance_method">
+  
+    #<strong>draw_context</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>This only shows this specific slot&#39;s settings, not its parent&#39;s.
+Use current_draw_context to allow inheritance.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+11
+12
+13</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 11</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_draw_context'>draw_context</span>
+  <span class='ivar'>@draw_context</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="add_child-instance_method">
+  
+    #<strong>add_child</strong>(child)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Do not call directly, use set_parent</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+40
+41
+42
+43</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 40</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_add_child'>add_child</span><span class='lparen'>(</span><span class='id identifier rubyid_child'>child</span><span class='rparen'>)</span>
+  <span class='ivar'>@children</span> <span class='op'>||=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+  <span class='ivar'>@children</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_child'>child</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="append-instance_method">
+  
+    #<strong>append</strong> { ... } &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Call the block to append new children to a Slot.</p>
+
+<p>Should only be called on a Slot, since only Slots can have children.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Yields:</p>
+<ul class="yield">
+  
+    <li>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        
+        <div class='inline'><p>the block to call to replace children; will be called on the Shoes::App, appending to the called Slot as the current slot</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="Errors/InvalidAttributeValueError.html" title="Shoes::Errors::InvalidAttributeValueError (class)">Shoes::Errors::InvalidAttributeValueError</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Incompatibilities with Shoes:</p>
+<ul class="incompatibility">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'><p>Shoes Classic calls the append block with current self, while Scarpe uses the Shoes::App as self</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+174
+175
+176
+177
+178
+179</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 174</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_append'>append</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors.html" title="Shoes::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors/InvalidAttributeValueError.html" title="Shoes::Errors::InvalidAttributeValueError (class)">InvalidAttributeValueError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>append requires a block!</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='id identifier rubyid_block_given?'>block_given?</span>
+  <span class='id identifier rubyid_raise'>raise</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors.html" title="Shoes::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors/InvalidAttributeValueError.html" title="Shoes::Errors::InvalidAttributeValueError (class)">InvalidAttributeValueError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Don&#39;t append to something that isn&#39;t a slot!</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="" title="Shoes::Slot (class)">Slot</a></span></span><span class='rparen'>)</span>
+
+  <span class='ivar'>@app</span><span class='period'>.</span><span class='id identifier rubyid_with_slot'>with_slot</span><span class='lparen'>(</span><span class='kw'>self</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="clear-instance_method">
+  
+    #<strong>clear</strong> { ... } &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Remove all children from this drawable. If a block
+is given, call the block to replace the children with
+new contents from that block.</p>
+
+<p>Should only be called on Slots, which can
+have children.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Yields:</p>
+<ul class="yield">
+  
+    <li>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        
+        <div class='inline'><p>The block to call to replace the contents of the drawable (optional)</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Incompatibilities with Shoes:</p>
+<ul class="incompatibility">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'><p>Shoes Classic calls the clear block with current self, while Scarpe uses the Shoes::App as self</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+159
+160
+161
+162
+163
+164</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 159</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_clear'>clear</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='ivar'>@children</span> <span class='op'>||=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+  <span class='ivar'>@children</span><span class='period'>.</span><span class='id identifier rubyid_dup'>dup</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:destroy</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_append'>append</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_block_given?'>block_given?</span>
+  <span class='kw'>nil</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="contents-instance_method">
+  
+    #<strong>contents</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Get a list of child drawables</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+46
+47
+48
+49</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 46</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_contents'>contents</span>
+  <span class='ivar'>@children</span> <span class='op'>||=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+  <span class='ivar'>@children</span><span class='period'>.</span><span class='id identifier rubyid_dup'>dup</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="current_draw_context-instance_method">
+  
+    #<strong>current_draw_context</strong>  &#x21d2; <tt>Hash</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Get the current draw context styles, based on this slot and its parent slots.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>a hash of Shoes styles for the context</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+139
+140
+141
+142
+143
+144</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 139</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_current_draw_context'>current_draw_context</span>
+  <span class='id identifier rubyid_s'>s</span> <span class='op'>=</span> <span class='ivar'>@parent</span> <span class='op'>?</span> <span class='ivar'>@parent</span><span class='period'>.</span><span class='id identifier rubyid_current_draw_context'>current_draw_context</span> <span class='op'>:</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='ivar'>@draw_context</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_k'>k</span><span class='comma'>,</span> <span class='id identifier rubyid_v'>v</span><span class='op'>|</span> <span class='id identifier rubyid_s'>s</span><span class='lbracket'>[</span><span class='id identifier rubyid_k'>k</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_v'>v</span> <span class='kw'>unless</span> <span class='id identifier rubyid_v'>v</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='rbrace'>}</span>
+
+  <span class='id identifier rubyid_s'>s</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="fill-instance_method">
+  
+    #<strong>fill</strong>(color)  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Set the default fill color in this slot and child slots.
+Pass nil for &quot;no setting&quot;, so that it can inherit defaults.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>color</span>
+      
+      
+        <span class='type'>(<tt>Nil</tt>, <tt>Color</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>a Shoes color for the fill color or nil to use parent setting</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+90
+91
+92</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 90</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_fill'>fill</span><span class='lparen'>(</span><span class='id identifier rubyid_color'>color</span><span class='rparen'>)</span>
+  <span class='ivar'>@draw_context</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>fill</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_color'>color</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="nofill-instance_method">
+  
+    #<strong>nofill</strong>  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Set the default fill in this slot and child slots to transparent.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+97
+98
+99</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 97</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_nofill'>nofill</span>
+  <span class='ivar'>@draw_context</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>fill</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_rgb'>rgb</span><span class='lparen'>(</span><span class='int'>0</span><span class='comma'>,</span> <span class='int'>0</span><span class='comma'>,</span> <span class='int'>0</span><span class='comma'>,</span> <span class='int'>0</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="nostroke-instance_method">
+  
+    #<strong>nostroke</strong>  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Set the default stroke in this slot and child slots
+to transparent.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+123
+124
+125</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 123</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_nostroke'>nostroke</span>
+  <span class='ivar'>@draw_context</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>stroke</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_rgb'>rgb</span><span class='lparen'>(</span><span class='int'>0</span><span class='comma'>,</span> <span class='int'>0</span><span class='comma'>,</span> <span class='int'>0</span><span class='comma'>,</span> <span class='int'>0</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="remove_child-instance_method">
+  
+    #<strong>remove_child</strong>(child)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Do not call directly, use set_parent</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+31
+32
+33
+34
+35
+36
+37</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 31</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_remove_child'>remove_child</span><span class='lparen'>(</span><span class='id identifier rubyid_child'>child</span><span class='rparen'>)</span>
+  <span class='ivar'>@children</span> <span class='op'>||=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+  <span class='kw'>unless</span> <span class='ivar'>@children</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_child'>child</span><span class='rparen'>)</span>
+    <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_warn'>warn</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>remove_child: no such child(</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_child'>child</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'>) for parent(</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_parent'>parent</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'>)!</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+  <span class='ivar'>@children</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='id identifier rubyid_child'>child</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="respond_to_missing?-instance_method">
+  
+    #<strong>respond_to_missing?</strong>(name, include_private = false)  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+77
+78
+79
+80
+81</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 77</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_respond_to_missing?'>respond_to_missing?</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='id identifier rubyid_include_private'>include_private</span> <span class='op'>=</span> <span class='kw'>false</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>true</span> <span class='kw'>if</span> <span class='op'>::</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></span><span class='period'>.</span><span class='id identifier rubyid_drawable_class_by_name'><span class='object_link'><a href="Drawable.html#drawable_class_by_name-class_method" title="Shoes::Drawable.drawable_class_by_name (method)">drawable_class_by_name</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='rparen'>)</span>
+
+  <span class='kw'>false</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="rotate-instance_method">
+  
+    #<strong>rotate</strong>(angle)  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Set the current rotation in this slot and any child slots.
+Pass nil to reset the angle to default.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>angle</span>
+      
+      
+        <span class='type'>(<tt>Numeric</tt>, <tt>Nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the new default rotation for shapes or nil to use parent setting</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+132
+133
+134</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 132</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_rotate'>rotate</span><span class='lparen'>(</span><span class='id identifier rubyid_angle'>angle</span><span class='rparen'>)</span>
+  <span class='ivar'>@draw_context</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>rotate</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_angle'>angle</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="stroke-instance_method">
+  
+    #<strong>stroke</strong>(color)  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Set the default stroke color in this slot and child slots.
+Pass nil for &quot;no setting&quot; so it can inherit defaults.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>color</span>
+      
+      
+        <span class='type'>(<tt>Nil</tt>, <tt>Color</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>a Shoes color for the stroke color or nil to use parent setting</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+106
+107
+108</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 106</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_stroke'>stroke</span><span class='lparen'>(</span><span class='id identifier rubyid_color'>color</span><span class='rparen'>)</span>
+  <span class='ivar'>@draw_context</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>stroke</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_color'>color</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="strokewidth-instance_method">
+  
+    #<strong>strokewidth</strong>(width)  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Set the default strokewidth in this slot and child slots.
+Pass nil for &quot;no setting&quot;.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>width</span>
+      
+      
+        <span class='type'>(<tt>Numeric</tt>, <tt>Nil</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the new width, or nil to use parent setting</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+115
+116
+117</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/slot.rb', line 115</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_strokewidth'>strokewidth</span><span class='lparen'>(</span><span class='id identifier rubyid_width'>width</span><span class='rparen'>)</span>
+  <span class='ivar'>@draw_context</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>strokewidth</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_width'>width</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Wed Oct  9 15:38:26 2024 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.28 (ruby-3.2.0).
+</div>
+
+    </div>
+  </body>
+</html>

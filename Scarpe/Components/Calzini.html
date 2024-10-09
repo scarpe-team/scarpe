@@ -1,0 +1,2852 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Module: Scarpe::Components::Calzini
+  
+    &mdash; Documentation by YARD 0.9.28
+  
+</title>
+
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="../../css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Scarpe::Components::Calzini";
+  relpath = '../../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="../../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../../_index.html">Index (C)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../Components.html" title="Scarpe::Components (module)">Components</a></span></span>
+     &raquo; 
+    <span class="title">Calzini</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="docpages_list_link"
+        href="../../docpages_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Module: Scarpe::Components::Calzini
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+
+  
+  
+  <dl>
+      <dt>Extended by:</dt>
+      <dd><span class='object_link'><a href="" title="Scarpe::Components::Calzini (module)">Calzini</a></span></dd>
+  </dl>
+  
+  
+  
+  <dl>
+      <dt>Includes:</dt>
+      <dd><span class='object_link'><a href="Base64.html" title="Scarpe::Components::Base64 (module)">Base64</a></span></dd>
+  </dl>
+  
+  
+
+  
+  <dl>
+    <dt>Included in:</dt>
+    <dd><span class='object_link'><a href="" title="Scarpe::Components::Calzini (module)">Calzini</a></span>, <span class='object_link'><a href="Tiranti.html" title="Scarpe::Components::Tiranti (module)">Tiranti</a></span></dd>
+  </dl>
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>scarpe-components/lib/scarpe/components/calzini.rb<span class="defines">,<br />
+  scarpe-components/lib/scarpe/components/calzini/misc.rb,<br /> scarpe-components/lib/scarpe/components/calzini/para.rb,<br /> scarpe-components/lib/scarpe/components/calzini/alert.rb,<br /> scarpe-components/lib/scarpe/components/calzini/slots.rb,<br /> scarpe-components/lib/scarpe/components/calzini/border.rb,<br /> scarpe-components/lib/scarpe/components/calzini/button.rb,<br /> scarpe-components/lib/scarpe/components/calzini/art_drawables.rb</span>
+</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>The Calzini module expects to be included by a class defining
+the following methods:</p>
+
+<pre class="code ruby"><code class="ruby">* html_id - the HTML ID for the specific rendered DOM object
+* handler_js_code(event_name) - the JS handler code for this DOM object and event name
+* (optional) shoes_styles - the Shoes styles for this object, unless overridden in render()
+</code></pre>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="HTML-constant" class="">HTML =
+          
+        </dt>
+        <dd><pre class="code"><span class='const'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../Components.html" title="Scarpe::Components (module)">Components</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="HTML.html" title="Scarpe::Components::HTML (class)">HTML</a></span></span></pre></dd>
+      
+        <dt id="SPACING_DIRECTIONS-constant" class="">SPACING_DIRECTIONS =
+          
+        </dt>
+        <dd><pre class="code"><span class='lbracket'>[</span><span class='symbol'>:left</span><span class='comma'>,</span> <span class='symbol'>:right</span><span class='comma'>,</span> <span class='symbol'>:top</span><span class='comma'>,</span> <span class='symbol'>:bottom</span><span class='rbracket'>]</span></pre></dd>
+      
+    </dl>
+  
+
+
+
+
+
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#alert_element-instance_method" title="#alert_element (instance method)">#<strong>alert_element</strong>(props)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#arc_element-instance_method" title="#arc_element (instance method)">#<strong>arc_element</strong>(props, &amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#border_element-instance_method" title="#border_element (instance method)">#<strong>border_element</strong>(props)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#button_element-instance_method" title="#button_element (instance method)">#<strong>button_element</strong>(props)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#check_element-instance_method" title="#check_element (instance method)">#<strong>check_element</strong>(props)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#contains_number%3F-instance_method" title="#contains_number? (instance method)">#<strong>contains_number?</strong>(str)  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#contains_only_numbers%3F-instance_method" title="#contains_only_numbers? (instance method)">#<strong>contains_only_numbers?</strong>(string)  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#degrees_to_radians-instance_method" title="#degrees_to_radians (instance method)">#<strong>degrees_to_radians</strong>(degrees)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#dimensions_length-instance_method" title="#dimensions_length (instance method)">#<strong>dimensions_length</strong>(value)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#documentroot_element-instance_method" title="#documentroot_element (instance method)">#<strong>documentroot_element</strong>(props, &amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#drawable_style-instance_method" title="#drawable_style (instance method)">#<strong>drawable_style</strong>(props)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#edit_box_element-instance_method" title="#edit_box_element (instance method)">#<strong>edit_box_element</strong>(props)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#edit_line_element-instance_method" title="#edit_line_element (instance method)">#<strong>edit_line_element</strong>(props)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#empty_page_element-instance_method" title="#empty_page_element (instance method)">#<strong>empty_page_element</strong>  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Return HTML for an empty page element, to be filled with HTML renderings of the DOM tree.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#first_color_of-instance_method" title="#first_color_of (instance method)">#<strong>first_color_of</strong>(*colors)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#flow_element-instance_method" title="#flow_element (instance method)">#<strong>flow_element</strong>(props, &amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#image_element-instance_method" title="#image_element (instance method)">#<strong>image_element</strong>(props)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#line_element-instance_method" title="#line_element (instance method)">#<strong>line_element</strong>(props)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#list_box_element-instance_method" title="#list_box_element (instance method)">#<strong>list_box_element</strong>(props)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#oval_element-instance_method" title="#oval_element (instance method)">#<strong>oval_element</strong>(props, &amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#para_element-instance_method" title="#para_element (instance method)">#<strong>para_element</strong>(props, &amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#progress_element-instance_method" title="#progress_element (instance method)">#<strong>progress_element</strong>(props)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#radians_to_degrees-instance_method" title="#radians_to_degrees (instance method)">#<strong>radians_to_degrees</strong>(radians)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#radio_element-instance_method" title="#radio_element (instance method)">#<strong>radio_element</strong>(props)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#rect_element-instance_method" title="#rect_element (instance method)">#<strong>rect_element</strong>(props)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#render-instance_method" title="#render (instance method)">#<strong>render</strong>(drawable_name, properties = shoes_styles, &amp;block)  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Render the Shoes drawable of type <code>drawable_name</code> with the given properties to HTML and return it.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#rgb_to_hex-instance_method" title="#rgb_to_hex (instance method)">#<strong>rgb_to_hex</strong>(color)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Convert an [r, g, b, a] array to an HTML hex color code Arrays support alpha.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#slot_element-instance_method" title="#slot_element (instance method)">#<strong>slot_element</strong>(props, &amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#spacing_styles_for_attr-instance_method" title="#spacing_styles_for_attr (instance method)">#<strong>spacing_styles_for_attr</strong>(attr, props, styles, with_options: true)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>We extract the appropriate margin and padding from the margin and padding properties.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#stack_element-instance_method" title="#stack_element (instance method)">#<strong>stack_element</strong>(props, &amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#star_element-instance_method" title="#star_element (instance method)">#<strong>star_element</strong>(props, &amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#text_drawable_element-instance_method" title="#text_drawable_element (instance method)">#<strong>text_drawable_element</strong>(prop_array)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>The text element is used to render the equivalent of Shoes cText, which includes em, strong, span, link and so on.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#text_size-instance_method" title="#text_size (instance method)">#<strong>text_size</strong>(sz)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#video_element-instance_method" title="#video_element (instance method)">#<strong>video_element</strong>(props)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods included from <span class='object_link'><a href="Base64.html" title="Scarpe::Components::Base64 (module)">Base64</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Base64.html#encode_file_to_base64-instance_method" title="Scarpe::Components::Base64#encode_file_to_base64 (method)">#encode_file_to_base64</a></span>, <span class='object_link'><a href="Base64.html#mime_type_for_filename-instance_method" title="Scarpe::Components::Base64#mime_type_for_filename (method)">#mime_type_for_filename</a></span>, <span class='object_link'><a href="Base64.html#valid_url%3F-instance_method" title="Scarpe::Components::Base64#valid_url? (method)">#valid_url?</a></span></p>
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="alert_element-instance_method">
+  
+    #<strong>alert_element</strong>(props)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/alert.rb', line 4</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_alert_element'>alert_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_event'>event</span> <span class='op'>=</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>event_name</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>click</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_onclick'>onclick</span> <span class='op'>=</span> <span class='id identifier rubyid_handler_js_code'>handler_js_code</span><span class='lparen'>(</span><span class='id identifier rubyid_event'>event</span><span class='rparen'>)</span>
+
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_alert_overlay_style'>alert_overlay_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='label'>style:</span> <span class='id identifier rubyid_alert_modal_style'>alert_modal_style</span><span class='rparen'>)</span> <span class='kw'>do</span>
+        <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='label'>style:</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>text</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='rbrace'>}</span>
+        <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_button'>button</span><span class='lparen'>(</span><span class='label'>style:</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='comma'>,</span> <span class='label'>onclick:</span> <span class='id identifier rubyid_onclick'>onclick</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>OK</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="arc_element-instance_method">
+  
+    #<strong>arc_element</strong>(props, &amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/art_drawables.rb', line 4</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_arc_element'>arc_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_dc'>dc</span> <span class='op'>=</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>draw_context</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='id identifier rubyid_rotate'>rotate</span> <span class='op'>=</span> <span class='id identifier rubyid_dc'>dc</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>rotate</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_arc_style'>arc_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_svg'>svg</span><span class='lparen'>(</span><span class='label'>width:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>width</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>height:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>height</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>do</span>
+        <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='lparen'>(</span><span class='label'>d:</span> <span class='id identifier rubyid_arc_path'>arc_path</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='comma'>,</span> <span class='label'>transform:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>rotate(</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_rotate'>rotate</span><span class='embexpr_end'>}</span><span class='tstring_content'>, </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>width</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>/</span> <span class='int'>2</span><span class='embexpr_end'>}</span><span class='tstring_content'>, </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>height</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>/</span> <span class='int'>2</span><span class='embexpr_end'>}</span><span class='tstring_content'>)</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+      <span class='kw'>end</span>
+      <span class='id identifier rubyid_block'>block</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='id identifier rubyid_h'>h</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_block_given?'>block_given?</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="border_element-instance_method">
+  
+    #<strong>border_element</strong>(props)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+2
+3
+4
+5
+6</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/border.rb', line 2</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_border_element'>border_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_style'>style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="button_element-instance_method">
+  
+    #<strong>button_element</strong>(props)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/button.rb', line 4</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_button_element'>button_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_button_props'>button_props</span> <span class='op'>=</span> <span class='lbrace'>{</span>
+      <span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span>
+      <span class='label'>onclick:</span> <span class='id identifier rubyid_handler_js_code'>handler_js_code</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>click</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='comma'>,</span>
+      <span class='label'>onmouseover:</span> <span class='id identifier rubyid_handler_js_code'>handler_js_code</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>hover</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='comma'>,</span>
+      <span class='label'>style:</span> <span class='id identifier rubyid_button_style'>button_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='comma'>,</span>
+      <span class='label'>class:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>html_class</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span>
+      <span class='label'>title:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>tooltip</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span>
+    <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_compact'>compact</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_button'>button</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_button_props'>button_props</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>text</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="check_element-instance_method">
+  
+    #<strong>check_element</strong>(props)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/misc.rb', line 4</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_check_element'>check_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_input'>input</span> <span class='label'>type:</span> <span class='symbol'>:checkbox</span><span class='comma'>,</span>
+      <span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span>
+      <span class='label'>onclick:</span> <span class='id identifier rubyid_handler_js_code'>handler_js_code</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>click</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='comma'>,</span>
+      <span class='label'>value:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>text</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span>
+      <span class='label'>checked:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>checked</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span>
+      <span class='label'>style:</span> <span class='id identifier rubyid_drawable_style'>drawable_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="contains_number?-instance_method">
+  
+    #<strong>contains_number?</strong>(str)  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+100
+101
+102</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/para.rb', line 100</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_contains_number?'>contains_number?</span><span class='lparen'>(</span><span class='id identifier rubyid_str'>str</span><span class='rparen'>)</span>
+  <span class='op'>!</span><span class='op'>!</span><span class='lparen'>(</span><span class='id identifier rubyid_str'>str</span> <span class='op'>=~</span> <span class='tstring'><span class='regexp_beg'>/</span><span class='tstring_content'>\d</span><span class='regexp_end'>/</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="contains_only_numbers?-instance_method">
+  
+    #<strong>contains_only_numbers?</strong>(string)  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+103
+104
+105</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/para.rb', line 103</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_contains_only_numbers?'>contains_only_numbers?</span><span class='lparen'>(</span><span class='id identifier rubyid_string'>string</span><span class='rparen'>)</span>
+  <span class='tstring'><span class='regexp_beg'>/</span><span class='tstring_content'>^\d+\z</span><span class='regexp_end'>/</span></span> <span class='op'>=~</span> <span class='id identifier rubyid_string'>string</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="degrees_to_radians-instance_method">
+  
+    #<strong>degrees_to_radians</strong>(degrees)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+229
+230
+231</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini.rb', line 229</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_degrees_to_radians'>degrees_to_radians</span><span class='lparen'>(</span><span class='id identifier rubyid_degrees'>degrees</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_degrees'>degrees</span> <span class='op'>*</span> <span class='const'>Math</span><span class='op'>::</span><span class='const'>PI</span> <span class='op'>/</span> <span class='int'>180</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="dimensions_length-instance_method">
+  
+    #<strong>dimensions_length</strong>(value)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini.rb', line 97</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_dimensions_length'>dimensions_length</span><span class='lparen'>(</span><span class='id identifier rubyid_value'>value</span><span class='rparen'>)</span>
+  <span class='kw'>case</span> <span class='id identifier rubyid_value'>value</span>
+  <span class='kw'>when</span> <span class='const'>Integer</span>
+    <span class='kw'>if</span> <span class='id identifier rubyid_value'>value</span> <span class='op'>&lt;</span> <span class='int'>0</span>
+      <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>calc(100% - </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_value'>value</span><span class='period'>.</span><span class='id identifier rubyid_abs'>abs</span><span class='embexpr_end'>}</span><span class='tstring_content'>px)</span><span class='tstring_end'>&quot;</span></span>
+    <span class='kw'>else</span>
+      <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_value'>value</span><span class='embexpr_end'>}</span><span class='tstring_content'>px</span><span class='tstring_end'>&quot;</span></span>
+    <span class='kw'>end</span>
+  <span class='kw'>when</span> <span class='const'>Float</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_value'>value</span> <span class='op'>*</span> <span class='int'>100</span><span class='embexpr_end'>}</span><span class='tstring_content'>%</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_value'>value</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="documentroot_element-instance_method">
+  
+    #<strong>documentroot_element</strong>(props, &amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+28
+29
+30</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/slots.rb', line 28</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_documentroot_element'>documentroot_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_flow_element'>flow_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="drawable_style-instance_method">
+  
+    #<strong>drawable_style</strong>(props)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini.rb', line 112</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_drawable_style'>drawable_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_styles'>styles</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>hidden</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+    <span class='id identifier rubyid_styles'>styles</span><span class='lbracket'>[</span><span class='symbol'>:display</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>none</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='comment'># Do we need to set CSS positioning here, especially if displace is set? Position: relative maybe?
+</span>  <span class='comment'># We need some Shoes3 screenshots and HTML-based tests here...
+</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>top</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>left</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+    <span class='id identifier rubyid_styles'>styles</span><span class='lbracket'>[</span><span class='symbol'>:position</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>absolute</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_styles'>styles</span><span class='lbracket'>[</span><span class='symbol'>:top</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_dimensions_length'>dimensions_length</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>top</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>top</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+  <span class='id identifier rubyid_styles'>styles</span><span class='lbracket'>[</span><span class='symbol'>:left</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_dimensions_length'>dimensions_length</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>left</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>left</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+  <span class='id identifier rubyid_styles'>styles</span><span class='lbracket'>[</span><span class='symbol'>:width</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_dimensions_length'>dimensions_length</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>width</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>width</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+  <span class='id identifier rubyid_styles'>styles</span><span class='lbracket'>[</span><span class='symbol'>:height</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_dimensions_length'>dimensions_length</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>height</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>height</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+  <span class='id identifier rubyid_styles'>styles</span><span class='lbracket'>[</span><span class='symbol'>:&quot;margin-left&quot;</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_dimensions_length'>dimensions_length</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>margin_left</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>margin_left</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+  <span class='id identifier rubyid_styles'>styles</span><span class='lbracket'>[</span><span class='symbol'>:&quot;margin-right&quot;</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_dimensions_length'>dimensions_length</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>margin_right</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>margin_right</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+  <span class='id identifier rubyid_styles'>styles</span><span class='lbracket'>[</span><span class='symbol'>:&quot;margin-top&quot;</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_dimensions_length'>dimensions_length</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>margin_top</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>margin_top</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+  <span class='id identifier rubyid_styles'>styles</span><span class='lbracket'>[</span><span class='symbol'>:&quot;margin-bottom&quot;</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_dimensions_length'>dimensions_length</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>margin_bottom</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>margin_bottom</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+
+
+  
+  <span class='id identifier rubyid_styles'>styles</span> <span class='op'>=</span> <span class='id identifier rubyid_spacing_styles_for_attr'>spacing_styles_for_attr</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>padding</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='id identifier rubyid_props'>props</span><span class='comma'>,</span> <span class='id identifier rubyid_styles'>styles</span><span class='rparen'>)</span>
+
+  <span class='id identifier rubyid_styles'>styles</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="edit_box_element-instance_method">
+  
+    #<strong>edit_box_element</strong>(props)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+15
+16
+17
+18
+19
+20
+21</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/misc.rb', line 15</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_edit_box_element'>edit_box_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_oninput'>oninput</span> <span class='op'>=</span> <span class='id identifier rubyid_handler_js_code'>handler_js_code</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>change</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>this.value</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_textarea'>textarea</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>oninput:</span> <span class='id identifier rubyid_oninput'>oninput</span><span class='comma'>,</span><span class='label'>onmouseover:</span> <span class='id identifier rubyid_handler_js_code'>handler_js_code</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>hover</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_edit_box_style'>edit_box_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='comma'>,</span><span class='label'>title:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>tooltip</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>text</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='rbrace'>}</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="edit_line_element-instance_method">
+  
+    #<strong>edit_line_element</strong>(props)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+23
+24
+25
+26
+27
+28
+29</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/misc.rb', line 23</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_edit_line_element'>edit_line_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_oninput'>oninput</span> <span class='op'>=</span> <span class='id identifier rubyid_handler_js_code'>handler_js_code</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>change</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>this.value</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_input'>input</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>oninput:</span> <span class='id identifier rubyid_oninput'>oninput</span><span class='comma'>,</span> <span class='label'>onmouseover:</span> <span class='id identifier rubyid_handler_js_code'>handler_js_code</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>hover</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='comma'>,</span> <span class='label'>value:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>text</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_edit_line_style'>edit_line_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='comma'>,</span><span class='label'>title:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>tooltip</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="empty_page_element-instance_method">
+  
+    #<strong>empty_page_element</strong>  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Return HTML for an empty page element, to be filled with HTML
+renderings of the DOM tree.</p>
+
+<p>The wrapper-wvroot element is where Scarpe will fill in the
+DOM element.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the rendered HTML for the empty page object.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini.rb', line 56</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_empty_page_element'>empty_page_element</span>
+  <span class='heredoc_beg'>&lt;&lt;~HTML</span>
+<span class='tstring_content'>    &lt;html&gt;
+</span><span class='tstring_content'>      &lt;head id=&#39;head-wvroot&#39;&gt;
+</span><span class='tstring_content'>        &lt;style id=&#39;style-wvroot&#39;&gt;
+</span><span class='tstring_content'>          /** Style resets **/
+</span><span class='tstring_content'>          body {
+</span><span class='tstring_content'>            font-family: arial, Helvetica, sans-serif;
+</span><span class='tstring_content'>            margin: 0;
+</span><span class='tstring_content'>            height: 100%;
+</span><span class='tstring_content'>            overflow: hidden;
+</span><span class='tstring_content'>          }
+</span><span class='tstring_content'>          p {
+</span><span class='tstring_content'>            margin: 0;
+</span><span class='tstring_content'>          }
+</span><span class='tstring_content'>          #wrapper-wvroot {
+</span><span class='tstring_content'>            height: 100%;
+</span><span class='tstring_content'>            width: 100%;
+</span><span class='tstring_content'>          }
+</span><span class='tstring_content'>        &lt;/style&gt;
+</span><span class='tstring_content'>      &lt;/head&gt;
+</span><span class='tstring_content'>      &lt;body id=&#39;body-wvroot&#39;&gt;
+</span><span class='tstring_content'>        &lt;div id=&#39;wrapper-wvroot&#39;&gt;&lt;/div&gt;
+</span><span class='tstring_content'>      &lt;/body&gt;
+</span><span class='tstring_content'>    &lt;/html&gt;
+</span><span class='heredoc_end'>  HTML
+</span><span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="first_color_of-instance_method">
+  
+    #<strong>first_color_of</strong>(*colors)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+192
+193
+194
+195
+196</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini.rb', line 192</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_first_color_of'>first_color_of</span><span class='lparen'>(</span><span class='op'>*</span><span class='id identifier rubyid_colors'>colors</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_colors'>colors</span><span class='period'>.</span><span class='id identifier rubyid_compact!'>compact!</span>
+  <span class='id identifier rubyid_colors'>colors</span><span class='period'>.</span><span class='id identifier rubyid_select!'>select!</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_c'>c</span><span class='op'>|</span> <span class='id identifier rubyid_c'>c</span> <span class='op'>!=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span>
+  <span class='id identifier rubyid_rgb_to_hex'>rgb_to_hex</span><span class='lparen'>(</span><span class='id identifier rubyid_colors'>colors</span><span class='lbracket'>[</span><span class='int'>0</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="flow_element-instance_method">
+  
+    #<strong>flow_element</strong>(props, &amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+12
+13
+14
+15
+16
+17
+18</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/slots.rb', line 12</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_flow_element'>flow_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>html_attributes</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_flow_style'>flow_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='rparen'>)</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='label'>style:</span> <span class='lbrace'>{</span> <span class='label'>height:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>100%</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>width:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>100%</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>position:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>relative</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="image_element-instance_method">
+  
+    #<strong>image_element</strong>(props)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/misc.rb', line 31</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_image_element'>image_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_style'>style</span> <span class='op'>=</span> <span class='id identifier rubyid_drawable_style'>drawable_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+
+  <span class='kw'>if</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>click</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+    <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+      <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_a'>a</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>href:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>click</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_img'>img</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>src:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>url</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>style:</span><span class='rparen'>)</span> <span class='rbrace'>}</span>
+    <span class='kw'>end</span>
+  <span class='kw'>else</span>
+    <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+      <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_img'>img</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>src:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>url</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>style:</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="line_element-instance_method">
+  
+    #<strong>line_element</strong>(props)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+38
+39
+40
+41
+42
+43
+44
+45
+46</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/art_drawables.rb', line 38</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_line_element'>line_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_line_div_style'>line_div_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_svg'>svg</span><span class='lparen'>(</span><span class='label'>width:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x2</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>height:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>y2</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='kw'>do</span>
+        <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_line'>line</span><span class='lparen'>(</span><span class='label'>x1:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>left</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>y1:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>top</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>x2:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x2</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>y2:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>y2</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_line_svg_style'>line_svg_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='rparen'>)</span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="list_box_element-instance_method">
+  
+    #<strong>list_box_element</strong>(props)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/misc.rb', line 45</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_list_box_element'>list_box_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_onchange'>onchange</span> <span class='op'>=</span> <span class='id identifier rubyid_handler_js_code'>handler_js_code</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>change</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>this.options[this.selectedIndex].value</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+
+  <span class='comment'># Is this useful at all? Is it overridden below completely?
+</span>  <span class='id identifier rubyid_option_attrs'>option_attrs</span> <span class='op'>=</span> <span class='lbrace'>{</span> <span class='label'>value:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>selected:</span> <span class='kw'>false</span> <span class='rbrace'>}</span>
+
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_select'>select</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>onchange:</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_list_box_style'>list_box_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>items</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='lbracket'>[</span><span class='rbracket'>]</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_item'>item</span><span class='op'>|</span>
+        <span class='id identifier rubyid_option_attrs'>option_attrs</span> <span class='op'>=</span> <span class='lbrace'>{</span>
+          <span class='label'>value:</span> <span class='id identifier rubyid_item'>item</span><span class='comma'>,</span>
+        <span class='rbrace'>}</span>
+        <span class='kw'>if</span> <span class='id identifier rubyid_item'>item</span> <span class='op'>==</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>choose</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+          <span class='id identifier rubyid_option_attrs'>option_attrs</span><span class='lbracket'>[</span><span class='symbol'>:selected</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>true</span><span class='tstring_end'>&quot;</span></span>
+        <span class='kw'>end</span>
+        <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_option'>option</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_option_attrs'>option_attrs</span><span class='rparen'>)</span> <span class='kw'>do</span>
+          <span class='id identifier rubyid_item'>item</span>
+        <span class='kw'>end</span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="oval_element-instance_method">
+  
+    #<strong>oval_element</strong>(props, &amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/art_drawables.rb', line 62</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_oval_element'>oval_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_dc'>dc</span> <span class='op'>=</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>draw_context</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='id identifier rubyid_fill'>fill</span> <span class='op'>=</span> <span class='id identifier rubyid_first_color_of'>first_color_of</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>fill</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='id identifier rubyid_dc'>dc</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>fill</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>black</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_stroke'>stroke</span> <span class='op'>=</span> <span class='id identifier rubyid_first_color_of'>first_color_of</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>stroke</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='id identifier rubyid_dc'>dc</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>stroke</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>black</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_strokewidth'>strokewidth</span> <span class='op'>=</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>strokewidth</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='id identifier rubyid_dc'>dc</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>strokewidth</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>2</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_radius'>radius</span> <span class='op'>=</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>radius</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+  <span class='id identifier rubyid_width'>width</span> <span class='op'>=</span> <span class='id identifier rubyid_radius'>radius</span> <span class='op'>*</span> <span class='int'>2</span>
+  <span class='id identifier rubyid_height'>height</span> <span class='op'>=</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>height</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='id identifier rubyid_radius'>radius</span> <span class='op'>*</span> <span class='int'>2</span> <span class='comment'># If there&#39;s a height, it&#39;s an oval, if not, circle
+</span>  <span class='id identifier rubyid_center'>center</span> <span class='op'>=</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>center</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='kw'>false</span>
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_oval_style'>oval_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_svg'>svg</span><span class='lparen'>(</span><span class='label'>width:</span> <span class='id identifier rubyid_width'>width</span><span class='comma'>,</span> <span class='label'>height:</span> <span class='id identifier rubyid_height'>height</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>fill:</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_fill'>fill</span><span class='embexpr_end'>}</span><span class='tstring_content'>;</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>do</span>
+        <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_ellipse'>ellipse</span><span class='lparen'>(</span>
+          <span class='label'>cx:</span> <span class='id identifier rubyid_center'>center</span> <span class='op'>?</span> <span class='id identifier rubyid_radius'>radius</span> <span class='op'>:</span> <span class='int'>0</span><span class='comma'>,</span>
+          <span class='label'>cy:</span> <span class='id identifier rubyid_center'>center</span> <span class='op'>?</span> <span class='id identifier rubyid_height'>height</span> <span class='op'>/</span> <span class='int'>2</span> <span class='op'>:</span> <span class='int'>0</span><span class='comma'>,</span>
+          <span class='label'>rx:</span> <span class='id identifier rubyid_width'>width</span> <span class='op'>?</span> <span class='id identifier rubyid_width'>width</span> <span class='op'>/</span> <span class='int'>2</span> <span class='op'>:</span> <span class='id identifier rubyid_radius'>radius</span><span class='comma'>,</span>
+          <span class='label'>ry:</span> <span class='id identifier rubyid_height'>height</span> <span class='op'>?</span> <span class='id identifier rubyid_height'>height</span> <span class='op'>/</span> <span class='int'>2</span> <span class='op'>:</span> <span class='id identifier rubyid_radius'>radius</span><span class='comma'>,</span>
+          <span class='label'>style:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>stroke:</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_stroke'>stroke</span><span class='embexpr_end'>}</span><span class='tstring_content'>;stroke-width:</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_strokewidth'>strokewidth</span><span class='embexpr_end'>}</span><span class='tstring_content'>;</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+        <span class='rparen'>)</span>
+      <span class='kw'>end</span>
+      <span class='id identifier rubyid_block'>block</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='id identifier rubyid_h'>h</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_block_given?'>block_given?</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="para_element-instance_method">
+  
+    #<strong>para_element</strong>(props, &amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/para.rb', line 4</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_para_element'>para_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='comment'># Align requires an extra wrapping div.
+</span>
+  <span class='comment'># Stacking strikethrough with underline requires multiple elements.
+</span>  <span class='comment'># We handle this by making strikethrough part of the main element,
+</span>  <span class='comment'># but using an extra wrapping element for underline.
+</span>
+  <span class='id identifier rubyid_tag'>tag</span> <span class='op'>=</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>tag</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>p</span><span class='tstring_end'>&quot;</span></span>
+
+  <span class='id identifier rubyid_para_styles'>para_styles</span><span class='comma'>,</span> <span class='id identifier rubyid_extra_styles'>extra_styles</span> <span class='op'>=</span> <span class='id identifier rubyid_para_style'>para_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='kw'>if</span> <span class='id identifier rubyid_extra_styles'>extra_styles</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+      <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_send'>send</span><span class='lparen'>(</span><span class='id identifier rubyid_tag'>tag</span><span class='comma'>,</span> <span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_para_styles'>para_styles</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+    <span class='kw'>else</span>
+      <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_extra_styles'>extra_styles</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='label'>width:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>100%</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='rparen'>)</span> <span class='kw'>do</span>
+        <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_send'>send</span><span class='lparen'>(</span><span class='id identifier rubyid_tag'>tag</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_para_styles'>para_styles</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="progress_element-instance_method">
+  
+    #<strong>progress_element</strong>(props)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/misc.rb', line 93</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_progress_element'>progress_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_progress'>progress</span><span class='lparen'>(</span>
+      <span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span>
+      <span class='label'>style:</span> <span class='id identifier rubyid_drawable_style'>drawable_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='comma'>,</span>
+      <span class='label'>role:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>progressbar</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+      <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>aria-valuenow</span><span class='label_end'>&quot;:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>fraction</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span>
+      <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>aria-valuemin</span><span class='label_end'>&quot;:</span> <span class='float'>0.0</span><span class='comma'>,</span>
+      <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>aria-valuemax</span><span class='label_end'>&quot;:</span> <span class='float'>1.0</span><span class='comma'>,</span>
+      <span class='label'>max:</span> <span class='int'>1</span><span class='comma'>,</span>
+      <span class='label'>value:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>fraction</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span>
+    <span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="radians_to_degrees-instance_method">
+  
+    #<strong>radians_to_degrees</strong>(radians)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+233
+234
+235</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini.rb', line 233</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_radians_to_degrees'>radians_to_degrees</span><span class='lparen'>(</span><span class='id identifier rubyid_radians'>radians</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_radians'>radians</span> <span class='op'>*</span> <span class='lparen'>(</span><span class='float'>180.0</span> <span class='op'>/</span> <span class='const'>Math</span><span class='op'>::</span><span class='const'>PI</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="radio_element-instance_method">
+  
+    #<strong>radio_element</strong>(props)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/misc.rb', line 68</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_radio_element'>radio_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+  <span class='comment'># This is wrong - need to default to the parent slot -- maybe its linkable ID?
+</span>  <span class='id identifier rubyid_group_name'>group_name</span> <span class='op'>=</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>group</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>no_group</span><span class='tstring_end'>&quot;</span></span>
+
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_input'>input</span><span class='lparen'>(</span>
+      <span class='label'>type:</span> <span class='symbol'>:radio</span><span class='comma'>,</span>
+      <span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span>
+      <span class='label'>onclick:</span> <span class='id identifier rubyid_handler_js_code'>handler_js_code</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>click</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='comma'>,</span>
+      <span class='label'>name:</span> <span class='id identifier rubyid_group_name'>group_name</span><span class='comma'>,</span>
+      <span class='label'>value:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>text</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span>
+      <span class='label'>checked:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>checked</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span>
+      <span class='label'>style:</span> <span class='id identifier rubyid_drawable_style'>drawable_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='comma'>,</span>
+    <span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="rect_element-instance_method">
+  
+    #<strong>rect_element</strong>(props)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/art_drawables.rb', line 17</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_rect_element'>rect_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_dc'>dc</span> <span class='op'>=</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>draw_context</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='id identifier rubyid_rotate'>rotate</span> <span class='op'>=</span> <span class='id identifier rubyid_dc'>dc</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>rotate</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_drawable_style'>drawable_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_width'>width</span> <span class='op'>=</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>width</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span>
+      <span class='id identifier rubyid_height'>height</span> <span class='op'>=</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>height</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span>
+      <span class='kw'>if</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>curve</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+        <span class='id identifier rubyid_width'>width</span> <span class='op'>+=</span> <span class='int'>2</span> <span class='op'>*</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>curve</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span>
+        <span class='id identifier rubyid_height'>height</span> <span class='op'>+=</span> <span class='int'>2</span> <span class='op'>*</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>curve</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span>
+      <span class='kw'>end</span>
+      <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_svg'>svg</span><span class='lparen'>(</span><span class='label'>width:</span><span class='comma'>,</span> <span class='label'>height:</span><span class='rparen'>)</span> <span class='kw'>do</span>
+        <span class='id identifier rubyid_attrs'>attrs</span> <span class='op'>=</span> <span class='lbrace'>{</span> <span class='label'>x:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>left</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>y:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>top</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>width:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>width</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>height:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>height</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_rect_svg_style'>rect_svg_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span> <span class='rbrace'>}</span>
+        <span class='id identifier rubyid_attrs'>attrs</span><span class='lbracket'>[</span><span class='symbol'>:rx</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>curve</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='kw'>if</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>curve</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+
+        <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_rect'>rect</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_attrs'>attrs</span><span class='comma'>,</span> <span class='label'>transform:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>rotate(</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_rotate'>rotate</span><span class='embexpr_end'>}</span><span class='tstring_content'> </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_width'>width</span> <span class='op'>/</span> <span class='int'>2</span><span class='embexpr_end'>}</span><span class='tstring_content'> </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_height'>height</span> <span class='op'>/</span> <span class='int'>2</span><span class='embexpr_end'>}</span><span class='tstring_content'>)</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="render-instance_method">
+  
+    #<strong>render</strong>(drawable_name, properties = shoes_styles, &amp;block)  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Render the Shoes drawable of type <code>drawable_name</code> with
+the given properties to HTML and return it. If the
+drawable type takes a block (e.g. Stack or Flow) then
+the block will be properly rendered.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>drawable_name</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the drawable name like &quot;alert&quot;, &quot;button&quot; or &quot;rect&quot;</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>properties</span>
+      
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>shoes_styles</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>a drawable-specific hash of property names to values</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the rendered HTML</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+45
+46
+47</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini.rb', line 45</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_render'>render</span><span class='lparen'>(</span><span class='id identifier rubyid_drawable_name'>drawable_name</span><span class='comma'>,</span> <span class='id identifier rubyid_properties'>properties</span> <span class='op'>=</span> <span class='id identifier rubyid_shoes_styles'>shoes_styles</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_send'>send</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_drawable_name'>drawable_name</span><span class='embexpr_end'>}</span><span class='tstring_content'>_element</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='id identifier rubyid_properties'>properties</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="rgb_to_hex-instance_method">
+  
+    #<strong>rgb_to_hex</strong>(color)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Convert an [r, g, b, a] array to an HTML hex color code
+Arrays support alpha. HTML hex does not. So premultiply.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini.rb', line 200</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_rgb_to_hex'>rgb_to_hex</span><span class='lparen'>(</span><span class='id identifier rubyid_color'>color</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>nil</span> <span class='kw'>if</span> <span class='id identifier rubyid_color'>color</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+  <span class='kw'>return</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>#000000</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>if</span> <span class='id identifier rubyid_color'>color</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span>
+
+  <span class='comment'># TODO: need to figure out if it&#39;s a color name like &quot;aquamarine&quot;
+</span>  <span class='comment'># or a hex code or an image file to use as a pattern or what.
+</span>  <span class='kw'>return</span> <span class='id identifier rubyid_color'>color</span> <span class='kw'>if</span> <span class='id identifier rubyid_color'>color</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>String</span><span class='rparen'>)</span>
+
+  <span class='id identifier rubyid_r'>r</span><span class='comma'>,</span> <span class='id identifier rubyid_g'>g</span><span class='comma'>,</span> <span class='id identifier rubyid_b'>b</span><span class='comma'>,</span> <span class='id identifier rubyid_a'>a</span> <span class='op'>=</span> <span class='op'>*</span><span class='id identifier rubyid_color'>color</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_r'>r</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Float</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_a'>a</span> <span class='op'>||=</span> <span class='float'>1.0</span>
+    <span class='id identifier rubyid_r_float'>r_float</span> <span class='op'>=</span> <span class='id identifier rubyid_r'>r</span> <span class='op'>*</span> <span class='id identifier rubyid_a'>a</span>
+    <span class='id identifier rubyid_g_float'>g_float</span> <span class='op'>=</span> <span class='id identifier rubyid_g'>g</span> <span class='op'>*</span> <span class='id identifier rubyid_a'>a</span>
+    <span class='id identifier rubyid_b_float'>b_float</span> <span class='op'>=</span> <span class='id identifier rubyid_b'>b</span> <span class='op'>*</span> <span class='id identifier rubyid_a'>a</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_a'>a</span> <span class='op'>||=</span> <span class='int'>255</span>
+    <span class='id identifier rubyid_a_float'>a_float</span> <span class='op'>=</span> <span class='lparen'>(</span><span class='id identifier rubyid_a'>a</span> <span class='op'>/</span> <span class='float'>255.0</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_r_float'>r_float</span> <span class='op'>=</span> <span class='lparen'>(</span><span class='id identifier rubyid_r'>r</span><span class='period'>.</span><span class='id identifier rubyid_to_f'>to_f</span> <span class='op'>/</span> <span class='float'>255.0</span><span class='rparen'>)</span> <span class='op'>*</span> <span class='id identifier rubyid_a_float'>a_float</span>
+    <span class='id identifier rubyid_g_float'>g_float</span> <span class='op'>=</span> <span class='lparen'>(</span><span class='id identifier rubyid_g'>g</span><span class='period'>.</span><span class='id identifier rubyid_to_f'>to_f</span> <span class='op'>/</span> <span class='float'>255.0</span><span class='rparen'>)</span> <span class='op'>*</span> <span class='id identifier rubyid_a_float'>a_float</span>
+    <span class='id identifier rubyid_b_float'>b_float</span> <span class='op'>=</span> <span class='lparen'>(</span><span class='id identifier rubyid_b'>b</span><span class='period'>.</span><span class='id identifier rubyid_to_f'>to_f</span> <span class='op'>/</span> <span class='float'>255.0</span><span class='rparen'>)</span> <span class='op'>*</span> <span class='id identifier rubyid_a_float'>a_float</span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_r_int'>r_int</span> <span class='op'>=</span> <span class='lparen'>(</span><span class='id identifier rubyid_r_float'>r_float</span> <span class='op'>*</span> <span class='float'>255.0</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span><span class='period'>.</span><span class='id identifier rubyid_clamp'>clamp</span><span class='lparen'>(</span><span class='int'>0</span><span class='comma'>,</span> <span class='int'>255</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_g_int'>g_int</span> <span class='op'>=</span> <span class='lparen'>(</span><span class='id identifier rubyid_g_float'>g_float</span> <span class='op'>*</span> <span class='float'>255.0</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span><span class='period'>.</span><span class='id identifier rubyid_clamp'>clamp</span><span class='lparen'>(</span><span class='int'>0</span><span class='comma'>,</span> <span class='int'>255</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_b_int'>b_int</span> <span class='op'>=</span> <span class='lparen'>(</span><span class='id identifier rubyid_b_float'>b_float</span> <span class='op'>*</span> <span class='float'>255.0</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span><span class='period'>.</span><span class='id identifier rubyid_clamp'>clamp</span><span class='lparen'>(</span><span class='int'>0</span><span class='comma'>,</span> <span class='int'>255</span><span class='rparen'>)</span>
+
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>#%0.2X%0.2X%0.2X</span><span class='tstring_end'>&quot;</span></span> <span class='op'>%</span> <span class='lbracket'>[</span><span class='id identifier rubyid_r_int'>r_int</span><span class='comma'>,</span> <span class='id identifier rubyid_g_int'>g_int</span><span class='comma'>,</span> <span class='id identifier rubyid_b_int'>b_int</span><span class='rbracket'>]</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="slot_element-instance_method">
+  
+    #<strong>slot_element</strong>(props, &amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+4
+5
+6
+7
+8
+9
+10</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/slots.rb', line 4</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_slot_element'>slot_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>html_attributes</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_slot_style'>slot_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='rparen'>)</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='label'>style:</span> <span class='lbrace'>{</span> <span class='label'>height:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>100%</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>width:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>100%</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="spacing_styles_for_attr-instance_method">
+  
+    #<strong>spacing_styles_for_attr</strong>(attr, props, styles, with_options: true)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>We extract the appropriate margin and padding from the margin and
+padding properties. If there are no margin or padding properties,
+we fall back to props[&quot;options&quot;] margin or padding, if it exists.</p>
+
+<p>Margin or padding (in either props or props[&quot;options&quot;]) can be
+a Hash with directions as keys, or an Array of left/right/top/bottom,
+or a constant, which means all four are that constant. You can
+also specify a &quot;margin&quot; plus &quot;margin-top&quot; which is constant but
+margin-top is overridden, or similar.</p>
+
+<p>If any margin or padding property exists in props then we don&#39;t
+check props[&quot;options&quot;].</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini.rb', line 155</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_spacing_styles_for_attr'>spacing_styles_for_attr</span><span class='lparen'>(</span><span class='id identifier rubyid_attr'>attr</span><span class='comma'>,</span> <span class='id identifier rubyid_props'>props</span><span class='comma'>,</span> <span class='id identifier rubyid_styles'>styles</span><span class='comma'>,</span> <span class='label'>with_options:</span> <span class='kw'>true</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_spacing_styles'>spacing_styles</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+
+  <span class='kw'>case</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='id identifier rubyid_attr'>attr</span><span class='rbracket'>]</span>
+  <span class='kw'>when</span> <span class='const'>Hash</span>
+    <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='id identifier rubyid_attr'>attr</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_dir'>dir</span><span class='comma'>,</span> <span class='id identifier rubyid_value'>value</span><span class='op'>|</span>
+      <span class='id identifier rubyid_spacing_styles'>spacing_styles</span><span class='lbracket'>[</span><span class='symbol'>:&quot;#{</span><span class='id identifier rubyid_attr'>attr</span><span class='embexpr_end'>}</span><span class='tstring_content'>-</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_dir'>dir</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_dimensions_length'>dimensions_length</span> <span class='id identifier rubyid_value'>value</span>
+    <span class='kw'>end</span>
+  <span class='kw'>when</span> <span class='const'>Array</span>
+    <span class='const'><span class='object_link'><a href="#SPACING_DIRECTIONS-constant" title="Scarpe::Components::Calzini::SPACING_DIRECTIONS (constant)">SPACING_DIRECTIONS</a></span></span><span class='period'>.</span><span class='id identifier rubyid_zip'>zip</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='id identifier rubyid_attr'>attr</span><span class='rbracket'>]</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to_h'>to_h</span><span class='period'>.</span><span class='id identifier rubyid_compact'>compact</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_dir'>dir</span><span class='comma'>,</span> <span class='id identifier rubyid_value'>value</span><span class='op'>|</span>
+      <span class='id identifier rubyid_spacing_styles'>spacing_styles</span><span class='lbracket'>[</span><span class='symbol'>:&quot;#{</span><span class='id identifier rubyid_attr'>attr</span><span class='embexpr_end'>}</span><span class='tstring_content'>-</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_dir'>dir</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_dimensions_length'>dimensions_length</span><span class='lparen'>(</span><span class='id identifier rubyid_value'>value</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>when</span> <span class='const'>String</span><span class='comma'>,</span> <span class='const'>Numeric</span>
+    <span class='id identifier rubyid_spacing_styles'>spacing_styles</span><span class='lbracket'>[</span><span class='id identifier rubyid_attr'>attr</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_dimensions_length'>dimensions_length</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='id identifier rubyid_attr'>attr</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+
+  <span class='const'><span class='object_link'><a href="#SPACING_DIRECTIONS-constant" title="Scarpe::Components::Calzini::SPACING_DIRECTIONS (constant)">SPACING_DIRECTIONS</a></span></span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_dir'>dir</span><span class='op'>|</span>
+    <span class='kw'>if</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_attr'>attr</span><span class='embexpr_end'>}</span><span class='tstring_content'>_</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_dir'>dir</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+      <span class='id identifier rubyid_spacing_styles'>spacing_styles</span><span class='lbracket'>[</span><span class='symbol'>:&quot;#{</span><span class='id identifier rubyid_attr'>attr</span><span class='embexpr_end'>}</span><span class='tstring_content'>-</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_dir'>dir</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_dimensions_length'>dimensions_length</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_attr'>attr</span><span class='embexpr_end'>}</span><span class='tstring_content'>_</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_dir'>dir</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+
+  <span class='kw'>unless</span> <span class='id identifier rubyid_spacing_styles'>spacing_styles</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+    <span class='kw'>return</span> <span class='id identifier rubyid_styles'>styles</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='id identifier rubyid_spacing_styles'>spacing_styles</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+
+  <span class='comment'># We should see if there are spacing properties in props[&quot;options&quot;],
+</span>  <span class='comment'># unless we&#39;re currently doing that.
+</span>  <span class='kw'>if</span> <span class='id identifier rubyid_with_options'>with_options</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>options</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+    <span class='id identifier rubyid_spacing_styles'>spacing_styles</span> <span class='op'>=</span> <span class='id identifier rubyid_spacing_styles_for_attr'>spacing_styles_for_attr</span><span class='lparen'>(</span><span class='id identifier rubyid_attr'>attr</span><span class='comma'>,</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>options</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='comma'>,</span> <span class='label'>with_options:</span> <span class='kw'>false</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_styles'>styles</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span> <span class='id identifier rubyid_spacing_styles'>spacing_styles</span>
+  <span class='kw'>else</span>
+    <span class='comment'># No &quot;options&quot; or we already checked it? Return the styles we were given.
+</span>    <span class='id identifier rubyid_styles'>styles</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="stack_element-instance_method">
+  
+    #<strong>stack_element</strong>(props, &amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+20
+21
+22
+23
+24
+25
+26</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/slots.rb', line 20</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_stack_element'>stack_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>html_attributes</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_stack_style'>stack_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='rparen'>)</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='label'>style:</span> <span class='lbrace'>{</span> <span class='label'>height:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>100%</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>width:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>100%</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>position:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>relative</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="star_element-instance_method">
+  
+    #<strong>star_element</strong>(props, &amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/art_drawables.rb', line 48</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_star_element'>star_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_dc'>dc</span> <span class='op'>=</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>draw_context</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='id identifier rubyid_fill'>fill</span> <span class='op'>=</span> <span class='id identifier rubyid_first_color_of'>first_color_of</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>fill</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='id identifier rubyid_dc'>dc</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>fill</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>black</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_stroke'>stroke</span> <span class='op'>=</span> <span class='id identifier rubyid_first_color_of'>first_color_of</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>stroke</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='id identifier rubyid_dc'>dc</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>stroke</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>black</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_div'>div</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_star_style'>star_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_svg'>svg</span><span class='lparen'>(</span><span class='label'>width:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>outer</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>height:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>outer</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>fill:</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_fill'>fill</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>do</span>
+        <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_polygon'>polygon</span><span class='lparen'>(</span><span class='label'>points:</span> <span class='id identifier rubyid_star_points'>star_points</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>stroke:</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_stroke'>stroke</span><span class='embexpr_end'>}</span><span class='tstring_content'>;stroke-width:2</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+      <span class='kw'>end</span>
+      <span class='id identifier rubyid_block'>block</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='id identifier rubyid_h'>h</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_block_given?'>block_given?</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="text_drawable_element-instance_method">
+  
+    #<strong>text_drawable_element</strong>(prop_array)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>The text element is used to render the equivalent of Shoes cText,
+which includes em, strong, span, link and so on. We use a
+&quot;content&quot; tag for it which alternates plaintext with a hash of
+properties.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/para.rb', line 181</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_text_drawable_element'>text_drawable_element</span><span class='lparen'>(</span><span class='id identifier rubyid_prop_array'>prop_array</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_out'>out</span> <span class='op'>=</span> <span class='const'>String</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span> <span class='comment'># Need unfrozen string
+</span>
+  <span class='comment'># Each item should be a String or a property Hash
+</span>  <span class='comment'># :items, :html_id, :tag, :props
+</span>  <span class='id identifier rubyid_prop_array'>prop_array</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_item'>item</span><span class='op'>|</span>
+    <span class='kw'>if</span> <span class='id identifier rubyid_item'>item</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>String</span><span class='rparen'>)</span>
+      <span class='id identifier rubyid_out'>out</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_item'>item</span><span class='period'>.</span><span class='id identifier rubyid_gsub'>gsub</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>\n</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>&lt;br/&gt;</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+    <span class='kw'>else</span>
+      <span class='id identifier rubyid_s'>s</span><span class='comma'>,</span> <span class='id identifier rubyid_extra'>extra</span> <span class='op'>=</span> <span class='id identifier rubyid_text_drawable_style'>text_drawable_style</span><span class='lparen'>(</span><span class='id identifier rubyid_item'>item</span><span class='lbracket'>[</span><span class='symbol'>:props</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+      <span class='id identifier rubyid_out'>out</span> <span class='op'>&lt;&lt;</span> <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+        <span class='kw'>if</span> <span class='id identifier rubyid_extra'>extra</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+          <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_send'>send</span><span class='lparen'>(</span>
+            <span class='id identifier rubyid_item'>item</span><span class='lbracket'>[</span><span class='symbol'>:tag</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>span</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+            <span class='label'>class:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>id_</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_item'>item</span><span class='lbracket'>[</span><span class='symbol'>:html_id</span><span class='rbracket'>]</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+            <span class='label'>style:</span> <span class='id identifier rubyid_s'>s</span><span class='comma'>,</span>
+            <span class='op'>**</span><span class='id identifier rubyid_text_drawable_attrs'>text_drawable_attrs</span><span class='lparen'>(</span><span class='id identifier rubyid_item'>item</span><span class='lbracket'>[</span><span class='symbol'>:props</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+          <span class='rparen'>)</span> <span class='kw'>do</span>
+            <span class='id identifier rubyid_text_drawable_element'>text_drawable_element</span><span class='lparen'>(</span><span class='id identifier rubyid_item'>item</span><span class='lbracket'>[</span><span class='symbol'>:items</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+          <span class='kw'>end</span>
+        <span class='kw'>else</span>
+          <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_span'>span</span><span class='lparen'>(</span><span class='label'>class:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>id_</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_item'>item</span><span class='lbracket'>[</span><span class='symbol'>:html_id</span><span class='rbracket'>]</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_extra'>extra</span><span class='rparen'>)</span> <span class='kw'>do</span>
+            <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_send'>send</span><span class='lparen'>(</span>
+              <span class='id identifier rubyid_item'>item</span><span class='lbracket'>[</span><span class='symbol'>:tag</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>span</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+              <span class='label'>class:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>id_</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_item'>item</span><span class='lbracket'>[</span><span class='symbol'>:html_id</span><span class='rbracket'>]</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+              <span class='label'>style:</span> <span class='id identifier rubyid_s'>s</span><span class='comma'>,</span>
+              <span class='op'>**</span><span class='id identifier rubyid_text_drawable_attrs'>text_drawable_attrs</span><span class='lparen'>(</span><span class='id identifier rubyid_item'>item</span><span class='lbracket'>[</span><span class='symbol'>:props</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+            <span class='rparen'>)</span> <span class='kw'>do</span>
+              <span class='id identifier rubyid_text_drawable_element'>text_drawable_element</span><span class='lparen'>(</span><span class='id identifier rubyid_item'>item</span><span class='lbracket'>[</span><span class='symbol'>:items</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+            <span class='kw'>end</span>
+          <span class='kw'>end</span>
+        <span class='kw'>end</span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_out'>out</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="text_size-instance_method">
+  
+    #<strong>text_size</strong>(sz)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini.rb', line 84</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_text_size'>text_size</span><span class='lparen'>(</span><span class='id identifier rubyid_sz'>sz</span><span class='rparen'>)</span>
+  <span class='kw'>case</span> <span class='id identifier rubyid_sz'>sz</span>
+  <span class='kw'>when</span> <span class='const'>Numeric</span>
+    <span class='id identifier rubyid_sz'>sz</span>
+  <span class='kw'>when</span> <span class='const'>Symbol</span>
+    <span class='const'>SIZES</span><span class='lbracket'>[</span><span class='id identifier rubyid_sz'>sz</span><span class='rbracket'>]</span>
+  <span class='kw'>when</span> <span class='const'>String</span>
+    <span class='const'>SIZES</span><span class='lbracket'>[</span><span class='id identifier rubyid_sz'>sz</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='id identifier rubyid_sz'>sz</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Unexpected text size object: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_sz'>sz</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="video_element-instance_method">
+  
+    #<strong>video_element</strong>(props)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+85
+86
+87
+88
+89
+90
+91</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/calzini/misc.rb', line 85</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_video_element'>video_element</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="#HTML-constant" title="Scarpe::Components::Calzini::HTML (constant)">HTML</a></span></span><span class='period'>.</span><span class='id identifier rubyid_render'><span class='object_link'><a href="#render-instance_method" title="Scarpe::Components::Calzini#render (method)">render</a></span></span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_h'>h</span><span class='op'>|</span>
+    <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_video'>video</span><span class='lparen'>(</span><span class='label'>id:</span> <span class='id identifier rubyid_html_id'>html_id</span><span class='comma'>,</span> <span class='label'>style:</span> <span class='id identifier rubyid_drawable_style'>drawable_style</span><span class='lparen'>(</span><span class='id identifier rubyid_props'>props</span><span class='rparen'>)</span><span class='comma'>,</span> <span class='label'>controls:</span> <span class='kw'>true</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_h'>h</span><span class='period'>.</span><span class='id identifier rubyid_source'>source</span><span class='lparen'>(</span><span class='label'>src:</span> <span class='ivar'>@url</span><span class='comma'>,</span> <span class='label'>type:</span> <span class='id identifier rubyid_props'>props</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>format</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Wed Oct  9 15:38:24 2024 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.28 (ruby-3.2.0).
+</div>
+
+    </div>
+  </body>
+</html>

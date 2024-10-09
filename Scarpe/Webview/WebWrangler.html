@@ -1,0 +1,2522 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: Scarpe::Webview::WebWrangler
+  
+    &mdash; Documentation by YARD 0.9.28
+  
+</title>
+
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="../../css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Scarpe::Webview::WebWrangler";
+  relpath = '../../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="../../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../../_index.html">Index (W)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../Webview.html" title="Scarpe::Webview (module)">Webview</a></span></span>
+     &raquo; 
+    <span class="title">WebWrangler</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="docpages_list_link"
+        href="../../docpages_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: Scarpe::Webview::WebWrangler
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">Scarpe::Webview::WebWrangler</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  <dl>
+      <dt>Includes:</dt>
+      <dd><span class='object_link'><a href="../../Shoes/Log.html" title="Shoes::Log (module)">Shoes::Log</a></span></dd>
+  </dl>
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/scarpe/wv/web_wrangler.rb<span class="defines">,<br />
+  lib/scarpe/wv/web_wrangler.rb</span>
+</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>The Scarpe WebWrangler, for Webview, manages a lot of Webviews quirks. It provides
+a simpler underlying abstraction for DOMWrangler and the Webview drawables.
+Webview can be picky - if you send it too many messages, it can crash. If the
+messages you send it are too large, it can crash. If you don&#39;t return control
+to its event loop, it can crash. It doesn&#39;t save references to all event handlers,
+so if you don&#39;t save references to them, garbage collection will cause it to
+crash.</p>
+
+<p>As well, Webview only supports asynchronous JS code evaluation with no value
+being returned. One of WebWrangler&#39;s responsibilities is to make asynchronous
+JS calls, detect when they return a value or time out, and make the result clear
+to other Scarpe code.</p>
+
+<p>Some Webview API functions will crash on some platforms if called from a
+background thread. Webview will halt all background threads when it runs its
+event loop. So it&#39;s best to assume no Ruby background threads will be available
+while Webview is running. If a Ruby app wants ongoing work to occur, that work
+should be registered via a heartbeat handler on the Webview.</p>
+
+<p>A WebWrangler is initially in Setup mode, where the underlying Webview exists
+but does not yet control the event loop. In Setup mode you can bind JS functions,
+set up initialization code, but nothing is yet running.</p>
+
+<p>Once run() is called on WebWrangler, we will hand control of the event loop to
+the Webview. This will also stop any background threads in Ruby.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><h2>Defined Under Namespace</h2>
+<p class="children">
+  
+    
+  
+    
+      <strong class="classes">Classes:</strong> <span class='object_link'><a href="WebWrangler/DOMWrangler.html" title="Scarpe::Webview::WebWrangler::DOMWrangler (class)">DOMWrangler</a></span>, <span class='object_link'><a href="WebWrangler/ElementWrangler.html" title="Scarpe::Webview::WebWrangler::ElementWrangler (class)">ElementWrangler</a></span>
+    
+  
+</p>
+
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="EVAL_RESULT-constant" class="">EVAL_RESULT =
+          <div class="docstring">
+  <div class="discussion">
+    <p>This is the JS function name for eval results (internal-only)</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>scarpeAsyncEvalResult</span><span class='tstring_end'>&quot;</span></span></pre></dd>
+      
+        <dt id="EVAL_DEFAULT_TIMEOUT-constant" class="">EVAL_DEFAULT_TIMEOUT =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Allow this many seconds for Webview to finish our JS eval before we decide it&#39;s not going to</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='float'>0.5</span></pre></dd>
+      
+    </dl>
+  
+
+
+
+  
+  
+  <h3 class="inherited">Constants included
+     from <span class='object_link'><a href="../../Shoes/Log.html" title="Shoes::Log (module)">Shoes::Log</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="../../Shoes/Log.html#DEFAULT_COMPONENT-constant" title="Shoes::Log::DEFAULT_COMPONENT (constant)">Shoes::Log::DEFAULT_COMPONENT</a></span>, <span class='object_link'><a href="../../Shoes/Log.html#DEFAULT_DEBUG_LOG_CONFIG-constant" title="Shoes::Log::DEFAULT_DEBUG_LOG_CONFIG (constant)">Shoes::Log::DEFAULT_DEBUG_LOG_CONFIG</a></span>, <span class='object_link'><a href="../../Shoes/Log.html#DEFAULT_LOG_CONFIG-constant" title="Shoes::Log::DEFAULT_LOG_CONFIG (constant)">Shoes::Log::DEFAULT_LOG_CONFIG</a></span></p>
+
+
+  <h2>Instance Attribute Summary <small><a href="#" class="summary_toggle">collapse</a></small></h2>
+  <ul class="summary">
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#control_interface-instance_method" title="#control_interface (instance method)">#<strong>control_interface</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>A reference to the control_interface that manages internal Scarpe Webview events.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#empty_page=-instance_method" title="#empty_page= (instance method)">#<strong>empty_page</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+      <span class="note title writeonly">writeonly</span>
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Sets the attribute empty_page.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#heartbeat-instance_method" title="#heartbeat (instance method)">#<strong>heartbeat</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>This is the time between heartbeats in seconds, usually fractional.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#is_running-instance_method" title="#is_running (instance method)">#<strong>is_running</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Whether Webview has been started.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#is_terminated-instance_method" title="#is_terminated (instance method)">#<strong>is_terminated</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Once Webview is marked terminated, it&#39;s attempting to shut down.</p>
+</div></span>
+  
+</li>
+
+    
+  </ul>
+
+
+
+
+  
+    <h2>
+      Class Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#js_wrapped_code-class_method" title="js_wrapped_code (class method)">.<strong>js_wrapped_code</strong>(code, eval_id)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>This method takes a piece of Javascript code and wraps it in the WebWrangler boilerplate to see if it parses successfully, run it, and see if it succeeds.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#bind-instance_method" title="#bind (instance method)">#<strong>bind</strong>(name) { ... } &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Bind a Javascript-callable function by name.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#destroy-instance_method" title="#destroy (instance method)">#<strong>destroy</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Request destruction of WebWrangler, including terminating the underlying Webview and (when possible) destroying it.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#dom_change-instance_method" title="#dom_change (instance method)">#<strong>dom_change</strong>(js)  &#x21d2; Scarpe::Promise </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Request a DOM change - return a promise for when this has been done.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#dom_fully_updated%3F-instance_method" title="#dom_fully_updated? (instance method)">#<strong>dom_fully_updated?</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Return whether the DOM is, right this moment, confirmed to be fully up to date or not.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#dom_promise_redraw-instance_method" title="#dom_promise_redraw (instance method)">#<strong>dom_promise_redraw</strong>  &#x21d2; Scarpe::Promise </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Return a promise that will be fulfilled when all current DOM changes have committed.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#eval_js_async-instance_method" title="#eval_js_async (instance method)">#<strong>eval_js_async</strong>(code, timeout: EVAL_DEFAULT_TIMEOUT, wait_for: [])  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Eval a chunk of JS code asynchronously.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#init_code-instance_method" title="#init_code (instance method)">#<strong>init_code</strong>(name) { ... } &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Request that this block of code be run initially when the Webview is run.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(title:, width:, height:, resizable: false, heartbeat: 0.1)  &#x21d2; WebWrangler </a>
+    
+
+    
+  </span>
+  
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Create a new WebWrangler.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#inspect-instance_method" title="#inspect (instance method)">#<strong>inspect</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Shorter name for better stack trace messages.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#js_eventually-instance_method" title="#js_eventually (instance method)">#<strong>js_eventually</strong>(code)  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>js_eventually is a native Webview JS evaluation.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#on_every_redraw-instance_method" title="#on_every_redraw (instance method)">#<strong>on_every_redraw</strong> { ... } &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>DOMWrangler will frequently schedule and confirm small JS updates.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#periodic_code-instance_method" title="#periodic_code (instance method)">#<strong>periodic_code</strong>(name, interval = heartbeat) { ... } &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Run the specified code periodically, every &quot;interval&quot; seconds.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#promise_dom_fully_updated-instance_method" title="#promise_dom_fully_updated (instance method)">#<strong>promise_dom_fully_updated</strong>  &#x21d2; Scarpe::Promise </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Return a promise which will be fulfilled the next time the DOM is fully up to date.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#replace-instance_method" title="#replace (instance method)">#<strong>replace</strong>(html_text)  &#x21d2; Scarpe::Promise </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Replace the entire DOM - return a promise for when this has been done.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#run-instance_method" title="#run (instance method)">#<strong>run</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>After setup, we call run to go to &quot;running&quot; mode.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods included from <span class='object_link'><a href="../../Shoes/Log.html" title="Shoes::Log (module)">Shoes::Log</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="../../Shoes/Log.html#configure_logger-class_method" title="Shoes::Log.configure_logger (method)">configure_logger</a></span>, <span class='object_link'><a href="../../Shoes/Log.html#log_init-instance_method" title="Shoes::Log#log_init (method)">#log_init</a></span>, <span class='object_link'><a href="../../Shoes/Log.html#logger-class_method" title="Shoes::Log.logger (method)">logger</a></span></p>
+<div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <h3 class="signature first" id="initialize-instance_method">
+  
+    #<strong>initialize</strong>(title:, width:, height:, resizable: false, heartbeat: 0.1)  &#x21d2; <tt><span class='object_link'><a href="" title="Scarpe::Webview::WebWrangler (class)">WebWrangler</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Create a new WebWrangler.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>title</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>window title</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>width</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>window width in pixels</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>height</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>window height in pixels</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>resizable</span>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>false</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>whether the window should be resizable by the user</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>heartbeat</span>
+      
+      
+        <span class='type'>(<tt>Float</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>0.1</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>time between heartbeats in seconds</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 67</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='label'>title:</span><span class='comma'>,</span> <span class='label'>width:</span><span class='comma'>,</span> <span class='label'>height:</span><span class='comma'>,</span> <span class='label'>resizable:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>heartbeat:</span> <span class='float'>0.1</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_log_init'>log_init</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Webview::WebWrangler</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+
+  <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Creating WebWrangler...</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+
+  <span class='comment'># For now, always allow inspect element, so pass debug: true
+</span>  <span class='ivar'>@webview</span> <span class='op'>=</span> <span class='const'>WebviewRuby</span><span class='op'>::</span><span class='const'>Webview</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span> <span class='label'>debug:</span> <span class='kw'>true</span>
+  <span class='ivar'>@webview</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../../Shoes/LoggedWrapper.html" title="Shoes::LoggedWrapper (class)">LoggedWrapper</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="../../Shoes/LoggedWrapper.html#initialize-instance_method" title="Shoes::LoggedWrapper#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='ivar'>@webview</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>WebviewAPI</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='const'>ENV</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>SCARPE_DEBUG</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+  <span class='ivar'>@init_refs</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span> <span class='comment'># Inits don&#39;t go away so keep a reference to them to prevent GC
+</span>
+  <span class='ivar'>@title</span> <span class='op'>=</span> <span class='id identifier rubyid_title'>title</span>
+  <span class='ivar'>@width</span> <span class='op'>=</span> <span class='id identifier rubyid_width'>width</span>
+  <span class='ivar'>@height</span> <span class='op'>=</span> <span class='id identifier rubyid_height'>height</span>
+  <span class='ivar'>@resizable</span> <span class='op'>=</span> <span class='id identifier rubyid_resizable'>resizable</span>
+  <span class='ivar'>@heartbeat</span> <span class='op'>=</span> <span class='id identifier rubyid_heartbeat'>heartbeat</span>
+
+  <span class='comment'># JS setInterval uses RPC and is quite expensive. For many periodic operations
+</span>  <span class='comment'># we can group them under a single heartbeat handler and avoid extra JS calls or RPC.
+</span>  <span class='ivar'>@heartbeat_handlers</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+
+  <span class='comment'># Need to keep track of which WebView Javascript evals are still pending,
+</span>  <span class='comment'># what handlers to call when they return, etc.
+</span>  <span class='ivar'>@pending_evals</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='ivar'>@eval_counter</span> <span class='op'>=</span> <span class='int'>0</span>
+
+  <span class='ivar'>@dom_wrangler</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="WebWrangler/DOMWrangler.html" title="Scarpe::Webview::WebWrangler::DOMWrangler (class)">DOMWrangler</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="WebWrangler/DOMWrangler.html#initialize-instance_method" title="Scarpe::Webview::WebWrangler::DOMWrangler#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='kw'>self</span><span class='rparen'>)</span>
+
+  <span class='id identifier rubyid_bind'>bind</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>puts</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='op'>|</span>
+    <span class='id identifier rubyid_puts'>puts</span><span class='lparen'>(</span><span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+
+  <span class='ivar'>@webview</span><span class='period'>.</span><span class='id identifier rubyid_bind'>bind</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="#EVAL_RESULT-constant" title="Scarpe::Webview::WebWrangler::EVAL_RESULT (constant)">EVAL_RESULT</a></span></span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='op'>*</span><span class='id identifier rubyid_results'>results</span><span class='op'>|</span>
+    <span class='id identifier rubyid_receive_eval_result'>receive_eval_result</span><span class='lparen'>(</span><span class='op'>*</span><span class='id identifier rubyid_results'>results</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+
+  <span class='comment'># Ruby receives scarpeHeartbeat messages via the window library&#39;s main loop.
+</span>  <span class='comment'># So this is a way for Ruby to be notified periodically, in time with that loop.
+</span>  <span class='ivar'>@webview</span><span class='period'>.</span><span class='id identifier rubyid_bind'>bind</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>scarpeHeartbeat</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>do</span>
+    <span class='kw'>return</span> <span class='kw'>unless</span> <span class='ivar'>@webview</span> <span class='comment'># I think GTK+ may continue to deliver events after shutdown
+</span>
+    <span class='id identifier rubyid_periodic_js_callback'>periodic_js_callback</span>
+    <span class='ivar'>@heartbeat_handlers</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:call</span><span class='rparen'>)</span>
+    <span class='ivar'>@control_interface</span><span class='period'>.</span><span class='id identifier rubyid_dispatch_event'>dispatch_event</span><span class='lparen'>(</span><span class='symbol'>:heartbeat</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+  <span class='id identifier rubyid_js_interval'>js_interval</span> <span class='op'>=</span> <span class='lparen'>(</span><span class='id identifier rubyid_heartbeat'>heartbeat</span><span class='period'>.</span><span class='id identifier rubyid_to_f'>to_f</span> <span class='op'>*</span> <span class='float'>1_000.0</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span>
+  <span class='ivar'>@webview</span><span class='period'>.</span><span class='id identifier rubyid_init'>init</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>setInterval(scarpeHeartbeat,</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_js_interval'>js_interval</span><span class='embexpr_end'>}</span><span class='tstring_content'>)</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+  <div id="instance_attr_details" class="attr_details">
+    <h2>Instance Attribute Details</h2>
+    
+      
+      <span id="control_interface=-instance_method"></span>
+      <div class="method_details first">
+  <h3 class="signature first" id="control_interface-instance_method">
+  
+    #<strong>control_interface</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>A reference to the control_interface that manages internal Scarpe Webview events.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+52
+53
+54</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 52</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_control_interface'>control_interface</span>
+  <span class='ivar'>@control_interface</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="empty_page=-instance_method">
+  
+    #<strong>empty_page=</strong>(value)  &#x21d2; <tt>Object</tt>  <span class="extras">(writeonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Sets the attribute empty_page</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>value</span>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the value to set the attribute empty_page to.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+366
+367
+368</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 366</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_empty_page='>empty_page=</span><span class='lparen'>(</span><span class='id identifier rubyid_value'>value</span><span class='rparen'>)</span>
+  <span class='ivar'>@empty_page</span> <span class='op'>=</span> <span class='id identifier rubyid_value'>value</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="heartbeat-instance_method">
+  
+    #<strong>heartbeat</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>This is the time between heartbeats in seconds, usually fractional</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+49
+50
+51</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 49</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_heartbeat'>heartbeat</span>
+  <span class='ivar'>@heartbeat</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="is_running-instance_method">
+  
+    #<strong>is_running</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Whether Webview has been started. Once Webview is running you can&#39;t add new
+Javascript bindings. Until it is running, you can&#39;t use eval to run Javascript.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+42
+43
+44</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 42</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_is_running'>is_running</span>
+  <span class='ivar'>@is_running</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="is_terminated-instance_method">
+  
+    #<strong>is_terminated</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Once Webview is marked terminated, it&#39;s attempting to shut down. If we get
+events (e.g. heartbeats) after that, we should ignore them.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+46
+47
+48</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 46</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_is_terminated'>is_terminated</span>
+  <span class='ivar'>@is_terminated</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+
+  <div id="class_method_details" class="method_details_list">
+    <h2>Class Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="js_wrapped_code-class_method">
+  
+    .<strong>js_wrapped_code</strong>(code, eval_id)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>This method takes a piece of Javascript code and wraps it in the WebWrangler
+boilerplate to see if it parses successfully, run it, and see if it succeeds.
+This function would normally be used by testing code, to mock Webview and
+watch for code being run. Javascript code containing backticks
+could potentially break this abstraction layer, which would cause the resulting
+code to fail to parse and Webview would return no error. This should not be
+used for random or untrusted code.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>code</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the Javascript code to be wrapped</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>eval_id</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the tracking code to use when calling EVAL_RESULT</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 283</span>
+
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_js_wrapped_code'>js_wrapped_code</span><span class='lparen'>(</span><span class='id identifier rubyid_code'>code</span><span class='comma'>,</span> <span class='id identifier rubyid_eval_id'>eval_id</span><span class='rparen'>)</span>
+  <span class='heredoc_beg'>&lt;&lt;~JS_CODE</span>
+<span class='tstring_content'>    (function() {
+</span><span class='tstring_content'>      var code_string = </span><span class='embexpr_beg'>#{</span><span class='const'>JSON</span><span class='period'>.</span><span class='id identifier rubyid_dump'>dump</span> <span class='id identifier rubyid_code'>code</span><span class='embexpr_end'>}</span><span class='tstring_content'>;
+</span><span class='tstring_content'>      try {
+</span><span class='tstring_content'>        result = eval(code_string);
+</span><span class='tstring_content'>        </span><span class='embexpr_beg'>#{</span><span class='const'><span class='object_link'><a href="#EVAL_RESULT-constant" title="Scarpe::Webview::WebWrangler::EVAL_RESULT (constant)">EVAL_RESULT</a></span></span><span class='embexpr_end'>}</span><span class='tstring_content'>(&quot;success&quot;, </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_eval_id'>eval_id</span><span class='embexpr_end'>}</span><span class='tstring_content'>, result);
+</span><span class='tstring_content'>      } catch(error) {
+</span><span class='tstring_content'>        </span><span class='embexpr_beg'>#{</span><span class='const'><span class='object_link'><a href="#EVAL_RESULT-constant" title="Scarpe::Webview::WebWrangler::EVAL_RESULT (constant)">EVAL_RESULT</a></span></span><span class='embexpr_end'>}</span><span class='tstring_content'>(&quot;error&quot;, </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_eval_id'>eval_id</span><span class='embexpr_end'>}</span><span class='tstring_content'>, error.message);
+</span><span class='tstring_content'>      }
+</span><span class='tstring_content'>    })();
+</span><span class='heredoc_end'>  JS_CODE
+</span><span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="bind-instance_method">
+  
+    #<strong>bind</strong>(name) { ... } &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Bind a Javascript-callable function by name. When JS calls the function,
+an async message is sent to Ruby via RPC and will eventually cause the
+block to be called. This method only works in setup mode, before the
+underlying Webview has been told to run.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>name</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the Javascript name for the new function</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Yields:</p>
+<ul class="yield">
+  
+    <li>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        
+        <div class='inline'><p>The Ruby block to be invoked when JS calls the function</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../JSBindingError.html" title="Scarpe::JSBindingError (class)">Scarpe::JSBindingError</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+131
+132
+133
+134
+135</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 131</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_bind'>bind</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../JSBindingError.html" title="Scarpe::JSBindingError (class)">JSBindingError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>App is running, javascript binding no longer works because it uses WebView init!</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>if</span> <span class='ivar'>@is_running</span>
+
+  <span class='ivar'>@webview</span><span class='period'>.</span><span class='id identifier rubyid_bind'>bind</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="destroy-instance_method">
+  
+    #<strong>destroy</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Request destruction of WebWrangler, including terminating the underlying
+Webview and (when possible) destroying it.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+399
+400
+401
+402
+403
+404
+405
+406
+407
+408</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 399</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_destroy'>destroy</span>
+  <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Destroying WebWrangler...</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>  (WebWrangler was already terminated)</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='ivar'>@is_terminated</span>
+  <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>  (WebWrangler was already destroyed)</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='ivar'>@webview</span>
+  <span class='kw'>if</span> <span class='ivar'>@webview</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='ivar'>@is_terminated</span>
+    <span class='ivar'>@bindings</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+    <span class='ivar'>@webview</span><span class='period'>.</span><span class='id identifier rubyid_terminate'>terminate</span>
+    <span class='ivar'>@is_terminated</span> <span class='op'>=</span> <span class='kw'>true</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="dom_change-instance_method">
+  
+    #<strong>dom_change</strong>(js)  &#x21d2; <tt><span class='object_link'><a href="../Promise.html" title="Scarpe::Promise (class)">Scarpe::Promise</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Request a DOM change - return a promise for when this has been done.
+If a full replacement (see #replace) is requested, this change may
+be lost. Only use it for changes that are preserved by a full update.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>js</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the JS to execute to alter the DOM</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Promise.html" title="Scarpe::Promise (class)">Scarpe::Promise</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>a promise that will be fulfilled when the update is complete</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+453
+454
+455</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 453</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_dom_change'>dom_change</span><span class='lparen'>(</span><span class='id identifier rubyid_js'>js</span><span class='rparen'>)</span>
+  <span class='ivar'>@dom_wrangler</span><span class='period'>.</span><span class='id identifier rubyid_request_change'>request_change</span><span class='lparen'>(</span><span class='id identifier rubyid_js'>js</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="dom_fully_updated?-instance_method">
+  
+    #<strong>dom_fully_updated?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Return whether the DOM is, right this moment, confirmed to be fully
+up to date or not.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true if the window is fully updated, false if changes are pending</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+461
+462
+463</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 461</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_dom_fully_updated?'>dom_fully_updated?</span>
+  <span class='ivar'>@dom_wrangler</span><span class='period'>.</span><span class='id identifier rubyid_fully_updated?'>fully_updated?</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="dom_promise_redraw-instance_method">
+  
+    #<strong>dom_promise_redraw</strong>  &#x21d2; <tt><span class='object_link'><a href="../Promise.html" title="Scarpe::Promise (class)">Scarpe::Promise</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Return a promise that will be fulfilled when all current DOM changes
+have committed. If other changes are requested before these
+complete, the promise will <strong><em>not</em></strong> wait for them. If you wish to
+wait until all changes from all sources have completed, use</p>
+
+<h1 id="promise_dom_fully_updated">promise_dom_fully_updated.</h1>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Promise.html" title="Scarpe::Promise (class)">Scarpe::Promise</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>a promise that will be fulfilled when all current changes complete</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+472
+473
+474</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 472</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_dom_promise_redraw'>dom_promise_redraw</span>
+  <span class='ivar'>@dom_wrangler</span><span class='period'>.</span><span class='id identifier rubyid_promise_redraw'>promise_redraw</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="eval_js_async-instance_method">
+  
+    #<strong>eval_js_async</strong>(code, timeout: EVAL_DEFAULT_TIMEOUT, wait_for: [])  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Eval a chunk of JS code asynchronously. This method returns a
+promise which will be fulfilled or rejected after the JS executes
+or times out.</p>
+
+<p>We <em>both</em> care whether the JS has finished after it was
+scheduled <em>and</em> whether it ever got scheduled at all. If it
+depends on tasks that never fulfill or reject then it will
+raise a timed-out exception.</p>
+
+<p>Right now we can&#39;t/don&#39;t pass arguments through from previous fulfilled
+promises. To do that, you can schedule the JS to run after the
+other promises succeed.</p>
+
+<p>Webview does not allow interacting with a JS eval once it has
+been scheduled. So there is no way to guarantee that a piece of JS has
+not executed, or will not execute in the future. A timeout exception
+only means that WebWrangler will no longer wait for confirmation or
+fulfill the promise if the JS later completes.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>code</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the Javascript code to execute</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>timeout</span>
+      
+      
+        <span class='type'>(<tt>Float</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>EVAL_DEFAULT_TIMEOUT</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>how long to allow before raising a timeout exception</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>wait_for</span>
+      
+      
+        <span class='type'>(<tt>Array&lt;<span class='object_link'><a href="../Promise.html" title="Scarpe::Promise (class)">Scarpe::Promise</a></span>&gt;</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>[]</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>promises that must complete successfully before this JS is scheduled</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 228</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_eval_js_async'>eval_js_async</span><span class='lparen'>(</span><span class='id identifier rubyid_code'>code</span><span class='comma'>,</span> <span class='label'>timeout:</span> <span class='const'><span class='object_link'><a href="#EVAL_DEFAULT_TIMEOUT-constant" title="Scarpe::Webview::WebWrangler::EVAL_DEFAULT_TIMEOUT (constant)">EVAL_DEFAULT_TIMEOUT</a></span></span><span class='comma'>,</span> <span class='label'>wait_for:</span> <span class='lbracket'>[</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+  <span class='kw'>unless</span> <span class='ivar'>@is_running</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../WebWranglerNotRunningError.html" title="Scarpe::WebWranglerNotRunningError (class)">WebWranglerNotRunningError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>WebWrangler isn&#39;t running, so evaluating JS won&#39;t work!</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_this_eval_serial'>this_eval_serial</span> <span class='op'>=</span> <span class='ivar'>@eval_counter</span>
+  <span class='ivar'>@eval_counter</span> <span class='op'>+=</span> <span class='int'>1</span>
+
+  <span class='ivar'>@pending_evals</span><span class='lbracket'>[</span><span class='id identifier rubyid_this_eval_serial'>this_eval_serial</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='lbrace'>{</span>
+    <span class='label'>id:</span> <span class='id identifier rubyid_this_eval_serial'>this_eval_serial</span><span class='comma'>,</span>
+    <span class='label'>code:</span> <span class='id identifier rubyid_code'>code</span><span class='comma'>,</span>
+    <span class='label'>start_time:</span> <span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_now'>now</span><span class='comma'>,</span>
+    <span class='label'>timeout_if_not_scheduled:</span> <span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_now'>now</span> <span class='op'>+</span> <span class='const'><span class='object_link'><a href="#EVAL_DEFAULT_TIMEOUT-constant" title="Scarpe::Webview::WebWrangler::EVAL_DEFAULT_TIMEOUT (constant)">EVAL_DEFAULT_TIMEOUT</a></span></span><span class='comma'>,</span>
+  <span class='rbrace'>}</span>
+
+  <span class='comment'># We&#39;ll need this inside the promise-scheduling block
+</span>  <span class='id identifier rubyid_pending_evals'>pending_evals</span> <span class='op'>=</span> <span class='ivar'>@pending_evals</span>
+
+  <span class='id identifier rubyid_promise'>promise</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../Promise.html" title="Scarpe::Promise (class)">Promise</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="../Promise.html#initialize-instance_method" title="Scarpe::Promise#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='label'>parents:</span> <span class='id identifier rubyid_wait_for'>wait_for</span><span class='rparen'>)</span> <span class='kw'>do</span>
+    <span class='comment'># Are we mid-shutdown?
+</span>    <span class='kw'>if</span> <span class='ivar'>@webview</span>
+      <span class='id identifier rubyid_wrapped_code'>wrapped_code</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="" title="Scarpe::Webview::WebWrangler (class)">WebWrangler</a></span></span><span class='period'>.</span><span class='id identifier rubyid_js_wrapped_code'><span class='object_link'><a href="#js_wrapped_code-class_method" title="Scarpe::Webview::WebWrangler.js_wrapped_code (method)">js_wrapped_code</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_code'>code</span><span class='comma'>,</span> <span class='id identifier rubyid_this_eval_serial'>this_eval_serial</span><span class='rparen'>)</span>
+
+      <span class='comment'># We&#39;ve been scheduled!
+</span>      <span class='id identifier rubyid_t_now'>t_now</span> <span class='op'>=</span> <span class='const'>Time</span><span class='period'>.</span><span class='id identifier rubyid_now'>now</span>
+      <span class='comment'># Hard to be sure Webview keeps a proper reference to this, so we will
+</span>      <span class='id identifier rubyid_pending_evals'>pending_evals</span><span class='lbracket'>[</span><span class='id identifier rubyid_this_eval_serial'>this_eval_serial</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:wrapped_code</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_wrapped_code'>wrapped_code</span>
+
+      <span class='id identifier rubyid_pending_evals'>pending_evals</span><span class='lbracket'>[</span><span class='id identifier rubyid_this_eval_serial'>this_eval_serial</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:scheduled_time</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_t_now'>t_now</span>
+      <span class='id identifier rubyid_pending_evals'>pending_evals</span><span class='lbracket'>[</span><span class='id identifier rubyid_this_eval_serial'>this_eval_serial</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='symbol'>:timeout_if_not_scheduled</span><span class='rparen'>)</span>
+
+      <span class='id identifier rubyid_pending_evals'>pending_evals</span><span class='lbracket'>[</span><span class='id identifier rubyid_this_eval_serial'>this_eval_serial</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:timeout_if_not_finished</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_t_now'>t_now</span> <span class='op'>+</span> <span class='id identifier rubyid_timeout'>timeout</span>
+      <span class='ivar'>@webview</span><span class='period'>.</span><span class='id identifier rubyid_eval'>eval</span><span class='lparen'>(</span><span class='id identifier rubyid_wrapped_code'>wrapped_code</span><span class='rparen'>)</span>
+      <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Scheduled JS: (</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_this_eval_serial'>this_eval_serial</span><span class='embexpr_end'>}</span><span class='tstring_content'>)\n</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_wrapped_code'>wrapped_code</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+    <span class='kw'>else</span>
+      <span class='comment'># We&#39;re mid-shutdown. No more scheduling things.
+</span>      <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_warn'>warn</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Mid-shutdown JS eval. Not scheduling JS!</span><span class='tstring_end'>&quot;</span></span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+
+  <span class='ivar'>@pending_evals</span><span class='lbracket'>[</span><span class='id identifier rubyid_this_eval_serial'>this_eval_serial</span><span class='rbracket'>]</span><span class='lbracket'>[</span><span class='symbol'>:promise</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_promise'>promise</span>
+
+  <span class='id identifier rubyid_promise'>promise</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="init_code-instance_method">
+  
+    #<strong>init_code</strong>(name) { ... } &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Request that this block of code be run initially when the Webview is run.
+This operates via #init and will not work if Webview is already running.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>name</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the Javascript name for the init function</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Yields:</p>
+<ul class="yield">
+  
+    <li>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        
+        <div class='inline'><p>The Ruby block to be invoked when Webview runs</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../JSInitError.html" title="Scarpe::JSInitError (class)">Scarpe::JSInitError</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 142</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_init_code'>init_code</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../JSInitError.html" title="Scarpe::JSInitError (class)">JSInitError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>App is running, javascript init no longer works!</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>if</span> <span class='ivar'>@is_running</span>
+
+  <span class='comment'># Save a reference to the init string so that it doesn&#39;t get GC&#39;d
+</span>  <span class='id identifier rubyid_code_str'>code_str</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='embexpr_end'>}</span><span class='tstring_content'>();</span><span class='tstring_end'>&quot;</span></span>
+  <span class='ivar'>@init_refs</span><span class='lbracket'>[</span><span class='id identifier rubyid_name'>name</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_code_str'>code_str</span>
+
+  <span class='id identifier rubyid_bind'>bind</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='ivar'>@webview</span><span class='period'>.</span><span class='id identifier rubyid_init'>init</span><span class='lparen'>(</span><span class='id identifier rubyid_code_str'>code_str</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="inspect-instance_method">
+  
+    #<strong>inspect</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Shorter name for better stack trace messages</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+116
+117
+118</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 116</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_inspect'>inspect</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Scarpe::WebWrangler:</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_object_id'>object_id</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="js_eventually-instance_method">
+  
+    #<strong>js_eventually</strong>(code)  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>js_eventually is a native Webview JS evaluation. On syntax error, nothing happens.
+On runtime error, execution stops at the error with no further
+effect or notification. This is rarely what you want.
+The js_eventually code is run asynchronously, returning neither error
+nor value.</p>
+
+<p>This method does <em>not</em> return a promise, and there is no way to track
+its progress or its success or failure.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>code</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the Javascript code to attempt to execute</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../WebWranglerNotRunningError.html" title="Scarpe::WebWranglerNotRunningError (class)">Scarpe::WebWranglerNotRunningError</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+198
+199
+200
+201
+202
+203
+204</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 198</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_js_eventually'>js_eventually</span><span class='lparen'>(</span><span class='id identifier rubyid_code'>code</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../WebWranglerNotRunningError.html" title="Scarpe::WebWranglerNotRunningError (class)">WebWranglerNotRunningError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>WebWrangler isn&#39;t running, eval doesn&#39;t work!</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='ivar'>@is_running</span>
+
+  <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_warn'>warn</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Deprecated: please do NOT use js_eventually, it&#39;s basically never what you want!</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='const'>ENV</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>CI</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+
+  <span class='ivar'>@webview</span><span class='period'>.</span><span class='id identifier rubyid_eval'>eval</span><span class='lparen'>(</span><span class='id identifier rubyid_code'>code</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="on_every_redraw-instance_method">
+  
+    #<strong>on_every_redraw</strong> { ... } &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>DOMWrangler will frequently schedule and confirm small JS updates.
+A handler registered with on_every_redraw will be called after each
+small update.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Yields:</p>
+<ul class="yield">
+  
+    <li>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        
+        <div class='inline'><p>Called after each update or batch of updates is verified complete</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+499
+500
+501</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 499</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_on_every_redraw'>on_every_redraw</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='ivar'>@dom_wrangler</span><span class='period'>.</span><span class='id identifier rubyid_on_every_redraw'>on_every_redraw</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="periodic_code-instance_method">
+  
+    #<strong>periodic_code</strong>(name, interval = heartbeat) { ... } &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Run the specified code periodically, every &quot;interval&quot; seconds.
+If interval is unspecified, run per-heartbeat. This avoids extra
+RPC and Javascript overhead. This may use the #init mechanism,
+so it should be invoked when the WebWrangler is in setup mode,
+before the Webview is running.</p>
+
+<p>TODO: add a way to stop this loop and unsubscribe.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>name</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the name of the Javascript init function, if needed</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>interval</span>
+      
+      
+        <span class='type'>(<tt>Float</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>heartbeat</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>the duration between invoking this block</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Yields:</p>
+<ul class="yield">
+  
+    <li>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        
+        <div class='inline'><p>the Ruby block to invoke periodically</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 164</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_periodic_code'>periodic_code</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='id identifier rubyid_interval'>interval</span> <span class='op'>=</span> <span class='id identifier rubyid_heartbeat'>heartbeat</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_interval'>interval</span> <span class='op'>==</span> <span class='id identifier rubyid_heartbeat'>heartbeat</span>
+    <span class='ivar'>@heartbeat_handlers</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_block'>block</span>
+  <span class='kw'>else</span>
+    <span class='kw'>if</span> <span class='ivar'>@is_running</span>
+      <span class='comment'># I *think* we need to use init because we want this done for every
+</span>      <span class='comment'># new window. But will there ever be a new page/window? Can we just
+</span>      <span class='comment'># use eval instead of init to set up a periodic handler and call it
+</span>      <span class='comment'># good?
+</span>      <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../PeriodicHandlerSetupError.html" title="Scarpe::PeriodicHandlerSetupError (class)">PeriodicHandlerSetupError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>App is running, can&#39;t set up new periodic handlers with init!</span><span class='tstring_end'>&quot;</span></span>
+    <span class='kw'>end</span>
+
+    <span class='id identifier rubyid_js_interval'>js_interval</span> <span class='op'>=</span> <span class='lparen'>(</span><span class='id identifier rubyid_interval'>interval</span><span class='period'>.</span><span class='id identifier rubyid_to_f'>to_f</span> <span class='op'>*</span> <span class='float'>1_000.0</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to_i'>to_i</span>
+    <span class='id identifier rubyid_code_str'>code_str</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>setInterval(</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='embexpr_end'>}</span><span class='tstring_content'>, </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_js_interval'>js_interval</span><span class='embexpr_end'>}</span><span class='tstring_content'>);</span><span class='tstring_end'>&quot;</span></span>
+    <span class='ivar'>@init_refs</span><span class='lbracket'>[</span><span class='id identifier rubyid_name'>name</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_code_str'>code_str</span>
+
+    <span class='id identifier rubyid_bind'>bind</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+    <span class='ivar'>@webview</span><span class='period'>.</span><span class='id identifier rubyid_init'>init</span><span class='lparen'>(</span><span class='id identifier rubyid_code_str'>code_str</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="promise_dom_fully_updated-instance_method">
+  
+    #<strong>promise_dom_fully_updated</strong>  &#x21d2; <tt><span class='object_link'><a href="../Promise.html" title="Scarpe::Promise (class)">Scarpe::Promise</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Return a promise which will be fulfilled the next time the DOM is
+fully up to date. A slow trickle of changes can make this
+take a long time, since it includes all current and future changes,
+not just changes before this call.</p>
+
+<p>If you want to know that some specific individual change is done, it&#39;s often
+easiest to use the promise returned by #dom_change, which will
+be fulfilled when that specific change is verified complete.</p>
+
+<p>If no changes are pending, promise_dom_fully_updated will
+return a promise that is already fulfilled.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Promise.html" title="Scarpe::Promise (class)">Scarpe::Promise</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>a promise that will be fulfilled when all changes are complete</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+489
+490
+491</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 489</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_promise_dom_fully_updated'>promise_dom_fully_updated</span>
+  <span class='ivar'>@dom_wrangler</span><span class='period'>.</span><span class='id identifier rubyid_promise_fully_updated'>promise_fully_updated</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="replace-instance_method">
+  
+    #<strong>replace</strong>(html_text)  &#x21d2; <tt><span class='object_link'><a href="../Promise.html" title="Scarpe::Promise (class)">Scarpe::Promise</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Replace the entire DOM - return a promise for when this has been done.
+This will often get rid of smaller changes in the queue, which is
+a good thing since they won&#39;t have to be run.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>html_text</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The new HTML for the new full DOM</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../Promise.html" title="Scarpe::Promise (class)">Scarpe::Promise</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>a promise that will be fulfilled when the update is complete</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+443
+444
+445</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 443</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_replace'>replace</span><span class='lparen'>(</span><span class='id identifier rubyid_html_text'>html_text</span><span class='rparen'>)</span>
+  <span class='ivar'>@dom_wrangler</span><span class='period'>.</span><span class='id identifier rubyid_request_replace'>request_replace</span><span class='lparen'>(</span><span class='id identifier rubyid_html_text'>html_text</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="run-instance_method">
+  
+    #<strong>run</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>After setup, we call run to go to &quot;running&quot; mode.
+No more setup callbacks should be called, only running callbacks.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388
+389
+390
+391
+392
+393
+394
+395</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 370</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_run'>run</span>
+  <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Run...</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+
+  <span class='comment'># From webview:
+</span>  <span class='comment'># 0 - Width and height are default size
+</span>  <span class='comment'># 1 - Width and height are minimum bounds
+</span>  <span class='comment'># 2 - Width and height are maximum bounds
+</span>  <span class='comment'># 3 - Window size can not be changed by a user
+</span>  <span class='id identifier rubyid_hint'>hint</span> <span class='op'>=</span> <span class='ivar'>@resizable</span> <span class='op'>?</span> <span class='int'>0</span> <span class='op'>:</span> <span class='int'>3</span>
+
+  <span class='ivar'>@webview</span><span class='period'>.</span><span class='id identifier rubyid_set_title'>set_title</span><span class='lparen'>(</span><span class='ivar'>@title</span><span class='rparen'>)</span>
+  <span class='ivar'>@webview</span><span class='period'>.</span><span class='id identifier rubyid_set_size'>set_size</span><span class='lparen'>(</span><span class='ivar'>@width</span><span class='comma'>,</span> <span class='ivar'>@height</span><span class='comma'>,</span> <span class='id identifier rubyid_hint'>hint</span><span class='rparen'>)</span>
+  <span class='kw'>unless</span> <span class='ivar'>@empty_page</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../EmptyPageNotSetError.html" title="Scarpe::EmptyPageNotSetError (class)">EmptyPageNotSetError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>No empty page markup was set!</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='ivar'>@webview</span><span class='period'>.</span><span class='id identifier rubyid_navigate'>navigate</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>data:text/html, </span><span class='embexpr_beg'>#{</span><span class='const'>CGI</span><span class='period'>.</span><span class='id identifier rubyid_escape'>escape</span> <span class='ivar'>@empty_page</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+
+  <span class='id identifier rubyid_monkey_patch_console'>monkey_patch_console</span><span class='lparen'>(</span><span class='ivar'>@webview</span><span class='rparen'>)</span>
+
+  <span class='ivar'>@is_running</span> <span class='op'>=</span> <span class='kw'>true</span>
+  <span class='ivar'>@webview</span><span class='period'>.</span><span class='id identifier rubyid_run'>run</span>
+  <span class='ivar'>@is_running</span> <span class='op'>=</span> <span class='kw'>false</span>
+  <span class='ivar'>@webview</span><span class='period'>.</span><span class='id identifier rubyid_destroy'>destroy</span>
+  <span class='ivar'>@webview</span> <span class='op'>=</span> <span class='kw'>nil</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Wed Oct  9 15:38:25 2024 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.28 (ruby-3.2.0).
+</div>
+
+    </div>
+  </body>
+</html>

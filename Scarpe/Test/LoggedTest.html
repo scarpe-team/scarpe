@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Module: Scarpe::Test::LoggedTest
+  
+    &mdash; Documentation by YARD 0.9.28
+  
+</title>
+
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="../../css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Scarpe::Test::LoggedTest";
+  relpath = '../../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="../../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../../_index.html">Index (L)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../Test.html" title="Scarpe::Test (module)">Test</a></span></span>
+     &raquo; 
+    <span class="title">LoggedTest</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="docpages_list_link"
+        href="../../docpages_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Module: Scarpe::Test::LoggedTest
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>scarpe-components/lib/scarpe/components/unit_test_helpers.rb</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>This test will save extensive logs in case of test failure.
+Note that it defines setup/teardown methods. If you want
+multiple setup/teardowns from multiple places to happen you
+may need to explictly call (e.g. with logged_test_setup/teardown)
+to ensure everything you want happens.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+
+
+
+
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#extra_log_config=-instance_method" title="#extra_log_config= (instance method)">#<strong>extra_log_config=</strong>(additional_log_config)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Set additional LoggedTest configuration for specific logs to separate or save.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#file_id-instance_method" title="#file_id (instance method)">#<strong>file_id</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#log_config_for_test-instance_method" title="#log_config_for_test (instance method)">#<strong>log_config_for_test</strong>  &#x21d2; Hash </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>This is the log config that LoggedTests use.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#logfail_out_loc-instance_method" title="#logfail_out_loc (instance method)">#<strong>logfail_out_loc</strong>(filepath)  &#x21d2; String </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Failure log output location for a given file path.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#logged_test_setup-instance_method" title="#logged_test_setup (instance method)">#<strong>logged_test_setup</strong>  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>This should be called by the test during setup to make sure that failure logs will be saved if this test fails.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#logged_test_teardown-instance_method" title="#logged_test_teardown (instance method)">#<strong>logged_test_teardown</strong>  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>After the test has finished, this will restore the old log configuration.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#remove_unsaved_logs-instance_method" title="#remove_unsaved_logs (instance method)">#<strong>remove_unsaved_logs</strong>  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Remove unsaved failure logs.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#save_failure_logs-instance_method" title="#save_failure_logs (instance method)">#<strong>save_failure_logs</strong>  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Save the failure logs in the appropriate place(s).</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#saved_log_files-instance_method" title="#saved_log_files (instance method)">#<strong>saved_log_files</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>The list of logfiles that should be saved.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#set_up_test_failures-instance_method" title="#set_up_test_failures (instance method)">#<strong>set_up_test_failures</strong>  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Make sure that test failure logs will be noticed, and a message will be printed, if any logged tests fail.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#setup-instance_method" title="#setup (instance method)">#<strong>setup</strong>  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>If you include this module and don&#39;t override setup/teardown, everything will work fine.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#teardown-instance_method" title="#teardown (instance method)">#<strong>teardown</strong>  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Make sure that, by default, #logged_test_teardown will be called for teardown.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="extra_log_config=-instance_method">
+  
+    #<strong>extra_log_config=</strong>(additional_log_config)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Set additional LoggedTest configuration for specific logs to separate or save.
+This is normally going to be display-service-specific log components.
+Note that this only really works with the modular logger or another logger
+that does something useful with the log config. The simple print logger
+doesn&#39;t do a lot with it.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+116
+117
+118</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/unit_test_helpers.rb', line 116</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_extra_log_config='>extra_log_config=</span><span class='lparen'>(</span><span class='id identifier rubyid_additional_log_config'>additional_log_config</span><span class='rparen'>)</span>
+  <span class='ivar'>@additional_log_config</span> <span class='op'>=</span> <span class='id identifier rubyid_additional_log_config'>additional_log_config</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="file_id-instance_method">
+  
+    #<strong>file_id</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+54
+55
+56</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/unit_test_helpers.rb', line 54</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_file_id'>file_id</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_name'>name</span><span class='embexpr_end'>}</span><span class='tstring_content'>_</span><span class='embexpr_beg'>#{</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_name'>name</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="log_config_for_test-instance_method">
+  
+    #<strong>log_config_for_test</strong>  &#x21d2; <tt>Hash</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>This is the log config that LoggedTests use. It makes sure all components keep all
+logs, but also splits the logs into several different files for later ease of scanning.</p>
+
+<p>TODO: this shouldn&#39;t directly include any Webview entries like WebviewAPI or
+    CatsCradle. Those should be overridden in Webview.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the log config</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+127
+128
+129
+130
+131
+132</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/unit_test_helpers.rb', line 127</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_log_config_for_test'>log_config_for_test</span>
+  <span class='lbrace'>{</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>default</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>debug</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>logger/test_failure_</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_file_id'>file_id</span><span class='embexpr_end'>}</span><span class='tstring_content'>.log</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>DisplayService</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>debug</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>logger/test_failure_display_service_</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_file_id'>file_id</span><span class='embexpr_end'>}</span><span class='tstring_content'>.log</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='ivar'>@additional_log_config</span> <span class='op'>||</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="logfail_out_loc-instance_method">
+  
+    #<strong>logfail_out_loc</strong>(filepath)  &#x21d2; <tt>String</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Failure log output location for a given file path. This is normally used internally to this
+class, not externally.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the output path</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/unit_test_helpers.rb', line 181</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_logfail_out_loc'>logfail_out_loc</span><span class='lparen'>(</span><span class='id identifier rubyid_filepath'>filepath</span><span class='rparen'>)</span>
+  <span class='comment'># Add a .out prefix before final .log
+</span>  <span class='id identifier rubyid_out_loc'>out_loc</span> <span class='op'>=</span> <span class='id identifier rubyid_filepath'>filepath</span><span class='period'>.</span><span class='id identifier rubyid_gsub'>gsub</span><span class='lparen'>(</span><span class='tstring'><span class='regexp_beg'>%r{</span><span class='tstring_content'>.log\Z</span><span class='regexp_end'>}</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>.out.log</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+
+  <span class='kw'>if</span> <span class='id identifier rubyid_out_loc'>out_loc</span> <span class='op'>==</span> <span class='id identifier rubyid_filepath'>filepath</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../../Shoes/Errors.html" title="Shoes::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../../Shoes/Errors/InvalidAttributeValueError.html" title="Shoes::Errors::InvalidAttributeValueError (class)">InvalidAttributeValueError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Something is wrong! Could not figure out failure-log output path for </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_filepath'>filepath</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'>!</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='kw'>if</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_exist?'>exist?</span><span class='lparen'>(</span><span class='id identifier rubyid_out_loc'>out_loc</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../DuplicateFileError.html" title="Scarpe::DuplicateFileError (class)">DuplicateFileError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Duplicate test file </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_out_loc'>out_loc</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'>? This file should *not* already exist!</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_out_loc'>out_loc</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="logged_test_setup-instance_method">
+  
+    #<strong>logged_test_setup</strong>  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>This should be called by the test during setup to make sure that
+failure logs will be saved if this test fails. It makes sure the
+log config will save all logs from all sources, but keeps a copy
+of the old log config to restore after the test is finished.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/unit_test_helpers.rb', line 64</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_logged_test_setup'>logged_test_setup</span>
+  <span class='comment'># Make sure test failures will be saved at the end of the run.
+</span>  <span class='comment'># Delete stale test failures and logging only the *first* time this is called.
+</span>  <span class='id identifier rubyid_set_up_test_failures'>set_up_test_failures</span>
+
+  <span class='ivar'>@normal_log_config</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../../Shoes/Log.html" title="Shoes::Log (module)">Log</a></span></span><span class='period'>.</span><span class='id identifier rubyid_current_log_config'><span class='object_link'><a href="../../Shoes/Log.html#current_log_config-class_method" title="Shoes::Log.current_log_config (method)">current_log_config</a></span></span>
+  <span class='const'><span class='object_link'><a href="../../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../../Shoes/Log.html" title="Shoes::Log (module)">Log</a></span></span><span class='period'>.</span><span class='id identifier rubyid_configure_logger'><span class='object_link'><a href="../../Shoes/Log.html#configure_logger-class_method" title="Shoes::Log.configure_logger (method)">configure_logger</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_log_config_for_test'>log_config_for_test</span><span class='rparen'>)</span>
+
+  <span class='const'><span class='object_link'><a href="../../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../../Shoes/Log.html" title="Shoes::Log (module)">Log</a></span></span><span class='period'>.</span><span class='id identifier rubyid_logger'><span class='object_link'><a href="../../Shoes/Log.html#logger-class_method" title="Shoes::Log.logger (method)">logger</a></span></span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>LoggedTest</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_info'>info</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Test: </span><span class='embexpr_beg'>#{</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_name'>name</span><span class='embexpr_end'>}</span><span class='tstring_content'>#</span><span class='embexpr_beg'>#{</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_name'>name</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="logged_test_teardown-instance_method">
+  
+    #<strong>logged_test_teardown</strong>  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>After the test has finished, this will restore the old log configuration.
+It will also save the logfiles, but only if the test failed, not if it
+succeeded or was skipped.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/unit_test_helpers.rb', line 91</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_logged_test_teardown'>logged_test_teardown</span>
+  <span class='comment'># Restore previous log config
+</span>  <span class='const'><span class='object_link'><a href="../../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../../Shoes/Log.html" title="Shoes::Log (module)">Log</a></span></span><span class='period'>.</span><span class='id identifier rubyid_configure_logger'><span class='object_link'><a href="../../Shoes/Log.html#configure_logger-class_method" title="Shoes::Log.configure_logger (method)">configure_logger</a></span></span><span class='lparen'>(</span><span class='ivar'>@normal_log_config</span><span class='rparen'>)</span>
+
+  <span class='kw'>if</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_failure'>failure</span>
+    <span class='id identifier rubyid_save_failure_logs'>save_failure_logs</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_remove_unsaved_logs'>remove_unsaved_logs</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="remove_unsaved_logs-instance_method">
+  
+    #<strong>remove_unsaved_logs</strong>  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Remove unsaved failure logs. This is normally used internally, not externally.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+212
+213
+214
+215
+216
+217
+218</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/unit_test_helpers.rb', line 212</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_remove_unsaved_logs'>remove_unsaved_logs</span>
+  <span class='const'>Dir</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_logger_dir'>logger_dir</span><span class='embexpr_end'>}</span><span class='tstring_content'>/test_failure*.log</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_f'>f</span><span class='op'>|</span>
+    <span class='kw'>next</span> <span class='kw'>if</span> <span class='id identifier rubyid_f'>f</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>.out.log</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='comment'># Don&#39;t delete saved logs
+</span>
+    <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_unlink'>unlink</span><span class='lparen'>(</span><span class='id identifier rubyid_f'>f</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="save_failure_logs-instance_method">
+  
+    #<strong>save_failure_logs</strong>  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Save the failure logs in the appropriate place(s). This is normally used internally, not externally.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+199
+200
+201
+202
+203
+204
+205
+206
+207</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/unit_test_helpers.rb', line 199</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_save_failure_logs'>save_failure_logs</span>
+  <span class='id identifier rubyid_saved_log_files'>saved_log_files</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_log_file'>log_file</span><span class='op'>|</span>
+    <span class='id identifier rubyid_full_loc'>full_loc</span> <span class='op'>=</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_expand_path'>expand_path</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_logger_dir'>logger_dir</span><span class='embexpr_end'>}</span><span class='tstring_content'>/</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_log_file'>log_file</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+    <span class='comment'># TODO: we&#39;d like to skip 0-length logfiles. But also Logging doesn&#39;t flush. For now, ignore.
+</span>    <span class='kw'>next</span> <span class='kw'>unless</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_exist?'>exist?</span><span class='lparen'>(</span><span class='id identifier rubyid_full_loc'>full_loc</span><span class='rparen'>)</span>
+
+    <span class='const'>FileUtils</span><span class='period'>.</span><span class='id identifier rubyid_mv'>mv</span> <span class='id identifier rubyid_full_loc'>full_loc</span><span class='comma'>,</span> <span class='id identifier rubyid_logfail_out_loc'>logfail_out_loc</span><span class='lparen'>(</span><span class='id identifier rubyid_full_loc'>full_loc</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="saved_log_files-instance_method">
+  
+    #<strong>saved_log_files</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>The list of logfiles that should be saved. Normally this is called internally by the
+class, not externally from elsewhere.</p>
+
+<p>This could be a lot simpler except I want to only update the file list in one place,
+log_config_for_test(). Having a single spot should (I hope) make it a lot friendlier to
+add more logfiles for different components, logged API objects, etc.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+140
+141
+142
+143
+144</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/unit_test_helpers.rb', line 140</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_saved_log_files'>saved_log_files</span>
+  <span class='id identifier rubyid_lc'>lc</span> <span class='op'>=</span> <span class='id identifier rubyid_log_config_for_test'>log_config_for_test</span>
+  <span class='id identifier rubyid_log_outfiles'>log_outfiles</span> <span class='op'>=</span> <span class='id identifier rubyid_lc'>lc</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span><span class='period'>.</span><span class='id identifier rubyid_map'>map</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid__level'>_level</span><span class='comma'>,</span> <span class='id identifier rubyid_loc'>loc</span><span class='op'>|</span> <span class='id identifier rubyid_loc'>loc</span> <span class='rbrace'>}</span>
+  <span class='id identifier rubyid_log_outfiles'>log_outfiles</span><span class='period'>.</span><span class='id identifier rubyid_select'>select</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_s'>s</span><span class='op'>|</span> <span class='id identifier rubyid_s'>s</span><span class='period'>.</span><span class='id identifier rubyid_start_with?'>start_with?</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>logger/</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_map'>map</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_s'>s</span><span class='op'>|</span> <span class='id identifier rubyid_s'>s</span><span class='period'>.</span><span class='id identifier rubyid_delete_prefix'>delete_prefix</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>logger/</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='rbrace'>}</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="set_up_test_failures-instance_method">
+  
+    #<strong>set_up_test_failures</strong>  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Make sure that test failure logs will be noticed, and a message will be printed,
+if any logged tests fail. This needs to be called at least once in any Minitest-enabled
+process using logged tests.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../MustOverrideMethod.html" title="Scarpe::MustOverrideMethod (class)">Scarpe::MustOverrideMethod</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/unit_test_helpers.rb', line 151</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_set_up_test_failures'>set_up_test_failures</span>
+  <span class='kw'>return</span> <span class='kw'>if</span> <span class='const'><span class='object_link'><a href="../../top-level-namespace.html#ALREADY_SET_UP_LOGGED_TEST_FAILURES-constant" title="ALREADY_SET_UP_LOGGED_TEST_FAILURES (constant)">ALREADY_SET_UP_LOGGED_TEST_FAILURES</a></span></span><span class='lbracket'>[</span><span class='symbol'>:setup</span><span class='rbracket'>]</span>
+
+  <span class='id identifier rubyid_log_dir'>log_dir</span> <span class='op'>=</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='period'>.</span><span class='id identifier rubyid_logger_dir'>logger_dir</span>
+  <span class='id identifier rubyid_raise'>raise</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../MustOverrideMethod.html" title="Scarpe::MustOverrideMethod (class)">MustOverrideMethod</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Must set logger directory!</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='id identifier rubyid_log_dir'>log_dir</span>
+  <span class='id identifier rubyid_raise'>raise</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../NoSuchFile.html" title="Scarpe::NoSuchFile (class)">NoSuchFile</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Can&#39;t find logger directory!</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_directory?'>directory?</span><span class='lparen'>(</span><span class='id identifier rubyid_log_dir'>log_dir</span><span class='rparen'>)</span>
+
+  <span class='const'><span class='object_link'><a href="../../top-level-namespace.html#ALREADY_SET_UP_LOGGED_TEST_FAILURES-constant" title="ALREADY_SET_UP_LOGGED_TEST_FAILURES (constant)">ALREADY_SET_UP_LOGGED_TEST_FAILURES</a></span></span><span class='lbracket'>[</span><span class='symbol'>:setup</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='kw'>true</span>
+  <span class='comment'># Delete stale test failures, if any, before starting the first failure-logged test
+</span>  <span class='const'>Dir</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_log_dir'>log_dir</span><span class='embexpr_end'>}</span><span class='tstring_content'>/test_failure*.log</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_fn'>fn</span><span class='op'>|</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_unlink'>unlink</span><span class='lparen'>(</span><span class='id identifier rubyid_fn'>fn</span><span class='rparen'>)</span> <span class='rbrace'>}</span>
+
+  <span class='const'><span class='object_link'><a href="../../Minitest.html" title="Minitest (module)">Minitest</a></span></span><span class='period'>.</span><span class='id identifier rubyid_after_run'>after_run</span> <span class='kw'>do</span>
+    <span class='comment'># Print test failure notice to console
+</span>    <span class='kw'>unless</span> <span class='const'>Dir</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_log_dir'>log_dir</span><span class='embexpr_end'>}</span><span class='tstring_content'>/test_failure*.out.log</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+      <span class='id identifier rubyid_puts'>puts</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Some tests have failed! See </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_log_dir'>log_dir</span><span class='embexpr_end'>}</span><span class='tstring_content'>/test_failure*.out.log for test logs!</span><span class='tstring_end'>&quot;</span></span>
+    <span class='kw'>end</span>
+
+    <span class='comment'># Remove un-saved test logs
+</span>    <span class='const'>Dir</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_log_dir'>log_dir</span><span class='embexpr_end'>}</span><span class='tstring_content'>/test_failure*.log</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_f'>f</span><span class='op'>|</span>
+      <span class='kw'>next</span> <span class='kw'>if</span> <span class='id identifier rubyid_f'>f</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>.out.log</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+
+      <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_unlink'>unlink</span><span class='lparen'>(</span><span class='id identifier rubyid_f'>f</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_exist?'>exist?</span><span class='lparen'>(</span><span class='id identifier rubyid_f'>f</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="setup-instance_method">
+  
+    #<strong>setup</strong>  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>If you include this module and don&#39;t override setup/teardown, everything will
+work fine. But if you need more setup/teardown steps, you can do that too.</p>
+
+<p>The setup method guarantees that just including this module will do setup
+automatically. If you override it, be sure to call <code>super</code> or <code>logged_test_setup</code>.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+82
+83
+84</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/unit_test_helpers.rb', line 82</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_setup'>setup</span>
+  <span class='id identifier rubyid_logged_test_setup'>logged_test_setup</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="teardown-instance_method">
+  
+    #<strong>teardown</strong>  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Make sure that, by default, #logged_test_teardown will be called for teardown.
+If a class overrides teardown, it should also call <code>super</code> or <code>logged_test_teardown</code>
+to make sure this still happens.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+107
+108
+109</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/unit_test_helpers.rb', line 107</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_teardown'>teardown</span>
+  <span class='id identifier rubyid_logged_test_teardown'>logged_test_teardown</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Wed Oct  9 15:38:24 2024 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.28 (ruby-3.2.0).
+</div>
+
+    </div>
+  </body>
+</html>

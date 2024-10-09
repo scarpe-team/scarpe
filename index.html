@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  File: README
+  
+    &mdash; Documentation by YARD 0.9.28
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "README";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="_index.html">Index</a> &raquo; 
+    <span class="title">File: README</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="docpages_list_link"
+        href="docpages_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><div id='filecontents'><h1 id="scarpe">Scarpe</h1>
+
+<h2 id="scarpe-diem-seize-the-shoes"><em>Scarpe Diem: Seize the Shoes</em></h2>
+
+<p><img src="https://img.shields.io/github/actions/workflow/status/Schwad/scarpe/ci.yml?branch=main" alt="GitHub Workflow Status (with branch)">
+<a href="https://github.com/Shopify/ruby-style-guide"><img src="https://img.shields.io/badge/code_style-shopify-brightgreen.svg" alt="Ruby Style Guide"></a>
+<a href="https://discord.gg/Ca5EHSsGYp"><img src="https://img.shields.io/discord/1072538177321058377?label=discord" alt="Discord"></a></p>
+
+<p><img src="https://user-images.githubusercontent.com/7865030/217309905-7f25e3cf-1850-481d-811b-dfddea2df54a.png" width="200" height="200"></p>
+
+<p>&quot;Scarpe&quot; means shoes in Italian. &quot;Scarpe&quot; also means <a href="https://github.com/shoes/shoes-deprecated">Shoes</a> in modern Ruby and Webview!</p>
+
+<p>Scarpe isn&#39;t feature complete with any version of Shoes (yet?). We&#39;re initially targeting <a href="https://github.com/scarpe-team/scarpe/wiki/ShoesImplementations.md">Shoes 3</a>, also called &quot;Red Shoes.&quot;</p>
+
+<h2 id="wait-whats-a-shoes">Wait, What&#39;s A Shoes?</h2>
+
+<p>Shoes is an old library (really <a href="https://github.com/scarpe-team/scarpe/wiki/ShoesImplementations.md">several different ones</a>) that let you build little local desktop computer programs, package them up and give copies to people. Imagine if you can write a tiny little Ruby program (e.g. sneak a peek at the next section) and then it would make a runnable app, opening a window in Ruby, where you could click buttons and play sounds and stuff.</p>
+
+<p>Scarpe is a rewrite of Shoes, because old Shoes doesn&#39;t work any more. There have been a surprising number of rewrites of Shoes over the years -- people love it and miss having it around. This one is ours. By default it uses <a href="https://github.com/webview/webview">Webview</a>.</p>
+
+<h2 id="usage">Usage</h2>
+
+<p>Note: you&#39;ll probably want the <a href="#scarpe-in-development">Scarpe in Development</a> instructions below in most cases! Scarpe isn&#39;t ready for &quot;just install the released version&quot; production usage yet.</p>
+
+<p>Create an hello world application with:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='const'><span class='object_link'><a href="Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='period'>.</span><span class='id identifier rubyid_app'><span class='object_link'><a href="Shoes.html#app-class_method" title="Shoes.app (method)">app</a></span></span> <span class='kw'>do</span>
+  <span class='id identifier rubyid_para'>para</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Hello World</span><span class='tstring_end'>&quot;</span></span>
+<span class='kw'>end</span>
+</code></pre>
+
+<p><img width="480" alt="hello_world" src="https://user-images.githubusercontent.com/9624267/158565981-57240f72-fbaf-4b72-b66e-8c0d517a90d7.png"></p>
+
+<p>A bit more...</p>
+
+<pre class="code ruby"><code class="ruby"><span class='const'><span class='object_link'><a href="Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='period'>.</span><span class='id identifier rubyid_app'><span class='object_link'><a href="Shoes.html#app-class_method" title="Shoes.app (method)">app</a></span></span> <span class='kw'>do</span>
+  <span class='ivar'>@push</span> <span class='op'>=</span> <span class='id identifier rubyid_button'>button</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Push me</span><span class='tstring_end'>&quot;</span></span>
+  <span class='ivar'>@note</span> <span class='op'>=</span> <span class='id identifier rubyid_para'>para</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Nothing pushed so far</span><span class='tstring_end'>&quot;</span></span>
+  <span class='ivar'>@push</span><span class='period'>.</span><span class='id identifier rubyid_click'>click</span> <span class='lbrace'>{</span>
+    <span class='ivar'>@note</span><span class='period'>.</span><span class='id identifier rubyid_replace'>replace</span><span class='lparen'>(</span>
+      <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Aha! Click! </span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+      <span class='id identifier rubyid_link'>link</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Go back</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='ivar'>@note</span><span class='period'>.</span><span class='id identifier rubyid_replace'>replace</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Nothing pushed so far</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span>
+    <span class='rparen'>)</span>
+  <span class='rbrace'>}</span>
+<span class='kw'>end</span>
+</code></pre>
+
+<p><img width="480" alt="hello_world" src="https://user-images.githubusercontent.com/9624267/158566011-0372d0c7-fbeb-4ed6-a082-73908f04a0b6.gif"></p>
+
+<p>More examples can be found in the <a href="https://github.com/scarpe-team/scarpe/tree/main/examples"><code>examples</code> folder</a>!</p>
+
+<h2 id="wiki">Wiki</h2>
+
+<p>Explore more in the <a href="https://github.com/scarpe-team/scarpe/wiki">Scarpe Wiki</a> for in-depth documentation, tutorials, and additional resources. Whether you&#39;re a new user, a new contributor or an experienced user, the Wiki provides valuable information to enhance your Scarpe experience.</p>
+
+<h2 id="scarpe-in-development">Scarpe in Development</h2>
+
+<h3 id="quickstart">Quickstart</h3>
+
+<p>Scarpe requires <a href="https://www.ruby-lang.org/en/downloads/">Ruby 3.2</a> or higher! You can use <code>rvm</code>, <code>rbenv</code> or your favourite version control to install Ruby just like normal.</p>
+
+<p>This repo is where most of the action is happening right now, and to have the full Scarpe experience <em>today</em> this is probably what you want to do.</p>
+
+<pre class="code ruby"><code class="ruby"># dependencies - Mac version
+brew install portaudio pkg-config # for sound!
+# dependencies - Mac M1 version
+brew install portaudio &amp;&amp; bundle config build.bloops --with-portaudio-dir=$(brew --prefix portaudio)
+# dependencies - Ubuntu Linux version
+sudo apt install libgtk-3-dev libwebkit2gtk-4.0-dev portaudio19-dev
+
+for any other Linux or Windows please see the webview docs for your [platform](https://github.com/webview/webview#prerequisites)
+
+# get it
+git clone http://github.com/scarpe-team/scarpe
+cd scarpe; bundle install
+
+# run it
+./exe/scarpe examples/button.rb --dev
+</code></pre>
+
+<p>If you are using Visual Studio Code, you can use this <a href="https://github.com/gintama91/Scarpe-Vscode-Extension">extension</a>. This extension simplifies the process of executing commands by eliminating the need to repeatedly type lengthy file paths, resulting in a more efficient and productive development experience.</p>
+
+<h2 id="run-test">Run Test</h2>
+
+<p>To Run all availble tests run command </p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_bundle'>bundle</span> <span class='id identifier rubyid_exec'>exec</span> <span class='id identifier rubyid_rake'>rake</span> <span class='id identifier rubyid_ci_test'>ci_test</span>
+
+</code></pre>
+
+<h3 id="to-run-tests-separately">To Run Tests separately</h3>
+
+<p>Scarpe is composed of <a href="https://github.com/scarpe-team/scarpe/wiki/ShoesArchitecture.md">various sub-libraries</a>. You can run some tests separately.</p>
+
+<p>Run Lacci Tests:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_bundle'>bundle</span> <span class='id identifier rubyid_exec'>exec</span> <span class='id identifier rubyid_rake'>rake</span> <span class='id identifier rubyid_lacci_test'>lacci_test</span>
+
+</code></pre>
+
+<p>Run Scarpe-Components Tests:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_bundle'>bundle</span> <span class='id identifier rubyid_exec'>exec</span> <span class='id identifier rubyid_rake'>rake</span> <span class='id identifier rubyid_component_test'>component_test</span>
+</code></pre>
+
+<p>Run Scarpe Tests:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_bundle'>bundle</span> <span class='id identifier rubyid_exec'>exec</span> <span class='id identifier rubyid_rake'>rake</span> <span class='id identifier rubyid_test'>test</span>
+</code></pre>
+
+<p>Check HTML Output:</p>
+
+<pre class="code ruby"><code class="ruby"><span class='id identifier rubyid_bundle'>bundle</span> <span class='id identifier rubyid_exec'>exec</span> <span class='id identifier rubyid_rake'>rake</span> <span class='label'>test:</span><span class='id identifier rubyid_check_html_fixtures'>check_html_fixtures</span>
+</code></pre>
+
+<h3 id="finer-details">Finer Details</h3>
+
+<p>First, clone the <a href="https://github.com/scarpe-team/scarpe">main GitHub repository</a>.</p>
+
+<p><code>bundle install</code> dependencies like Webview from the cloned directory in your Ruby of choice.</p>
+
+<p>You can run without Scarpe being installed by including its directory. For instance, from the &quot;examples&quot; directory you can run <code>ruby -I../lib -I../lacci/lib -rscarpe hello_world.rb</code>. You can also install Scarpe locally (<code>gem build scarpe.gemspec &amp;&amp; gem install scarpe-0.1.0.gem</code>) or using a Gemfile with the &quot;path&quot; option for local Scarpe.</p>
+
+<p>Most commonly we are all using this command: <code>./exe/scarpe examples/button.rb --dev --debug</code></p>
+
+<p>The <code>--dev</code> flag points to your local Scarpe rather than an installed Scarpe gem.</p>
+
+<p>The <code>--debug</code> flag will dump a ton of useful information to the console if you want to see what&#39;s happening with your app.</p>
+
+<p>It&#39;s very early in Scarpe&#39;s development process. If you&#39;d like to help develop Scarpe, great! It would be useful to drop us a message/issue/PR on GitHub early on, so we know you&#39;re working in a particular area, and we can warn you if anybody else is currently doing so. We also have a Discord.</p>
+
+<p>We&#39;d love the help!</p>
+
+<p>If you want to quickly add a feature, you can use the <code>ruby scarpegen.rb</code> command. This command will generate the necessary files for you, along with a simple template and a set of questions to guide you through the process. By leveraging the <code>ruby scarpegen.rb</code> command and the provided resources, you can expedite the feature addition process and ensure a smoother development experience.</p>
+
+<h2 id="are-we-done-yet">Are We Done Yet?</h2>
+
+<p>Great question! Right now we have a few key things we want to achieve. The first is passing all of the examples we can get our hands on. The second is passing <a href="https://github.com/hacketyhack/hacketyhack">Hackety-Hack</a>. We&#39;re manually keeping tabs on that here.</p>
+
+<p>But the short version is: no, we&#39;re far from done. Some Shoes features (e.g. multiple window support) may be very difficult to support with Webview at all. We&#39;re working on other ways to handle those features.</p>
+
+<h3 id="examples-passing-with-the-webview-display-service">Examples Passing with the Webview Display Service</h3>
+
+<p><img src="https://geps.dev/progress/30?dangerColor=800000&warningColor=ff9900&successColor=006600" alt=""></p>
+
+<p><strong>92/304</strong></p>
+
+<h2 id="teach-me-more-about-shoes-the-dsl-what-it-is-and-why-it-is-amazing">Teach me more about Shoes, the DSL, what it is and why it is amazing</h2>
+
+<ol>
+<li><a href="https://github.com/whymirror/why-archive/raw/master/shoes/nobody-knows-shoes.pdf">Nobody Knows Shoes - _why&#39;s Manual</a></li>
+<li><a href="examples">Known examples</a></li>
+<li><a href="docs/static/manual.md">shoes-original manual</a></li>
+</ol>
+
+<h2 id="environment-variables">Environment Variables</h2>
+
+<p>Scarpe allows you to modify the app&#39;s behaviour outside of the normal Shoes API with environment variables.</p>
+
+<p>The SCARPE_DISPLAY_SERVICE environment variable allows you to choose one or more display services, from the default Webview service, to <a href="https://github.com/scarpe-team/scarpe-wasm">Scarpe-Wasm</a> to potentially other experimental or incomplete services. This may be important if you&#39;re developing a new display method for Scarpe. The display service variable will contain a name like &quot;wv_local&quot; or &quot;wv_remote&quot; or &quot;wasm_local&quot; which correspond to a require-able Ruby file under lib/scarpe, either in the Scarpe gem or another gem your app requires.</p>
+
+<p>Example usage:</p>
+
+<p><code>SCARPE_DISPLAY_SERVICE=wv_relay ./exe/scarpe examples/hello_world.rb</code></p>
+
+<p>The SCARPE_TEST_CONTROL environment variable can contain a path to a test-control-interface script for the Webview display service. If you look at test_helper, it gives some examples of how to use it.</p>
+
+<p>If you run ./exe/scarpe --dev env, you can see all current environment settings.</p>
+
+<h2 id="shoes-spec">Shoes-Spec</h2>
+
+<p>Pre-Scarpe Shoes didn&#39;t have specific test APIs or infrastructure. That was pretty standard for GUI libraries when it was written. Scarpe supports a test API called Shoes-Spec, and different display services tend to extend it.</p>
+
+<p>The idea is that you write a standard Shoes application and then there&#39;s additional test code that runs once your application is running. Since different display services run in very different ways (e.g. Webview vs Wasm vs GTK+), the test code isn&#39;t necessarily in the same Ruby process as the Shoes application.</p>
+
+<p>They&#39;re often packaged in .sspec files that look like this:</p>
+
+<pre class="code ruby"><code class="ruby">---
+----------- app code
+Shoes.app do
+  @b = button &quot;OK&quot; do
+    @b.text = &quot;Clicked&quot;
+  end
+end
+
+----------- test code
+assert_equal &quot;OK&quot;, button().text
+button().trigger_click
+assert_equal &quot;Clicked&quot;, button().text
+</code></pre>
+
+<p>See [<a href="https://github.com/scarpe-team/shoes-spec">https://github.com/scarpe-team/shoes-spec</a>] for more details.</p>
+
+<h2 id="more-info">More info</h2>
+
+<ul>
+<li><a href="https://github.com/whymirror/why-archive/raw/master/shoes/nobody-knows-shoes.pdf">Nobody Knows Shoes manual</a></li>
+<li><a href="https://github.com/shoes/shoes-deprecated">Original shoes (archived)</a>
+
+<ul>
+<li>For now we are aiming towards <em>original shoes</em>, but I believe later can learn from Shoes3.</li>
+<li><a href="https://github.com/shoes/shoes-deprecated/wiki">wiki</a></li>
+</ul></li>
+<li><a href="https://github.com/shoes/shoes3">shoes3</a>
+
+<ul>
+<li><a href="https://github.com/shoes/shoes3/wiki">wiki</a></li>
+<li><a href="https://web.archive.org/web/20190731215758/https://walkabout.mvmanila.com/">Blog covering shoes3 history</a></li>
+</ul></li>
+<li><a href="https://github.com/shoes/shoes4">shoes4 (JRuby, incomplete)</a></li>
+<li><a href="https://github.com/shoes/shoes-deprecated/blob/develop/lib/shoes.rb#L124-L176">Shoes&#39; native splash app</a></li>
+<li><a href="https://github.com/shoes/shoes-deprecated/tree/develop/samples">Original Shoes example directory</a></li>
+<li><a href="https://gist.github.com/search?l=Ruby&q=shoes.rb">Found shoes apps</a></li>
+<li><a href="https://github.com/whymirror/hacketyhack">HacketyHack</a></li>
+</ul>
+
+<h2 id="core-values">Core Values</h2>
+
+<ul>
+<li><strong>Resiliency</strong> - We want Scarpe to be tested and trustworthy to work consistently and predictably.</li>
+<li><strong>User Experience</strong> - Ruby and this DSL are beautiful for making desktop app authoring easy. We should uphold this standard.</li>
+<li><strong>Whimsy</strong> - We&#39;re not here to make money or be corporate. We&#39;re here to have fun! Even if we do end up building something amazing. Also, Chunky Bacon. 🥓</li>
+<li><strong>Empathy</strong> - Let&#39;s help one another, and adhere to good contributor standards while doing so.</li>
+</ul>
+
+<h2 id="logging">Logging</h2>
+
+<p>You can set SCARPE_LOG_CONFIG to an appropriate YAML file to set log levels per-component. You can find sample log configs under the logger directory. Scarpe has a number of component names that log data, set per-class. So you can set what components log at what sensitivity.</p>
+
+<pre class="code ruby"><code class="ruby"><span class='lbrace'>{</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>default</span><span class='label_end'>&quot;:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>warn</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Webview::WebWrangler</span><span class='label_end'>&quot;:</span> <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>logger/web_wrangler.log</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>debug</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+<span class='rbrace'>}</span>
+</code></pre>
+
+<h2 id="documentation">Documentation</h2>
+
+<p>Usually it&#39;s easiest to <a href="https://scarpe-team.github.io/scarpe/">just view the latest on GitHub</a>.</p>
+
+<p>But you can also built it yourself, locally, for testing or to take on the road.</p>
+
+<p>Scarpe uses <a href="https://yardoc.org/">YARD</a> for basic API documentation. You can run &quot;yard doc&quot; to generate documentation
+locally, and then view it with &quot;yard server&quot;. Point your browser at &quot;<a href="http://localhost:8808">http://localhost:8808</a>&quot; for local viewing.</p>
+
+<h2 id="contributing">Contributing</h2>
+
+<p>Bug reports and pull requests are welcome on GitHub at <a href="https://github.com/scarpe-team/scarpe">https://github.com/scarpe-team/scarpe</a>. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the <a href="https://github.com/scarpe-team/scarpe/blob/main/CODE_OF_CONDUCT.md">code of conduct</a> and <a href="https://github.com/scarpe-team/scarpe/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>.</p>
+
+<h2 id="license">License</h2>
+
+<p>The gem is available as open source under the terms of the <a href="https://opensource.org/licenses/MIT">MIT License</a>.</p>
+
+<h2 id="code-of-conduct">Code of Conduct</h2>
+
+<p>Everyone interacting in the Scarpe project&#39;s codebases, issue trackers, chat rooms and mailing lists is expected to follow the <a href="https://github.com/scarpe-team/scarpe/blob/main/CODE_OF_CONDUCT.md">code of conduct</a>.</p>
+</div></div>
+
+      <div id="footer">
+  Generated on Wed Oct  9 15:38:24 2024 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.28 (ruby-3.2.0).
+</div>
+
+    </div>
+  </body>
+</html>

@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: Scarpe::Promise
+  
+    &mdash; Documentation by YARD 0.9.28
+  
+</title>
+
+  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Scarpe::Promise";
+  relpath = '../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../_index.html">Index (P)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span>
+     &raquo; 
+    <span class="title">Promise</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="docpages_list_link"
+        href="../docpages_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: Scarpe::Promise
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">Scarpe::Promise</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  <dl>
+      <dt>Includes:</dt>
+      <dd><span class='object_link'><a href="../Shoes/Log.html" title="Shoes::Log (module)">Shoes::Log</a></span></dd>
+  </dl>
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>scarpe-components/lib/scarpe/components/promises.rb</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>Scarpe::Promise is a promises library, but one with no form of built-in
+concurrency. Instead, promise callbacks are executed synchronously.
+Even execution is usually synchronous, but can also be handled manually
+for forms of execution not controlled in Ruby (like Webview.)</p>
+
+<p>Funny thing... We need promises as an API concept since we have a JS event
+loop doing its thing, and we need to respond to actions that it takes.
+But there&#39;s not really a Ruby implementation of Promises <em>without</em> an
+attached form of concurrency. So here we are, writing our own :-/</p>
+
+<p>In theory you could probably write some kind of &quot;no-op thread pool&quot;
+for the ruby-concurrency gem, pass it manually to every promise we
+created and then raise an exception any time we tried to do something
+in the background. That&#39;s probably more code than writing our own, though,
+and we&#39;d be fighting it constantly.</p>
+
+<p>This class is inspired by concurrent-ruby <a href="https://ruby-concurrency.github.io/concurrent-ruby/1.1.5/Concurrent/Promise.html">Promise</a>
+which is inspired by Javascript Promises, which is what we actually need
+for our use case. We can&#39;t easily tell when our WebView begins processing
+our request, which removes the :processing state. This can be used for
+executing JS, but also generally waiting on events.</p>
+
+<p>We don&#39;t fully control ordering here, so it <em>is</em> conceivable that a
+child waiting on a parent can be randomly fulfilled, even if we didn&#39;t
+expect it. We don&#39;t consider that an error. Similarly, we&#39;ll call
+on_scheduled callbacks if a promise is fulfilled, even though we
+never explicitly scheduled it. If a promise is <em>rejected</em> without
+ever being scheduled, we won&#39;t call those callbacks.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="PROMISE_STATES-constant" class="">PROMISE_STATES =
+          <div class="docstring">
+  <div class="discussion">
+    <p>The unscheduled promise state means it&#39;s waiting on a parent promise that
+hasn&#39;t completed yet. The pending state means it&#39;s waiting to execute.
+Fulfilled means it has completed successfully and returned a value,
+while rejected means it has failed, normally producing a reason.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='lbracket'>[</span><span class='symbol'>:unscheduled</span><span class='comma'>,</span> <span class='symbol'>:pending</span><span class='comma'>,</span> <span class='symbol'>:fulfilled</span><span class='comma'>,</span> <span class='symbol'>:rejected</span><span class='rbracket'>]</span></pre></dd>
+      
+    </dl>
+  
+
+
+
+  
+  
+  <h3 class="inherited">Constants included
+     from <span class='object_link'><a href="../Shoes/Log.html" title="Shoes::Log (module)">Shoes::Log</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="../Shoes/Log.html#DEFAULT_COMPONENT-constant" title="Shoes::Log::DEFAULT_COMPONENT (constant)">Shoes::Log::DEFAULT_COMPONENT</a></span>, <span class='object_link'><a href="../Shoes/Log.html#DEFAULT_DEBUG_LOG_CONFIG-constant" title="Shoes::Log::DEFAULT_DEBUG_LOG_CONFIG (constant)">Shoes::Log::DEFAULT_DEBUG_LOG_CONFIG</a></span>, <span class='object_link'><a href="../Shoes/Log.html#DEFAULT_LOG_CONFIG-constant" title="Shoes::Log::DEFAULT_LOG_CONFIG (constant)">Shoes::Log::DEFAULT_LOG_CONFIG</a></span></p>
+
+
+  <h2>Instance Attribute Summary <small><a href="#" class="summary_toggle">collapse</a></small></h2>
+  <ul class="summary">
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#parents-instance_method" title="#parents (instance method)">#<strong>parents</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>The parent promises of this promise, sometimes an empty array.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#reason-instance_method" title="#reason (instance method)">#<strong>reason</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>If the promise is rejected, this is the reason, sometimes an exception.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#returned_value-instance_method" title="#returned_value (instance method)">#<strong>returned_value</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>If the promise is fulfilled, this is the value returned.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#state-instance_method" title="#state (instance method)">#<strong>state</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>The state of the promise, which should be one of PROMISE_STATES.</p>
+</div></span>
+  
+</li>
+
+    
+  </ul>
+
+
+
+
+  
+    <h2>
+      Class Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#fulfilled-class_method" title="fulfilled (class method)">.<strong>fulfilled</strong>(return_val = nil, parents: [], &amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Create a promise and then instantly fulfill it.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#rejected-class_method" title="rejected (class method)">.<strong>rejected</strong>(reason = nil, parents: [])  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Create a promise and then instantly reject it.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#complete%3F-instance_method" title="#complete? (instance method)">#<strong>complete?</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Return true if the Promise is either fulfilled or rejected.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#fulfilled!-instance_method" title="#fulfilled! (instance method)">#<strong>fulfilled!</strong>(value = nil)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Fulfill the promise, setting the returned_value to value.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#fulfilled%3F-instance_method" title="#fulfilled? (instance method)">#<strong>fulfilled?</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Return true if the promise is already fulfilled.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(state: nil, parents: []) { ... } &#x21d2; Promise </a>
+    
+
+    
+  </span>
+  
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>The Promise.new method, along with all the various handlers, are pretty raw.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#inspect-instance_method" title="#inspect (instance method)">#<strong>inspect</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>An inspect method to give slightly smaller output, for ease of reading in irb.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#on_fulfilled-instance_method" title="#on_fulfilled (instance method)">#<strong>on_fulfilled</strong> { ... } &#x21d2; Scarpe::Promise </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Register a handler to be called when the promise is fulfilled.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#on_rejected-instance_method" title="#on_rejected (instance method)">#<strong>on_rejected</strong> { ... } &#x21d2; Scarpe::Promise </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Register a handler to be called when the promise is rejected.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#on_scheduled-instance_method" title="#on_scheduled (instance method)">#<strong>on_scheduled</strong> { ... } &#x21d2; Scarpe::Promise </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Register a handler to be called when the promise is scheduled.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#rejected!-instance_method" title="#rejected! (instance method)">#<strong>rejected!</strong>(reason = nil)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Reject the promise, setting the reason to reason.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#rejected%3F-instance_method" title="#rejected? (instance method)">#<strong>rejected?</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Return true if the promise is already rejected.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#then-instance_method" title="#then (instance method)">#<strong>then</strong>(&amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Create a new promise with this promise as a parent.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#to_execute-instance_method" title="#to_execute (instance method)">#<strong>to_execute</strong>(&amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>These promises are mostly designed for external execution.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods included from <span class='object_link'><a href="../Shoes/Log.html" title="Shoes::Log (module)">Shoes::Log</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="../Shoes/Log.html#configure_logger-class_method" title="Shoes::Log.configure_logger (method)">configure_logger</a></span>, <span class='object_link'><a href="../Shoes/Log.html#log_init-instance_method" title="Shoes::Log#log_init (method)">#log_init</a></span>, <span class='object_link'><a href="../Shoes/Log.html#logger-class_method" title="Shoes::Log.logger (method)">logger</a></span></p>
+<div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <h3 class="signature first" id="initialize-instance_method">
+  
+    #<strong>initialize</strong>(state: nil, parents: []) { ... } &#x21d2; <tt><span class='object_link'><a href="" title="Scarpe::Promise (class)">Promise</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>The Promise.new method, along with all the various handlers,
+are pretty raw. They&#39;ll do what promises do, but they&#39;re not
+the prettiest. However, they ensure that guarantees are made
+and so on, so they&#39;re great as plumbing under the syntactic
+sugar above.</p>
+
+<p>Note that the state passed in may not be the actual initial
+state. If a parent is rejected, the state will become
+rejected. If no parents are waiting or failed then a state
+of nil or :unscheduled will become :pending.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>state</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>One of PROMISE_STATES for the initial state</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>parents</span>
+      
+      
+        <span class='type'>(<tt>Array</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>[]</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>A list of promises that must be fulfilled before this one is scheduled</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Yields:</p>
+<ul class="yield">
+  
+    <li>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        
+        <div class='inline'><p>A block that executes when this promise is scheduled - when its parents, if any, are all fulfilled</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 99</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='label'>state:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>parents:</span> <span class='lbracket'>[</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_scheduler'>scheduler</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_log_init'>log_init</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Promise</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+
+  <span class='comment'># These are as initially specified, and effectively immutable
+</span>  <span class='ivar'>@state</span> <span class='op'>=</span> <span class='id identifier rubyid_state'>state</span>
+  <span class='ivar'>@parents</span> <span class='op'>=</span> <span class='id identifier rubyid_parents'>parents</span>
+
+  <span class='comment'># These are what we&#39;re waiting on, and will be
+</span>  <span class='comment'># removed as time goes forward.
+</span>  <span class='ivar'>@waiting_on</span> <span class='op'>=</span> <span class='id identifier rubyid_parents'>parents</span><span class='period'>.</span><span class='id identifier rubyid_select'>select</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_p'>p</span><span class='op'>|</span> <span class='op'>!</span><span class='id identifier rubyid_p'>p</span><span class='period'>.</span><span class='id identifier rubyid_complete?'>complete?</span> <span class='rbrace'>}</span>
+  <span class='ivar'>@on_fulfilled</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+  <span class='ivar'>@on_rejected</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+  <span class='ivar'>@on_scheduled</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+  <span class='ivar'>@scheduler</span> <span class='op'>=</span> <span class='id identifier rubyid_scheduler'>scheduler</span>
+  <span class='ivar'>@executor</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='ivar'>@returned_value</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='ivar'>@reason</span> <span class='op'>=</span> <span class='kw'>nil</span>
+
+  <span class='kw'>if</span> <span class='id identifier rubyid_complete?'>complete?</span>
+    <span class='comment'># Did we start out already fulfilled or rejected?
+</span>    <span class='comment'># If so, we can skip a lot of fiddly checking.
+</span>    <span class='comment'># Don&#39;t need a scheduler or to care about parents
+</span>    <span class='comment'># or anything.
+</span>    <span class='ivar'>@waiting_on</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+    <span class='ivar'>@scheduler</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='kw'>elsif</span> <span class='ivar'>@parents</span><span class='period'>.</span><span class='id identifier rubyid_any?'>any?</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_p'>p</span><span class='op'>|</span> <span class='id identifier rubyid_p'>p</span><span class='period'>.</span><span class='id identifier rubyid_state'>state</span> <span class='op'>==</span> <span class='symbol'>:rejected</span> <span class='rbrace'>}</span>
+    <span class='ivar'>@state</span> <span class='op'>=</span> <span class='symbol'>:rejected</span>
+    <span class='ivar'>@waiting_on</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+    <span class='ivar'>@scheduler</span> <span class='op'>=</span>  <span class='kw'>nil</span>
+  <span class='kw'>elsif</span> <span class='ivar'>@state</span> <span class='op'>==</span> <span class='symbol'>:pending</span>
+    <span class='comment'># Did we get an explicit :pending? Then we don&#39;t need
+</span>    <span class='comment'># to schedule ourselves, or care about the scheduler
+</span>    <span class='comment'># in general.
+</span>    <span class='ivar'>@scheduler</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='kw'>elsif</span> <span class='ivar'>@state</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>||</span> <span class='ivar'>@state</span> <span class='op'>==</span> <span class='symbol'>:unscheduled</span>
+    <span class='comment'># If no state was given or we&#39;re unscheduled, we&#39;ll
+</span>    <span class='comment'># wait until our parents have all completed to
+</span>    <span class='comment'># schedule ourselves.
+</span>
+    <span class='kw'>if</span> <span class='ivar'>@waiting_on</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+      <span class='comment'># No further dependencies, we can schedule ourselves
+</span>      <span class='ivar'>@state</span> <span class='op'>=</span> <span class='symbol'>:pending</span>
+
+      <span class='comment'># We have no on_scheduled handlers yet, but this will
+</span>      <span class='comment'># call and clear the scheduler.
+</span>      <span class='id identifier rubyid_call_handlers_for'>call_handlers_for</span><span class='lparen'>(</span><span class='symbol'>:pending</span><span class='rparen'>)</span>
+    <span class='kw'>else</span>
+      <span class='comment'># We&#39;re still waiting on somebody, no scheduling yet
+</span>      <span class='ivar'>@state</span> <span class='op'>=</span> <span class='symbol'>:unscheduled</span>
+      <span class='ivar'>@waiting_on</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_dep'>dep</span><span class='op'>|</span>
+        <span class='id identifier rubyid_dep'>dep</span><span class='period'>.</span><span class='id identifier rubyid_on_fulfilled'>on_fulfilled</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_parent_fulfilled!'>parent_fulfilled!</span><span class='lparen'>(</span><span class='id identifier rubyid_dep'>dep</span><span class='rparen'>)</span> <span class='rbrace'>}</span>
+        <span class='id identifier rubyid_dep'>dep</span><span class='period'>.</span><span class='id identifier rubyid_on_rejected'>on_rejected</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_parent_rejected!'>parent_rejected!</span><span class='lparen'>(</span><span class='id identifier rubyid_dep'>dep</span><span class='rparen'>)</span> <span class='rbrace'>}</span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+  <div id="instance_attr_details" class="attr_details">
+    <h2>Instance Attribute Details</h2>
+    
+      
+      <span id=""></span>
+      <div class="method_details first">
+  <h3 class="signature first" id="parents-instance_method">
+  
+    #<strong>parents</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>The parent promises of this promise, sometimes an empty array</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+47
+48
+49</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 47</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_parents'>parents</span>
+  <span class='ivar'>@parents</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="reason-instance_method">
+  
+    #<strong>reason</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>If the promise is rejected, this is the reason, sometimes an exception</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+53
+54
+55</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 53</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_reason'>reason</span>
+  <span class='ivar'>@reason</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="returned_value-instance_method">
+  
+    #<strong>returned_value</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>If the promise is fulfilled, this is the value returned</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+50
+51
+52</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 50</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_returned_value'>returned_value</span>
+  <span class='ivar'>@returned_value</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="state-instance_method">
+  
+    #<strong>state</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>The state of the promise, which should be one of PROMISE_STATES</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+44
+45
+46</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 44</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_state'>state</span>
+  <span class='ivar'>@state</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+
+  <div id="class_method_details" class="method_details_list">
+    <h2>Class Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="fulfilled-class_method">
+  
+    .<strong>fulfilled</strong>(return_val = nil, parents: [], &amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Create a promise and then instantly fulfill it.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+56
+57
+58
+59
+60</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 56</span>
+
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_fulfilled'>fulfilled</span><span class='lparen'>(</span><span class='id identifier rubyid_return_val'>return_val</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>parents:</span> <span class='lbracket'>[</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_p'>p</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="" title="Scarpe::Promise (class)">Promise</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="#initialize-instance_method" title="Scarpe::Promise#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='label'>parents:</span> <span class='id identifier rubyid_parents'>parents</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_p'>p</span><span class='period'>.</span><span class='id identifier rubyid_fulfilled!'>fulfilled!</span><span class='lparen'>(</span><span class='id identifier rubyid_return_val'>return_val</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_p'>p</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="rejected-class_method">
+  
+    .<strong>rejected</strong>(reason = nil, parents: [])  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Create a promise and then instantly reject it.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+63
+64
+65
+66
+67</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 63</span>
+
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_rejected'>rejected</span><span class='lparen'>(</span><span class='id identifier rubyid_reason'>reason</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>parents:</span> <span class='lbracket'>[</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_p'>p</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="" title="Scarpe::Promise (class)">Promise</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="#initialize-instance_method" title="Scarpe::Promise#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='label'>parents:</span> <span class='id identifier rubyid_parents'>parents</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_p'>p</span><span class='period'>.</span><span class='id identifier rubyid_rejected!'>rejected!</span><span class='lparen'>(</span><span class='id identifier rubyid_reason'>reason</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_p'>p</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="complete?-instance_method">
+  
+    #<strong>complete?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Return true if the Promise is either fulfilled or rejected.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true if the promise is fulfilled or rejected</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+159
+160
+161</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 159</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_complete?'>complete?</span>
+  <span class='ivar'>@state</span> <span class='op'>==</span> <span class='symbol'>:fulfilled</span> <span class='op'>||</span> <span class='ivar'>@state</span> <span class='op'>==</span> <span class='symbol'>:rejected</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="fulfilled!-instance_method">
+  
+    #<strong>fulfilled!</strong>(value = nil)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Fulfill the promise, setting the returned_value to value</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+70
+71
+72</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 70</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_fulfilled!'>fulfilled!</span><span class='lparen'>(</span><span class='id identifier rubyid_value'>value</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_set_state'>set_state</span><span class='lparen'>(</span><span class='symbol'>:fulfilled</span><span class='comma'>,</span> <span class='id identifier rubyid_value'>value</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="fulfilled?-instance_method">
+  
+    #<strong>fulfilled?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Return true if the promise is already fulfilled.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true if the promise is fulfilled</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+166
+167
+168</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 166</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_fulfilled?'>fulfilled?</span>
+  <span class='ivar'>@state</span> <span class='op'>==</span> <span class='symbol'>:fulfilled</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="inspect-instance_method">
+  
+    #<strong>inspect</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>An inspect method to give slightly smaller output, for ease of reading in irb</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+178
+179
+180
+181
+182
+183
+184
+185
+186</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 178</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_inspect'>inspect</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>#&lt;Scarpe::Promise:</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_object_id'>object_id</span><span class='embexpr_end'>}</span><span class='tstring_content'> </span><span class='tstring_end'>&quot;</span></span> <span class='op'>+</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>@state=</span><span class='embexpr_beg'>#{</span><span class='ivar'>@state</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'> @parents=</span><span class='embexpr_beg'>#{</span><span class='ivar'>@parents</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'> </span><span class='tstring_end'>&quot;</span></span> <span class='op'>+</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>@waiting_on=</span><span class='embexpr_beg'>#{</span><span class='ivar'>@waiting_on</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'> @on_fulfilled=</span><span class='embexpr_beg'>#{</span><span class='ivar'>@on_fulfilled</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span><span class='embexpr_end'>}</span><span class='tstring_content'> </span><span class='tstring_end'>&quot;</span></span> <span class='op'>+</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>@on_rejected=</span><span class='embexpr_beg'>#{</span><span class='ivar'>@on_rejected</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span><span class='embexpr_end'>}</span><span class='tstring_content'> @on_scheduled=</span><span class='embexpr_beg'>#{</span><span class='ivar'>@on_scheduled</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span><span class='embexpr_end'>}</span><span class='tstring_content'> </span><span class='tstring_end'>&quot;</span></span> <span class='op'>+</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>@scheduler=</span><span class='embexpr_beg'>#{</span><span class='ivar'>@scheduler</span> <span class='op'>?</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Y</span><span class='tstring_end'>&quot;</span></span> <span class='op'>:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>N</span><span class='tstring_end'>&quot;</span></span><span class='embexpr_end'>}</span><span class='tstring_content'> @executor=</span><span class='embexpr_beg'>#{</span><span class='ivar'>@executor</span> <span class='op'>?</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Y</span><span class='tstring_end'>&quot;</span></span> <span class='op'>:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>N</span><span class='tstring_end'>&quot;</span></span><span class='embexpr_end'>}</span><span class='tstring_content'> </span><span class='tstring_end'>&quot;</span></span> <span class='op'>+</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>@returned_value=</span><span class='embexpr_beg'>#{</span><span class='ivar'>@returned_value</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'> @reason=</span><span class='embexpr_beg'>#{</span><span class='ivar'>@reason</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span> <span class='op'>+</span>
+    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>&gt;</span><span class='tstring_end'>&quot;</span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="on_fulfilled-instance_method">
+  
+    #<strong>on_fulfilled</strong> { ... } &#x21d2; <tt><span class='object_link'><a href="" title="Scarpe::Promise (class)">Scarpe::Promise</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Register a handler to be called when the promise is fulfilled.
+If called on a fulfilled promise, the handler will be called immediately.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Yields:</p>
+<ul class="yield">
+  
+    <li>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        
+        <div class='inline'><p>Handler to be called on fulfilled</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Scarpe::Promise (class)">Scarpe::Promise</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>self</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+390
+391
+392
+393
+394
+395
+396
+397
+398
+399
+400
+401
+402
+403
+404
+405</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 390</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_on_fulfilled'>on_fulfilled</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_handler'>handler</span><span class='rparen'>)</span>
+  <span class='kw'>unless</span> <span class='id identifier rubyid_handler'>handler</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../Shoes/Errors.html" title="Shoes::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../Shoes/Errors/InvalidAttributeValueError.html" title="Shoes::Errors::InvalidAttributeValueError (class)">InvalidAttributeValueError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>You must pass a block to on_fulfilled!</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='kw'>case</span> <span class='ivar'>@state</span>
+  <span class='kw'>when</span> <span class='symbol'>:fulfilled</span>
+    <span class='id identifier rubyid_handler'>handler</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='op'>*</span><span class='ivar'>@parents</span><span class='period'>.</span><span class='id identifier rubyid_map'>map</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:returned_value</span><span class='rparen'>)</span><span class='rparen'>)</span>
+  <span class='kw'>when</span> <span class='symbol'>:pending</span><span class='comma'>,</span> <span class='symbol'>:unscheduled</span>
+    <span class='ivar'>@on_fulfilled</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_handler'>handler</span>
+  <span class='kw'>when</span> <span class='symbol'>:rejected</span>
+    <span class='comment'># Do nothing
+</span>  <span class='kw'>end</span>
+
+  <span class='kw'>self</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="on_rejected-instance_method">
+  
+    #<strong>on_rejected</strong> { ... } &#x21d2; <tt><span class='object_link'><a href="" title="Scarpe::Promise (class)">Scarpe::Promise</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Register a handler to be called when the promise is rejected.
+If called on a rejected promise, the handler will be called immediately.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Yields:</p>
+<ul class="yield">
+  
+    <li>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        
+        <div class='inline'><p>Handler to be called on rejected</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Scarpe::Promise (class)">Scarpe::Promise</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>self</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+412
+413
+414
+415
+416
+417
+418
+419
+420
+421
+422
+423
+424
+425
+426
+427</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 412</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_on_rejected'>on_rejected</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_handler'>handler</span><span class='rparen'>)</span>
+  <span class='kw'>unless</span> <span class='id identifier rubyid_handler'>handler</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../Shoes/Errors.html" title="Shoes::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../Shoes/Errors/InvalidAttributeValueError.html" title="Shoes::Errors::InvalidAttributeValueError (class)">InvalidAttributeValueError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>You must pass a block to on_rejected!</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='kw'>case</span> <span class='ivar'>@state</span>
+  <span class='kw'>when</span> <span class='symbol'>:rejected</span>
+    <span class='id identifier rubyid_handler'>handler</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='op'>*</span><span class='ivar'>@parents</span><span class='period'>.</span><span class='id identifier rubyid_map'>map</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:returned_value</span><span class='rparen'>)</span><span class='rparen'>)</span>
+  <span class='kw'>when</span> <span class='symbol'>:pending</span><span class='comma'>,</span> <span class='symbol'>:unscheduled</span>
+    <span class='ivar'>@on_rejected</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_handler'>handler</span>
+  <span class='kw'>when</span> <span class='symbol'>:fulfilled</span>
+    <span class='comment'># Do nothing
+</span>  <span class='kw'>end</span>
+
+  <span class='kw'>self</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="on_scheduled-instance_method">
+  
+    #<strong>on_scheduled</strong> { ... } &#x21d2; <tt><span class='object_link'><a href="" title="Scarpe::Promise (class)">Scarpe::Promise</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Register a handler to be called when the promise is scheduled.
+If called on a promise that was scheduled earlier, the handler
+will be called immediately.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Yields:</p>
+<ul class="yield">
+  
+    <li>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        
+        <div class='inline'><p>Handler to be called on scheduled</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="" title="Scarpe::Promise (class)">Scarpe::Promise</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>self</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+435
+436
+437
+438
+439
+440
+441
+442
+443
+444
+445
+446
+447
+448
+449
+450
+451</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 435</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_on_scheduled'>on_scheduled</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_handler'>handler</span><span class='rparen'>)</span>
+  <span class='kw'>unless</span> <span class='id identifier rubyid_handler'>handler</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../Shoes/Errors.html" title="Shoes::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../Shoes/Errors/InvalidAttributeValueError.html" title="Shoes::Errors::InvalidAttributeValueError (class)">InvalidAttributeValueError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>You must pass a block to on_scheduled!</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='comment'># Add a pending handler or call it now
+</span>  <span class='kw'>case</span> <span class='ivar'>@state</span>
+  <span class='kw'>when</span> <span class='symbol'>:fulfilled</span><span class='comma'>,</span> <span class='symbol'>:pending</span>
+    <span class='id identifier rubyid_handler'>handler</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='op'>*</span><span class='ivar'>@parents</span><span class='period'>.</span><span class='id identifier rubyid_map'>map</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:returned_value</span><span class='rparen'>)</span><span class='rparen'>)</span>
+  <span class='kw'>when</span> <span class='symbol'>:unscheduled</span>
+    <span class='ivar'>@on_scheduled</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_handler'>handler</span>
+  <span class='kw'>when</span> <span class='symbol'>:rejected</span>
+    <span class='comment'># Do nothing
+</span>  <span class='kw'>end</span>
+
+  <span class='kw'>self</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="rejected!-instance_method">
+  
+    #<strong>rejected!</strong>(reason = nil)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Reject the promise, setting the reason to reason</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+75
+76
+77</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 75</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_rejected!'>rejected!</span><span class='lparen'>(</span><span class='id identifier rubyid_reason'>reason</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_set_state'>set_state</span><span class='lparen'>(</span><span class='symbol'>:rejected</span><span class='comma'>,</span> <span class='id identifier rubyid_reason'>reason</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="rejected?-instance_method">
+  
+    #<strong>rejected?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Return true if the promise is already rejected.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true if the promise is rejected</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+173
+174
+175</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 173</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_rejected?'>rejected?</span>
+  <span class='ivar'>@state</span> <span class='op'>==</span> <span class='symbol'>:rejected</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="then-instance_method">
+  
+    #<strong>then</strong>(&amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Create a new promise with this promise as a parent. It runs the
+specified code in block when scheduled.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+81
+82
+83</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 81</span>
+
+<span class='kw'>def</span> <span class='kw'>then</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="" title="Scarpe::Promise (class)">Promise</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="#initialize-instance_method" title="Scarpe::Promise#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='label'>parents:</span> <span class='lbracket'>[</span><span class='kw'>self</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="to_execute-instance_method">
+  
+    #<strong>to_execute</strong>(&amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>These promises are mostly designed for external execution.
+You could put together your own thread-pool, or use RPC,
+a WebView, a database or similar source of external calculation.
+But in many cases it&#39;s reasonable to execute locally.
+In those cases, you can register an executor which will be
+called when the promise is ready to execute but has not yet
+done so. Registering an executor on a promise that is
+already fulfilled is an error. Registering an executor on
+a promise that has already rejected is a no-op.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'scarpe-components/lib/scarpe/components/promises.rb', line 197</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_to_execute'>to_execute</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='kw'>case</span> <span class='ivar'>@state</span>
+  <span class='kw'>when</span> <span class='symbol'>:fulfilled</span>
+    <span class='comment'># Should this be a no-op instead?
+</span>    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="NoOperationError.html" title="Scarpe::NoOperationError (class)">NoOperationError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Registering an executor on an already fulfilled promise means it will never run!</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>when</span> <span class='symbol'>:rejected</span>
+    <span class='kw'>return</span>
+  <span class='kw'>when</span> <span class='symbol'>:unscheduled</span>
+    <span class='ivar'>@executor</span> <span class='op'>=</span> <span class='id identifier rubyid_block'>block</span> <span class='comment'># save for later
+</span>  <span class='kw'>when</span> <span class='symbol'>:pending</span>
+    <span class='ivar'>@executor</span> <span class='op'>=</span> <span class='id identifier rubyid_block'>block</span>
+    <span class='id identifier rubyid_call_executor'>call_executor</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="InternalError.html" title="Scarpe::InternalError (class)">InternalError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Internal error, illegal state!</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='kw'>self</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Wed Oct  9 15:38:27 2024 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.28 (ruby-3.2.0).
+</div>
+
+    </div>
+  </body>
+</html>

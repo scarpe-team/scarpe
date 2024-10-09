@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: Scarpe::Webview::WebWrangler::DOMWrangler
+  
+    &mdash; Documentation by YARD 0.9.28
+  
+</title>
+
+  <link rel="stylesheet" href="../../../css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="../../../css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Scarpe::Webview::WebWrangler::DOMWrangler";
+  relpath = '../../../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../../../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../../../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="../../../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../../../_index.html">Index (D)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../../Webview.html" title="Scarpe::Webview (module)">Webview</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../WebWrangler.html" title="Scarpe::Webview::WebWrangler (class)">WebWrangler</a></span></span>
+     &raquo; 
+    <span class="title">DOMWrangler</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="docpages_list_link"
+        href="../../../docpages_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: Scarpe::Webview::WebWrangler::DOMWrangler
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">Scarpe::Webview::WebWrangler::DOMWrangler</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  <dl>
+      <dt>Includes:</dt>
+      <dd><span class='object_link'><a href="../../../Shoes/Log.html" title="Shoes::Log (module)">Shoes::Log</a></span></dd>
+  </dl>
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/scarpe/wv/web_wrangler.rb</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>Leaving DOM changes as &quot;meh, async, we&#39;ll see when it happens&quot; is terrible for testing.
+Instead, we need to track whether particular changes have committed yet or not.
+So we add a single gateway for all DOM changes, and we make sure its work is done
+before we consider a redraw complete.</p>
+
+<p>DOMWrangler batches up changes into fewer RPC calls. It&#39;s fine to have a redraw
+&quot;in flight&quot; and have changes waiting to catch the next bus. But we don&#39;t want more
+than one in flight, since it seems like having too many pending RPC requests can
+crash Webview. So we allow one redraw scheduled and one redraw promise waiting,
+at maximum.</p>
+
+<p>A WebWrangler will create and wrap a DOMWrangler, serving as the interface
+for all DOM operations.</p>
+
+<p>A batch of DOMWrangler changes may be removed if a full update is scheduled. That
+update is considered to replace the previous incremental changes. Any changes that
+need to execute even if a full update happens should be scheduled through
+WebWrangler#eval_js_async, not DOMWrangler.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+
+
+  <h2>Constant Summary</h2>
+  
+  <h3 class="inherited">Constants included
+     from <span class='object_link'><a href="../../../Shoes/Log.html" title="Shoes::Log (module)">Shoes::Log</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="../../../Shoes/Log.html#DEFAULT_COMPONENT-constant" title="Shoes::Log::DEFAULT_COMPONENT (constant)">Shoes::Log::DEFAULT_COMPONENT</a></span>, <span class='object_link'><a href="../../../Shoes/Log.html#DEFAULT_DEBUG_LOG_CONFIG-constant" title="Shoes::Log::DEFAULT_DEBUG_LOG_CONFIG (constant)">Shoes::Log::DEFAULT_DEBUG_LOG_CONFIG</a></span>, <span class='object_link'><a href="../../../Shoes/Log.html#DEFAULT_LOG_CONFIG-constant" title="Shoes::Log::DEFAULT_LOG_CONFIG (constant)">Shoes::Log::DEFAULT_LOG_CONFIG</a></span></p>
+
+
+  <h2>Instance Attribute Summary <small><a href="#" class="summary_toggle">collapse</a></small></h2>
+  <ul class="summary">
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#pending_redraw_promise-instance_method" title="#pending_redraw_promise (instance method)">#<strong>pending_redraw_promise</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>A Scarpe::Promise for JS that has been scheduled to execute but is not yet verified complete.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#waiting_changes-instance_method" title="#waiting_changes (instance method)">#<strong>waiting_changes</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Changes that have not yet been executed.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#waiting_redraw_promise-instance_method" title="#waiting_redraw_promise (instance method)">#<strong>waiting_redraw_promise</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>A Scarpe::Promise for waiting changes - it will be fulfilled when all waiting changes have been verified complete, or when a full redraw that removed them has been verified complete.</p>
+</div></span>
+  
+</li>
+
+    
+  </ul>
+
+
+
+
+  
+    <h2>
+      Class Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#replacement_code-class_method" title="replacement_code (class method)">.<strong>replacement_code</strong>(html_text)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+    </ul>
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#fully_updated%3F-instance_method" title="#fully_updated? (instance method)">#<strong>fully_updated?</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(web_wrangler)  &#x21d2; DOMWrangler </a>
+    
+
+    
+  </span>
+  
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Create a DOMWrangler that is paired with a WebWrangler.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#on_every_redraw-instance_method" title="#on_every_redraw (instance method)">#<strong>on_every_redraw</strong>(&amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#promise_fully_updated-instance_method" title="#promise_fully_updated (instance method)">#<strong>promise_fully_updated</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Return a promise which will be fulfilled when the DOM is fully up-to-date.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#promise_redraw-instance_method" title="#promise_redraw (instance method)">#<strong>promise_redraw</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>promise_redraw returns a Scarpe::Promise which will be fulfilled after all current pending or waiting changes have completed.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#request_change-instance_method" title="#request_change (instance method)">#<strong>request_change</strong>(js_code)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#request_replace-instance_method" title="#request_replace (instance method)">#<strong>request_replace</strong>(html_text)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods included from <span class='object_link'><a href="../../../Shoes/Log.html" title="Shoes::Log (module)">Shoes::Log</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="../../../Shoes/Log.html#configure_logger-class_method" title="Shoes::Log.configure_logger (method)">configure_logger</a></span>, <span class='object_link'><a href="../../../Shoes/Log.html#log_init-instance_method" title="Shoes::Log#log_init (method)">#log_init</a></span>, <span class='object_link'><a href="../../../Shoes/Log.html#logger-class_method" title="Shoes::Log.logger (method)">logger</a></span></p>
+<div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <h3 class="signature first" id="initialize-instance_method">
+  
+    #<strong>initialize</strong>(web_wrangler)  &#x21d2; <tt><span class='object_link'><a href="" title="Scarpe::Webview::WebWrangler::DOMWrangler (class)">DOMWrangler</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Create a DOMWrangler that is paired with a WebWrangler. The WebWrangler is
+treated as an underlying abstraction for reliable JS evaluation.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+541
+542
+543
+544
+545
+546
+547
+548
+549
+550
+551
+552
+553
+554
+555
+556
+557
+558
+559
+560
+561
+562
+563
+564
+565
+566
+567
+568
+569
+570
+571
+572</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 541</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_web_wrangler'>web_wrangler</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_log_init'>log_init</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Webview::WebWrangler::DOMWrangler</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+
+  <span class='ivar'>@wrangler</span> <span class='op'>=</span> <span class='id identifier rubyid_web_wrangler'>web_wrangler</span>
+
+  <span class='ivar'>@waiting_changes</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+  <span class='ivar'>@pending_redraw_promise</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='ivar'>@waiting_redraw_promise</span> <span class='op'>=</span> <span class='kw'>nil</span>
+
+  <span class='ivar'>@fully_up_to_date_promise</span> <span class='op'>=</span> <span class='kw'>nil</span>
+
+  <span class='comment'># Initially we&#39;re waiting for a full replacement to happen.
+</span>  <span class='comment'># It&#39;s possible to request updates/changes before we have
+</span>  <span class='comment'># a DOM in place and before Webview is running. If we do
+</span>  <span class='comment'># that, we should discard those updates.
+</span>  <span class='ivar'>@first_draw_requested</span> <span class='op'>=</span> <span class='kw'>false</span>
+
+  <span class='ivar'>@redraw_handlers</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+
+  <span class='comment'># The &quot;fully up to date&quot; logic is complicated and not
+</span>  <span class='comment'># as well tested as I&#39;d like. This makes it far less
+</span>  <span class='comment'># likely that the event simply won&#39;t fire.
+</span>  <span class='comment'># With more comprehensive testing, this should be
+</span>  <span class='comment'># removable.
+</span>  <span class='id identifier rubyid_web_wrangler'>web_wrangler</span><span class='period'>.</span><span class='id identifier rubyid_periodic_code'>periodic_code</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>scarpeDOMWranglerHeartbeat</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>do</span>
+    <span class='kw'>if</span> <span class='ivar'>@fully_up_to_date_promise</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_fully_updated?'>fully_updated?</span>
+      <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_info'>info</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Fulfilling up-to-date promise on heartbeat</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+      <span class='ivar'>@fully_up_to_date_promise</span><span class='period'>.</span><span class='id identifier rubyid_fulfilled!'>fulfilled!</span>
+      <span class='ivar'>@fully_up_to_date_promise</span> <span class='op'>=</span> <span class='kw'>nil</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+  <div id="instance_attr_details" class="attr_details">
+    <h2>Instance Attribute Details</h2>
+    
+      
+      <span id=""></span>
+      <div class="method_details first">
+  <h3 class="signature first" id="pending_redraw_promise-instance_method">
+  
+    #<strong>pending_redraw_promise</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>A Scarpe::Promise for JS that has been scheduled to execute but is not yet verified complete</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+531
+532
+533</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 531</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_pending_redraw_promise'>pending_redraw_promise</span>
+  <span class='ivar'>@pending_redraw_promise</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="waiting_changes-instance_method">
+  
+    #<strong>waiting_changes</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Changes that have not yet been executed</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+528
+529
+530</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 528</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_waiting_changes'>waiting_changes</span>
+  <span class='ivar'>@waiting_changes</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="waiting_redraw_promise-instance_method">
+  
+    #<strong>waiting_redraw_promise</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>A Scarpe::Promise for waiting changes - it will be fulfilled when all waiting changes
+have been verified complete, or when a full redraw that removed them has been
+verified complete. If many small changes are scheduled, the same promise will be
+returned for many of them.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+537
+538
+539</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 537</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_waiting_redraw_promise'>waiting_redraw_promise</span>
+  <span class='ivar'>@waiting_redraw_promise</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+
+  <div id="class_method_details" class="method_details_list">
+    <h2>Class Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="replacement_code-class_method">
+  
+    .<strong>replacement_code</strong>(html_text)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+583
+584
+585</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 583</span>
+
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_replacement_code'>replacement_code</span><span class='lparen'>(</span><span class='id identifier rubyid_html_text'>html_text</span><span class='rparen'>)</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>document.getElementById(&#39;wrapper-wvroot&#39;).innerHTML = `</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_html_text'>html_text</span><span class='embexpr_end'>}</span><span class='tstring_content'>`; true</span><span class='tstring_end'>&quot;</span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="fully_updated?-instance_method">
+  
+    #<strong>fully_updated?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+702
+703
+704</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 702</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_fully_updated?'>fully_updated?</span>
+  <span class='ivar'>@pending_redraw_promise</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='ivar'>@waiting_redraw_promise</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>&amp;&amp;</span> <span class='ivar'>@waiting_changes</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="on_every_redraw-instance_method">
+  
+    #<strong>on_every_redraw</strong>(&amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+596
+597
+598</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 596</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_on_every_redraw'>on_every_redraw</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='ivar'>@redraw_handlers</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_block'>block</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="promise_fully_updated-instance_method">
+  
+    #<strong>promise_fully_updated</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Return a promise which will be fulfilled when the DOM is fully up-to-date</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+707
+708
+709
+710
+711
+712
+713
+714
+715
+716
+717
+718
+719
+720</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 707</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_promise_fully_updated'>promise_fully_updated</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_fully_updated?'>fully_updated?</span>
+    <span class='comment'># No changes to make, nothing in-process or waiting, so just return a pre-fulfilled promise
+</span>    <span class='kw'>return</span> <span class='op'>::</span><span class='const'><span class='object_link'><a href="../../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../../Promise.html" title="Scarpe::Promise (class)">Promise</a></span></span><span class='period'>.</span><span class='id identifier rubyid_fulfilled'><span class='object_link'><a href="../../Promise.html#fulfilled-class_method" title="Scarpe::Promise.fulfilled (method)">fulfilled</a></span></span>
+  <span class='kw'>end</span>
+
+  <span class='comment'># Do we already have a promise for this? Return it. Everybody can share one.
+</span>  <span class='kw'>if</span> <span class='ivar'>@fully_up_to_date_promise</span>
+    <span class='kw'>return</span> <span class='ivar'>@fully_up_to_date_promise</span>
+  <span class='kw'>end</span>
+
+  <span class='comment'># We&#39;re not fully updated, so we need a promise. Create it, return it.
+</span>  <span class='ivar'>@fully_up_to_date_promise</span> <span class='op'>=</span> <span class='op'>::</span><span class='const'><span class='object_link'><a href="../../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../../Promise.html" title="Scarpe::Promise (class)">Promise</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="../../Promise.html#initialize-instance_method" title="Scarpe::Promise#initialize (method)">new</a></span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="promise_redraw-instance_method">
+  
+    #<strong>promise_redraw</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>promise_redraw returns a Scarpe::Promise which will be fulfilled after all current
+pending or waiting changes have completed. This may require creating a new
+promise.</p>
+
+<p>What are the states of redraw?
+&quot;empty&quot; - no waiting promise, no pending-redraw promise, no pending changes
+&quot;pending only&quot; - no waiting promise, but we have a pending redraw with some changes; it hasn&#39;t committed yet
+&quot;pending and waiting&quot; - we have a waiting promise for our unscheduled changes; we can add more unscheduled
+    changes since we haven&#39;t scheduled them yet.</p>
+
+<p>This is often called after adding a new waiting change or replacing them, so the state may have just changed.
+It can also be called when no changes have been made and no updates need to happen.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+612
+613
+614
+615
+616
+617
+618
+619
+620
+621
+622
+623
+624
+625
+626
+627
+628
+629
+630
+631
+632
+633
+634
+635
+636
+637
+638
+639
+640
+641
+642
+643
+644
+645
+646
+647
+648
+649
+650
+651
+652
+653
+654
+655
+656
+657
+658
+659
+660
+661
+662
+663
+664
+665
+666
+667
+668
+669
+670
+671
+672
+673
+674
+675
+676
+677
+678
+679
+680
+681
+682
+683
+684
+685
+686
+687
+688
+689
+690
+691
+692
+693
+694
+695
+696
+697
+698
+699
+700</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 612</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_promise_redraw'>promise_redraw</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_fully_updated?'>fully_updated?</span>
+    <span class='comment'># No changes to make, nothing in-process or waiting, so just return a pre-fulfilled promise
+</span>    <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Requesting redraw but there are no pending changes or promises, return pre-fulfilled</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+    <span class='kw'>return</span> <span class='op'>::</span><span class='const'><span class='object_link'><a href="../../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../../Promise.html" title="Scarpe::Promise (class)">Promise</a></span></span><span class='period'>.</span><span class='id identifier rubyid_fulfilled'><span class='object_link'><a href="../../Promise.html#fulfilled-class_method" title="Scarpe::Promise.fulfilled (method)">fulfilled</a></span></span>
+  <span class='kw'>end</span>
+
+  <span class='comment'># Already have a redraw requested *and* one on deck? Then all current changes will have committed
+</span>  <span class='comment'># when we (eventually) fulfill the waiting_redraw_promise.
+</span>  <span class='kw'>if</span> <span class='ivar'>@waiting_redraw_promise</span>
+    <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Promising eventual redraw of </span><span class='embexpr_beg'>#{</span><span class='ivar'>@waiting_changes</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span><span class='embexpr_end'>}</span><span class='tstring_content'> waiting unscheduled changes.</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+    <span class='kw'>return</span> <span class='ivar'>@waiting_redraw_promise</span>
+  <span class='kw'>end</span>
+
+  <span class='kw'>if</span> <span class='ivar'>@waiting_changes</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+    <span class='comment'># There&#39;s no waiting_redraw_promise. There are no waiting changes. But we&#39;re not fully updated.
+</span>    <span class='comment'># So there must be a redraw in flight, and we don&#39;t need to schedule a new waiting_redraw_promise.
+</span>    <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Returning in-flight redraw promise</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+    <span class='kw'>return</span> <span class='ivar'>@pending_redraw_promise</span>
+  <span class='kw'>end</span>
+
+  <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Requesting redraw with </span><span class='embexpr_beg'>#{</span><span class='ivar'>@waiting_changes</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span><span class='embexpr_end'>}</span><span class='tstring_content'> waiting changes and no waiting promise - need to schedule something!</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+
+  <span class='comment'># We have at least one waiting change, possibly newly-added. We have no waiting_redraw_promise.
+</span>  <span class='comment'># Do we already have a redraw in-flight?
+</span>  <span class='kw'>if</span> <span class='ivar'>@pending_redraw_promise</span>
+    <span class='comment'># Yes we do. Schedule a new waiting promise. When it turns into the pending_redraw_promise it will
+</span>    <span class='comment'># grab all waiting changes. In the mean time, it sits here and waits.
+</span>    <span class='comment'>#
+</span>    <span class='comment'># We *could* do a fancy promise thing and have it update @waiting_changes for itself, etc, when it
+</span>    <span class='comment'># schedules itself. But we should always be calling promise_redraw or having a redraw fulfilled (see below)
+</span>    <span class='comment'># when these things change. I&#39;d rather keep the logic in this method. It&#39;s easier to reason through
+</span>    <span class='comment'># all the cases.
+</span>    <span class='ivar'>@waiting_redraw_promise</span> <span class='op'>=</span> <span class='op'>::</span><span class='const'><span class='object_link'><a href="../../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../../Promise.html" title="Scarpe::Promise (class)">Promise</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="../../Promise.html#initialize-instance_method" title="Scarpe::Promise#initialize (method)">new</a></span></span>
+
+    <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Creating a new waiting promise since a pending promise is already in place</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+    <span class='kw'>return</span> <span class='ivar'>@waiting_redraw_promise</span>
+  <span class='kw'>end</span>
+
+  <span class='comment'># We have no redraw in-flight and no pre-existing waiting line. The new change(s) are presumably right
+</span>  <span class='comment'># after things were fully up-to-date. We can schedule them for immediate redraw.
+</span>
+  <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Requesting redraw with </span><span class='embexpr_beg'>#{</span><span class='ivar'>@waiting_changes</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span><span class='embexpr_end'>}</span><span class='tstring_content'> waiting changes - scheduling a new redraw for them!</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_promise'>promise</span> <span class='op'>=</span> <span class='id identifier rubyid_schedule_waiting_changes'>schedule_waiting_changes</span> <span class='comment'># This clears the waiting changes
+</span>  <span class='ivar'>@pending_redraw_promise</span> <span class='op'>=</span> <span class='id identifier rubyid_promise'>promise</span>
+
+  <span class='id identifier rubyid_promise'>promise</span><span class='period'>.</span><span class='id identifier rubyid_on_fulfilled'>on_fulfilled</span> <span class='kw'>do</span>
+    <span class='ivar'>@redraw_handlers</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:call</span><span class='rparen'>)</span>
+    <span class='ivar'>@pending_redraw_promise</span> <span class='op'>=</span> <span class='kw'>nil</span>
+
+    <span class='kw'>if</span> <span class='ivar'>@waiting_redraw_promise</span>
+      <span class='comment'># While this redraw was in flight, more waiting changes got added and we made a promise
+</span>      <span class='comment'># about when they&#39;d complete. Now they get scheduled, and we&#39;ll fulfill the waiting
+</span>      <span class='comment'># promise when that redraw finishes. Clear the old waiting promise. We&#39;ll add a new one
+</span>      <span class='comment'># when/if more changes are scheduled during this redraw.
+</span>      <span class='id identifier rubyid_old_waiting_promise'>old_waiting_promise</span> <span class='op'>=</span> <span class='ivar'>@waiting_redraw_promise</span>
+      <span class='ivar'>@waiting_redraw_promise</span> <span class='op'>=</span> <span class='kw'>nil</span>
+
+      <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Fulfilled redraw with </span><span class='embexpr_beg'>#{</span><span class='ivar'>@waiting_changes</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span><span class='embexpr_end'>}</span><span class='tstring_content'> waiting changes - scheduling a new redraw for them!</span><span class='tstring_end'>&quot;</span></span>
+
+      <span class='id identifier rubyid_new_promise'>new_promise</span> <span class='op'>=</span> <span class='id identifier rubyid_promise_redraw'>promise_redraw</span>
+      <span class='id identifier rubyid_new_promise'>new_promise</span><span class='period'>.</span><span class='id identifier rubyid_on_fulfilled'>on_fulfilled</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_old_waiting_promise'>old_waiting_promise</span><span class='period'>.</span><span class='id identifier rubyid_fulfilled!'>fulfilled!</span> <span class='rbrace'>}</span>
+    <span class='kw'>else</span>
+      <span class='comment'># The in-flight redraw completed, and there&#39;s still no waiting promise. Good! That means
+</span>      <span class='comment'># we should be fully up-to-date.
+</span>      <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Fulfilled redraw with no waiting changes - marking us as up to date!</span><span class='tstring_end'>&quot;</span></span>
+      <span class='kw'>if</span> <span class='ivar'>@waiting_changes</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+        <span class='comment'># We&#39;re fully up to date! Fulfill the promise. Now we don&#39;t need it again until somebody asks
+</span>        <span class='comment'># us for another.
+</span>        <span class='kw'>if</span> <span class='ivar'>@fully_up_to_date_promise</span>
+          <span class='ivar'>@fully_up_to_date_promise</span><span class='period'>.</span><span class='id identifier rubyid_fulfilled!'>fulfilled!</span>
+          <span class='ivar'>@fully_up_to_date_promise</span> <span class='op'>=</span> <span class='kw'>nil</span>
+        <span class='kw'>end</span>
+      <span class='kw'>else</span>
+        <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>WHOAH, WHAT? My logic must be wrong, because there&#39;s </span><span class='tstring_end'>&quot;</span></span> <span class='op'>+</span>
+          <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>no waiting promise, but waiting changes!</span><span class='tstring_end'>&quot;</span></span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+
+    <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Redraw is now fully up-to-date</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_fully_updated?'>fully_updated?</span>
+  <span class='kw'>end</span><span class='period'>.</span><span class='id identifier rubyid_on_rejected'>on_rejected</span> <span class='kw'>do</span>
+    <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Could not complete JS redraw! </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_promise'>promise</span><span class='period'>.</span><span class='id identifier rubyid_reason'>reason</span><span class='period'>.</span><span class='id identifier rubyid_full_message'>full_message</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+    <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>REDRAW FULLY UP TO DATE BUT JS FAILED</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_fully_updated?'>fully_updated?</span>
+
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../../JSRedrawError.html" title="Scarpe::JSRedrawError (class)">JSRedrawError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>JS Redraw failed! Bailing!</span><span class='tstring_end'>&quot;</span></span>
+
+    <span class='comment'># Later we should figure out how to handle this. Clear the promises and queues and request another redraw?
+</span>  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="request_change-instance_method">
+  
+    #<strong>request_change</strong>(js_code)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+574
+575
+576
+577
+578
+579
+580
+581</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 574</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_request_change'>request_change</span><span class='lparen'>(</span><span class='id identifier rubyid_js_code'>js_code</span><span class='rparen'>)</span>
+  <span class='comment'># No updates until there&#39;s something to update
+</span>  <span class='kw'>return</span> <span class='kw'>unless</span> <span class='ivar'>@first_draw_requested</span>
+
+  <span class='ivar'>@waiting_changes</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_js_code'>js_code</span>
+
+  <span class='id identifier rubyid_promise_redraw'>promise_redraw</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="request_replace-instance_method">
+  
+    #<strong>request_replace</strong>(html_text)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+587
+588
+589
+590
+591
+592
+593
+594</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/wv/web_wrangler.rb', line 587</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_request_replace'>request_replace</span><span class='lparen'>(</span><span class='id identifier rubyid_html_text'>html_text</span><span class='rparen'>)</span>
+  <span class='comment'># Replace other pending changes, they&#39;re not needed any more
+</span>  <span class='ivar'>@waiting_changes</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='const'><span class='object_link'><a href="" title="Scarpe::Webview::WebWrangler::DOMWrangler (class)">DOMWrangler</a></span></span><span class='period'>.</span><span class='id identifier rubyid_replacement_code'><span class='object_link'><a href="#replacement_code-class_method" title="Scarpe::Webview::WebWrangler::DOMWrangler.replacement_code (method)">replacement_code</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_html_text'>html_text</span><span class='rparen'>)</span><span class='rbracket'>]</span>
+  <span class='ivar'>@first_draw_requested</span> <span class='op'>=</span> <span class='kw'>true</span>
+
+  <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_debug'>debug</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Requesting DOM replacement...</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_promise_redraw'>promise_redraw</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Wed Oct  9 15:38:25 2024 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.28 (ruby-3.2.0).
+</div>
+
+    </div>
+  </body>
+</html>

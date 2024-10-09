@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  File: catscradle
+  
+    &mdash; Documentation by YARD 0.9.28
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "catscradle";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="file_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="_index.html">Index</a> &raquo; 
+    <span class="title">File: catscradle</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="docpages_list_link"
+        href="docpages_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><div id='filecontents'><h1 id="catscradle-and-fiber-based-testing">CatsCradle and Fiber-Based Testing</h1>
+
+<p>We&#39;ve tried a number of things for testing. We mock extensively in many places. We use promises to handle &quot;assert thing X after the next redraw&quot;-type testing.</p>
+
+<p>Most recently, we have a Fiber-based approach to testing which is a little weird, but (so far) looks pretty good. Here&#39;s a representative test of that kind:</p>
+
+<pre class="code ruby"><code class="ruby">  <span class='kw'>def</span> <span class='id identifier rubyid_test_html_dom_multiple_update'>test_html_dom_multiple_update</span>
+    <span class='id identifier rubyid_run_test_scarpe_code'>run_test_scarpe_code</span><span class='lparen'>(</span><span class='heredoc_beg'>&lt;&lt;-&#39;SCARPE_APP&#39;</span><span class='comma'>,</span> <span class='label'>app_test_code:</span> <span class='heredoc_beg'>&lt;&lt;-&#39;TEST_CODE&#39;</span><span class='rparen'>)</span>
+<span class='tstring_content'>      on_heartbeat do
+        p = para()
+        assert_include dom_html, &quot;Hello World&quot;
+        p.replace(&quot;Goodbye World&quot;)
+        wait fully_updated
+        assert_include dom_html, &quot;Goodbye World&quot;
+        p.replace(&quot;Hello Again&quot;)
+        wait fully_updated
+        assert_include dom_html, &quot;Hello Again&quot;
+
+        test_finished
+      end
+</span><span class='heredoc_end'>    TEST_CODE
+</span>  <span class='kw'>end</span>
+</code></pre>
+
+<p>That&#39;s fine. There&#39;s a very simple Scarpe app with a single para. The test finds it, then makes sure the page HTML includes the right text. Then it changes it, waits for the redraw and makes sure it contains the new right text. Then, basically, does those same things again. So what&#39;s interesting here?</p>
+
+<p>Primarily that it waits. You could reasonably think, &quot;waiting is easy - you can use promises or sleeps for that.&quot; And normally you&#39;d be right. But in this case, this uses the Webview local display service. It will crash if you don&#39;t return control to its main loop within a fraction of a second. And until it gets back to its main loop it can&#39;t receive calls from Javascript. Those &quot;dom_html&quot; calls require looping to Webview and back, as (of course) does &quot;wait fully_updated&quot;.</p>
+
+<p>But this method appears to run through, line by line, until it&#39;s done. How?</p>
+
+<p>Fibers. Specifically, Ruby 3.0 added some nice Fiber capabilities that we can use. You can go look <a href="https://ruby-doc.org/core-3.0.0/Fiber.html#method-i-transfer">at the docs</a> if you want.</p>
+
+<p>If you check catscradle.rb, you can see us doing a fun little dance where a block like the on_heartbeat above creates a Fiber, and there&#39;s a manager Fiber to coordinate them. On every heartbeat and redraw we run the manager Fiber, which in turn runs every other Fiber that&#39;s ready, which it tracks via Promises.</p>
+
+<p>A ready Fiber will run until it does something blocking, like a dom_html or wait call. Then it returns a Promise object that will be fulfilled when it&#39;s ready to run again, like a Promise for being fully redrawn, or a promise for when a snippet of Javascript finishes.</p>
+
+<p>Once the manager has run every ready Fiber once, it yields control and waits to be called again.</p>
+
+<p>Right now (June 2023) we keep control simple by only being called on heartbeats or redraws, so sometimes a promise <em>not</em> involving promises or redraws can wait awhile extra (up to 1/10th of a second or so) before it runs again. It would be possible to run the manager in response to other promises completing, and that would probably be more efficient. I&#39;m just worried about that complicating the flow of control and leading to weird order-dependent bugs. So right now we do the simple thing, which can be slower.</p>
+</div></div>
+
+      <div id="footer">
+  Generated on Wed Oct  9 15:38:24 2024 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.28 (ruby-3.2.0).
+</div>
+
+    </div>
+  </body>
+</html>

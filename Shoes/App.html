@@ -1,0 +1,2132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: Shoes::App
+  
+    &mdash; Documentation by YARD 0.9.28
+  
+</title>
+
+  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Shoes::App";
+  relpath = '../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../_index.html">Index (A)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span>
+     &raquo; 
+    <span class="title">App</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="docpages_list_link"
+        href="../docpages_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: Shoes::App
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName"><span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next"><span class='object_link'><a href="Linkable.html" title="Shoes::Linkable (class)">Linkable</a></span></li>
+          
+            <li class="next"><span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></li>
+          
+            <li class="next">Shoes::App</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  <dl>
+      <dt>Includes:</dt>
+      <dd><span class='object_link'><a href="Log.html" title="Shoes::Log (module)">Log</a></span></dd>
+  </dl>
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lacci/lib/shoes/app.rb<span class="defines">,<br />
+  lacci/lib/shoes/app.rb</span>
+</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>These methods will need to be defined on Slots too, but probably need a rework in general.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="CUSTOM_EVENT_LOOP_TYPES-constant" class="">CUSTOM_EVENT_LOOP_TYPES =
+          <div class="docstring">
+  <div class="discussion">
+    <p>These are the allowed values for custom_event_loop events.</p>
+
+<ul>
+<li>displaylib means the display library is not going to return from running the app</li>
+<li>return means the display library will return and the loop will be handled outside Lacci&#39;s control</li>
+<li>wait means Lacci should busy-wait and send eternal heartbeats from the &quot;run&quot; event</li>
+</ul>
+
+<p>If the display service grabs control and keeps it, Webview-style, that means &quot;displaylib&quot;
+should be the value. A Scarpe-Wasm-style &quot;return&quot; is appropriate if the code can finish
+without Ruby ending the process at the end of the source file. A &quot;wait&quot; can prevent Ruby
+from finishing early, but also prevents multiple applications. Only &quot;return&quot; will normally
+allow multiple Shoes applications.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>displaylib</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>return</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>wait</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span></pre></dd>
+      
+    </dl>
+  
+
+
+
+  
+  
+  <h3 class="inherited">Constants included
+     from <span class='object_link'><a href="Log.html" title="Shoes::Log (module)">Log</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Log.html#DEFAULT_COMPONENT-constant" title="Shoes::Log::DEFAULT_COMPONENT (constant)">Log::DEFAULT_COMPONENT</a></span>, <span class='object_link'><a href="Log.html#DEFAULT_DEBUG_LOG_CONFIG-constant" title="Shoes::Log::DEFAULT_DEBUG_LOG_CONFIG (constant)">Log::DEFAULT_DEBUG_LOG_CONFIG</a></span>, <span class='object_link'><a href="Log.html#DEFAULT_LOG_CONFIG-constant" title="Shoes::Log::DEFAULT_LOG_CONFIG (constant)">Log::DEFAULT_LOG_CONFIG</a></span></p>
+
+  
+  
+  <h3 class="inherited">Constants inherited
+     from <span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Drawable.html#DRAW_CONTEXT_STYLES-constant" title="Shoes::Drawable::DRAW_CONTEXT_STYLES (constant)">Drawable::DRAW_CONTEXT_STYLES</a></span></p>
+
+
+  <h2>Class Attribute Summary <small><a href="#" class="summary_toggle">collapse</a></small></h2>
+  <ul class="summary">
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#set_test_code-class_method" title="set_test_code (class method)">.<strong>set_test_code</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Returns the value of attribute set_test_code.</p>
+</div></span>
+  
+</li>
+
+    
+  </ul>
+
+  <h2>Instance Attribute Summary <small><a href="#" class="summary_toggle">collapse</a></small></h2>
+  <ul class="summary">
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#dir-instance_method" title="#dir (instance method)">#<strong>dir</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>The application directory for this app.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#document_root-instance_method" title="#document_root (instance method)">#<strong>document_root</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>The Shoes root of the drawable tree.</p>
+</div></span>
+  
+</li>
+
+    
+  </ul>
+
+
+
+  
+  
+  <h3 class="inherited">Attributes inherited from <span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Drawable.html#debug_id-instance_method" title="Shoes::Drawable#debug_id (method)">#debug_id</a></span>, <span class='object_link'><a href="Drawable.html#destroyed-instance_method" title="Shoes::Drawable#destroyed (method)">#destroyed</a></span>, <span class='object_link'><a href="Drawable.html#parent-instance_method" title="Shoes::Drawable#parent (method)">#parent</a></span></p>
+
+  
+  
+  <h3 class="inherited">Attributes inherited from <span class='object_link'><a href="Linkable.html" title="Shoes::Linkable (class)">Linkable</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Linkable.html#linkable_id-instance_method" title="Shoes::Linkable#linkable_id (method)">#linkable_id</a></span></p>
+
+
+  
+    <h2>
+      Class Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#find_drawables_by-class_method" title="find_drawables_by (class method)">.<strong>find_drawables_by</strong>(*specs)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>We can add various ways to find drawables here.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#all_drawables-instance_method" title="#all_drawables (instance method)">#<strong>all_drawables</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#background-instance_method" title="#background (instance method)">#<strong>background</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>This is going to go away.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#border-instance_method" title="#border (instance method)">#<strong>border</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>This is going to go away.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#current_draw_context-instance_method" title="#current_draw_context (instance method)">#<strong>current_draw_context</strong>  &#x21d2; Hash </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Get the current draw context for the current slot.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#current_slot-instance_method" title="#current_slot (instance method)">#<strong>current_slot</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#destroy-instance_method" title="#destroy (instance method)">#<strong>destroy</strong>(send_event: true)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#features-instance_method" title="#features (instance method)">#<strong>features</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>This is defined to avoid the linkable-id check in the Shoes-style method_missing def&#39;n.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#find_drawables_by-instance_method" title="#find_drawables_by (instance method)">#<strong>find_drawables_by</strong>(*specs)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>We can add various ways to find drawables here.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#init-instance_method" title="#init (instance method)">#<strong>init</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(title: &quot;Shoes!&quot;, width: 480, height: 420, resizable: true, features: [], &amp;app_code_body)  &#x21d2; App </a>
+    
+
+    
+  </span>
+  
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>A new instance of App.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#line_to-instance_method" title="#line_to (instance method)">#<strong>line_to</strong>(x, y)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#method_missing-instance_method" title="#method_missing (instance method)">#<strong>method_missing</strong>(name, *args, **kwargs, &amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>We use method_missing for drawable-creating methods like &quot;button&quot;.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#move_to-instance_method" title="#move_to (instance method)">#<strong>move_to</strong>(x, y)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Shape DSL methods.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#page-instance_method" title="#page (instance method)">#<strong>page</strong>(name, &amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#pop_slot-instance_method" title="#pop_slot (instance method)">#<strong>pop_slot</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#push_slot-instance_method" title="#push_slot (instance method)">#<strong>push_slot</strong>(slot)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>&quot;Container&quot; drawables like flows, stacks, masks and the document root are considered &quot;slots&quot; in Shoes parlance.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#run-instance_method" title="#run (instance method)">#<strong>run</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>This usually doesn&#39;t return.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#visit-instance_method" title="#visit (instance method)">#<strong>visit</strong>(name)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#with_slot-instance_method" title="#with_slot (instance method)">#<strong>with_slot</strong>(slot_item, &amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods included from <span class='object_link'><a href="Log.html" title="Shoes::Log (module)">Log</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Log.html#configure_logger-class_method" title="Shoes::Log.configure_logger (method)">configure_logger</a></span>, <span class='object_link'><a href="Log.html#log_init-instance_method" title="Shoes::Log#log_init (method)">#log_init</a></span>, <span class='object_link'><a href="Log.html#logger-class_method" title="Shoes::Log.logger (method)">logger</a></span></p>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods inherited from <span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Drawable.html#allocate_drawable_id-class_method" title="Shoes::Drawable.allocate_drawable_id (method)">allocate_drawable_id</a></span>, <span class='object_link'><a href="Drawable.html#app-instance_method" title="Shoes::Drawable#app (method)">#app</a></span>, <span class='object_link'><a href="Drawable.html#banner-instance_method" title="Shoes::Drawable#banner (method)">#banner</a></span>, <span class='object_link'><a href="Drawable.html#caption-instance_method" title="Shoes::Drawable#caption (method)">#caption</a></span>, <span class='object_link'><a href="Drawable.html#convert_to_float-class_method" title="Shoes::Drawable.convert_to_float (method)">convert_to_float</a></span>, <span class='object_link'><a href="Drawable.html#convert_to_integer-class_method" title="Shoes::Drawable.convert_to_integer (method)">convert_to_integer</a></span>, <span class='object_link'><a href="Drawable.html#download-instance_method" title="Shoes::Drawable#download (method)">#download</a></span>, <span class='object_link'><a href="Drawable.html#drawable_by_id-class_method" title="Shoes::Drawable.drawable_by_id (method)">drawable_by_id</a></span>, <span class='object_link'><a href="Drawable.html#drawable_class_by_name-class_method" title="Shoes::Drawable.drawable_class_by_name (method)">drawable_class_by_name</a></span>, <span class='object_link'><a href="Drawable.html#dsl_name-class_method" title="Shoes::Drawable.dsl_name (method)">dsl_name</a></span>, <span class='object_link'><a href="Drawable.html#event-instance_method" title="Shoes::Drawable#event (method)">#event</a></span>, <span class='object_link'><a href="Drawable.html#expects_parent%3F-class_method" title="Shoes::Drawable.expects_parent? (method)">expects_parent?</a></span>, <span class='object_link'><a href="Drawable.html#feature_for_shoes_style-class_method" title="Shoes::Drawable.feature_for_shoes_style (method)">feature_for_shoes_style</a></span>, <span class='object_link'><a href="Drawable.html#get_shoes_events-class_method" title="Shoes::Drawable.get_shoes_events (method)">get_shoes_events</a></span>, <span class='object_link'><a href="Drawable.html#hide-instance_method" title="Shoes::Drawable#hide (method)">#hide</a></span>, <span class='object_link'><a href="Drawable.html#hover-instance_method" title="Shoes::Drawable#hover (method)">#hover</a></span>, <span class='object_link'><a href="Drawable.html#init_args-class_method" title="Shoes::Drawable.init_args (method)">init_args</a></span>, <span class='object_link'><a href="Drawable.html#inscription-instance_method" title="Shoes::Drawable#inscription (method)">#inscription</a></span>, <span class='object_link'><a href="Drawable.html#inspect-instance_method" title="Shoes::Drawable#inspect (method)">#inspect</a></span>, <span class='object_link'><a href="Drawable.html#is_widget_class%3F-class_method" title="Shoes::Drawable.is_widget_class? (method)">is_widget_class?</a></span>, <span class='object_link'><a href="Drawable.html#leave-instance_method" title="Shoes::Drawable#leave (method)">#leave</a></span>, <span class='object_link'><a href="Drawable.html#motion-instance_method" title="Shoes::Drawable#motion (method)">#motion</a></span>, <span class='object_link'><a href="Drawable.html#opt_init_args-class_method" title="Shoes::Drawable.opt_init_args (method)">opt_init_args</a></span>, <span class='object_link'><a href="Drawable.html#optional_init_args-class_method" title="Shoes::Drawable.optional_init_args (method)">optional_init_args</a></span>, <span class='object_link'><a href="Drawable.html#register_drawable_id-class_method" title="Shoes::Drawable.register_drawable_id (method)">register_drawable_id</a></span>, <span class='object_link'><a href="Drawable.html#registered_shoes_events%3F-class_method" title="Shoes::Drawable.registered_shoes_events? (method)">registered_shoes_events?</a></span>, <span class='object_link'><a href="Drawable.html#required_init_args-class_method" title="Shoes::Drawable.required_init_args (method)">required_init_args</a></span>, <span class='object_link'><a href="Drawable.html#respond_to_missing%3F-instance_method" title="Shoes::Drawable#respond_to_missing? (method)">#respond_to_missing?</a></span>, <span class='object_link'><a href="Drawable.html#set_parent-instance_method" title="Shoes::Drawable#set_parent (method)">#set_parent</a></span>, <span class='object_link'><a href="Drawable.html#shoes_events-class_method" title="Shoes::Drawable.shoes_events (method)">shoes_events</a></span>, <span class='object_link'><a href="Drawable.html#shoes_style-class_method" title="Shoes::Drawable.shoes_style (method)">shoes_style</a></span>, <span class='object_link'><a href="Drawable.html#shoes_style_hashes-class_method" title="Shoes::Drawable.shoes_style_hashes (method)">shoes_style_hashes</a></span>, <span class='object_link'><a href="Drawable.html#shoes_style_name%3F-class_method" title="Shoes::Drawable.shoes_style_name? (method)">shoes_style_name?</a></span>, <span class='object_link'><a href="Drawable.html#shoes_style_names-class_method" title="Shoes::Drawable.shoes_style_names (method)">shoes_style_names</a></span>, <span class='object_link'><a href="Drawable.html#shoes_style_values-instance_method" title="Shoes::Drawable#shoes_style_values (method)">#shoes_style_values</a></span>, <span class='object_link'><a href="Drawable.html#shoes_styles-class_method" title="Shoes::Drawable.shoes_styles (method)">shoes_styles</a></span>, <span class='object_link'><a href="Drawable.html#show-instance_method" title="Shoes::Drawable#show (method)">#show</a></span>, <span class='object_link'><a href="Drawable.html#style-instance_method" title="Shoes::Drawable#style (method)">#style</a></span>, <span class='object_link'><a href="Drawable.html#subtitle-instance_method" title="Shoes::Drawable#subtitle (method)">#subtitle</a></span>, <span class='object_link'><a href="Drawable.html#tagline-instance_method" title="Shoes::Drawable#tagline (method)">#tagline</a></span>, <span class='object_link'><a href="Drawable.html#title-instance_method" title="Shoes::Drawable#title (method)">#title</a></span>, <span class='object_link'><a href="Drawable.html#toggle-instance_method" title="Shoes::Drawable#toggle (method)">#toggle</a></span>, <span class='object_link'><a href="Drawable.html#unregister_drawable_id-class_method" title="Shoes::Drawable.unregister_drawable_id (method)">unregister_drawable_id</a></span>, <span class='object_link'><a href="Drawable.html#use_current_app-class_method" title="Shoes::Drawable.use_current_app (method)">use_current_app</a></span>, <span class='object_link'><a href="Drawable.html#validate_as-class_method" title="Shoes::Drawable.validate_as (method)">validate_as</a></span>, <span class='object_link'><a href="Drawable.html#with_current_app-class_method" title="Shoes::Drawable.with_current_app (method)">with_current_app</a></span></p>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods included from <span class='object_link'><a href="../MarginHelper.html" title="MarginHelper (module)">MarginHelper</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="../MarginHelper.html#margin_parse-instance_method" title="MarginHelper#margin_parse (method)">#margin_parse</a></span></p>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods included from <span class='object_link'><a href="Colors.html" title="Shoes::Colors (module)">Colors</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Colors.html#gray-instance_method" title="Shoes::Colors#gray (method)">#gray</a></span>, <span class='object_link'><a href="Colors.html#rgb-instance_method" title="Shoes::Colors#rgb (method)">#rgb</a></span>, <span class='object_link'><a href="Colors.html#to_rgb-instance_method" title="Shoes::Colors#to_rgb (method)">#to_rgb</a></span></p>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods inherited from <span class='object_link'><a href="Linkable.html" title="Shoes::Linkable (class)">Linkable</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Linkable.html#bind_shoes_event-instance_method" title="Shoes::Linkable#bind_shoes_event (method)">#bind_shoes_event</a></span>, <span class='object_link'><a href="Linkable.html#send_self_event-instance_method" title="Shoes::Linkable#send_self_event (method)">#send_self_event</a></span>, <span class='object_link'><a href="Linkable.html#send_shoes_event-instance_method" title="Shoes::Linkable#send_shoes_event (method)">#send_shoes_event</a></span>, <span class='object_link'><a href="Linkable.html#unsub_all_shoes_events-instance_method" title="Shoes::Linkable#unsub_all_shoes_events (method)">#unsub_all_shoes_events</a></span>, <span class='object_link'><a href="Linkable.html#unsub_shoes_event-instance_method" title="Shoes::Linkable#unsub_shoes_event (method)">#unsub_shoes_event</a></span></p>
+<div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <h3 class="signature first" id="initialize-instance_method">
+  
+    #<strong>initialize</strong>(title: &quot;Shoes!&quot;, width: 480, height: 420, resizable: true, features: [], &amp;app_code_body)  &#x21d2; <tt><span class='object_link'><a href="" title="Shoes::App (class)">App</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns a new instance of App.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 39</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span>
+  <span class='label'>title:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Shoes!</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+  <span class='label'>width:</span> <span class='int'>480</span><span class='comma'>,</span>
+  <span class='label'>height:</span> <span class='int'>420</span><span class='comma'>,</span>
+  <span class='label'>resizable:</span> <span class='kw'>true</span><span class='comma'>,</span>
+  <span class='label'>features:</span> <span class='lbracket'>[</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='op'>&amp;</span><span class='id identifier rubyid_app_code_body'>app_code_body</span>
+<span class='rparen'>)</span>
+  <span class='id identifier rubyid_log_init'>log_init</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Shoes::App</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+
+  <span class='kw'>if</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'>FEATURES</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='symbol'>:multi_app</span><span class='rparen'>)</span> <span class='op'>||</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='period'>.</span><span class='const'>APPS</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+    <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='period'>.</span><span class='const'>APPS</span><span class='period'>.</span><span class='id identifier rubyid_push'>push</span> <span class='kw'>self</span>
+  <span class='kw'>else</span>
+    <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Trying to create a second Shoes::App in the same process! Fail!</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors.html" title="Shoes::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors/TooManyInstancesError.html" title="Shoes::Errors::TooManyInstancesError (class)">TooManyInstancesError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Cannot create multiple Shoes::App objects!</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='comment'># We cd to the app&#39;s containing dir when running the app
+</span>  <span class='ivar'>@dir</span> <span class='op'>=</span> <span class='const'>Dir</span><span class='period'>.</span><span class='id identifier rubyid_pwd'>pwd</span>
+
+  <span class='ivar'>@do_shutdown</span> <span class='op'>=</span> <span class='kw'>false</span>
+  <span class='ivar'>@event_loop_type</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>displaylib</span><span class='tstring_end'>&quot;</span></span> <span class='comment'># the default
+</span>
+  <span class='ivar'>@features</span> <span class='op'>=</span> <span class='id identifier rubyid_features'>features</span>
+
+  <span class='id identifier rubyid_unknown_ext'>unknown_ext</span> <span class='op'>=</span> <span class='id identifier rubyid_features'>features</span> <span class='op'>-</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'>FEATURES</span> <span class='op'>-</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'>EXTENSIONS</span>
+  <span class='id identifier rubyid_unsupported_features'>unsupported_features</span> <span class='op'>=</span> <span class='id identifier rubyid_unknown_ext'>unknown_ext</span> <span class='op'>&amp;</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'>KNOWN_FEATURES</span>
+  <span class='kw'>unless</span> <span class='id identifier rubyid_unsupported_features'>unsupported_features</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+    <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Shoes app requires feature(s) not supported by this display service: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_unsupported_features'>unsupported_features</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'>!</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors.html" title="Shoes::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors/UnsupportedFeatureError.html" title="Shoes::Errors::UnsupportedFeatureError (class)">UnsupportedFeatureError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Shoes app needs features: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_unsupported_features'>unsupported_features</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+  <span class='kw'>unless</span> <span class='id identifier rubyid_unknown_ext'>unknown_ext</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+    <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_warn'>warn</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Shoes app requested unknown features </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_unknown_ext'>unknown_ext</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'>! Known: </span><span class='embexpr_beg'>#{</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'>FEATURES</span> <span class='op'>+</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'>EXTENSIONS</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+
+  <span class='ivar'>@slots</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+
+  <span class='ivar'>@content_container</span> <span class='op'>=</span> <span class='kw'>nil</span>
+
+  <span class='kw'>super</span>
+
+  <span class='comment'># This creates the DocumentRoot, including its corresponding display drawable
+</span>  <span class='const'><span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></span><span class='period'>.</span><span class='id identifier rubyid_with_current_app'><span class='object_link'><a href="Drawable.html#with_current_app-class_method" title="Shoes::Drawable.with_current_app (method)">with_current_app</a></span></span><span class='lparen'>(</span><span class='kw'>self</span><span class='rparen'>)</span> <span class='kw'>do</span>
+    <span class='ivar'>@document_root</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="DocumentRoot.html" title="Shoes::DocumentRoot (class)">DocumentRoot</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="DocumentRoot.html#initialize-instance_method" title="Shoes::DocumentRoot#initialize (method)">new</a></span></span>
+  <span class='kw'>end</span>
+
+  <span class='comment'># Now create the App display drawable
+</span>  <span class='id identifier rubyid_create_display_drawable'>create_display_drawable</span>
+
+  <span class='comment'># Set up testing *after* Display Service basic objects exist
+</span>
+  <span class='kw'>if</span> <span class='const'>ENV</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>SHOES_SPEC_TEST</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="" title="Shoes::App (class)">App</a></span></span><span class='period'>.</span><span class='id identifier rubyid_set_test_code'><span class='object_link'><a href="#set_test_code-class_method" title="Shoes::App.set_test_code (method)">set_test_code</a></span></span>
+    <span class='id identifier rubyid_test_code'>test_code</span> <span class='op'>=</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_read'>read</span> <span class='const'>ENV</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>SHOES_SPEC_TEST</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span>
+    <span class='kw'>unless</span> <span class='id identifier rubyid_test_code'>test_code</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+      <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="" title="Shoes::App (class)">App</a></span></span><span class='period'>.</span><span class='id identifier rubyid_set_test_code'><span class='object_link'><a href="#set_test_code-class_method" title="Shoes::App.set_test_code (method)">set_test_code</a></span></span> <span class='op'>=</span> <span class='kw'>true</span>
+      <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Spec.html" title="Shoes::Spec (module)">Spec</a></span></span><span class='period'>.</span><span class='id identifier rubyid_instance'><span class='object_link'><a href="Spec.html#instance-class_method" title="Shoes::Spec.instance (method)">instance</a></span></span><span class='period'>.</span><span class='id identifier rubyid_run_shoes_spec_test_code'>run_shoes_spec_test_code</span> <span class='id identifier rubyid_test_code'>test_code</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+
+  <span class='ivar'>@app_code_body</span> <span class='op'>=</span> <span class='id identifier rubyid_app_code_body'>app_code_body</span>
+
+  <span class='comment'># Try to de-dup as much as possible and not send repeat or multiple
+</span>  <span class='comment'># destroy events
+</span>  <span class='ivar'>@watch_for_destroy</span> <span class='op'>=</span> <span class='id identifier rubyid_bind_shoes_event'>bind_shoes_event</span><span class='lparen'>(</span><span class='label'>event_name:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>destroy</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>do</span>
+    <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="DisplayService.html" title="Shoes::DisplayService (class)">DisplayService</a></span></span><span class='period'>.</span><span class='id identifier rubyid_unsub_from_events'><span class='object_link'><a href="DisplayService.html#unsub_from_events-class_method" title="Shoes::DisplayService.unsub_from_events (method)">unsub_from_events</a></span></span><span class='lparen'>(</span><span class='ivar'>@watch_for_destroy</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='ivar'>@watch_for_destroy</span>
+    <span class='ivar'>@watch_for_destroy</span> <span class='op'>=</span> <span class='kw'>nil</span>
+    <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_destroy'>destroy</span><span class='lparen'>(</span><span class='label'>send_event:</span> <span class='kw'>false</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+
+  <span class='ivar'>@watch_for_event_loop</span> <span class='op'>=</span> <span class='id identifier rubyid_bind_shoes_event'>bind_shoes_event</span><span class='lparen'>(</span><span class='label'>event_name:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>custom_event_loop</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_loop_type'>loop_type</span><span class='op'>|</span>
+    <span class='id identifier rubyid_raise'>raise</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors.html" title="Shoes::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors/InvalidAttributeValueError.html" title="Shoes::Errors::InvalidAttributeValueError (class)">InvalidAttributeValueError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Unknown event loop type: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_loop_type'>loop_type</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'>!</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='const'><span class='object_link'><a href="#CUSTOM_EVENT_LOOP_TYPES-constant" title="Shoes::App::CUSTOM_EVENT_LOOP_TYPES (constant)">CUSTOM_EVENT_LOOP_TYPES</a></span></span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_loop_type'>loop_type</span><span class='rparen'>)</span>
+
+    <span class='ivar'>@event_loop_type</span> <span class='op'>=</span> <span class='id identifier rubyid_loop_type'>loop_type</span>
+  <span class='kw'>end</span>
+
+  <span class='const'>Signal</span><span class='period'>.</span><span class='id identifier rubyid_trap'>trap</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>INT</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>do</span>
+    <span class='ivar'>@log</span><span class='period'>.</span><span class='id identifier rubyid_warn'>warn</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>App interrupted by signal, stopping...</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_puts'>puts</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>\nStopping Shoes app...</span><span class='tstring_end'>&quot;</span></span>
+    <span class='id identifier rubyid_destroy'>destroy</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+<div id="method_missing_details" class="method_details_list">
+  <h2>Dynamic Method Handling</h2>
+  <p class="notice this">
+    This class handles dynamic methods through the <tt>method_missing</tt> method
+    
+  </p>
+  
+    <div class="method_details first">
+  <h3 class="signature first" id="method_missing-instance_method">
+  
+    #<strong>method_missing</strong>(name, *args, **kwargs, &amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>We use method_missing for drawable-creating methods like &quot;button&quot;.
+The parent&#39;s method_missing will auto-create Shoes style getters and setters.
+This is similar to the method_missing in Shoes::Slot, but different in
+where the new drawable appears.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 158</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_method_missing'>method_missing</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_kwargs'>kwargs</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_klass'>klass</span> <span class='op'>=</span> <span class='op'>::</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></span><span class='period'>.</span><span class='id identifier rubyid_drawable_class_by_name'><span class='object_link'><a href="Drawable.html#drawable_class_by_name-class_method" title="Shoes::Drawable.drawable_class_by_name (method)">drawable_class_by_name</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>super</span> <span class='kw'>unless</span> <span class='id identifier rubyid_klass'>klass</span>
+
+  <span class='op'>::</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="" title="Shoes::App (class)">App</a></span></span><span class='period'>.</span><span class='id identifier rubyid_define_method'>define_method</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='rparen'>)</span> <span class='kw'>do</span> <span class='op'>|</span><span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_kwargs'>kwargs</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='op'>|</span>
+    <span class='const'><span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></span><span class='period'>.</span><span class='id identifier rubyid_with_current_app'><span class='object_link'><a href="Drawable.html#with_current_app-class_method" title="Shoes::Drawable.with_current_app (method)">with_current_app</a></span></span><span class='lparen'>(</span><span class='kw'>self</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_klass'>klass</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_kwargs'>kwargs</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_send'>send</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='op'>*</span><span class='id identifier rubyid_args'>args</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_kwargs'>kwargs</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+  <div id="class_attr_details" class="attr_details">
+    <h2>Class Attribute Details</h2>
+    
+      
+      <span id="set_test_code=-class_method"></span>
+      <div class="method_details first">
+  <h3 class="signature first" id="set_test_code-class_method">
+  
+    .<strong>set_test_code</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns the value of attribute set_test_code.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+35
+36
+37</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 35</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_set_test_code'>set_test_code</span>
+  <span class='ivar'>@set_test_code</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+  <div id="instance_attr_details" class="attr_details">
+    <h2>Instance Attribute Details</h2>
+    
+      
+      <span id=""></span>
+      <div class="method_details first">
+  <h3 class="signature first" id="dir-instance_method">
+  
+    #<strong>dir</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>The application directory for this app. Often this will be the directory
+containing the launched application file.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+12
+13
+14</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 12</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_dir'>dir</span>
+  <span class='ivar'>@dir</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id=""></span>
+      <div class="method_details ">
+  <h3 class="signature " id="document_root-instance_method">
+  
+    #<strong>document_root</strong>  &#x21d2; <tt>Object</tt>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>The Shoes root of the drawable tree</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+8
+9
+10</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 8</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_document_root'>document_root</span>
+  <span class='ivar'>@document_root</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+
+  <div id="class_method_details" class="method_details_list">
+    <h2>Class Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="find_drawables_by-class_method">
+  
+    .<strong>find_drawables_by</strong>(*specs)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>We can add various ways to find drawables here.
+These are sort of like Shoes selectors, used for testing.
+This method finds a drawable across all active Shoes apps.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+229
+230
+231
+232
+233</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 229</span>
+
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_find_drawables_by'>find_drawables_by</span><span class='lparen'>(</span><span class='op'>*</span><span class='id identifier rubyid_specs'>specs</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='period'>.</span><span class='const'>APPS</span><span class='period'>.</span><span class='id identifier rubyid_flat_map'>flat_map</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_app'>app</span><span class='op'>|</span>
+    <span class='id identifier rubyid_app'>app</span><span class='period'>.</span><span class='id identifier rubyid_find_drawables_by'>find_drawables_by</span><span class='lparen'>(</span><span class='op'>*</span><span class='id identifier rubyid_specs'>specs</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="all_drawables-instance_method">
+  
+    #<strong>all_drawables</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 214</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_all_drawables'>all_drawables</span>
+  <span class='id identifier rubyid_out'>out</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+
+  <span class='id identifier rubyid_to_add'>to_add</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='ivar'>@document_root</span><span class='comma'>,</span> <span class='ivar'>@document_root</span><span class='period'>.</span><span class='id identifier rubyid_children'>children</span><span class='rbracket'>]</span>
+  <span class='kw'>until</span> <span class='id identifier rubyid_to_add'>to_add</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+    <span class='id identifier rubyid_out'>out</span><span class='period'>.</span><span class='id identifier rubyid_concat'>concat</span><span class='lparen'>(</span><span class='id identifier rubyid_to_add'>to_add</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_to_add'>to_add</span> <span class='op'>=</span> <span class='id identifier rubyid_to_add'>to_add</span><span class='period'>.</span><span class='id identifier rubyid_flat_map'>flat_map</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_w'>w</span><span class='op'>|</span> <span class='id identifier rubyid_w'>w</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:children</span><span class='rparen'>)</span> <span class='op'>?</span> <span class='id identifier rubyid_w'>w</span><span class='period'>.</span><span class='id identifier rubyid_children'>children</span> <span class='op'>:</span> <span class='lbracket'>[</span><span class='rbracket'>]</span> <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_compact'>compact</span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_out'>out</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="background-instance_method">
+  
+    #<strong>background</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>This is going to go away. See issue #496</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+314
+315
+316</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 314</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_background'>background</span><span class='lparen'>(</span><span class='op'>...</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_current_slot'>current_slot</span><span class='period'>.</span><span class='id identifier rubyid_background'>background</span><span class='lparen'>(</span><span class='op'>...</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="border-instance_method">
+  
+    #<strong>border</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>This is going to go away. See issue #498</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+319
+320
+321</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 319</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_border'>border</span><span class='lparen'>(</span><span class='op'>...</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_current_slot'>current_slot</span><span class='period'>.</span><span class='id identifier rubyid_border'>border</span><span class='lparen'>(</span><span class='op'>...</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="current_draw_context-instance_method">
+  
+    #<strong>current_draw_context</strong>  &#x21d2; <tt>Hash</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Get the current draw context for the current slot</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>a hash of Shoes styles for the current draw context</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+174
+175
+176</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 174</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_current_draw_context'>current_draw_context</span>
+  <span class='id identifier rubyid_current_slot'>current_slot</span><span class='op'>&amp;.</span><span class='id identifier rubyid_current_draw_context'>current_draw_context</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="current_slot-instance_method">
+  
+    #<strong>current_slot</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+141
+142
+143</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 141</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_current_slot'>current_slot</span>
+  <span class='ivar'>@slots</span><span class='lbracket'>[</span><span class='op'>-</span><span class='int'>1</span><span class='rbracket'>]</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="destroy-instance_method">
+  
+    #<strong>destroy</strong>(send_event: true)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+209
+210
+211
+212</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 209</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_destroy'>destroy</span><span class='lparen'>(</span><span class='label'>send_event:</span> <span class='kw'>true</span><span class='rparen'>)</span>
+  <span class='ivar'>@do_shutdown</span> <span class='op'>=</span> <span class='kw'>true</span>
+  <span class='id identifier rubyid_send_shoes_event'>send_shoes_event</span><span class='lparen'>(</span><span class='label'>event_name:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>destroy</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_send_event'>send_event</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="features-instance_method">
+  
+    #<strong>features</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>This is defined to avoid the linkable-id check in the Shoes-style method_missing def&#39;n</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+17
+18
+19</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 17</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_features'>features</span>
+  <span class='ivar'>@features</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="find_drawables_by-instance_method">
+  
+    #<strong>find_drawables_by</strong>(*specs)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>We can add various ways to find drawables here.
+These are sort of like Shoes selectors, used for testing.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 237</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_find_drawables_by'>find_drawables_by</span><span class='lparen'>(</span><span class='op'>*</span><span class='id identifier rubyid_specs'>specs</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_drawables'>drawables</span> <span class='op'>=</span> <span class='id identifier rubyid_all_drawables'>all_drawables</span>
+  <span class='id identifier rubyid_specs'>specs</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_spec'>spec</span><span class='op'>|</span>
+    <span class='kw'>if</span> <span class='id identifier rubyid_spec'>spec</span> <span class='op'>==</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="" title="Shoes::App (class)">App</a></span></span>
+      <span class='id identifier rubyid_drawables'>drawables</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='ivar'>@app</span><span class='rbracket'>]</span>
+    <span class='kw'>elsif</span> <span class='id identifier rubyid_spec'>spec</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Class</span><span class='rparen'>)</span>
+      <span class='id identifier rubyid_drawables'>drawables</span><span class='period'>.</span><span class='id identifier rubyid_select!'>select!</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_w'>w</span><span class='op'>|</span> <span class='id identifier rubyid_spec'>spec</span> <span class='op'>===</span> <span class='id identifier rubyid_w'>w</span> <span class='rbrace'>}</span>
+    <span class='kw'>elsif</span> <span class='id identifier rubyid_spec'>spec</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Symbol</span><span class='rparen'>)</span> <span class='op'>||</span> <span class='id identifier rubyid_spec'>spec</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>String</span><span class='rparen'>)</span>
+      <span class='id identifier rubyid_s'>s</span> <span class='op'>=</span> <span class='id identifier rubyid_spec'>spec</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span>
+      <span class='kw'>case</span> <span class='id identifier rubyid_s'>s</span><span class='lbracket'>[</span><span class='int'>0</span><span class='rbracket'>]</span>
+      <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>$</span><span class='tstring_end'>&quot;</span></span>
+        <span class='kw'>begin</span>
+          <span class='comment'># I&#39;m not finding a global_variable_get or similar...
+</span>          <span class='id identifier rubyid_global_value'>global_value</span> <span class='op'>=</span> <span class='id identifier rubyid_eval'>eval</span> <span class='id identifier rubyid_s'>s</span>
+          <span class='id identifier rubyid_drawables'>drawables</span> <span class='op'>&amp;=</span> <span class='lbracket'>[</span><span class='id identifier rubyid_global_value'>global_value</span><span class='rbracket'>]</span>
+        <span class='kw'>rescue</span>
+          <span class='comment'>#raise Shoes::Errors::InvalidAttributeValueError, &quot;Error getting global variable: #{spec.inspect}&quot;
+</span>          <span class='id identifier rubyid_drawables'>drawables</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+        <span class='kw'>end</span>
+      <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>@</span><span class='tstring_end'>&quot;</span></span>
+        <span class='kw'>if</span> <span class='ivar'>@app</span><span class='period'>.</span><span class='id identifier rubyid_instance_variables'>instance_variables</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_spec'>spec</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span><span class='rparen'>)</span>
+          <span class='id identifier rubyid_drawables'>drawables</span> <span class='op'>&amp;=</span> <span class='lbracket'>[</span><span class='ivar'>@app</span><span class='period'>.</span><span class='id identifier rubyid_instance_variable_get'>instance_variable_get</span><span class='lparen'>(</span><span class='id identifier rubyid_spec'>spec</span><span class='rparen'>)</span><span class='rbracket'>]</span>
+        <span class='kw'>else</span>
+          <span class='comment'>#raise Shoes::Errors::InvalidAttributeValueError, &quot;Can&#39;t find top-level instance variable: #{spec.inspect}!&quot;
+</span>          <span class='id identifier rubyid_drawables'>drawables</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+        <span class='kw'>end</span>
+      <span class='kw'>else</span>
+        <span class='kw'>if</span> <span class='id identifier rubyid_s'>s</span><span class='period'>.</span><span class='id identifier rubyid_start_with?'>start_with?</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>id:</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+          <span class='id identifier rubyid_find_id'>find_id</span> <span class='op'>=</span> <span class='const'>Integer</span><span class='lparen'>(</span><span class='id identifier rubyid_s'>s</span><span class='lbracket'>[</span><span class='int'>3</span><span class='op'>..</span><span class='op'>-</span><span class='int'>1</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+          <span class='id identifier rubyid_drawable'>drawable</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span></span><span class='period'>.</span><span class='id identifier rubyid_drawable_by_id'><span class='object_link'><a href="Drawable.html#drawable_by_id-class_method" title="Shoes::Drawable.drawable_by_id (method)">drawable_by_id</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_find_id'>find_id</span><span class='rparen'>)</span>
+          <span class='id identifier rubyid_drawables'>drawables</span> <span class='op'>&amp;=</span> <span class='lbracket'>[</span><span class='id identifier rubyid_drawable'>drawable</span><span class='rbracket'>]</span>
+        <span class='kw'>else</span>
+          <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors.html" title="Shoes::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors/InvalidAttributeValueError.html" title="Shoes::Errors::InvalidAttributeValueError (class)">InvalidAttributeValueError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Don&#39;t know how to find drawables by </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_spec'>spec</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'>!</span><span class='tstring_end'>&quot;</span></span>
+        <span class='kw'>end</span>
+      <span class='kw'>end</span>
+    <span class='kw'>else</span>
+      <span class='id identifier rubyid_raise'>raise</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors.html" title="Shoes::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors/InvalidAttributeValueError.html" title="Shoes::Errors::InvalidAttributeValueError (class)">InvalidAttributeValueError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Don&#39;t know how to find drawables by </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_spec'>spec</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'>!</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+  <span class='id identifier rubyid_drawables'>drawables</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="init-instance_method">
+  
+    #<strong>init</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+121
+122
+123
+124
+125
+126</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 121</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_init'>init</span>
+  <span class='id identifier rubyid_send_shoes_event'>send_shoes_event</span><span class='lparen'>(</span><span class='label'>event_name:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>init</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>if</span> <span class='ivar'>@do_shutdown</span>
+
+  <span class='id identifier rubyid_with_slot'>with_slot</span><span class='lparen'>(</span><span class='ivar'>@document_root</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='ivar'>@app_code_body</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="line_to-instance_method">
+  
+    #<strong>line_to</strong>(x, y)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="Errors/InvalidAttributeValueError.html" title="Shoes::Errors::InvalidAttributeValueError (class)">Shoes::Errors::InvalidAttributeValueError</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+340
+341
+342
+343
+344
+345
+346</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 340</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_line_to'>line_to</span><span class='lparen'>(</span><span class='id identifier rubyid_x'>x</span><span class='comma'>,</span> <span class='id identifier rubyid_y'>y</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors.html" title="Shoes::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors/InvalidAttributeValueError.html" title="Shoes::Errors::InvalidAttributeValueError (class)">InvalidAttributeValueError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Pass only Numeric arguments to line_to!</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='id identifier rubyid_x'>x</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Numeric</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_y'>y</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Numeric</span><span class='rparen'>)</span>
+
+  <span class='kw'>if</span> <span class='id identifier rubyid_current_slot'>current_slot</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shape.html" title="Shoes::Shape (class)">Shape</a></span></span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_current_slot'>current_slot</span><span class='period'>.</span><span class='id identifier rubyid_add_shape_command'>add_shape_command</span><span class='lparen'>(</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>line_to</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='id identifier rubyid_x'>x</span><span class='comma'>,</span> <span class='id identifier rubyid_y'>y</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="move_to-instance_method">
+  
+    #<strong>move_to</strong>(x, y)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Shape DSL methods</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="Errors/InvalidAttributeValueError.html" title="Shoes::Errors::InvalidAttributeValueError (class)">Shoes::Errors::InvalidAttributeValueError</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+332
+333
+334
+335
+336
+337
+338</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 332</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_move_to'>move_to</span><span class='lparen'>(</span><span class='id identifier rubyid_x'>x</span><span class='comma'>,</span> <span class='id identifier rubyid_y'>y</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors.html" title="Shoes::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors/InvalidAttributeValueError.html" title="Shoes::Errors::InvalidAttributeValueError (class)">InvalidAttributeValueError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Pass only Numeric arguments to move_to!</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='id identifier rubyid_x'>x</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Numeric</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_y'>y</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Numeric</span><span class='rparen'>)</span>
+
+  <span class='kw'>if</span> <span class='id identifier rubyid_current_slot'>current_slot</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shape.html" title="Shoes::Shape (class)">Shape</a></span></span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_current_slot'>current_slot</span><span class='period'>.</span><span class='id identifier rubyid_add_shape_command'>add_shape_command</span><span class='lparen'>(</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>move_to</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='id identifier rubyid_x'>x</span><span class='comma'>,</span> <span class='id identifier rubyid_y'>y</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="page-instance_method">
+  
+    #<strong>page</strong>(name, &amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+279
+280
+281
+282
+283
+284
+285
+286</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 279</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_page'>page</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='ivar'>@pages</span> <span class='op'>||=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='ivar'>@pages</span><span class='lbracket'>[</span><span class='id identifier rubyid_name'>name</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_proc'>proc</span> <span class='kw'>do</span>
+    <span class='id identifier rubyid_stack'>stack</span><span class='lparen'>(</span><span class='label'>width:</span> <span class='float'>1.0</span><span class='comma'>,</span> <span class='label'>height:</span> <span class='float'>1.0</span><span class='rparen'>)</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_instance_eval'>instance_eval</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="pop_slot-instance_method">
+  
+    #<strong>pop_slot</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+135
+136
+137
+138
+139</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 135</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_pop_slot'>pop_slot</span>
+  <span class='kw'>return</span> <span class='kw'>if</span> <span class='ivar'>@slots</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span> <span class='op'>&lt;=</span> <span class='int'>1</span>
+
+  <span class='ivar'>@slots</span><span class='period'>.</span><span class='id identifier rubyid_pop'>pop</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="push_slot-instance_method">
+  
+    #<strong>push_slot</strong>(slot)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>&quot;Container&quot; drawables like flows, stacks, masks and the document root
+are considered &quot;slots&quot; in Shoes parlance. When a new slot is created,
+we push it here in order to track what drawables are found in that slot.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+131
+132
+133</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 131</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_push_slot'>push_slot</span><span class='lparen'>(</span><span class='id identifier rubyid_slot'>slot</span><span class='rparen'>)</span>
+  <span class='ivar'>@slots</span><span class='period'>.</span><span class='id identifier rubyid_push'>push</span><span class='lparen'>(</span><span class='id identifier rubyid_slot'>slot</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="run-instance_method">
+  
+    #<strong>run</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>This usually doesn&#39;t return. The display service may take control
+of the main thread. Local Webview even stops any background threads.
+However, some display libraries don&#39;t want to shut down and don&#39;t
+want to (and/or can&#39;t) take control of the event loop.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 182</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_run'>run</span>
+  <span class='kw'>if</span> <span class='ivar'>@do_shutdown</span>
+    <span class='gvar'>$stderr</span><span class='period'>.</span><span class='id identifier rubyid_puts'>puts</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Destroy has already been signaled, but we just called Shoes::App.run!</span><span class='tstring_end'>&quot;</span></span>
+    <span class='kw'>return</span>
+  <span class='kw'>end</span>
+
+  <span class='comment'># The display lib can send us an event to customise the event loop handling.
+</span>  <span class='comment'># But it must do so before the &quot;run&quot; event returns.
+</span>  <span class='id identifier rubyid_send_shoes_event'>send_shoes_event</span><span class='lparen'>(</span><span class='label'>event_name:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>run</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+
+  <span class='kw'>case</span> <span class='ivar'>@event_loop_type</span>
+  <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>wait</span><span class='tstring_end'>&quot;</span></span>
+    <span class='comment'># Display lib wants us to busy-wait instead of it.
+</span>    <span class='kw'>until</span> <span class='ivar'>@do_shutdown</span>
+      <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="DisplayService.html" title="Shoes::DisplayService (class)">DisplayService</a></span></span><span class='period'>.</span><span class='id identifier rubyid_dispatch_event'><span class='object_link'><a href="DisplayService.html#dispatch_event-class_method" title="Shoes::DisplayService.dispatch_event (method)">dispatch_event</a></span></span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>heartbeat</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>displaylib</span><span class='tstring_end'>&quot;</span></span>
+    <span class='comment'># If run event returned, that means we&#39;re done.
+</span>    <span class='id identifier rubyid_destroy'>destroy</span>
+  <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>return</span><span class='tstring_end'>&quot;</span></span>
+    <span class='comment'># We can just return to the main event loop. But we shouldn&#39;t call destroy.
+</span>    <span class='comment'># Presumably some event loop *outside* our event loop is handling things.
+</span>  <span class='kw'>else</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors.html" title="Shoes::Errors (module)">Errors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Errors/InvalidAttributeValueError.html" title="Shoes::Errors::InvalidAttributeValueError (class)">InvalidAttributeValueError</a></span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Internal error! Incorrect event loop type: </span><span class='embexpr_beg'>#{</span><span class='ivar'>@event_loop_type</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'>!</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="visit-instance_method">
+  
+    #<strong>visit</strong>(name)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+288
+289
+290
+291
+292
+293
+294
+295
+296</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 288</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_visit'>visit</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span><span class='rparen'>)</span>
+  <span class='kw'>if</span> <span class='ivar'>@pages</span> <span class='op'>&amp;&amp;</span> <span class='ivar'>@pages</span><span class='lbracket'>[</span><span class='id identifier rubyid_name'>name</span><span class='rbracket'>]</span>
+    <span class='ivar'>@document_root</span><span class='period'>.</span><span class='id identifier rubyid_clear'>clear</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_instance_eval'>instance_eval</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='ivar'>@pages</span><span class='lbracket'>[</span><span class='id identifier rubyid_name'>name</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_puts'>puts</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Error: URL &#39;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_name'>name</span><span class='embexpr_end'>}</span><span class='tstring_content'>&#39; not found</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="with_slot-instance_method">
+  
+    #<strong>with_slot</strong>(slot_item, &amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+145
+146
+147
+148
+149
+150
+151
+152</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/app.rb', line 145</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_with_slot'>with_slot</span><span class='lparen'>(</span><span class='id identifier rubyid_slot_item'>slot_item</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='kw'>unless</span> <span class='id identifier rubyid_block_given?'>block_given?</span>
+
+  <span class='id identifier rubyid_push_slot'>push_slot</span><span class='lparen'>(</span><span class='id identifier rubyid_slot_item'>slot_item</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_instance_eval'>instance_eval</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+<span class='kw'>ensure</span>
+  <span class='id identifier rubyid_pop_slot'>pop_slot</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Wed Oct  9 15:38:26 2024 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.28 (ruby-3.2.0).
+</div>
+
+    </div>
+  </body>
+</html>
