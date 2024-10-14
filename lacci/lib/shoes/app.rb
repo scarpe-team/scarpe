@@ -256,7 +256,7 @@ class Shoes
               # I'm not finding a global_variable_get or similar...
               global_value = eval s
               drawables &= [global_value]
-            rescue StandardError
+            rescue
               # raise Shoes::Errors::InvalidAttributeValueError, "Error getting global variable: #{spec.inspect}"
               drawables = []
             end
@@ -388,10 +388,10 @@ class Shoes::App < Shoes::Drawable
   private
 
   def render_index_if_defined_on_first_boot
-    return if $first_boot_finished
+    return if @first_boot_finished
 
     visit('/') if @routes['/'] == :index
 
-    $first_boot_finished = true
+    @first_boot_finished = true
   end
 end
