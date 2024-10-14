@@ -125,11 +125,7 @@ class Shoes
       send_shoes_event(event_name: 'init')
       return if @do_shutdown
 
-      with_slot(@document_root) do
-        @content_container = flow(width: 1.0, height: 1.0)
-        with_slot(@content_container, &@app_code_body)
-      end
-
+      with_slot(@document_root, &@app_code_body)
       render_index_if_defined_on_first_boot
     end
 
@@ -295,13 +291,13 @@ class Shoes
 
     def visit(name_or_path)
       if @pages && @pages[name_or_path]
-        @content_container.clear do
+        @document_root.clear do
           instance_eval(&@pages[name_or_path])
         end
       else
         route, method_name = @routes.find { |r, _| r === name_or_path }
         if route
-          @content_container.clear do
+          @document_root.clear do
             if route.is_a?(Regexp)
               match_data = route.match(name_or_path)
               send(method_name, *match_data.captures)
