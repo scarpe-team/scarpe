@@ -38,9 +38,8 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-      # Currently failing
-      # - name: Run Lacci tests
-      #   run: CI_RUN='true' bundle exec rake lacci_test
+      - name: Run Lacci tests
+        run: CI_RUN='true' bundle exec rake lacci_test
       - name: Run Scarpe-Component tests
         run: CI_RUN='true' bundle exec rake component_test
       - name: Check HTML output

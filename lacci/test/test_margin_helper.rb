@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-load "lacci/lib/shoes/margin_helper.rb"
+require_relative "../lib/shoes/margin_helper"
 
 
 class TestMarginHelper < Minitest::Test
