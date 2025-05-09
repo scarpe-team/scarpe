@@ -4,12 +4,26 @@ on:
   push:
     branches:
       - "*"
+    # Don't run push event if there's an associated PR
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+
+# Cancel in-progress runs on same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   tests:
+    # Skip push runs if PR exists
+    if: github.event_name != 'push' || github.event.pull_request == null
     name: Tests
     runs-on: macos-latest
     timeout-minutes: 30
