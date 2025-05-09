@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - "*"
   pull_request:
     branches:
       - main
@@ -34,7 +34,7 @@ jobs:
       - name: Check HTML output
         run: bundle exec rake test:check_html_fixtures
       - name: upload test-fail logs
-        if: !cancelled()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: test failure logs
