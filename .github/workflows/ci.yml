@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - "*"
+      - main
     # Don't run push event if there's an associated PR
     paths-ignore:
       - "docs/**"
