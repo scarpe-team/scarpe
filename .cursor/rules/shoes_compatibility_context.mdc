@@ -1,0 +1,75 @@
+---
+description:
+globs: **/*shoes*.rb,**/*shoes*.md
+alwaysApply: false
+---
+# Shoes Compatibility Context
+
+<rule>
+name: shoes_compatibility_context
+description: Share relevant compatibility documentation when working with Shoes implementations
+filters:
+  - type: file
+    pattern: **/*shoes*.rb
+  - type: file
+    pattern: **/*shoes*.md
+  - type: file
+    pattern: **/*compatibility*.rb
+  - type: file
+    pattern: **/*compatibility*.md
+  - type: file
+    pattern: **/*compat*.rb
+  - type: file
+    pattern: **/*compat*.md
+
+actions:
+  - type: suggest
+    message: |
+      # Shoes Compatibility Context
+
+      When working with Shoes compatibility, consider:
+
+      1. Implementation History
+         - @docs/shoes_implementations.md - Various Shoes implementations
+         - @docs/scarpe_shoes_incompatibilities.md - Known differences
+         - @docs/web_archaeology.md - Historical context
+
+      2. Key Differences:
+         - Method names and signatures
+         - Event handling behavior
+         - Layout system changes
+         - API modifications
+
+      3. Implementation Types:
+         - Original Shoes (C/Ruby)
+         - Green Shoes (GTK+)
+         - Purple Shoes (Windows)
+         - Scarpe (Web-based)
+
+      4. Best Practices:
+         - Document incompatibilities clearly
+         - Provide migration paths when possible
+         - Consider cross-implementation testing
+         - Maintain historical context
+
+      5. Additional Resources:
+         - Wiki: https://github.com/scarpe-team/scarpe/wiki/ScarpeDesign.md#scarpe-shoes-incompatibilities
+         - Related sections:
+           * Display Service Separation
+           * Event Loops
+           * Timeouts and handlers
+           * Calzini Components
+
+examples:
+  - description: "Working with Shoes compatibility"
+    input: |
+      When handling compatibility:
+      1. Check implementation differences
+      2. Document API changes
+      3. Consider migration paths
+      4. Test across implementations
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>

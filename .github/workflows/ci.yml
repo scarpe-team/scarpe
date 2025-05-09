@@ -4,12 +4,26 @@ on:
   push:
     branches:
       - main
+    # Don't run push event if there's an associated PR
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+
+# Cancel in-progress runs on same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   tests:
+    # Skip push runs if PR exists
+    if: github.event_name != 'push' || github.event.pull_request == null
     name: Tests
     runs-on: macos-latest
     timeout-minutes: 30
@@ -24,17 +38,17 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-      # Currently failing
-      # - name: Run Lacci tests
-      #   run: CI_RUN='true' bundle exec rake lacci_test
+      - name: Run Lacci tests
+        run: CI_RUN='true' bundle exec rake lacci_test
       - name: Run Scarpe-Component tests
         run: CI_RUN='true' bundle exec rake component_test
-      - name: Run Scarpe tests
-        run: CI_RUN='true' bundle exec rake test
       - name: Check HTML output
         run: bundle exec rake test:check_html_fixtures
+
+      - name: Run Scarpe tests
+        run: CI_RUN='true' bundle exec rake test
       - name: upload test-fail logs
-        if: !cancelled()
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
           name: test failure logs

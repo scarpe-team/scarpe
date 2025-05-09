@@ -1,0 +1,52 @@
+---
+description:
+globs: lacci/**/*
+alwaysApply: false
+---
+# Lacci Context
+
+<rule>
+name: lacci_context
+description: Provides information about Lacci's purpose and operation
+filters:
+  - type: glob
+    pattern: "lacci/**/*"
+
+actions:
+  - type: suggest
+    message: |
+      # Working with Lacci
+
+      [lacci.md](mdc:docs/lacci.md)
+
+      You are currently working in Lacci, the Shoes4 compatibility layer for Scarpe.
+      For detailed documentation, see: docs/lacci.md
+
+      Key points to remember:
+      1. Lacci translates Shoes4 commands to display-agnostic operations
+      2. Uses Niente (null display service) for testing
+      3. Implements drawing context inheritance
+      4. Handles margins, fonts, and layout
+
+      Common patterns:
+      - Test new features with Niente first
+      - Follow existing error handling patterns
+      - Maintain backward compatibility
+      - Document changes thoroughly
+
+examples:
+  - description: "Adding a new drawing primitive"
+    input: |
+      # Example of adding a new shape
+      module Shoes
+        class Triangle < Shape
+          def initialize(app, left, top, width, height, **styles)
+            super(app, left, top, width, height, **styles)
+          end
+        end
+      end
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>
