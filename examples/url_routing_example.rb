@@ -21,7 +21,7 @@ Shoes.app(title: 'Advanced URL Routing Example', width: 300, height: 200) do
     button 'User 42' do
       visit '/user/42'
     end
-    @user_id = edit_line(1, width: "40%")
+    @user_id = edit_line(1, width: "40%", secret: true)
     button 'Pick a user' do
       visit "/user/#{@user_id.text}"
     end
