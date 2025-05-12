@@ -58,7 +58,7 @@ class Feepogram
     @tracks.each do |sound_name, notes|
       bloops.tune @sounds[sound_name], notes
 
-      #puts "#{sound_name}: #{notes.gsub(/\s+/, ' ')}"
+      puts "#{sound_name}: #{notes.gsub(/\s+/, ' ')}"
     end
 
     bloops.play

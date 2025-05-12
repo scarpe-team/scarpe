@@ -22,9 +22,17 @@ module Scarpe::Components::Calzini
 
   def edit_line_element(props)
     oninput = handler_js_code("change", "this.value")
-    
+
     HTML.render do |h|
-      h.input(id: html_id, oninput: oninput, onmouseover: handler_js_code("hover"), value: props["text"], style: edit_line_style(props),title: props["tooltip"])
+      h.input(
+        id: html_id,
+        type: props["secret"] ? :password : :text,
+        oninput: oninput,
+        onmouseover: handler_js_code("hover"),
+        value: props["text"],
+        style: edit_line_style(props),
+        title: props["tooltip"]
+      )
     end
   end
 

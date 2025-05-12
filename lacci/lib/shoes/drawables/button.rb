@@ -41,7 +41,7 @@ class Shoes
       # Bind block to a handler named "click"
       bind_self_event("click") do
         @log.debug("Button clicked, calling handler") if @block
-        @block&.call
+        @block&.call if @block
       end
 
       create_display_drawable
