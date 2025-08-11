@@ -33,7 +33,7 @@ jobs:
       - name: Configure library dirs from Homebrew for gems w/ native extensions
         run: bundle config build.bloops --with-portaudio-dir=`brew --prefix portaudio`
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup Ruby and install gems
         uses: ruby/setup-ruby@v1
         with:
