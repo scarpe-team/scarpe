@@ -49,7 +49,7 @@ jobs:
         run: CI_RUN='true' bundle exec rake test
       - name: upload test-fail logs
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: test failure logs
           path: logger/test_failure*.out.log
