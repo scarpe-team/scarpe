@@ -3,7 +3,6 @@
 class Shoes
   class Stack < Shoes::Slot
     include Shoes::Background
-    include Shoes::Border
 
     shoes_styles :scroll
 
@@ -16,7 +15,7 @@ class Shoes
 
       # Create the display-side drawable *before* running the block.
       # Then child drawables have a parent to add themselves to.
-      Shoes::App.instance.with_slot(self, &block) if block_given?
+      @app.with_slot(self, &block) if block_given?
     end
   end
 end

@@ -23,32 +23,32 @@ class TestCalziniMiscDrawables < Minitest::Test
   end
 
   def test_edit_box_default
-    assert_equal %{<textarea id="elt-1" oninput="handle('change', this.value)"></textarea>},
+    assert_equal %{<textarea id="elt-1" oninput="handle('change', this.value)" onmouseover="handle('hover')"></textarea>},
       @calzini.render("edit_box", {})
   end
 
   def test_edit_box_hidden
-    assert_equal %{<textarea id="elt-1" oninput="handle('change', this.value)" style="display:none"></textarea>},
+    assert_equal %{<textarea id="elt-1" oninput="handle('change', this.value)" onmouseover="handle('hover')" style="display:none"></textarea>},
       @calzini.render("edit_box", { "hidden" => true })
   end
 
   def test_edit_box_simple
-    assert_equal %{<textarea id="elt-1" oninput="handle('change', this.value)" style="width:75;height:50">default</textarea>},
+    assert_equal %{<textarea id="elt-1" oninput="handle('change', this.value)" onmouseover="handle('hover')" style="width:75;height:50">default</textarea>},
       @calzini.render("edit_box", { "height" => "50", "width" => "75", "text" => "default" })
   end
 
   def test_edit_line_default
-    assert_equal %{<input id="elt-1" oninput="handle('change', this.value)" />},
+    assert_equal %{<input id="elt-1" oninput="handle('change', this.value)" onmouseover="handle('hover')" style="font:;color:" />},
       @calzini.render("edit_line", {})
   end
 
   def test_edit_line_hidden
-    assert_equal %{<input id="elt-1" oninput="handle('change', this.value)" style="display:none" />},
+    assert_equal %{<input id="elt-1" oninput="handle('change', this.value)" onmouseover="handle('hover')" style="display:none;font:;color:" />},
       @calzini.render("edit_line", { "hidden" => true })
   end
 
   def test_edit_line_simple
-    assert_equal %{<input id="elt-1" oninput="handle('change', this.value)" value="(default)" style="width:200" />},
+    assert_equal %{<input id="elt-1" oninput="handle('change', this.value)" onmouseover="handle('hover')" value="(default)" style="width:200;font:;color:" />},
       @calzini.render("edit_line", { "width" => "200", "text" => "(default)" })
   end
 

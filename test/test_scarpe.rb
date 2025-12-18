@@ -116,7 +116,7 @@ class TestWebviewScarpe < ShoesSpecLoggedTest
         end
       end
     SCARPE_APP
-      assert_raises Shoes::Errors::UnsupportedFeature do
+      assert_raises Shoes::Errors::UnsupportedFeatureError do
         stack("@s").button("OK", html_class: "itsabutton")
       end
     TEST_CODE

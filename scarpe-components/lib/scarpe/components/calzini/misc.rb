@@ -16,7 +16,7 @@ module Scarpe::Components::Calzini
     oninput = handler_js_code("change", "this.value")
 
     HTML.render do |h|
-      h.textarea(id: html_id, oninput: oninput, style: edit_box_style(props)) { props["text"] }
+      h.textarea(id: html_id, oninput: oninput,onmouseover: handler_js_code("hover"), style: edit_box_style(props),title: props["tooltip"]) { props["text"] }
     end
   end
 
@@ -24,7 +24,15 @@ module Scarpe::Components::Calzini
     oninput = handler_js_code("change", "this.value")
 
     HTML.render do |h|
-      h.input(id: html_id, oninput: oninput, value: props["text"], style: edit_line_style(props))
+      h.input(
+        id: html_id,
+        type: props["secret"] ? :password : :text,
+        oninput: oninput,
+        onmouseover: handler_js_code("hover"),
+        value: props["text"],
+        style: edit_line_style(props),
+        title: props["tooltip"]
+      )
     end
   end
 
@@ -111,13 +119,16 @@ module Scarpe::Components::Calzini
     drawable_style(props).merge({
       height: dimensions_length(props["height"]),
       width: dimensions_length(props["width"]),
+      font: props["font"]? parse_font(props) : nil
     }.compact)
   end
 
   def edit_line_style(props)
     styles = drawable_style(props)
 
+    styles[:font] = props["font"]? parse_font(props) : nil
     styles[:width] = dimensions_length(props["width"]) if props["width"]
+    styles[:color] =  rgb_to_hex(props["stroke"])
 
     styles
   end

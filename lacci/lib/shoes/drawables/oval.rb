@@ -18,9 +18,9 @@ class Shoes
     init_args :left, :top
     opt_init_args :radius, :height
     def initialize(*args, **options)
-      @draw_context = Shoes::App.instance.current_draw_context
-
       super # Parse any positional or keyword args
+
+      @draw_context = @app.current_draw_context
 
       unless @left && @top && (@width || @height || @radius)
         raise Shoes::Errors::InvalidAttributeValueError, "Oval requires left, top and one of (width, height, radius) to be specified!"

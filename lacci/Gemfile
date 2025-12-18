@@ -17,8 +17,6 @@ group :development do
   gem "yard"
   gem "redcarpet"
   gem "debug"
-  gem "rubocop", "~> 1.21"
-  gem "rubocop-shopify"
   #gem "commonmarker"
   #gem "github-markup"
 end

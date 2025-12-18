@@ -37,7 +37,6 @@
 
 class Shoes::Widget < Shoes::Slot
   include Shoes::Background
-  include Shoes::Border
 
   shoes_events
 
@@ -68,7 +67,7 @@ class Shoes::Widget < Shoes::Slot
       __widget_initialize(*args, **kwargs, &block)
 
       # Do Widgets do this?
-      Shoes::App.instance.with_slot(self, &block) if block
+      @app.with_slot(self, &block) if block
     end
     @midway_through_adding_initialize = false
   end

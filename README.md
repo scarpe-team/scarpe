@@ -7,7 +7,7 @@
 
 <img src="https://user-images.githubusercontent.com/7865030/217309905-7f25e3cf-1850-481d-811b-dfddea2df54a.png" width="200" height="200">
 
-"Scarpe" means shoes in Italian. "Scarpe" also means [Shoes](https://github.com/shoes/shoes-deprecated) in modern Ruby and webview!
+"Scarpe" means shoes in Italian. "Scarpe" also means [Shoes](https://github.com/shoes/shoes-deprecated) in modern Ruby and Webview!
 
 Scarpe isn't feature complete with any version of Shoes (yet?). We're initially targeting [Shoes 3](https://github.com/scarpe-team/scarpe/wiki/ShoesImplementations.md), also called "Red Shoes."
 
@@ -15,7 +15,7 @@ Scarpe isn't feature complete with any version of Shoes (yet?). We're initially 
 
 Shoes is an old library (really [several different ones](https://github.com/scarpe-team/scarpe/wiki/ShoesImplementations.md)) that let you build little local desktop computer programs, package them up and give copies to people. Imagine if you can write a tiny little Ruby program (e.g. sneak a peek at the next section) and then it would make a runnable app, opening a window in Ruby, where you could click buttons and play sounds and stuff.
 
-Scarpe is a rewrite of Shoes, because old Shoes doesn't really work any more. There have been a surprising number of rewrites of Shoes over the years -- people love it and miss having it around. This one is ours. Also it uses Webview.
+Scarpe is a rewrite of Shoes, because old Shoes doesn't work any more. There have been a surprising number of rewrites of Shoes over the years -- people love it and miss having it around. This one is ours. By default it uses [Webview](https://github.com/webview/webview).
 
 ## Usage
 
@@ -52,14 +52,14 @@ More examples can be found in the [`examples` folder](https://github.com/scarpe-
 
 ## Wiki
 
-Explore more in the [Scarpe Wiki](https://github.com/scarpe-team/scarpe/wiki) for in-depth documentation, tutorials, and additional resources. Whether you're a new contributor or an experienced user, the Wiki provides valuable information to enhance your Scarpe experience.
+Explore more in the [Scarpe Wiki](https://github.com/scarpe-team/scarpe/wiki) for in-depth documentation, tutorials, and additional resources. Whether you're a new user, a new contributor or an experienced user, the Wiki provides valuable information to enhance your Scarpe experience.
 
 
 ## Scarpe in Development
 
 ### Quickstart
 
-Scarpe requires [Ruby 3.2](https://www.ruby-lang.org/en/downloads/) or higher! You can use `rvm`, `rbenv` or your favourite version control just like normal.
+Scarpe requires [Ruby 3.2](https://www.ruby-lang.org/en/downloads/) or higher! You can use `rvm`, `rbenv` or your favourite version control to install Ruby just like normal.
 
 This repo is where most of the action is happening right now, and to have the full Scarpe experience _today_ this is probably what you want to do.
 
@@ -71,7 +71,7 @@ brew install portaudio && bundle config build.bloops --with-portaudio-dir=$(brew
 # dependencies - Ubuntu Linux version
 sudo apt install libgtk-3-dev libwebkit2gtk-4.0-dev portaudio19-dev
 
-for any other linux or windows. please see the webview docs for your [platform](https://github.com/webview/webview#prerequisites)
+for any other Linux or Windows please see the webview docs for your [platform](https://github.com/webview/webview#prerequisites)
 
 # get it
 git clone http://github.com/scarpe-team/scarpe
@@ -83,33 +83,71 @@ cd scarpe; bundle install
 
 If you are using Visual Studio Code, you can use this [extension](https://github.com/gintama91/Scarpe-Vscode-Extension). This extension simplifies the process of executing commands by eliminating the need to repeatedly type lengthy file paths, resulting in a more efficient and productive development experience.
 
-### Finer details
+## Run Test
+
+To Run all availble tests run command 
+
+```
+bundle exec rake ci_test
+
+```
+
+### To Run Tests separately 
+
+Scarpe is composed of [various sub-libraries](https://github.com/scarpe-team/scarpe/wiki/ShoesArchitecture.md). You can run some tests separately.
+
+Run Lacci Tests:
+
+```
+bundle exec rake lacci_test
+
+```
+
+Run Scarpe-Components Tests:
+
+```
+bundle exec rake component_test
+```
+
+Run Scarpe Tests:
+
+```
+bundle exec rake test
+```
+
+Check HTML Output:
+
+```
+bundle exec rake test:check_html_fixtures
+```
+
+### Finer Details
 
 First, clone the [main GitHub repository](https://github.com/scarpe-team/scarpe).
 
-`bundle install` dependencies like webview from the cloned directory in your Ruby of choice.
+`bundle install` dependencies like Webview from the cloned directory in your Ruby of choice.
 
 You can run without Scarpe being installed by including its directory. For instance, from the "examples" directory you can run `ruby -I../lib -I../lacci/lib -rscarpe hello_world.rb`. You can also install Scarpe locally (`gem build scarpe.gemspec && gem install scarpe-0.1.0.gem`) or using a Gemfile with the "path" option for local Scarpe.
 
 Most commonly we are all using this command: `./exe/scarpe examples/button.rb --dev --debug`
 
-The `--dev` flag points to your local scarpe rather than an installed Scarpe gem.
+The `--dev` flag points to your local Scarpe rather than an installed Scarpe gem.
 
 The `--debug` flag will dump a ton of useful information to the console if you want to see what's happening with your app.
 
-It's very early in the development process. If you'd like to help develop Scarpe, great! It would be useful to drop us a message/issue/PR on GitHub early on, so we know you're working in a particular area, and we can warn you if anybody else is currently doing so. We also have a Discord.
+It's very early in Scarpe's development process. If you'd like to help develop Scarpe, great! It would be useful to drop us a message/issue/PR on GitHub early on, so we know you're working in a particular area, and we can warn you if anybody else is currently doing so. We also have a Discord.
 
 We'd love the help!
 
-If you want to quickly add a feature, you can use the `ruby scarpegen.rb` command. This command will generate the necessary files for you, along with a simple template and a set of questions to guide you through the process. By following these steps, you will be good to go!
+If you want to quickly add a feature, you can use the `ruby scarpegen.rb` command. This command will generate the necessary files for you, along with a simple template and a set of questions to guide you through the process. By leveraging the `ruby scarpegen.rb` command and the provided resources, you can expedite the feature addition process and ensure a smoother development experience.
 
-By leveraging the `ruby scarpegen.rb` command and the provided resources, you can expedite the feature addition process and ensure a smoother development experience.
-
-## Are we done yet?
+## Are We Done Yet?
 
 Great question! Right now we have a few key things we want to achieve. The first is passing all of the examples we can get our hands on. The second is passing [Hackety-Hack](https://github.com/hacketyhack/hacketyhack). We're manually keeping tabs on that here.
 
-### Webview Display Service Examples Passing
+But the short version is: no, we're far from done. Some Shoes features (e.g. multiple window support) may be very difficult to support with Webview at all. We're working on other ways to handle those features.
+
+### Examples Passing with the Webview Display Service
 
 ![](https://geps.dev/progress/30?dangerColor=800000&warningColor=ff9900&successColor=006600)
 
@@ -133,6 +171,31 @@ Example usage:
 The SCARPE_TEST_CONTROL environment variable can contain a path to a test-control-interface script for the Webview display service. If you look at test_helper, it gives some examples of how to use it.
 
 If you run ./exe/scarpe --dev env, you can see all current environment settings.
+
+## Shoes-Spec
+
+Pre-Scarpe Shoes didn't have specific test APIs or infrastructure. That was pretty standard for GUI libraries when it was written. Scarpe supports a test API called Shoes-Spec, and different display services tend to extend it.
+
+The idea is that you write a standard Shoes application and then there's additional test code that runs once your application is running. Since different display services run in very different ways (e.g. Webview vs Wasm vs GTK+), the test code isn't necessarily in the same Ruby process as the Shoes application.
+
+They're often packaged in .sspec files that look like this:
+
+~~~
+---
+----------- app code
+Shoes.app do
+  @b = button "OK" do
+    @b.text = "Clicked"
+  end
+end
+
+----------- test code
+assert_equal "OK", button().text
+button().trigger_click
+assert_equal "Clicked", button().text
+~~~
+
+See [https://github.com/scarpe-team/shoes-spec] for more details.
 
 ## More info
 

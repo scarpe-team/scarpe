@@ -2,7 +2,7 @@
 
 module Scarpe::Webview
   class EditLine < Drawable
-    attr_reader :text, :width
+    attr_reader :text, :width, :stroke, :font, :tooltip, :secret
 
     def initialize(properties)
       super
@@ -10,6 +10,9 @@ module Scarpe::Webview
       # The JS handler sends a "change" event, which we forward to the Shoes drawable tree
       bind("change") do |new_text|
         send_self_event(new_text, event_name: "change")
+      end
+      bind("hover") do |new_text|
+        send_self_event(new_text, event_name: "hover")
       end
     end
 

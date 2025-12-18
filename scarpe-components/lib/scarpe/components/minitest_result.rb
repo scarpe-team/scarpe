@@ -70,6 +70,13 @@ class Scarpe::Components::MinitestResult
     ["success", "OK"]
   end
 
+  def console_summary
+    return "Error(s): #{@exceptions.inspect}" if self.error?
+    return "Failure: #{@failures.inspect}" if self.fail?
+    return "Skip: #{skip_message.inspect}" if self.skip?
+    "Success!"
+  end
+
   def check(expect_result: :success, min_asserts: nil, max_asserts: nil)
     unless [:error, :fail, :skip, :success].include?(expect_result)
       raise Scarpe::InternalError, "Expected test result should be one of [:success, :fail, :error, :skip]!"

@@ -39,5 +39,4 @@ class CalziniRenderer
 end
 
 class Minitest::Test
-  include Scarpe::Test::Helpers
 end

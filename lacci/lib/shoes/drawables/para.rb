@@ -1,8 +1,9 @@
 # frozen_string_literal: true
-
+require_relative 'font_helper.rb'
 class Shoes
-  class Para < Shoes::Drawable
-    shoes_styles :text_items, :size, :family, :font_weight, :font, :font_variant, :emphasis
+  class Para < Shoes::Drawable 
+  include FontHelper
+    shoes_styles :text_items, :size, :family, :font_weight, :font, :font_variant, :emphasis, :kerning
     shoes_style(:stroke) { |val, _name| Shoes::Colors.to_rgb(val) }
     shoes_style(:fill) { |val, _name| Shoes::Colors.to_rgb(val) }
 
@@ -38,16 +39,55 @@ class Shoes
     #
     #      p.replace "On top we'll switch to ", strong("bold"), "!"
     #    end
+    
     def initialize(*args, **kwargs)
+
+      if kwargs[:font]
+        arr= parse_font(kwargs[:font])
+        
+        if arr[0] != nil
+
+          kwargs[:emphasis] = arr[0]
+
+        end
+
+        if arr[1] != nil
+
+          kwargs[:font_variant] = arr[1]
+
+        end
+
+        if arr[2] != nil
+
+          kwargs[:font_weight] = arr[2]
+
+        end
+
+        if arr[3] != nil
+
+          kwargs[:size] = arr[3]
+
+        end
+
+        if arr[4] != ""
+
+          kwargs[:family] = arr[4]
+
+        end
+
+      end
+ 
       # Don't pass text_children args to Drawable#initialize
       super(*[], **kwargs)
-
+        
       # Text_children alternates strings and TextDrawables, so we can't just pass
       # it as a Shoes style. It won't serialize.
       update_text_children(args)
 
       create_display_drawable
     end
+
+    
 
     private
 
@@ -102,6 +142,8 @@ class Shoes
       # This should signal the display drawable to change
       self.text_items = text_children_to_items(@text_children)
     end
+
+    
   end
 end
 

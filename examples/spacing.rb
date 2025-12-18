@@ -7,7 +7,7 @@ Shoes.app(title: "Spacing") do
     background "red"
     para "with 10px margin-left and margin-right, and 20px margin-bottom", stroke: "white"
   end
-  stack margin: [15, 15, nil, 40] do
+  stack margin: [15, nil, 15, 40] do
     background "blue"
     para "with 15px margin-left and margin-right, and 40px margin-bottom", stroke: "white"
   end

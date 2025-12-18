@@ -7,48 +7,47 @@
 # to handle the DSL and command-line parts of Shoes without knowing anything about how the
 # display side works at all.
 
-if RUBY_VERSION[0..2] < "3.2"
-  Shoes::Log.logger("Shoes").error("Lacci (Scarpe, Shoes) requires Ruby 3.2 or higher!")
+if RUBY_VERSION[0..2] < '3.2'
+  Shoes::Log.logger('Shoes').error('Lacci (Scarpe, Shoes) requires Ruby 3.2 or higher!')
   exit(-1)
 end
 
 class Shoes; end
 class Shoes::Error < StandardError; end
-require_relative "shoes/errors"
+require_relative 'shoes/errors'
 
-require_relative "shoes/constants"
-require_relative "shoes/ruby_extensions"
+require_relative 'shoes/constants'
+require_relative 'shoes/ruby_extensions'
 
 # Shoes adds some top-level methods and constants that can be used everywhere. Kernel is where they go.
 module Kernel
   include Shoes::Constants
 end
 
-require_relative "shoes/display_service"
+require_relative 'shoes/display_service'
 
 # Pre-declare classes that get referenced outside their own require file
 class Shoes::Drawable < Shoes::Linkable; end
 class Shoes::Slot < Shoes::Drawable; end
 class Shoes::Widget < Shoes::Slot; end
 
-require_relative "shoes/log"
-require_relative "shoes/colors"
+require_relative 'shoes/log'
+require_relative 'shoes/colors'
 
-require_relative "shoes/builtins"
+require_relative 'shoes/builtins'
 
-require_relative "shoes/background"
-require_relative "shoes/border"
+require_relative 'shoes/background'
 
-require_relative "shoes/drawable"
-require_relative "shoes/app"
-require_relative "shoes/drawables"
+require_relative 'shoes/drawable'
+require_relative 'shoes/app'
+require_relative 'shoes/drawables'
 
-require_relative "shoes/download"
+require_relative 'shoes/download'
 
 # No easy way to tell at this point whether
 # we will later load Shoes-Spec code, e.g.
 # by running a segmented app with test code.
-require_relative "shoes-spec"
+require_relative 'shoes-spec'
 
 # The module containing Shoes in all its glory.
 # Shoes is a platform-independent GUI library, designed to create
@@ -56,6 +55,8 @@ require_relative "shoes-spec"
 #
 class Shoes
   class << self
+    attr_accessor :APPS
+
     # Creates a Shoes app with a new window. The block parameter is used to create
     # drawables and set up handlers. Arguments are passed to Shoes::App.new internally.
     #
@@ -79,7 +80,7 @@ class Shoes
     # @return [void]
     # @see Shoes::App#new
     def app(
-      title: "Shoes!",
+      title: 'Shoes!',
       width: 480,
       height: 420,
       resizable: true,
@@ -126,7 +127,7 @@ class Shoes
         proc do |path|
           load path
           true
-        end,
+        end
       ]
     end
 
@@ -146,4 +147,6 @@ class Shoes
       @file_loaders = loaders
     end
   end
+
+  Shoes.APPS ||= []
 end

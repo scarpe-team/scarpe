@@ -39,7 +39,6 @@ module Scarpe::Components::Calzini
     strikethrough = props["strikethrough"]
     strikethrough = nil if strikethrough == "" || strikethrough == "none"
     s1 = {
-      "font": props["font"]? parse_font(props) : nil,
       "font-variant": props["font_variant"],
       "color": rgb_to_hex(props["stroke"]),
       "background-color": rgb_to_hex(props["fill"]),
@@ -99,9 +98,10 @@ module Scarpe::Components::Calzini
   def parse_font(props)
 
     def contains_number?(str)
-
       !!(str =~ /\d/)
-
+    end
+    def contains_only_numbers?(string)
+      /^\d+\z/ =~ string
     end
   
 
@@ -135,10 +135,14 @@ module Scarpe::Components::Calzini
         next
       else
         if contains_number?(i)
-          
-          fss=i;
 
-        elsif i != "normal" && i != "medium"
+          if contains_only_numbers?(i)
+              fss = i + "px"
+          else
+              fss = i
+          end
+
+        elsif i != "normal" && i != "medium" && i.strip != ""
 
           if ff == "Arial"
 
@@ -154,7 +158,7 @@ module Scarpe::Components::Calzini
       
     end
     
-    
+
     "#{fs} #{fv} #{fw} #{fss} #{ff}"
     
   end

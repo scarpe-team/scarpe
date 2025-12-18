@@ -12,7 +12,7 @@ class TestEditBoxShoesSpec < ShoesSpecLoggedTest
       end
     SCARPE_APP
       box_disp = edit_box.display
-      assert_contains_html box_disp.to_html, :textarea, id: box_disp.html_id, oninput: "scarpeHandler('#{box_disp.shoes_linkable_id}-change', this.value)" do
+      assert_contains_html box_disp.to_html, :textarea, id: box_disp.html_id, oninput: "scarpeHandler('#{box_disp.shoes_linkable_id}-change', this.value)",onmouseover:"scarpeHandler('#{box_disp.shoes_linkable_id}-hover')" do
         "Hello, World!"
       end
     TEST_CODE
@@ -28,7 +28,7 @@ class TestEditBoxShoesSpec < ShoesSpecLoggedTest
       box = edit_box
       box.text = "Awwww yeah"
       html_id = box.display.html_id
-      assert_contains_html edit_box.display.to_html, :textarea, id: html_id, oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)" do
+      assert_contains_html edit_box.display.to_html, :textarea, id: html_id, oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)", onmouseover:"scarpeHandler('#{box.display.shoes_linkable_id}-hover')" do
         "Awwww yeah"
       end
       # Shoes3 does *not* fire a change event when manually replacing text
@@ -48,6 +48,7 @@ class TestEditBoxShoesSpec < ShoesSpecLoggedTest
         :textarea,
         id: html_id,
         oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)",
+        onmouseover:"scarpeHandler('#{box.display.shoes_linkable_id}-hover')",
         style: "width:100px;height:120px" do
         "Hello, World!"
       end

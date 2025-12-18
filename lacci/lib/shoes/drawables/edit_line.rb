@@ -2,7 +2,7 @@
 
 class Shoes
   class EditLine < Shoes::Drawable
-    shoes_styles :text, :width
+    shoes_styles :text, :width, :font, :tooltip, :stroke, :secret
     shoes_events :change
 
     init_args
