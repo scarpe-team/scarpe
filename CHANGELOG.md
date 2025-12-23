@@ -11,6 +11,7 @@ straightforward as possible.
 ### Bugs Fixed
 - #569 link(click: "/path") now triggers internal navigation via visit(); paths like "/foo" also fall back to page(:foo) if no URL route matches
 - Support for `class MyApp < Shoes` inheritance pattern with URL routing
+- Fixed background() with remote URLs (now properly wrapped in CSS url())
 
 ### Incompatibilities
 
