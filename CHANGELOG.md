@@ -4,6 +4,7 @@ Here we write upgrading notes for brands. It's a team effort to make them as
 straightforward as possible.
 
 ### Enhancements
+- Added CLAUDE.md for agentic coding assistance
 
 ### Bugs Fixed
 - #-some-pr-number <description> @author-of-pr
