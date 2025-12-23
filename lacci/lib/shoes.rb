@@ -57,6 +57,38 @@ class Shoes
   class << self
     attr_accessor :APPS
 
+    # Track the most recently defined Shoes subclass for the inheritance pattern
+    # e.g., class Book < Shoes; end; Shoes.app
+    attr_accessor :pending_app_class
+
+    # When someone does `class MyApp < Shoes`, track it
+    def inherited(subclass)
+      # Only track direct subclasses of Shoes, not Shoes::App, Shoes::Drawable, etc.
+      # Those have their own inheritance tracking
+      if self == ::Shoes
+        Shoes.pending_app_class = subclass
+      end
+      super
+    end
+
+    # Class-level url method for defining routes in Shoes subclasses
+    # e.g., class Book < Shoes; url '/', :index; end
+    def url(path, method_name)
+      @class_routes ||= {}
+      if path.is_a?(String) && path.include?('(')
+        # Convert string patterns like '/page/(\d+)' to regex
+        regex = Regexp.new("^#{path.gsub(/\(.*?\)/, '(.*?)')}$")
+        @class_routes[regex] = method_name
+      else
+        @class_routes[path] = method_name
+      end
+    end
+
+    # Get the routes defined on this class
+    def class_routes
+      @class_routes ||= {}
+    end
+
     # Creates a Shoes app with a new window. The block parameter is used to create
     # drawables and set up handlers. Arguments are passed to Shoes::App.new internally.
     #
@@ -89,6 +121,47 @@ class Shoes
     )
       f = [features].flatten # Make sure this is a list, not a single symbol
       app = Shoes::App.new(title:, width:, height:, resizable:, features: f, &app_code_body)
+
+      # If there's a pending Shoes subclass (e.g., class Book < Shoes), use it
+      if Shoes.pending_app_class
+        subclass = Shoes.pending_app_class
+        Shoes.pending_app_class = nil  # Clear it so it doesn't affect future apps
+
+        # Include the subclass as a module to get its instance methods
+        # This works because we're extending the singleton class
+        methods_to_copy = subclass.instance_methods(false)
+
+        methods_to_copy.each do |method_name|
+          # Get source location and use eval to redefine - but that's fragile
+          # Instead, let's use a delegation pattern with the app as context
+
+          # Read the method's arity and create a proper wrapper
+          um = subclass.instance_method(method_name)
+
+          # Define a wrapper that will eval the original method body in app's context
+          # This is a bit hacky but works: we store the subclass and call via instance_eval
+          app.define_singleton_method(method_name) do |*args, &block|
+            # Create a temporary subclass instance that delegates to app for Shoes methods
+            temp = subclass.allocate
+            temp.instance_variable_set(:@__shoes_app__, self)
+
+            # Define method_missing on the temp to delegate Shoes DSL calls to the app
+            temp.define_singleton_method(:method_missing) do |name, *a, **kw, &b|
+              @__shoes_app__.send(name, *a, **kw, &b)
+            end
+            temp.define_singleton_method(:respond_to_missing?) { |*| true }
+
+            # Call the original method on temp (which delegates DSL calls to app)
+            temp.send(method_name, *args, &block)
+          end
+        end
+
+        # Copy routes from the subclass to the app
+        subclass.class_routes.each do |path, method_name|
+          app.url(path, method_name)
+        end
+      end
+
       app.init
       app.run
       nil
