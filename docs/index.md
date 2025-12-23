@@ -5,8 +5,7 @@ title: Scarpe - Shoes in Modern Ruby
 
 <div style="text-align: center; margin-bottom: 2rem;">
   <img src="static/scarpe-logo.png" alt="Scarpe Logo" style="max-width: 400px; width: 100%;">
-  <h1 style="margin-top: 1rem; font-size: 2.5rem; font-weight: 300;">Scarpe</h1>
-  <p style="font-size: 1.4rem; color: #666; font-style: italic;">Scarpe Diem: Seize the Shoes</p>
+  <p style="font-size: 1.4rem; color: #666; font-style: italic; margin-top: 1rem;">Scarpe Diem: Seize the Shoes</p>
 </div>
 
 ---
