@@ -7,7 +7,14 @@
 require "securerandom"
 require "json"
 
-require "bloops"
+# Bloops is optional - only required if you want sound support
+# Install with: gem install bloops (requires portaudio)
+begin
+  require "bloops"
+rescue LoadError
+  # Bloops not installed - sound features will not be available
+end
+
 require "scarpe/components/html" # HTML renderer
 require "scarpe/components/modular_logger"
 require "scarpe/components/promises"

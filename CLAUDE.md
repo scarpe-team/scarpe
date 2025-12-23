@@ -76,9 +76,8 @@ All in `docs/`:
 ## Running Scarpe
 
 ```bash
-# Install dependencies
-brew install portaudio pkg-config  # Mac
-# Or: sudo apt install libgtk-3-dev libwebkit2gtk-4.0-dev portaudio19-dev  # Linux
+# Install dependencies (Linux only - Mac works out of the box)
+sudo apt install libgtk-3-dev libwebkit2gtk-4.0-dev  # Ubuntu/Debian
 
 # Install gems
 bundle install
@@ -88,6 +87,9 @@ bundle install
 
 # With a theme
 SCARPE_BOOTSTRAP_THEME=sketchy bundle exec ./exe/scarpe examples/button.rb --debug
+
+# Optional: For sound support (bloopsaphone examples)
+# gem install bloops  # requires portaudio: brew install portaudio (Mac)
 ```
 
 ## Testing

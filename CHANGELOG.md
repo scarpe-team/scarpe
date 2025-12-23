@@ -5,6 +5,8 @@ straightforward as possible.
 
 ### Enhancements
 - Added CLAUDE.md for agentic coding assistance
+- Removed bloops as a required dependency - sound is now opt-in (install bloops gem separately if needed)
+- Added base64 gem dependency for Ruby 3.4+ compatibility
 
 ### Bugs Fixed
 - #-some-pr-number <description> @author-of-pr

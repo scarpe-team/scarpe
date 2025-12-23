@@ -30,6 +30,7 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
+  spec.add_dependency 'base64'
   spec.add_dependency 'fastimage', '~>2.2.7'
   spec.add_dependency 'nokogiri', '~>1.15.2'
   spec.add_dependency 'sqlite3', '~>1.6.3'
@@ -38,7 +39,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'lacci', '~>0.4.0'
   spec.add_dependency 'scarpe-components', '~>0.4.0'
 
-  spec.add_dependency 'bloops', '~>0.5'
   spec.add_dependency 'logging', '~>2.3.1'
   spec.add_dependency 'webview_ruby', '~>0.1.1'
 
