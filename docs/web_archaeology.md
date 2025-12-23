@@ -1,3 +1,8 @@
+---
+layout: default
+title: web archaeology
+---
+
 # Web Archaeology
 
 This document catalogs various online sources of Shoes-related information, preserving important historical context.

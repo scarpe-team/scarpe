@@ -1,3 +1,8 @@
+---
+layout: default
+title: Lacci
+---
+
 # Lacci: The Shoes4 Compatibility Layer
 
 ## Overview

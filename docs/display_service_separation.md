@@ -1,3 +1,8 @@
+---
+layout: default
+title: Display Service Separation
+---
+
 # Display Service Separation
 
 The display service in Scarpe is separated from the main application to provide better isolation and flexibility. This design choice allows for:

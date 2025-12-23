@@ -220,9 +220,14 @@ module Scarpe::Components::Calzini
   private
 
   def text_drawable_attrs(props)
+    click_value = props["click"]
+    # Internal routes (starting with /) should use onclick, not href
+    # External URLs use href for normal browser navigation
+    is_internal_route = click_value.is_a?(String) && click_value.start_with?("/")
+
     {
       # These properties will normally only be set by link()
-      href: props["click"],
+      href: is_internal_route ? nil : click_value,
       onclick: props["has_block"] ? handler_js_code("click") : nil,
     }.compact
   end

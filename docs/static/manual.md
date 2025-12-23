@@ -1,3 +1,8 @@
+---
+layout: default
+title: The Shoes Manual
+---
+
 # Hello!
 
 Shoes is a tiny graphics toolkit. It's simple and straightforward. Shoes was

@@ -8,7 +8,6 @@ gemspec
 gem "lacci", path: "lacci"
 gem "scarpe-components", path: "scarpe-components"
 
-gem "bloops", "~> 0.5" #path: "../bloopsaphone" #git: "https://github.com/scarpe-team/bloopsaphone"
 gem "rake", "~> 13.0"
 
 group :test do
