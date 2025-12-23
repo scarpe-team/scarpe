@@ -9,7 +9,7 @@ straightforward as possible.
 - Added base64 gem dependency for Ruby 3.4+ compatibility
 
 ### Bugs Fixed
-- #-some-pr-number <description> @author-of-pr
+- #569 link(click: "/path") now triggers internal navigation via visit(); paths like "/foo" also fall back to page(:foo) if no URL route matches
 
 ### Incompatibilities
 
