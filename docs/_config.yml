@@ -1,0 +1,13 @@
+title: Scarpe
+description: Shoes in modern Ruby and Webview
+remote_theme: pages-themes/minimal@v0.2.0
+plugins:
+  - jekyll-remote-theme
+
+# Include static assets
+include:
+  - static
+
+# Exclude files from build
+exclude:
+  - yard/

@@ -1,3 +1,8 @@
+---
+layout: default
+title: shoes implementations
+---
+
 # Shoes Implementations
 
 This document covers various Shoes implementations and how Scarpe relates to them.

@@ -1,3 +1,8 @@
+---
+layout: default
+title: Scarpe Features
+---
+
 # Extending _why's Legacy
 
 ![Would _why have a beard if he existed now](image.png)

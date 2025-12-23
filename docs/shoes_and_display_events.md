@@ -1,3 +1,8 @@
+---
+layout: default
+title: shoes and display events
+---
+
 # Shoes and Display Events
 
 This document covers how Scarpe handles events and display updates in relation to the original Shoes implementation.

@@ -1,3 +1,8 @@
+---
+layout: default
+title: calzini components and updates
+---
+
 # Calzini Components and Updates
 
 Calzini is Scarpe's component system, providing a modern approach to UI components while maintaining Shoes compatibility.
