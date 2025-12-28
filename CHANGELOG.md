@@ -4,9 +4,14 @@ Here we write upgrading notes for brands. It's a team effort to make them as
 straightforward as possible.
 
 ### Enhancements
+- Added CLAUDE.md for agentic coding assistance
+- Removed bloops as a required dependency - sound is now opt-in (install bloops gem separately if needed)
+- Added base64 gem dependency for Ruby 3.4+ compatibility
 
 ### Bugs Fixed
-- #-some-pr-number <description> @author-of-pr
+- #569 link(click: "/path") now triggers internal navigation via visit(); paths like "/foo" also fall back to page(:foo) if no URL route matches
+- Support for `class MyApp < Shoes` inheritance pattern with URL routing
+- Fixed background() with remote URLs (now properly wrapped in CSS url())
 
 ### Incompatibilities
 

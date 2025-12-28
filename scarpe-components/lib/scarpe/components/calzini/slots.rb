@@ -100,6 +100,8 @@ module Scarpe::Components::Calzini
       "linear-gradient(45deg, #{bc.first}, #{bc.last})"
     when ->(value) { File.exist?(value) }
       "url(data:image/png;base64,#{encode_file_to_base64(bc)})"
+    when ->(value) { valid_url?(value) }
+      "url(#{bc})"
     else
       bc
     end

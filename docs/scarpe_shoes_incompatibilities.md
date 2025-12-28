@@ -1,3 +1,8 @@
+---
+layout: default
+title: scarpe shoes incompatibilities
+---
+
 # Scarpe/Shoes Incompatibilities
 
 This document outlines the known incompatibilities between Scarpe and the original Shoes implementation.

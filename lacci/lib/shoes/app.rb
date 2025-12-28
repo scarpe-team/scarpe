@@ -290,25 +290,40 @@ class Shoes
     end
 
     def visit(name_or_path)
+      # First, check for exact page match (symbol)
       if @pages && @pages[name_or_path]
         @document_root.clear do
           instance_eval(&@pages[name_or_path])
         end
-      else
-        route, method_name = @routes.find { |r, _| r === name_or_path }
-        if route
-          @document_root.clear do
-            if route.is_a?(Regexp)
-              match_data = route.match(name_or_path)
-              send(method_name, *match_data.captures)
-            else
-              send(method_name)
-            end
+        return
+      end
+
+      # Second, check URL routes
+      route, method_name = @routes.find { |r, _| r === name_or_path }
+      if route
+        @document_root.clear do
+          if route.is_a?(Regexp)
+            match_data = route.match(name_or_path)
+            send(method_name, *match_data.captures)
+          else
+            send(method_name)
           end
-        else
-          puts "Error: URL '#{name_or_path}' not found"
+        end
+        return
+      end
+
+      # Third, if it's a string path like "/page2", try matching page :page2
+      if name_or_path.is_a?(String) && name_or_path.start_with?("/")
+        page_name = name_or_path[1..-1].to_sym  # "/page2" -> :page2
+        if @pages && @pages[page_name]
+          @document_root.clear do
+            instance_eval(&@pages[page_name])
+          end
+          return
         end
       end
+
+      puts "Error: URL '#{name_or_path}' not found"
     end
 
     def url(path, method_name)

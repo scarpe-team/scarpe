@@ -1,3 +1,8 @@
+---
+layout: default
+title: event loops
+---
+
 # Event Loops
 
 Scarpe's event loop system is a core part of its architecture, handling both UI events and application logic.

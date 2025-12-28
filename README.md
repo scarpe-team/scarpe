@@ -5,7 +5,7 @@
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-shopify-brightgreen.svg)](https://github.com/Shopify/ruby-style-guide)
 [![Discord](https://img.shields.io/discord/1072538177321058377?label=discord)](https://discord.gg/Ca5EHSsGYp)
 
-<img src="https://user-images.githubusercontent.com/7865030/217309905-7f25e3cf-1850-481d-811b-dfddea2df54a.png" width="200" height="200">
+<img src="docs/static/scarpe-logo.png">
 
 "Scarpe" means shoes in Italian. "Scarpe" also means [Shoes](https://github.com/shoes/shoes-deprecated) in modern Ruby and Webview!
 
@@ -64,14 +64,11 @@ Scarpe requires [Ruby 3.2](https://www.ruby-lang.org/en/downloads/) or higher! Y
 This repo is where most of the action is happening right now, and to have the full Scarpe experience _today_ this is probably what you want to do.
 
 ```
-# dependencies - Mac version
-brew install portaudio pkg-config # for sound!
-# dependencies - Mac M1 version
-brew install portaudio && bundle config build.bloops --with-portaudio-dir=$(brew --prefix portaudio)
 # dependencies - Ubuntu Linux version
-sudo apt install libgtk-3-dev libwebkit2gtk-4.0-dev portaudio19-dev
+sudo apt install libgtk-3-dev libwebkit2gtk-4.0-dev
 
-for any other Linux or Windows please see the webview docs for your [platform](https://github.com/webview/webview#prerequisites)
+# for any other Linux or Windows please see the webview docs for your platform:
+# https://github.com/webview/webview#prerequisites
 
 # get it
 git clone http://github.com/scarpe-team/scarpe

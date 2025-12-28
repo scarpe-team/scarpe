@@ -1,3 +1,8 @@
+---
+layout: default
+title: timeouts and handlers
+---
+
 # Timeouts and Handlers
 
 This document explains how Scarpe manages timeouts and event handlers within its cooperative evented approach.
