@@ -368,6 +368,25 @@ class Shoes::App < Shoes::Drawable
     end
   end
 
+  # Slot methods that should be accessible at App level.
+  # In Shoes, the app block's self has direct access to these slot methods
+  # because the app body evaluates as if it were inside the document_root slot.
+  def clear(&block)
+    current_slot.clear(&block)
+  end
+
+  def contents
+    current_slot.contents
+  end
+
+  def append(&block)
+    current_slot.append(&block)
+  end
+
+  def prepend(&block)
+    current_slot.prepend(&block)
+  end
+
   # Shape DSL methods
 
   def move_to(x, y)
