@@ -135,6 +135,11 @@ module Scarpe::Components::Calzini
       styles[:transform] = "translate(#{dx}px, #{dy}px)"
       styles[:position] ||= "relative"
     end
+
+    # Cursor style — map Shoes cursor names to CSS cursor values
+    if props["cursor"]
+      styles[:cursor] = shoes_cursor_to_css(props["cursor"])
+    end
     styles[:"margin-left"] = dimensions_length(props["margin_left"]) if props["margin_left"]
     styles[:"margin-right"] = dimensions_length(props["margin_right"]) if props["margin_right"]
     styles[:"margin-top"] = dimensions_length(props["margin_top"]) if props["margin_top"]
@@ -233,6 +238,33 @@ module Scarpe::Components::Calzini
     b_int = (b_float * 255.0).to_i.clamp(0, 255)
 
     "#%0.2X%0.2X%0.2X" % [r_int, g_int, b_int]
+  end
+
+  # Map Shoes cursor symbols to CSS cursor values
+  SHOES_CURSOR_MAP = {
+    arrow_cursor: "default",
+    text_cursor: "text",
+    watch_cursor: "wait",
+    hand_cursor: "pointer",
+    arrow: "default",
+    hand: "pointer",
+    text: "text",
+    wait: "wait",
+    crosshair: "crosshair",
+    move: "move",
+    help: "help",
+    not_allowed: "not-allowed",
+  }.freeze
+
+  def shoes_cursor_to_css(cursor)
+    case cursor
+    when Symbol
+      SHOES_CURSOR_MAP[cursor] || cursor.to_s.tr("_", "-")
+    when String
+      SHOES_CURSOR_MAP[cursor.to_sym] || cursor
+    else
+      "default"
+    end
   end
 
   def degrees_to_radians(degrees)

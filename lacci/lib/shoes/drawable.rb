@@ -271,6 +271,9 @@ class Shoes
     # Displace moves the drawable visually without affecting layout
     shoes_styles :displace_left, :displace_top
 
+    # CSS cursor style for this drawable
+    shoes_style :cursor
+
     attr_reader :debug_id
 
     # These styles can be set to a current per-slot value and inherited from parent slots.
