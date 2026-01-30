@@ -36,8 +36,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'sqlite3', '~>1.6.3'
   spec.add_dependency 'webrick', '~>1.7.0'
 
-  spec.add_dependency 'lacci', '~>0.4.0'
-  spec.add_dependency 'scarpe-components', '~>0.4.0'
+  spec.add_dependency 'lacci', '~>0.5.0'
+  spec.add_dependency 'scarpe-components', '~>0.5.0'
 
   spec.add_dependency 'logging', '~>2.3.1'
   spec.add_dependency 'webview_ruby', '~>0.1.1'
