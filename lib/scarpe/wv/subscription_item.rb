@@ -26,8 +26,10 @@ class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Drawable
         send_self_event(@counter, event_name: @shoes_api_name)
       end
     when "timer"
-      # JS setTimeout?
-      raise "Implement me!"
+      delay = @args[0] || 1
+      @wrangler.one_shot_code("timer_#{@shoes_linkable_id}", delay) do
+        send_self_event(event_name: @shoes_api_name)
+      end
     when "motion", "hover", "leave", "click", "release", "keypress"
       # Wait for set_parent
     else

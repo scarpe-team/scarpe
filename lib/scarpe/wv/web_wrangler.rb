@@ -182,6 +182,27 @@ module Scarpe::Webview
       end
     end
 
+    # Set up a one-shot timer that fires a Ruby block after a delay.
+    # Uses JS setTimeout instead of setInterval.
+    # Like periodic_code, this must be called during setup, before the
+    # Webview is running.
+    #
+    # @param name [String] the name of the Javascript callback function
+    # @param delay [Float] the delay in seconds before invoking the block
+    # @yield the Ruby block to invoke once after the delay
+    def one_shot_code(name, delay, &block)
+      if @is_running
+        raise Scarpe::PeriodicHandlerSetupError, "App is running, can't set up new handlers with init!"
+      end
+
+      js_delay = (delay.to_f * 1_000.0).to_i
+      code_str = "setTimeout(#{name}, #{js_delay});"
+      @init_refs[name] = code_str
+
+      bind(name, &block)
+      @webview.init(code_str)
+    end
+
     # Running callbacks
 
     # js_eventually is a native Webview JS evaluation. On syntax error, nothing happens.

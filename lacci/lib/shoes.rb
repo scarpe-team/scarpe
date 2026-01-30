@@ -219,6 +219,15 @@ class Shoes
     def set_file_loaders(loaders)
       @file_loaders = loaders
     end
+
+    # Quit the Shoes application. Destroys all running Shoes apps.
+    # In Shoes3 this was the standard way to exit from a button callback.
+    #
+    # @return [void]
+    def quit
+      Shoes.APPS.each(&:destroy)
+    end
+    alias_method :exit, :quit
   end
 
   Shoes.APPS ||= []

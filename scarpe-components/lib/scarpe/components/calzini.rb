@@ -126,6 +126,15 @@ module Scarpe::Components::Calzini
     styles[:left] = dimensions_length(props["left"]) if props["left"]
     styles[:width] = dimensions_length(props["width"]) if props["width"]
     styles[:height] = dimensions_length(props["height"]) if props["height"]
+
+    # Displace moves the drawable visually without affecting layout.
+    # Uses CSS transform: translate() so the element's layout position is unchanged.
+    if props["displace_left"] || props["displace_top"]
+      dx = props["displace_left"] || 0
+      dy = props["displace_top"] || 0
+      styles[:transform] = "translate(#{dx}px, #{dy}px)"
+      styles[:position] ||= "relative"
+    end
     styles[:"margin-left"] = dimensions_length(props["margin_left"]) if props["margin_left"]
     styles[:"margin-right"] = dimensions_length(props["margin_right"]) if props["margin_right"]
     styles[:"margin-top"] = dimensions_length(props["margin_top"]) if props["margin_top"]

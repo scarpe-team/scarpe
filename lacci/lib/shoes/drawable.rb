@@ -268,6 +268,9 @@ class Shoes
     # Shoes uses a "hidden" style property for hide/show
     shoes_style :hidden
 
+    # Displace moves the drawable visually without affecting layout
+    shoes_styles :displace_left, :displace_top
+
     attr_reader :debug_id
 
     # These styles can be set to a current per-slot value and inherited from parent slots.
@@ -564,6 +567,33 @@ class Shoes
       Shoes::Drawable.unregister_drawable_id(linkable_id)
     end
     alias_method :remove, :destroy
+
+    # Move the drawable to an absolute position.
+    # In Shoes, move(left, top) repositions an element
+    # using absolute coordinates within its parent slot.
+    #
+    # @param left [Integer] the new left/x coordinate
+    # @param top [Integer] the new top/y coordinate
+    # @return [self]
+    def move(left, top)
+      self.left = left
+      self.top = top
+      self
+    end
+
+    # Displace the drawable visually by the given amount.
+    # Unlike move(), displace does not affect layout — other
+    # elements still behave as if this drawable is in its
+    # original position. This is a visual-only offset.
+    #
+    # @param left [Integer] the horizontal displacement in pixels
+    # @param top [Integer] the vertical displacement in pixels
+    # @return [self]
+    def displace(left, top)
+      self.displace_left = left
+      self.displace_top = top
+      self
+    end
 
     # Hide the drawable.
     def hide

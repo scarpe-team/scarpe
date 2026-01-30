@@ -104,6 +104,54 @@ class TestDrawables < ShoesSpecLoggedTest
     TEST_CODE
   end
 
+  def test_move
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+      Shoes.app do
+        @b = button "Move Me"
+        @p = para "Stay Here"
+      end
+    SCARPE_APP
+      b = button
+      p_el = para
+
+      # Initially, no position set
+      b_html = b.display.to_html
+      refute_includes b_html, "position"
+
+      # Move the button to absolute position
+      Shoes.APPS[0].instance_variable_get("@b").move(100, 50)
+
+      b_html = b.display.to_html
+      assert_includes b_html, "position:absolute"
+      assert_includes b_html, "left:100px"
+      assert_includes b_html, "top:50px"
+
+      # Para should not have moved
+      p_html = p_el.display.to_html
+      refute_includes p_html, "position"
+    TEST_CODE
+  end
+
+  def test_displace
+    run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+      Shoes.app do
+        @b = button "Displace Me"
+      end
+    SCARPE_APP
+      b = button
+
+      # Initially, no transform
+      b_html = b.display.to_html
+      refute_includes b_html, "transform"
+
+      # Displace the button visually without affecting layout
+      Shoes.APPS[0].instance_variable_get("@b").displace(10, 20)
+
+      b_html = b.display.to_html
+      assert_includes b_html, "translate(10px, 20px)"
+    TEST_CODE
+  end
+
   def test_app_method
     run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
       class NotADrawable
