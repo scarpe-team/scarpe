@@ -71,7 +71,66 @@ class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Drawable
     when "release"
       new_parent.set_event_callback(self, "onmouseup", handler_js_code(@shoes_api_name, "arguments[0].button", "arguments[0].x", "arguments[0].y"))
     when "keypress"
-      raise "Implement me!"
+      # Keypress is a global event in Shoes — it fires on any key press regardless
+      # of which element has focus. We bind a document-level keydown handler.
+      handler_name = "keypress_#{@shoes_linkable_id}"
+      @wrangler.bind(handler_name) do |key_string|
+        send_self_event(key_string, event_name: @shoes_api_name)
+      end
+      # Install a document-level keydown listener that converts JS key events
+      # to Shoes-compatible key names. Shoes uses:
+      #   - Single characters for regular keys: "a", "b", "1", " "
+      #   - Symbols for special keys: :left, :right, :up, :down, etc.
+      #   - Strings with modifiers: "alt_a", "control_c", "shift_A"
+      @wrangler.instance_variable_get(:@webview).init(<<~JS)
+        document.addEventListener('keydown', function(e) {
+          var key = e.key;
+          var shoesKey;
+
+          // Map JS key names to Shoes key symbols (prefixed with ":")
+          var specialKeys = {
+            'ArrowLeft': ':left', 'ArrowRight': ':right',
+            'ArrowUp': ':up', 'ArrowDown': ':down',
+            'Home': ':home', 'End': ':end',
+            'PageUp': ':page_up', 'PageDown': ':page_down',
+            'Escape': ':escape', 'Backspace': ':backspace',
+            'Tab': ':tab', 'Enter': ':return',
+            'Delete': ':delete', 'Insert': ':insert',
+            'F1': ':f1', 'F2': ':f2', 'F3': ':f3', 'F4': ':f4',
+            'F5': ':f5', 'F6': ':f6', 'F7': ':f7', 'F8': ':f8',
+            'F9': ':f9', 'F10': ':f10', 'F11': ':f11', 'F12': ':f12',
+            ' ': ' ', 'Control': null, 'Shift': null, 'Alt': null, 'Meta': null
+          };
+
+          if (specialKeys.hasOwnProperty(key)) {
+            shoesKey = specialKeys[key];
+            if (shoesKey === null) return; // Ignore bare modifier keys
+          } else if (key.length === 1) {
+            // Regular character key
+            shoesKey = key;
+          } else {
+            // Unknown special key, pass through as lowercase symbol
+            shoesKey = ':' + key.toLowerCase();
+          }
+
+          // Add modifier prefixes (Shoes convention: "alt_a", "control_c", etc.)
+          if (shoesKey && !shoesKey.startsWith(':')) {
+            var prefix = '';
+            if (e.altKey) prefix += 'alt_';
+            if (e.ctrlKey) prefix += 'control_';
+            // Shift is implicit in the character for regular keys
+            shoesKey = prefix + shoesKey;
+          } else if (shoesKey && shoesKey.startsWith(':')) {
+            var prefix = '';
+            if (e.altKey) prefix += 'alt_';
+            if (e.ctrlKey) prefix += 'control_';
+            if (e.shiftKey) prefix += 'shift_';
+            if (prefix) shoesKey = prefix + shoesKey.substring(1);
+          }
+
+          if (shoesKey) #{handler_name}(shoesKey);
+        });
+      JS
     when "animate", "every", "timer"
       # These were handled in initialize(), ignore them here
     else
