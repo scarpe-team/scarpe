@@ -108,6 +108,11 @@ module Scarpe::Webview
         end
       end
 
+      if changes.key?("tooltip")
+        tooltip = changes.delete("tooltip")
+        html_element.set_attribute("title", tooltip || "")
+      end
+
       needs_update! unless changes.empty?
     end
 

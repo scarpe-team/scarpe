@@ -274,6 +274,9 @@ class Shoes
     # CSS cursor style for this drawable
     shoes_style :cursor
 
+    # Tooltip text shown on hover (HTML title attribute)
+    shoes_style :tooltip
+
     attr_reader :debug_id
 
     # These styles can be set to a current per-slot value and inherited from parent slots.
