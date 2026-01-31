@@ -15,6 +15,7 @@ class Shoes
       create_display_drawable
 
       @app.with_slot(self, &block) if block_given?
+      fire_finish_callbacks
     end
   end
 end

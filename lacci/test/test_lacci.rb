@@ -201,6 +201,63 @@ class TestLacci < NienteTest
     SHOES_SPEC
   end
 
+  def test_image_rotate
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @img = image "http://example.com/test.png"
+        @img.rotate(45)
+      end
+    SHOES_APP
+      img = image()
+      assert_equal 45, img.rotate_angle
+    SHOES_SPEC
+  end
+
+  def test_image_transform_center
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @img = image "http://example.com/test.png"
+        @img.transform :center
+      end
+    SHOES_APP
+      img = image()
+      assert_equal "center", img.transform_origin
+    SHOES_SPEC
+  end
+
+  def test_slot_finish_callback
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @result = "not finished"
+        @s = stack do
+          para "hello"
+          # Register finish callback while building the stack
+        end
+        # After the stack is built, verify the callback infrastructure exists
+        @s.finish { @result = "finished!" }
+        @s.fire_finish_callbacks
+      end
+    SHOES_APP
+      result = Shoes.APPS[0].instance_variable_get(:@result)
+      assert_equal "finished!", result
+    SHOES_SPEC
+  end
+
+  def test_stack_scroll_top
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @s = stack :scroll => true do
+          para "hello"
+        end
+      end
+    SHOES_APP
+      s = stack("@s")
+      assert_equal 0, s.scroll_top
+      s.scroll_top = 50
+      assert_equal 50, s.scroll_top
+    SHOES_SPEC
+  end
+
   def test_unsupported_feature
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC, expect_process_fail: true)
       Shoes.app(features: :html) do

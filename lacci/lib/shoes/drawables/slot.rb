@@ -143,6 +143,21 @@ class Shoes::Slot < Shoes::Drawable
     s
   end
 
+  # Register a callback to be called when this slot finishes initialization.
+  # In Shoes, slot.finish { ... } is called after the slot's block has run.
+  # Multiple finish handlers can be registered.
+  def finish(&block)
+    @finish_callbacks ||= []
+    @finish_callbacks << block if block
+  end
+
+  # Fire all registered finish callbacks. Called internally after slot initialization.
+  def fire_finish_callbacks
+    return unless @finish_callbacks
+
+    @finish_callbacks.each { |cb| @app.instance_eval(&cb) }
+  end
+
   # Methods to add or remove children
 
   # Remove all children from this drawable. If a block

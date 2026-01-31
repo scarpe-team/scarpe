@@ -39,6 +39,14 @@ module Scarpe::Components::Calzini
   def image_element(props)
     style = drawable_style(props)
 
+    # Apply rotation and transform origin if set
+    if props["rotate_angle"]
+      style[:transform] = "rotate(#{props["rotate_angle"]}deg)"
+    end
+    if props["transform_origin"]
+      style[:"transform-origin"] = props["transform_origin"]
+    end
+
     if props["click"]
       HTML.render do |h|
         h.a(id: html_id, href: props["click"]) { h.img(id: html_id, src: props["url"], style:) }

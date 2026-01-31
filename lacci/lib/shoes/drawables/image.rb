@@ -2,7 +2,7 @@
 
 class Shoes
   class Image < Shoes::Drawable
-    shoes_styles :url, :width, :height, :top, :left, :click
+    shoes_styles :url, :width, :height, :top, :left, :click, :rotate_angle, :transform_origin
     shoes_events # No Image-specific events yet
 
     init_args :url
@@ -29,6 +29,26 @@ class Shoes
 
     def replace(url)
       self.url = url
+    end
+
+    # Rotate this image by the given angle (in degrees).
+    # In Shoes, image.rotate(angle) sets a persistent rotation.
+    def rotate(angle)
+      self.rotate_angle = angle
+    end
+
+    # Set the transform origin for this image.
+    # In Shoes, image.transform(:center) sets rotation around the center.
+    # Accepts :center, :corner (top-left), or a string CSS value.
+    def transform(origin)
+      case origin
+      when :center, "center"
+        self.transform_origin = "center"
+      when :corner, "corner"
+        self.transform_origin = "top left"
+      else
+        self.transform_origin = origin.to_s
+      end
     end
 
     def size
