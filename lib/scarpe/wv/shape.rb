@@ -48,6 +48,26 @@ module Scarpe::Webview
         when "line_to"
           x, y = *args
           current_path += "L #{x} #{y} "
+        when "curve_to"
+          cx1, cy1, cx2, cy2, x, y = *args
+          current_path += "C #{cx1} #{cy1} #{cx2} #{cy2} #{x} #{y} "
+        when "arc_to"
+          # Shoes arc_to(cx, cy, w, h, start_angle, end_angle)
+          # Convert to SVG arc path. Uses center parameterization → endpoint arc.
+          cx, cy, w, h, start_angle, end_angle = *args
+          rx = w / 2.0
+          ry = h / 2.0
+          # Start and end points on the ellipse
+          x1 = cx + rx * Math.cos(start_angle)
+          y1 = cy - ry * Math.sin(start_angle)
+          x2 = cx + rx * Math.cos(end_angle)
+          y2 = cy - ry * Math.sin(end_angle)
+          # Determine if the arc spans more than 180 degrees
+          sweep = (end_angle - start_angle).abs
+          large_arc = sweep > Math::PI ? 1 : 0
+          # SVG sweep-flag: 0 for counter-clockwise (Shoes convention)
+          sweep_flag = end_angle > start_angle ? 0 : 1
+          current_path += "M #{x1} #{y1} A #{rx} #{ry} 0 #{large_arc} #{sweep_flag} #{x2} #{y2} "
         else
           raise Scarpe::UnknownShapeCommandError, "Unknown shape command! #{cmd.inspect}"
         end

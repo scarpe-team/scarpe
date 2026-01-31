@@ -444,7 +444,20 @@ class Shoes::App < Shoes::Drawable
     current_slot.add_shape_command(['line_to', x, y])
   end
 
-  # Not implemented yet: curve_to, arc_to
+  # Draw a cubic Bézier curve within a shape block.
+  # cx1, cy1: first control point; cx2, cy2: second control point; x, y: end point.
+  def curve_to(cx1, cy1, cx2, cy2, x, y)
+    [cx1, cy1, cx2, cy2, x, y].each do |v|
+      unless v.is_a?(Numeric)
+        raise(Shoes::Errors::InvalidAttributeValueError,
+              'Pass only Numeric arguments to curve_to!')
+      end
+    end
+
+    return unless current_slot.is_a?(::Shoes::Shape)
+
+    current_slot.add_shape_command(['curve_to', cx1, cy1, cx2, cy2, x, y])
+  end
 
   alias info puts
   alias debug puts
