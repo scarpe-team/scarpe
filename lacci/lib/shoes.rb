@@ -42,6 +42,12 @@ require_relative 'shoes/drawable'
 require_relative 'shoes/app'
 require_relative 'shoes/drawables'
 
+# Expose Shoes drawable classes as top-level constants for classic Shoes compatibility.
+# In Shoes, `style(Link, stroke: black)` works without the Shoes:: prefix.
+Link = Shoes::Link unless defined?(Link)
+LinkHover = Shoes::LinkHover unless defined?(LinkHover)
+Window = Shoes::App unless defined?(Window)
+
 require_relative 'shoes/download'
 
 # No easy way to tell at this point whether
@@ -69,6 +75,12 @@ class Shoes
         Shoes.pending_app_class = subclass
       end
       super
+    end
+
+    # In Shoes3, Shoes.setup installs gems. In Scarpe, this is a no-op stub
+    # since gems are managed via Bundler. The block is simply yielded for compatibility.
+    def setup(&block)
+      block&.call
     end
 
     # Class-level url method for defining routes in Shoes subclasses
@@ -117,6 +129,8 @@ class Shoes
       height: 420,
       resizable: true,
       features: [],
+      margin: nil,
+      **_extras,
       &app_code_body
     )
       f = [features].flatten # Make sure this is a list, not a single symbol

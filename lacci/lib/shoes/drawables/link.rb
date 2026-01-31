@@ -2,7 +2,7 @@
 
 class Shoes
   class Link < Shoes::TextDrawable
-    shoes_styles :text, :click, :has_block
+    shoes_styles :text, :click, :has_block, :weight
     shoes_events :click
 
     #Shoes::Drawable.drawable_default_styles[Shoes::Link][:click] = "#"

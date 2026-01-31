@@ -175,6 +175,17 @@ class Shoes
       end
     end
 
+    # In Shoes, gradient(color1, color2) creates a gradient pattern.
+    # Returns a string "color1-color2" that display services can render as CSS gradients.
+    def gradient(color1, color2, **_opts)
+      c1 = to_rgb(color1) rescue color1
+      c2 = to_rgb(color2) rescue color2
+
+      c1_str = c1.is_a?(Array) ? "rgb(#{c1[0]},#{c1[1]},#{c1[2]})" : c1.to_s
+      c2_str = c2.is_a?(Array) ? "rgb(#{c2[0]},#{c2[1]},#{c2[2]})" : c2.to_s
+      "#{c1_str}-#{c2_str}"
+    end
+
     def to_rgb(color)
       case color
       when nil

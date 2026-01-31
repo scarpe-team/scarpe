@@ -7,7 +7,19 @@ class Shoes
 
     init_args :url
     def initialize(*args, **kwargs)
-      super
+      # In Shoes, image can be called with positional width/height:
+      # image(width, height) { ... } — block-based image with dimensions
+      # image(url, width: w, height: h) — normal image
+      # When first arg is numeric, treat as image(width, height, &block)
+      if args.length >= 2 && args[0].is_a?(Numeric) && args[1].is_a?(Numeric)
+        kwargs[:width] = args[0]
+        kwargs[:height] = args[1]
+        args = args[2..] || []
+        # If no URL, set a blank/placeholder
+        args = [""] if args.empty?
+      end
+
+      super(*args, **kwargs)
 
       # Get the image dimensions
       # @width, @height = size

@@ -66,4 +66,8 @@ class Shoes
   RELEASE_BUILD_DATE = RELEASE_INFO[:RELEASE_BUILD_DATE]
   RELEASE_TYPE = "LOOSE_SHOES" # This isn't really a thing any more
   REVISION = RELEASE_INFO[:REVISION]
+  VERSION = "0.5.0" # Shoes version string for compatibility (Shoes::VERSION)
 end
+
+# Expose VERSION at top-level for classic Shoes scripts that use bare `VERSION`
+::VERSION = Shoes::VERSION unless defined?(::VERSION)

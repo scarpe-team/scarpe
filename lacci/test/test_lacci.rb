@@ -130,6 +130,77 @@ class TestLacci < NienteTest
     SHOES_SPEC
   end
 
+  def test_builtin_response_mechanism
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @p = para "test"
+      end
+    SHOES_APP
+      # Test the builtin response mechanism directly
+      Shoes::DisplayService.clear_builtin_response
+      assert_nil Shoes::DisplayService.consume_builtin_response
+
+      Shoes::DisplayService.set_builtin_response("hello")
+      assert_equal "hello", Shoes::DisplayService.consume_builtin_response
+
+      # Should be consumed (nil on second read)
+      assert_nil Shoes::DisplayService.consume_builtin_response
+    SHOES_SPEC
+  end
+
+  def test_builtin_response_false_value
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @p = para "test"
+      end
+    SHOES_APP
+      # false is a valid response (e.g. confirm returning false)
+      Shoes::DisplayService.clear_builtin_response
+      Shoes::DisplayService.set_builtin_response(false)
+      result = Shoes::DisplayService.consume_builtin_response
+      assert_equal false, result
+    SHOES_SPEC
+  end
+
+  def test_clipboard_accessor
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @p = para "test"
+      end
+    SHOES_APP
+      app = Shoes.APPS[0]
+      # clipboard should return a string (may be empty)
+      result = app.clipboard
+      assert_kind_of String, result
+
+      # clipboard= should accept a string
+      app.clipboard = "scarpe test"
+      assert_equal "scarpe test", app.clipboard
+    SHOES_SPEC
+  end
+
+  def test_shoes_builtin_returns_response
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @p = para "test"
+      end
+    SHOES_APP
+      # Set up a test handler that responds to a custom builtin
+      handler_id = Shoes::DisplayService.subscribe_to_event("builtin", nil) do |cmd_name, args, **kwargs|
+        if cmd_name == "ask"
+          Shoes::DisplayService.set_builtin_response("test_response")
+        end
+      end
+
+      # Call shoes_builtin which should now return the response
+      app = Shoes.APPS[0]
+      result = app.send(:shoes_builtin, "ask", "What?")
+      assert_equal "test_response", result
+
+      Shoes::DisplayService.unsub_from_events(handler_id)
+    SHOES_SPEC
+  end
+
   def test_unsupported_feature
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC, expect_process_fail: true)
       Shoes.app(features: :html) do

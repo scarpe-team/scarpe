@@ -394,6 +394,32 @@ class Shoes::App < Shoes::Drawable
     Shoes::DisplayService.mouse_state
   end
 
+  # Read the system clipboard contents.
+  # Returns the clipboard text as a string, or "" if empty/unavailable.
+  def clipboard
+    if RUBY_PLATFORM =~ /darwin/
+      `pbpaste 2>/dev/null`.to_s
+    elsif RUBY_PLATFORM =~ /linux/
+      `xclip -selection clipboard -o 2>/dev/null`.to_s
+    else
+      ""
+    end
+  rescue
+    ""
+  end
+
+  # Write text to the system clipboard.
+  def clipboard=(text)
+    if RUBY_PLATFORM =~ /darwin/
+      IO.popen("pbcopy", "w") { |p| p.write(text.to_s) }
+    elsif RUBY_PLATFORM =~ /linux/
+      IO.popen("xclip -selection clipboard", "w") { |p| p.write(text.to_s) }
+    end
+    text
+  rescue
+    text
+  end
+
   # Shape DSL methods
 
   def move_to(x, y)
@@ -421,6 +447,33 @@ class Shoes::App < Shoes::Drawable
   # Not implemented yet: curve_to, arc_to
 
   alias info puts
+  alias debug puts
+
+  # Returns the app's scrollbar gutter width (the width of the scrollbar).
+  # In classic Shoes this is typically 28 pixels.
+  def gutter
+    28
+  end
+
+  # Canvas transform: translate the coordinate system.
+  # This is a draw-context operation that shifts drawing by (x, y).
+  def translate(x, y)
+    # Forward to current slot's draw context if available
+    # For now, this is a no-op stub that prevents errors.
+    # Full implementation requires display service support.
+  end
+
+  # Arc_to draws an arc within a shape block.
+  def arc_to(cx, cy, w, h, start_angle, end_angle)
+    return unless current_slot.is_a?(::Shoes::Shape)
+
+    current_slot.add_shape_command(['arc_to', cx, cy, w, h, start_angle, end_angle])
+  end
+
+  # Cap style for line drawing (e.g., :curve, :rect, :project)
+  def cap(style)
+    # Draw context cap style - no-op stub for compatibility
+  end
 
   # Open a new app window. In classic Shoes, `window` is like `Shoes.app` but
   # sets the child window's `owner` to the launching app. For now, we alias

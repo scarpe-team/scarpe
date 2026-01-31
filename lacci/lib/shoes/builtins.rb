@@ -47,14 +47,24 @@ module Shoes::Builtins
     shoes_builtin("confirm", question)
   end
 
-  # TO ADD: debug, error, info, warn
+  # Shoes logging builtins — these output to the Shoes console/debug log.
+  # In Scarpe, they simply print to stdout since there's no Shoes console.
+  def debug(msg)
+    puts "[DEBUG] #{msg}"
+  end
+
+  def info(msg)
+    puts "[INFO] #{msg}"
+  end
+
   # TO VERIFY OR ADD: gradient, gray, rgb
 
   private
 
   def shoes_builtin(cmd_name, *args)
+    Shoes::DisplayService.clear_builtin_response
     Shoes::DisplayService.dispatch_event("builtin", nil, cmd_name, args)
-    nil
+    Shoes::DisplayService.consume_builtin_response
   end
 end
 
@@ -74,3 +84,5 @@ module Kernel
     Shoes.app(**opts, &block)
   end
 end
+
+# Top-level constants are defined in shoes.rb after all drawables are loaded.

@@ -9,8 +9,9 @@ class Shoes
       shoes_style(prop) { |val| convert_to_integer(val, prop) }
     end
 
+    # Angles can be negative (e.g., negative rotation), so don't reject negatives
     [:angle1, :angle2].each do |prop|
-      shoes_style(prop) { |val| convert_to_float(val, prop) }
+      shoes_style(prop) { |val| Float(val) }
     end
 
     init_args :left, :top, :width, :height, :angle1, :angle2

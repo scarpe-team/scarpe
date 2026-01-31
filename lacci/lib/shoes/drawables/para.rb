@@ -3,9 +3,25 @@ require_relative 'font_helper.rb'
 class Shoes
   class Para < Shoes::Drawable 
   include FontHelper
-    shoes_styles :text_items, :size, :family, :font_weight, :font, :font_variant, :emphasis, :kerning
+    shoes_styles :text_items, :size, :family, :font_weight, :font, :font_variant, :emphasis, :kerning, :weight
     shoes_style(:stroke) { |val, _name| Shoes::Colors.to_rgb(val) }
     shoes_style(:fill) { |val, _name| Shoes::Colors.to_rgb(val) }
+
+    UNDERLINE_VALUES = [nil, "none", "single", "double", "low", "error"]
+    shoes_style :underline do |val, _name|
+      unless UNDERLINE_VALUES.include?(val)
+        raise Shoes::Errors::InvalidAttributeValueError, "Underline must be one of: #{UNDERLINE_VALUES.inspect}!"
+      end
+      val
+    end
+
+    STRIKETHROUGH_VALUES = [nil, "none", "single"]
+    shoes_style :strikethrough do |val, _name|
+      unless STRIKETHROUGH_VALUES.include?(val)
+        raise Shoes::Errors::InvalidAttributeValueError, "Strikethrough must be one of: #{STRIKETHROUGH_VALUES.inspect}!"
+      end
+      val
+    end
 
     shoes_style(:align) do |val|
       unless ["left", "center", "right"].include?(val)

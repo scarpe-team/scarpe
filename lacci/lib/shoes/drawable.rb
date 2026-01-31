@@ -215,7 +215,7 @@ class Shoes
       # styles available with no features requested, pass nil to with_features.
       def shoes_style_names(with_features: nil)
         # No with_features given? Use the ones requested by this Shoes::App
-        with_features ||= @app.features
+        with_features ||= (@app&.features || [])
         parent_prop_names = self != Shoes::Drawable ? self.superclass.shoes_style_names(with_features:) : []
 
         if with_features == :all

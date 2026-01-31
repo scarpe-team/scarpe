@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "open3"
+
 module Scarpe::Webview
   # A DocumentRoot is a {Scarpe::Webview::Flow}, with all the same properties
   # and basic behavior. It also reserves space for Builtins like fonts, alerts,
@@ -23,6 +25,27 @@ module Scarpe::Webview
           @alerts << args[0]
           @alert_updater ||= Scarpe::Webview::WebWrangler::ElementWrangler.new(html_id: "root-alerts")
           @alert_updater.inner_html = alert_contents
+        when "ask"
+          result = native_ask_dialog(args[0])
+          Shoes::DisplayService.set_builtin_response(result)
+        when "confirm"
+          result = native_confirm_dialog(args[0])
+          Shoes::DisplayService.set_builtin_response(result)
+        when "ask_color"
+          result = native_color_dialog(args[0])
+          Shoes::DisplayService.set_builtin_response(result)
+        when "ask_open_file"
+          result = native_open_file_dialog
+          Shoes::DisplayService.set_builtin_response(result)
+        when "ask_save_file"
+          result = native_save_file_dialog
+          Shoes::DisplayService.set_builtin_response(result)
+        when "ask_open_folder"
+          result = native_open_folder_dialog
+          Shoes::DisplayService.set_builtin_response(result)
+        when "ask_save_folder"
+          result = native_open_folder_dialog  # Same dialog, different intent
+          Shoes::DisplayService.set_builtin_response(result)
         else
           raise Scarpe::UnknownBuiltinCommandError, "Unexpected builtin command: #{cmd_name.inspect}!"
         end
@@ -80,6 +103,83 @@ module Scarpe::Webview
       @alerts.map do |alert_text|
         render("alert", { "text" => alert_text, "event_name" => "OK" })
       end.join + " "
+    end
+
+    # Escape a string for use inside AppleScript double-quoted strings.
+    def applescript_escape(str)
+      str.to_s.gsub('\\', '\\\\\\\\').gsub('"', '\\"')
+    end
+
+    # Show a native text input dialog. Returns the entered text, or nil if cancelled.
+    def native_ask_dialog(message)
+      escaped = applescript_escape(message)
+      script = %Q{display dialog "#{escaped}" default answer "" buttons {"Cancel", "OK"} default button "OK"}
+      stdout, _stderr, status = Open3.capture3("osascript", "-e", script)
+      if status.success?
+        # Output format: "button returned:OK, text returned:whatever"
+        match = stdout.match(/text returned:(.*)/)
+        match ? match[1].strip : ""
+      else
+        nil # User cancelled
+      end
+    rescue => e
+      nil
+    end
+
+    # Show a native confirmation dialog. Returns true for OK, false for Cancel.
+    def native_confirm_dialog(question)
+      escaped = applescript_escape(question)
+      script = %Q{display dialog "#{escaped}" buttons {"Cancel", "OK"} default button "OK"}
+      _stdout, _stderr, status = Open3.capture3("osascript", "-e", script)
+      status.success?
+    rescue => e
+      false
+    end
+
+    # Show a native color picker dialog. Returns an rgb() color string or nil.
+    def native_color_dialog(title)
+      escaped = applescript_escape(title || "Choose a color")
+      script = %Q{choose color with prompt "#{escaped}"}
+      stdout, _stderr, status = Open3.capture3("osascript", "-e", script)
+      if status.success?
+        # Output format: "{65535, 0, 32768}" — values 0-65535
+        match = stdout.match(/\{(\d+),\s*(\d+),\s*(\d+)\}/)
+        if match
+          r = (match[1].to_i / 257.0).round
+          g = (match[2].to_i / 257.0).round
+          b = (match[3].to_i / 257.0).round
+          Shoes.rgb(r, g, b)
+        end
+      end
+    rescue => e
+      nil
+    end
+
+    # Show a native file open dialog. Returns the file path or nil.
+    def native_open_file_dialog
+      script = 'POSIX path of (choose file with prompt "Open")'
+      stdout, _stderr, status = Open3.capture3("osascript", "-e", script)
+      status.success? ? stdout.strip : nil
+    rescue => e
+      nil
+    end
+
+    # Show a native file save dialog. Returns the file path or nil.
+    def native_save_file_dialog
+      script = 'POSIX path of (choose file name with prompt "Save as")'
+      stdout, _stderr, status = Open3.capture3("osascript", "-e", script)
+      status.success? ? stdout.strip : nil
+    rescue => e
+      nil
+    end
+
+    # Show a native folder picker dialog. Returns the folder path or nil.
+    def native_open_folder_dialog
+      script = 'POSIX path of (choose folder with prompt "Choose a folder")'
+      stdout, _stderr, status = Open3.capture3("osascript", "-e", script)
+      status.success? ? stdout.strip : nil
+    rescue => e
+      nil
     end
   end
 end

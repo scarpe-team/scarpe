@@ -41,6 +41,31 @@ class Shoes
 
       attr_writer :mouse_state
 
+      # Builtin response mechanism: allows display service handlers to return
+      # values to the Shoes-side caller (e.g. ask, confirm, clipboard).
+      # The handler calls set_builtin_response(value) during synchronous dispatch,
+      # and the caller reads it via consume_builtin_response after dispatch returns.
+      def set_builtin_response(value)
+        @builtin_response = value
+        @has_builtin_response = true
+      end
+
+      def consume_builtin_response
+        if @has_builtin_response
+          @has_builtin_response = false
+          result = @builtin_response
+          @builtin_response = nil
+          result
+        else
+          nil
+        end
+      end
+
+      def clear_builtin_response
+        @has_builtin_response = false
+        @builtin_response = nil
+      end
+
       # Send a Shoes event to all subscribers.
       # An event_target may be nil, to indicate there is no target.
       #
