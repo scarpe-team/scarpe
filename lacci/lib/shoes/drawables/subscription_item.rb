@@ -13,7 +13,7 @@
 # Events not yet implemented: start, finish events for slots -
 # start is first draw, finish is drawable destroyed
 class Shoes::SubscriptionItem < Shoes::Drawable
-  shoes_styles :shoes_api_name, :args
+  shoes_styles :shoes_api_name, :args, :stopped
   shoes_events :animate, :every, :timer, :hover, :leave, :motion, :click, :release, :keypress
 
   def initialize(args: [], shoes_api_name:, &block)
@@ -86,6 +86,28 @@ class Shoes::SubscriptionItem < Shoes::Drawable
     # This won't create a visible display drawable, but will turn into
     # an invisible drawable and a stream of events.
     create_display_drawable
+  end
+
+  # Stop the animation/timer. In Shoes3, `anim = animate(fps) { ... }; anim.stop`
+  # stops the periodic callback from firing. Setting the :stopped style triggers
+  # a prop_change event that propagates to the display service.
+  def stop
+    self.stopped = true
+  end
+
+  # Restart a stopped animation/timer.
+  def start
+    self.stopped = false
+  end
+
+  # Toggle between started and stopped.
+  def toggle
+    self.stopped = !self.stopped
+  end
+
+  # Whether this subscription is currently stopped.
+  def stopped?
+    !!self.stopped
   end
 
   def destroy

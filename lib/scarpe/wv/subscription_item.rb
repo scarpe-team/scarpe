@@ -4,8 +4,17 @@ class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Drawable
   def initialize(properties)
     super
 
+    @stopped = @properties["stopped"] || false
+
     bind(@shoes_api_name) do |*args|
-      send_self_event(*args, event_name: @shoes_api_name)
+      send_self_event(*args, event_name: @shoes_api_name) unless @stopped
+    end
+
+    # Watch for the 'stopped' property change from Lacci
+    bind("prop_change") do |new_props|
+      if new_props.key?("stopped")
+        @stopped = !!new_props["stopped"]
+      end
     end
 
     @wrangler = Scarpe::Webview::DisplayService.instance.wrangler
@@ -15,20 +24,24 @@ class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Drawable
       frame_rate = (@args[0] || 10)
       @counter = 0
       @wrangler.periodic_code("animate_#{@shoes_linkable_id}", 1.0 / frame_rate) do
-        @counter += 1
-        send_self_event(@counter, event_name: @shoes_api_name)
+        unless @stopped
+          @counter += 1
+          send_self_event(@counter, event_name: @shoes_api_name)
+        end
       end
     when "every"
       delay = @args[0]
       @counter = 0
       @wrangler.periodic_code("every_#{@shoes_linkable_id}", delay) do
-        @counter += 1
-        send_self_event(@counter, event_name: @shoes_api_name)
+        unless @stopped
+          @counter += 1
+          send_self_event(@counter, event_name: @shoes_api_name)
+        end
       end
     when "timer"
       delay = @args[0] || 1
       @wrangler.one_shot_code("timer_#{@shoes_linkable_id}", delay) do
-        send_self_event(event_name: @shoes_api_name)
+        send_self_event(event_name: @shoes_api_name) unless @stopped
       end
     when "motion", "hover", "leave", "click", "release", "keypress"
       # Wait for set_parent

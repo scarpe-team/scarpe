@@ -793,7 +793,10 @@ class Scarpe::Webview::WebWrangler
       if @multi
         @webwrangler.dom_change("a = Array.from(#{@selector}); a.forEach((item) => item#{fragment}); true")
       else
-        @webwrangler.dom_change(@selector + fragment + ";true")
+        # Null-safe: element may have been removed by a prior clear/redraw cycle.
+        # This commonly happens when animate { clear do ... end } destroys and recreates
+        # DOM elements faster than the async JS evaluation can process them.
+        @webwrangler.dom_change("(function(){ var e = #{@selector}; if(e) e#{fragment}; return true; })()")
       end
     end
 
