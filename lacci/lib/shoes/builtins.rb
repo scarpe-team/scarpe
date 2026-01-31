@@ -60,4 +60,17 @@ end
 
 module Kernel
   include Shoes::Builtins
+
+  # Top-level window method: creates a new Shoes app, just like Shoes.app.
+  # In classic Shoes, `window` sets the child's `owner` to the launching app.
+  # At the top level (no existing app), it behaves identically to Shoes.app.
+  def window(**opts, &block)
+    Shoes.app(**opts, &block)
+  end
+
+  # Top-level dialog method: creates a dialog-style Shoes app.
+  # For now, aliases to Shoes.app.
+  def dialog(**opts, &block)
+    Shoes.app(**opts, &block)
+  end
 end

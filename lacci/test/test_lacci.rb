@@ -83,6 +83,53 @@ class TestLacci < NienteTest
     SHOES_SPEC
   end
 
+  def test_mouse_returns_default_state
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @m = self.mouse
+      end
+    SHOES_APP
+      m = Shoes.APPS[0].instance_variable_get(:@m)
+      assert_equal [0, 0, 0], m
+    SHOES_SPEC
+  end
+
+  def test_window_as_shoes_app
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      window :title => "Test Window", :width => 500, :height => 300 do
+        @p = para "Window works!"
+      end
+    SHOES_APP
+      assert_equal "Window works!", para().text
+    SHOES_SPEC
+  end
+
+  def test_app_width_height_accessible
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app :width => 600, :height => 400 do
+        @w = self.width
+        @h = self.height
+      end
+    SHOES_APP
+      w = Shoes.APPS[0].instance_variable_get(:@w)
+      h = Shoes.APPS[0].instance_variable_get(:@h)
+      assert_equal 600, w
+      assert_equal 400, h
+    SHOES_SPEC
+  end
+
+  def test_mouse_reflects_display_service_state
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        Shoes::DisplayService.mouse_state = [1, 150, 200]
+        @m = self.mouse
+      end
+    SHOES_APP
+      m = Shoes.APPS[0].instance_variable_get(:@m)
+      assert_equal [1, 150, 200], m
+    SHOES_SPEC
+  end
+
   def test_unsupported_feature
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC, expect_process_fail: true)
       Shoes.app(features: :html) do

@@ -52,6 +52,29 @@ module Scarpe::Webview
       @view.bind("scarpeExit") do
         scarpe_app.destroy
       end
+
+      # Global mouse state tracking for App#mouse (self.mouse in Shoes)
+      # Tracks [button, x, y] — button is 1 when left mouse is held, 0 otherwise
+      @view.bind("scarpeMouseTracker") do |button, x, y|
+        Shoes::DisplayService.mouse_state = [button.to_i, x.to_i, y.to_i]
+      end
+
+      @view.instance_variable_get(:@webview).init(<<~JS)
+        (function() {
+          var _scarpeMouseBtn = 0;
+          document.addEventListener('mousemove', function(e) {
+            scarpeMouseTracker(_scarpeMouseBtn, e.pageX, e.pageY);
+          });
+          document.addEventListener('mousedown', function(e) {
+            if (e.button === 0) _scarpeMouseBtn = 1;
+            scarpeMouseTracker(_scarpeMouseBtn, e.pageX, e.pageY);
+          });
+          document.addEventListener('mouseup', function(e) {
+            if (e.button === 0) _scarpeMouseBtn = 0;
+            scarpeMouseTracker(_scarpeMouseBtn, e.pageX, e.pageY);
+          });
+        })();
+      JS
     end
 
     def run

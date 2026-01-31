@@ -387,6 +387,13 @@ class Shoes::App < Shoes::Drawable
     current_slot.prepend(&block)
   end
 
+  # Returns the current mouse state as [button, x, y].
+  # button is 1 if the left mouse button is held down, 0 otherwise.
+  # x and y are the mouse coordinates relative to the app window.
+  def mouse
+    Shoes::DisplayService.mouse_state
+  end
+
   # Shape DSL methods
 
   def move_to(x, y)
@@ -414,6 +421,19 @@ class Shoes::App < Shoes::Drawable
   # Not implemented yet: curve_to, arc_to
 
   alias info puts
+
+  # Open a new app window. In classic Shoes, `window` is like `Shoes.app` but
+  # sets the child window's `owner` to the launching app. For now, we alias
+  # this to `Shoes.app` behavior which is sufficient for HH and most usage.
+  def window(**opts, &block)
+    Shoes.app(**opts, &block)
+  end
+
+  # Open a dialog-style window. In classic Shoes, this is like `window` but
+  # with dialog box styling. For now, aliases to Shoes.app.
+  def dialog(**opts, &block)
+    Shoes.app(**opts, &block)
+  end
 
   private
 

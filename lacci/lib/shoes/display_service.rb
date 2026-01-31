@@ -32,6 +32,15 @@ class Shoes
       # This is in the eigenclass/metaclass, *not* instances of DisplayService
       include Shoes::Log
 
+      # Global mouse state: [button, x, y]
+      # Updated by the display service, read by App#mouse.
+      # button: 1 if left mouse button is held, 0 otherwise
+      def mouse_state
+        @mouse_state || [0, 0, 0]
+      end
+
+      attr_writer :mouse_state
+
       # Send a Shoes event to all subscribers.
       # An event_target may be nil, to indicate there is no target.
       #

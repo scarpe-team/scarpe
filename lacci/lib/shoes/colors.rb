@@ -145,7 +145,8 @@ class Shoes
       yellow: [255, 255, 0],
       yellowgreen: [154, 205, 50],
     }
-    private_constant :COLORS
+    # COLORS is public — classic Shoes exposes Shoes::COLORS for apps
+    # like Hackety Hack that enumerate color names.
 
     class << self
       def included(base)
