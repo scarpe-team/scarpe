@@ -2,6 +2,17 @@
 
 # First we need to load Scarpe and Lacci, which means figuring out where from.
 
+# Handle "package" command early — it doesn't need the full Scarpe runtime
+if ARGV[0] == "package"
+  # Always load from local source for the packager itself
+  dev_path = File.expand_path("../lib", __dir__)
+  $LOAD_PATH.prepend dev_path
+  require_relative "../lib/scarpe/package"
+  # Pass all remaining args (including --dev) to the packager
+  Scarpe::Package.run(ARGV[1..])
+  exit
+end
+
 # --dev option applies to all actions
 use_dev = ARGV.delete("--dev") ? true : false
 use_debug = ARGV.delete("--debug") ? true : false

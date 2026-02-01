@@ -3,13 +3,19 @@
 module Scarpe
   module CLI
     DEFAULT_USAGE = <<~'USAGE'
-      Usage: scarpe_core [OPTIONS] <scarpe app file>           # Same as "scarpe run"
-             scarpe_core [OPTIONS] run <scarpe app file>
-             scarpe_core [OPTIONS] env                         # print Scarpe environment settings
-             scarpe_core -v                                    # print the Scarpe gem version and exit
+      Usage: scarpe [OPTIONS] <scarpe app file>                # Same as "scarpe run"
+             scarpe [OPTIONS] run <scarpe app file>
+             scarpe package <scarpe app file> [PACKAGE-OPTIONS] # package as standalone .app
+             scarpe [OPTIONS] env                              # print Scarpe environment settings
+             scarpe -v                                         # print the Scarpe gem version and exit
         Options:
             --dev                          Use development local scarpe, not an installed gem
             --debug                        Turn on application debug mode
+
+        Package options (use "scarpe package --help" for details):
+            --name NAME                    Application name
+            --icon FILE                    Application icon (.icns or .png)
+            --arch ARCH                    Target architecture (x86_64 or arm64)
     USAGE
 
     def version_check
