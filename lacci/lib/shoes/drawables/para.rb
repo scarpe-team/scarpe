@@ -7,6 +7,11 @@ class Shoes
     shoes_style(:stroke) { |val, _name| Shoes::Colors.to_rgb(val) }
     shoes_style(:fill) { |val, _name| Shoes::Colors.to_rgb(val) }
 
+    # Text cursor system (Shoes3 Para cursor/marker/hit)
+    # text_cursor: integer character position of the caret, or nil (no cursor)
+    # text_marker: integer character position of the selection anchor, or nil (no selection)
+    shoes_styles :text_cursor, :text_marker
+
     UNDERLINE_VALUES = [nil, "none", "single", "double", "low", "error"]
     shoes_style :underline do |val, _name|
       unless UNDERLINE_VALUES.include?(val)
@@ -147,6 +152,84 @@ class Shoes
     # @return [String] the text from this para
     def to_s
       self.text
+    end
+
+    # --- Text Cursor System (Shoes3 Para cursor/marker/hit) ---
+
+    # Get the text cursor position (integer character index).
+    # This overrides the universal CSS cursor style for Para.
+    # In Shoes3, para.cursor is always the text caret position.
+    #
+    # @return [Integer, nil] the cursor position, or nil if no cursor
+    def cursor
+      @text_cursor
+    end
+
+    # Set the text cursor position.
+    # Accepts integer (character position), :marker (jump to marker), or nil (remove cursor).
+    # String/symbol values set the CSS cursor style directly (via Shoes style prop_change).
+    #
+    # @param val [Integer, Symbol, String, nil] the new cursor value
+    def cursor=(val)
+      case val
+      when Integer
+        self.text_cursor = val
+      when :marker
+        self.text_cursor = @text_marker if @text_marker
+      when nil
+        self.text_cursor = nil
+      else
+        # For CSS cursor types (:text, :arrow, etc.), set the cursor style directly
+        # We can't call super because method_missing would redefine cursor= on Para
+        @cursor = val.to_s
+        send_shoes_event({ "cursor" => @cursor }, event_name: "prop_change", target: linkable_id)
+      end
+    end
+
+    # Get the selection marker position.
+    #
+    # @return [Integer, nil] the marker position, or nil if no selection
+    def marker
+      @text_marker
+    end
+
+    # Set the selection marker position.
+    # When both cursor and marker are set, text between them is selected.
+    #
+    # @param val [Integer, nil] the new marker position, or nil to clear selection
+    def marker=(val)
+      self.text_marker = val
+    end
+
+    # Return the selection range as [start_position, length].
+    # If no marker is set, returns [cursor_position, 0].
+    #
+    # @return [Array(Integer, Integer)] [start, length] of the selection
+    def highlight
+      c = @text_cursor || 0
+      m = @text_marker
+      return [c, 0] if m.nil?
+      start = [c, m].min
+      len = (c - m).abs
+      [start, len]
+    end
+
+    # Hit-test: given pixel coordinates, return the character index at that position.
+    # The display service pre-computes this on mouse events for paras with cursor mode.
+    #
+    # @param x [Integer] the x coordinate (page-relative)
+    # @param y [Integer] the y coordinate (page-relative)
+    # @return [Integer, nil] the character index, or nil if not over text
+    def hit(x, y)
+      Shoes::DisplayService.para_hit_cache[linkable_id]
+    end
+
+    # Return the vertical position (top) of the cursor in the para.
+    # Useful for scroll tracking in editors.
+    #
+    # @return [Integer] the y-coordinate of the cursor position
+    def cursor_top
+      Shoes::DisplayService.para_cursor_top_cache[linkable_id] || 0
     end
 
     private

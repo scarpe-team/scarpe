@@ -21,9 +21,18 @@ module Scarpe::Webview
 
     def properties_changed(changes)
       items = changes.delete("text_items")
+      text_cursor_changed = changes.delete("text_cursor")
+      text_marker_changed = changes.delete("text_marker")
+
       if items
         html_element.inner_html = to_html
+        # If cursor is active, reapply cursor overlay after content change
+        update_cursor_display if @text_cursor
         return
+      end
+
+      if text_cursor_changed || text_marker_changed
+        update_cursor_display
       end
 
       # Not deleting, so this will re-render
@@ -32,6 +41,23 @@ module Scarpe::Webview
       end
 
       super
+    end
+
+    # Update the JavaScript-side cursor/selection overlay for this para.
+    # This calls into the scarpeParaCursor JS module to position the caret
+    # and highlight the selection range.
+    def update_cursor_display
+      cursor_pos = @text_cursor
+      marker_pos = @text_marker
+
+      if cursor_pos.nil?
+        # Remove cursor display
+        js = "scarpeParaCursor.removeCursor('#{html_id}')"
+      else
+        # Update cursor and optional selection
+        js = "scarpeParaCursor.updateCursor('#{html_id}', #{cursor_pos}, #{marker_pos.nil? ? 'null' : marker_pos})"
+      end
+      html_element.instance_variable_get(:@webwrangler).dom_change(js)
     end
 
     def items_to_display_children(items)

@@ -258,6 +258,117 @@ class TestLacci < NienteTest
     SHOES_SPEC
   end
 
+  # --- Para cursor/marker/hit system tests ---
+
+  def test_para_cursor_integer
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @p = para "Hello World"
+      end
+    SHOES_APP
+      p = para()
+      assert_nil p.cursor
+      p.cursor = 5
+      assert_equal 5, p.cursor
+      p.cursor = 0
+      assert_equal 0, p.cursor
+      p.cursor = nil
+      assert_nil p.cursor
+    SHOES_SPEC
+  end
+
+  def test_para_marker
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @p = para "Hello World"
+      end
+    SHOES_APP
+      p = para()
+      assert_nil p.marker
+      p.marker = 3
+      assert_equal 3, p.marker
+      p.marker = nil
+      assert_nil p.marker
+    SHOES_SPEC
+  end
+
+  def test_para_highlight_no_selection
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @p = para "Hello World"
+      end
+    SHOES_APP
+      p = para()
+      p.cursor = 5
+      sel = p.highlight
+      assert_equal [5, 0], sel
+    SHOES_SPEC
+  end
+
+  def test_para_highlight_with_selection
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @p = para "Hello World"
+      end
+    SHOES_APP
+      p = para()
+      p.cursor = 8
+      p.marker = 3
+      sel = p.highlight
+      assert_equal [3, 5], sel
+    SHOES_SPEC
+  end
+
+  def test_para_highlight_reverse_selection
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @p = para "Hello World"
+      end
+    SHOES_APP
+      p = para()
+      p.cursor = 2
+      p.marker = 9
+      sel = p.highlight
+      assert_equal [2, 7], sel
+    SHOES_SPEC
+  end
+
+  def test_para_cursor_marker_special
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @p = para "Hello World"
+      end
+    SHOES_APP
+      p = para()
+      p.cursor = 5
+      p.marker = 10
+      p.cursor = :marker
+      assert_equal 10, p.cursor
+    SHOES_SPEC
+  end
+
+  def test_para_cursor_top_default
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @p = para "Hello World"
+      end
+    SHOES_APP
+      p = para()
+      assert_equal 0, p.cursor_top
+    SHOES_SPEC
+  end
+
+  def test_para_hit_default
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @p = para "Hello World"
+      end
+    SHOES_APP
+      p = para()
+      assert_nil p.hit(100, 100)
+    SHOES_SPEC
+  end
+
   def test_unsupported_feature
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC, expect_process_fail: true)
       Shoes.app(features: :html) do

@@ -4,7 +4,7 @@ class Shoes::Slot < Shoes::Drawable
   # @incompatibility Shoes uses #content, not #children, for this. Scarpe does both.
   attr_reader :children
 
-  shoes_events # No Slot-specific events
+  shoes_events :full_redraw_request
 
   # This only shows this specific slot's settings, not its parent's.
   # Use current_draw_context to allow inheritance.
@@ -174,7 +174,13 @@ class Shoes::Slot < Shoes::Drawable
   def clear(&block)
     @children ||= []
     @children.dup.each(&:destroy)
-    append(&block) if block_given?
+    if block_given?
+      append(&block)
+      # After clear+rebuild, signal a full redraw to collapse all the individual
+      # child add/remove DOM operations into one efficient replacement.
+      # This is critical for animate { clear do ... end } patterns (Clock, Pong, etc.)
+      send_shoes_event(event_name: "full_redraw_request")
+    end
     nil
   end
 

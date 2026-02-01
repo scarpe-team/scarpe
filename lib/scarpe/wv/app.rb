@@ -59,20 +59,229 @@ module Scarpe::Webview
         Shoes::DisplayService.mouse_state = [button.to_i, x.to_i, y.to_i]
       end
 
+      # Para hit-test reporting: JS sends para_id and character index on mouse events
+      @view.bind("scarpeParaHitReport") do |para_id, char_index|
+        if char_index.nil? || char_index == ""
+          Shoes::DisplayService.para_hit_cache[para_id] = nil
+        else
+          Shoes::DisplayService.para_hit_cache[para_id] = char_index.to_i
+        end
+      end
+
+      # Para cursor_top reporting: JS sends para_id and y-coordinate when cursor changes
+      @view.bind("scarpeParaCursorTopReport") do |para_id, top_value|
+        Shoes::DisplayService.para_cursor_top_cache[para_id] = top_value.to_i
+      end
+
       @view.instance_variable_get(:@webview).init(<<~JS)
         (function() {
           var _scarpeMouseBtn = 0;
           document.addEventListener('mousemove', function(e) {
             scarpeMouseTracker(_scarpeMouseBtn, e.pageX, e.pageY);
+            scarpeParaCursor.hitTestAll(e.pageX, e.pageY);
           });
           document.addEventListener('mousedown', function(e) {
             if (e.button === 0) _scarpeMouseBtn = 1;
             scarpeMouseTracker(_scarpeMouseBtn, e.pageX, e.pageY);
+            scarpeParaCursor.hitTestAll(e.pageX, e.pageY);
           });
           document.addEventListener('mouseup', function(e) {
             if (e.button === 0) _scarpeMouseBtn = 0;
             scarpeMouseTracker(_scarpeMouseBtn, e.pageX, e.pageY);
           });
+        })();
+
+        // Para cursor/selection management module
+        var scarpeParaCursor = (function() {
+          // Track which paras have cursor mode enabled
+          var _cursorParas = {};  // html_id -> { cursor: int, marker: int|null }
+
+          // Walk text nodes in a DOM element and find the node+offset for a character position
+          function findCharPosition(element, charIndex) {
+            var walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+            var count = 0;
+            var node;
+            while (node = walker.nextNode()) {
+              var len = node.textContent.length;
+              if (count + len > charIndex) {
+                return { node: node, offset: charIndex - count };
+              }
+              count += len;
+            }
+            // Past end of text: return last position
+            if (node) {
+              return { node: node, offset: node.textContent.length };
+            }
+            return null;
+          }
+
+          // Count total text characters in an element
+          function textLength(element) {
+            var walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+            var count = 0;
+            while (walker.nextNode()) {
+              count += walker.currentNode.textContent.length;
+            }
+            return count;
+          }
+
+          // Get the inner content element (might be wrapped in a div for alignment)
+          function getContentElement(htmlId) {
+            var el = document.getElementById(htmlId);
+            if (!el) return null;
+            // If para is wrapped in a div (for alignment), get the inner p/span
+            var inner = el.querySelector('p, span.para-inner');
+            return inner || el;
+          }
+
+          function updateCursor(htmlId, cursorPos, markerPos) {
+            _cursorParas[htmlId] = { cursor: cursorPos, marker: markerPos };
+            renderCursorOverlay(htmlId);
+          }
+
+          function removeCursor(htmlId) {
+            delete _cursorParas[htmlId];
+            // Remove any existing cursor/selection overlays
+            var container = document.getElementById(htmlId);
+            if (!container) return;
+            var caret = container.querySelector('.shoes-caret');
+            if (caret) caret.remove();
+            var sel = container.querySelectorAll('.shoes-selection-highlight');
+            sel.forEach(function(s) { s.remove(); });
+          }
+
+          function renderCursorOverlay(htmlId) {
+            var container = document.getElementById(htmlId);
+            if (!container) return;
+            var info = _cursorParas[htmlId];
+            if (!info) return;
+
+            var contentEl = getContentElement(htmlId);
+            if (!contentEl) return;
+
+            // Remove existing overlays
+            var oldCaret = container.querySelector('.shoes-caret');
+            if (oldCaret) oldCaret.remove();
+            var oldSel = container.querySelectorAll('.shoes-selection-highlight');
+            oldSel.forEach(function(s) { s.remove(); });
+
+            // Position the caret
+            var pos = findCharPosition(contentEl, info.cursor);
+            if (pos) {
+              var range = document.createRange();
+              range.setStart(pos.node, pos.offset);
+              range.collapse(true);
+              var rect = range.getBoundingClientRect();
+              var containerRect = container.getBoundingClientRect();
+
+              var caret = document.createElement('div');
+              caret.className = 'shoes-caret';
+              caret.style.position = 'absolute';
+              caret.style.left = (rect.left - containerRect.left) + 'px';
+              caret.style.top = (rect.top - containerRect.top) + 'px';
+              caret.style.width = '1px';
+              caret.style.height = rect.height + 'px';
+              caret.style.backgroundColor = '#000';
+              caret.style.animation = 'shoesBlink 1s step-end infinite';
+              caret.style.pointerEvents = 'none';
+              caret.style.zIndex = '10';
+              container.style.position = container.style.position || 'relative';
+              container.appendChild(caret);
+
+              // Report cursor_top to Ruby (htmlId IS the shoes linkable_id)
+              try { scarpeParaCursorTopReport(htmlId, Math.round(rect.top)); } catch(e) {}
+            }
+
+            // Render selection highlight if marker is set
+            if (info.marker !== null && info.marker !== undefined && info.marker !== info.cursor) {
+              var start = Math.min(info.cursor, info.marker);
+              var end_ = Math.max(info.cursor, info.marker);
+              renderSelectionHighlight(container, contentEl, start, end_);
+            }
+          }
+
+          function renderSelectionHighlight(container, contentEl, start, end_) {
+            var startPos = findCharPosition(contentEl, start);
+            var endPos = findCharPosition(contentEl, end_);
+            if (!startPos || !endPos) return;
+
+            var range = document.createRange();
+            range.setStart(startPos.node, startPos.offset);
+            range.setEnd(endPos.node, endPos.offset);
+
+            var rects = range.getClientRects();
+            var containerRect = container.getBoundingClientRect();
+
+            for (var i = 0; i < rects.length; i++) {
+              var r = rects[i];
+              var highlight = document.createElement('div');
+              highlight.className = 'shoes-selection-highlight';
+              highlight.style.position = 'absolute';
+              highlight.style.left = (r.left - containerRect.left) + 'px';
+              highlight.style.top = (r.top - containerRect.top) + 'px';
+              highlight.style.width = r.width + 'px';
+              highlight.style.height = r.height + 'px';
+              highlight.style.backgroundColor = 'rgba(51, 153, 255, 0.3)';
+              highlight.style.pointerEvents = 'none';
+              highlight.style.zIndex = '5';
+              container.appendChild(highlight);
+            }
+          }
+
+          // Hit-test all cursor-enabled paras on mouse events
+          function hitTestAll(pageX, pageY) {
+            for (var htmlId in _cursorParas) {
+              var container = document.getElementById(htmlId);
+              if (!container) continue;
+              var contentEl = getContentElement(htmlId);
+              if (!contentEl) continue;
+
+              var rect = container.getBoundingClientRect();
+              // Only hit-test if mouse is reasonably near this para
+              if (pageX >= rect.left - 10 && pageX <= rect.right + 10 &&
+                  pageY >= rect.top - 10 && pageY <= rect.bottom + 10) {
+                var charIndex = hitTestPara(contentEl, pageX, pageY);
+                try { scarpeParaHitReport(htmlId, charIndex); } catch(e) {}
+              }
+            }
+          }
+
+          function hitTestPara(contentEl, pageX, pageY) {
+            // Use caretRangeFromPoint (WebKit/Blink) or caretPositionFromPoint (Firefox)
+            var range;
+            if (document.caretRangeFromPoint) {
+              range = document.caretRangeFromPoint(pageX, pageY);
+            } else if (document.caretPositionFromPoint) {
+              var pos = document.caretPositionFromPoint(pageX, pageY);
+              if (pos) {
+                range = document.createRange();
+                range.setStart(pos.offsetNode, pos.offset);
+                range.collapse(true);
+              }
+            }
+
+            if (!range) return null;
+
+            // Count character offset from start of contentEl
+            var walker = document.createTreeWalker(contentEl, NodeFilter.SHOW_TEXT, null, false);
+            var count = 0;
+            var node;
+            while (node = walker.nextNode()) {
+              if (node === range.startContainer) {
+                return count + range.startOffset;
+              }
+              count += node.textContent.length;
+            }
+            return null;
+          }
+
+          return {
+            updateCursor: updateCursor,
+            removeCursor: removeCursor,
+            hitTestAll: hitTestAll,
+            findCharPosition: findCharPosition,
+            textLength: textLength
+          };
         })();
       JS
     end

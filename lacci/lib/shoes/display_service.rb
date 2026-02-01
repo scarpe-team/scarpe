@@ -41,6 +41,16 @@ class Shoes
 
       attr_writer :mouse_state
 
+      # Para text cursor caches: para hit-test and cursor_top values
+      # Updated by the display service's mouse tracker, read by Para#hit and Para#cursor_top
+      def para_hit_cache
+        @para_hit_cache ||= {}
+      end
+
+      def para_cursor_top_cache
+        @para_cursor_top_cache ||= {}
+      end
+
       # Builtin response mechanism: allows display service handlers to return
       # values to the Shoes-side caller (e.g. ask, confirm, clipboard).
       # The handler calls set_builtin_response(value) during synchronous dispatch,

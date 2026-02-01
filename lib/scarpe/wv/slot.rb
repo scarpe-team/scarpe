@@ -6,6 +6,14 @@ module Scarpe::Webview
       @event_callbacks = {}
 
       super
+
+      # When a Lacci Slot calls clear { ... }, it sends this event after the block
+      # completes. We respond with a full window redraw, which collapses all the
+      # individual child add/remove DOM operations into one efficient replacement.
+      # This is critical for animate { clear do ... end } patterns (Clock, Pong, etc.)
+      bind_shoes_event(event_name: "full_redraw_request", target: shoes_linkable_id) do
+        full_window_redraw!
+      end
     end
 
     def element(&block)

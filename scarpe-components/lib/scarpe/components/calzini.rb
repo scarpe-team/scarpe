@@ -72,6 +72,11 @@ module Scarpe::Components::Calzini
               height: 100%;
               width: 100%;
             }
+            /* Shoes Para text cursor (caret) blink animation */
+            @keyframes shoesBlink {
+              0%, 100% { opacity: 1; }
+              50% { opacity: 0; }
+            }
           </style>
         </head>
         <body id='body-wvroot'>
