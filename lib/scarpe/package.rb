@@ -467,6 +467,20 @@ module Scarpe
         # Suppress CHANGELOG.md warning in packaged mode
         ENV['SCARPE_PACKAGED'] = '1'
 
+        # In packaged mode, some optional gem dependencies may not be present
+        # (e.g., nokogiri, sqlite3, fastimage are only loaded when actually used).
+        # Relax RubyGems dependency checking so Scarpe can activate without them.
+        module Gem
+          class Specification
+            alias_method :_packaged_activate_deps, :activate_dependencies
+            def activate_dependencies
+              _packaged_activate_deps
+            rescue Gem::MissingSpecError
+              # Optional dependency not present in bundle — acceptable
+            end
+          end
+        end
+
         require 'scarpe'
         require 'scarpe/wv'
 
@@ -659,16 +673,80 @@ module Scarpe
       ruby_mm = TRAVELING_RUBY_VERSION.split(".")[0..1].join(".")  # "3.4"
       strip_platform_gem_versions(gems_dir, ruby_mm)
 
+      # --- FFI source cleanup ---
+
+      # FFI gem ships C source code and build artifacts (~2.7MB) not needed at runtime
+      ffi_ext = Dir.glob(File.join(gems_dir, "ffi-*/ext")).first
+      FileUtils.rm_rf(ffi_ext) if ffi_ext
+
+      # --- Bootstrap theme cleanup ---
+
+      # scarpe-components ships 26 Bootstrap themes (~7MB) but Calzini (default renderer)
+      # doesn't use them. Keep only one theme for Tiranti compatibility.
+      theme_dir = Dir.glob(File.join(gems_dir, "scarpe-components-*/assets/bootstrap-themes")).first
+      if theme_dir && Dir.exist?(theme_dir)
+        keep_files = %w[bootstrap-flatly.css bootstrap.bundle.min.js bootstrap-icons.min.css]
+        Dir.children(theme_dir).each do |f|
+          next if keep_files.include?(f)
+          path = File.join(theme_dir, f)
+          File.delete(path) if File.file?(path)
+          vlog "  Removed theme: #{f}"
+        end
+      end
+
       # --- Ruby stdlib cleanup ---
 
       # Remove stdlib modules not needed at runtime
-      stdlib_removable = %w[rdoc irb reline debug rbs ruby_vm rinda drb rss rexml]
+      stdlib_removable = %w[rdoc irb reline debug rbs ruby_vm rinda drb rss rexml bundler prism syntax_suggest did_you_mean error_highlight]
       stdlib_dir = File.join(ruby_dir, "lib/ruby/#{RUBY_ABI}")
       stdlib_removable.each do |lib|
         path = File.join(stdlib_dir, lib)
         FileUtils.rm_rf(path) if Dir.exist?(path)
         rb_file = File.join(stdlib_dir, "#{lib}.rb")
         File.delete(rb_file) if File.exist?(rb_file)
+      end
+
+      # --- Terminal/ncurses dylib cleanup ---
+
+      # GUI apps don't need terminal libraries
+      terminal_dylibs = %w[libreadline.dylib libtermcap.dylib libncurses.dylib libncurses.6.dylib
+                           libedit.dylib libedit.0.dylib libform.dylib libform.6.dylib
+                           libmenu.dylib libmenu.6.dylib libpanel.dylib libpanel.6.dylib]
+      ruby_lib_dir = File.join(ruby_dir, "lib")
+      terminal_dylibs.each do |dylib|
+        path = File.join(ruby_lib_dir, dylib)
+        File.delete(path) if File.exist?(path) && !File.symlink?(path)
+        File.delete(path) if File.symlink?(path)
+      end
+
+      # --- Encoding bundle cleanup ---
+
+      # Remove unused encoding bundles (Scarpe only needs encdb + transdb)
+      ext_dir = File.join(stdlib_dir, ruby_platform_dir)
+      if Dir.exist?(ext_dir)
+        # Remove all individual encoding bundles (enc/*.bundle except encdb.bundle)
+        enc_dir = File.join(ext_dir, "enc")
+        if Dir.exist?(enc_dir)
+          Dir.glob(File.join(enc_dir, "*.bundle")).each do |f|
+            next if File.basename(f) == "encdb.bundle"
+            File.delete(f)
+          end
+          # Remove encoding transcoder bundles (enc/trans/*.bundle except transdb.bundle)
+          trans_dir = File.join(enc_dir, "trans")
+          if Dir.exist?(trans_dir)
+            Dir.glob(File.join(trans_dir, "*.bundle")).each do |f|
+              next if File.basename(f) == "transdb.bundle"
+              File.delete(f)
+            end
+          end
+        end
+
+        # Remove other unused native extensions
+        %w[ripper.bundle pty.bundle objspace.bundle continuation.bundle
+           io/console.bundle rbconfig/sizeof.bundle].each do |ext|
+          path = File.join(ext_dir, ext)
+          File.delete(path) if File.exist?(path)
+        end
       end
 
       # Deduplicate dylibs (replace versioned copies with symlinks)
