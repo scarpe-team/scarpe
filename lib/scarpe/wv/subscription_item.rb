@@ -4,7 +4,7 @@ class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Drawable
   def initialize(properties)
     super
 
-    @stopped = @properties["stopped"] || false
+    @stopped = @stopped || false
 
     bind(@shoes_api_name) do |*args|
       send_self_event(*args, event_name: @shoes_api_name) unless @stopped

@@ -38,17 +38,17 @@ class TestCalziniMiscDrawables < Minitest::Test
   end
 
   def test_edit_line_default
-    assert_equal %{<input id="elt-1" oninput="handle('change', this.value)" onmouseover="handle('hover')" style="font:;color:" />},
+    assert_equal %{<input id="elt-1" type="text" oninput="handle('change', this.value)" onmouseover="handle('hover')" style="font:;color:" />},
       @calzini.render("edit_line", {})
   end
 
   def test_edit_line_hidden
-    assert_equal %{<input id="elt-1" oninput="handle('change', this.value)" onmouseover="handle('hover')" style="display:none;font:;color:" />},
+    assert_equal %{<input id="elt-1" type="text" oninput="handle('change', this.value)" onmouseover="handle('hover')" style="display:none;font:;color:" />},
       @calzini.render("edit_line", { "hidden" => true })
   end
 
   def test_edit_line_simple
-    assert_equal %{<input id="elt-1" oninput="handle('change', this.value)" onmouseover="handle('hover')" value="(default)" style="width:200;font:;color:" />},
+    assert_equal %{<input id="elt-1" type="text" oninput="handle('change', this.value)" onmouseover="handle('hover')" value="(default)" style="width:200;font:;color:" />},
       @calzini.render("edit_line", { "width" => "200", "text" => "(default)" })
   end
 

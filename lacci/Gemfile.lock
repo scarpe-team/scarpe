@@ -1,40 +1,56 @@
 PATH
   remote: ../scarpe-components
   specs:
-    scarpe-components (0.4.0)
+    scarpe-components (0.5.0)
 
 PATH
   remote: .
   specs:
-    lacci (0.4.0)
-      scarpe-components (~> 0.4.0)
+    lacci (0.5.0)
+      scarpe-components (~> 0.5.0)
 
 GEM
   remote: https://rubygems.org/
   specs:
     ansi (1.5.0)
-    builder (3.2.4)
-    debug (1.8.0)
-      irb (>= 1.5.0)
-      reline (>= 0.3.1)
-    io-console (0.6.0)
-    irb (1.7.2)
-      reline (>= 0.3.6)
-    minitest (5.18.1)
-    minitest-reporters (1.6.0)
+    builder (3.3.0)
+    date (3.5.1)
+    debug (1.11.1)
+      irb (~> 1.10)
+      reline (>= 0.3.8)
+    erb (6.0.1)
+    io-console (0.8.2)
+    irb (1.16.0)
+      pp (>= 0.6.0)
+      rdoc (>= 4.0.0)
+      reline (>= 0.4.2)
+    minitest (5.27.0)
+    minitest-reporters (1.7.1)
       ansi
       builder
       minitest (>= 5.0)
       ruby-progressbar
-    rake (13.0.6)
-    redcarpet (3.6.0)
-    reline (0.3.6)
+    pp (0.6.3)
+      prettyprint
+    prettyprint (0.2.0)
+    psych (5.3.1)
+      date
+      stringio
+    rake (13.3.1)
+    rdoc (7.1.0)
+      erb
+      psych (>= 4.0.0)
+      tsort
+    redcarpet (3.6.1)
+    reline (0.6.3)
       io-console (~> 0.5)
     ruby-progressbar (1.13.0)
-    yard (0.9.34)
+    stringio (3.2.0)
+    tsort (0.2.0)
+    yard (0.9.38)
 
 PLATFORMS
-  arm64-darwin-21
+  ruby
   x86_64-darwin-22
 
 DEPENDENCIES
@@ -48,4 +64,4 @@ DEPENDENCIES
   yard
 
 BUNDLED WITH
-   2.4.10
+   2.6.9

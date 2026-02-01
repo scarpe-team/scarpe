@@ -48,7 +48,11 @@ class Shoes
       end
 
       def is_widget_class?(name)
-        !!Shoes::Drawable.widget_classes.intersect?([name.to_s])
+        short_name = name.to_s.delete_prefix("Scarpe::").delete_prefix("Shoes::")
+        Shoes::Drawable.widget_classes.any? do |wc|
+          wc == name.to_s ||
+            wc.delete_prefix("Scarpe::").delete_prefix("Shoes::") == short_name
+        end
       end
 
       def validate_as(prop_name, value)

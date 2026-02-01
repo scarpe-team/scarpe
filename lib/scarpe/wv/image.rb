@@ -5,7 +5,7 @@ module Scarpe::Webview
     def initialize(properties)
       super
 
-      unless valid_url?(@url)
+      unless valid_url?(@url) || @url&.start_with?("data:")
         # It's assumed to be a file path.
         @url = Scarpe::Webview.asset_server.asset_url(File.expand_path @url)
       end
