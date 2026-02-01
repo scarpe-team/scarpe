@@ -66,8 +66,12 @@ class Shoes::Widget < Shoes::Slot
       create_display_drawable
       __widget_initialize(*args, **kwargs, &block)
 
-      # Do Widgets do this?
-      @app.with_slot(self, &block) if block
+      # Note: We intentionally do NOT call @app.with_slot(self, &block) here.
+      # Widget subclasses that want to use the block as slot content should
+      # call @app.with_slot(self, &block) in their own initialize.
+      # Many widgets (like Glossb, IconButton) use the block as a click handler
+      # via `click &blk`, not as slot content. Auto-evaluating the block would
+      # incorrectly execute click handlers during initialization.
     end
     @midway_through_adding_initialize = false
   end

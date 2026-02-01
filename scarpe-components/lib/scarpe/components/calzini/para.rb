@@ -66,6 +66,16 @@ module Scarpe::Components::Calzini
       s2[:"text-align"] = props["align"]
     end
 
+    # Shoes3 wrap modes: "trim" = no wrap + clip, "char" = break at char, "word" = break at word (default)
+    case props["wrap"]
+    when "trim"
+      s2[:"white-space"] = "nowrap"
+      s2[:overflow] = "hidden"
+      s2[:"text-overflow"] = "ellipsis"
+    when "char"
+      s2[:"word-break"] = "break-all"
+    end
+
     unless [nil, "none"].include?(props["underline"])
       undercolor = rgb_to_hex props["undercolor"]
       s2["text-decoration-color"] = undercolor if undercolor

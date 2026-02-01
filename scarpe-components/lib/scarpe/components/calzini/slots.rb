@@ -54,7 +54,8 @@ module Scarpe::Components::Calzini
       "align-content": "flex-start",
       "justify-content": "flex-start",
       "align-items": "flex-start",
-    }.merge(slot_style(props))
+      overflow: props["scroll"] ? "auto" : nil,
+    }.compact.merge(slot_style(props))
   end
 
   def stack_style(props)
