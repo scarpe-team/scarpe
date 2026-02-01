@@ -608,9 +608,12 @@ module Scarpe
     def strip_unnecessary_files
       log "🗑️  Stripping unnecessary files..."
       gems_dir = File.join(app_path, "Contents/Resources/runtime/gems/gems")
+      ruby_dir = File.join(app_path, "Contents/Resources/runtime/ruby")
+
+      # --- Gem cleanup ---
 
       # Remove test/spec/doc directories
-      removable_dirs = %w[test spec examples docs doc .git spikes experiments benchmark features]
+      removable_dirs = %w[test spec examples docs doc .git spikes experiments benchmark features yard]
       removable_dirs.each do |dir_name|
         Dir.glob(File.join(gems_dir, "**", dir_name)).each do |dir|
           next unless File.directory?(dir)
@@ -625,10 +628,23 @@ module Scarpe
         end
       end
 
-      # Remove README/CHANGELOG/LICENSE (space savings, not needed at runtime)
-      %w[README* CHANGELOG* CHANGES* HISTORY* LICENSE* COPYING* NEWS* TODO*].each do |pattern|
+      # Remove meta-files at gem root level
+      %w[README* CHANGELOG* CHANGES* HISTORY* LICENSE* COPYING* NEWS* TODO* CLAUDE.md CONTRIBUTING.md CODE_OF_CONDUCT.md *.gemspec Gemfile Gemfile.lock Rakefile dev.yml].each do |pattern|
         Dir.glob(File.join(gems_dir, "*", pattern)).each do |f|
           File.delete(f) if File.file?(f)
+        end
+      end
+
+      # Remove nested gem copies (scarpe gem bundles scarpe-components and lacci)
+      %w[scarpe-components lacci].each do |nested|
+        nested_dir = Dir.glob(File.join(gems_dir, "scarpe-*/#{nested}")).first
+        FileUtils.rm_rf(nested_dir) if nested_dir && Dir.exist?(nested_dir)
+      end
+
+      # Remove non-essential gem directories
+      %w[bin sig tasks scarpegen.rb].each do |dir_name|
+        Dir.glob(File.join(gems_dir, "*", dir_name)).each do |d|
+          FileUtils.rm_rf(d)
         end
       end
 
@@ -637,8 +653,86 @@ module Scarpe
         FileUtils.rm_rf(dsym)
       end
 
+      # Remove unused Ruby version-specific native extensions from platform gems
+      # Platform gems like nokogiri ship bundles for Ruby 2.7, 3.0, 3.1, 3.2, 3.3, 3.4
+      # We only need the one matching our Ruby ABI major.minor
+      ruby_mm = TRAVELING_RUBY_VERSION.split(".")[0..1].join(".")  # "3.4"
+      strip_platform_gem_versions(gems_dir, ruby_mm)
+
+      # --- Ruby stdlib cleanup ---
+
+      # Remove stdlib modules not needed at runtime
+      stdlib_removable = %w[rdoc irb reline debug rbs ruby_vm rinda drb rss rexml]
+      stdlib_dir = File.join(ruby_dir, "lib/ruby/#{RUBY_ABI}")
+      stdlib_removable.each do |lib|
+        path = File.join(stdlib_dir, lib)
+        FileUtils.rm_rf(path) if Dir.exist?(path)
+        rb_file = File.join(stdlib_dir, "#{lib}.rb")
+        File.delete(rb_file) if File.exist?(rb_file)
+      end
+
+      # Deduplicate dylibs (replace versioned copies with symlinks)
+      dedup_dylibs(File.join(ruby_dir, "lib"))
+
       final_size = `du -sh "#{app_path}" 2>/dev/null`.strip.split("\t").first
       vlog "  Stripped to #{final_size}"
+    end
+
+    def strip_platform_gem_versions(gems_dir, target_version)
+      # Platform gems ship per-Ruby-version native extensions
+      # Remove all except the target version (or the highest available)
+      Dir.glob(File.join(gems_dir, "*-{x86_64,arm64}-darwin*")).each do |gem_dir|
+        lib_dir = File.join(gem_dir, "lib")
+        next unless Dir.exist?(lib_dir)
+
+        # Look for versioned subdirectories (e.g., lib/nokogiri/3.2/)
+        Dir.children(lib_dir).each do |subdir|
+          sub_path = File.join(lib_dir, subdir)
+          next unless Dir.exist?(sub_path)
+
+          versions = Dir.children(sub_path).select { |d| d.match?(/^\d+\.\d+$/) }
+          next if versions.empty?
+
+          keep = versions.include?(target_version) ? target_version : versions.max
+          versions.each do |v|
+            next if v == keep
+            FileUtils.rm_rf(File.join(sub_path, v))
+            vlog "  Removed #{File.basename(gem_dir)}/#{subdir}/#{v}/ (keeping #{keep})"
+          end
+        end
+      end
+    end
+
+    def dedup_dylibs(lib_dir)
+      # Traveling Ruby ships duplicate dylibs (e.g., libcrypto.3.dylib AND libcrypto.dylib)
+      # Replace the unversioned copy with a symlink to the versioned one
+      seen = {}
+      Dir.glob(File.join(lib_dir, "*.dylib")).sort.each do |path|
+        size = File.size(path)
+        base = File.basename(path)
+
+        # Group by library name (e.g., "libcrypto")
+        lib_name = base.sub(/\.[\d.]*\.dylib$/, "").sub(/\.dylib$/, "")
+        seen[lib_name] ||= []
+        seen[lib_name] << { path: path, base: base, size: size }
+      end
+
+      saved = 0
+      seen.each do |lib_name, entries|
+        next if entries.length < 2
+
+        # Keep the versioned one (longer name), symlink the shorter name
+        entries.sort_by! { |e| -e[:base].length }
+        versioned = entries.first
+        entries[1..].each do |entry|
+          next unless entry[:size] == versioned[:size]  # Only if same size (likely identical)
+          File.delete(entry[:path])
+          File.symlink(versioned[:base], entry[:path])
+          saved += entry[:size]
+        end
+      end
+
+      vlog "  Deduped dylibs: saved #{(saved / 1024.0 / 1024.0).round(1)}MB" if saved > 0
     end
 
     # --- Class-level entry point for CLI ---
