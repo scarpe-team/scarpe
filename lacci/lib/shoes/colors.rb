@@ -226,4 +226,7 @@ class Shoes
       end
     end
   end
+
+  # Shoes3 exposes Shoes::COLORS at the top level for apps like Hackety Hack
+  COLORS = Colors::COLORS
 end

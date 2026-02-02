@@ -261,7 +261,7 @@ class Shoes
     end
 
     # Every Shoes drawable has positioning properties
-    shoes_styles :top, :left, :width, :height
+    shoes_styles :top, :left, :width, :height, :right, :bottom
 
     # Margins around drawable
     shoes_styles :margin, :margin_top, :margin_bottom, :margin_left, :margin_right
@@ -500,10 +500,12 @@ class Shoes
       send_shoes_event(*args, **kwargs, event_name:, target: linkable_id)
     end
 
+    # Shoes3 style() returns a Hash accessible by both string and symbol keys.
+    # Use a HashWithIndifferentAccess-like wrapper for compatibility.
     def shoes_style_values(with_features: @app.features)
       all_property_names = self.class.shoes_style_names(with_features:)
 
-      properties = {}
+      properties = IndifferentHash.new
       all_property_names.each do |prop|
         properties[prop] = instance_variable_get("@" + prop)
       end
@@ -511,21 +513,55 @@ class Shoes
       properties
     end
 
+    # Simple hash that accepts both string and symbol keys (like Shoes3)
+    class IndifferentHash < Hash
+      def [](key)
+        super(key.to_s)
+      end
+
+      def []=(key, value)
+        super(key.to_s, value)
+      end
+
+      def fetch(key, *args, &block)
+        super(key.to_s, *args, &block)
+      end
+
+      def key?(key)
+        super(key.to_s)
+      end
+      alias include? key?
+      alias has_key? key?
+    end
+
     def style(*args, **kwargs)
       if args.empty? && kwargs.empty?
         # Just called as .style()
         shoes_style_values
       elsif args.empty?
-        # This is called to set one or more Shoes styles
+        # This is called to set one or more Shoes styles.
+        # Shoes3 was lenient — unknown styles were silently accepted and stored.
+        # We accept known styles AND draw context properties (fill, stroke, strokewidth, rotate).
         prop_names = self.class.shoes_style_names
-        unknown_styles = kwargs.keys.select { |k| !prop_names.include?(k.to_s) }
-        unless unknown_styles.empty?
-          raise Shoes::Errors::NoSuchStyleError, "Unknown styles for drawable type #{self.class.name}: #{unknown_styles.join(", ")}"
-        end
+        draw_context_props = %w[fill stroke strokewidth rotate]
 
+        changes = {}
         kwargs.each do |name, val|
-          instance_variable_set("@#{name}", val)
+          name_s = name.to_s
+          if prop_names.include?(name_s)
+            instance_variable_set("@#{name}", val)
+            changes[name_s] = val
+          elsif draw_context_props.include?(name_s)
+            # Set draw context property on the drawable (Shoes3 supports this)
+            instance_variable_set("@#{name}", val)
+            changes[name_s] = val
+          else
+            # Shoes3 silently stores unknown styles; warn but don't raise
+            instance_variable_set("@#{name}", val)
+          end
         end
+        # Propagate style changes to the display service for re-rendering
+        send_shoes_event(changes, event_name: "prop_change", target: linkable_id) unless changes.empty?
       elsif args.length == 1 && args[0] < Shoes::Drawable
         # Shoes supports calling .style with a Shoes class, e.g. .style(Shoes::Button, displace_left: 5)
         kwargs.each do |name, val|
@@ -621,25 +657,54 @@ class Shoes
     end
 
     # Set the hover handler. Not every drawable may do something useful with this.
+    # Returns self for method chaining (Shoes3 convention).
     #
     # @yield A block to be called when the cursor moves to be over the drawable.
+    # @return [self]
     def hover(&block)
       @hover = block
+      self
     end
 
     # Set the leave handler. Not every drawable may do something useful with this.
+    # Returns self for method chaining (Shoes3 convention).
     #
     # @yield A block to be called when the cursor moves to be off of the drawable.
+    # @return [self]
     def leave(&block)
       @leave = block
+      self
     end
 
     # Set the motion handler, called with x and y coordinates as params.
     # Not every drawable may do something useful with this.
+    # Returns self for method chaining (Shoes3 convention).
     #
     # @yield A block to be called when the cursor moves around over the drawable.
+    # @return [self]
     def motion(&block)
       @motion = block
+      self
+    end
+
+    # Set the click handler. In Shoes3, all drawables support click events.
+    # Returns self for method chaining (Shoes3 convention).
+    #
+    # @yield A block to be called when the drawable is clicked.
+    # @return [self]
+    def click(&block)
+      @block = block
+      self
+    end
+
+    # Set the release handler. In Shoes3, all drawables support release events.
+    # Returns self for method chaining (Shoes3 convention).
+    #
+    # @yield A block to be called when the mouse button is released over the drawable.
+    # @return [self]
+    def release(&block)
+      @release = block
+      self
     end
 
     # We use method_missing to auto-create Shoes style getters and setters.

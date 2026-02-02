@@ -14,10 +14,17 @@ class Shoes
     shoes_events # No Shape-specific events yet
 
     init_args # No positional args
-    def initialize(**kwargs, &block)
+    def initialize(*args, **kwargs, &block)
+      # Shoes3 supports shape(left, top) { } with positional coordinates
+      if args.length >= 2 && args[0].is_a?(Numeric) && args[1].is_a?(Numeric)
+        kwargs[:left] = args[0]
+        kwargs[:top] = args[1]
+        args = args[2..] || []
+      end
+
       @shape_commands = []
 
-      super
+      super(**kwargs)
       @draw_context = @app.current_draw_context
       create_display_drawable
 

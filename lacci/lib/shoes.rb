@@ -196,6 +196,10 @@ class Shoes
       # Shoes assumes we're starting from the app code's path
       Dir.chdir(dir)
 
+      # Shoes3 adds the app directory to the load path so that
+      # require 'app/boot' style calls work from the app's directory
+      $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir)
+
       loaded = false
       file_loaders.each do |loader|
         if loader.call(path)

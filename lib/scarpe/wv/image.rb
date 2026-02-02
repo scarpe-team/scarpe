@@ -5,7 +5,10 @@ module Scarpe::Webview
     def initialize(properties)
       super
 
-      unless valid_url?(@url) || @url&.start_with?("data:")
+      if @url.nil? || @url.empty?
+        # Blank/spacer image — transparent 1x1 PNG (Shoes3 supports image(w,h) for spacers)
+        @url = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+      elsif !(valid_url?(@url) || @url.start_with?("data:"))
         # It's assumed to be a file path.
         @url = Scarpe::Webview.asset_server.asset_url(File.expand_path @url)
       end

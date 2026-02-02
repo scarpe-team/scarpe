@@ -188,14 +188,42 @@ class Shoes::Slot < Shoes::Drawable
   #
   # Should only be called on a Slot, since only Slots can have children.
   #
-  # @incompatibility Shoes Classic calls the append block with current self, while Scarpe uses the Shoes::App as self
+  # In Shoes3 (Classic), append preserves the caller's self — the block
+  # is called with block.call, NOT instance_eval. This matters for
+  # non-Shoes callers (like HH::SideTab) that define methods and instance
+  # variables that need to be reachable inside the block.
   #
-  # @yield the block to call to replace children; will be called on the Shoes::App, appending to the called Slot as the current slot
+  # When the caller is NOT a Shoes drawable, we use block.call to preserve
+  # the original self and register the caller as an "external self" on the
+  # App so that nested instance_eval'd blocks (inside flow/stack/etc.) can
+  # fall back to the caller for unknown methods.
+  #
+  # @yield the block to call to append children to this Slot
   # @return [void]
   def append(&block)
     raise(Shoes::Errors::InvalidAttributeValueError, "append requires a block!") unless block_given?
     raise(Shoes::Errors::InvalidAttributeValueError, "Don't append to something that isn't a slot!") unless self.is_a?(Shoes::Slot)
 
-    @app.with_slot(self, &block)
+    # Detect if the caller is external (non-Shoes) by checking the block's binding
+    caller_self = begin
+      eval("self", block.binding)
+    rescue StandardError
+      nil
+    end
+
+    if caller_self && !caller_self.is_a?(Shoes::Drawable)
+      # Shoes3-compatible: preserve the caller's self and register as external
+      @app.push_external_self(caller_self)
+      @app.push_slot(self)
+      begin
+        block.call
+      ensure
+        @app.pop_slot
+        @app.pop_external_self
+      end
+    else
+      # Normal Shoes context — use instance_eval as before
+      @app.with_slot(self, &block)
+    end
   end
 end

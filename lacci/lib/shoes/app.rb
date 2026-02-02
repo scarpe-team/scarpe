@@ -146,6 +146,23 @@ class Shoes
       @slots[-1]
     end
 
+    # Track external (non-Shoes) callers from Slot#append so that
+    # method_missing can fall back to them. This enables Shoes3-compatible
+    # patterns like HH::SideTab where methods defined on the caller
+    # (e.g. `content`) need to be reachable from inside instance_eval'd blocks.
+    def push_external_self(obj)
+      @external_self_stack ||= []
+      @external_self_stack.push(obj)
+    end
+
+    def pop_external_self
+      @external_self_stack&.pop
+    end
+
+    def external_self
+      @external_self_stack&.last
+    end
+
     def with_slot(slot_item, &block)
       return unless block_given?
 
@@ -159,16 +176,33 @@ class Shoes
     # The parent's method_missing will auto-create Shoes style getters and setters.
     # This is similar to the method_missing in Shoes::Slot, but different in
     # where the new drawable appears.
+    #
+    # When an external_self is active (from Slot#append), unknown methods are
+    # delegated to that external object. This provides Shoes3-compatible
+    # method dispatch for non-Shoes callers.
     def method_missing(name, *args, **kwargs, &block)
       klass = ::Shoes::Drawable.drawable_class_by_name(name)
+      if !klass && external_self && external_self.respond_to?(name)
+        return external_self.send(name, *args, **kwargs, &block)
+      end
       return super unless klass
 
       ::Shoes::App.define_method(name) do |*args, **kwargs, &block|
+        # Shoes3 compat: when a Hash is passed as the last positional arg
+        # (common when routed through method_missing without **kwargs),
+        # extract it as keyword args for drawable initialization.
+        if kwargs.empty? && args.last.is_a?(Hash)
+          kwargs = args.pop
+        end
         Drawable.with_current_app(self) do
           klass.new(*args, **kwargs, &block)
         end
       end
 
+      # Also apply the same Hash extraction for this first call
+      if kwargs.empty? && args.last.is_a?(Hash)
+        kwargs = args.pop
+      end
       send(name, *args, **kwargs, &block)
     end
 
