@@ -82,7 +82,7 @@ module Scarpe
       "scarpe-components" => { lib: "scarpe-components/lib", spec_name: "scarpe-components" },
     }.freeze
 
-    def initialize(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false)
+    def initialize(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false)
       @app_file = File.expand_path(app_file)
       raise "App file not found: #{@app_file}" unless File.exist?(@app_file)
       raise "App file must be a .rb file: #{@app_file}" unless @app_file.end_with?(".rb")
@@ -93,6 +93,9 @@ module Scarpe
       @output_dir = output_dir ? File.expand_path(output_dir) : Dir.pwd
       @verbose = verbose
       @dev = dev
+      @sign = sign
+      @dmg = dmg
+      @universal = universal
 
       @cache_dir = File.join(Dir.home, ".scarpe", "packager-cache")
       @bundle_id = "com.scarpe.#{@name.downcase.gsub(/[^a-z0-9]/, "")}"
@@ -123,17 +126,31 @@ module Scarpe
       write_info_plist
       copy_icon if @icon
       strip_unnecessary_files
+      sign_bundle if @sign
+      result = create_dmg if @dmg
 
       size = `du -sh "#{app_path}" 2>/dev/null`.strip.split("\t").first || "unknown"
       log ""
       log "✅ Created #{File.basename(app_path)} (#{size})"
-      log ""
-      log "   To run:  open #{app_path}"
-      log "   Or:      #{app_path}/Contents/MacOS/scarpe-launcher"
-      log ""
-      log "   ⚠️  Unsigned app — right-click → Open to bypass Gatekeeper."
 
-      app_path
+      if result && @dmg
+        dmg_size = `du -sh "#{result}" 2>/dev/null`.strip.split("\t").first || "unknown"
+        log "✅ Created #{File.basename(result)} (#{dmg_size})"
+        log ""
+        log "   To install: open #{result}"
+      else
+        log ""
+        log "   To run:  open #{app_path}"
+        log "   Or:      #{app_path}/Contents/MacOS/scarpe-launcher"
+      end
+
+      unless @sign
+        log ""
+        log "   ⚠️  Unsigned app — right-click → Open to bypass Gatekeeper."
+        log "   Tip: use --sign for ad-hoc code signing (no Apple Developer account needed)."
+      end
+
+      @dmg ? result : app_path
     end
 
     def app_path
@@ -285,27 +302,91 @@ module Scarpe
 
       all_gems.each do |gem_name, version, platform|
         gem_dir_name = find_gem_dir(src_gems, gem_name, version, platform)
+
+        # For pure Ruby gems not found in the target arch cache, try other arch caches.
+        # Pure Ruby gems (no native extensions) are identical across architectures.
+        unless gem_dir_name
+          gem_dir_name, src_gems_override = find_gem_in_other_caches(gem_name, version, platform)
+        end
+
+        effective_src = src_gems_override || src_gems
+
         if gem_dir_name
-          src_dir = File.join(src_gems, "gems", gem_dir_name)
+          src_dir = File.join(effective_src, "gems", gem_dir_name)
           FileUtils.cp_r(src_dir, File.join(dst_gems, "gems", gem_dir_name))
 
           # Copy gemspec
           spec_file = "#{gem_dir_name}.gemspec"
-          src_spec = File.join(src_gems, "specifications", spec_file)
+          src_spec = File.join(effective_src, "specifications", spec_file)
           if File.exist?(src_spec)
             FileUtils.cp(src_spec, File.join(dst_gems, "specifications", spec_file))
           else
             vlog "⚠️  Gemspec not found: #{spec_file}"
           end
 
-          vlog "  ✅ #{gem_dir_name}"
+          vlog "  ✅ #{gem_dir_name}#{src_gems_override ? " (from #{File.basename(File.dirname(File.dirname(effective_src)))})" : ""}"
         else
-          log "   ⚠️  Gem not found in cache: #{gem_name}"
+          # Last resort: try to install from system Ruby's gem cache
+          installed = install_gem_from_system(gem_name, version, dst_gems)
+          log "   ⚠️  Gem not found in cache: #{gem_name}" unless installed
         end
       end
 
       # In --dev mode, overlay local Scarpe source on top of published gems
       overlay_dev_sources if @dev
+    end
+
+    def find_gem_in_other_caches(gem_name, version, platform)
+      # Search other architecture caches for pure Ruby gems
+      ARCH_MAP.values.uniq.each do |alt_arch|
+        next if alt_arch == @arch
+
+        alt_cache = File.join(@cache_dir, "traveling-ruby-#{TRAVELING_RUBY_VERSION}-macos-#{alt_arch}-full")
+        alt_gems = File.join(alt_cache, "lib/ruby/gems/#{RUBY_ABI}")
+        next unless Dir.exist?(alt_gems)
+
+        gem_dir_name = find_gem_dir(alt_gems, gem_name, version, platform)
+        return [gem_dir_name, alt_gems] if gem_dir_name
+      end
+
+      nil
+    end
+
+    def install_gem_from_system(gem_name, version, dst_gems)
+      # Try to find the gem in the system Ruby's gem cache and copy it
+      system_gem_paths = [
+        File.join(Dir.home, ".local/share/mise/installs/ruby/*/lib/ruby/gems/*/gems"),
+        File.join(Dir.home, ".rbenv/versions/*/lib/ruby/gems/*/gems"),
+        "/usr/local/lib/ruby/gems/*/gems",
+      ]
+
+      system_gem_paths.each do |pattern|
+        Dir.glob(pattern).each do |gems_root|
+          spec_root = File.join(File.dirname(gems_root), "specifications")
+          gem_dir_name = find_gem_dir(File.dirname(gems_root), gem_name, version, nil)
+          next unless gem_dir_name
+
+          src_dir = File.join(gems_root, gem_dir_name)
+          next unless Dir.exist?(src_dir)
+
+          # Only copy pure Ruby gems (no native extensions in the gem dir)
+          has_native = Dir.glob(File.join(src_dir, "**/*.{bundle,so,dll}")).any?
+          next if has_native
+
+          FileUtils.cp_r(src_dir, File.join(dst_gems, "gems", gem_dir_name))
+
+          spec_file = "#{gem_dir_name}.gemspec"
+          src_spec = File.join(spec_root, spec_file)
+          if File.exist?(src_spec)
+            FileUtils.cp(src_spec, File.join(dst_gems, "specifications", spec_file))
+          end
+
+          vlog "  ✅ #{gem_dir_name} (from system Ruby)"
+          return true
+        end
+      end
+
+      false
     end
 
     def overlay_dev_sources
@@ -375,55 +456,152 @@ module Scarpe
     end
 
     def copy_webview_extension
-      log "🔧 Copying webview_ruby native extension..."
+      log "🔧 Preparing webview_ruby native extension..."
 
-      # Find webview_ruby's native extension on the system
-      webview_bundle = find_webview_bundle
-      unless webview_bundle
-        log "   ⚠️  webview_ruby native extension not found!"
-        log "   The packaged app may not work. Run: gem install webview_ruby"
-        return
-      end
-
-      # Determine destination based on source architecture
       dst_gems = File.join(app_path, "Contents/Resources/runtime/gems/gems")
       webview_ext_dir = Dir.glob(File.join(dst_gems, "webview_ruby-*/ext")).first
 
-      if webview_ext_dir
-        target_dir = File.join(webview_ext_dir, "#{@arch}-darwin")
-        FileUtils.mkdir_p(target_dir)
-        FileUtils.cp(webview_bundle, File.join(target_dir, "libwebview-ext.bundle"))
-        vlog "  ✅ Copied #{File.basename(webview_bundle)} to #{target_dir}"
-      else
+      unless webview_ext_dir
         log "   ⚠️  webview_ruby gem directory not found in bundle"
+        return
+      end
+
+      # Strategy: compile from source (preferred) or copy existing bundle (fallback)
+      webview_src = find_webview_source
+      if webview_src
+        compile_webview_extension(webview_src, webview_ext_dir)
+      else
+        copy_existing_webview_bundle(webview_ext_dir)
       end
     end
 
-    def find_webview_bundle
-      # Search common locations for the webview_ruby native extension
-      search_paths = [
-        # mise/asdf
-        File.join(Dir.home, ".local/share/mise/installs/ruby/*/lib/ruby/gems/*/gems/webview_ruby-*/ext/*/libwebview-ext.bundle"),
-        # rbenv
-        File.join(Dir.home, ".rbenv/versions/*/lib/ruby/gems/*/gems/webview_ruby-*/ext/*/libwebview-ext.bundle"),
-        # System Ruby
-        "/Library/Ruby/Gems/*/gems/webview_ruby-*/ext/*/libwebview-ext.bundle",
-        # Homebrew Ruby
-        "/usr/local/lib/ruby/gems/*/gems/webview_ruby-*/ext/*/libwebview-ext.bundle",
-        "/opt/homebrew/lib/ruby/gems/*/gems/webview_ruby-*/ext/*/libwebview-ext.bundle",
-        # Traveling Ruby cache (from previous build)
-        File.join(runtime_cache_path, "lib/ruby/gems/*/gems/webview_ruby-*/ext/*/libwebview-ext.bundle"),
+    def find_webview_source
+      # Look for webview.h + webview.cpp in the gem's ext directory
+      search_patterns = [
+        File.join(runtime_cache_path, "lib/ruby/gems/*/gems/webview_ruby-*/ext/webview/webview.h"),
+        File.join(Dir.home, ".local/share/mise/installs/ruby/*/lib/ruby/gems/*/gems/webview_ruby-*/ext/webview/webview.h"),
+        File.join(Dir.home, ".rbenv/versions/*/lib/ruby/gems/*/gems/webview_ruby-*/ext/webview/webview.h"),
       ]
 
-      search_paths.each do |pattern|
+      search_patterns.each do |pattern|
         matches = Dir.glob(pattern)
-        # Prefer the architecture-matching one
-        arch_match = matches.find { |m| m.include?(@arch) }
-        return arch_match if arch_match
-        return matches.first unless matches.empty?
+        return File.dirname(matches.first) if matches.any?
       end
 
       nil
+    end
+
+    def compile_webview_extension(src_dir, ext_dir)
+      # The webview_ruby native extension links only against system frameworks
+      # (WebKit, libc++, libSystem) — no libruby dependency. This means we can
+      # cross-compile for any macOS architecture from any Mac.
+      webview_cpp = File.join(src_dir, "webview.cpp")
+
+      if @universal
+        # Build universal binary (x86_64 + arm64)
+        compile_webview_for_arch("x86_64", webview_cpp, ext_dir)
+        compile_webview_for_arch("arm64", webview_cpp, ext_dir)
+        create_universal_webview(ext_dir)
+      else
+        compile_webview_for_arch(@arch, webview_cpp, ext_dir)
+      end
+    end
+
+    def compile_webview_for_arch(arch, webview_cpp, ext_dir)
+      cache_path = File.join(@cache_dir, "webview-ext", "libwebview-ext-#{arch}.bundle")
+
+      # Use cached build if available
+      if File.exist?(cache_path)
+        vlog "  Using cached webview extension for #{arch}"
+        target_dir = File.join(ext_dir, "#{arch}-darwin")
+        FileUtils.mkdir_p(target_dir)
+        FileUtils.cp(cache_path, File.join(target_dir, "libwebview-ext.bundle"))
+        return
+      end
+
+      log "   🔨 Compiling webview extension for #{arch}..."
+      FileUtils.mkdir_p(File.dirname(cache_path))
+
+      success = system(
+        "xcrun", "-sdk", "macosx", "clang++",
+        "-arch", arch,
+        "-shared", "-dynamiclib",
+        "-framework", "WebKit",
+        "-std=c++11", "-O2",
+        "-DWEBVIEW_COCOA",
+        "-mmacosx-version-min=10.15",
+        "-o", cache_path,
+        webview_cpp,
+        [:out, :err] => @verbose ? $stdout : File::NULL,
+      )
+
+      unless success
+        log "   ⚠️  Compilation failed for #{arch} — falling back to existing bundle"
+        return false
+      end
+
+      # Fix install name for embedding
+      system("install_name_tool", "-id", "@loader_path/libwebview-ext.bundle", cache_path,
+        [:out, :err] => File::NULL)
+
+      target_dir = File.join(ext_dir, "#{arch}-darwin")
+      FileUtils.mkdir_p(target_dir)
+      FileUtils.cp(cache_path, File.join(target_dir, "libwebview-ext.bundle"))
+
+      vlog "  ✅ Compiled webview extension for #{arch} (#{(File.size(cache_path) / 1024.0).round}KB)"
+      true
+    end
+
+    def create_universal_webview(ext_dir)
+      x86_path = File.join(ext_dir, "x86_64-darwin", "libwebview-ext.bundle")
+      arm_path = File.join(ext_dir, "arm64-darwin", "libwebview-ext.bundle")
+
+      return unless File.exist?(x86_path) && File.exist?(arm_path)
+
+      # Create universal binary in both directories so FFI finds it regardless of arch
+      universal_cache = File.join(@cache_dir, "webview-ext", "libwebview-ext-universal.bundle")
+      system("lipo", "-create", x86_path, arm_path, "-output", universal_cache,
+        [:out, :err] => File::NULL)
+
+      if File.exist?(universal_cache)
+        # Replace both arch-specific bundles with the universal one
+        FileUtils.cp(universal_cache, x86_path)
+        FileUtils.cp(universal_cache, arm_path)
+        vlog "  ✅ Created universal binary (#{(File.size(universal_cache) / 1024.0).round}KB)"
+      end
+    end
+
+    def copy_existing_webview_bundle(ext_dir)
+      # Fallback: find a pre-compiled bundle on the system
+      search_paths = [
+        File.join(@cache_dir, "webview-ext", "libwebview-ext-#{@arch}.bundle"),
+        File.join(@cache_dir, "webview-ext", "libwebview-ext-universal.bundle"),
+        File.join(Dir.home, ".local/share/mise/installs/ruby/*/lib/ruby/gems/*/gems/webview_ruby-*/ext/*/libwebview-ext.bundle"),
+        File.join(Dir.home, ".rbenv/versions/*/lib/ruby/gems/*/gems/webview_ruby-*/ext/*/libwebview-ext.bundle"),
+        "/Library/Ruby/Gems/*/gems/webview_ruby-*/ext/*/libwebview-ext.bundle",
+        "/usr/local/lib/ruby/gems/*/gems/webview_ruby-*/ext/*/libwebview-ext.bundle",
+        "/opt/homebrew/lib/ruby/gems/*/gems/webview_ruby-*/ext/*/libwebview-ext.bundle",
+        File.join(runtime_cache_path, "lib/ruby/gems/*/gems/webview_ruby-*/ext/*/libwebview-ext.bundle"),
+      ]
+
+      webview_bundle = nil
+      search_paths.each do |pattern|
+        matches = Dir.glob(pattern)
+        arch_match = matches.find { |m| m.include?(@arch) || m.include?("universal") }
+        webview_bundle = arch_match || matches.first
+        break if webview_bundle
+      end
+
+      unless webview_bundle
+        log "   ⚠️  webview_ruby native extension not found!"
+        log "   The packaged app may not work. Install Xcode Command Line Tools for cross-compilation."
+        return
+      end
+
+      target_dir = File.join(ext_dir, "#{@arch}-darwin")
+      FileUtils.mkdir_p(target_dir)
+      FileUtils.cp(webview_bundle, File.join(target_dir, "libwebview-ext.bundle"))
+      vlog "  ✅ Copied #{File.basename(webview_bundle)} from #{File.dirname(webview_bundle)}"
     end
 
     def copy_user_app
@@ -813,6 +991,128 @@ module Scarpe
       vlog "  Deduped dylibs: saved #{(saved / 1024.0 / 1024.0).round(1)}MB" if saved > 0
     end
 
+    # --- Code Signing ---
+
+    def sign_bundle
+      log "🔏 Code signing..."
+
+      # Ad-hoc signing (no Apple Developer account required)
+      # Uses "-" as identity which creates an ad-hoc signature.
+      # This tells macOS the code hasn't been tampered with, reducing
+      # Gatekeeper friction. Not the same as a full Developer ID signature
+      # but significantly better than no signature.
+
+      # Sign all native extensions and dylibs first (deep signing)
+      native_files = Dir.glob(File.join(app_path, "**/*.bundle")) +
+                     Dir.glob(File.join(app_path, "**/*.dylib"))
+
+      native_files.each do |f|
+        next if File.symlink?(f)
+        system("codesign", "--force", "--sign", "-",
+          "--timestamp=none",
+          f,
+          [:out, :err] => @verbose ? $stdout : File::NULL)
+      end
+
+      # Sign the Ruby binary
+      ruby_bin = File.join(app_path, "Contents/Resources/runtime/ruby/bin.real/ruby")
+      if File.exist?(ruby_bin)
+        system("codesign", "--force", "--sign", "-",
+          "--timestamp=none",
+          "--entitlements", write_entitlements,
+          ruby_bin,
+          [:out, :err] => @verbose ? $stdout : File::NULL)
+      end
+
+      # Sign the whole .app bundle
+      success = system("codesign", "--force", "--deep", "--sign", "-",
+        "--timestamp=none",
+        "--entitlements", write_entitlements,
+        app_path,
+        [:out, :err] => @verbose ? $stdout : File::NULL)
+
+      if success
+        log "   ✅ Ad-hoc code signed"
+        # Verify
+        verify = `codesign --verify --verbose=2 "#{app_path}" 2>&1`
+        if verify.include?("valid on disk")
+          vlog "  Signature verified: valid on disk"
+        else
+          vlog "  Verification output: #{verify.strip}"
+        end
+      else
+        log "   ⚠️  Code signing failed (app will still work, but Gatekeeper may warn)"
+      end
+
+      # Clean up temp entitlements
+      ent_file = File.join(@cache_dir, "entitlements.plist")
+      File.delete(ent_file) if File.exist?(ent_file)
+    end
+
+    def write_entitlements
+      ent_path = File.join(@cache_dir, "entitlements.plist")
+      FileUtils.mkdir_p(@cache_dir)
+
+      # Minimal entitlements for a GUI app using WebKit
+      File.write(ent_path, <<~PLIST)
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+            <true/>
+            <key>com.apple.security.cs.allow-jit</key>
+            <true/>
+        </dict>
+        </plist>
+      PLIST
+
+      ent_path
+    end
+
+    # --- DMG Builder ---
+
+    def create_dmg
+      log "💿 Creating DMG..."
+      dmg_path = File.join(@output_dir, "#{@name}.dmg")
+      FileUtils.rm_f(dmg_path)
+
+      # Create a temporary directory for the DMG contents
+      dmg_staging = File.join(@cache_dir, "dmg-staging")
+      FileUtils.rm_rf(dmg_staging)
+      FileUtils.mkdir_p(dmg_staging)
+
+      # Copy .app into staging
+      FileUtils.cp_r(app_path, File.join(dmg_staging, "#{@name}.app"))
+
+      # Create Applications symlink for drag-to-install
+      File.symlink("/Applications", File.join(dmg_staging, "Applications"))
+
+      # Create DMG using hdiutil
+      # Uses UDZO (zlib compressed) for good compression
+      success = system(
+        "hdiutil", "create",
+        "-volname", @name,
+        "-srcfolder", dmg_staging,
+        "-ov",        # overwrite
+        "-format", "UDZO",  # zlib compressed
+        "-imagekey", "zlib-level=9",
+        dmg_path,
+        [:out, :err] => @verbose ? $stdout : File::NULL,
+      )
+
+      FileUtils.rm_rf(dmg_staging)
+
+      if success && File.exist?(dmg_path)
+        dmg_size = (File.size(dmg_path) / 1024.0 / 1024.0).round(1)
+        log "   ✅ Created #{File.basename(dmg_path)} (#{dmg_size}MB)"
+        dmg_path
+      else
+        log "   ⚠️  DMG creation failed"
+        nil
+      end
+    end
+
     # --- Class-level entry point for CLI ---
 
     def self.run(args)
@@ -831,6 +1131,9 @@ module Scarpe
         output_dir: options[:output_dir],
         verbose: options[:verbose],
         dev: options[:dev],
+        sign: options[:sign],
+        dmg: options[:dmg],
+        universal: options[:universal],
       )
       packager.build!
     rescue => e
@@ -864,6 +1167,15 @@ module Scarpe
         when "--dev"
           options[:dev] = true
           i += 1
+        when "--sign", "-s"
+          options[:sign] = true
+          i += 1
+        when "--dmg"
+          options[:dmg] = true
+          i += 1
+        when "--universal", "-u"
+          options[:universal] = true
+          i += 1
         when "--help", "-h"
           options[:help] = true
           i += 1
@@ -890,15 +1202,20 @@ module Scarpe
           -o, --output DIR      Output directory (default: current directory)
           -V, --verbose         Show detailed progress
               --dev             Use local development Scarpe source (not published gems)
+          -s, --sign            Ad-hoc code sign the .app (reduces Gatekeeper warnings)
+              --dmg             Also create a .dmg disk image for distribution
+          -u, --universal       Build universal binary (x86_64 + arm64)
           -h, --help            Show this help
 
         Examples:
           scarpe package myapp.rb
-          scarpe package myapp.rb --name "My App" --icon icon.png
+          scarpe package myapp.rb --name "My App" --icon icon.png --sign
           scarpe package myapp.rb --arch arm64 --output ~/Desktop
+          scarpe package myapp.rb --universal --sign --dmg
 
         The packaged .app requires no Ruby installation to run.
         First run downloads and caches the Ruby runtime (~58MB).
+        Use --universal for apps that run natively on both Intel and Apple Silicon Macs.
       USAGE
     end
   end
