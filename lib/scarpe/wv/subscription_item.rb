@@ -43,7 +43,7 @@ class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Drawable
       @wrangler.one_shot_code("timer_#{@shoes_linkable_id}", delay) do
         send_self_event(event_name: @shoes_api_name) unless @stopped
       end
-    when "motion", "hover", "leave", "click", "release", "keypress"
+    when "motion", "hover", "leave", "click", "release", "keypress", "wheel"
       # Wait for set_parent
     else
       raise Scarpe::UnknownShoesEventAPIError, "Unknown Shoes event API: #{@shoes_api_name}!"
@@ -144,6 +144,20 @@ class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Drawable
           if (shoesKey) #{handler_name}(shoesKey);
         });
       JS
+    when "wheel"
+      # Wheel event (mouse wheel / trackpad scroll). Positive delta = scroll up/away from user.
+      # In browsers, deltaY is positive when scrolling down (content moves up), which is
+      # opposite to what Shoes3 expects. We negate it for Shoes compatibility.
+      new_parent.set_event_callback(
+        self,
+        "onwheel",
+        handler_js_code(
+          @shoes_api_name,
+          "-arguments[0].deltaY",  # Negate for Shoes3 convention: positive = up
+          "arguments[0].clientX",
+          "arguments[0].clientY",
+        ),
+      )
     when "animate", "every", "timer"
       # These were handled in initialize(), ignore them here
     else

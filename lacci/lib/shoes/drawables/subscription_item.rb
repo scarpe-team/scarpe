@@ -14,7 +14,7 @@
 # start is first draw, finish is drawable destroyed
 class Shoes::SubscriptionItem < Shoes::Drawable
   shoes_styles :shoes_api_name, :args, :stopped
-  shoes_events :animate, :every, :timer, :hover, :leave, :motion, :click, :release, :keypress
+  shoes_events :animate, :every, :timer, :hover, :leave, :motion, :click, :release, :keypress, :wheel
 
   def initialize(args: [], shoes_api_name:, &block)
     super
@@ -74,6 +74,13 @@ class Shoes::SubscriptionItem < Shoes::Drawable
         else
           @callback&.call(key)
         end
+      end
+    when "wheel"
+      # Wheel event fires on mouse wheel/trackpad scroll.
+      # Block params: delta (positive = up/away, negative = down/toward)
+      # Also passes x, y coordinates of cursor position.
+      @unsub_id = bind_self_event("wheel") do |delta, x, y, **_kwargs|
+        @callback&.call(delta, x, y)
       end
     else
       raise "Unknown Shoes event #{shoes_api_name.inspect} passed to SubscriptionItem!"

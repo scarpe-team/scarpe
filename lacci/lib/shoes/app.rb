@@ -373,7 +373,7 @@ class Shoes
 end
 
 # Event handler DSLs get defined in both App and Slot - same code, slightly different results
-events = %i[motion hover leave click release keypress animate every timer]
+events = %i[motion hover leave click release keypress wheel animate every timer]
 events.each do |event|
   Shoes::App.define_method(event) do |*args, &block|
     subscription_item(args:, shoes_api_name: event.to_s, &block)

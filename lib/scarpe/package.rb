@@ -720,6 +720,9 @@ module Scarpe
             exit 1
         fi
 
+        # Set working directory to the app folder so relative paths work
+        cd "$DIR/app"
+
         # Launch!
         exec "$RUBY_ROOT/bin.real/ruby" "$DIR/boot.rb" "$APP_FILE"
       BASH
