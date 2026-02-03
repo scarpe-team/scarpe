@@ -2,7 +2,7 @@
 
 class Shoes
   class Button < Shoes::Drawable
-    shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size, :tooltip
+    shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size, :tooltip, :icon, :icon_pos
     shoes_events :click
 
     init_args :text
