@@ -3,6 +3,7 @@
 require "shoes/drawables/slot"
 require "shoes/drawables/stack"
 require "shoes/drawables/flow"
+require "shoes/drawables/mask"
 require "shoes/drawables/widget"
 require "shoes/drawables/document_root"
 

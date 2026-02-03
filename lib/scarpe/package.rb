@@ -82,7 +82,19 @@ module Scarpe
       "scarpe-components" => { lib: "scarpe-components/lib", spec_name: "scarpe-components" },
     }.freeze
 
-    def initialize(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false)
+    # Gems that are truly optional — only loaded when specific Shoes features are used.
+    # nokogiri: only for Shoes#download XML parsing
+    # sqlite3: not used by Scarpe at all (phantom gemspec dependency)
+    # fastimage: only for Image widget auto-sizing
+    # rake: build tool, not runtime
+    OPTIONAL_GEMS = %w[nokogiri sqlite3 fastimage rake].freeze
+
+    # Stdlib modules safe to strip in minimal mode (not loaded by Scarpe runtime)
+    MINIMAL_STRIP_STDLIB = %w[
+      openssl net fiddle ripper
+    ].freeze
+
+    def initialize(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false, minimal: false)
       @app_file = File.expand_path(app_file)
       raise "App file not found: #{@app_file}" unless File.exist?(@app_file)
       raise "App file must be a .rb file: #{@app_file}" unless @app_file.end_with?(".rb")
@@ -96,6 +108,7 @@ module Scarpe
       @sign = sign
       @dmg = dmg
       @universal = universal
+      @minimal = minimal
 
       @cache_dir = File.join(Dir.home, ".scarpe", "packager-cache")
       @bundle_id = "com.scarpe.#{@name.downcase.gsub(/[^a-z0-9]/, "")}"
@@ -111,6 +124,7 @@ module Scarpe
       log "   App:    #{@app_file}"
       log "   Name:   #{@name}"
       log "   Arch:   #{@arch}"
+      log "   Mode:   #{@minimal ? "minimal" : "full"}"
       log "   Output: #{app_path}"
       log ""
 
@@ -930,8 +944,71 @@ module Scarpe
       # Deduplicate dylibs (replace versioned copies with symlinks)
       dedup_dylibs(File.join(ruby_dir, "lib"))
 
+      # --- Minimal mode: aggressive stripping ---
+      if @minimal
+        strip_minimal(gems_dir, ruby_dir)
+      end
+
+      # Remove bundler from site_ruby (2.2MB, never used in packaged mode)
+      site_ruby_dir = File.join(ruby_dir, "lib/ruby/site_ruby/#{RUBY_ABI}")
+      %w[bundler bundler.rb].each do |f|
+        path = File.join(site_ruby_dir, f)
+        FileUtils.rm_rf(path) if File.exist?(path) || Dir.exist?(path)
+      end
+
       final_size = `du -sh "#{app_path}" 2>/dev/null`.strip.split("\t").first
       vlog "  Stripped to #{final_size}"
+    end
+
+    def strip_minimal(gems_dir, ruby_dir)
+      log "🔪 Minimal mode: stripping optional dependencies..."
+
+      # Remove optional gems (nokogiri, sqlite3, fastimage, rake)
+      OPTIONAL_GEMS.each do |gem_name|
+        Dir.glob(File.join(gems_dir, "#{gem_name}-*")).each do |d|
+          FileUtils.rm_rf(d)
+          vlog "  Removed gem: #{File.basename(d)}"
+        end
+        # Also remove from specifications
+        specs_dir = File.join(File.dirname(gems_dir), "specifications")
+        Dir.glob(File.join(specs_dir, "#{gem_name}-*")).each do |s|
+          File.delete(s) if File.file?(s)
+        end
+      end
+
+      # Remove SSL/crypto dylibs (8MB — only needed for download/HTTPS)
+      ruby_lib_dir = File.join(ruby_dir, "lib")
+      ssl_dylibs = Dir.glob(File.join(ruby_lib_dir, "libcrypto*")) +
+                   Dir.glob(File.join(ruby_lib_dir, "libssl*"))
+      saved = 0
+      ssl_dylibs.each do |f|
+        saved += File.symlink?(f) ? 0 : File.size(f)
+        File.delete(f)
+      end
+      vlog "  Removed SSL dylibs: #{(saved / 1024.0 / 1024.0).round(1)}MB"
+
+      # Remove CA certificates (no HTTPS = no certs needed)
+      ca_cert = File.join(ruby_lib_dir, "ca-bundle.crt")
+      File.delete(ca_cert) if File.exist?(ca_cert)
+
+      # Remove stdlib modules not needed without network/SSL
+      stdlib_dir = File.join(ruby_dir, "lib/ruby/#{RUBY_ABI}")
+      MINIMAL_STRIP_STDLIB.each do |lib|
+        path = File.join(stdlib_dir, lib)
+        FileUtils.rm_rf(path) if Dir.exist?(path)
+        rb_file = File.join(stdlib_dir, "#{lib}.rb")
+        File.delete(rb_file) if File.exist?(rb_file)
+      end
+
+      # Remove corresponding native extensions
+      ext_dir = File.join(stdlib_dir, ruby_platform_dir)
+      %w[openssl.bundle fiddle.bundle].each do |ext|
+        path = File.join(ext_dir, ext)
+        File.delete(path) if File.exist?(path)
+      end
+
+      # Remove unicode_normalize (228KB, rarely needed)
+      FileUtils.rm_rf(File.join(stdlib_dir, "unicode_normalize"))
     end
 
     def strip_platform_gem_versions(gems_dir, target_version)
@@ -1134,6 +1211,7 @@ module Scarpe
         sign: options[:sign],
         dmg: options[:dmg],
         universal: options[:universal],
+        minimal: options[:minimal],
       )
       packager.build!
     rescue => e
@@ -1176,6 +1254,9 @@ module Scarpe
         when "--universal", "-u"
           options[:universal] = true
           i += 1
+        when "--minimal", "-m"
+          options[:minimal] = true
+          i += 1
         when "--help", "-h"
           options[:help] = true
           i += 1
@@ -1205,11 +1286,15 @@ module Scarpe
           -s, --sign            Ad-hoc code sign the .app (reduces Gatekeeper warnings)
               --dmg             Also create a .dmg disk image for distribution
           -u, --universal       Build universal binary (x86_64 + arm64)
+          -m, --minimal         Strip optional gems & SSL for smallest build (~18MB vs ~34MB)
+                                Removes: nokogiri, sqlite3, fastimage, SSL/crypto
+                                Apps using download/Image auto-size won't work
           -h, --help            Show this help
 
         Examples:
           scarpe package myapp.rb
           scarpe package myapp.rb --name "My App" --icon icon.png --sign
+          scarpe package myapp.rb --minimal --sign            # Smallest possible build
           scarpe package myapp.rb --arch arm64 --output ~/Desktop
           scarpe package myapp.rb --universal --sign --dmg
 

@@ -25,11 +25,35 @@ module Scarpe::Components::Calzini
     end
   end
 
+  def mask_element(props, &block)
+    HTML.render do |h|
+      h.div((props["html_attributes"] || {}).merge(id: html_id, style: mask_style(props))) do
+        h.div(style: { height: "100%", width: "100%", position: "relative" }, &block)
+      end
+    end
+  end
+
   def documentroot_element(props, &block)
     flow_element(props, &block)
   end
 
   private
+
+  def mask_style(props)
+    # The mask container is positioned absolutely over the parent, initially visible
+    # so child elements are laid out. JavaScript will hide it after extracting content.
+    {
+      position: "absolute",
+      top: "0",
+      left: "0",
+      width: "100%",
+      height: "100%",
+      overflow: "hidden",
+      opacity: "0",
+      "pointer-events": "none",
+      "z-index": "-1",
+    }.merge(slot_style(props))
+  end
 
   def slot_style(props)
     styles = drawable_style(props)
