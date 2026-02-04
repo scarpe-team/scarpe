@@ -11,7 +11,7 @@ class Shoes
     # containing the launched application file.
     attr_reader :dir
 
-    shoes_styles :title, :width, :height, :resizable, :features
+    shoes_styles :title, :width, :height, :resizable, :features, :opacity, :cursor
 
     # This is defined to avoid the linkable-id check in the Shoes-style method_missing def'n
     attr_reader :features

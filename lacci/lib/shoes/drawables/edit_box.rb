@@ -2,7 +2,7 @@
 
 class Shoes
   class EditBox < Shoes::Drawable
-    shoes_styles :text, :height, :width ,:tooltip, :font
+    shoes_styles :text, :height, :width, :tooltip, :font, :stroke
     shoes_events :change
 
     init_args

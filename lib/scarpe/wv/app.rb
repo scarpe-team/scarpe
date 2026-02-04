@@ -309,6 +309,46 @@ module Scarpe::Webview
       end
     end
 
+    # Handle property changes for the App
+    def properties_changed(changes)
+      if changes.key?("opacity")
+        opacity = changes.delete("opacity")
+        opacity_val = opacity.nil? ? 1.0 : opacity.to_f.clamp(0.0, 1.0)
+        @view.run_script("document.body.style.opacity = '#{opacity_val}';")
+      end
+      
+      if changes.key?("cursor")
+        cursor = changes.delete("cursor")
+        css_cursor = shoes_cursor_to_css(cursor)
+        @view.run_script("document.body.style.cursor = '#{css_cursor}';")
+      end
+      super
+    end
+    
+    # Map Shoes cursor symbols to CSS cursor values
+    SHOES_CURSOR_MAP = {
+      arrow_cursor: "default",
+      text_cursor: "text",
+      watch_cursor: "wait",
+      hand_cursor: "pointer",
+      crosshair_cursor: "crosshair",
+      move_cursor: "move",
+      help_cursor: "help",
+      not_allowed_cursor: "not-allowed",
+      resize_cursor: "nwse-resize",
+    }.freeze
+    
+    def shoes_cursor_to_css(cursor)
+      case cursor
+      when Symbol
+        SHOES_CURSOR_MAP[cursor] || cursor.to_s.tr("_", "-")
+      when String
+        SHOES_CURSOR_MAP[cursor.to_sym] || cursor
+      else
+        "default"
+      end
+    end
+
     # All JS callbacks to Scarpe drawables are dispatched
     # via this handler
     def handle_callback(name, *args)
