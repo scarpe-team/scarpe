@@ -127,7 +127,31 @@ class Shoes
 
       with_slot(@document_root, &@app_code_body)
       render_index_if_defined_on_first_boot
+
+      # Fire any registered start callbacks after the app code has run
+      fire_start_callbacks
     end
+
+    # Register a callback to run after the app finishes initializing.
+    # In Shoes3, this is used to do things that need to happen after the UI is ready.
+    #
+    # @yield the block to call when the app starts
+    def start(&block)
+      @start_callbacks ||= []
+      @start_callbacks << block
+    end
+
+    private
+
+    def fire_start_callbacks
+      return unless @start_callbacks
+
+      @start_callbacks.each do |callback|
+        with_slot(@document_root) { instance_eval(&callback) }
+      end
+    end
+
+    public
 
     # "Container" drawables like flows, stacks, masks and the document root
     # are considered "slots" in Shoes parlance. When a new slot is created,
