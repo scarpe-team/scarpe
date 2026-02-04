@@ -1,0 +1,30 @@
+#!/bin/bash
+ROOT=`dirname "$0"`
+ROOT=`cd "$ROOT/.." && pwd`
+
+echo ORIG_TERMINFO=\"$TERMINFO\"
+echo ORIG_SSL_CERT_DIR=\"$SSL_CERT_DIR\"
+echo ORIG_SSL_CERT_FILE=\"$SSL_CERT_FILE\"
+echo ORIG_RUBYOPT=\"$RUBYOPT\"
+echo ORIG_RUBYLIB=\"$RUBYLIB\"
+
+echo TERMINFO=/usr/share/terminfo
+echo SSL_CERT_FILE=\"$ROOT/lib/ca-bundle.crt\"
+echo RUBYOPT=\"-rtraveling_ruby_restore_environment\"
+echo GEM_HOME=\"$ROOT/lib/ruby/gems/3.4.0\"
+echo GEM_PATH=\"$ROOT/lib/ruby/gems/3.4.0\"
+echo RUBYLIB=\"$ROOT/lib/ruby/site_ruby/3.4.0:$ROOT/lib/ruby/site_ruby/3.4.0/x86_64-darwin22:$ROOT/lib/ruby/site_ruby:$ROOT/lib/ruby/vendor_ruby/3.4.0:$ROOT/lib/ruby/vendor_ruby/3.4.0/x86_64-darwin22:$ROOT/lib/ruby/vendor_ruby:$ROOT/lib/ruby/3.4.0:$ROOT/lib/ruby/3.4.0/x86_64-darwin22\"
+
+echo export ORIG_TERMINFO
+echo export ORIG_SSL_CERT_DIR
+echo export ORIG_SSL_CERT_FILE
+echo export ORIG_RUBYOPT
+echo export ORIG_RUBYLIB
+
+echo export TERMINFO
+echo unset  SSL_CERT_DIR
+echo export SSL_CERT_FILE
+echo export RUBYOPT
+echo export GEM_HOME
+echo export GEM_PATH
+echo export RUBYLIB

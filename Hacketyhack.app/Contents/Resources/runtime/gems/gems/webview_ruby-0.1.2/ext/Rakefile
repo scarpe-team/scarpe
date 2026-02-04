@@ -1,0 +1,14 @@
+require 'ffi-compiler/compile_task'
+require 'rbconfig'
+
+FFI::Compiler::CompileTask.new('webview-ext') do |c|
+  if RbConfig::CONFIG['host_os'] =~ /darwin/
+    c.cxxflags << "-std=c++11"
+    c.ldflags << "-framework WebKit"
+  elsif RbConfig::CONFIG['host_os'] =~ /linux/
+    c.cxxflags << `pkg-config --cflags gtk+-3.0 webkit2gtk-4.0`.strip
+    c.ldflags << `pkg-config --libs gtk+-3.0 webkit2gtk-4.0`.strip
+  else
+    puts "Unsupported operating system prolly windows, check rake file in ext directory in source code and add correct flags from here  https://github.com/webview/webview#webview-for-cc-developers "
+  end
+end

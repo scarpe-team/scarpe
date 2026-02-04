@@ -14,6 +14,11 @@ module Scarpe::Webview
       bind("hover") do
         send_self_event(event_name: "hover")
       end
+
+      # Handle focus requests from Shoes
+      bind_shoes_event(event_name: "focus") do
+        html_element.focus
+      end
     end
 
     def properties_changed(changes)

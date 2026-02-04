@@ -22,5 +22,12 @@ class Shoes
     def change(&block)
       @block = block
     end
+
+    # Set keyboard focus to this input field.
+    # @return [self]
+    def focus
+      send_shoes_event({}, event_name: "focus", target: linkable_id)
+      self
+    end
   end
 end

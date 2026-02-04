@@ -26,5 +26,12 @@ class Shoes
     def append(new_text)
       self.text = (self.text || "") + new_text
     end
+
+    # Set keyboard focus to this text area.
+    # @return [self]
+    def focus
+      send_shoes_event({}, event_name: "focus", target: linkable_id)
+      self
+    end
   end
 end

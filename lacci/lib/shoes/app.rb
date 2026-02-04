@@ -454,6 +454,18 @@ class Shoes::App < Shoes::Drawable
     text
   end
 
+  # Set the window title dynamically.
+  # @param new_title [String] the new window title
+  def title=(new_title)
+    self.set_shoes_style("title", new_title.to_s)
+  end
+
+  # Shoes3-compatible method to set the window title.
+  # @param new_title [String] the new window title
+  def set_window_title(new_title)
+    self.title = new_title
+  end
+
   # Shape DSL methods
 
   def move_to(x, y)

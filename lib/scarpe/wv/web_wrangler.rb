@@ -415,6 +415,15 @@ module Scarpe::Webview
       @webview = nil
     end
 
+    # Set the window title dynamically.
+    # @param title [String] the new window title
+    # @return [void]
+    def set_title(title)
+      return unless @webview
+      @title = title
+      @webview.set_title(title)
+    end
+
     # Request destruction of WebWrangler, including terminating the underlying
     # Webview and (when possible) destroying it.
     def destroy

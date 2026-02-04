@@ -10,6 +10,11 @@ module Scarpe::Webview
       bind("change") do |new_item|
         send_self_event(new_item, event_name: "change")
       end
+
+      # Handle focus requests from Shoes
+      bind_shoes_event(event_name: "focus") do
+        html_element.focus
+      end
     end
 
     def properties_changed(changes)

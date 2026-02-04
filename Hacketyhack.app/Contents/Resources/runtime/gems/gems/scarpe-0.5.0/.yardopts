@@ -1,0 +1,15 @@
+--markup-provider=redcarpet
+--markup=markdown
+--protected
+--no-private
+--template-path docs/yard/template
+--tag incompatibility:"Incompatibilities with Shoes"
+--exclude lib/scarpe/libui
+--exclude lib/scarpe/glibui
+lib/**/*.rb
+lacci/lib/**/*.rb
+scarpe-components/lib/**/*.rb
+-
+docs/yard/*.md
+docs/static/manual.md
+

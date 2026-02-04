@@ -1,0 +1,64 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+<rule>
+name: git_pager_handling
+description: When running git commands that would normally use a pager, append | cat to prevent breaking automated environments
+
+filters:
+  - type: command
+    pattern: "^git (diff|log|show|blame)"
+  - type: command
+    pattern: "^git.*\\|(\\s+)?less"
+  - type: command
+    pattern: "^git.*\\|(\\s+)?more"
+
+actions:
+  - type: suggest
+    message: |
+      # Git Pager Handling
+
+      When running git commands that would normally use a pager (like `git diff`, `git log`, etc.), always append `| cat` to prevent the pager from breaking the output. This is especially important in automated environments.
+
+      ## Examples
+
+      ```bash
+      # Good
+      git diff HEAD~1 HEAD | cat
+      git log | cat
+      git show | cat
+
+      # Bad
+      git diff HEAD~1 HEAD
+      git log
+      git show
+      ```
+
+      ## Common Commands Needing `| cat`
+
+      - `git diff`
+      - `git log`
+      - `git show`
+      - `git blame`
+      - Any other git command that might produce paginated output
+
+      ## Why?
+
+      The pager (usually `less` or `more`) expects user interaction, which isn't available in automated environments. Piping to `cat` ensures we get the full output without pagination.
+
+examples:
+  - description: "Running git diff in automated environment"
+    input: |
+      git diff HEAD~1 HEAD | cat
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>

@@ -1,0 +1,28 @@
+# frozen_string_literal: true
+
+module Scarpe::Webview
+  class <%= argument %> < Drawable
+
+    def initialize(properties)
+      super
+
+    end
+
+    # If the drawable is intended to be overridable, add element and style to Calzini instead
+    def element
+      HTML.render do |h|
+        h.textarea(id: html_id, style: style)
+      end
+    end
+
+    private
+
+    def style
+      styles = {}
+
+      #ADD YOUR STYLES HERE
+
+      styles.compact
+    end
+  end
+end

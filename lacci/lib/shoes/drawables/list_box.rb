@@ -55,5 +55,12 @@ class Shoes
       @callback = block
       self # Allow chaining calls
     end
+
+    # Set keyboard focus to this list box.
+    # @return [self]
+    def focus
+      send_shoes_event({}, event_name: "focus", target: linkable_id)
+      self
+    end
   end
 end

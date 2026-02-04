@@ -311,6 +311,11 @@ module Scarpe::Webview
 
     # Handle property changes for the App
     def properties_changed(changes)
+      if changes.key?("title")
+        title = changes.delete("title")
+        @view.set_title(title.to_s)
+      end
+      
       if changes.key?("opacity")
         opacity = changes.delete("opacity")
         opacity_val = opacity.nil? ? 1.0 : opacity.to_f.clamp(0.0, 1.0)

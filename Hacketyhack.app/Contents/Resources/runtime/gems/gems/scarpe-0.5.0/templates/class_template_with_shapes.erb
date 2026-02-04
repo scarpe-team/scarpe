@@ -1,0 +1,23 @@
+# frozen_string_literal: true
+
+module Scarpe
+  #class InvalidAttributeValueError < Scarpe::Error; end # add new errors to errors.rb
+
+  class <%= argument %> < Shoes::Drawable
+    # Shoes style with verification or value mapping:
+    # shoes_style(:left) { |val| convert_to_integer(val, "left") }
+
+    shoes_styles <%= shoes_styles %>  # Write your shoes styles here
+
+    def initialize(left, top)
+      @left = convert_to_integer(left, "left")
+      @top = convert_to_integer(top, "top")
+
+      super()
+      create_display_drawable
+    end
+
+    private
+
+  end
+end
