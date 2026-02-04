@@ -1,6 +1,0 @@
-#!/bin/bash
-set -e
-ROOT=`dirname "$0"`
-ROOT=`cd "$ROOT/.." && pwd`
-eval "`\"$ROOT/bin/ruby_environment\"`"
-exec "$ROOT/bin.real/ruby" "$ROOT/bin.real/bundler" "$@"

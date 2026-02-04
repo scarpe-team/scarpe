@@ -1,4 +1,0 @@
-{
-    "default": ["debug", "logger/test_failure.log"],
-    "Webview::API": ["debug", "logger/test_failure_wv_api.log"]
-}

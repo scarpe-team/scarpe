@@ -1,9 +1,0 @@
-current directory: /Users/nickschwaderer/clawd/scarpe/packager-prototype/ruby-full/lib/ruby/gems/3.4.0/gems/webview_ruby-0.1.2/ext
-/Users/nickschwaderer/clawd/scarpe/packager-prototype/ruby-full/bin/ruby -rrubygems /Users/nickschwaderer/clawd/scarpe/packager-prototype/ruby-full/lib/ruby/gems/3.4.0/gems/rake-13.3.1/exe/rake RUBYARCHDIR\=/Users/nickschwaderer/clawd/scarpe/packager-prototype/ruby-full/lib/ruby/gems/3.4.0/extensions/x86_64-darwin-22/3.4.0-static/webview_ruby-0.1.2 RUBYLIBDIR\=/Users/nickschwaderer/clawd/scarpe/packager-prototype/ruby-full/lib/ruby/gems/3.4.0/extensions/x86_64-darwin-22/3.4.0-static/webview_ruby-0.1.2
-rake aborted!
-LoadError: cannot load such file -- ffi-compiler/compile_task (LoadError)
-<internal:/Users/nickschwaderer/clawd/scarpe/packager-prototype/ruby-full/lib/ruby/site_ruby/3.4.0/rubygems/core_ext/kernel_require.rb>:139:in 'Kernel#require'
-<internal:/Users/nickschwaderer/clawd/scarpe/packager-prototype/ruby-full/lib/ruby/site_ruby/3.4.0/rubygems/core_ext/kernel_require.rb>:139:in 'Kernel#require'
-(See full trace by running task with --trace)
-
-rake failed, exit code 1
