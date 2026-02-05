@@ -2,7 +2,7 @@
 
 class Shoes
   class ListBox < Shoes::Drawable
-    shoes_styles :items, :height, :width
+    shoes_styles :items, :height, :width, :font, :stroke
 
     # Shoes3 uses choose as the initialize arg, and .choose(item) as the setter here,
     # but queries it with .text. So this is an unusual style, and we've chosen this

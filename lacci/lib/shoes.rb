@@ -130,11 +130,12 @@ class Shoes
       resizable: true,
       features: [],
       margin: nil,
+      owner: nil,
       **_extras,
       &app_code_body
     )
       f = [features].flatten # Make sure this is a list, not a single symbol
-      app = Shoes::App.new(title:, width:, height:, resizable:, features: f, &app_code_body)
+      app = Shoes::App.new(title:, width:, height:, resizable:, features: f, owner:, &app_code_body)
 
       # If there's a pending Shoes subclass (e.g., class Book < Shoes), use it
       if Shoes.pending_app_class
