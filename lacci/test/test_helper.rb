@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
+# Also add the main scarpe lib for turtle and other display-side code
+$LOAD_PATH.unshift File.expand_path("../../lib", __dir__)
 require "shoes"
 
 require "scarpe/components/unit_test_helpers"
