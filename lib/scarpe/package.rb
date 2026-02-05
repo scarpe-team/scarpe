@@ -29,11 +29,32 @@ module Scarpe
       "aarch64" => "arm64",
     }.freeze
 
+    # Supported target operating systems
+    TARGET_OS_MAP = {
+      "macos" => "macos",
+      "darwin" => "macos",
+      "linux" => "linux",
+      "linux-musl" => "linux-musl",  # Alpine/Docker
+    }.freeze
+
     # Platform directory names vary between extensions and stdlib in Traveling Ruby:
     #   Extensions: x86_64-darwin-22 (with hyphen)
     #   Stdlib:     x86_64-darwin22  (no hyphen)
+    # macOS platforms
     EXT_PLATFORM = { "x86_64" => "x86_64-darwin-22", "arm64" => "arm64-darwin-22" }.freeze
     RUBY_PLATFORM_DIR = { "x86_64" => "x86_64-darwin22", "arm64" => "arm64-darwin22" }.freeze
+
+    # Linux platforms (glibc)
+    LINUX_EXT_PLATFORM = { "x86_64" => "x86_64-linux", "arm64" => "aarch64-linux" }.freeze
+    LINUX_RUBY_PLATFORM_DIR = { "x86_64" => "x86_64-linux", "arm64" => "aarch64-linux" }.freeze
+
+    # Linux musl platforms (Alpine)
+    LINUX_MUSL_EXT_PLATFORM = { "x86_64" => "x86_64-linux-musl", "arm64" => "aarch64-linux-musl" }.freeze
+    LINUX_MUSL_RUBY_PLATFORM_DIR = { "x86_64" => "x86_64-linux-musl", "arm64" => "aarch64-linux-musl" }.freeze
+
+    # Linux native extension file extension
+    LINUX_EXT_SUFFIX = ".so"
+    MACOS_EXT_SUFFIX = ".bundle"
 
     # Gems required for the Scarpe runtime, copied from the full Traveling Ruby tarball.
     # Format: [gem_name, version, platform_suffix_or_nil]
@@ -94,7 +115,7 @@ module Scarpe
       openssl net fiddle ripper
     ].freeze
 
-    def initialize(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false, minimal: false)
+    def initialize(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false, minimal: false, target_os: nil)
       @app_file = File.expand_path(app_file)
       raise "App file not found: #{@app_file}" unless File.exist?(@app_file)
       raise "App file must be a .rb file: #{@app_file}" unless @app_file.end_with?(".rb")
@@ -102,6 +123,7 @@ module Scarpe
       @name = sanitize_name(name || File.basename(app_file, ".rb"))
       @icon = icon ? File.expand_path(icon) : nil
       @arch = ARCH_MAP[arch || detect_arch] || raise("Unsupported architecture: #{arch}")
+      @target_os = TARGET_OS_MAP[target_os || detect_os] || raise("Unsupported OS: #{target_os}")
       @output_dir = output_dir ? File.expand_path(output_dir) : Dir.pwd
       @verbose = verbose
       @dev = dev
@@ -109,6 +131,14 @@ module Scarpe
       @dmg = dmg
       @universal = universal
       @minimal = minimal
+
+      # Validate options
+      if @target_os != "macos" && (@sign || @dmg || @universal)
+        warn "⚠️  --sign, --dmg, and --universal are macOS-only options (ignored for #{@target_os})"
+        @sign = false
+        @dmg = false
+        @universal = false
+      end
 
       @cache_dir = File.join(Dir.home, ".scarpe", "packager-cache")
       @bundle_id = "com.scarpe.#{@name.downcase.gsub(/[^a-z0-9]/, "")}"
@@ -124,10 +154,22 @@ module Scarpe
       log "   App:    #{@app_file}"
       log "   Name:   #{@name}"
       log "   Arch:   #{@arch}"
+      log "   Target: #{@target_os}"
       log "   Mode:   #{@minimal ? "minimal" : "full"}"
-      log "   Output: #{app_path}"
+      log "   Output: #{output_path}"
       log ""
 
+      case @target_os
+      when "macos"
+        build_macos!
+      when "linux", "linux-musl"
+        build_linux!
+      else
+        raise "Unsupported target OS: #{@target_os}"
+      end
+    end
+
+    def build_macos!
       ensure_runtime_cached
       create_bundle_structure
       copy_ruby_runtime
@@ -167,8 +209,56 @@ module Scarpe
       @dmg ? result : app_path
     end
 
+    def build_linux!
+      ensure_runtime_cached
+      create_appimage_structure
+      copy_ruby_runtime_linux
+      copy_gems_linux
+      copy_native_extensions_linux
+      copy_webview_extension_linux
+      copy_user_app_linux
+      write_boot_script_linux
+      write_apprun_script
+      write_desktop_file
+      copy_icon_linux if @icon
+      strip_unnecessary_files_linux
+
+      appimage_path = create_appimage
+      size = `du -sh "#{appimage_path}" 2>/dev/null`.strip.split("\t").first || "unknown"
+      log ""
+      log "✅ Created #{File.basename(appimage_path)} (#{size})"
+      log ""
+      log "   To run:  chmod +x #{appimage_path} && ./#{File.basename(appimage_path)}"
+      log ""
+      log "   ⚠️  Requires WebKitGTK installed on the target system:"
+      log "      Ubuntu/Debian: sudo apt install libwebkit2gtk-4.1-0"
+      log "      Fedora:        sudo dnf install webkit2gtk4.1"
+      log "      Arch:          sudo pacman -S webkit2gtk"
+
+      appimage_path
+    end
+
+    def output_path
+      case @target_os
+      when "macos"
+        app_path
+      when "linux", "linux-musl"
+        appimage_path
+      else
+        raise "Unknown target OS: #{@target_os}"
+      end
+    end
+
     def app_path
       File.join(@output_dir, "#{@name}.app")
+    end
+
+    def appimage_path
+      File.join(@output_dir, "#{@name}-#{@arch}.AppImage")
+    end
+
+    def appdir_path
+      File.join(@output_dir, "#{@name}.AppDir")
     end
 
     private
@@ -205,16 +295,65 @@ module Scarpe
       `uname -m`.strip
     end
 
+    def detect_os
+      case RbConfig::CONFIG["host_os"]
+      when /darwin/i
+        "macos"
+      when /linux/i
+        # Check if musl-based (Alpine)
+        if `ldd --version 2>&1`.include?("musl")
+          "linux-musl"
+        else
+          "linux"
+        end
+      when /mswin|mingw|cygwin/i
+        "windows"  # Not yet supported
+      else
+        "unknown"
+      end
+    end
+
     def platform_string
-      "macos-#{@arch}"
+      case @target_os
+      when "macos"
+        "macos-#{@arch}"
+      when "linux"
+        "linux-#{@arch}"
+      when "linux-musl"
+        "linux-musl-#{@arch}"
+      else
+        raise "Unknown target OS: #{@target_os}"
+      end
     end
 
     def ext_platform_dir
-      EXT_PLATFORM[@arch]
+      case @target_os
+      when "macos"
+        EXT_PLATFORM[@arch]
+      when "linux"
+        LINUX_EXT_PLATFORM[@arch]
+      when "linux-musl"
+        LINUX_MUSL_EXT_PLATFORM[@arch]
+      else
+        raise "Unknown target OS: #{@target_os}"
+      end
     end
 
     def ruby_platform_dir
-      RUBY_PLATFORM_DIR[@arch]
+      case @target_os
+      when "macos"
+        RUBY_PLATFORM_DIR[@arch]
+      when "linux"
+        LINUX_RUBY_PLATFORM_DIR[@arch]
+      when "linux-musl"
+        LINUX_MUSL_RUBY_PLATFORM_DIR[@arch]
+      else
+        raise "Unknown target OS: #{@target_os}"
+      end
+    end
+
+    def native_ext_suffix
+      @target_os == "macos" ? MACOS_EXT_SUFFIX : LINUX_EXT_SUFFIX
     end
 
     def runtime_tarball_url
@@ -1193,6 +1332,389 @@ module Scarpe
       end
     end
 
+    # --- Linux AppImage Builder ---
+
+    def create_appimage_structure
+      log "📦 Creating AppDir structure..."
+      FileUtils.rm_rf(appdir_path)
+
+      # AppImage standard structure
+      dirs = [
+        appdir_path,
+        File.join(appdir_path, "usr/bin"),
+        File.join(appdir_path, "usr/lib/ruby"),
+        File.join(appdir_path, "usr/share/#{@name.downcase}"),
+        File.join(appdir_path, "usr/share/icons/hicolor/256x256/apps"),
+      ]
+
+      dirs.each { |d| FileUtils.mkdir_p(d) }
+      vlog "Created AppDir structure"
+    end
+
+    def copy_ruby_runtime_linux
+      log "📥 Copying Ruby runtime (Linux)..."
+
+      src = runtime_cache_path
+      dst_bin = File.join(appdir_path, "usr/bin")
+      dst_lib = File.join(appdir_path, "usr/lib")
+
+      # Copy Ruby binary
+      ruby_src = File.join(src, "bin.real", "ruby")
+      ruby_src = File.join(src, "bin", "ruby") unless File.exist?(ruby_src)
+      FileUtils.cp(ruby_src, File.join(dst_bin, "ruby"))
+      FileUtils.chmod(0755, File.join(dst_bin, "ruby"))
+
+      # Copy Ruby stdlib
+      stdlib_src = File.join(src, "lib", "ruby")
+      FileUtils.cp_r(stdlib_src, dst_lib)
+
+      # Copy shared libraries (*.so)
+      Dir[File.join(src, "lib", "*.so*")].each do |so|
+        FileUtils.cp(so, dst_lib) unless File.symlink?(so)
+      end
+
+      vlog "Copied Ruby runtime"
+    end
+
+    def copy_gems_linux
+      log "📚 Copying gems (Linux)..."
+
+      # Note: find_gem_dir expects the parent directory and adds "/gems" internally
+      src_gems_root = File.join(runtime_cache_path, "lib", "ruby", "gems", RUBY_ABI)
+      src_gems = File.join(src_gems_root, "gems")
+      src_specs = File.join(src_gems_root, "specifications")
+
+      dst_gems = File.join(appdir_path, "usr/lib/ruby/gems", RUBY_ABI, "gems")
+      dst_specs = File.join(appdir_path, "usr/lib/ruby/gems", RUBY_ABI, "specifications")
+
+      FileUtils.mkdir_p(dst_gems)
+      FileUtils.mkdir_p(dst_specs)
+
+      gems_copied = []
+
+      REQUIRED_GEMS.each do |gem_name, version, _platform|
+        next if @minimal && OPTIONAL_GEMS.include?(gem_name)
+
+        gem_dir_name = find_gem_dir(src_gems_root, gem_name, version, nil)
+        if gem_dir_name
+          gem_full_path = File.join(src_gems, gem_dir_name)
+          FileUtils.cp_r(gem_full_path, dst_gems) if Dir.exist?(gem_full_path)
+          gems_copied << gem_dir_name
+
+          spec_file = File.join(src_specs, "#{gem_dir_name}.gemspec")
+          FileUtils.cp(spec_file, dst_specs) if File.exist?(spec_file)
+        else
+          find_gem_in_other_caches(gem_name, version, nil)&.tap do |alt_gem|
+            FileUtils.cp_r(alt_gem, dst_gems)
+            gems_copied << File.basename(alt_gem)
+          end
+        end
+      end
+
+      vlog "Copied #{gems_copied.length} gems"
+
+      overlay_dev_sources_linux if @dev
+    end
+
+    def overlay_dev_sources_linux
+      # Similar to macOS overlay but for Linux paths
+      SCARPE_DEV_GEMS.each do |gem_name, paths|
+        src_lib = File.join(@scarpe_root, paths[:lib])
+        next unless File.directory?(src_lib)
+
+        dst_gems = File.join(appdir_path, "usr/lib/ruby/gems", RUBY_ABI, "gems")
+        gem_dir = Dir[File.join(dst_gems, "#{gem_name}-*")].first
+        next unless gem_dir
+
+        dst_lib = File.join(gem_dir, "lib")
+        FileUtils.rm_rf(dst_lib)
+        FileUtils.cp_r(src_lib, gem_dir)
+        vlog "Overlaid #{gem_name} with dev source"
+      end
+    end
+
+    def copy_native_extensions_linux
+      log "🔧 Copying native extensions (Linux)..."
+
+      # Linux Traveling Ruby uses "3.4.0-static" for the version directory
+      src_ext = File.join(runtime_cache_path, "lib", "ruby", "gems", RUBY_ABI, "extensions", ext_platform_dir, "#{RUBY_ABI}-static")
+      dst_ext = File.join(appdir_path, "usr/lib/ruby/gems", RUBY_ABI, "extensions", ext_platform_dir, "#{RUBY_ABI}-static")
+
+      unless Dir.exist?(src_ext)
+        vlog "No native extensions directory found at #{src_ext}"
+        return
+      end
+
+      FileUtils.mkdir_p(dst_ext)
+
+      NATIVE_EXTENSION_GEMS.each do |gem|
+        next if @minimal && OPTIONAL_GEMS.include?(gem)
+
+        gem_ext = Dir[File.join(src_ext, "#{gem}-*")].first
+        if gem_ext
+          FileUtils.cp_r(gem_ext, dst_ext)
+          vlog "Copied #{gem} native extension"
+        end
+      end
+    end
+
+    def copy_webview_extension_linux
+      log "🖼️  Copying webview extension (Linux)..."
+
+      ext_dir = File.join(appdir_path, "usr/lib/ruby/gems", RUBY_ABI, "gems", "webview_ruby-0.1.2", "ext", ext_platform_dir)
+      FileUtils.mkdir_p(ext_dir)
+
+      # Check for pre-built extension in cache
+      cached_ext = File.join(@cache_dir, "webview-ext", "libwebview-ext-#{platform_string}.so")
+
+      if File.exist?(cached_ext)
+        FileUtils.cp(cached_ext, File.join(ext_dir, "libwebview-ext.so"))
+        vlog "Copied pre-built webview extension"
+      else
+        raise <<~ERROR
+          Missing pre-built webview extension for #{platform_string}.
+
+          The webview native extension must be compiled on a Linux system with
+          GTK and WebKitGTK development packages installed.
+
+          To build manually:
+            c++ -shared -fPIC -O2 \\
+              $(pkg-config --cflags gtk+-3.0 webkit2gtk-4.1) \\
+              -DWEBVIEW_GTK \\
+              -o libwebview-ext.so \\
+              webview.cpp \\
+              $(pkg-config --libs gtk+-3.0 webkit2gtk-4.1)
+
+          Place the compiled .so in: #{File.dirname(cached_ext)}/
+        ERROR
+      end
+    end
+
+    def copy_user_app_linux
+      log "📄 Copying user app..."
+
+      app_dir = File.join(appdir_path, "usr/share/#{@name.downcase}")
+      FileUtils.cp(@app_file, File.join(app_dir, "main.rb"))
+
+      # Copy any assets from the same directory
+      app_source_dir = File.dirname(@app_file)
+      %w[*.png *.jpg *.jpeg *.gif *.svg *.ico *.ttf *.otf *.woff *.woff2 *.css *.js *.html].each do |pattern|
+        Dir[File.join(app_source_dir, pattern)].each do |asset|
+          FileUtils.cp(asset, app_dir)
+        end
+      end
+
+      vlog "Copied user application"
+    end
+
+    def write_boot_script_linux
+      boot_rb = File.join(appdir_path, "usr/share/#{@name.downcase}/boot.rb")
+
+      File.write(boot_rb, <<~RUBY)
+        # Boot script for packaged Scarpe app (Linux)
+        # Auto-generated by scarpe package
+
+        # Relax dependency checking for packaged apps
+        module Gem
+          class Specification
+            alias_method :_packaged_activate_deps, :activate_dependencies
+            def activate_dependencies
+              _packaged_activate_deps
+            rescue Gem::MissingSpecError
+              # Optional dependency not present in bundle
+            end
+          end
+        end
+
+        # Suppress changelog warning
+        ENV["SCARPE_SILENCE_CHANGELOG"] = "1"
+        ENV["SCARPE_DISPLAY"] = "wv_local"
+
+        require "scarpe"
+        require "scarpe/wv"
+
+        # Load and run the app
+        load File.join(__dir__, "main.rb")
+      RUBY
+
+      vlog "Wrote boot.rb"
+    end
+
+    def write_apprun_script
+      apprun = File.join(appdir_path, "AppRun")
+
+      File.write(apprun, <<~BASH)
+        #!/bin/bash
+        # AppRun script for #{@name}
+        # Auto-generated by scarpe package
+
+        SELF=$(readlink -f "$0")
+        HERE=${SELF%/*}
+
+        # Check for WebKitGTK
+        if ! pkg-config --exists webkit2gtk-4.1 2>/dev/null && ! pkg-config --exists webkit2gtk-4.0 2>/dev/null; then
+          echo "Error: WebKitGTK is required but not installed."
+          echo ""
+          echo "Install it with:"
+          echo "  Ubuntu/Debian: sudo apt install libwebkit2gtk-4.1-0"
+          echo "  Fedora:        sudo dnf install webkit2gtk4.1"
+          echo "  Arch:          sudo pacman -S webkit2gtk"
+          exit 1
+        fi
+
+        # Set up Ruby environment
+        export PATH="$HERE/usr/bin:$PATH"
+        export LD_LIBRARY_PATH="$HERE/usr/lib:$LD_LIBRARY_PATH"
+        export GEM_HOME="$HERE/usr/lib/ruby/gems/#{RUBY_ABI}"
+        export GEM_PATH="$GEM_HOME"
+        export RUBYLIB="$HERE/usr/lib/ruby/#{RUBY_ABI}:$HERE/usr/lib/ruby/site_ruby/#{RUBY_ABI}:$HERE/usr/lib/ruby/vendor_ruby/#{RUBY_ABI}"
+        export RUBYOPT="-r$HERE/usr/lib/ruby/site_ruby/traveling_ruby_restore_environment.rb"
+
+        # Run the app
+        cd "$HERE/usr/share/#{@name.downcase}"
+        exec "$HERE/usr/bin/ruby" boot.rb "$@"
+      BASH
+
+      FileUtils.chmod(0755, apprun)
+      vlog "Wrote AppRun script"
+    end
+
+    def write_desktop_file
+      desktop_file = File.join(appdir_path, "#{@name.downcase}.desktop")
+
+      File.write(desktop_file, <<~DESKTOP)
+        [Desktop Entry]
+        Type=Application
+        Name=#{@name}
+        Exec=AppRun
+        Icon=#{@name.downcase}
+        Categories=Utility;
+        Comment=A Shoes/Scarpe application
+        Terminal=false
+      DESKTOP
+
+      # Symlink to root (required by AppImage)
+      FileUtils.ln_sf("#{@name.downcase}.desktop", File.join(appdir_path, ".DirIcon"))
+
+      vlog "Wrote desktop file"
+    end
+
+    def copy_icon_linux
+      return unless @icon && File.exist?(@icon)
+
+      icon_dest = File.join(appdir_path, "usr/share/icons/hicolor/256x256/apps/#{@name.downcase}.png")
+
+      if @icon.end_with?(".png")
+        FileUtils.cp(@icon, icon_dest)
+      elsif @icon.end_with?(".svg")
+        # Try to convert SVG to PNG using ImageMagick if available
+        if system("which convert >/dev/null 2>&1")
+          system("convert", "-resize", "256x256", @icon, icon_dest, [:out, :err] => File::NULL)
+        end
+      end
+
+      # Also put icon at AppDir root
+      FileUtils.cp(icon_dest, File.join(appdir_path, "#{@name.downcase}.png")) if File.exist?(icon_dest)
+
+      vlog "Copied application icon"
+    end
+
+    def strip_unnecessary_files_linux
+      log "🗑️  Stripping unnecessary files..."
+
+      gems_dir = File.join(appdir_path, "usr/lib/ruby/gems", RUBY_ABI, "gems")
+      ruby_dir = File.join(appdir_path, "usr/lib/ruby")
+
+      # Remove development files
+      patterns = %w[
+        **/test/**
+        **/spec/**
+        **/tests/**
+        **/*.md
+        **/*.txt
+        **/CHANGELOG*
+        **/README*
+        **/LICENSE*
+        **/Rakefile
+        **/Gemfile*
+        **/.git*
+        **/.rubocop*
+      ]
+
+      patterns.each do |pattern|
+        Dir.glob(File.join(gems_dir, pattern)).each do |f|
+          FileUtils.rm_rf(f)
+        end
+      end
+
+      # Additional minimal stripping
+      strip_minimal(gems_dir, ruby_dir) if @minimal
+
+      vlog "Stripped unnecessary files"
+    end
+
+    def create_appimage
+      log "📦 Creating AppImage..."
+
+      # Check for appimagetool
+      appimagetool = find_appimagetool
+
+      unless appimagetool
+        log "   ⚠️  appimagetool not found. Creating .tar.gz instead."
+        return create_appdir_tarball
+      end
+
+      appimage_file = appimage_path
+      FileUtils.rm_f(appimage_file)
+
+      # Build the AppImage
+      ENV["ARCH"] = @arch == "arm64" ? "aarch64" : "x86_64"
+      success = system(appimagetool, appdir_path, appimage_file, [:out, :err] => @verbose ? $stdout : File::NULL)
+
+      # Cleanup AppDir
+      FileUtils.rm_rf(appdir_path)
+
+      if success && File.exist?(appimage_file)
+        appimage_file
+      else
+        log "   ⚠️  AppImage creation failed. Creating .tar.gz instead."
+        create_appdir_tarball
+      end
+    end
+
+    def find_appimagetool
+      # Check common locations
+      candidates = [
+        "appimagetool",
+        "appimagetool-x86_64.AppImage",
+        File.join(@cache_dir, "appimagetool"),
+        "/usr/local/bin/appimagetool",
+      ]
+
+      candidates.find { |c| system("which #{c} >/dev/null 2>&1") }
+    end
+
+    def create_appdir_tarball
+      tarball = File.join(@output_dir, "#{@name}-#{@arch}-linux.tar.gz")
+      FileUtils.rm_f(tarball)
+
+      Dir.chdir(@output_dir) do
+        system("tar", "-czf", tarball, File.basename(appdir_path), [:out, :err] => File::NULL)
+      end
+
+      # Also create a simple run script
+      run_script = File.join(@output_dir, "#{@name}-run.sh")
+      File.write(run_script, <<~BASH)
+        #!/bin/bash
+        SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+        exec "$SCRIPT_DIR/#{File.basename(appdir_path)}/AppRun" "$@"
+      BASH
+      FileUtils.chmod(0755, run_script)
+
+      log "   Created #{File.basename(tarball)} + #{File.basename(run_script)}"
+      tarball
+    end
+
     # --- Class-level entry point for CLI ---
 
     def self.run(args)
@@ -1215,6 +1737,7 @@ module Scarpe
         dmg: options[:dmg],
         universal: options[:universal],
         minimal: options[:minimal],
+        target_os: options[:target_os],
       )
       packager.build!
     rescue => e
@@ -1260,6 +1783,15 @@ module Scarpe
         when "--minimal", "-m"
           options[:minimal] = true
           i += 1
+        when "--target", "-t"
+          options[:target_os] = args[i + 1]
+          i += 2
+        when "--linux"
+          options[:target_os] = "linux"
+          i += 1
+        when "--linux-musl"
+          options[:target_os] = "linux-musl"
+          i += 1
         when "--help", "-h"
           options[:help] = true
           i += 1
@@ -1277,33 +1809,52 @@ module Scarpe
       puts <<~USAGE
         Usage: scarpe package <app.rb> [OPTIONS]
 
-        Package a Shoes/Scarpe application as a standalone macOS .app bundle.
+        Package a Shoes/Scarpe application as a standalone executable.
+
+        Output formats:
+          macOS (default):  .app bundle (optionally as .dmg disk image)
+          Linux:            AppImage or .tar.gz bundle
 
         Options:
           -n, --name NAME       Application name (default: derived from filename)
-          -i, --icon FILE       Application icon (.icns or .png)
+          -i, --icon FILE       Application icon (.icns/.png for macOS, .png/.svg for Linux)
           -a, --arch ARCH       Target architecture: x86_64 or arm64 (default: current)
+          -t, --target OS       Target OS: macos, linux, linux-musl (default: current)
+              --linux           Shortcut for --target linux
+              --linux-musl      Shortcut for --target linux-musl (Alpine/Docker)
           -o, --output DIR      Output directory (default: current directory)
           -V, --verbose         Show detailed progress
               --dev             Use local development Scarpe source (not published gems)
+          -m, --minimal         Strip optional gems & SSL for smallest build
+                                Removes: nokogiri, sqlite3, fastimage, SSL/crypto
+                                Apps using download/Image auto-size won't work
+
+        macOS-specific options:
           -s, --sign            Ad-hoc code sign the .app (reduces Gatekeeper warnings)
               --dmg             Also create a .dmg disk image for distribution
           -u, --universal       Build universal binary (x86_64 + arm64)
-          -m, --minimal         Strip optional gems & SSL for smallest build (~18MB vs ~34MB)
-                                Removes: nokogiri, sqlite3, fastimage, SSL/crypto
-                                Apps using download/Image auto-size won't work
+
           -h, --help            Show this help
 
         Examples:
+          # macOS
           scarpe package myapp.rb
           scarpe package myapp.rb --name "My App" --icon icon.png --sign
-          scarpe package myapp.rb --minimal --sign            # Smallest possible build
-          scarpe package myapp.rb --arch arm64 --output ~/Desktop
+          scarpe package myapp.rb --minimal --sign --dmg
           scarpe package myapp.rb --universal --sign --dmg
 
-        The packaged .app requires no Ruby installation to run.
+          # Linux
+          scarpe package myapp.rb --linux
+          scarpe package myapp.rb --linux --minimal
+          scarpe package myapp.rb --target linux-musl --arch arm64
+
+        The packaged app requires no Ruby installation to run.
         First run downloads and caches the Ruby runtime (~58MB).
-        Use --universal for apps that run natively on both Intel and Apple Silicon Macs.
+
+        Linux packaging notes:
+          - Requires WebKitGTK on the target system (libwebkit2gtk-4.1-0)
+          - Requires pre-built webview extension (compile with --verbose for instructions)
+          - AppImage creation requires appimagetool (falls back to .tar.gz if not found)
       USAGE
     end
   end

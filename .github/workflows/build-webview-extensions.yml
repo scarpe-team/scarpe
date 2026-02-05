@@ -1,0 +1,231 @@
+# Build webview_ruby native extensions for all supported platforms
+# These pre-built extensions enable the Scarpe packager to create cross-platform apps
+
+name: Build Webview Extensions
+
+on:
+  workflow_dispatch:  # Manual trigger
+  push:
+    paths:
+      - '.github/workflows/build-webview-extensions.yml'
+
+jobs:
+  build-linux:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            arch: x86_64
+            target: linux-x86_64
+          # ARM64 runners are limited — use QEMU emulation
+          - os: ubuntu-22.04
+            arch: aarch64
+            target: linux-arm64
+            qemu: true
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: Checkout webview_ruby source
+        run: |
+          mkdir -p webview_ruby
+          cd webview_ruby
+          # Download webview_ruby gem and extract
+          gem fetch webview_ruby -v 0.1.2
+          gem unpack webview_ruby-0.1.2.gem
+          
+      - name: Install GTK and WebKitGTK development packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libgtk-3-dev \
+            libwebkit2gtk-4.1-dev \
+            pkg-config
+
+      - name: Set up QEMU for ARM64 (if needed)
+        if: matrix.qemu
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Build for ARM64 in Docker (if QEMU)
+        if: matrix.qemu
+        run: |
+          docker run --rm --platform linux/arm64 \
+            -v $PWD/webview_ruby:/work \
+            ubuntu:22.04 bash -c '
+              apt-get update
+              apt-get install -y build-essential libgtk-3-dev libwebkit2gtk-4.1-dev pkg-config
+              cd /work/webview_ruby-0.1.2/ext/webview
+              c++ -shared -fPIC -O2 \
+                $(pkg-config --cflags gtk+-3.0 webkit2gtk-4.1) \
+                -DWEBVIEW_GTK \
+                -o libwebview-ext.so \
+                webview.cpp \
+                $(pkg-config --libs gtk+-3.0 webkit2gtk-4.1)
+            '
+          mkdir -p artifacts
+          cp webview_ruby/webview_ruby-0.1.2/ext/webview/libwebview-ext.so artifacts/libwebview-ext-${{ matrix.target }}.so
+
+      - name: Build native extension (native)
+        if: '!matrix.qemu'
+        run: |
+          cd webview_ruby/webview_ruby-0.1.2/ext/webview
+          c++ -shared -fPIC -O2 \
+            $(pkg-config --cflags gtk+-3.0 webkit2gtk-4.1) \
+            -DWEBVIEW_GTK \
+            -o libwebview-ext.so \
+            webview.cpp \
+            $(pkg-config --libs gtk+-3.0 webkit2gtk-4.1)
+          mkdir -p ${{ github.workspace }}/artifacts
+          cp libwebview-ext.so ${{ github.workspace }}/artifacts/libwebview-ext-${{ matrix.target }}.so
+
+      - name: Verify extension linkage
+        if: '!matrix.qemu'
+        run: |
+          echo "Checking library dependencies..."
+          ldd artifacts/libwebview-ext-${{ matrix.target }}.so || true
+          echo "---"
+          file artifacts/libwebview-ext-${{ matrix.target }}.so
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webview-ext-${{ matrix.target }}
+          path: artifacts/libwebview-ext-${{ matrix.target }}.so
+
+  build-linux-musl:
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            target: linux-musl-x86_64
+            image: alpine:3.19
+          - arch: aarch64
+            target: linux-musl-arm64
+            image: alpine:3.19
+
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Set up QEMU for ARM64
+        if: matrix.arch == 'aarch64'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Build in Alpine container
+        run: |
+          platform=${{ matrix.arch == 'aarch64' && 'linux/arm64' || 'linux/amd64' }}
+          docker run --rm --platform $platform \
+            -v $PWD:/work \
+            ${{ matrix.image }} sh -c '
+              apk add --no-cache \
+                build-base \
+                gtk+3.0-dev \
+                webkit2gtk-4.1-dev \
+                pkgconf
+
+              # Download and extract webview_ruby gem
+              cd /work
+              wget https://rubygems.org/downloads/webview_ruby-0.1.2.gem -O webview_ruby.gem
+              mkdir -p webview_ruby
+              cd webview_ruby
+              tar xf ../webview_ruby.gem
+              tar xf data.tar.gz
+              
+              cd ext/webview
+              c++ -shared -fPIC -O2 \
+                $(pkg-config --cflags gtk+-3.0 webkit2gtk-4.1) \
+                -DWEBVIEW_GTK \
+                -o libwebview-ext.so \
+                webview.cpp \
+                $(pkg-config --libs gtk+-3.0 webkit2gtk-4.1)
+              
+              mkdir -p /work/artifacts
+              cp libwebview-ext.so /work/artifacts/libwebview-ext-${{ matrix.target }}.so
+            '
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webview-ext-${{ matrix.target }}
+          path: artifacts/libwebview-ext-${{ matrix.target }}.so
+
+  build-macos:
+    strategy:
+      matrix:
+        include:
+          - os: macos-13  # Intel
+            arch: x86_64
+            target: macos-x86_64
+          - os: macos-14  # Apple Silicon
+            arch: arm64
+            target: macos-arm64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Build webview extension
+        run: |
+          # Download webview_ruby gem
+          curl -sLO https://rubygems.org/downloads/webview_ruby-0.1.2.gem
+          mkdir webview_ruby && cd webview_ruby
+          tar xf ../webview_ruby-0.1.2.gem
+          tar xf data.tar.gz
+          
+          cd ext/webview
+          clang++ -shared -dynamiclib -O2 \
+            -framework WebKit \
+            -std=c++11 \
+            -DWEBVIEW_COCOA \
+            -mmacosx-version-min=10.15 \
+            -o libwebview-ext.bundle \
+            webview.cpp
+          
+          mkdir -p ${{ github.workspace }}/artifacts
+          cp libwebview-ext.bundle ${{ github.workspace }}/artifacts/libwebview-ext-${{ matrix.target }}.bundle
+
+      - name: Verify extension linkage
+        run: |
+          echo "Checking library dependencies..."
+          otool -L artifacts/libwebview-ext-${{ matrix.target }}.bundle
+          echo "---"
+          file artifacts/libwebview-ext-${{ matrix.target }}.bundle
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webview-ext-${{ matrix.target }}
+          path: artifacts/libwebview-ext-${{ matrix.target }}.bundle
+
+  create-release:
+    needs: [build-linux, build-linux-musl, build-macos]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: extensions
+
+      - name: List extensions
+        run: |
+          echo "Built extensions:"
+          find extensions -type f | while read f; do
+            echo "  $f ($(du -h "$f" | cut -f1))"
+          done
+
+      - name: Create combined archive
+        run: |
+          mkdir -p dist
+          find extensions -type f -exec cp {} dist/ \;
+          cd dist
+          tar czvf ../webview-extensions.tar.gz *
+
+      - name: Upload combined artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webview-extensions-all
+          path: webview-extensions.tar.gz
