@@ -83,6 +83,15 @@ class Shoes
       block&.call
     end
 
+    # Debug print method from Shoes3 — prints to stdout with ">> " prefix.
+    # Useful for debugging within Shoes apps.
+    #
+    # @param object [Object] the object to print
+    # @return [void]
+    def p(object)
+      puts ">> #{object.inspect}"
+    end
+
     # Class-level url method for defining routes in Shoes subclasses
     # e.g., class Book < Shoes; url '/', :index; end
     def url(path, method_name)

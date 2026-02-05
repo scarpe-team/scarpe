@@ -9,6 +9,16 @@ class Shoes
         @response = response
       end
 
+      # HTTP status code (e.g., 200, 404, 500)
+      def status
+        @response.code.to_i
+      end
+
+      # HTTP status code (alias for status)
+      def code
+        status
+      end
+
       def headers
         @response.each_header.to_h
       end
