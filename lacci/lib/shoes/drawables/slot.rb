@@ -143,19 +143,27 @@ class Shoes::Slot < Shoes::Drawable
     s
   end
 
-  # Register a callback to be called when this slot finishes initialization.
-  # In Shoes, slot.finish { ... } is called after the slot's block has run.
+  # Register a callback to be called when this slot is removed/destroyed.
+  # In Shoes3, slot.finish { ... } is called when the slot is removed,
+  # NOT after initialization. Use App#start for post-init callbacks.
   # Multiple finish handlers can be registered.
   def finish(&block)
     @finish_callbacks ||= []
     @finish_callbacks << block if block
   end
 
-  # Fire all registered finish callbacks. Called internally after slot initialization.
+  # Fire all registered finish callbacks. Called when the slot is destroyed.
   def fire_finish_callbacks
     return unless @finish_callbacks
 
     @finish_callbacks.each { |cb| @app.instance_eval(&cb) }
+  end
+
+  # Override destroy to fire finish callbacks before actual destruction.
+  # This matches Shoes3 behavior where finish is a removal/cleanup event.
+  def destroy
+    fire_finish_callbacks
+    super
   end
 
   # Methods to add or remove children

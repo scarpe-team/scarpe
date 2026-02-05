@@ -226,16 +226,17 @@ class TestLacci < NienteTest
   end
 
   def test_slot_finish_callback
+    # In Shoes3, finish is called when the slot is REMOVED, not after init
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
         @result = "not finished"
         @s = stack do
           para "hello"
-          # Register finish callback while building the stack
         end
-        # After the stack is built, verify the callback infrastructure exists
+        # Register finish callback
         @s.finish { @result = "finished!" }
-        @s.fire_finish_callbacks
+        # Destroy the stack to trigger finish callbacks
+        @s.destroy
       end
     SHOES_APP
       result = Shoes.APPS[0].instance_variable_get(:@result)

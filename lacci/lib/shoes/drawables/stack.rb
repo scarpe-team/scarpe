@@ -16,7 +16,6 @@ class Shoes
       # Create the display-side drawable *before* running the block.
       # Then child drawables have a parent to add themselves to.
       @app.with_slot(self, &block) if block_given?
-      fire_finish_callbacks
     end
 
     # Get or set the scroll position (pixels from top).
