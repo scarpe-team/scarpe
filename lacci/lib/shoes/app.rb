@@ -11,7 +11,12 @@ class Shoes
     # containing the launched application file.
     attr_reader :dir
 
-    shoes_styles :title, :width, :height, :resizable, :features, :opacity, :cursor
+    # The owner app that spawned this window (if any).
+    # In Shoes, when you call `window` from inside an app, the new window's
+    # `owner` method returns the parent app.
+    attr_reader :owner
+
+    shoes_styles :title, :width, :height, :resizable, :features, :opacity, :cursor, :owner
 
     # This is defined to avoid the linkable-id check in the Shoes-style method_missing def'n
     attr_reader :features
@@ -40,6 +45,7 @@ class Shoes
       height: 420,
       resizable: true,
       features: [],
+      owner: nil,
       &app_code_body
     )
       log_init('Shoes::App')
@@ -58,6 +64,7 @@ class Shoes
       @event_loop_type = 'displaylib' # the default
 
       @features = features
+      @owner = owner
 
       unknown_ext = features - Shoes::FEATURES - Shoes::EXTENSIONS
       unsupported_features = unknown_ext & Shoes::KNOWN_FEATURES
@@ -559,16 +566,15 @@ class Shoes::App < Shoes::Drawable
   end
 
   # Open a new app window. In classic Shoes, `window` is like `Shoes.app` but
-  # sets the child window's `owner` to the launching app. For now, we alias
-  # this to `Shoes.app` behavior which is sufficient for HH and most usage.
+  # sets the child window's `owner` to the launching app.
   def window(**opts, &block)
-    Shoes.app(**opts, &block)
+    Shoes.app(**opts.merge(owner: self), &block)
   end
 
   # Open a dialog-style window. In classic Shoes, this is like `window` but
-  # with dialog box styling. For now, aliases to Shoes.app.
+  # with dialog box styling. Sets the owner like `window`.
   def dialog(**opts, &block)
-    Shoes.app(**opts, &block)
+    Shoes.app(**opts.merge(owner: self), &block)
   end
 
   private
