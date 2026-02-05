@@ -25,6 +25,37 @@ class Shoes
       # @width, @height = size
 
       create_display_drawable
+
+      # Bind event handlers for click/hover/leave (like Button)
+      bind_self_event("click") do
+        @click_handler&.call
+      end
+
+      bind_self_event("hover") do
+        @hover_handler&.call
+      end
+
+      bind_self_event("leave") do
+        @leave_handler&.call
+      end
+    end
+
+    # Set the click handler. Returns self for method chaining (Shoes3 convention).
+    def click(&block)
+      @click_handler = block
+      self
+    end
+
+    # Set the hover handler. Returns self for method chaining.
+    def hover(&block)
+      @hover_handler = block
+      self
+    end
+
+    # Set the leave handler. Returns self for method chaining.
+    def leave(&block)
+      @leave_handler = block
+      self
     end
 
     def replace(url)
