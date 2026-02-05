@@ -47,14 +47,18 @@ module Scarpe::Components::Calzini
       style[:"transform-origin"] = props["transform_origin"]
     end
 
-    if props["click"]
-      HTML.render do |h|
-        h.a(id: html_id, href: props["click"]) { h.img(id: html_id, src: props["url"], style:) }
-      end
-    else
-      HTML.render do |h|
-        h.img(id: html_id, src: props["url"], style:)
-      end
+    # Add cursor pointer style if image has click handler
+    style[:cursor] = "pointer" if props["click"]
+
+    HTML.render do |h|
+      h.img(
+        id: html_id,
+        src: props["url"],
+        style: style,
+        onclick: handler_js_code("click"),
+        onmouseover: handler_js_code("hover"),
+        onmouseout: handler_js_code("leave")
+      )
     end
   end
 

@@ -5,6 +5,19 @@ module Scarpe::Webview
     def initialize(properties)
       super
 
+      # Bind click/hover/leave events (like Button)
+      bind("click") do
+        send_self_event(event_name: "click")
+      end
+
+      bind("hover") do
+        send_self_event(event_name: "hover")
+      end
+
+      bind("leave") do
+        send_self_event(event_name: "leave")
+      end
+
       if @url.nil? || @url.empty?
         # Blank/spacer image — transparent 1x1 PNG (Shoes3 supports image(w,h) for spacers)
         @url = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="

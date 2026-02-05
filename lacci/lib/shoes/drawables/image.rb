@@ -3,7 +3,7 @@
 class Shoes
   class Image < Shoes::Drawable
     shoes_styles :url, :width, :height, :top, :left, :click, :rotate_angle, :transform_origin
-    shoes_events # No Image-specific events yet
+    shoes_events :click, :hover, :leave
 
     init_args :url
     def initialize(*args, **kwargs)

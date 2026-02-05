@@ -115,7 +115,7 @@ module Scarpe
       openssl net fiddle ripper
     ].freeze
 
-    def initialize(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false, minimal: false, target_os: nil)
+    def initialize(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false, minimal: false, target_os: nil, skip_webview_check: false)
       @app_file = File.expand_path(app_file)
       raise "App file not found: #{@app_file}" unless File.exist?(@app_file)
       raise "App file must be a .rb file: #{@app_file}" unless @app_file.end_with?(".rb")
@@ -131,6 +131,7 @@ module Scarpe
       @dmg = dmg
       @universal = universal
       @minimal = minimal
+      @skip_webview_check = skip_webview_check
 
       # Validate options
       if @target_os != "macos" && (@sign || @dmg || @universal)
@@ -490,7 +491,7 @@ module Scarpe
     end
 
     def find_gem_in_other_caches(gem_name, version, platform)
-      # Search other architecture caches for pure Ruby gems
+      # Search other architecture caches for pure Ruby gems (macOS only)
       ARCH_MAP.values.uniq.each do |alt_arch|
         next if alt_arch == @arch
 
@@ -499,6 +500,28 @@ module Scarpe
         next unless Dir.exist?(alt_gems)
 
         gem_dir_name = find_gem_dir(alt_gems, gem_name, version, platform)
+        return [gem_dir_name, alt_gems] if gem_dir_name
+      end
+
+      nil
+    end
+
+    def find_gem_in_other_caches_cross_platform(gem_name, version)
+      # Search ALL platform caches (macOS x86_64, macOS arm64, Linux) for pure Ruby gems
+      # This is useful when building for Linux and gems are only in macOS cache
+      platforms = [
+        "macos-x86_64",
+        "macos-arm64",
+        "linux-x86_64",
+        "linux-arm64",
+      ]
+
+      platforms.each do |platform_tag|
+        alt_cache = File.join(@cache_dir, "traveling-ruby-#{TRAVELING_RUBY_VERSION}-#{platform_tag}-full")
+        alt_gems = File.join(alt_cache, "lib/ruby/gems/#{RUBY_ABI}")
+        next unless Dir.exist?(alt_gems)
+
+        gem_dir_name = find_gem_dir(alt_gems, gem_name, version, nil)
         return [gem_dir_name, alt_gems] if gem_dir_name
       end
 
@@ -1364,9 +1387,24 @@ module Scarpe
       FileUtils.cp(ruby_src, File.join(dst_bin, "ruby"))
       FileUtils.chmod(0755, File.join(dst_bin, "ruby"))
 
-      # Copy Ruby stdlib
+      # Copy Ruby stdlib (but NOT gems - we copy those separately)
+      # This copies lib/ruby/3.4.0 (stdlib), lib/ruby/site_ruby, etc.
+      # but skips lib/ruby/gems which we handle in copy_gems_linux
       stdlib_src = File.join(src, "lib", "ruby")
-      FileUtils.cp_r(stdlib_src, dst_lib)
+      dst_ruby = File.join(dst_lib, "ruby")
+      FileUtils.mkdir_p(dst_ruby)
+
+      Dir[File.join(stdlib_src, "*")].each do |item|
+        item_name = File.basename(item)
+        # Skip gems directory - we copy only required gems separately
+        next if item_name == "gems"
+        FileUtils.cp_r(item, dst_ruby)
+      end
+
+      # Create empty gems structure (populated by copy_gems_linux)
+      FileUtils.mkdir_p(File.join(dst_ruby, "gems", RUBY_ABI, "gems"))
+      FileUtils.mkdir_p(File.join(dst_ruby, "gems", RUBY_ABI, "specifications"))
+      FileUtils.mkdir_p(File.join(dst_ruby, "gems", RUBY_ABI, "extensions"))
 
       # Copy shared libraries (*.so)
       Dir[File.join(src, "lib", "*.so*")].each do |so|
@@ -1404,9 +1442,18 @@ module Scarpe
           spec_file = File.join(src_specs, "#{gem_dir_name}.gemspec")
           FileUtils.cp(spec_file, dst_specs) if File.exist?(spec_file)
         else
-          find_gem_in_other_caches(gem_name, version, nil)&.tap do |alt_gem|
-            FileUtils.cp_r(alt_gem, dst_gems)
-            gems_copied << File.basename(alt_gem)
+          # Try other platform caches (macOS cache has pure-ruby Scarpe gems)
+          result = find_gem_in_other_caches_cross_platform(gem_name, version)
+          if result
+            alt_gem_dir, alt_gems_root = result
+            alt_gem_path = File.join(alt_gems_root, "gems", alt_gem_dir)
+            FileUtils.cp_r(alt_gem_path, dst_gems) if Dir.exist?(alt_gem_path)
+            gems_copied << alt_gem_dir
+
+            alt_spec = File.join(alt_gems_root, "specifications", "#{alt_gem_dir}.gemspec")
+            FileUtils.cp(alt_spec, dst_specs) if File.exist?(alt_spec)
+          else
+            vlog "⚠️  Could not find gem: #{gem_name}"
           end
         end
       end
@@ -1470,6 +1517,11 @@ module Scarpe
       if File.exist?(cached_ext)
         FileUtils.cp(cached_ext, File.join(ext_dir, "libwebview-ext.so"))
         vlog "Copied pre-built webview extension"
+      elsif @skip_webview_check
+        warn "⚠️  Skipping webview extension (--skip-webview-check) - app will NOT run!"
+        vlog "Creating placeholder for webview extension"
+        # Create a placeholder so the directory structure is complete
+        File.write(File.join(ext_dir, "libwebview-ext.so"), "# PLACEHOLDER - compile and replace this file\n")
       else
         raise <<~ERROR
           Missing pre-built webview extension for #{platform_string}.
@@ -1486,6 +1538,8 @@ module Scarpe
               $(pkg-config --libs gtk+-3.0 webkit2gtk-4.1)
 
           Place the compiled .so in: #{File.dirname(cached_ext)}/
+
+          Tip: Use --skip-webview-check to build anyway (for testing structure).
         ERROR
       end
     end
@@ -1738,6 +1792,7 @@ module Scarpe
         universal: options[:universal],
         minimal: options[:minimal],
         target_os: options[:target_os],
+        skip_webview_check: options[:skip_webview_check],
       )
       packager.build!
     rescue => e
@@ -1792,6 +1847,9 @@ module Scarpe
         when "--linux-musl"
           options[:target_os] = "linux-musl"
           i += 1
+        when "--skip-webview-check"
+          options[:skip_webview_check] = true
+          i += 1
         when "--help", "-h"
           options[:help] = true
           i += 1
@@ -1828,6 +1886,7 @@ module Scarpe
           -m, --minimal         Strip optional gems & SSL for smallest build
                                 Removes: nokogiri, sqlite3, fastimage, SSL/crypto
                                 Apps using download/Image auto-size won't work
+              --skip-webview-check  Skip webview extension check (for testing builds)
 
         macOS-specific options:
           -s, --sign            Ad-hoc code sign the .app (reduces Gatekeeper warnings)
