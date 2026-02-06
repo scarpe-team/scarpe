@@ -177,6 +177,9 @@ class Shoes
       @slots[-1]
     end
 
+    # Shoes3 compatibility: app.slot returns the current slot
+    alias_method :slot, :current_slot
+
     # Track external (non-Shoes) callers from Slot#append so that
     # method_missing can fall back to them. This enables Shoes3-compatible
     # patterns like HH::SideTab where methods defined on the caller
