@@ -1,0 +1,8 @@
+---
+description:
+globs: lacci/**/*,lib/scarpe/wv/**/*,lib/scarpe/wv/*.rb
+alwaysApply: false
+---
+Ensure, that you recognize that a webview (WV) drawable and lacci drawable must BOTH be updated when adding new user DSL/features.
+
+You also need to update calzini under scarpe-components

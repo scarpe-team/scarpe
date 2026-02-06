@@ -641,6 +641,90 @@ class Shoes
       self
     end
 
+    # Get the width of the drawable, computing pixel values for percentages and
+    # negative values. Shoes3 apps expect slot.width to return the actual pixel width.
+    #
+    # @return [Integer, nil] the width in pixels, or nil if not determinable
+    def width
+      compute_dimension(@width, :width)
+    end
+
+    # Get the height of the drawable, computing pixel values for percentages and
+    # negative values. Shoes3 apps expect slot.height to return the actual pixel height.
+    #
+    # @return [Integer, nil] the height in pixels, or nil if not determinable
+    def height
+      compute_dimension(@height, :height)
+    end
+
+    private
+
+    # Compute a dimension (width or height) by resolving percentages and negative values.
+    # - Numbers are returned as-is
+    # - "100%" returns the parent's dimension
+    # - Negative values return parent_dimension - |value|
+    # - For document_root with no parent, uses App dimensions
+    #
+    # @param value [Integer, String, nil] the stored dimension value
+    # @param dimension [Symbol] :width or :height
+    # @return [Integer, nil] the computed pixel value
+    def compute_dimension(value, dimension)
+      return nil if value.nil?
+      return value if value.is_a?(Numeric) && value >= 0
+
+      # Get parent's dimension for percentage/negative calculations
+      parent_dim = parent_dimension(dimension)
+      return nil unless parent_dim
+
+      if value.is_a?(String) && value.end_with?("%")
+        # Percentage of parent
+        percent = value.to_f
+        (parent_dim * percent / 100.0).to_i
+      elsif value.is_a?(Numeric) && value < 0
+        # Negative means parent dimension minus the absolute value
+        parent_dim + value.to_i
+      else
+        # Unknown format, return nil
+        nil
+      end
+    end
+
+    # Get the parent's dimension (width or height) for computing percentages.
+    # For document_root (no parent), returns the App's dimension.
+    #
+    # @param dimension [Symbol] :width or :height
+    # @return [Integer, nil] the parent's dimension in pixels
+    def parent_dimension(dimension)
+      if @parent
+        @parent.send(dimension)
+      elsif @app
+        # Document root uses App dimensions
+        @app.send(dimension)
+      else
+        nil
+      end
+    end
+
+    public
+
+    # Set the width style. This allows both number values and percentage strings.
+    #
+    # @param new_value [Integer, String] the new width value
+    # @return [void]
+    def width=(new_value)
+      @width = new_value
+      send_shoes_event({ "width" => new_value }, event_name: "prop_change", target: linkable_id)
+    end
+
+    # Set the height style. This allows both number values and percentage strings.
+    #
+    # @param new_value [Integer, String] the new height value
+    # @return [void]
+    def height=(new_value)
+      @height = new_value
+      send_shoes_event({ "height" => new_value }, event_name: "prop_change", target: linkable_id)
+    end
+
     # Hide the drawable.
     def hide
       self.hidden = true

@@ -118,6 +118,42 @@ class TestLacci < NienteTest
     SHOES_SPEC
   end
 
+  def test_slot_computed_dimensions
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app :width => 600, :height => 400 do
+        # document_root has width: "100%", height: "100%"
+        # These should resolve to the App's dimensions
+        @slot_w = app.slot.width
+        @slot_h = app.slot.height
+
+        # Nested stack with percentage width
+        @nested_stack = stack :width => "50%" do
+          para "nested"
+        end
+
+        # Nested stack with negative height (means parent height minus N)
+        @negative_stack = stack :height => -50 do
+          para "negative"
+        end
+      end
+    SHOES_APP
+      slot_w = Shoes.APPS[0].instance_variable_get(:@slot_w)
+      slot_h = Shoes.APPS[0].instance_variable_get(:@slot_h)
+      nested_stack = Shoes.APPS[0].instance_variable_get(:@nested_stack)
+      negative_stack = Shoes.APPS[0].instance_variable_get(:@negative_stack)
+
+      # Document root (100%) should equal App dimensions
+      assert_equal 600, slot_w
+      assert_equal 400, slot_h
+
+      # 50% of 600 = 300
+      assert_equal 300, nested_stack.width
+
+      # Parent height (400) minus 50 = 350
+      assert_equal 350, negative_stack.height
+    SHOES_SPEC
+  end
+
   def test_mouse_reflects_display_service_state
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do

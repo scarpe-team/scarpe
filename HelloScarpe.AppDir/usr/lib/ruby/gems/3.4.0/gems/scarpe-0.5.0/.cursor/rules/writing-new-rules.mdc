@@ -1,0 +1,73 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Writing New Rules
+
+<rule>
+name: writing_new_rules
+description: Guidelines for creating and formatting new rules in the rules directory
+filters:
+  - type: event
+    pattern: "new_rule_creation"
+
+actions:
+  - type: suggest
+    message: |
+      # Rule Creation Process
+
+      1. Always create new rules with .mc extension first:
+         - Create file as `.cursor/rules/rule-name.mc`
+         - Only convert to .mdc after content is approved
+
+      2. Required File Structure:
+         ```
+         ---
+         description: Brief description of the rule's purpose
+         globs: "pattern to match files this rule applies to"
+         ---
+         # Rule Title
+
+         <rule>
+         name: rule_name
+         description: Detailed description
+         filters:
+           - type: event
+             pattern: "relevant_event"
+
+         actions:
+           - type: suggest
+             message: |
+               # Action Title
+               Action content...
+
+         examples:
+           - description: "Example scenario"
+             input: |
+               Example input...
+
+         metadata:
+           priority: level
+           version: 1.0
+         </rule>
+         ```
+
+      3. After approval, rename to .mdc:
+         ```bash
+         mv .cursor/rules/rule-name.mc .cursor/rules/rule-name.mdc
+         ```
+
+examples:
+  - description: "Creating a new rule"
+    input: |
+      # First create with .mc extension
+      touch .cursor/rules/new-feature.mc
+
+      # After approval, rename to .mdc
+      mv .cursor/rules/new-feature.mc .cursor/rules/new-feature.mdc
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>

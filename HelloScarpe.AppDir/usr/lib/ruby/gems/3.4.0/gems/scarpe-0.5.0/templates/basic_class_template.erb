@@ -1,0 +1,37 @@
+# class_template.erb
+# frozen_string_literal: true
+
+module Shoes
+  class <%= argument %> < Shoes::Drawable
+
+    # Shoes styles
+    # These properties determine the visual characteristics of the drawable
+    # Customize them according to your requirements
+
+    # Example Shoes styles:
+    # :background_color - Sets the background color of the drawable (<%= argument %>)
+    # :width - Specifies the width of the drawable(<%= argument %>)
+    # :height - Specifies the height of the drawable(<%= argument %>)
+
+    shoes_styles <%= shoes_styles %>
+
+    def initialize
+      super
+
+      # Event Handlers
+      # Define your event handlers here
+      # to get broad idea on events look in wiki section
+      # Example event handler:
+      # bind_self_event("dummy") do
+      #   # Event handling code goes here
+      # end
+
+      # This method uses the DisplayService to create a visual representation of the drawable
+      # It generates a display drawable based on the specified Shoes styles
+      create_display_drawable
+    end
+
+    # other methods
+
+  end
+end

@@ -111,8 +111,18 @@ module Scarpe
     OPTIONAL_GEMS = %w[nokogiri sqlite3 fastimage rake].freeze
 
     # Stdlib modules safe to strip in minimal mode (not loaded by Scarpe runtime)
+    # These are all development/build/network tools not needed for GUI apps.
     MINIMAL_STRIP_STDLIB = %w[
       openssl net fiddle ripper
+      mkmf irb rdoc racc/cparse
+      rinda drb nkf coverage getoptlong
+    ].freeze
+
+    # Additional large files safe to remove in ultra-minimal mode
+    MINIMAL_STRIP_FILES = %w[
+      mkmf.rb rdoc.rb irb.rb tracer.rb debug.rb
+      benchmark.rb profile.rb profiler.rb
+      getoptlong.rb coverage.rb
     ].freeze
 
     def initialize(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false, minimal: false, target_os: nil, skip_webview_check: false)
@@ -1170,6 +1180,17 @@ module Scarpe
         File.delete(rb_file) if File.exist?(rb_file)
       end
 
+      # Remove additional large files not needed at runtime
+      stripped_files = 0
+      MINIMAL_STRIP_FILES.each do |filename|
+        path = File.join(stdlib_dir, filename)
+        if File.exist?(path)
+          stripped_files += File.size(path)
+          File.delete(path)
+        end
+      end
+      vlog "  Removed #{MINIMAL_STRIP_FILES.count} dev files: #{(stripped_files / 1024.0).round}KB" if stripped_files > 0
+
       # Remove corresponding native extensions
       ext_dir = File.join(stdlib_dir, ruby_platform_dir)
       %w[openssl.bundle fiddle.bundle].each do |ext|
@@ -1202,6 +1223,36 @@ module Scarpe
         ext_dir = File.join(base, "rubygems/ext")
         FileUtils.rm_rf(ext_dir) if Dir.exist?(ext_dir)
       end
+
+      # Remove rubygems/vendor (bundled dependencies — 748KB, mostly not needed)
+      vendor_saved = 0
+      [stdlib_dir, File.join(ruby_dir, "lib/ruby/site_ruby/#{RUBY_ABI}")].each do |base|
+        vendor_dir = File.join(base, "rubygems/vendor")
+        if Dir.exist?(vendor_dir)
+          vendor_saved += dir_size(vendor_dir)
+          FileUtils.rm_rf(vendor_dir)
+        end
+      end
+      vlog "  Removed rubygems/vendor: #{(vendor_saved / 1024.0).round}KB" if vendor_saved > 0
+
+      # Remove other rubygems modules not needed at runtime
+      rubygems_extras = %w[
+        installer.rb uninstaller.rb package package.rb
+        request_set request_set.rb security security.rb
+        gemcutter_utilities.rb remote_fetcher.rb
+        source source.rb source_list.rb
+      ]
+      extras_saved = 0
+      [stdlib_dir, File.join(ruby_dir, "lib/ruby/site_ruby/#{RUBY_ABI}")].each do |base|
+        rubygems_extras.each do |item|
+          path = File.join(base, "rubygems", item)
+          if File.exist?(path) || Dir.exist?(path)
+            extras_saved += File.directory?(path) ? dir_size(path) : File.size(path)
+            FileUtils.rm_rf(path)
+          end
+        end
+      end
+      vlog "  Removed rubygems extras: #{(extras_saved / 1024.0).round}KB" if extras_saved > 0
     end
 
     def strip_platform_gem_versions(gems_dir, target_version)

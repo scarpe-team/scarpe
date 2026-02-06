@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=HelloScarpe
+Exec=AppRun
+Icon=helloscarpe
+Categories=Utility;
+Comment=A Shoes/Scarpe application
+Terminal=false

@@ -1,0 +1,72 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Commit Style Preferences
+
+<rule>
+name: commit_style_preferences
+description: Guidelines for writing commit messages
+filters:
+  - type: event
+    pattern: "pre_commit"
+
+actions:
+  - type: suggest
+    message: |
+      # Format Requirements
+
+      1. First line (50 chars ideal):
+         - Clear, direct statement of WHAT changed
+         - Start with verb (Add, Fix, Update, etc.)
+
+      2. Empty line after header
+
+      3. Body must include:
+         - WHY the change was needed
+         - HOW it addresses the problem
+         - Technical implications
+         - Impact on stability/maintenance
+
+      4. For API changes:
+         - Explicitly state if using private/internal APIs
+         - Note any technical debt implications
+         - Include upstream context for dependency changes
+
+examples:
+  - description: "Standard feature change"
+    input: |
+      Add request validation to UserWidget
+
+      Prevents invalid requests from reaching the database layer.
+      Adds type checking and parameter validation before processing.
+
+      Impact: Improved error handling and reduced DB load.
+
+  - description: "Private API change"
+    input: |
+      Update FrobWidget to use internal Foo::Bar API
+
+      Rails changed their implementation from X to Y. While both
+      are private APIs, this change is required to maintain
+      compatibility.
+
+      Note: Created ticket RAIL-123 to track moving to public
+      APIs when available.
+
+  - description: "Dependency update"
+    input: |
+      Bump rails to 7737f646773
+
+      Updates our rails checkout to latest main. Key changes:
+      - Journey routing internals refactored
+      - ActiveSupport::TimeZone improvements
+      - New ActionMailer configuration options
+
+      Test plan: Full CI suite + extra routing specs
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>

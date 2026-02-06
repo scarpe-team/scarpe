@@ -1,0 +1,80 @@
+---
+description:
+globs: **/*display*.rb,**/*display_service*.rb,**/*display*.md
+alwaysApply: false
+---
+# Display Service Context
+
+<rule>
+name: display_service_context
+description: Share relevant display service documentation and implementation details when working with display service files
+filters:
+  - type: file
+    pattern: **/*display*.rb
+  - type: file
+    pattern: **/*display_service*.rb
+  - type: file
+    pattern: **/*display*.md
+
+actions:
+  - type: suggest
+    message: |
+      # Display Service Context
+
+      When working with Scarpe's display service, it's important to understand the core architectural decisions:
+
+      1. The display service runs as a separate process from the main application
+      2. Communication happens through a well-defined protocol
+      3. Different display implementations can be swapped out
+      4. The system supports both local and relay-based display services
+
+      Key files and concepts:
+      - [display_service_separation.md](mdc:docs/display_service_separation.md) - Core architectural documentation
+      - `Shoes::DisplayService` - Base display service class
+      - `Scarpe::Webview::DisplayService` - Webview implementation
+      - `Scarpe::Webview::RelayDisplayService` - Process separation implementation
+
+      Implementation patterns:
+      ```ruby
+      # Display service singleton pattern
+      class DisplayService < Shoes::DisplayService
+        class << self
+          attr_accessor :instance
+        end
+
+        def initialize
+          if DisplayService.instance
+            raise Shoes::Errors::SingletonError, "ERROR! This is meant to be a singleton!"
+          end
+          DisplayService.instance = self
+        end
+      end
+      ```
+
+      Event handling:
+      ```ruby
+      # Event dispatch pattern
+      def dispatch_event(event_name, event_target, *args, **kwargs)
+        handlers = [
+          same_name_handlers[:any],           # Same name, any target
+          same_name_handlers[event_target],   # Same name, same target
+          any_name_handlers[:any],            # Any name, any target
+          any_name_handlers[event_target],    # Any name, same target
+        ].compact.inject([], &:+)
+        handlers.each { |h| h[:handler].call(*args, **kwargs) }
+      end
+      ```
+
+examples:
+  - description: "Working with display service implementation"
+    input: |
+      When implementing a new display service or modifying an existing one:
+      1. Follow the singleton pattern for display service instances
+      2. Implement proper event handling and dispatch
+      3. Ensure clean process separation if using relay approach
+      4. Handle drawable creation and management consistently
+
+metadata:
+  priority: high
+  version: 1.0
+</rule>

@@ -1,0 +1,27 @@
+# frozen_string_literal: true
+
+module Scarpe
+  class <%= argument %> < Shoes::Drawable
+    shoes_styles <%= shoes_styles %> # Write your shoes styles here
+
+    def initialize(text, width: nil, height: nil, top: nil, left: nil, &block)
+      # Properties passed as positional args, not keywords, don't get auto-set
+      @text = text
+      @block = block
+
+      super
+
+      # Bind to a handler named "click"
+      bind_self_event("click") do
+        @block&.call
+      end
+
+      create_display_drawable
+    end
+
+    # Set the click handler
+    def click(&block)
+      @block = block
+    end
+  end
+end
