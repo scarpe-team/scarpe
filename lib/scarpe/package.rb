@@ -272,6 +272,11 @@ module Scarpe
       puts "  [debug] #{msg}" if @verbose
     end
 
+    def dir_size(path)
+      return 0 unless Dir.exist?(path)
+      Dir.glob(File.join(path, "**/*")).sum { |f| File.file?(f) ? File.size(f) : 0 }
+    end
+
     def find_scarpe_root
       # Walk up from this file to find the Scarpe repo root
       dir = File.expand_path("../../..", __FILE__)
@@ -1174,6 +1179,29 @@ module Scarpe
 
       # Remove unicode_normalize (228KB, rarely needed)
       FileUtils.rm_rf(File.join(stdlib_dir, "unicode_normalize"))
+
+      # Remove rubygems/commands (232KB × 2 = 464KB — only needed for `gem` CLI)
+      rubygems_commands_saved = 0
+      [stdlib_dir, File.join(ruby_dir, "lib/ruby/site_ruby/#{RUBY_ABI}")].each do |base|
+        cmd_dir = File.join(base, "rubygems/commands")
+        if Dir.exist?(cmd_dir)
+          rubygems_commands_saved += dir_size(cmd_dir)
+          FileUtils.rm_rf(cmd_dir)
+        end
+      end
+      vlog "  Removed rubygems/commands: #{(rubygems_commands_saved / 1024.0).round}KB" if rubygems_commands_saved > 0
+
+      # Remove rubygems/resolver (dependency resolution — not needed at runtime)
+      [stdlib_dir, File.join(ruby_dir, "lib/ruby/site_ruby/#{RUBY_ABI}")].each do |base|
+        resolver_dir = File.join(base, "rubygems/resolver")
+        FileUtils.rm_rf(resolver_dir) if Dir.exist?(resolver_dir)
+      end
+
+      # Remove rubygems/ext (extension building — not needed at runtime)
+      [stdlib_dir, File.join(ruby_dir, "lib/ruby/site_ruby/#{RUBY_ABI}")].each do |base|
+        ext_dir = File.join(base, "rubygems/ext")
+        FileUtils.rm_rf(ext_dir) if Dir.exist?(ext_dir)
+      end
     end
 
     def strip_platform_gem_versions(gems_dir, target_version)
