@@ -2,7 +2,7 @@
 
 class Shoes
   class Stack < Shoes::Slot
-    include Shoes::Background
+    include Shoes::HasBackground
 
     shoes_styles :scroll, :scroll_top
 

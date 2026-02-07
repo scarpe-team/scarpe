@@ -36,7 +36,7 @@
 # widget propertly, sets the linkable_id, etc.
 
 class Shoes::Widget < Shoes::Slot
-  include Shoes::Background
+  include Shoes::HasBackground
 
   shoes_events
 
