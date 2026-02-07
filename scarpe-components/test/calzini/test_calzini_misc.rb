@@ -53,17 +53,17 @@ class TestCalziniMiscDrawables < Minitest::Test
   end
 
   def test_image_simple
-    assert_equal %{<img id="elt-1" src="https://example.com/example.png" />},
+    assert_equal %{<img id="elt-1" src="https://example.com/example.png" onclick="handle('click')" onmouseover="handle('hover')" onmouseout="handle('leave')" />},
       @calzini.render("image", { "url" => "https://example.com/example.png" })
   end
 
   def test_image_with_click
-    assert_equal %{<a id="elt-1" href="https://google.com"><img id="elt-1" src="https://example.com/example.png" style="width:150;height:200" /></a>},
+    assert_equal %{<img id="elt-1" src="https://example.com/example.png" style="width:150;height:200;cursor:pointer" onclick="handle('click')" onmouseover="handle('hover')" onmouseout="handle('leave')" />},
       @calzini.render("image", { "url" => "https://example.com/example.png", "height" => "200", "width" => "150", "click" => "https://google.com" })
   end
 
   def test_image_with_abs_positioning
-    assert_equal %{<img id="elt-1" src="https://example.com/example.png" style="position:absolute;top:15;left:20;width:150;height:200" />},
+    assert_equal %{<img id="elt-1" src="https://example.com/example.png" style="position:absolute;top:15;left:20;width:150;height:200" onclick="handle('click')" onmouseover="handle('hover')" onmouseout="handle('leave')" />},
       @calzini.render("image", { "url" => "https://example.com/example.png", "height" => "200", "width" => "150", "top" => "15", "left" => "20" })
   end
 

@@ -148,7 +148,7 @@ module Scarpe::Components::Calzini
   def list_box_style(props)
     styles = drawable_style(props)
 
-    styles[:font] = props["font"] ? parse_font(props) : nil
+    styles[:font] = parse_font(props) if props["font"]
     styles[:height] = dimensions_length(props["height"]) if props["height"]
     styles[:width] = dimensions_length(props["width"]) if props["width"]
     styles[:color] = rgb_to_hex(props["stroke"]) if props["stroke"]
