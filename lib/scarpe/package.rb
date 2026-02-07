@@ -117,7 +117,8 @@ module Scarpe
     # sqlite3: not used by Scarpe at all (phantom gemspec dependency)
     # fastimage: only for Image widget auto-sizing
     # rake: build tool, not runtime
-    OPTIONAL_GEMS = %w[nokogiri sqlite3 fastimage rake].freeze
+    # minitest: testing framework, not runtime
+    OPTIONAL_GEMS = %w[nokogiri sqlite3 fastimage rake minitest].freeze
 
     # Stdlib modules safe to strip in minimal mode (not loaded by Scarpe runtime)
     # These are all development/build/network tools not needed for GUI apps.
