@@ -35,6 +35,9 @@ module Scarpe
       "darwin" => "macos",
       "linux" => "linux",
       "linux-musl" => "linux-musl",  # Alpine/Docker
+      "windows" => "windows",
+      "mingw" => "windows",
+      "mswin" => "windows",
     }.freeze
 
     # Platform directory names vary between extensions and stdlib in Traveling Ruby:
@@ -52,9 +55,15 @@ module Scarpe
     LINUX_MUSL_EXT_PLATFORM = { "x86_64" => "x86_64-linux-musl", "arm64" => "aarch64-linux-musl" }.freeze
     LINUX_MUSL_RUBY_PLATFORM_DIR = { "x86_64" => "x86_64-linux-musl", "arm64" => "aarch64-linux-musl" }.freeze
 
-    # Linux native extension file extension
+    # Windows platforms
+    # Note: Traveling Ruby uses "x64-mingw-ucrt" for Ruby 3.2+ gems
+    WINDOWS_EXT_PLATFORM = { "x86_64" => "x64-mingw-ucrt", "arm64" => "arm64-mingw-ucrt" }.freeze
+    WINDOWS_RUBY_PLATFORM_DIR = { "x86_64" => "x64-mingw-ucrt", "arm64" => "arm64-mingw-ucrt" }.freeze
+
+    # Native extension file extensions by platform
     LINUX_EXT_SUFFIX = ".so"
     MACOS_EXT_SUFFIX = ".bundle"
+    WINDOWS_EXT_SUFFIX = ".dll"
 
     # Gems required for the Scarpe runtime, copied from the full Traveling Ruby tarball.
     # Format: [gem_name, version, platform_suffix_or_nil]
@@ -151,6 +160,11 @@ module Scarpe
         @universal = false
       end
 
+      # Windows-specific validation
+      if @target_os == "windows" && @arch == "arm64" && TRAVELING_RUBY_VERSION < "3.4.7"
+        raise "Windows arm64 requires Ruby 3.4.7+ (current: #{TRAVELING_RUBY_VERSION})"
+      end
+
       @cache_dir = File.join(Dir.home, ".scarpe", "packager-cache")
       @bundle_id = "com.scarpe.#{@name.downcase.gsub(/[^a-z0-9]/, "")}"
 
@@ -175,6 +189,8 @@ module Scarpe
         build_macos!
       when "linux", "linux-musl"
         build_linux!
+      when "windows"
+        build_windows!
       else
         raise "Unsupported target OS: #{@target_os}"
       end
@@ -249,15 +265,55 @@ module Scarpe
       appimage_path
     end
 
+    def build_windows!
+      ensure_runtime_cached
+      create_windows_structure
+      copy_ruby_runtime_windows
+      copy_gems_windows
+      copy_native_extensions_windows
+      copy_webview_extension_windows
+      copy_user_app_windows
+      write_boot_script_windows
+      write_windows_launcher
+      copy_icon_windows if @icon
+      strip_unnecessary_files_windows
+
+      result = create_windows_zip
+
+      log ""
+      log "✅ Created #{File.basename(windows_output_path)}/"
+      log ""
+      log "   To run: Double-click #{@name}.bat"
+      log "   Or:     #{@name}\\ruby\\bin\\ruby.exe #{@name}\\app\\boot.rb"
+      log ""
+      log "   ⚠️  Requires WebView2 Runtime installed on the target system:"
+      log "      Windows 11: Pre-installed"
+      log "      Windows 10: Download from https://developer.microsoft.com/en-us/microsoft-edge/webview2/"
+      log ""
+      log "   📦 Distribution: Share the #{@name} folder or #{@name}.zip"
+
+      result
+    end
+
     def output_path
       case @target_os
       when "macos"
         app_path
       when "linux", "linux-musl"
         appimage_path
+      when "windows"
+        windows_output_path
       else
         raise "Unknown target OS: #{@target_os}"
       end
+    end
+
+    def windows_output_path
+      File.join(@output_dir, @name)
+    end
+
+    def windows_exe_path
+      File.join(windows_output_path, "#{@name}.bat")
     end
 
     def app_path
@@ -337,6 +393,8 @@ module Scarpe
         "linux-#{@arch}"
       when "linux-musl"
         "linux-musl-#{@arch}"
+      when "windows"
+        "windows-#{@arch}"
       else
         raise "Unknown target OS: #{@target_os}"
       end
@@ -350,6 +408,8 @@ module Scarpe
         LINUX_EXT_PLATFORM[@arch]
       when "linux-musl"
         LINUX_MUSL_EXT_PLATFORM[@arch]
+      when "windows"
+        WINDOWS_EXT_PLATFORM[@arch]
       else
         raise "Unknown target OS: #{@target_os}"
       end
@@ -363,13 +423,22 @@ module Scarpe
         LINUX_RUBY_PLATFORM_DIR[@arch]
       when "linux-musl"
         LINUX_MUSL_RUBY_PLATFORM_DIR[@arch]
+      when "windows"
+        WINDOWS_RUBY_PLATFORM_DIR[@arch]
       else
         raise "Unknown target OS: #{@target_os}"
       end
     end
 
     def native_ext_suffix
-      @target_os == "macos" ? MACOS_EXT_SUFFIX : LINUX_EXT_SUFFIX
+      case @target_os
+      when "macos"
+        MACOS_EXT_SUFFIX
+      when "windows"
+        WINDOWS_EXT_SUFFIX
+      else
+        LINUX_EXT_SUFFIX
+      end
     end
 
     def runtime_tarball_url
@@ -522,13 +591,15 @@ module Scarpe
     end
 
     def find_gem_in_other_caches_cross_platform(gem_name, version)
-      # Search ALL platform caches (macOS x86_64, macOS arm64, Linux) for pure Ruby gems
-      # This is useful when building for Linux and gems are only in macOS cache
+      # Search ALL platform caches for pure Ruby gems
+      # This is useful when cross-building and gems are only in another platform's cache
       platforms = [
         "macos-x86_64",
         "macos-arm64",
         "linux-x86_64",
         "linux-arm64",
+        "windows-x86_64",
+        "windows-arm64",
       ]
 
       platforms.each do |platform_tag|
@@ -1848,6 +1919,448 @@ module Scarpe
       tarball
     end
 
+    # --- Windows Bundle Builder ---
+
+    def create_windows_structure
+      log "📦 Creating Windows bundle structure..."
+      FileUtils.rm_rf(windows_output_path)
+
+      # Windows structure:
+      # MyApp/
+      #   MyApp.bat           # Launcher script
+      #   ruby/               # Ruby runtime
+      #     bin/              # Ruby binaries
+      #     lib/              # Ruby libraries + gems
+      #   app/                # User application
+      #     main.rb
+      #     boot.rb
+      #     (assets)
+      dirs = [
+        windows_output_path,
+        File.join(windows_output_path, "ruby", "bin"),
+        File.join(windows_output_path, "ruby", "lib"),
+        File.join(windows_output_path, "app"),
+      ]
+
+      dirs.each { |d| FileUtils.mkdir_p(d) }
+      vlog "Created Windows bundle structure"
+    end
+
+    def copy_ruby_runtime_windows
+      log "📥 Copying Ruby runtime (Windows)..."
+
+      src = runtime_cache_path
+      dst_ruby = File.join(windows_output_path, "ruby")
+
+      # Copy Ruby binaries
+      bin_src = File.join(src, "bin")
+      bin_real_src = File.join(src, "bin.real")
+
+      # Traveling Ruby on Windows has bin/ with wrapper scripts and bin.real/ with actual .exe files
+      if Dir.exist?(bin_real_src)
+        # Copy the real executables
+        FileUtils.cp_r(bin_real_src, File.join(dst_ruby, "bin.real"))
+        # Copy wrapper scripts too (for compatibility)
+        Dir.glob(File.join(bin_src, "*")).each do |f|
+          FileUtils.cp(f, File.join(dst_ruby, "bin", File.basename(f)))
+        end
+      else
+        # Simpler structure - just copy bin/
+        FileUtils.cp_r(bin_src, File.join(dst_ruby, "bin"))
+      end
+
+      # Copy Ruby lib (stdlib) but NOT gems
+      stdlib_src = File.join(src, "lib", "ruby")
+      dst_ruby_lib = File.join(dst_ruby, "lib", "ruby")
+      FileUtils.mkdir_p(dst_ruby_lib)
+
+      Dir[File.join(stdlib_src, "*")].each do |item|
+        item_name = File.basename(item)
+        next if item_name == "gems"  # Skip gems, we copy only required ones
+        FileUtils.cp_r(item, dst_ruby_lib)
+      end
+
+      # Create empty gems structure
+      FileUtils.mkdir_p(File.join(dst_ruby_lib, "gems", RUBY_ABI, "gems"))
+      FileUtils.mkdir_p(File.join(dst_ruby_lib, "gems", RUBY_ABI, "specifications"))
+      FileUtils.mkdir_p(File.join(dst_ruby_lib, "gems", RUBY_ABI, "extensions"))
+
+      # Copy DLLs from lib/ root (Windows-specific shared libraries)
+      Dir[File.join(src, "lib", "*.dll")].each do |dll|
+        FileUtils.cp(dll, File.join(dst_ruby, "lib"))
+      end
+
+      # Copy site_ruby and vendor_ruby if they exist
+      %w[site_ruby vendor_ruby].each do |dir|
+        src_dir = File.join(stdlib_src, dir)
+        if Dir.exist?(src_dir)
+          FileUtils.cp_r(src_dir, dst_ruby_lib)
+        end
+      end
+
+      vlog "Copied Ruby runtime"
+    end
+
+    def copy_gems_windows
+      log "📚 Copying gems (Windows)..."
+
+      src_gems_root = File.join(runtime_cache_path, "lib", "ruby", "gems", RUBY_ABI)
+      src_gems = File.join(src_gems_root, "gems")
+      src_specs = File.join(src_gems_root, "specifications")
+
+      dst_gems_root = File.join(windows_output_path, "ruby", "lib", "ruby", "gems", RUBY_ABI)
+      dst_gems = File.join(dst_gems_root, "gems")
+      dst_specs = File.join(dst_gems_root, "specifications")
+
+      FileUtils.mkdir_p(dst_gems)
+      FileUtils.mkdir_p(dst_specs)
+
+      gems_copied = []
+
+      REQUIRED_GEMS.each do |gem_name, version, _platform|
+        next if @minimal && OPTIONAL_GEMS.include?(gem_name)
+
+        gem_dir_name = find_gem_dir(src_gems_root, gem_name, version, nil)
+        if gem_dir_name
+          gem_full_path = File.join(src_gems, gem_dir_name)
+          FileUtils.cp_r(gem_full_path, dst_gems) if Dir.exist?(gem_full_path)
+          gems_copied << gem_dir_name
+
+          spec_file = File.join(src_specs, "#{gem_dir_name}.gemspec")
+          FileUtils.cp(spec_file, dst_specs) if File.exist?(spec_file)
+        else
+          # Try other platform caches for pure-ruby gems
+          result = find_gem_in_other_caches_cross_platform(gem_name, version)
+          if result
+            alt_gem_dir, alt_gems_root = result
+            alt_gem_path = File.join(alt_gems_root, "gems", alt_gem_dir)
+            FileUtils.cp_r(alt_gem_path, dst_gems) if Dir.exist?(alt_gem_path)
+            gems_copied << alt_gem_dir
+
+            alt_spec = File.join(alt_gems_root, "specifications", "#{alt_gem_dir}.gemspec")
+            FileUtils.cp(alt_spec, dst_specs) if File.exist?(alt_spec)
+          else
+            vlog "⚠️  Could not find gem: #{gem_name}"
+          end
+        end
+      end
+
+      vlog "Copied #{gems_copied.length} gems"
+
+      overlay_dev_sources_windows if @dev
+    end
+
+    def overlay_dev_sources_windows
+      SCARPE_DEV_GEMS.each do |gem_name, paths|
+        src_lib = File.join(@scarpe_root, paths[:lib])
+        next unless File.directory?(src_lib)
+
+        dst_gems = File.join(windows_output_path, "ruby", "lib", "ruby", "gems", RUBY_ABI, "gems")
+        gem_dir = Dir[File.join(dst_gems, "#{gem_name}-*")].first
+        next unless gem_dir
+
+        dst_lib = File.join(gem_dir, "lib")
+        FileUtils.rm_rf(dst_lib)
+        FileUtils.cp_r(src_lib, gem_dir)
+        vlog "Overlaid #{gem_name} with dev source"
+      end
+    end
+
+    def copy_native_extensions_windows
+      log "🔧 Copying native extensions (Windows)..."
+
+      # Windows Traveling Ruby uses similar structure to Linux
+      src_ext = File.join(runtime_cache_path, "lib", "ruby", "gems", RUBY_ABI, "extensions", ext_platform_dir, "#{RUBY_ABI}-static")
+      dst_ext = File.join(windows_output_path, "ruby", "lib", "ruby", "gems", RUBY_ABI, "extensions", ext_platform_dir, "#{RUBY_ABI}-static")
+
+      unless Dir.exist?(src_ext)
+        # Try without -static suffix
+        src_ext = File.join(runtime_cache_path, "lib", "ruby", "gems", RUBY_ABI, "extensions", ext_platform_dir, RUBY_ABI)
+      end
+
+      unless Dir.exist?(src_ext)
+        vlog "No native extensions directory found"
+        return
+      end
+
+      FileUtils.mkdir_p(dst_ext)
+
+      NATIVE_EXTENSION_GEMS.each do |gem|
+        next if @minimal && OPTIONAL_GEMS.include?(gem)
+
+        gem_ext = Dir[File.join(src_ext, "#{gem}-*")].first
+        if gem_ext
+          FileUtils.cp_r(gem_ext, dst_ext)
+          vlog "Copied #{gem} native extension"
+        end
+      end
+    end
+
+    def copy_webview_extension_windows
+      log "🖼️  Copying webview extension (Windows)..."
+
+      ext_dir = File.join(windows_output_path, "ruby", "lib", "ruby", "gems", RUBY_ABI, "gems", "webview_ruby-0.1.2", "ext", ext_platform_dir)
+      FileUtils.mkdir_p(ext_dir)
+
+      # Check for pre-built extension in cache
+      cached_ext = File.join(@cache_dir, "webview-ext", "webview-#{platform_string}.dll")
+
+      if File.exist?(cached_ext)
+        FileUtils.cp(cached_ext, File.join(ext_dir, "webview.dll"))
+        vlog "Copied pre-built webview extension"
+      elsif @skip_webview_check
+        warn "⚠️  Skipping webview extension (--skip-webview-check) - app will NOT run!"
+        vlog "Creating placeholder for webview extension"
+        File.write(File.join(ext_dir, "webview.dll"), "# PLACEHOLDER - compile and replace this file\n")
+      else
+        raise <<~ERROR
+          Missing pre-built webview extension for #{platform_string}.
+
+          The webview native extension must be compiled on a Windows system with
+          Visual Studio or MinGW and the WebView2 SDK installed.
+
+          To build manually with MinGW:
+            g++ -shared -static-libgcc -static-libstdc++ \\
+              -DWEBVIEW_EDGE \\
+              -o webview.dll \\
+              webview.cpp \\
+              -lwebview2loader -lole32 -lshell32 -lshlwapi -luser32
+
+          Or with Visual Studio:
+            cl /LD /DWEBVIEW_EDGE webview.cpp \\
+              WebView2Loader.lib ole32.lib shell32.lib shlwapi.lib user32.lib
+
+          Place the compiled .dll in: #{File.dirname(cached_ext)}/
+
+          Tip: Use --skip-webview-check to build anyway (for testing structure).
+        ERROR
+      end
+    end
+
+    def copy_user_app_windows
+      log "📄 Copying user app..."
+
+      app_dir = File.join(windows_output_path, "app")
+      FileUtils.cp(@app_file, File.join(app_dir, "main.rb"))
+
+      # Copy any assets from the same directory
+      app_source_dir = File.dirname(@app_file)
+      %w[*.png *.jpg *.jpeg *.gif *.svg *.ico *.ttf *.otf *.woff *.woff2 *.css *.js *.html].each do |pattern|
+        Dir[File.join(app_source_dir, pattern)].each do |asset|
+          FileUtils.cp(asset, app_dir)
+        end
+      end
+
+      # Copy well-known asset directories
+      %w[images assets fonts sounds].each do |subdir|
+        src_subdir = File.join(app_source_dir, subdir)
+        if Dir.exist?(src_subdir)
+          FileUtils.cp_r(src_subdir, File.join(app_dir, subdir))
+        end
+      end
+
+      vlog "Copied user application"
+    end
+
+    def write_boot_script_windows
+      boot_rb = File.join(windows_output_path, "app", "boot.rb")
+
+      File.write(boot_rb, <<~RUBY)
+        # Boot script for packaged Scarpe app (Windows)
+        # Auto-generated by scarpe package
+
+        # Relax dependency checking for packaged apps
+        module Gem
+          class Specification
+            alias_method :_packaged_activate_deps, :activate_dependencies
+            def activate_dependencies
+              _packaged_activate_deps
+            rescue Gem::MissingSpecError
+              # Optional dependency not present in bundle
+            end
+          end
+        end
+
+        # Suppress changelog warning
+        ENV["SCARPE_SILENCE_CHANGELOG"] = "1"
+        ENV["SCARPE_DISPLAY"] = "wv_local"
+
+        require "scarpe"
+        require "scarpe/wv"
+
+        # Load and run the app
+        load File.join(__dir__, "main.rb")
+      RUBY
+
+      vlog "Wrote boot.rb"
+    end
+
+    def write_windows_launcher
+      # Write a batch file launcher
+      batch_path = File.join(windows_output_path, "#{@name}.bat")
+
+      # Note: Using %~dp0 to get the directory containing the batch file
+      File.write(batch_path, <<~BATCH)
+        @echo off
+        REM #{@name} - Packaged with Scarpe
+        REM Auto-generated launcher script
+
+        setlocal EnableDelayedExpansion
+
+        REM Get the directory containing this batch file
+        set "APPDIR=%~dp0"
+        set "APPDIR=%APPDIR:~0,-1%"
+
+        REM Set up Ruby environment
+        set "RUBY_ROOT=%APPDIR%\\ruby"
+        set "GEM_HOME=%RUBY_ROOT%\\lib\\ruby\\gems\\#{RUBY_ABI}"
+        set "GEM_PATH=%GEM_HOME%"
+        set "PATH=%RUBY_ROOT%\\bin;%RUBY_ROOT%\\bin.real;%PATH%"
+
+        REM Check for WebView2 Runtime
+        REM WebView2 is required for the GUI - pre-installed on Windows 11
+        reg query "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" >nul 2>&1
+        if errorlevel 1 (
+            reg query "HKEY_CURRENT_USER\\Software\\Microsoft\\EdgeUpdate\\Clients\\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" >nul 2>&1
+            if errorlevel 1 (
+                echo.
+                echo ERROR: Microsoft WebView2 Runtime is required but not installed.
+                echo.
+                echo Download it from:
+                echo   https://developer.microsoft.com/en-us/microsoft-edge/webview2/
+                echo.
+                echo Or install via winget:
+                echo   winget install Microsoft.EdgeWebView2Runtime
+                echo.
+                pause
+                exit /b 1
+            )
+        )
+
+        REM Find the Ruby executable
+        if exist "%RUBY_ROOT%\\bin.real\\ruby.exe" (
+            set "RUBY_EXE=%RUBY_ROOT%\\bin.real\\ruby.exe"
+        ) else (
+            set "RUBY_EXE=%RUBY_ROOT%\\bin\\ruby.exe"
+        )
+
+        REM Change to app directory and run
+        cd /d "%APPDIR%\\app"
+        "%RUBY_EXE%" boot.rb
+      BATCH
+
+      vlog "Wrote #{@name}.bat launcher"
+    end
+
+    def copy_icon_windows
+      return unless @icon && File.exist?(@icon)
+
+      # For Windows, we just copy the icon to the app directory
+      # A proper .exe launcher with embedded icon would require more work
+      icon_dest = File.join(windows_output_path, "app", "icon" + File.extname(@icon))
+      FileUtils.cp(@icon, icon_dest)
+      vlog "Copied application icon"
+    end
+
+    def strip_unnecessary_files_windows
+      log "🗑️  Stripping unnecessary files..."
+
+      gems_dir = File.join(windows_output_path, "ruby", "lib", "ruby", "gems", RUBY_ABI, "gems")
+      ruby_dir = File.join(windows_output_path, "ruby", "lib", "ruby")
+
+      # Remove development files
+      patterns = %w[
+        **/test/**
+        **/spec/**
+        **/tests/**
+        **/*.md
+        **/*.txt
+        **/CHANGELOG*
+        **/README*
+        **/LICENSE*
+        **/Rakefile
+        **/Gemfile*
+        **/.git*
+        **/.rubocop*
+      ]
+
+      patterns.each do |pattern|
+        Dir.glob(File.join(gems_dir, pattern)).each do |f|
+          FileUtils.rm_rf(f)
+        end
+      end
+
+      # Remove C source files (not needed on Windows either)
+      %w[*.c *.h *.cpp *.cxx *.o Makefile mkmf.log].each do |pattern|
+        Dir.glob(File.join(gems_dir, "**", pattern)).each do |f|
+          File.delete(f) if File.file?(f)
+        end
+      end
+
+      # Additional minimal stripping
+      strip_minimal_windows(gems_dir, ruby_dir) if @minimal
+
+      vlog "Stripped unnecessary files"
+    end
+
+    def strip_minimal_windows(gems_dir, ruby_dir)
+      # Similar to regular strip_minimal but adapted for Windows paths
+      OPTIONAL_GEMS.each do |gem_name|
+        Dir.glob(File.join(gems_dir, "#{gem_name}-*")).each do |d|
+          FileUtils.rm_rf(d)
+          vlog "  Removed gem: #{File.basename(d)}"
+        end
+        specs_dir = File.join(File.dirname(gems_dir), "specifications")
+        Dir.glob(File.join(specs_dir, "#{gem_name}-*")).each do |s|
+          File.delete(s) if File.file?(s)
+        end
+      end
+
+      # Remove SSL DLLs in minimal mode
+      Dir.glob(File.join(windows_output_path, "ruby", "lib", "libcrypto*")).each do |f|
+        File.delete(f)
+      end
+      Dir.glob(File.join(windows_output_path, "ruby", "lib", "libssl*")).each do |f|
+        File.delete(f)
+      end
+
+      # Remove optional stdlib modules
+      stdlib_dir = File.join(ruby_dir, RUBY_ABI)
+      MINIMAL_STRIP_STDLIB.each do |lib|
+        path = File.join(stdlib_dir, lib)
+        FileUtils.rm_rf(path) if Dir.exist?(path)
+        rb_file = File.join(stdlib_dir, "#{lib}.rb")
+        File.delete(rb_file) if File.exist?(rb_file)
+      end
+    end
+
+    def create_windows_zip
+      log "📦 Creating distribution archive..."
+
+      # Create a .zip file for easy distribution
+      zip_path = File.join(@output_dir, "#{@name}-#{@arch}-windows.zip")
+      FileUtils.rm_f(zip_path)
+
+      # Use PowerShell's Compress-Archive on Windows, or zip on Unix
+      if Gem.win_platform?
+        # On Windows
+        ps_command = "Compress-Archive -Path '#{windows_output_path}' -DestinationPath '#{zip_path}' -Force"
+        system("powershell", "-Command", ps_command, [:out, :err] => @verbose ? $stdout : File::NULL)
+      else
+        # On macOS/Linux (cross-building)
+        Dir.chdir(@output_dir) do
+          system("zip", "-r", "-q", zip_path, File.basename(windows_output_path), [:out, :err] => @verbose ? $stdout : File::NULL)
+        end
+      end
+
+      if File.exist?(zip_path)
+        zip_size = (File.size(zip_path) / 1024.0 / 1024.0).round(1)
+        log "   ✅ Created #{File.basename(zip_path)} (#{zip_size}MB)"
+      end
+
+      windows_output_path
+    end
+
     # --- Class-level entry point for CLI ---
 
     def self.run(args)
@@ -1926,6 +2439,9 @@ module Scarpe
         when "--linux-musl"
           options[:target_os] = "linux-musl"
           i += 1
+        when "--windows"
+          options[:target_os] = "windows"
+          i += 1
         when "--skip-webview-check"
           options[:skip_webview_check] = true
           i += 1
@@ -1951,14 +2467,16 @@ module Scarpe
         Output formats:
           macOS (default):  .app bundle (optionally as .dmg disk image)
           Linux:            AppImage or .tar.gz bundle
+          Windows:          Folder with .bat launcher (+ .zip for distribution)
 
         Options:
           -n, --name NAME       Application name (default: derived from filename)
           -i, --icon FILE       Application icon (.icns/.png for macOS, .png/.svg for Linux)
           -a, --arch ARCH       Target architecture: x86_64 or arm64 (default: current)
-          -t, --target OS       Target OS: macos, linux, linux-musl (default: current)
+          -t, --target OS       Target OS: macos, linux, linux-musl, windows (default: current)
               --linux           Shortcut for --target linux
               --linux-musl      Shortcut for --target linux-musl (Alpine/Docker)
+              --windows         Shortcut for --target windows
           -o, --output DIR      Output directory (default: current directory)
           -V, --verbose         Show detailed progress
               --dev             Use local development Scarpe source (not published gems)
@@ -1986,6 +2504,11 @@ module Scarpe
           scarpe package myapp.rb --linux --minimal
           scarpe package myapp.rb --target linux-musl --arch arm64
 
+          # Windows (cross-build from macOS/Linux)
+          scarpe package myapp.rb --windows
+          scarpe package myapp.rb --windows --minimal
+          scarpe package myapp.rb --windows --arch arm64  # Windows ARM
+
         The packaged app requires no Ruby installation to run.
         First run downloads and caches the Ruby runtime (~58MB).
 
@@ -1993,6 +2516,13 @@ module Scarpe
           - Requires WebKitGTK on the target system (libwebkit2gtk-4.1-0)
           - Requires pre-built webview extension (compile with --verbose for instructions)
           - AppImage creation requires appimagetool (falls back to .tar.gz if not found)
+
+        Windows packaging notes:
+          - Requires WebView2 Runtime on the target system (pre-installed on Windows 11)
+          - Windows 10 users must install WebView2: https://go.microsoft.com/fwlink/p/?LinkId=2124703
+          - Requires pre-built webview.dll extension (compile with --verbose for instructions)
+          - Cross-build support: build Windows packages from macOS/Linux
+          - Creates MyApp/ folder + MyApp.zip for distribution
       USAGE
     end
   end
