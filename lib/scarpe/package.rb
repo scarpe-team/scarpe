@@ -118,7 +118,7 @@ module Scarpe
     # fastimage: only for Image widget auto-sizing
     # rake: build tool, not runtime
     # minitest: testing framework, not runtime
-    OPTIONAL_GEMS = %w[nokogiri sqlite3 fastimage rake minitest].freeze
+    OPTIONAL_GEMS = %w[nokogiri sqlite3 fastimage rake].freeze  # minitest needed by scarpe/shoes_spec.rb
 
     # Stdlib modules safe to strip in minimal mode (not loaded by Scarpe runtime)
     # These are all development/build/network tools not needed for GUI apps.
@@ -1772,7 +1772,9 @@ module Scarpe
         export LD_LIBRARY_PATH="$HERE/usr/lib:$LD_LIBRARY_PATH"
         export GEM_HOME="$HERE/usr/lib/ruby/gems/#{RUBY_ABI}"
         export GEM_PATH="$GEM_HOME"
-        export RUBYLIB="$HERE/usr/lib/ruby/#{RUBY_ABI}:$HERE/usr/lib/ruby/site_ruby/#{RUBY_ABI}:$HERE/usr/lib/ruby/vendor_ruby/#{RUBY_ABI}"
+        # Include platform dir (x86_64-linux or aarch64-linux) for rbconfig.rb
+        PLATFORM_DIR=$(uname -m)-linux
+        export RUBYLIB="$HERE/usr/lib/ruby/#{RUBY_ABI}/$PLATFORM_DIR:$HERE/usr/lib/ruby/#{RUBY_ABI}:$HERE/usr/lib/ruby/site_ruby/#{RUBY_ABI}:$HERE/usr/lib/ruby/vendor_ruby/#{RUBY_ABI}"
         export RUBYOPT="-r$HERE/usr/lib/ruby/site_ruby/traveling_ruby_restore_environment.rb"
 
         # Run the app
@@ -1830,16 +1832,15 @@ module Scarpe
       gems_dir = File.join(appdir_path, "usr/lib/ruby/gems", RUBY_ABI, "gems")
       ruby_dir = File.join(appdir_path, "usr/lib/ruby")
 
-      # Remove development files
+      # Remove development files (be careful not to delete code files like changelog.rb!)
       patterns = %w[
         **/test/**
         **/spec/**
         **/tests/**
-        **/*.md
-        **/*.txt
-        **/CHANGELOG*
-        **/README*
-        **/LICENSE*
+        **/CHANGELOG.md
+        **/README.md
+        **/LICENSE
+        **/LICENSE.txt
         **/Rakefile
         **/Gemfile*
         **/.git*
@@ -2269,16 +2270,15 @@ module Scarpe
       gems_dir = File.join(windows_output_path, "ruby", "lib", "ruby", "gems", RUBY_ABI, "gems")
       ruby_dir = File.join(windows_output_path, "ruby", "lib", "ruby")
 
-      # Remove development files
+      # Remove development files (be careful not to delete code files like changelog.rb!)
       patterns = %w[
         **/test/**
         **/spec/**
         **/tests/**
-        **/*.md
-        **/*.txt
-        **/CHANGELOG*
-        **/README*
-        **/LICENSE*
+        **/CHANGELOG.md
+        **/README.md
+        **/LICENSE
+        **/LICENSE.txt
         **/Rakefile
         **/Gemfile*
         **/.git*
