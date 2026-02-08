@@ -3,13 +3,13 @@
 module Scarpe::Components::Calzini
   def background_element(props)
     HTML.render do |h|
-      h.div(id: html_id, style: background_style(props))
+      h.div(id: html_id, style: background_drawable_style(props))
     end
   end
 
   private
 
-  def background_style(props)
+  def background_drawable_style(props)
     styles = {
       height: :inherit,
       width: :inherit,
