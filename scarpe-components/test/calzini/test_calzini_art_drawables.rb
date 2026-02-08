@@ -88,18 +88,26 @@ class TestCalziniArtDrawables < Minitest::Test
   end
 
   def test_star_simple
-    start = %{<div id="elt-1"><svg width="2.0" height="2.0" style="fill:black"><polygon points="2.0,1.0,1.4}
-    finish = %{" style="stroke:black;stroke-width:2" /></svg></div>}
+    start = %{<div id="elt-1"><svg width="2.0" height="2.0"><polygon points="2.0,1.0,1.4}
+    finish = %{" style="fill:black;stroke:black;stroke-width:2" /></svg></div>}
     assert_start_and_finish start,
       finish,
       @calzini.render("star", { "points" => 5, "outer" => 2.0, "inner" => 1.0 })
   end
 
   def test_star_colors
-    start = %{<div id="elt-1"><svg width="2.0" height="2.0" style="fill:red"><polygon points="2.0,1.0,1.4}
-    finish = %{" style="stroke:green;stroke-width:2" /></svg></div>}
+    start = %{<div id="elt-1"><svg width="2.0" height="2.0"><polygon points="2.0,1.0,1.4}
+    finish = %{" style="fill:red;stroke:green;stroke-width:2" /></svg></div>}
     assert_start_and_finish start,
       finish,
       @calzini.render("star", { "points" => 5, "outer" => 2.0, "inner" => 1.0, "draw_context" => { "fill" => "red", "stroke" => "green" } })
+  end
+
+  def test_star_image_pattern
+    # Test that image paths create SVG patterns
+    html = @calzini.render("star", { "points" => 5, "outer" => 100.0, "inner" => 50.0, "fill" => "avatar.png" })
+    assert html.include?("<pattern id=\"star-pattern-elt-1\""), "Should create pattern element"
+    assert html.include?("<image href=\"avatar.png\""), "Should include image in pattern"
+    assert html.include?("fill:url(#star-pattern-elt-1)"), "Should reference pattern in polygon"
   end
 end

@@ -17,19 +17,31 @@ module Scarpe::Components::Calzini
   def rect_element(props)
     dc = props["draw_context"] || {}
     rotate = dc["rotate"]
+    raw_fill = props["fill"] || dc["fill"]
+    pattern_id = "rect-pattern-#{html_id}"
+
     HTML.render do |h|
       h.div(id: html_id, style: drawable_style(props)) do
-        width = props["width"].to_i
-        height = props["height"].to_i
+        svg_width = props["width"].to_i
+        svg_height = props["height"].to_i
         if props["curve"]
-          width += 2 * props["curve"].to_i
-          height += 2 * props["curve"].to_i
+          svg_width += 2 * props["curve"].to_i
+          svg_height += 2 * props["curve"].to_i
         end
-        h.svg(width:, height:) do
-          attrs = { x: props["left"], y: props["top"], width: props["width"], height: props["height"], style: rect_svg_style(props) }
+        h.svg(width: svg_width, height: svg_height) do
+          if image_pattern_fill?(raw_fill)
+            h.defs do
+              h.pattern(id: pattern_id, patternUnits: "userSpaceOnUse", width: svg_width, height: svg_height) do
+                h.image(href: raw_fill, width: svg_width, height: svg_height, preserveAspectRatio: "xMidYMid slice")
+              end
+            end
+            attrs = { x: props["left"], y: props["top"], width: props["width"], height: props["height"], style: rect_svg_style_with_pattern(props, pattern_id) }
+          else
+            attrs = { x: props["left"], y: props["top"], width: props["width"], height: props["height"], style: rect_svg_style(props) }
+          end
           attrs[:rx] = props["curve"] if props["curve"]
 
-          h.rect(**attrs, transform: "rotate(#{rotate} #{width / 2} #{height / 2})")
+          h.rect(**attrs, transform: "rotate(#{rotate} #{svg_width / 2} #{svg_height / 2})")
         end
       end
     end
@@ -47,12 +59,26 @@ module Scarpe::Components::Calzini
 
   def star_element(props, &block)
     dc = props["draw_context"] || {}
-    fill = first_color_of(props["fill"], dc["fill"], "black")
+    raw_fill = props["fill"] || dc["fill"] || "black"
     stroke = first_color_of(props["stroke"], dc["stroke"], "black")
+    outer = props["outer"]
+    pattern_id = "star-pattern-#{html_id}"
+
     HTML.render do |h|
       h.div(id: html_id, style: star_style(props)) do
-        h.svg(width: props["outer"], height: props["outer"], style: "fill:#{fill}") do
-          h.polygon(points: star_points(props), style: "stroke:#{stroke};stroke-width:2")
+        h.svg(width: outer, height: outer) do
+          if image_pattern_fill?(raw_fill)
+            # Create SVG pattern for image fill
+            h.defs do
+              h.pattern(id: pattern_id, patternUnits: "userSpaceOnUse", width: outer, height: outer) do
+                h.image(href: raw_fill, width: outer, height: outer, preserveAspectRatio: "xMidYMid slice")
+              end
+            end
+            h.polygon(points: star_points(props), style: "fill:url(##{pattern_id});stroke:#{stroke};stroke-width:2")
+          else
+            fill = first_color_of(raw_fill, "black")
+            h.polygon(points: star_points(props), style: "fill:#{fill};stroke:#{stroke};stroke-width:2")
+          end
         end
         block.call(h) if block_given?
       end
@@ -61,23 +87,41 @@ module Scarpe::Components::Calzini
 
   def oval_element(props, &block)
     dc = props["draw_context"] || {}
-    fill = first_color_of(props["fill"], dc["fill"], "black")
+    raw_fill = props["fill"] || dc["fill"] || "black"
     stroke = first_color_of(props["stroke"], dc["stroke"], "black")
     strokewidth = props["strokewidth"] || dc["strokewidth"] || "2"
     radius = props["radius"]
-    width = radius * 2
-    height = props["height"] || radius * 2 # If there's a height, it's an oval, if not, circle
+    svg_width = radius * 2
+    svg_height = props["height"] || radius * 2 # If there's a height, it's an oval, if not, circle
     center = props["center"] || false
+    pattern_id = "oval-pattern-#{html_id}"
+
     HTML.render do |h|
       h.div(id: html_id, style: oval_style(props)) do
-        h.svg(width: width, height: height, style: "fill:#{fill};") do
-          h.ellipse(
-            cx: center ? radius : 0,
-            cy: center ? height / 2 : 0,
-            rx: width ? width / 2 : radius,
-            ry: height ? height / 2 : radius,
-            style: "stroke:#{stroke};stroke-width:#{strokewidth};",
-          )
+        h.svg(width: svg_width, height: svg_height) do
+          if image_pattern_fill?(raw_fill)
+            h.defs do
+              h.pattern(id: pattern_id, patternUnits: "userSpaceOnUse", width: svg_width, height: svg_height) do
+                h.image(href: raw_fill, width: svg_width, height: svg_height, preserveAspectRatio: "xMidYMid slice")
+              end
+            end
+            h.ellipse(
+              cx: center ? radius : 0,
+              cy: center ? svg_height / 2 : 0,
+              rx: svg_width ? svg_width / 2 : radius,
+              ry: svg_height ? svg_height / 2 : radius,
+              style: "fill:url(##{pattern_id});stroke:#{stroke};stroke-width:#{strokewidth};",
+            )
+          else
+            fill = first_color_of(raw_fill, "black")
+            h.ellipse(
+              cx: center ? radius : 0,
+              cy: center ? svg_height / 2 : 0,
+              rx: svg_width ? svg_width / 2 : radius,
+              ry: svg_height ? svg_height / 2 : radius,
+              style: "fill:#{fill};stroke:#{stroke};stroke-width:#{strokewidth};",
+            )
+          end
         end
         block.call(h) if block_given?
       end
@@ -85,6 +129,18 @@ module Scarpe::Components::Calzini
   end
 
   private
+
+  # Detect if a fill value is an image path (for pattern fills)
+  # Shoes3 supports fill("image.png") to fill shapes with an image pattern
+  IMAGE_EXTENSIONS = %w[.png .jpg .jpeg .gif .svg .webp .bmp].freeze
+
+  def image_pattern_fill?(fill)
+    return false unless fill.is_a?(String)
+    return false if fill.start_with?("#") # hex color
+    return false if fill.start_with?("rgb") # rgb/rgba
+    # Check if it looks like an image file path
+    IMAGE_EXTENSIONS.any? { |ext| fill.downcase.end_with?(ext) }
+  end
 
   def arc_style(props)
     drawable_style(props).merge({
@@ -130,6 +186,13 @@ module Scarpe::Components::Calzini
       stroke: first_color_of(props["stroke"], (props["draw_context"] || {})["stroke"]),
       #"stroke-width": "1",
       fill: first_color_of(props["fill"], (props["draw_context"] || {})["fill"]),
+    }.compact
+  end
+
+  def rect_svg_style_with_pattern(props, pattern_id)
+    {
+      stroke: first_color_of(props["stroke"], (props["draw_context"] || {})["stroke"]),
+      fill: "url(##{pattern_id})",
     }.compact
   end
 

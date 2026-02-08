@@ -17,6 +17,7 @@ class Scarpe::Components::HTML
     :code,
     :defs,
     :marker,
+    :pattern,  # SVG pattern element for image fills
     :u,
     :line,
     :span,
@@ -30,7 +31,7 @@ class Scarpe::Components::HTML
     :h4,
     :h5,
   ].freeze
-  VOID_TAGS = [:input, :img, :polygon, :source, :link, :path, :rect, :ellipse].freeze
+  VOID_TAGS = [:input, :img, :polygon, :source, :link, :path, :rect, :ellipse, :image].freeze  # :image is SVG image element
 
   TAGS = (CONTENT_TAGS + VOID_TAGS).freeze
 
