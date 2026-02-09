@@ -13,6 +13,15 @@ if ARGV[0] == "package"
   exit
 end
 
+# Handle "extension" command early — manage webview native extensions
+if ARGV[0] == "extension"
+  dev_path = File.expand_path("../lib", __dir__)
+  $LOAD_PATH.prepend dev_path
+  require_relative "../lib/scarpe/extension"
+  Scarpe::Extension.run(ARGV[1..])
+  exit
+end
+
 # --dev option applies to all actions
 use_dev = ARGV.delete("--dev") ? true : false
 use_debug = ARGV.delete("--debug") ? true : false
