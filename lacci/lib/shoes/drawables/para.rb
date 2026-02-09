@@ -154,6 +154,15 @@ class Shoes
       self.text
     end
 
+    # Return the raw contents of the para, including TextDrawables.
+    # Unlike #text which returns plain text, this returns the original
+    # array of strings and TextDrawable objects (em, strong, link, etc.)
+    #
+    # @return [Array<String, TextDrawable>] the text children
+    def contents
+      @text_children.dup
+    end
+
     # --- Text Cursor System (Shoes3 Para cursor/marker/hit) ---
 
     # Get the text cursor position (integer character index).

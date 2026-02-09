@@ -83,6 +83,15 @@ class Shoes
       self.text
     end
 
+    # Return the raw contents, including nested TextDrawables.
+    # Unlike #text which returns plain text, this returns the original
+    # array of strings and TextDrawable objects.
+    #
+    # @return [Array<String, TextDrawable>] the text children
+    def contents
+      @text_children.dup
+    end
+
     private
 
     # Text_children alternates strings and TextDrawables, so we can't just pass
