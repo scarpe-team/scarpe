@@ -344,6 +344,32 @@ module Scarpe
       Dir.glob(File.join(path, "**/*")).sum { |f| File.file?(f) ? File.size(f) : 0 }
     end
 
+    def strip_encodings(stdlib_dir)
+      # Strip non-UTF encodings to save ~3.5MB
+      # Keep: encdb.so (required), cesu_8.so, utf_16/32 variants
+      # Remove: CJK encodings (big5, euc_*, gb*, shift_jis), legacy ISO/Windows encodings
+      # Also remove trans/ directory (encoding transcoding tables)
+      ext_dir = File.join(stdlib_dir, ruby_platform_dir, "enc")
+      return unless Dir.exist?(ext_dir)
+
+      keep_encodings = %w[encdb.so cesu_8.so utf_16be.so utf_16le.so utf_32be.so utf_32le.so]
+      enc_saved = 0
+
+      Dir.children(ext_dir).each do |f|
+        next if keep_encodings.include?(f)
+        path = File.join(ext_dir, f)
+        if File.file?(path)
+          enc_saved += File.size(path)
+          File.delete(path)
+        elsif Dir.exist?(path)
+          enc_saved += dir_size(path)
+          FileUtils.rm_rf(path)
+        end
+      end
+
+      vlog "  Removed encodings: #{(enc_saved / 1024.0 / 1024.0).round(1)}MB" if enc_saved > 0
+    end
+
     def find_scarpe_root
       # Walk up from this file to find the Scarpe repo root
       dir = File.expand_path("../../..", __FILE__)
@@ -1212,7 +1238,7 @@ module Scarpe
       vlog "  Stripped to #{final_size}"
     end
 
-    def strip_minimal(gems_dir, ruby_dir)
+    def strip_minimal(gems_dir, ruby_dir, stdlib_dir: nil)
       log "🔪 Minimal mode: stripping optional dependencies..."
 
       # Remove optional gems (nokogiri, sqlite3, fastimage, rake)
@@ -1244,7 +1270,12 @@ module Scarpe
       File.delete(ca_cert) if File.exist?(ca_cert)
 
       # Remove stdlib modules not needed without network/SSL
-      stdlib_dir = File.join(ruby_dir, "lib/ruby/#{RUBY_ABI}")
+      # Path differs: macOS = ruby/lib/ruby/3.4.0, Linux = ruby/3.4.0
+      stdlib_dir ||= if @target_os == "linux" || @target_os == "linux-musl"
+        File.join(ruby_dir, RUBY_ABI)
+      else
+        File.join(ruby_dir, "lib/ruby/#{RUBY_ABI}")
+      end
       MINIMAL_STRIP_STDLIB.each do |lib|
         path = File.join(stdlib_dir, lib)
         FileUtils.rm_rf(path) if Dir.exist?(path)
@@ -1272,6 +1303,10 @@ module Scarpe
 
       # Remove unicode_normalize (228KB, rarely needed)
       FileUtils.rm_rf(File.join(stdlib_dir, "unicode_normalize"))
+
+      # Strip encodings: keep only UTF-8/16/32 (saves ~3.5MB)
+      # Most GUI apps only need UTF-8. Apps needing CJK/legacy encodings should not use minimal mode.
+      strip_encodings(stdlib_dir)
 
       # Remove rubygems/commands (232KB × 2 = 464KB — only needed for `gem` CLI)
       rubygems_commands_saved = 0
