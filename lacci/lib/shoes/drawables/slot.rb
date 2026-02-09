@@ -166,6 +166,15 @@ class Shoes::Slot < Shoes::Drawable
     super
   end
 
+  # Force a redraw of this slot and its contents.
+  # In Shoes3, this is used after modifying styles that don't automatically
+  # trigger a repaint, like gradients on backgrounds.
+  #
+  # @return [void]
+  def refresh_slot
+    send_shoes_event(event_name: "full_redraw_request")
+  end
+
   # Methods to add or remove children
 
   # Remove all children from this drawable. If a block

@@ -282,6 +282,10 @@ class Shoes
       send_shoes_event(event_name: 'destroy') if send_event
     end
 
+    # Close the application window. This is an alias for destroy
+    # that matches Shoes3 API.
+    alias close destroy
+
     def all_drawables
       out = []
 
@@ -579,6 +583,15 @@ class Shoes::App < Shoes::Drawable
   def dialog(**opts, &block)
     Shoes.app(**opts.merge(owner: self), &block)
   end
+
+  # Quit the application. This is an App-level alias for Shoes.quit
+  # that allows `quit` or `self.quit` from within an app block.
+  def quit
+    Shoes.quit
+  end
+
+  # Exit is an alias for quit, matching Shoes3 API.
+  alias exit quit
 
   private
 
