@@ -1853,7 +1853,72 @@ module Scarpe
         end
       end
 
-      # Additional minimal stripping
+      # Remove nested gem copies (scarpe gem bundles scarpe-components and lacci — 7.5MB!)
+      nested_removed = 0
+      %w[scarpe-components lacci].each do |nested|
+        nested_dir = Dir.glob(File.join(gems_dir, "scarpe-*/#{nested}")).first
+        if nested_dir && Dir.exist?(nested_dir)
+          nested_removed += dir_size(nested_dir)
+          FileUtils.rm_rf(nested_dir)
+        end
+      end
+      vlog "  Removed nested gems: #{(nested_removed / 1024.0 / 1024.0).round(1)}MB" if nested_removed > 0
+
+      # Remove examples/docs/spikes from gems (5MB+)
+      removable_dirs = %w[examples docs doc spikes experiments fonts templates tasks sig logger bin]
+      dirs_removed = 0
+      removable_dirs.each do |dir_name|
+        Dir.glob(File.join(gems_dir, "*", dir_name)).each do |d|
+          next unless Dir.exist?(d)
+          dirs_removed += dir_size(d)
+          FileUtils.rm_rf(d)
+        end
+      end
+      vlog "  Removed gem dirs: #{(dirs_removed / 1024.0 / 1024.0).round(1)}MB" if dirs_removed > 0
+
+      # FFI gem ships C source code and build artifacts (~2.7MB) not needed at runtime
+      ffi_ext = Dir.glob(File.join(gems_dir, "ffi-*/ext")).first
+      if ffi_ext && Dir.exist?(ffi_ext)
+        ffi_saved = dir_size(ffi_ext)
+        FileUtils.rm_rf(ffi_ext)
+        vlog "  Removed FFI ext: #{(ffi_saved / 1024.0 / 1024.0).round(1)}MB"
+      end
+
+      # Bootstrap theme cleanup — keep only one theme
+      theme_dir = Dir.glob(File.join(gems_dir, "scarpe-components-*/assets/bootstrap-themes")).first
+      if theme_dir && Dir.exist?(theme_dir)
+        keep_files = %w[bootstrap-flatly.css bootstrap.bundle.min.js bootstrap-icons.min.css]
+        themes_removed = 0
+        Dir.children(theme_dir).each do |f|
+          next if keep_files.include?(f)
+          path = File.join(theme_dir, f)
+          if File.file?(path)
+            themes_removed += File.size(path)
+            File.delete(path)
+          end
+        end
+        vlog "  Removed themes: #{(themes_removed / 1024.0 / 1024.0).round(1)}MB" if themes_removed > 0
+      end
+
+      # Remove stdlib modules not needed at runtime (8MB+)
+      stdlib_removable = %w[rdoc irb reline debug rbs ruby_vm rinda drb rss rexml bundler prism syntax_suggest did_you_mean error_highlight]
+      stdlib_dir = File.join(ruby_dir, RUBY_ABI)
+      stdlib_removed = 0
+      stdlib_removable.each do |lib|
+        path = File.join(stdlib_dir, lib)
+        if Dir.exist?(path)
+          stdlib_removed += dir_size(path)
+          FileUtils.rm_rf(path)
+        end
+        rb_file = File.join(stdlib_dir, "#{lib}.rb")
+        if File.exist?(rb_file)
+          stdlib_removed += File.size(rb_file)
+          File.delete(rb_file)
+        end
+      end
+      vlog "  Removed stdlib: #{(stdlib_removed / 1024.0 / 1024.0).round(1)}MB" if stdlib_removed > 0
+
+      # Additional minimal stripping (SSL, optional gems, etc.)
       strip_minimal(gems_dir, ruby_dir) if @minimal
 
       vlog "Stripped unnecessary files"
@@ -2297,6 +2362,71 @@ module Scarpe
           File.delete(f) if File.file?(f)
         end
       end
+
+      # Remove nested gem copies (scarpe gem bundles scarpe-components and lacci — 7.5MB!)
+      nested_removed = 0
+      %w[scarpe-components lacci].each do |nested|
+        nested_dir = Dir.glob(File.join(gems_dir, "scarpe-*/#{nested}")).first
+        if nested_dir && Dir.exist?(nested_dir)
+          nested_removed += dir_size(nested_dir)
+          FileUtils.rm_rf(nested_dir)
+        end
+      end
+      vlog "  Removed nested gems: #{(nested_removed / 1024.0 / 1024.0).round(1)}MB" if nested_removed > 0
+
+      # Remove examples/docs/spikes from gems (5MB+)
+      removable_dirs = %w[examples docs doc spikes experiments fonts templates tasks sig logger bin]
+      dirs_removed = 0
+      removable_dirs.each do |dir_name|
+        Dir.glob(File.join(gems_dir, "*", dir_name)).each do |d|
+          next unless Dir.exist?(d)
+          dirs_removed += dir_size(d)
+          FileUtils.rm_rf(d)
+        end
+      end
+      vlog "  Removed gem dirs: #{(dirs_removed / 1024.0 / 1024.0).round(1)}MB" if dirs_removed > 0
+
+      # FFI gem ships C source code and build artifacts (~2.7MB) not needed at runtime
+      ffi_ext = Dir.glob(File.join(gems_dir, "ffi-*/ext")).first
+      if ffi_ext && Dir.exist?(ffi_ext)
+        ffi_saved = dir_size(ffi_ext)
+        FileUtils.rm_rf(ffi_ext)
+        vlog "  Removed FFI ext: #{(ffi_saved / 1024.0 / 1024.0).round(1)}MB"
+      end
+
+      # Bootstrap theme cleanup — keep only one theme
+      theme_dir = Dir.glob(File.join(gems_dir, "scarpe-components-*/assets/bootstrap-themes")).first
+      if theme_dir && Dir.exist?(theme_dir)
+        keep_files = %w[bootstrap-flatly.css bootstrap.bundle.min.js bootstrap-icons.min.css]
+        themes_removed = 0
+        Dir.children(theme_dir).each do |f|
+          next if keep_files.include?(f)
+          path = File.join(theme_dir, f)
+          if File.file?(path)
+            themes_removed += File.size(path)
+            File.delete(path)
+          end
+        end
+        vlog "  Removed themes: #{(themes_removed / 1024.0 / 1024.0).round(1)}MB" if themes_removed > 0
+      end
+
+      # Remove stdlib modules not needed at runtime (8MB+)
+      stdlib_removable = %w[rdoc irb reline debug rbs ruby_vm rinda drb rss rexml bundler prism syntax_suggest did_you_mean error_highlight]
+      stdlib_dir = File.join(ruby_dir, RUBY_ABI)
+      stdlib_removed = 0
+      stdlib_removable.each do |lib|
+        path = File.join(stdlib_dir, lib)
+        if Dir.exist?(path)
+          stdlib_removed += dir_size(path)
+          FileUtils.rm_rf(path)
+        end
+        rb_file = File.join(stdlib_dir, "#{lib}.rb")
+        if File.exist?(rb_file)
+          stdlib_removed += File.size(rb_file)
+          File.delete(rb_file)
+        end
+      end
+      vlog "  Removed stdlib: #{(stdlib_removed / 1024.0 / 1024.0).round(1)}MB" if stdlib_removed > 0
 
       # Additional minimal stripping
       strip_minimal_windows(gems_dir, ruby_dir) if @minimal
