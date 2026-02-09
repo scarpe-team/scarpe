@@ -6,16 +6,19 @@ module Scarpe::Webview
       super
 
       # Bind click/hover/leave events (like Button)
-      bind("click") do
-        send_self_event(event_name: "click")
-      end
+      # Guard for tests that instantiate drawables directly without a display service
+      if DisplayService.instance&.app
+        bind("click") do
+          send_self_event(event_name: "click")
+        end
 
-      bind("hover") do
-        send_self_event(event_name: "hover")
-      end
+        bind("hover") do
+          send_self_event(event_name: "hover")
+        end
 
-      bind("leave") do
-        send_self_event(event_name: "leave")
+        bind("leave") do
+          send_self_event(event_name: "leave")
+        end
       end
 
       if @url.nil? || @url.empty?

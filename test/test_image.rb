@@ -18,24 +18,43 @@ class TestWebviewImage < ScarpeTest
 
   def test_renders_image
     img = Scarpe::Webview::Image.new(@default_properties)
+    html = img.to_html
 
-    assert_contains_html img.to_html, :img, id: img.html_id, src: @url
+    # Check essential attributes
+    assert_includes html, "<img"
+    assert_includes html, "id=\"#{img.html_id}\""
+    assert_includes html, "src=\"#{@url}\""
+    # Images now include event handlers
+    assert_includes html, "onclick="
+    assert_includes html, "onmouseover="
+    assert_includes html, "onmouseout="
   end
 
   def test_renders_image_with_specified_size
     width = 100
     height = 50
     img = Scarpe::Webview::Image.new(@default_properties.merge(width:, height:))
+    html = img.to_html
 
-    assert_contains_html img.to_html, :img, id: img.html_id, src: @url, style: "width:#{width}px;height:#{height}px"
+    assert_includes html, "<img"
+    assert_includes html, "id=\"#{img.html_id}\""
+    assert_includes html, "src=\"#{@url}\""
+    assert_includes html, "width:#{width}px"
+    assert_includes html, "height:#{height}px"
   end
 
   def test_renders_image_with_specified_position
     top = 1
     left = 5
     img = Scarpe::Webview::Image.new(@default_properties.merge(top:, left:))
+    html = img.to_html
 
-    assert_contains_html img.to_html, :img, id: img.html_id, src: @url, style: "position:absolute;top:#{top}px;left:#{left}px"
+    assert_includes html, "<img"
+    assert_includes html, "id=\"#{img.html_id}\""
+    assert_includes html, "src=\"#{@url}\""
+    assert_includes html, "position:absolute"
+    assert_includes html, "top:#{top}px"
+    assert_includes html, "left:#{left}px"
   end
 
   def test_renders_image_with_specified_size_and_position
@@ -44,21 +63,35 @@ class TestWebviewImage < ScarpeTest
     top = 1
     left = 5
     img = Scarpe::Webview::Image.new(@default_properties.merge(width:, height:, top:, left:))
+    html = img.to_html
 
-    assert_contains_html img.to_html,
-      :img,
-      id: img.html_id,
-      src: @url,
-      style: "position:absolute;top:#{top}px;left:#{left}px;width:#{width}px;height:#{height}px"
+    assert_includes html, "<img"
+    assert_includes html, "id=\"#{img.html_id}\""
+    assert_includes html, "src=\"#{@url}\""
+    assert_includes html, "position:absolute"
+    assert_includes html, "top:#{top}px"
+    assert_includes html, "left:#{left}px"
+    assert_includes html, "width:#{width}px"
+    assert_includes html, "height:#{height}px"
   end
 
-  def test_renders_clickable_image
-    target_url = "http://github.com/schwad/scarpe"
-    img = Scarpe::Webview::Image.new(@default_properties.merge("click" => target_url))
+  def test_renders_image_with_event_handlers
+    img = Scarpe::Webview::Image.new(@default_properties)
+    html = img.to_html
 
-    assert_includes img.to_html, "<a id=\"#{img.html_id}\" href=\"#{target_url}\">"\
-      "<img id=\"#{img.html_id}\" src=\"#{@url}\" />"\
-      "</a>"
+    # Images have click/hover/leave handlers via JavaScript
+    assert_includes html, "onclick=\"scarpeHandler('#{img.html_id}-click')\""
+    assert_includes html, "onmouseover=\"scarpeHandler('#{img.html_id}-hover')\""
+    assert_includes html, "onmouseout=\"scarpeHandler('#{img.html_id}-leave')\""
+  end
+
+  def test_renders_image_with_click_property
+    # When a "click" property is set, cursor should be pointer
+    img = Scarpe::Webview::Image.new(@default_properties.merge("click" => true))
+    html = img.to_html
+
+    assert_includes html, "cursor:pointer"
+    assert_includes html, "onclick="
   end
 end
 
