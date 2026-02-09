@@ -68,6 +68,8 @@ module Scarpe::Components::Calzini
     styles[:"font-size"] = dimensions_length(text_size(props["size"])) if props["size"]
 
     styles[:"font-family"] = props["font"] if props["font"]
+    # :stroke sets text color in Shoes3
+    styles[:color] = props["stroke"] if props["stroke"]
 
     styles
   end

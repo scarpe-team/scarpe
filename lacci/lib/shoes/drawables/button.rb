@@ -2,10 +2,10 @@
 
 class Shoes
   class Button < Shoes::Drawable
-    shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size, :tooltip, :icon, :icon_pos
+    shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size, :tooltip, :icon, :icon_pos, :font, :stroke
     shoes_events :click
 
-    init_args :text
+    opt_init_args :text
     # Creates a new Button object.
     #
     # @param text [String] The text displayed on the button.
