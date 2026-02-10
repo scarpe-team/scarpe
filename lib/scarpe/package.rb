@@ -1294,12 +1294,22 @@ module Scarpe
       end
       vlog "  Removed #{MINIMAL_STRIP_FILES.count} dev files: #{(stripped_files / 1024.0).round}KB" if stripped_files > 0
 
-      # Remove corresponding native extensions
+      # Remove corresponding native extensions (openssl=7MB, fiddle=115KB, ripper=392KB)
       ext_dir = File.join(stdlib_dir, ruby_platform_dir)
-      %w[openssl.bundle fiddle.bundle].each do |ext|
-        path = File.join(ext_dir, ext)
-        File.delete(path) if File.exist?(path)
+      ext_suffix = case @target_os
+        when "linux", "linux-musl" then ".so"
+        when "windows" then ".dll"
+        else ".bundle"  # macOS
       end
+      ssl_ext_saved = 0
+      %w[openssl fiddle ripper].each do |name|
+        path = File.join(ext_dir, "#{name}#{ext_suffix}")
+        if File.exist?(path)
+          ssl_ext_saved += File.size(path)
+          File.delete(path)
+        end
+      end
+      vlog "  Removed optional extensions: #{(ssl_ext_saved / 1024.0 / 1024.0).round(1)}MB" if ssl_ext_saved > 0
 
       # Remove unicode_normalize (228KB, rarely needed)
       FileUtils.rm_rf(File.join(stdlib_dir, "unicode_normalize"))
