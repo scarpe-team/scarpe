@@ -176,14 +176,41 @@ class Shoes
     end
 
     # In Shoes, gradient(color1, color2) creates a gradient pattern.
-    # Returns a string "color1-color2" that display services can render as CSS gradients.
-    def gradient(color1, color2, **_opts)
+    # Returns a Gradient object that display services can render as CSS gradients.
+    # Supports :angle option for gradient direction (in degrees).
+    def gradient(color1, color2, **opts)
       c1 = to_rgb(color1) rescue color1
       c2 = to_rgb(color2) rescue color2
 
       c1_str = c1.is_a?(Array) ? "rgb(#{c1[0]},#{c1[1]},#{c1[2]})" : c1.to_s
       c2_str = c2.is_a?(Array) ? "rgb(#{c2[0]},#{c2[1]},#{c2[2]})" : c2.to_s
-      "#{c1_str}-#{c2_str}"
+
+      Gradient.new(c1_str, c2_str, opts[:angle])
+    end
+
+    # Simple gradient class to hold colors and angle for rendering.
+    class Gradient
+      attr_reader :color1, :color2, :angle
+
+      def initialize(color1, color2, angle = nil)
+        @color1 = color1
+        @color2 = color2
+        @angle = angle || 45  # Default to 45 degrees like current behavior
+      end
+
+      # For backwards compatibility with simple string handling
+      def to_s
+        "#{@color1}-#{@color2}"
+      end
+
+      # Support Range-like first/last for Calzini compatibility
+      def first
+        @color1
+      end
+
+      def last
+        @color2
+      end
     end
 
     def to_rgb(color)

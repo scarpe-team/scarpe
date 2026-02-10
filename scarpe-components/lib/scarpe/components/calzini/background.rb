@@ -27,6 +27,9 @@ module Scarpe::Components::Calzini
     when Range
       # Gradient background
       { "background": "linear-gradient(45deg, #{fill.first}, #{fill.last})" }
+    when ->(value) { value.respond_to?(:angle) }
+      # Gradient object with angle support
+      { "background": "linear-gradient(#{fill.angle}deg, #{fill.first}, #{fill.last})" }
     when Array
       # RGBA array
       { "background-color": "rgba(#{fill.join(", ")})" }

@@ -121,6 +121,9 @@ module Scarpe::Components::Calzini
     border_style_hash = case bc
     when Range
       { "border-image": "linear-gradient(45deg, #{bc.first}, #{bc.last})" }
+    when ->(value) { value.respond_to?(:angle) }
+      # Gradient object with angle support
+      { "border-image": "linear-gradient(#{bc.angle}deg, #{bc.first}, #{bc.last})" }
     when Array
       { "border-color": "rgba(#{bc.join(", ")})" }
     else
@@ -142,6 +145,9 @@ module Scarpe::Components::Calzini
       "rgba(#{bc.join(", ")})"
     when Range
       "linear-gradient(45deg, #{bc.first}, #{bc.last})"
+    when ->(value) { value.respond_to?(:angle) }
+      # Gradient object with angle support
+      "linear-gradient(#{bc.angle}deg, #{bc.first}, #{bc.last})"
     when ->(value) { File.exist?(value) }
       "url(data:image/png;base64,#{encode_file_to_base64(bc)})"
     when ->(value) { valid_url?(value) }
