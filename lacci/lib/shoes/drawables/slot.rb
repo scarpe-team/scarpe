@@ -6,6 +6,12 @@ class Shoes::Slot < Shoes::Drawable
 
   shoes_events :full_redraw_request
 
+  # :attach controls positioning anchor. Values:
+  # - Window — position relative to window (absolute positioning)
+  # - :center — center the slot
+  # - another_drawable — position relative to that element
+  shoes_styles :attach
+
   # This only shows this specific slot's settings, not its parent's.
   # Use current_draw_context to allow inheritance.
   attr_reader :draw_context

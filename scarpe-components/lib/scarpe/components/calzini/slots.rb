@@ -63,6 +63,25 @@ module Scarpe::Components::Calzini
     styles[:width] = dimensions_length(props["width"]) if props["width"]
     styles[:height] = dimensions_length(props["height"]) if props["height"]
 
+    # Handle :attach style for absolute positioning
+    # :attach => Window positions relative to the window (absolute)
+    # :attach => :center centers the slot
+    attach = props["attach"]
+    if attach
+      attach_value = attach.is_a?(String) ? attach : attach.to_s
+      if attach_value =~ /window/i || attach_value == "Shoes::Window"
+        # Absolute positioning relative to window
+        styles[:position] = "absolute"
+      elsif attach_value == "center" || attach_value == ":center"
+        # Center the slot
+        styles[:position] = "absolute"
+        styles[:left] = "50%"
+        styles[:top] = "50%"
+        styles[:transform] = "translate(-50%, -50%)"
+      end
+      # Other attach values (another drawable) would need more complex handling
+    end
+
     ## A new slot defines a new coordinate system, so absolutely-positioned children
     ## are relative to it. But that's going to need a lot of testing and Shoes3 comparison.
     #styles[:position] = "relative"
