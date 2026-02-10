@@ -1791,15 +1791,19 @@ module Scarpe
         SELF=$(readlink -f "$0")
         HERE=${SELF%/*}
 
-        # Check for WebKitGTK
-        if ! pkg-config --exists webkit2gtk-4.1 2>/dev/null && ! pkg-config --exists webkit2gtk-4.0 2>/dev/null; then
-          echo "Error: WebKitGTK is required but not installed."
-          echo ""
-          echo "Install it with:"
-          echo "  Ubuntu/Debian: sudo apt install libwebkit2gtk-4.1-0"
-          echo "  Fedora:        sudo dnf install webkit2gtk4.1"
-          echo "  Arch:          sudo pacman -S webkit2gtk"
-          exit 1
+        # Check for WebKitGTK (use ldconfig, not pkg-config, since users won't have -dev packages)
+        if ! ldconfig -p 2>/dev/null | grep -q "libwebkit2gtk-4"; then
+          # Fallback: check common library paths directly
+          if ! ls /usr/lib*/libwebkit2gtk-4*.so* 2>/dev/null | head -1 >/dev/null && \
+             ! ls /usr/lib/*/libwebkit2gtk-4*.so* 2>/dev/null | head -1 >/dev/null; then
+            echo "Error: WebKitGTK is required but not installed."
+            echo ""
+            echo "Install it with:"
+            echo "  Ubuntu/Debian: sudo apt install libwebkit2gtk-4.1-0"
+            echo "  Fedora:        sudo dnf install webkit2gtk4.1"
+            echo "  Arch:          sudo pacman -S webkit2gtk"
+            exit 1
+          fi
         fi
 
         # Set up Ruby environment
@@ -2038,15 +2042,19 @@ module Scarpe
         THIS=$(readlink -f "$0" 2>/dev/null || realpath "$0" 2>/dev/null || echo "$0")
 
         check_webkitgtk() {
-            if ! pkg-config --exists webkit2gtk-4.1 2>/dev/null && \\
-               ! pkg-config --exists webkit2gtk-4.0 2>/dev/null; then
-                echo -e "${RED}Error: WebKitGTK is not installed.${NC}"
-                echo ""
-                echo "Please install WebKitGTK:"
-                echo "  Ubuntu/Debian: sudo apt install libwebkit2gtk-4.1-0"
-                echo "  Fedora:        sudo dnf install webkit2gtk4.1"
-                echo "  Arch:          sudo pacman -S webkit2gtk"
-                exit 1
+            # Use ldconfig (not pkg-config) since users won't have -dev packages
+            if ! ldconfig -p 2>/dev/null | grep -q "libwebkit2gtk-4"; then
+                # Fallback: check common library paths directly
+                if ! ls /usr/lib*/libwebkit2gtk-4*.so* 2>/dev/null | head -1 >/dev/null && \\
+                   ! ls /usr/lib/*/libwebkit2gtk-4*.so* 2>/dev/null | head -1 >/dev/null; then
+                    echo -e "${RED}Error: WebKitGTK is not installed.${NC}"
+                    echo ""
+                    echo "Please install WebKitGTK:"
+                    echo "  Ubuntu/Debian: sudo apt install libwebkit2gtk-4.1-0"
+                    echo "  Fedora:        sudo dnf install webkit2gtk4.1"
+                    echo "  Arch:          sudo pacman -S webkit2gtk"
+                    exit 1
+                fi
             fi
         }
 
