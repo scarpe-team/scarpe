@@ -41,6 +41,7 @@ require_relative 'shoes/background'
 require_relative 'shoes/drawable'
 require_relative 'shoes/app'
 require_relative 'shoes/drawables'
+require_relative 'shoes/turtle'  # Turtle graphics (Hackety Hack compatible)
 
 # Expose Shoes drawable classes as top-level constants for classic Shoes compatibility.
 # In Shoes, `style(Link, stroke: black)` works without the Shoes:: prefix.
