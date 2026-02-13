@@ -36,7 +36,9 @@ module Scarpe::Webview
       end
 
       # Not deleting, so this will re-render
-      if changes["size"] && SIZES[@size.to_sym]
+      # Only convert to symbol if size is a String or Symbol (named size like "banner")
+      # If it's already an Integer, it's a pixel size and should stay as-is
+      if changes["size"] && @size.respond_to?(:to_sym) && SIZES[@size.to_sym]
         @size = @size.to_sym
       end
 

@@ -224,6 +224,9 @@ module Scarpe::Components::Calzini
     # or a hex code or an image file to use as a pattern or what.
     return color if color.is_a?(String)
 
+    # Handle Range objects (gradients) - extract the first color
+    return rgb_to_hex(color.first) if color.is_a?(Range)
+
     r, g, b, a = *color
     if r.is_a?(Float)
       a ||= 1.0
