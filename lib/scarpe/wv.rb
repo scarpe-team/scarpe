@@ -73,8 +73,16 @@ Shoes::FONTS.push(
 Shoes::FEATURES.push(:html)
 Shoes::EXTENSIONS.push(:scarpe)
 
-require_relative "shoes_spec"
-Shoes::Spec.instance = Scarpe::Test
+# shoes_spec requires minitest — only load if minitest is available.
+# Packaged apps in minimal mode skip minitest to save ~170KB.
+begin
+  require "minitest"
+  require_relative "shoes_spec"
+  Shoes::Spec.instance = Scarpe::Test
+rescue LoadError
+  # minitest not available — shoes_spec features disabled
+  Shoes::Spec.instance = nil
+end
 
 require_relative "wv/web_wrangler"
 require_relative "wv/control_interface"

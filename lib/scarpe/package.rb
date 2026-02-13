@@ -117,8 +117,10 @@ module Scarpe
     # sqlite3: not used by Scarpe at all (phantom gemspec dependency)
     # fastimage: only for Image widget auto-sizing
     # rake: build tool, not runtime
-    # minitest: testing framework, not runtime
-    OPTIONAL_GEMS = %w[nokogiri sqlite3 fastimage rake].freeze  # minitest needed by scarpe/shoes_spec.rb
+    # minitest: testing framework, only needed for shoes_spec (made conditional in wv.rb)
+    # racc: parser generator, only needed at compile time
+    # NOTE: webrick IS required — scarpe-components uses it for the asset server
+    OPTIONAL_GEMS = %w[nokogiri sqlite3 fastimage rake minitest racc].freeze
 
     # Stdlib modules safe to strip in minimal mode (not loaded by Scarpe runtime)
     # These are all development/build/network tools not needed for GUI apps.
@@ -346,13 +348,15 @@ module Scarpe
 
     def strip_encodings(stdlib_dir)
       # Strip non-UTF encodings to save ~3.5MB
-      # Keep: encdb.so (required), cesu_8.so, utf_16/32 variants
+      # Keep: encdb (required), cesu_8, utf_16/32 variants
       # Remove: CJK encodings (big5, euc_*, gb*, shift_jis), legacy ISO/Windows encodings
       # Also remove trans/ directory (encoding transcoding tables)
       ext_dir = File.join(stdlib_dir, ruby_platform_dir, "enc")
       return unless Dir.exist?(ext_dir)
 
-      keep_encodings = %w[encdb.so cesu_8.so utf_16be.so utf_16le.so utf_32be.so utf_32le.so]
+      # Extension suffix varies by platform: .bundle (macOS), .so (Linux), .dll (Windows)
+      ext_suffix = native_ext_suffix
+      keep_encodings = %W[encdb#{ext_suffix} cesu_8#{ext_suffix} utf_16be#{ext_suffix} utf_16le#{ext_suffix} utf_32be#{ext_suffix} utf_32le#{ext_suffix}]
       enc_saved = 0
 
       Dir.children(ext_dir).each do |f|
