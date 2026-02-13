@@ -120,10 +120,10 @@ module Scarpe::Webview
         match = stdout.match(/text returned:(.*)/)
         match ? match[1].strip : ""
       else
-        nil # User cancelled
+        "" # User cancelled — return empty string for Shoes3 compatibility
       end
     rescue => e
-      nil
+      "" # Return empty string on error for Shoes3 compatibility
     end
 
     # Show a native confirmation dialog. Returns true for OK, false for Cancel.
