@@ -120,7 +120,11 @@ module Scarpe
     # minitest: testing framework, only needed for shoes_spec (made conditional in wv.rb)
     # racc: parser generator, only needed at compile time
     # NOTE: webrick IS required — scarpe-components uses it for the asset server
-    OPTIONAL_GEMS = %w[nokogiri sqlite3 fastimage rake minitest racc].freeze
+    # Gems that are optional for minimal builds:
+    # - nokogiri, sqlite3, fastimage: not required for basic Scarpe apps
+    # - rake, minitest, racc: development/test tools only
+    # - syslog: only needed if using the syslog logging appender (conditionally loaded)
+    OPTIONAL_GEMS = %w[nokogiri sqlite3 fastimage rake minitest racc syslog].freeze
 
     # Stdlib modules safe to strip in minimal mode (not loaded by Scarpe runtime)
     # These are all development/build/network tools not needed for GUI apps.
