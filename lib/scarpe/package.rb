@@ -126,19 +126,30 @@ module Scarpe
     # - syslog: only needed if using the syslog logging appender (conditionally loaded)
     OPTIONAL_GEMS = %w[nokogiri sqlite3 fastimage rake minitest racc syslog].freeze
 
-    # Stdlib modules safe to strip in minimal mode (not loaded by Scarpe runtime)
-    # These are all development/build/network tools not needed for GUI apps.
+    # Stdlib directories safe to strip in minimal mode.
+    # These are development/network/security modules not needed for local GUI apps.
     MINIMAL_STRIP_STDLIB = %w[
       openssl net fiddle ripper
       mkmf irb rdoc racc/cparse
       rinda drb nkf coverage getoptlong
+      optparse syslog
     ].freeze
 
-    # Additional large files safe to remove in ultra-minimal mode
+    # Stdlib files safe to remove in minimal mode.
+    # These are development/network/CLI tools not needed for GUI apps:
+    # - mkmf, profiler, debug, tracer: development/debugging tools
+    # - rdoc, irb: documentation/REPL
+    # - getoptlong, optparse: CLI argument parsing (we use simple args)
+    # - resolv, ipaddr: DNS/IP parsing (webview uses localhost)
+    # - pstore: persistent storage (not used by Scarpe)
+    # - open-uri: HTTP downloads (only used by packager, not at runtime)
+    # - pp, prettyprint: pretty printing (nice for debug but not essential)
     MINIMAL_STRIP_FILES = %w[
       mkmf.rb rdoc.rb irb.rb tracer.rb debug.rb
       benchmark.rb profile.rb profiler.rb
-      getoptlong.rb coverage.rb
+      getoptlong.rb coverage.rb optparse.rb
+      resolv.rb ipaddr.rb pstore.rb open-uri.rb
+      pp.rb prettyprint.rb tsort.rb
     ].freeze
 
     def initialize(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false, minimal: false, target_os: nil, skip_webview_check: false)
