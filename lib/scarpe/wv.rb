@@ -16,7 +16,14 @@ rescue LoadError
 end
 
 require "scarpe/components/html" # HTML renderer
-require "scarpe/components/modular_logger"
+# Try to load full logging gem; fall back to simple logger (for packaged apps)
+begin
+  require "scarpe/components/modular_logger"
+  SCARPE_LOGGER_IMPL = Scarpe::Components::ModularLogImpl
+rescue LoadError
+  require "scarpe/components/simple_logger"
+  SCARPE_LOGGER_IMPL = Scarpe::Components::SimpleLogImpl
+end
 require "scarpe/components/promises"
 require "scarpe/components/string_helpers"
 
@@ -43,7 +50,7 @@ else
   ENV["SCARPE_DEBUG"] ? Shoes::Log::DEFAULT_DEBUG_LOG_CONFIG : Shoes::Log::DEFAULT_LOG_CONFIG
 end
 
-Shoes::Log.instance = Scarpe::Components::ModularLogImpl.new
+Shoes::Log.instance = SCARPE_LOGGER_IMPL.new
 Shoes::Log.configure_logger(log_config)
 
 require "scarpe/components/segmented_file_loader"

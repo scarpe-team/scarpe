@@ -124,7 +124,7 @@ module Scarpe
     # - nokogiri, sqlite3, fastimage: not required for basic Scarpe apps
     # - rake, minitest, racc: development/test tools only
     # - syslog: only needed if using the syslog logging appender (conditionally loaded)
-    OPTIONAL_GEMS = %w[nokogiri sqlite3 fastimage rake minitest racc syslog].freeze
+    OPTIONAL_GEMS = %w[nokogiri sqlite3 fastimage rake minitest racc syslog logging little-plugger].freeze
 
     # Stdlib directories safe to strip in minimal mode.
     # These are development/network/security modules not needed for local GUI apps.
@@ -1284,6 +1284,15 @@ module Scarpe
       end
       vlog "  Removed SSL dylibs: #{(saved / 1024.0 / 1024.0).round(1)}MB"
 
+      # Remove liblzma dylibs (~248KB — xz compression, not needed for GUI apps)
+      # Ruby links against libgmp (required) but liblzma is loaded conditionally
+      lzma_saved = 0
+      Dir.glob(File.join(ruby_lib_dir, "liblzma*")).each do |f|
+        lzma_saved += File.symlink?(f) ? 0 : File.size(f)
+        File.delete(f)
+      end
+      vlog "  Removed liblzma: #{(lzma_saved / 1024.0).round}KB" if lzma_saved > 0
+
       # Remove CA certificates (no HTTPS = no certs needed)
       ca_cert = File.join(ruby_lib_dir, "ca-bundle.crt")
       File.delete(ca_cert) if File.exist?(ca_cert)
@@ -1337,37 +1346,47 @@ module Scarpe
       # Most GUI apps only need UTF-8. Apps needing CJK/legacy encodings should not use minimal mode.
       strip_encodings(stdlib_dir)
 
-      # Remove rubygems/commands (232KB × 2 = 464KB — only needed for `gem` CLI)
-      rubygems_commands_saved = 0
-      [stdlib_dir, File.join(ruby_dir, "lib/ruby/site_ruby/#{RUBY_ABI}")].each do |base|
-        cmd_dir = File.join(base, "rubygems/commands")
-        if Dir.exist?(cmd_dir)
-          rubygems_commands_saved += dir_size(cmd_dir)
-          FileUtils.rm_rf(cmd_dir)
+      # Remove entire rubygems/ directory from stdlib (~592KB)
+      # The stdlib has a copy of rubygems that's redundant — site_ruby has the needed version
+      # Tested: packaged apps work fine without the stdlib copy
+      stdlib_rubygems = File.join(stdlib_dir, "rubygems")
+      stdlib_rubygems_saved = 0
+      if Dir.exist?(stdlib_rubygems)
+        stdlib_rubygems_saved = dir_size(stdlib_rubygems)
+        FileUtils.rm_rf(stdlib_rubygems)
+        # Also remove rubygems.rb if it exists in stdlib
+        stdlib_rubygems_rb = File.join(stdlib_dir, "rubygems.rb")
+        if File.exist?(stdlib_rubygems_rb)
+          stdlib_rubygems_saved += File.size(stdlib_rubygems_rb)
+          File.delete(stdlib_rubygems_rb)
         end
+      end
+      vlog "  Removed stdlib rubygems: #{(stdlib_rubygems_saved / 1024.0).round}KB" if stdlib_rubygems_saved > 0
+
+      # Remove rubygems/commands (232KB — only needed for `gem` CLI)
+      rubygems_commands_saved = 0
+      site_ruby_dir = File.join(ruby_dir, "lib/ruby/site_ruby/#{RUBY_ABI}")
+      cmd_dir = File.join(site_ruby_dir, "rubygems/commands")
+      if Dir.exist?(cmd_dir)
+        rubygems_commands_saved = dir_size(cmd_dir)
+        FileUtils.rm_rf(cmd_dir)
       end
       vlog "  Removed rubygems/commands: #{(rubygems_commands_saved / 1024.0).round}KB" if rubygems_commands_saved > 0
 
       # Remove rubygems/resolver (dependency resolution — not needed at runtime)
-      [stdlib_dir, File.join(ruby_dir, "lib/ruby/site_ruby/#{RUBY_ABI}")].each do |base|
-        resolver_dir = File.join(base, "rubygems/resolver")
-        FileUtils.rm_rf(resolver_dir) if Dir.exist?(resolver_dir)
-      end
+      resolver_dir = File.join(site_ruby_dir, "rubygems/resolver")
+      FileUtils.rm_rf(resolver_dir) if Dir.exist?(resolver_dir)
 
       # Remove rubygems/ext (extension building — not needed at runtime)
-      [stdlib_dir, File.join(ruby_dir, "lib/ruby/site_ruby/#{RUBY_ABI}")].each do |base|
-        ext_dir = File.join(base, "rubygems/ext")
-        FileUtils.rm_rf(ext_dir) if Dir.exist?(ext_dir)
-      end
+      rubygems_ext_dir = File.join(site_ruby_dir, "rubygems/ext")
+      FileUtils.rm_rf(rubygems_ext_dir) if Dir.exist?(rubygems_ext_dir)
 
       # Remove rubygems/vendor (bundled dependencies — 748KB, mostly not needed)
       vendor_saved = 0
-      [stdlib_dir, File.join(ruby_dir, "lib/ruby/site_ruby/#{RUBY_ABI}")].each do |base|
-        vendor_dir = File.join(base, "rubygems/vendor")
-        if Dir.exist?(vendor_dir)
-          vendor_saved += dir_size(vendor_dir)
-          FileUtils.rm_rf(vendor_dir)
-        end
+      vendor_dir = File.join(site_ruby_dir, "rubygems/vendor")
+      if Dir.exist?(vendor_dir)
+        vendor_saved = dir_size(vendor_dir)
+        FileUtils.rm_rf(vendor_dir)
       end
       vlog "  Removed rubygems/vendor: #{(vendor_saved / 1024.0).round}KB" if vendor_saved > 0
 
