@@ -119,12 +119,13 @@ module Scarpe
     # rake: build tool, not runtime
     # minitest: testing framework, only needed for shoes_spec (made conditional in wv.rb)
     # racc: parser generator, only needed at compile time
-    # NOTE: webrick IS required — scarpe-components uses it for the asset server
+    # webrick: packaged apps use MiniAssetServer (SCARPE_PACKAGED=1 in boot.rb)
     # Gems that are optional for minimal builds:
     # - nokogiri, sqlite3, fastimage: not required for basic Scarpe apps
     # - rake, minitest, racc: development/test tools only
     # - syslog: only needed if using the syslog logging appender (conditionally loaded)
-    OPTIONAL_GEMS = %w[nokogiri sqlite3 fastimage rake minitest racc syslog logging little-plugger].freeze
+    # - webrick: replaced by MiniAssetServer in packaged apps (~268KB + ~569KB native deps)
+    OPTIONAL_GEMS = %w[nokogiri sqlite3 fastimage rake minitest racc syslog logging little-plugger webrick].freeze
 
     # Stdlib directories safe to strip in minimal mode.
     # These are development/network/security modules not needed for local GUI apps.
@@ -1260,16 +1261,23 @@ module Scarpe
     def strip_minimal(gems_dir, ruby_dir, stdlib_dir: nil)
       log "🔪 Minimal mode: stripping optional dependencies..."
 
-      # Remove optional gems (nokogiri, sqlite3, fastimage, rake)
+      # Remove optional gems (nokogiri, sqlite3, fastimage, rake, webrick, etc.)
+      gems_base = File.dirname(gems_dir)
       OPTIONAL_GEMS.each do |gem_name|
         Dir.glob(File.join(gems_dir, "#{gem_name}-*")).each do |d|
           FileUtils.rm_rf(d)
           vlog "  Removed gem: #{File.basename(d)}"
         end
         # Also remove from specifications
-        specs_dir = File.join(File.dirname(gems_dir), "specifications")
+        specs_dir = File.join(gems_base, "specifications")
         Dir.glob(File.join(specs_dir, "#{gem_name}-*")).each do |s|
           File.delete(s) if File.file?(s)
+        end
+        # Also remove from extensions (compiled native extensions)
+        extensions_dir = File.join(gems_base, "extensions")
+        Dir.glob(File.join(extensions_dir, "**", "#{gem_name}-*")).each do |d|
+          FileUtils.rm_rf(d)
+          vlog "  Removed extension: #{File.basename(d)}"
         end
       end
 
@@ -1408,6 +1416,49 @@ module Scarpe
         end
       end
       vlog "  Removed rubygems extras: #{(extras_saved / 1024.0).round}KB" if extras_saved > 0
+
+      # Strip WEBrick-specific native extensions (~550KB)
+      # With MiniAssetServer (set via SCARPE_PACKAGED=1), we don't need:
+      # - date_core: only WEBrick cookies parse dates
+      # - digest/*: WEBrick uses for session IDs, ETags
+      # - cgi/escape: WEBrick HTML escaping
+      # - erb/escape: WEBrick template escaping
+      webrick_ext_saved = 0
+
+      # date_core.bundle (~337KB on macOS)
+      date_ext = File.join(ext_dir, "date_core#{ext_suffix}")
+      if File.exist?(date_ext)
+        webrick_ext_saved += File.size(date_ext)
+        File.delete(date_ext)
+      end
+
+      # digest/*.bundle (~150KB total)
+      digest_dir = File.join(ext_dir, "digest")
+      if Dir.exist?(digest_dir)
+        webrick_ext_saved += dir_size(digest_dir)
+        FileUtils.rm_rf(digest_dir)
+      end
+      digest_ext = File.join(ext_dir, "digest#{ext_suffix}")
+      if File.exist?(digest_ext)
+        webrick_ext_saved += File.size(digest_ext)
+        File.delete(digest_ext)
+      end
+
+      # cgi/escape.bundle (~53KB)
+      cgi_dir = File.join(ext_dir, "cgi")
+      if Dir.exist?(cgi_dir)
+        webrick_ext_saved += dir_size(cgi_dir)
+        FileUtils.rm_rf(cgi_dir)
+      end
+
+      # erb/escape.bundle (~50KB)
+      erb_dir = File.join(ext_dir, "erb")
+      if Dir.exist?(erb_dir)
+        webrick_ext_saved += dir_size(erb_dir)
+        FileUtils.rm_rf(erb_dir)
+      end
+
+      vlog "  Removed WEBrick extensions: #{(webrick_ext_saved / 1024.0).round}KB" if webrick_ext_saved > 0
     end
 
     def strip_platform_gem_versions(gems_dir, target_version)
