@@ -134,6 +134,7 @@ module Scarpe
       mkmf irb rdoc racc/cparse
       rinda drb nkf coverage getoptlong
       optparse syslog cgi
+      psych yaml
     ].freeze
 
     # Stdlib files safe to remove in minimal mode.
@@ -1301,6 +1302,16 @@ module Scarpe
       end
       vlog "  Removed liblzma: #{(lzma_saved / 1024.0).round}KB" if lzma_saved > 0
 
+      # Remove libyaml dylibs (~412KB — YAML parsing)
+      # YAML is only used by the 'logging' gem (stripped) and segmented_file_loader
+      # (only for .scas/.sspec files). SimpleLogImpl uses stdlib Logger instead.
+      yaml_saved = 0
+      Dir.glob(File.join(ruby_lib_dir, "libyaml*")).each do |f|
+        yaml_saved += File.symlink?(f) ? 0 : File.size(f)
+        File.delete(f)
+      end
+      vlog "  Removed libyaml: #{(yaml_saved / 1024.0).round}KB" if yaml_saved > 0
+
       # Remove CA certificates (no HTTPS = no certs needed)
       ca_cert = File.join(ruby_lib_dir, "ca-bundle.crt")
       File.delete(ca_cert) if File.exist?(ca_cert)
@@ -1338,7 +1349,7 @@ module Scarpe
         else ".bundle"  # macOS
       end
       ssl_ext_saved = 0
-      %w[openssl fiddle ripper].each do |name|
+      %w[openssl fiddle ripper psych].each do |name|
         path = File.join(ext_dir, "#{name}#{ext_suffix}")
         if File.exist?(path)
           ssl_ext_saved += File.size(path)
@@ -1404,6 +1415,7 @@ module Scarpe
         request_set request_set.rb security security.rb
         gemcutter_utilities.rb remote_fetcher.rb
         source source.rb source_list.rb
+        psych_tree.rb safe_yaml.rb yaml_serializer.rb
       ]
       extras_saved = 0
       [stdlib_dir, File.join(ruby_dir, "lib/ruby/site_ruby/#{RUBY_ABI}")].each do |base|
