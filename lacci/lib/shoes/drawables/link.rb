@@ -26,7 +26,8 @@ class Shoes
           # Navigate to the internal route
           app.visit(@click)
         end
-        @block&.call
+        # Pass self to block (Shoes3 passes the link element to click callbacks)
+        @block&.call(self)
       end
     end
   end
