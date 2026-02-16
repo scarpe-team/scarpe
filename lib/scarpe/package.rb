@@ -133,7 +133,7 @@ module Scarpe
       openssl net fiddle ripper
       mkmf irb rdoc racc/cparse
       rinda drb nkf coverage getoptlong
-      optparse syslog
+      optparse syslog cgi
     ].freeze
 
     # Stdlib files safe to remove in minimal mode.
@@ -150,7 +150,7 @@ module Scarpe
       benchmark.rb profile.rb profiler.rb
       getoptlong.rb coverage.rb optparse.rb
       resolv.rb ipaddr.rb pstore.rb open-uri.rb
-      pp.rb prettyprint.rb tsort.rb
+      pp.rb prettyprint.rb tsort.rb cgi.rb
     ].freeze
 
     def initialize(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false, minimal: false, target_os: nil, skip_webview_check: false)

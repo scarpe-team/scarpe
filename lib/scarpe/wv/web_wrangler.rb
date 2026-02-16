@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "webview_ruby"
-require "cgi"
+# Note: URI is already required by lacci/lib/shoes.rb
 
 # WebWrangler operates in multiple phases: setup and running.
 
@@ -404,7 +404,7 @@ module Scarpe::Webview
         raise Scarpe::EmptyPageNotSetError, "No empty page markup was set!"
       end
 
-      @webview.navigate("data:text/html, #{CGI.escape @empty_page}")
+      @webview.navigate("data:text/html, #{URI.encode_www_form_component(@empty_page)}")
 
       monkey_patch_console(@webview)
 
