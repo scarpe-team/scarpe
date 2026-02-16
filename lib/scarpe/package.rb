@@ -1349,7 +1349,7 @@ module Scarpe
         else ".bundle"  # macOS
       end
       ssl_ext_saved = 0
-      %w[openssl fiddle ripper psych].each do |name|
+      %w[openssl fiddle ripper psych strscan fcntl].each do |name|
         path = File.join(ext_dir, "#{name}#{ext_suffix}")
         if File.exist?(path)
           ssl_ext_saved += File.size(path)
