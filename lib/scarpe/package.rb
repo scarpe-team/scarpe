@@ -1170,6 +1170,23 @@ module Scarpe
       ffi_ext = Dir.glob(File.join(gems_dir, "ffi-*/ext")).first
       FileUtils.rm_rf(ffi_ext) if ffi_ext
 
+      # FFI ships samples (~36KB) not needed at runtime
+      ffi_samples = Dir.glob(File.join(gems_dir, "ffi-*/samples")).first
+      FileUtils.rm_rf(ffi_samples) if ffi_samples
+      ffi_rakelib = Dir.glob(File.join(gems_dir, "ffi-*/rakelib")).first
+      FileUtils.rm_rf(ffi_rakelib) if ffi_rakelib
+
+      # FFI ships platform definitions for 50+ architectures (~400KB)
+      # Keep only the target platform to save ~360KB
+      ffi_platform_dir = Dir.glob(File.join(gems_dir, "ffi-*/lib/ffi/platform")).first
+      if ffi_platform_dir && Dir.exist?(ffi_platform_dir)
+        keep_platform = "#{@arch}-darwin"  # e.g., x86_64-darwin or aarch64-darwin
+        Dir.children(ffi_platform_dir).each do |platform|
+          next if platform == keep_platform
+          FileUtils.rm_rf(File.join(ffi_platform_dir, platform))
+        end
+      end
+
       # --- Bootstrap theme cleanup ---
 
       # scarpe-components ships 26 Bootstrap themes (~7MB) but Calzini (default renderer)
