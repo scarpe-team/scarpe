@@ -54,6 +54,18 @@ class Shoes::Slot < Shoes::Drawable
     @children.dup
   end
 
+  # Override left to default to 0 instead of nil.
+  # Many Shoes widgets expect numeric positions.
+  def left
+    super || 0
+  end
+
+  # Override top to default to 0 instead of nil.
+  # Many Shoes widgets expect numeric positions.
+  def top
+    super || 0
+  end
+
   # We use method_missing for drawable-creating methods like "button".
   # The parent's method_missing will auto-create Shoes style getters and setters.
   # This is similar to the method_missing in Shoes::App, but differs in where
