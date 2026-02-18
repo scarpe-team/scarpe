@@ -114,7 +114,7 @@ module Scarpe::Webview
     def native_ask_dialog(message)
       escaped = applescript_escape(message)
       script = %Q{display dialog "#{escaped}" default answer "" buttons {"Cancel", "OK"} default button "OK"}
-      stdout, _stderr, status = Open3.capture3("osascript", "-e", script)
+      stdout, status = safe_osascript(script)
       if status.success?
         # Output format: "button returned:OK, text returned:whatever"
         match = stdout.match(/text returned:(.*)/)
@@ -130,7 +130,7 @@ module Scarpe::Webview
     def native_confirm_dialog(question)
       escaped = applescript_escape(question)
       script = %Q{display dialog "#{escaped}" buttons {"Cancel", "OK"} default button "OK"}
-      _stdout, _stderr, status = Open3.capture3("osascript", "-e", script)
+      _stdout, status = safe_osascript(script)
       status.success?
     rescue => e
       false
@@ -140,7 +140,7 @@ module Scarpe::Webview
     def native_color_dialog(title)
       escaped = applescript_escape(title || "Choose a color")
       script = %Q{choose color with prompt "#{escaped}"}
-      stdout, _stderr, status = Open3.capture3("osascript", "-e", script)
+      stdout, status = safe_osascript(script)
       if status.success?
         # Output format: "{65535, 0, 32768}" — values 0-65535
         match = stdout.match(/\{(\d+),\s*(\d+),\s*(\d+)\}/)
@@ -158,7 +158,7 @@ module Scarpe::Webview
     # Show a native file open dialog. Returns the file path or nil.
     def native_open_file_dialog
       script = 'POSIX path of (choose file with prompt "Open")'
-      stdout, _stderr, status = Open3.capture3("osascript", "-e", script)
+      stdout, status = safe_osascript(script)
       status.success? ? stdout.strip : nil
     rescue => e
       nil
@@ -167,7 +167,7 @@ module Scarpe::Webview
     # Show a native file save dialog. Returns the file path or nil.
     def native_save_file_dialog
       script = 'POSIX path of (choose file name with prompt "Save as")'
-      stdout, _stderr, status = Open3.capture3("osascript", "-e", script)
+      stdout, status = safe_osascript(script)
       status.success? ? stdout.strip : nil
     rescue => e
       nil
@@ -176,10 +176,27 @@ module Scarpe::Webview
     # Show a native folder picker dialog. Returns the folder path or nil.
     def native_open_folder_dialog
       script = 'POSIX path of (choose folder with prompt "Choose a folder")'
-      stdout, _stderr, status = Open3.capture3("osascript", "-e", script)
+      stdout, status = safe_osascript(script)
       status.success? ? stdout.strip : nil
     rescue => e
       nil
+    end
+
+    # Safely execute osascript without threading issues.
+    # Uses Open3.popen3 with explicit stream handling to avoid
+    # "IOError: stream closed in another thread" race conditions.
+    def safe_osascript(script)
+      stdout_data = ""
+      wait_thread = nil
+      
+      Open3.popen3("osascript", "-e", script) do |stdin, stdout, stderr, thread|
+        stdin.close
+        stdout_data = stdout.read
+        stderr.close
+        wait_thread = thread
+      end
+      
+      [stdout_data, wait_thread.value]
     end
   end
 end

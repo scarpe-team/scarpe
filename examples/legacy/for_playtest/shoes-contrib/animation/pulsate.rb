@@ -4,7 +4,7 @@
 #
 Shoes.app :width => 200, :height => 200, :title => 'Pulse!' do
   pulse = stack
-  logo = image "shoes-icon-blue.png", :top => 30, :left => 30
+  logo = image File.join(__dir__, "../../../../../docs/static/shoes-icon-blue.png"), :top => 30, :left => 30
 
   animate 10 do |i|
     i %= 10
@@ -12,7 +12,9 @@ Shoes.app :width => 200, :height => 200, :title => 'Pulse!' do
       fill black(0.2 - (i * 0.02))
       strokewidth(3.0 - (i * 0.2))
       stroke rgb(0.7, 0.7, 0.9, 1.0 - (i * 0.1))
-      oval(logo.left - i, logo.top - i, logo.width + (i * 2)) 
+      # Guard against nil dimensions on first frame
+      w = logo.width || 100
+      oval(logo.left - i, logo.top - i, w + (i * 2)) 
     end
   end
 end

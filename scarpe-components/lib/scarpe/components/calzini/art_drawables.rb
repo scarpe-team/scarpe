@@ -63,6 +63,7 @@ module Scarpe::Components::Calzini
     stroke = first_color_of(props["stroke"], dc["stroke"], "black")
     outer = props["outer"]
     pattern_id = "star-pattern-#{html_id}"
+    transform = build_svg_transform(dc, outer / 2, outer / 2)
 
     HTML.render do |h|
       h.div(id: html_id, style: star_style(props)) do
@@ -74,10 +75,14 @@ module Scarpe::Components::Calzini
                 h.image(href: raw_fill, width: outer, height: outer, preserveAspectRatio: "xMidYMid slice")
               end
             end
-            h.polygon(points: star_points(props), style: "fill:url(##{pattern_id});stroke:#{stroke};stroke-width:2")
+            polygon_attrs = { points: star_points(props), style: "fill:url(##{pattern_id});stroke:#{stroke};stroke-width:2" }
+            polygon_attrs[:transform] = transform if transform
+            h.polygon(**polygon_attrs)
           else
             fill = first_color_of(raw_fill, "black")
-            h.polygon(points: star_points(props), style: "fill:#{fill};stroke:#{stroke};stroke-width:2")
+            polygon_attrs = { points: star_points(props), style: "fill:#{fill};stroke:#{stroke};stroke-width:2" }
+            polygon_attrs[:transform] = transform if transform
+            h.polygon(**polygon_attrs)
           end
         end
         block.call(h) if block_given?

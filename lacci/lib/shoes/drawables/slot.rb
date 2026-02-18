@@ -26,6 +26,8 @@ class Shoes::Slot < Shoes::Drawable
       "stroke" => nil,
       "strokewidth" => nil,
       "rotate" => nil,
+      "scale" => nil,
+      "skew" => nil,
       # "transform" => nil, # "corner",
       # "translate" => nil, # [0, 0],
     }
@@ -149,6 +151,31 @@ class Shoes::Slot < Shoes::Drawable
   # @return [void]
   def rotate(angle)
     @draw_context["rotate"] = angle
+  end
+
+  # Set the current scale factor in this slot and any child slots.
+  # Pass nil to reset scale to default.
+  #
+  # @param x [Numeric,Range,Nil] the x scale factor (or uniform scale), or a Range to pick a random value
+  # @param y [Numeric,Nil] the y scale factor (optional, defaults to x)
+  # @return [void]
+  def scale(x, y = nil)
+    # Handle Range (Shoes3 allows scale((0.8..1.2).rand) or scale(0.8..1.2))
+    x = x.rand if x.is_a?(Range)
+    y = y.rand if y.is_a?(Range)
+    y ||= x
+    @draw_context["scale"] = [x, y]
+  end
+
+  # Set the current skew transform in this slot and any child slots.
+  # Pass nil to reset skew to default.
+  #
+  # @param x [Numeric,Nil] the x skew angle (in degrees or radians depending on Shoes3 behavior)
+  # @param y [Numeric,Nil] the y skew angle (optional, defaults to 0)
+  # @return [void]
+  def skew(x, y = nil)
+    y ||= 0
+    @draw_context["skew"] = [x, y]
   end
 
   # Get the current draw context styles, based on this slot and its parent slots.

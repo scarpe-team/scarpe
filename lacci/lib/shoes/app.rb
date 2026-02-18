@@ -434,7 +434,7 @@ class Shoes::App < Shoes::Drawable
   end
 
   # Draw Context methods -- forward to the current slot
-  %i[fill nofill stroke strokewidth nostroke rotate].each do |dc_method|
+  %i[fill nofill stroke strokewidth nostroke rotate scale skew].each do |dc_method|
     define_method(dc_method) do |*args|
       current_slot.send(dc_method, *args)
     end

@@ -2,10 +2,10 @@ xspeed, yspeed = 8.4, 6.6
 xdir, ydir = 1, 1
 
 Shoes.app do
-  background "#{DIR}/static/stripe.png"
+  background "#{DIR}/docs/static/stripe.png"
 
   mask do
-    @icon = image "#{DIR}/static/shoes-icon.png", :left => 100, :top => 100 do
+    @icon = image "#{DIR}/docs/static/shoes-icon.png", :left => 100, :top => 100 do
       alert "You're soooo quick."
     end
     title "STATIC !", weight: "ultrabold", :left => 150, :top => 150

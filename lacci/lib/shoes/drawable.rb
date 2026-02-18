@@ -643,18 +643,28 @@ class Shoes
 
     # Get the width of the drawable, computing pixel values for percentages and
     # negative values. Shoes3 apps expect slot.width to return the actual pixel width.
+    # For slots without explicit width, defaults to parent's width (100% fill).
     #
     # @return [Integer, nil] the width in pixels, or nil if not determinable
     def width
-      compute_dimension(@width, :width)
+      result = compute_dimension(@width, :width)
+      # Slots without explicit width should fill their parent (Shoes3 behavior)
+      return result if result
+      return parent_dimension(:width) if self.is_a?(Shoes::Slot)
+      nil
     end
 
     # Get the height of the drawable, computing pixel values for percentages and
     # negative values. Shoes3 apps expect slot.height to return the actual pixel height.
+    # For slots without explicit height, defaults to parent's height (100% fill).
     #
     # @return [Integer, nil] the height in pixels, or nil if not determinable
     def height
-      compute_dimension(@height, :height)
+      result = compute_dimension(@height, :height)
+      # Slots without explicit height should fill their parent (Shoes3 behavior)
+      return result if result
+      return parent_dimension(:height) if self.is_a?(Shoes::Slot)
+      nil
     end
 
     private
@@ -835,9 +845,8 @@ class Shoes
     def self.convert_to_integer(value, attribute_name)
       begin
         value = Integer(value)
-        raise Shoes::Errors::InvalidAttributeValueError, "Negative number '#{value}' not allowed for attribute '#{attribute_name}'" if value < 0
-
-        value
+        # Clamp negative values to 0 (matches Shoes3 behavior for dimensions)
+        [value, 0].max
       rescue ArgumentError
         error_message = "Invalid value '#{value}' provided for attribute '#{attribute_name}'. The value should be a number."
         raise Shoes::Errors::InvalidAttributeValueError, error_message
@@ -847,9 +856,8 @@ class Shoes
     def self.convert_to_float(value, attribute_name)
       begin
         value = Float(value)
-        raise Shoes::Errors::InvalidAttributeValueError, "Negative number '#{value}' not allowed for attribute '#{attribute_name}'" if value < 0
-
-        value
+        # Clamp negative values to 0 (matches Shoes3 behavior for dimensions)
+        [value, 0].max
       rescue ArgumentError
         error_message = "Invalid value '#{value}' provided for attribute '#{attribute_name}'. The value should be a number."
         raise Shoes::Errors::InvalidAttributeValueError, error_message

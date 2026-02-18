@@ -6,7 +6,7 @@ Shoes.app width: 600, height: 500 do
           tooltip: "Menlo Bold 14" do
         para "menlo bold button"
       end
-      button "icon", width: 80, height: 30, icon: "#{DIR}/static/icon-info.png",
+      button "icon", width: 80, height: 30, icon: "#{DIR}/docs/static/icon-info.png",
           tooltip: "default right", stroke: blue do
       end
     end
@@ -23,23 +23,23 @@ Shoes.app width: 600, height: 500 do
     end
     para "testing icon/title interactions"
     flow do
-      button "left", width: 80, icon: "#{DIR}/static/icon-info.png",
+      button "left", width: 80, icon: "#{DIR}/docs/static/icon-info.png",
           icon_pos: "left", tooltip: "title left" do
         para "left image"
       end
-      button  width: 80, icon: "#{DIR}/static/icon-info.png",
+      button  width: 80, icon: "#{DIR}/docs/static/icon-info.png",
           tooltip: "just icon" do
         para "icon only"
       end
-      button "right", width: 80, icon: "#{DIR}/static/icon-info.png",
+      button "right", width: 80, icon: "#{DIR}/docs/static/icon-info.png",
           icon_pos: "right" do
           para "right image"
       end
-      button "top", width: 80, height: 45, icon: "#{DIR}/static/icon-info.png",
+      button "top", width: 80, height: 45, icon: "#{DIR}/docs/static/icon-info.png",
           icon_pos: "top" do
         para "top image"
       end
-      button "bottom", width: 80, height: 45, icon: "#{DIR}/static/icon-info.png",
+      button "bottom", width: 80, height: 45, icon: "#{DIR}/docs/static/icon-info.png",
           icon_pos: "bottom" do
         para "bottom image"
       end

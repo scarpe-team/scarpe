@@ -39,7 +39,8 @@ para "Demonstrates how to write tool tips. Credit and thanks to @dredknight\n" \
             img.hover { @hovers.show options } 
             img.leave { @hovers.hide; }
     end
-    set ( image "#{DIR}/static/app-icon.png", width: 50, height: 50, left: 30, top: 100 ), text: "No options"
-    set ( image "#{DIR}/static/app-icon.png", width: 50, height: 50, left: 120, top: 100 ), text: "Mandatory settings only", width: 200, height: 200
-    set ( image "#{DIR}/static/app-icon.png", width: 50, height: 50, left: 340, top: 100 ), text: "ALL SETTINGS", width: 200, height: 200, stroke: orange, size: 14, font: "Serif", border: blue, background: yellow
+    icon_path = File.join(__dir__, "../../../../docs/static/shoes-icon.png")
+    set ( image icon_path, width: 50, height: 50, left: 30, top: 100 ), text: "No options"
+    set ( image icon_path, width: 50, height: 50, left: 120, top: 100 ), text: "Mandatory settings only", width: 200, height: 200
+    set ( image icon_path, width: 50, height: 50, left: 340, top: 100 ), text: "ALL SETTINGS", width: 200, height: 200, stroke: orange, size: 14, font: "Serif", border: blue, background: yellow
 end

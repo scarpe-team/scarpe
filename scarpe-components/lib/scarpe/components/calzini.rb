@@ -227,6 +227,12 @@ module Scarpe::Components::Calzini
     # Handle Range objects (gradients) - extract the first color
     return rgb_to_hex(color.first) if color.is_a?(Range)
 
+    # Handle Gradient objects (from Shoes::Colors::Gradient) - extract the first color
+    # Gradient has color1/color2 attrs and first/last methods returning color strings
+    if color.respond_to?(:color1) && color.respond_to?(:color2)
+      return color.first  # Returns a color string like "rgb(255,0,0)"
+    end
+
     r, g, b, a = *color
     if r.is_a?(Float)
       a ||= 1.0
@@ -281,5 +287,39 @@ module Scarpe::Components::Calzini
 
   def radians_to_degrees(radians)
     radians * (180.0 / Math::PI)
+  end
+
+  # Build an SVG transform string from draw_context settings.
+  # Supports rotate, scale, and skew transforms.
+  #
+  # @param dc [Hash] the draw_context hash
+  # @param center_x [Numeric] the x coordinate of the transform center
+  # @param center_y [Numeric] the y coordinate of the transform center
+  # @return [String,nil] the SVG transform string or nil if no transforms
+  def build_svg_transform(dc, center_x = 0, center_y = 0)
+    transforms = []
+    
+    if dc["rotate"]
+      transforms << "rotate(#{dc["rotate"]}, #{center_x}, #{center_y})"
+    end
+    
+    if dc["scale"]
+      scale_x, scale_y = dc["scale"]
+      scale_y ||= scale_x
+      # Scale from center by translating, scaling, then translating back
+      transforms << "translate(#{center_x}, #{center_y})"
+      transforms << "scale(#{scale_x}, #{scale_y})"
+      transforms << "translate(#{-center_x}, #{-center_y})"
+    end
+    
+    if dc["skew"]
+      skew_x, skew_y = dc["skew"]
+      skew_y ||= 0
+      # SVG skewX/skewY take angles in degrees
+      transforms << "skewX(#{skew_x})" if skew_x && skew_x != 0
+      transforms << "skewY(#{skew_y})" if skew_y && skew_y != 0
+    end
+    
+    transforms.empty? ? nil : transforms.join(" ")
   end
 end

@@ -1,5 +1,9 @@
 #!ruby
 filename = ask_open_file
 Shoes.app do
-  para File.read(filename)
+  if filename
+    para File.read(filename)
+  else
+    para "No file selected"
+  end
 end

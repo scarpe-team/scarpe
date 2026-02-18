@@ -6,6 +6,14 @@ class Range
   end
 end
 
+# Shoes3 compatibility: convert degrees to radians
+# Used in animations and transformations
+class Numeric
+  def to_radians
+    self * Math::PI / 180.0
+  end
+end
+
 unless Time.respond_to? :today
   def Time.today
     t = Time.now
