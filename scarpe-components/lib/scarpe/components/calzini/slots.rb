@@ -12,7 +12,9 @@ module Scarpe::Components::Calzini
   def flow_element(props, &block)
     HTML.render do |h|
       h.div((props["html_attributes"] || {}).merge(id: html_id, style: flow_style(props))) do
-        h.div(style: { height: "100%", width: "100%", position: "relative" }, &block)
+        # Using display:contents so the wrapper is transparent to flexbox layout
+        # This allows flex-wrap to work on direct children (buttons, etc.)
+        h.div(style: { height: "100%", width: "100%", position: "relative", display: "contents" }, &block)
       end
     end
   end
