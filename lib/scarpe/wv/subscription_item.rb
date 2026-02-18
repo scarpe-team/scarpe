@@ -62,16 +62,14 @@ class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Drawable
     case @shoes_api_name
     when "motion"
       # TODO: what do we do for whole-screen mousemove outside the window?
-      # Those should be set on body, which right now doesn't have a drawable.
-      # TODO: figure out how to handle alt and meta keys - does Shoes3 recognise those?
-      # Use offsetX/offsetY for coordinates relative to the target element
+      # Use clientX/clientY with bounding rect for reliable positioning
       new_parent.set_event_callback(
         self,
         "onmousemove",
         handler_js_code(
           @shoes_api_name,
-          "arguments[0].offsetX",
-          "arguments[0].offsetY",
+          "(function(e){ var r = e.currentTarget.getBoundingClientRect(); return e.clientX - r.left; })(arguments[0])",
+          "(function(e){ var r = e.currentTarget.getBoundingClientRect(); return e.clientY - r.top; })(arguments[0])",
           "arguments[0].ctrlKey",
           "arguments[0].shiftKey",
         ),
@@ -81,9 +79,27 @@ class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Drawable
     when "leave"
       new_parent.set_event_callback(self, "onmouseleave", handler_js_code(@shoes_api_name))
     when "click"
-      new_parent.set_event_callback(self, "onclick", handler_js_code(@shoes_api_name, "arguments[0].button", "arguments[0].offsetX", "arguments[0].offsetY"))
+      new_parent.set_event_callback(
+        self,
+        "onclick",
+        handler_js_code(
+          @shoes_api_name,
+          "arguments[0].button",
+          "(function(e){ var r = e.currentTarget.getBoundingClientRect(); return e.clientX - r.left; })(arguments[0])",
+          "(function(e){ var r = e.currentTarget.getBoundingClientRect(); return e.clientY - r.top; })(arguments[0])",
+        ),
+      )
     when "release"
-      new_parent.set_event_callback(self, "onmouseup", handler_js_code(@shoes_api_name, "arguments[0].button", "arguments[0].offsetX", "arguments[0].offsetY"))
+      new_parent.set_event_callback(
+        self,
+        "onmouseup",
+        handler_js_code(
+          @shoes_api_name,
+          "arguments[0].button",
+          "(function(e){ var r = e.currentTarget.getBoundingClientRect(); return e.clientX - r.left; })(arguments[0])",
+          "(function(e){ var r = e.currentTarget.getBoundingClientRect(); return e.clientY - r.top; })(arguments[0])",
+        ),
+      )
     when "keypress"
       # Keypress is a global event in Shoes — it fires on any key press regardless
       # of which element has focus. We bind a document-level keydown handler.
