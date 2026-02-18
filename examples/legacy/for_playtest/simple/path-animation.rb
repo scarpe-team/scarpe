@@ -1,11 +1,17 @@
 Shoes.app(title: "Drag the dot to make a path. Redrag to extend.") do
-   @path = [[self.width / 2, self.height / 2, RADIUS = 20]]
+   RADIUS = 20
+   # Use fixed starting position since self.width/height may be nil at init
+   @path = [[200, 200, RADIUS]]
    
    @controller = nil
    click do |btn, left, top|
       px, py, pr = @path.last
+      puts "CLICK at (#{left}, #{top}) - dot at (#{px}, #{py}) radius=#{pr}"
+      puts "  In range X? #{left.between?(px - pr, px + pr)}"
+      puts "  In range Y? #{top.between?(py - pr, py + pr)}"
       if left.between?(px - pr, px + pr) and top.between?(py - pr, py + pr)
          @controller = true
+         puts "  -> DRAG STARTED!"
       end
    end
    release do |btn, left, top|
