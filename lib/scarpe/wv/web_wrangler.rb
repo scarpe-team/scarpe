@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "webview_ruby"
+require "securerandom"
 # Note: URI is already required by lacci/lib/shoes.rb
 
 # WebWrangler operates in multiple phases: setup and running.
@@ -95,6 +96,15 @@ module Scarpe::Webview
         puts(*args)
       end
 
+      # Dynamic callback mechanism for creating timers/handlers after app is running
+      @dynamic_callbacks = {}
+      @webview.bind("dynamicRubyCallback") do |handler_id|
+        if @dynamic_callbacks[handler_id]
+          @dynamic_callbacks[handler_id].call
+          @dynamic_callbacks.delete(handler_id) # One-shot, remove after use
+        end
+      end
+
       @webview.bind(EVAL_RESULT) do |*results|
         receive_eval_result(*results)
       end
@@ -184,23 +194,29 @@ module Scarpe::Webview
 
     # Set up a one-shot timer that fires a Ruby block after a delay.
     # Uses JS setTimeout instead of setInterval.
-    # Like periodic_code, this must be called during setup, before the
-    # Webview is running.
+    #
+    # If called before app is running, uses init/bind (more efficient).
+    # If called after app is running, uses the dynamic callback mechanism.
     #
     # @param name [String] the name of the Javascript callback function
     # @param delay [Float] the delay in seconds before invoking the block
     # @yield the Ruby block to invoke once after the delay
     def one_shot_code(name, delay, &block)
-      if @is_running
-        raise Scarpe::PeriodicHandlerSetupError, "App is running, can't set up new handlers with init!"
-      end
-
       js_delay = (delay.to_f * 1_000.0).to_i
-      code_str = "setTimeout(#{name}, #{js_delay});"
-      @init_refs[name] = code_str
 
-      bind(name, &block)
-      @webview.init(code_str)
+      if @is_running
+        # App is running - use dynamic callback mechanism
+        handler_id = "dyn_#{name}_#{SecureRandom.hex(8)}"
+        @dynamic_callbacks ||= {}
+        @dynamic_callbacks[handler_id] = block
+        js_eventually("setTimeout(() => dynamicRubyCallback('#{handler_id}'), #{js_delay});")
+      else
+        # App not running yet - use more efficient init/bind
+        code_str = "setTimeout(#{name}, #{js_delay});"
+        @init_refs[name] = code_str
+        bind(name, &block)
+        @webview.init(code_str)
+      end
     end
 
     # Running callbacks
