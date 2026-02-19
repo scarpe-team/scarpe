@@ -10,6 +10,140 @@ require "scarpe/components/unit_test_helpers"
 # This will run inside the exe/scarpe child process, then send
 # results back to the parent Minitest process.
 
+# Dialog stubbing system for shoes-spec tests.
+# Allows tests to mock alert, ask, confirm, and file dialogs
+# so they don't block test execution.
+module Scarpe::DialogStubs
+  class << self
+    # Storage for stub configurations
+    def stubs
+      @stubs ||= {}
+    end
+
+    # Clear all stubs (call between tests)
+    def reset!
+      @stubs = {}
+    end
+
+    # Check if a dialog is stubbed
+    def stubbed?(dialog_name)
+      stubs.key?(dialog_name)
+    end
+
+    # Get the stubbed return value for a dialog
+    def get_stub(dialog_name)
+      stubs[dialog_name]
+    end
+
+    # Set a stub for a dialog
+    def stub(dialog_name, returns:)
+      stubs[dialog_name] = returns
+    end
+
+    # Convenience methods for each dialog type
+    def stub_alert
+      stub(:alert, returns: nil)
+    end
+
+    def stub_ask(returns: "")
+      stub(:ask, returns: returns)
+    end
+
+    def stub_confirm(returns: true)
+      stub(:confirm, returns: returns)
+    end
+
+    def stub_ask_color(returns: "#000000")
+      stub(:ask_color, returns: returns)
+    end
+
+    def stub_ask_open_file(returns: nil)
+      stub(:ask_open_file, returns: returns)
+    end
+
+    def stub_ask_save_file(returns: nil)
+      stub(:ask_save_file, returns: returns)
+    end
+
+    def stub_ask_open_folder(returns: nil)
+      stub(:ask_open_folder, returns: returns)
+    end
+
+    def stub_ask_save_folder(returns: nil)
+      stub(:ask_save_folder, returns: returns)
+    end
+  end
+end
+
+# Module to prepend to Shoes::Builtins for dialog interception.
+# When a dialog is stubbed, returns the stubbed value immediately
+# instead of dispatching to the display service.
+module Scarpe::DialogStubsInterceptor
+  def alert(message)
+    if Scarpe::DialogStubs.stubbed?(:alert)
+      Scarpe::DialogStubs.get_stub(:alert)
+    else
+      super
+    end
+  end
+
+  def ask(message_string)
+    if Scarpe::DialogStubs.stubbed?(:ask)
+      Scarpe::DialogStubs.get_stub(:ask)
+    else
+      super
+    end
+  end
+
+  def confirm(question)
+    if Scarpe::DialogStubs.stubbed?(:confirm)
+      Scarpe::DialogStubs.get_stub(:confirm)
+    else
+      super
+    end
+  end
+
+  def ask_color(title_bar)
+    if Scarpe::DialogStubs.stubbed?(:ask_color)
+      Scarpe::DialogStubs.get_stub(:ask_color)
+    else
+      super
+    end
+  end
+
+  def ask_open_file
+    if Scarpe::DialogStubs.stubbed?(:ask_open_file)
+      Scarpe::DialogStubs.get_stub(:ask_open_file)
+    else
+      super
+    end
+  end
+
+  def ask_save_file
+    if Scarpe::DialogStubs.stubbed?(:ask_save_file)
+      Scarpe::DialogStubs.get_stub(:ask_save_file)
+    else
+      super
+    end
+  end
+
+  def ask_open_folder
+    if Scarpe::DialogStubs.stubbed?(:ask_open_folder)
+      Scarpe::DialogStubs.get_stub(:ask_open_folder)
+    else
+      super
+    end
+  end
+
+  def ask_save_folder
+    if Scarpe::DialogStubs.stubbed?(:ask_save_folder)
+      Scarpe::DialogStubs.get_stub(:ask_save_folder)
+    else
+      super
+    end
+  end
+end
+
 module Scarpe::Test
   # Is it at all reasonable to define more than one test to run in the same Shoes run? Probably not.
   # They'll leave in-memory residue.
@@ -19,6 +153,12 @@ module Scarpe::Test
     end
 
     @shoes_spec_init = true
+
+    # Install dialog stubbing interceptor if not already done
+    install_dialog_stubs!
+
+    # Reset any stubs from previous test runs
+    Scarpe::DialogStubs.reset!
 
     require "scarpe/components/minitest_export_reporter"
     Minitest::Reporters::ShoesExportReporter.activate!
@@ -51,6 +191,17 @@ module Scarpe::Test
     test_class.define_method(test_name) do
       eval(code)
     end
+  end
+
+  # Install the dialog stubs interceptor by prepending to Shoes::Builtins.
+  # Only does this once, even if called multiple times.
+  def self.install_dialog_stubs!
+    return if @dialog_stubs_installed
+
+    @dialog_stubs_installed = true
+
+    # Prepend our interceptor module to catch dialog calls
+    Shoes::Builtins.prepend(Scarpe::DialogStubsInterceptor)
   end
 end
 
@@ -157,5 +308,80 @@ module Scarpe::ShoesSpecTest
         exit 0
       end
     end
+  end
+
+  # === Dialog Stubbing Methods ===
+  # These methods allow tests to mock dialog calls so they don't block.
+  # Stubs must be set BEFORE the dialog is called (usually at test start).
+
+  # Stub alert() to return nil without showing a dialog.
+  # @example
+  #   stub_alert
+  #   button().trigger_click  # Won't block even if button calls alert()
+  def stub_alert
+    Scarpe::DialogStubs.stub_alert
+  end
+
+  # Stub ask() to return a specific value.
+  # @param returns [String] the value ask() should return (default: "")
+  # @example
+  #   stub_ask(returns: "user input")
+  #   assert_equal "user input", ask("What's your name?")
+  def stub_ask(returns: "")
+    Scarpe::DialogStubs.stub_ask(returns: returns)
+  end
+
+  # Stub confirm() to return true or false.
+  # @param returns [Boolean] what confirm() should return (default: true)
+  # @example
+  #   stub_confirm(returns: false)
+  #   refute confirm("Are you sure?")
+  def stub_confirm(returns: true)
+    Scarpe::DialogStubs.stub_confirm(returns: returns)
+  end
+
+  # Stub ask_color() to return a color string.
+  # @param returns [String] the color value to return (default: "#000000")
+  # @example
+  #   stub_ask_color(returns: "#FF0000")
+  def stub_ask_color(returns: "#000000")
+    Scarpe::DialogStubs.stub_ask_color(returns: returns)
+  end
+
+  # Stub ask_open_file() to return a file path.
+  # @param returns [String, nil] the path to return (default: nil)
+  # @example
+  #   stub_ask_open_file(returns: "/path/to/file.txt")
+  def stub_ask_open_file(returns: nil)
+    Scarpe::DialogStubs.stub_ask_open_file(returns: returns)
+  end
+
+  # Stub ask_save_file() to return a file path.
+  # @param returns [String, nil] the path to return (default: nil)
+  # @example
+  #   stub_ask_save_file(returns: "/path/to/save.txt")
+  def stub_ask_save_file(returns: nil)
+    Scarpe::DialogStubs.stub_ask_save_file(returns: returns)
+  end
+
+  # Stub ask_open_folder() to return a folder path.
+  # @param returns [String, nil] the path to return (default: nil)
+  # @example
+  #   stub_ask_open_folder(returns: "/path/to/folder")
+  def stub_ask_open_folder(returns: nil)
+    Scarpe::DialogStubs.stub_ask_open_folder(returns: returns)
+  end
+
+  # Stub ask_save_folder() to return a folder path.
+  # @param returns [String, nil] the path to return (default: nil)
+  # @example
+  #   stub_ask_save_folder(returns: "/path/to/folder")
+  def stub_ask_save_folder(returns: nil)
+    Scarpe::DialogStubs.stub_ask_save_folder(returns: returns)
+  end
+
+  # Clear all dialog stubs. Useful if you need to reset mid-test.
+  def reset_dialog_stubs
+    Scarpe::DialogStubs.reset!
   end
 end
