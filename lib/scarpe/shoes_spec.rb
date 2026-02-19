@@ -371,6 +371,21 @@ module Scarpe::ShoesSpecTest
   alias all_buttons buttons
   alias all_paras paras
 
+  # Wait for a specified number of seconds, allowing animations/timers to run.
+  # This is useful for testing time-based behavior like animate() or timer().
+  # The wait happens asynchronously via heartbeat events, not a blocking sleep.
+  #
+  # @param seconds [Numeric] the number of seconds to wait
+  # @return [void]
+  # @example
+  #   wait 0.1  # Wait 100ms for animation to progress
+  #   wait 1.5  # Wait 1.5 seconds
+  def wait(seconds)
+    catscradle_dsl do
+      wait timed_promise(seconds)
+    end
+  end
+
   def catscradle_dsl(&block)
     Scarpe::CCInstance.instance.instance_eval(&block)
   end

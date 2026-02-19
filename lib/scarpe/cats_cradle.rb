@@ -20,6 +20,7 @@ module Scarpe
 
       @waiting_fibers = []
       @event_promises = {}
+      @timed_promises = []  # Array of { deadline:, promise: } for time-based waits
       @shutdown = false
 
       @manager_fiber = Fiber.new do
@@ -91,6 +92,15 @@ module Scarpe
           p = @event_promises.delete(:every_heartbeat)
           p&.fulfilled!
 
+          # Check and fulfill any timed promises that have reached their deadline
+          now = Time.now
+          @timed_promises.each do |tp|
+            if now >= tp[:deadline] && !tp[:promise].fulfilled?
+              tp[:promise].fulfilled!
+            end
+          end
+          @timed_promises.reject! { |tp| tp[:promise].fulfilled? }
+
           # Reschedule on_every_heartbeat fibers for next heartbeat, too.
           # This fiber won't be called again by a heartbeat, though it may
           # continue if it waits on another promise.
@@ -161,6 +171,19 @@ module Scarpe
     # This returns a promise, which can be waited on using wait()
     def fully_updated
       @wrangler.promise_dom_fully_updated
+    end
+
+    # Returns a promise that will be fulfilled after the specified number of seconds.
+    # Use with wait() to pause test execution while allowing animations/timers to run.
+    #
+    # @param seconds [Numeric] the number of seconds to wait
+    # @return [Scarpe::Promise] a promise that fulfills after the delay
+    # @example
+    #   wait timed_promise(0.5)  # Wait 500ms
+    def timed_promise(seconds)
+      promise = ::Scarpe::Promise.new
+      @timed_promises << { deadline: Time.now + seconds, promise: promise }
+      promise
     end
 
     def dom_html(timeout: 1.0)
