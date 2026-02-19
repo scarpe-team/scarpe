@@ -254,9 +254,21 @@ end
 module Scarpe::ShoesSpecTest
   include Scarpe::Test::HTMLAssertions
 
+  # Helper to pluralize DSL names
+  def self.pluralize_dsl_name(name)
+    # Handle common English pluralization rules
+    case name
+    when /box$/
+      name + "es"
+    else
+      name + "s"
+    end
+  end
+
   Shoes::Drawable.drawable_classes.each do |drawable_class|
     finder_name = drawable_class.dsl_name
 
+    # Singular finder - raises if not exactly one match
     define_method(finder_name) do |*args|
       # Scarpe-Webview only supports a single Shoes::App instance
       app = Shoes.APPS[0]
@@ -267,13 +279,31 @@ module Scarpe::ShoesSpecTest
 
       Scarpe::ShoesSpecProxy.new(drawables[0])
     end
-  end
-  def drawable(*specs)
-    drawables = app.find_drawables_by(*specs)
-    raise Scarpe::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
-    raise Scarpe::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
 
-    Scarpe::ShoesSpecProxy.new(drawables[0])
+    # Plural finder - returns array of all matches
+    plural_name = pluralize_dsl_name(finder_name)
+    define_method(plural_name) do |*args|
+      app = Shoes.APPS[0]
+      drawables = app.find_drawables_by(drawable_class, *args)
+      drawables.map { |d| Scarpe::ShoesSpecProxy.new(d) }
+    end
+  end
+
+  # Singular drawable finder
+  def drawable(*specs)
+    app = Shoes.APPS[0]
+    found = app.find_drawables_by(*specs)
+    raise Shoes::Errors::MultipleDrawablesFoundError, "Found more than one drawable matching #{specs.inspect}!" if found.size > 1
+    raise Shoes::Errors::NoDrawablesFoundError, "Found no drawable matching #{specs.inspect}!" if found.empty?
+
+    Scarpe::ShoesSpecProxy.new(found[0])
+  end
+
+  # Plural drawables finder - returns array of all matches
+  def drawables(*specs)
+    app = Shoes.APPS[0]
+    found = app.find_drawables_by(*specs)
+    found.map { |d| Scarpe::ShoesSpecProxy.new(d) }
   end
 
   def catscradle_dsl(&block)

@@ -36,9 +36,21 @@ class Niente::Test
 end
 
 class Niente::ShoesSpecTest < Minitest::Test
+  # Helper to pluralize DSL names
+  def self.pluralize_dsl_name(name)
+    # Handle common English pluralization rules
+    case name
+    when /box$/
+      name + "es"
+    else
+      name + "s"
+    end
+  end
+
   Shoes::Drawable.drawable_classes.each do |drawable_class|
     finder_name = drawable_class.dsl_name
 
+    # Singular finder - raises if not exactly one match
     define_method(finder_name) do |*args|
       drawables = Shoes::App.find_drawables_by(drawable_class, *args)
 
@@ -47,13 +59,27 @@ class Niente::ShoesSpecTest < Minitest::Test
 
       Niente::ShoesSpecProxy.new(drawables[0])
     end
+
+    # Plural finder - returns array of all matches
+    plural_name = pluralize_dsl_name(finder_name)
+    define_method(plural_name) do |*args|
+      drawables = Shoes::App.find_drawables_by(drawable_class, *args)
+      drawables.map { |d| Niente::ShoesSpecProxy.new(d) }
+    end
   end
 
+  # Singular drawable finder
   def drawable(*specs)
-    drawables = Shoes::App.find_drawables_by(*specs)
-    raise Shoes::Errors::MultipleDrawablesFoundError, "Found more than one #{finder_name} matching #{args.inspect}!" if drawables.size > 1
-    raise Shoes::Errors::NoDrawablesFoundError, "Found no #{finder_name} matching #{args.inspect}!" if drawables.empty?
-    Niente::ShoesSpecProxy.new(drawables[0])
+    found = Shoes::App.find_drawables_by(*specs)
+    raise Shoes::Errors::MultipleDrawablesFoundError, "Found more than one drawable matching #{specs.inspect}!" if found.size > 1
+    raise Shoes::Errors::NoDrawablesFoundError, "Found no drawable matching #{specs.inspect}!" if found.empty?
+    Niente::ShoesSpecProxy.new(found[0])
+  end
+
+  # Plural drawables finder - returns array of all matches
+  def drawables(*specs)
+    found = Shoes::App.find_drawables_by(*specs)
+    found.map { |d| Niente::ShoesSpecProxy.new(d) }
   end
 end
 
