@@ -319,13 +319,13 @@ module Scarpe::Webview
       if changes.key?("opacity")
         opacity = changes.delete("opacity")
         opacity_val = opacity.nil? ? 1.0 : opacity.to_f.clamp(0.0, 1.0)
-        @view.run_script("document.body.style.opacity = '#{opacity_val}';")
+        @view.eval_js_async("document.body.style.opacity = '#{opacity_val}';")
       end
-      
+
       if changes.key?("cursor")
         cursor = changes.delete("cursor")
         css_cursor = shoes_cursor_to_css(cursor)
-        @view.run_script("document.body.style.cursor = '#{css_cursor}';")
+        @view.eval_js_async("document.body.style.cursor = '#{css_cursor}';")
       end
       super
     end

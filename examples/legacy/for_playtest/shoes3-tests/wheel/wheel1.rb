@@ -4,13 +4,15 @@ Shoes.app do
      @p.replace "Stack clicked"
     end
     @p = para "None"
-    flow width: 200 do 
+    flow width: 200 do
+      border red, strokewidth: 2
       para "Flow 1"
-      wheel do |d,l,t| 
+      wheel do |d,l,t|
        @p.replace  "Flow 1 wheel #{d}"
       end
     end
     flow width: 200 do
+      border black, strokewidth: 4
       para "Flow 2"
       click do |b,l,t|
        @p.replace "Flow 2 clicked"

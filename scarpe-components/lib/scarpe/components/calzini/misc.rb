@@ -69,7 +69,7 @@ module Scarpe::Components::Calzini
     option_attrs = { value: nil, selected: false }
 
     HTML.render do |h|
-      h.select(id: html_id, onchange:, style: list_box_style(props)) do
+      h.select(id: html_id, onchange:, style: list_box_style(props), title: props["tooltip"]) do
         (props["items"] || []).each do |item|
           option_attrs = {
             value: item,
