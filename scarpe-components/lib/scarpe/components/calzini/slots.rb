@@ -84,9 +84,9 @@ module Scarpe::Components::Calzini
       # Other attach values (another drawable) would need more complex handling
     end
 
-    ## A new slot defines a new coordinate system, so absolutely-positioned children
-    ## are relative to it. But that's going to need a lot of testing and Shoes3 comparison.
-    #styles[:position] = "relative"
+    # Slots need position:relative so that absolutely-positioned children
+    # (like Border drawables) anchor to their parent slot, not the window.
+    styles[:position] = "relative" unless styles[:position]
 
     styles
   end

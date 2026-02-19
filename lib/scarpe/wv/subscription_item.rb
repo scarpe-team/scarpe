@@ -165,10 +165,11 @@ class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Drawable
       # Wheel event (mouse wheel / trackpad scroll). Positive delta = scroll up/away from user.
       # In browsers, deltaY is positive when scrolling down (content moves up), which is
       # opposite to what Shoes3 expects. We negate it for Shoes compatibility.
+      # stopPropagation prevents the event from bubbling to parent slots.
       new_parent.set_event_callback(
         self,
         "onwheel",
-        handler_js_code(
+        "arguments[0].stopPropagation();" + handler_js_code(
           @shoes_api_name,
           "-arguments[0].deltaY",  # Negate for Shoes3 convention: positive = up
           "arguments[0].clientX",

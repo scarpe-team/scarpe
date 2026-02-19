@@ -1,3 +1,5 @@
+# CHECKED BY SCHWAD
+
 Shoes.app do
   stack height: 200 do
     click do |b,l,t|
@@ -18,6 +20,10 @@ Shoes.app do
        @p.replace "Flow 2 clicked"
       end
     end
+  end
+  stack height: 200 do
+    border blue, strokewidth: 2
+    para "Stack 2"
   end
   wheel {|d,l,t,mods | @p.replace "default slot wheel #{d} #{mods}"}
 end
