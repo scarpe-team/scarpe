@@ -47,7 +47,11 @@ class Shoes::Slot < Shoes::Drawable
   # Do not call directly, use set_parent
   def add_child(child)
     @children ||= []
-    @children << child
+    if @prepending
+      @children.unshift(child)
+    else
+      @children << child
+    end
   end
 
   # Get a list of child drawables
@@ -286,6 +290,45 @@ class Shoes::Slot < Shoes::Drawable
     else
       # Normal Shoes context — use instance_eval as before
       @app.with_slot(self, &block)
+    end
+  end
+
+  # Call the block to prepend new children to the beginning of a Slot.
+  #
+  # Should only be called on a Slot, since only Slots can have children.
+  # Works like append, but inserts children at the beginning instead of the end.
+  #
+  # @yield the block to call to prepend children to this Slot
+  # @return [void]
+  def prepend(&block)
+    raise(Shoes::Errors::InvalidAttributeValueError, "prepend requires a block!") unless block_given?
+    raise(Shoes::Errors::InvalidAttributeValueError, "Don't prepend to something that isn't a slot!") unless self.is_a?(Shoes::Slot)
+
+    # Detect if the caller is external (non-Shoes) by checking the block's binding
+    caller_self = begin
+      eval("self", block.binding)
+    rescue StandardError
+      nil
+    end
+
+    @prepending = true
+    begin
+      if caller_self && !caller_self.is_a?(Shoes::Drawable)
+        # Shoes3-compatible: preserve the caller's self and register as external
+        @app.push_external_self(caller_self)
+        @app.push_slot(self)
+        begin
+          block.call
+        ensure
+          @app.pop_slot
+          @app.pop_external_self
+        end
+      else
+        # Normal Shoes context — use instance_eval as before
+        @app.with_slot(self, &block)
+      end
+    ensure
+      @prepending = false
     end
   end
 end
