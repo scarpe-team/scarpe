@@ -259,6 +259,10 @@ module Scarpe::ShoesSpecTest
     # Handle common English pluralization rules
     case name
     when /box$/
+      # edit_box -> edit_boxes, list_box -> list_boxes
+      name + "es"
+    when /ss$/
+      # progress -> progresses
       name + "es"
     else
       name + "s"
@@ -289,6 +293,31 @@ module Scarpe::ShoesSpecTest
     end
   end
 
+  # Text size finders - these find Shoes::Para by size attribute
+  # title(), banner(), caption(), subtitle(), tagline(), inscription()
+  # are convenience methods that create Para with a specific size,
+  # so we need special finders for them.
+  TEXT_SIZE_NAMES = [:title, :banner, :caption, :subtitle, :tagline, :inscription].freeze
+
+  TEXT_SIZE_NAMES.each do |size_name|
+    # Singular finder - raises if not exactly one match
+    define_method(size_name) do
+      app = Shoes.APPS[0]
+      drawables = app.find_drawables_by(Shoes::Para).select { |d| d.size == size_name }
+      raise Shoes::Errors::MultipleDrawablesFoundError, "Found more than one #{size_name}!" if drawables.size > 1
+      raise Shoes::Errors::NoDrawablesFoundError, "Found no #{size_name}!" if drawables.empty?
+
+      Scarpe::ShoesSpecProxy.new(drawables[0])
+    end
+
+    # Plural finder - returns array of all matches
+    define_method(pluralize_dsl_name(size_name.to_s)) do
+      app = Shoes.APPS[0]
+      drawables = app.find_drawables_by(Shoes::Para).select { |d| d.size == size_name }
+      drawables.map { |d| Scarpe::ShoesSpecProxy.new(d) }
+    end
+  end
+
   # Singular drawable finder
   def drawable(*specs)
     app = Shoes.APPS[0]
@@ -305,6 +334,42 @@ module Scarpe::ShoesSpecTest
     found = app.find_drawables_by(*specs)
     found.map { |d| Scarpe::ShoesSpecProxy.new(d) }
   end
+
+  # Generic finder - returns array of all matching elements
+  # Alias for drawables() for Shoes-Spec compatibility
+  # @param specs [Array] search specifications (class, symbol, or string)
+  # @return [Array<Scarpe::ShoesSpecProxy>] array of matching proxy objects
+  # @example
+  #   find_all(Shoes::Button)
+  #   find_all(:@my_button)
+  def find_all(*specs)
+    drawables(*specs)
+  end
+
+  # Find a button by its text content
+  # @param text [String] the button text to search for
+  # @return [Scarpe::ShoesSpecProxy] proxy for the matching button
+  # @raise [Shoes::Errors::NoDrawablesFoundError] if no button matches
+  # @raise [Shoes::Errors::MultipleDrawablesFoundError] if multiple buttons match
+  # @example
+  #   find_button("Click Me")
+  #   find_button("Submit").trigger_click
+  def find_button(text)
+    app = Shoes.APPS[0]
+    all_buttons = app.find_drawables_by(Shoes::Button)
+    matching = all_buttons.select { |b| b.text == text }
+
+    raise Shoes::Errors::MultipleDrawablesFoundError, "Found more than one button with text #{text.inspect}!" if matching.size > 1
+    raise Shoes::Errors::NoDrawablesFoundError, "Found no button with text #{text.inspect}!" if matching.empty?
+
+    Scarpe::ShoesSpecProxy.new(matching[0])
+  end
+
+  # Aliases for consistency - some specs use all_* naming convention
+  alias all_ovals ovals
+  alias all_rects rects
+  alias all_buttons buttons
+  alias all_paras paras
 
   def catscradle_dsl(&block)
     Scarpe::CCInstance.instance.instance_eval(&block)
