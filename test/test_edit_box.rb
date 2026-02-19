@@ -18,7 +18,7 @@ class TestEditBoxShoesSpec < ShoesSpecLoggedTest
     TEST_CODE
   end
 
-  def test_renders_textarea_no_change_cb_on_manual_replace
+  def test_change_cb_fires_on_manual_text_set
     run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
       Shoes.app do
         @p = para "Yo!"
@@ -31,8 +31,9 @@ class TestEditBoxShoesSpec < ShoesSpecLoggedTest
       assert_contains_html edit_box.display.to_html, :textarea, id: html_id, oninput: "scarpeHandler('#{box.display.shoes_linkable_id}-change', this.value)", onmouseover:"scarpeHandler('#{box.display.shoes_linkable_id}-hover')" do
         "Awwww yeah"
       end
-      # Shoes3 does *not* fire a change event when manually replacing text
-      assert !para.display.to_html.include?("Double Yo!")
+      # Scarpe fires the change callback when text is set programmatically
+      # (deliberate deviation from Shoes3 for better UX)
+      assert para.display.to_html.include?("Double Yo!")
     TEST_CODE
   end
 
