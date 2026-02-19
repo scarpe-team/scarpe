@@ -1,3 +1,5 @@
+# CHECKED BY SCHWAD
+
 #!ruby
 filename = ask_open_file
 
