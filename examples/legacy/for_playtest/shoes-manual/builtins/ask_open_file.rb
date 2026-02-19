@@ -1,5 +1,6 @@
 #!ruby
 filename = ask_open_file
+
 Shoes.app do
   if filename
     para File.read(filename)

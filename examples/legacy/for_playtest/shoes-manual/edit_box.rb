@@ -1,3 +1,5 @@
+ # CHECKED BY SCHWAD
+
  #!ruby
  Shoes.app do
    edit_box do |e|
