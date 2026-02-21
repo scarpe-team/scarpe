@@ -235,9 +235,19 @@ module Scarpe::Components::Calzini
     # External URLs use href for normal browser navigation
     is_internal_route = click_value.is_a?(String) && click_value.start_with?("/")
 
+    # An <a> tag without href renders as plain text (no underline, no pointer cursor).
+    # When a link has a block but no URL, use "#" so it looks and acts like a link.
+    href = if is_internal_route
+      nil
+    elsif click_value
+      click_value
+    elsif props["has_block"]
+      "#"
+    end
+
     {
       # These properties will normally only be set by link()
-      href: is_internal_route ? nil : click_value,
+      href: href,
       onclick: props["has_block"] ? handler_js_code("click") : nil,
     }.compact
   end

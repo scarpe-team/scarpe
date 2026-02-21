@@ -40,7 +40,7 @@ class TestCalziniTextDrawables < Minitest::Test
   end
 
   def test_link_with_has_block
-    assert_equal %{this <a onclick="handle('click')">is</a> text},
+    assert_equal %{this <a href="#" onclick="handle('click')">is</a> text},
       trim_html_ids(@calzini.render("text_drawable",
         ["this ", {
           tag: "a",
