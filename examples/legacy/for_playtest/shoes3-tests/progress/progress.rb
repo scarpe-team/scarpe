@@ -1,3 +1,5 @@
+# schwad - this is tricky. trying to understand original intent
+
 Shoes.app do
   background "#eee"
   @list = stack do
@@ -16,7 +18,7 @@ Shoes.app do
               p = progress :width => 1.0, :height => 14
               dld = download @url.text, :save => File.basename(@url.text),
                 :pause => 1.25,
-                :progress => proc { |dl| 
+                :progress => proc { |dl|
                   d.text = "Transferred #{dl.transferred} of #{dl.length} bytes (#{dl.percent}%)"
                   p.fraction = dl.percent },
                 :finish => proc { |dl| d.text = "Download completed"}
