@@ -9,7 +9,7 @@ class Shoes
   # In Shoes3, `background blue` returns a Background drawable that can have
   # its style changed later: `@back.style :height => 10`
   class Background < Shoes::Drawable
-    shoes_styles :fill, :curve
+    shoes_style :fill
 
     shoes_style(:curve) { |val| convert_to_integer(val, "curve") }
 

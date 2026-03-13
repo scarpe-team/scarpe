@@ -188,11 +188,35 @@ class Shoes
       def shoes_style(name, feature: nil, &validator)
         name = name.to_s
 
-        return if linkable_properties_hash[name]
+        existing_style = linkable_properties.find { |prop| prop[:name] == name }
+        if existing_style
+          same_feature = existing_style[:feature] == feature
+          same_validator = validator_signature(existing_style[:validator]) == validator_signature(validator)
+
+          unless same_feature && same_validator
+            raise Shoes::Errors::DuplicateRegisteredShoesStyleError,
+              "Duplicate Shoes style #{name.inspect} in #{self} with mismatched registration. " \
+              "Existing feature/validator: #{existing_style[:feature].inspect}/#{validator_signature(existing_style[:validator]).inspect}, " \
+              "new feature/validator: #{feature.inspect}/#{validator_signature(validator).inspect}"
+          end
+
+          warn("Duplicate Shoes style #{name.inspect} in #{self}; keeping the existing registration.")
+          return
+        end
 
         linkable_properties << { name: name, validator:, feature: }
         linkable_properties_hash[name] = true
       end
+
+      private
+
+      def validator_signature(validator)
+        return nil unless validator
+
+        [validator.source_location, validator.parameters]
+      end
+
+      public
 
       # Add these names as Shoes styles with the given validator and feature, if any
       def shoes_styles(*names, feature: nil, &validator)
