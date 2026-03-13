@@ -36,4 +36,12 @@ class TestColors < Minitest::Test
   def test_rgb_accepts_alpha
     assert_equal [255, 0, 0, 128], Dummy.new.rgb(255, 0, 0, 128)
   end
+
+  def test_to_rgb_named_color_uses_shared_mapping
+    assert_equal [127, 255, 212, 255], Dummy.new.to_rgb("aquamarine")
+  end
+
+  def test_colors_constant_is_shared_component_mapping
+    assert_same Scarpe::Components::NamedColors::COLORS, Shoes::Colors::COLORS
+  end
 end
