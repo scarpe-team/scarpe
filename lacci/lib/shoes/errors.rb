@@ -35,4 +35,6 @@ module Shoes::Errors
   class UnknownEventsForClassError < Shoes::Error; end
 
   class DoubleRegisteredShoesEventError < Shoes::Error; end
+
+  class DuplicateRegisteredShoesStyleError < Shoes::Error; end
 end
