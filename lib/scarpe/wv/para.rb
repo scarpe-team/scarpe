@@ -2,21 +2,7 @@
 
 module Scarpe::Webview
   class Para < Drawable
-    # Currently this is duplicated in Calzini. How to refactor?
-    # Similarly, we make some assumptions about when size is a symbol
-    # versus string that may not survive JSON deserialization.
-    # Do we want to hardcode these sizes in Lacci and have it always
-    # pass numbers?
-    SIZES = {
-      inscription: 10,
-      ins: 10,
-      para: 12,
-      caption: 14,
-      tagline: 18,
-      subtitle: 26,
-      title: 34,
-      banner: 48,
-    }.freeze
+    SIZES = Scarpe::Components::ShoesSizes::SIZES
     private_constant :SIZES
 
     def properties_changed(changes)

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class Scarpe
+  # NOTE: Canonical size mapping lives in Scarpe::Components::ShoesSizes::SIZES
+  # See: https://github.com/scarpe-team/scarpe/issues/505
   SIZES = {
     inscription: 10,
     ins: 10,

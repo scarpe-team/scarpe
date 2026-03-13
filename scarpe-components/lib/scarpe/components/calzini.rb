@@ -3,6 +3,7 @@
 require_relative "html"
 require_relative "base64"
 require_relative "errors"
+require_relative "shoes_sizes"
 
 # Require all drawable rendering code under calzini directory
 Dir.glob("calzini/*.rb", base: __dir__) do |drawable|
@@ -21,16 +22,7 @@ module Scarpe::Components::Calzini
   HTML = Scarpe::Components::HTML
   include Scarpe::Components::Base64
 
-  SIZES = {
-    inscription: 10,
-    ins: 10,
-    para: 12,
-    caption: 14,
-    tagline: 18,
-    subtitle: 26,
-    title: 34,
-    banner: 48,
-  }.freeze
+  SIZES = Scarpe::Components::ShoesSizes::SIZES
   private_constant :SIZES
 
   # Render the Shoes drawable of type `drawable_name` with
@@ -87,16 +79,7 @@ module Scarpe::Components::Calzini
   end
 
   def text_size(sz)
-    case sz
-    when Numeric
-      sz
-    when Symbol
-      SIZES[sz]
-    when String
-      SIZES[sz.to_sym] || sz.to_i
-    else
-      raise "Unexpected text size object: #{sz.inspect}"
-    end
+    Scarpe::Components::ShoesSizes.text_size(sz)
   end
 
   def dimensions_length(value)

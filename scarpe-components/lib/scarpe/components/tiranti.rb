@@ -149,14 +149,15 @@ module Scarpe::Components::Tiranti
     ps, _extra = para_style(props)
     size = ps[:"font-size"] || "12px"
     size_int = size.to_i # Mostly useful if it's something like "12px"
+    sizes = Scarpe::Components::ShoesSizes::SIZES
     if size.include?("calc") || size.end_with?("%")
       # Very big text!
       props["tag"] = "h2"
-    elsif size_int >= 48
+    elsif size_int >= sizes[:banner]
       props["tag"] = "h1"
-    elsif size_int >= 34
+    elsif size_int >= sizes[:title]
       props["tag"] = "h2"
-    elsif size_int >= 26
+    elsif size_int >= sizes[:subtitle]
       props["tag"] = "h3"
     else
       props["tag"] = "p"
