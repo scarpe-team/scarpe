@@ -313,7 +313,7 @@ class Shoes
       drawables = all_drawables
       specs.each do |spec|
         if spec == Shoes::App
-          drawables = [@app]
+          drawables = [self]
         elsif spec.is_a?(Class)
           drawables.select! { |w| spec === w }
         elsif spec.is_a?(Symbol) || spec.is_a?(String)
@@ -321,18 +321,19 @@ class Shoes
           case s[0]
           when '$'
             begin
-              # I'm not finding a global_variable_get or similar...
-              global_value = eval s
-              drawables &= [global_value]
+              if global_variables.include?(s.to_sym)
+                global_value = eval s
+                drawables &= [global_value]
+              else
+                drawables = []
+              end
             rescue
-              # raise Shoes::Errors::InvalidAttributeValueError, "Error getting global variable: #{spec.inspect}"
               drawables = []
             end
           when '@'
-            if @app.instance_variables.include?(spec.to_sym)
-              drawables &= [@app.instance_variable_get(spec)]
+            if self.instance_variables.include?(spec.to_sym)
+              drawables &= [self.instance_variable_get(spec)]
             else
-              # raise Shoes::Errors::InvalidAttributeValueError, "Can't find top-level instance variable: #{spec.inspect}!"
               drawables = []
             end
           else
