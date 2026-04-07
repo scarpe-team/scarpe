@@ -83,6 +83,12 @@ class Shoes::Slot < Shoes::Drawable
     ::Shoes::Slot.define_method(name) do |*args, **kwargs, &block|
       instance = nil
 
+      # Shoes3 compat: when a Hash is passed as the last positional arg,
+      # extract it as keyword args for drawable initialization.
+      if kwargs.empty? && args.last.is_a?(Hash)
+        kwargs = args.pop
+      end
+
       # Look up the Shoes drawable and create it. But first set
       # this slot as the current one so that draw context
       # is handled properly.
@@ -95,6 +101,10 @@ class Shoes::Slot < Shoes::Drawable
       instance
     end
 
+    # Also apply the same Hash extraction for this first call
+    if kwargs.empty? && args.last.is_a?(Hash)
+      kwargs = args.pop
+    end
     send(name, *args, **kwargs, &block)
   end
 

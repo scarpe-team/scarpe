@@ -42,6 +42,11 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'logging', '~>2.3.1'
   spec.add_dependency 'webview_ruby', '~>0.1.1'
 
+  # Ruby 3.4 extracted these from stdlib — many Shoes3 apps expect them available
+  spec.add_dependency 'bigdecimal'
+  spec.add_dependency 'csv'
+  spec.add_dependency 'observer'
+
   # For more information and examples about making a new gem, check out our
   # guide at: https://bundler.io/guides/creating_gem.html
 

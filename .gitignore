@@ -15,3 +15,4 @@ logger/*.log
 *scarpe*.gem
 **/sspec.json
 examples/legacy/working/shoes_manual/nasa50th.gif
+experiments/dragonruby
