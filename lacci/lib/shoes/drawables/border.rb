@@ -5,7 +5,7 @@ class Shoes
     # Shoes style with verification or value mapping:
     # shoes_style(:left) { |val| convert_to_integer(val, "left") }
 
-    shoes_styles :stroke, :strokewidth  # Write your shoes styles here
+    shoes_style :stroke  # Write your shoes styles here
 
     shoes_style(:strokewidth) { |val| convert_to_integer(val, "strokewidth") }
     shoes_style(:curve) { |val| convert_to_integer(val, "curve") }
