@@ -18,6 +18,7 @@ require_relative 'shoes/errors'
 
 require_relative 'shoes/constants'
 require_relative 'shoes/ruby_extensions'
+require_relative 'shoes/compat_require'
 
 # Shoes adds some top-level methods and constants that can be used everywhere. Kernel is where they go.
 module Kernel

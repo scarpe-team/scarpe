@@ -71,3 +71,6 @@ end
 
 # Expose VERSION at top-level for classic Shoes scripts that use bare `VERSION`
 ::VERSION = Shoes::VERSION unless defined?(::VERSION)
+
+# Shoes3 compatibility: gem isolation constant (always true in Scarpe — bundler handles isolation)
+::ShoesGemJailBreak = true unless defined?(::ShoesGemJailBreak)
