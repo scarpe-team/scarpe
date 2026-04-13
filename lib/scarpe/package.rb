@@ -1012,7 +1012,9 @@ module Scarpe
         # Find the user's app
         APP_FILE="$(find "$DIR/app" -name "*.rb" -maxdepth 1 | head -1)"
         if [ -z "$APP_FILE" ]; then
-            osascript -e 'display dialog "No Shoes app found in this bundle!" with title "#{@name} — Error" buttons {"OK"} default button "OK" with icon stop'
+            # Pass @name via a single-quoted argument in bash to avoid shell expansion.
+            # Then osascript handles it as a literal string argument.
+            osascript -e "on run {app_name}" -e 'display dialog "No Shoes app found in this bundle!" with title (app_name & " — Error") buttons {"OK"} default button "OK" with icon stop' -e "end run" '#{@name.gsub("'", "'\\''")}'
             exit 1
         fi
 
@@ -2717,8 +2719,9 @@ module Scarpe
       # Use PowerShell's Compress-Archive on Windows, or zip on Unix
       if Gem.win_platform?
         # On Windows
-        ps_command = "Compress-Archive -Path '#{windows_output_path}' -DestinationPath '#{zip_path}' -Force"
-        system("powershell", "-Command", ps_command, [:out, :err] => @verbose ? $stdout : File::NULL)
+        # Wrap in a script block and use & to call it with $args, ensuring paths are handled safely.
+        ps_script = "& { Compress-Archive -Path $args[0] -DestinationPath $args[1] -Force }"
+        system("powershell", "-Command", ps_script, windows_output_path, zip_path, [:out, :err] => @verbose ? $stdout : File::NULL)
       else
         # On macOS/Linux (cross-building)
         Dir.chdir(@output_dir) do
