@@ -78,6 +78,20 @@ class TestSSpecInfrastructure < ShoesSpecLoggedTest
     SSPEC
   end
 
+  def test_exception_backtrace_uses_test_filename
+    error = assert_raises(RuntimeError) do
+      run_test_scarpe_code(<<-'SCARPE_APP', app_test_code: <<-'TEST_CODE')
+        Shoes.app do
+        end
+      SCARPE_APP
+        raise "Yup, that's an exception!"
+      TEST_CODE
+    end
+
+    assert_match(/scarpe_app_test\.rb.*:3:in /, error.message)
+    refute_match(/\(eval\):3:in /, error.message)
+  end
+
   def test_many_assertions
     run_scarpe_sspec_code(<<~'SSPEC', expect_assertions_min: 10)
       ---

@@ -43,8 +43,10 @@ class Shoes
     # @param code [String] the ShoesSpec code to execute
     # @param class_name [String|NilClass] the Minitest class name for reporting or nil
     # @param test_name [String|NilClass] the Minitest test name for reporting or nil
+    # @param filename [String] the filename to use for backtraces when eval'ing code
+    # @param line [Integer] the starting line number to use for backtraces when eval'ing code
     # @return [void]
-    def run_shoes_spec_test_code(code, class_name: nil, test_name: nil)
+    def run_shoes_spec_test_code(code, class_name: nil, test_name: nil, filename: "(eval)", line: 1)
       raise "Child class should override this!"
     end
   end
