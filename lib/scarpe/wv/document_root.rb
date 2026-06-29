@@ -105,16 +105,9 @@ module Scarpe::Webview
       end.join + " "
     end
 
-    # Escape a string for use inside AppleScript double-quoted strings.
-    def applescript_escape(str)
-      str.to_s.gsub('\\', '\\\\\\\\').gsub('"', '\\"')
-    end
-
     # Show a native text input dialog. Returns the entered text, or nil if cancelled.
     def native_ask_dialog(message)
-      escaped = applescript_escape(message)
-      script = %Q{display dialog "#{escaped}" default answer "" buttons {"Cancel", "OK"} default button "OK"}
-      stdout, status = safe_osascript(script)
+      stdout, status = safe_osascript("on run {msg}", "display dialog msg default answer \"\" buttons {\"Cancel\", \"OK\"} default button \"OK\"", "end run", message.to_s)
       if status.success?
         # Output format: "button returned:OK, text returned:whatever"
         match = stdout.match(/text returned:(.*)/)
@@ -128,9 +121,7 @@ module Scarpe::Webview
 
     # Show a native confirmation dialog. Returns true for OK, false for Cancel.
     def native_confirm_dialog(question)
-      escaped = applescript_escape(question)
-      script = %Q{display dialog "#{escaped}" buttons {"Cancel", "OK"} default button "OK"}
-      _stdout, status = safe_osascript(script)
+      _stdout, status = safe_osascript("on run {msg}", "display dialog msg buttons {\"Cancel\", \"OK\"} default button \"OK\"", "end run", question.to_s)
       status.success?
     rescue => e
       false
@@ -138,9 +129,7 @@ module Scarpe::Webview
 
     # Show a native color picker dialog. Returns an rgb() color string or nil.
     def native_color_dialog(title)
-      escaped = applescript_escape(title || "Choose a color")
-      script = %Q{choose color with prompt "#{escaped}"}
-      stdout, status = safe_osascript(script)
+      stdout, status = safe_osascript("on run {msg}", "choose color with prompt msg", "end run", (title || "Choose a color").to_s)
       if status.success?
         # Output format: "{65535, 0, 32768}" — values 0-65535
         match = stdout.match(/\{(\d+),\s*(\d+),\s*(\d+)\}/)
@@ -185,11 +174,31 @@ module Scarpe::Webview
     # Safely execute osascript without threading issues.
     # Uses Open3.popen3 with explicit stream handling to avoid
     # "IOError: stream closed in another thread" race conditions.
-    def safe_osascript(script)
+    def safe_osascript(*args)
+      # Determine which arguments are script parts and which are script parameters.
+      # If the first argument is "on run ...", we collect all parts until "end run".
+      if args.first&.start_with?("on run")
+        end_run_idx = args.index("end run")
+        if end_run_idx
+          script_parts = args[0..end_run_idx]
+          params = args[end_run_idx + 1..-1]
+        else
+          script_parts = [args[0]]
+          params = args[1..-1]
+        end
+      else
+        script_parts = [args[0]]
+        params = args[1..-1]
+      end
+
+      cmd = ["osascript"]
+      script_parts.compact.each { |part| cmd << "-e" << part }
+      cmd += params.map(&:to_s)
+
       stdout_data = ""
       wait_thread = nil
-      
-      Open3.popen3("osascript", "-e", script) do |stdin, stdout, stderr, thread|
+
+      Open3.popen3(*cmd) do |stdin, stdout, stderr, thread|
         stdin.close
         stdout_data = stdout.read
         stderr.close

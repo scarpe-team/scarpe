@@ -85,20 +85,38 @@ module Shoes::Builtins
     when "ask_open_folder", "ask_save_folder"
       osascript('POSIX path of (choose folder with prompt "Choose a folder")')
     when "ask"
-      escaped = args[0].to_s.gsub('\\', '\\\\\\\\').gsub('"', '\\"')
-      result = osascript(%Q{display dialog "#{escaped}" default answer "" buttons {"Cancel", "OK"} default button "OK"})
+      result = osascript("on run {msg}", "display dialog msg default answer \"\" buttons {\"Cancel\", \"OK\"} default button \"OK\"", "end run", args[0].to_s)
       return nil unless result
       match = result.match(/text returned:(.*)/)
       match ? match[1].strip : ""
     when "confirm"
-      escaped = args[0].to_s.gsub('\\', '\\\\\\\\').gsub('"', '\\"')
-      result = osascript(%Q{display dialog "#{escaped}" buttons {"Cancel", "OK"} default button "OK"})
+      result = osascript("on run {msg}", "display dialog msg buttons {\"Cancel\", \"OK\"} default button \"OK\"", "end run", args[0].to_s)
       !result.nil?
     end
   end
 
-  def osascript(script)
-    stdout, status = Open3.capture2("osascript", "-e", script)
+  def osascript(*args)
+    # Determine which arguments are script parts and which are script parameters.
+    # If the first argument is "on run ...", we collect all parts until "end run".
+    if args.first&.start_with?("on run")
+      end_run_idx = args.index("end run")
+      if end_run_idx
+        script_parts = args[0..end_run_idx]
+        params = args[end_run_idx + 1..-1]
+      else
+        script_parts = [args[0]]
+        params = args[1..-1]
+      end
+    else
+      script_parts = [args[0]]
+      params = args[1..-1]
+    end
+
+    cmd = ["osascript"]
+    script_parts.compact.each { |part| cmd << "-e" << part }
+    cmd += params.map(&:to_s)
+
+    stdout, status = Open3.capture2(*cmd)
     status.success? ? stdout.strip : nil
   rescue
     nil
