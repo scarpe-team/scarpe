@@ -24,6 +24,21 @@ class TestNienteTestInfra < NienteTest
     SHOES_SPEC
   end
 
+  def test_app_fail_in_spec_backtrace_uses_test_filename
+    error = assert_raises(RuntimeError) do
+      run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+        Shoes.app do
+          @b = button "OK"
+        end
+      SHOES_APP
+        raise "ERROR!"
+      SHOES_SPEC
+    end
+
+    assert_match(/shoes_spec_code.*:1:in /, error.message)
+    refute_match(/\(eval\):1:in /, error.message)
+  end
+
   def test_multi_app_find
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do

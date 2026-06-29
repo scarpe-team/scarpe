@@ -98,7 +98,7 @@ class Shoes
         test_code = File.read ENV['SHOES_SPEC_TEST']
         unless test_code.empty?
           Shoes::App.set_test_code = true
-          Shoes::Spec.instance.run_shoes_spec_test_code test_code
+          Shoes::Spec.instance.run_shoes_spec_test_code test_code, filename: ENV['SHOES_SPEC_TEST'], line: 1
         end
       end
 

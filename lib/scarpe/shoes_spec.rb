@@ -147,7 +147,7 @@ end
 module Scarpe::Test
   # Is it at all reasonable to define more than one test to run in the same Shoes run? Probably not.
   # They'll leave in-memory residue.
-  def self.run_shoes_spec_test_code(code, class_name: nil, test_name: nil)
+  def self.run_shoes_spec_test_code(code, class_name: nil, test_name: nil, filename: "(eval)", line: 1)
     if @shoes_spec_init
       raise Shoes::Errors::MultipleShoesSpecRunsError, "Scarpe-Webview can only run a single Shoes spec per process!"
     end
@@ -189,7 +189,7 @@ module Scarpe::Test
     Object.const_set(Scarpe::Components::StringHelpers.camelize(class_name), test_class)
     test_name = "test_" + test_name unless test_name.start_with?("test_")
     test_class.define_method(test_name) do
-      eval(code)
+      eval(code, nil, filename, line)
     end
   end
 

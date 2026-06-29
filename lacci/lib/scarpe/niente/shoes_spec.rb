@@ -6,7 +6,7 @@ require "scarpe/components/string_helpers"
 module Niente; end
 
 class Niente::Test
-  def self.run_shoes_spec_test_code(code, class_name: nil, test_name: nil)
+  def self.run_shoes_spec_test_code(code, class_name: nil, test_name: nil, filename: "(eval)", line: 1)
     if @shoes_spec_init
       raise Shoes::Errors::MultipleShoesSpecRunsError, "Niente can only run a single Shoes spec per process!"
     end
@@ -30,7 +30,7 @@ class Niente::Test
     Object.const_set(Scarpe::Components::StringHelpers.camelize(class_name), test_class)
     test_name = "test_" + test_name unless test_name.start_with?("test_")
     test_class.define_method(test_name) do
-      eval(code)
+      eval(code, nil, filename, line)
     end
   end
 end
