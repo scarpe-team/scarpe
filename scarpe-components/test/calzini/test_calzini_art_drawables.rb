@@ -33,14 +33,14 @@ class TestCalziniArtDrawables < Minitest::Test
 
   def test_line_example
     assert_equal %{<div id="elt-1" style="position:absolute;top:4px;left:7px">} +
-      %{<svg width="100" height="104"><line x1="7" y1="4" x2="100" y2="104" style="stroke:black;stroke-width:4">} +
+      %{<svg width="100" height="104"><line x1="7" y1="4" x2="100" y2="104" style="stroke:#000000;stroke-width:4">} +
       %{</line></svg></div>},
       @calzini.render("line", { "top" => "4", "left" => "7", "x1" => "20", "y1" => "17", "x2" => "100", "y2" => "104" })
   end
 
   def test_line_draw_context
     assert_equal %{<div id="elt-1" style="position:absolute;top:4px;left:7px">} +
-      %{<svg width="100" height="104"><line x1="7" y1="4" x2="100" y2="104" style="stroke:red;stroke-width:4">} +
+      %{<svg width="100" height="104"><line x1="7" y1="4" x2="100" y2="104" style="stroke:#FF0000;stroke-width:4">} +
       %{</line></svg></div>},
       @calzini.render(
         "line",
@@ -50,7 +50,7 @@ class TestCalziniArtDrawables < Minitest::Test
 
   def test_line_hidden
     assert_equal %{<div id="elt-1" style="display:none;position:absolute;top:4px;left:7px">} +
-      %{<svg width="100" height="104"><line x1="7" y1="4" x2="100" y2="104" style="stroke:black;stroke-width:4">} +
+      %{<svg width="100" height="104"><line x1="7" y1="4" x2="100" y2="104" style="stroke:#000000;stroke-width:4">} +
       %{</line></svg></div>},
       @calzini.render("line", { "top" => "4", "left" => "7", "x1" => "20", "y1" => "17", "x2" => "100", "y2" => "104", "hidden" => true })
   end
@@ -64,7 +64,7 @@ class TestCalziniArtDrawables < Minitest::Test
 
   def test_rect_round_corners
     assert_equal %{<div id="elt-1" style="display:none;position:absolute;top:9;left:12;width:147;height:91">} +
-      %{<svg width="177" height="121"><rect x="12" y="9" width="147" height="91" style="stroke:red" rx="15" transform="rotate( 88 60)" />} +
+      %{<svg width="177" height="121"><rect x="12" y="9" width="147" height="91" style="stroke:#FF0000" rx="15" transform="rotate( 88 60)" />} +
       %{</svg></div>},
       @calzini.render(
         "rect",
@@ -89,7 +89,7 @@ class TestCalziniArtDrawables < Minitest::Test
 
   def test_star_simple
     start = %{<div id="elt-1"><svg width="2.0" height="2.0"><polygon points="2.0,1.0,1.4}
-    finish = %{" style="fill:black;stroke:black;stroke-width:2" /></svg></div>}
+    finish = %{" style="fill:#000000;stroke:#000000;stroke-width:2" /></svg></div>}
     assert_start_and_finish start,
       finish,
       @calzini.render("star", { "points" => 5, "outer" => 2.0, "inner" => 1.0 })
@@ -97,7 +97,7 @@ class TestCalziniArtDrawables < Minitest::Test
 
   def test_star_colors
     start = %{<div id="elt-1"><svg width="2.0" height="2.0"><polygon points="2.0,1.0,1.4}
-    finish = %{" style="fill:red;stroke:green;stroke-width:2" /></svg></div>}
+    finish = %{" style="fill:#FF0000;stroke:#008000;stroke-width:2" /></svg></div>}
     assert_start_and_finish start,
       finish,
       @calzini.render("star", { "points" => 5, "outer" => 2.0, "inner" => 1.0, "draw_context" => { "fill" => "red", "stroke" => "green" } })

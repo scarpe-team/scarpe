@@ -109,9 +109,11 @@ class TestVariousCalzini < Minitest::Test
         red_stroke = @calzini.render(name.to_s, h[:props].merge("stroke" => [255, 0, 0, 255], "draw_context" => { "stroke" => [0, 255, 0, 255] }))
         assert_includes red_stroke, "#FF0000", "Red stroke should take precedence over green, #{name} should contain red color!"
 
-        # TODO: later, after issue #504 is fixed, colors should turn into their hex equivalent
         red_stroke = @calzini.render(name.to_s, h[:props].merge("stroke" => "red"))
-        assert_includes red_stroke, "red", "With integer-array red stroke, #{name} should contain red color!"
+        assert_includes red_stroke, "#FF0000", "With string red stroke, #{name} should contain normalized red color!"
+
+        aqua_stroke = @calzini.render(name.to_s, h[:props].merge("stroke" => "aquamarine"))
+        assert_includes aqua_stroke, "#7FFFD4", "With string aquamarine stroke, #{name} should contain Shoes RGB mapping!"
       end
 
       if h[:has_fill]
@@ -124,9 +126,11 @@ class TestVariousCalzini < Minitest::Test
         red_fill = @calzini.render(name.to_s, h[:props].merge("fill" => [255, 0, 0, 255], "draw_context" => { "fill" => [0, 255, 0, 255] }))
         assert_includes red_fill, "#FF0000", "Red fill should take precedence over green, #{name} should contain red color!"
 
-        # TODO: later, after issue #504 is fixed, colors should turn into their hex equivalent
         red_fill = @calzini.render(name.to_s, h[:props].merge("fill" => "red"))
-        assert_includes red_fill, "red", "With integer-array red fill, #{name} should contain red color!"
+        assert_includes red_fill, "#FF0000", "With string red fill, #{name} should contain normalized red color!"
+
+        aqua_fill = @calzini.render(name.to_s, h[:props].merge("fill" => "aquamarine"))
+        assert_includes aqua_fill, "#7FFFD4", "With string aquamarine fill, #{name} should contain Shoes RGB mapping!"
       end
     end
   end

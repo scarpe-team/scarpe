@@ -3,6 +3,7 @@
 require_relative "html"
 require_relative "base64"
 require_relative "errors"
+require_relative "named_colors"
 
 # Require all drawable rendering code under calzini directory
 Dir.glob("calzini/*.rb", base: __dir__) do |drawable|
@@ -220,9 +221,16 @@ module Scarpe::Components::Calzini
     return nil if color.nil?
     return "#000000" if color == ""
 
-    # TODO: need to figure out if it's a color name like "aquamarine"
-    # or a hex code or an image file to use as a pattern or what.
-    return color if color.is_a?(String)
+    if color.is_a?(String)
+      return color if color.start_with?("#")
+      return color if color.start_with?("rgb")
+
+      return Scarpe::Components::NamedColors.to_hex(color) || color
+    end
+
+    if color.is_a?(Symbol)
+      return Scarpe::Components::NamedColors.to_hex(color) || color.to_s
+    end
 
     # Handle Range objects (gradients) - extract the first color
     return rgb_to_hex(color.first) if color.is_a?(Range)
