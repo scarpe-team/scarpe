@@ -39,7 +39,7 @@ class TestWebWranglerMocked < LoggedScarpeTest
 
   def with_mocked_webview(wrangler_opts: {}, &block)
     @mocked_webview = Minitest::Mock.new
-    ["puts", "scarpeAsyncEvalResult", "scarpeHeartbeat"].each do |bound_method|
+    ["puts", "dynamicRubyCallback", "scarpeAsyncEvalResult", "scarpeHeartbeat"].each do |bound_method|
       @mocked_webview.expect :bind, nil, [bound_method]
     end
     @mocked_webview.expect :init, nil, [String]
