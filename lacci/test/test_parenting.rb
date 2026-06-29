@@ -91,6 +91,45 @@ class TestParenting < NienteTest
     SHOES_SPEC
   end
 
+  # Regression: clearing a slot must unregister its WHOLE subtree from the
+  # class-level Shoes::Drawable registry, not just its direct children. Before
+  # the cascading Slot#destroy fix, nested descendants (the para/button inside
+  # an inner stack) stayed pinned in @drawables_by_id forever, leaking on every
+  # clear { ... } rebuild — fatal for long-running apps (Clock, Pong, dashboards).
+  def test_clear_unregisters_nested_descendants
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @outer = stack do
+          stack do            # inner slot; its children are GRANDCHILDREN of @outer
+            @deep_para = para "deep"
+            @deep_btn  = button "deep btn"
+          end
+        end
+        @clear = button "Clear" do
+          @outer.clear
+        end
+      end
+    SHOES_APP
+      # Grab the deep descendants' registry keys while they still exist.
+      deep_para_id = para("@deep_para").obj.linkable_id
+      deep_btn_id  = button("@deep_btn").obj.linkable_id
+
+      # Sanity: they're registered before the clear.
+      refute_nil Shoes::Drawable.drawable_by_id(deep_para_id, none_ok: true)
+      refute_nil Shoes::Drawable.drawable_by_id(deep_btn_id, none_ok: true)
+
+      button("@clear").trigger_click
+
+      # Outer slot empties out...
+      assert_equal [], stack("@outer").contents
+      # ...and the nested descendants are no longer pinned in the registry.
+      assert_nil Shoes::Drawable.drawable_by_id(deep_para_id, none_ok: true),
+        "nested para leaked in the drawable registry after clear"
+      assert_nil Shoes::Drawable.drawable_by_id(deep_btn_id, none_ok: true),
+        "nested button leaked in the drawable registry after clear"
+    SHOES_SPEC
+  end
+
   # I don't think Shoes does this. We have to use Lacci-specific methods.
   # It's still good to have a test for it.
   def test_drawable_reparent

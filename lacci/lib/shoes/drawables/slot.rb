@@ -220,8 +220,17 @@ class Shoes::Slot < Shoes::Drawable
 
   # Override destroy to fire finish callbacks before actual destruction.
   # This matches Shoes3 behavior where finish is a removal/cleanup event.
+  #
+  # A Slot owns its children, so tearing it down must tear down the whole
+  # subtree. The base Drawable#destroy only unhooks self; without cascading,
+  # a cleared slot's descendants stay pinned in the class-level registry
+  # (Shoes::Drawable @drawables_by_id) and keep their event subscriptions
+  # alive — an unbounded leak for apps that rebuild via clear { ... }
+  # (Clock, Pong, long-running dashboards). Children destroy first so each
+  # detaches its own DOM node before this slot's removal.
   def destroy
     fire_finish_callbacks
+    @children&.dup&.each(&:destroy)
     super
   end
 
