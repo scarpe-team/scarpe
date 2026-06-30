@@ -123,7 +123,7 @@ class ShoesSpecLoggedTest < Minitest::Test
     with_tempfiles([
       ["scarpe_log_config.json", JSON.dump(log_config_for_test)],
       ["scarpe_app_test.rb", full_test_code],
-      [["sspec_test_output", ".json"], ""],
+      [["sspec_test_output", "json"], ""],
     ]) do |scarpe_log_config, app_test_path, test_output|
       # Start the application using the exe/scarpe utility
       # For unit testing always supply --debug so we get the most logging
