@@ -117,16 +117,14 @@ class ShoesSpecLoggedTest < Minitest::Test
       #{app_test_code}
     TEST_CODE
 
-    test_output = File.expand_path(File.join __dir__, "sspec.json")
-    File.unlink test_output rescue nil
-
     test_method_name = self.name
     test_class_name = self.class.name
 
     with_tempfiles([
       ["scarpe_log_config.json", JSON.dump(log_config_for_test)],
       ["scarpe_app_test.rb", full_test_code],
-    ]) do |scarpe_log_config, app_test_path|
+      [["sspec_test_output", ".json"], ""],
+    ]) do |scarpe_log_config, app_test_path, test_output|
       # Start the application using the exe/scarpe utility
       # For unit testing always supply --debug so we get the most logging
       system(
@@ -138,30 +136,30 @@ class ShoesSpecLoggedTest < Minitest::Test
         "SHOES_MINITEST_METHOD_NAME=\"#{test_method_name}\" " +
         "LOCALAPPDATA=\"#{Dir.tmpdir}\"" +
         "ruby #{SCARPE_EXE} --debug --dev #{test_app_location}")
-    end
 
-    # TODO: this should *require* the process to fail, not allow it.
-    if allow_fail
-      assert true
-      return
-    end
+      # TODO: this should *require* the process to fail, not allow it.
+      if allow_fail
+        assert true
+        return
+      end
 
-    # Check if the process exited normally or crashed (segfault, failure, timeout)
-    unless $?.success?
-      assert(false, "Scarpe app failed with exit code: #{$?.exitstatus}")
-      return
-    end
+      # Check if the process exited normally or crashed (segfault, failure, timeout)
+      unless $?.success?
+        assert(false, "Scarpe app failed with exit code: #{$?.exitstatus}")
+        return
+      end
 
-    result = Scarpe::Components::MinitestResult.new(test_output)
-    if result.error?
-      raise result.error_message
-    elsif result.fail?
-      assert false, result.fail_message
-    elsif result.skip?
-      skip
-    else
-      # Count out the correct number of assertions
-      result.assertions.times { assert true }
+      result = Scarpe::Components::MinitestResult.new(test_output)
+      if result.error?
+        raise result.error_message
+      elsif result.fail?
+        assert false, result.fail_message
+      elsif result.skip?
+        skip
+      else
+        # Count out the correct number of assertions
+        result.assertions.times { assert true }
+      end
     end
   end
 end
