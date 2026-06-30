@@ -157,7 +157,7 @@ module Scarpe::Test::LoggedTest
 
     ALREADY_SET_UP_LOGGED_TEST_FAILURES[:setup] = true
     # Delete stale test failures, if any, before starting the first failure-logged test
-    Dir["#{log_dir}/test_failure*.log"].each { |fn| File.unlink(fn) }
+    Dir["#{log_dir}/test_failure*.log"].each { |fn| FileUtils.rm_f(fn) }
 
     Minitest.after_run do
       # Print test failure notice to console
@@ -213,7 +213,7 @@ module Scarpe::Test::LoggedTest
     Dir["#{self.class.logger_dir}/test_failure*.log"].each do |f|
       next if f.include?(".out.log") # Don't delete saved logs
 
-      File.unlink(f)
+      FileUtils.rm_f(f)
     end
   end
 end
