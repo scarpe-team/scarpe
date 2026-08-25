@@ -88,6 +88,13 @@ module Scarpe::Components::Calzini
     # (like Border drawables) anchor to their parent slot, not the window.
     styles[:position] = "relative" unless styles[:position]
 
+    # `position` alone (without an explicit z-index) does not establish a
+    # stacking context, so a Background child's negative z-index (see
+    # background_drawable_style) would otherwise compare against elements
+    # *outside* this slot entirely -- sinking behind unrelated earlier
+    # content in the page instead of just behind this slot's own siblings.
+    styles[:isolation] = "isolate"
+
     styles
   end
 
