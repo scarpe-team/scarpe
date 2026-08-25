@@ -236,22 +236,30 @@ module Scarpe::Components::Calzini
     r, g, b, a = *color
     if r.is_a?(Float)
       a ||= 1.0
-      r_float = r * a
-      g_float = g * a
-      b_float = b * a
+      r_int = (r * 255.0).to_i.clamp(0, 255)
+      g_int = (g * 255.0).to_i.clamp(0, 255)
+      b_int = (b * 255.0).to_i.clamp(0, 255)
+      a_float = a
     else
       a ||= 255
-      a_float = (a / 255.0)
-      r_float = (r.to_f / 255.0) * a_float
-      g_float = (g.to_f / 255.0) * a_float
-      b_float = (b.to_f / 255.0) * a_float
+      r_int = r.to_i.clamp(0, 255)
+      g_int = g.to_i.clamp(0, 255)
+      b_int = b.to_i.clamp(0, 255)
+      a_float = a / 255.0
     end
 
-    r_int = (r_float * 255.0).to_i.clamp(0, 255)
-    g_int = (g_float * 255.0).to_i.clamp(0, 255)
-    b_int = (b_float * 255.0).to_i.clamp(0, 255)
-
-    "#%0.2X%0.2X%0.2X" % [r_int, g_int, b_int]
+    # #RRGGBB has no alpha channel, so premultiplying RGB by alpha and
+    # dropping alpha here would make any translucent -- and, worse, any
+    # fully transparent ("nostroke", alpha 0) -- color indistinguishable
+    # from an opaque one at that premultiplied RGB (0 alpha always
+    # premultiplies to black, rendering as solid black text/fills instead
+    # of invisible ones). Emit rgba() instead whenever alpha isn't opaque,
+    # so the browser does the compositing with the real alpha.
+    if a_float >= 1.0
+      "#%0.2X%0.2X%0.2X" % [r_int, g_int, b_int]
+    else
+      "rgba(#{r_int}, #{g_int}, #{b_int}, #{a_float})"
+    end
   end
 
   # Map Shoes cursor symbols to CSS cursor values
