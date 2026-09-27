@@ -1,0 +1,35 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/showcase/notes.rb")
+----------- test code
+count = para("@count")
+assert_equal "5 notes", para("@total").text
+assert_match(/\AWelcome to Notes\n/, edit_box.text)
+assert_equal "43 words  ·  1 min read", count.text
+
+click_on "Sourdough, Saturday"
+assert_match(/\ASourdough, Saturday\n/, edit_box.text, "a row opens its note")
+assert_equal "Recipes", list_box.text, "with its tag"
+words = edit_box.text.split.size
+assert_equal "#{words} words  ·  1 min read", count.text
+
+click_at 700, 380 # below the text: the caret goes to the end
+type_text " Take a loaf next door."
+assert edit_box.text.end_with?("twenty-five off. Take a loaf next door."), edit_box.text
+assert_equal "#{words + 5} words  ·  1 min read", count.text, "the count follows the typing"
+
+work_labels = -> { paras.count { |para| para.text == "Work" } }
+assert_equal 1, work_labels.call, "one note is tagged Work"
+list_box.trigger_change("Work")
+assert_equal "Work", list_box.text
+assert_equal 2, work_labels.call, "the open note's row shows its new tag"
+
+click_on "New note"
+assert_equal "6 notes", para("@total").text
+assert_equal "", edit_box.text
+assert_equal "0 words  ·  0 min read", count.text
+type_text "Groceries\n\nEggs, flour, a lemon"
+assert_equal "5 words  ·  1 min read", count.text
+assert_includes paras.map(&:text), "Groceries", "the first line becomes the row's title"
