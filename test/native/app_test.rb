@@ -175,10 +175,14 @@ class AppTest < Minitest::Test
   end
 
   def test_font_sends_an_absolute_path
-    run = run_app(<<~RUBY, script: CLOSE_ON_RUN)
+    run = run_app(<<~RUBY, script: CLOSE_ON_RUN) do |dir|
       font "fonts/Fancy.ttf"
       Shoes.app { para "hi" }
     RUBY
+      # font reads the family names out of the file, so it has to be a real font (ledger K4).
+      FileUtils.mkdir_p(File.join(dir, "fonts"))
+      FileUtils.cp(File.expand_path("../../fonts/Pacifico.ttf", __dir__), File.join(dir, "fonts", "Fancy.ttf"))
+    end
     assert_clean_exit(run)
     path = run.of_type("font").first["path"]
     assert path.start_with?("/")

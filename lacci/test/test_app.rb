@@ -28,6 +28,54 @@ class TestApp < NienteTest
     SHOES_SPEC
   end
 
+  # Ledger J1: location is the URL of the page on show (manual 980-982).
+  def test_location_follows_visit
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        url "/", :index
+        url "/about", :about
+        def index = para("home")
+        def about = para("about")
+      end
+    SHOES_APP
+      app = Shoes.APPS.first
+      assert_equal "/", app.location
+      app.visit("/about")
+      assert_equal "/about", app.location
+    SHOES_SPEC
+  end
+
+  # Ledger M26: started? is false while the app block builds the window and true
+  # once it is open (manual 1006-1010).
+  def test_started_once_the_window_is_open
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $during_build = started?
+      end
+    SHOES_APP
+      assert_equal false, $during_build
+      assert_equal true, Shoes.APPS.first.started?
+    SHOES_SPEC
+  end
+
+  # Ledger K4: font returns the family names in the file, or nil when it holds none
+  # (manual 766-767).
+  def test_font_returns_the_families_in_the_file
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      PACIFICO = File.join(Shoes::Constants::DIR, "fonts", "Pacifico.ttf")
+      Shoes.app do
+        $families = font(PACIFICO)
+        $missing = font("no-such-font.ttf")
+        $not_a_font = font(__FILE__)
+      end
+    SHOES_APP
+      assert_equal ["Pacifico"], $families
+      assert_nil $missing
+      assert_nil $not_a_font
+      assert_includes Shoes::FONTS, "Pacifico"
+    SHOES_SPEC
+  end
+
   # Ledger D6: background takes an :angle for its gradient (manual 1073-1079).
   def test_a_backgrounds_angle_turns_its_gradient
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)

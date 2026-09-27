@@ -270,6 +270,9 @@ class Shoes
         return
       end
 
+      # The app block has built the window; from here the window is open.
+      @started = true
+
       # The display lib can send us an event to customise the event loop handling.
       # But it must do so before the "run" event returns.
       send_shoes_event(event_name: 'run')
@@ -288,6 +291,17 @@ class Shoes
         raise Shoes::Errors::InvalidAttributeValueError,
               "Internal error! Incorrect event loop type: #{@event_loop_type.inspect}!"
       end
+    end
+
+    # Whether the window is open: false while the app block is still building it
+    # (manual 1006-1010, ledger M26).
+    def started?
+      @started ? true : false
+    end
+
+    # The URL of the page on show (manual 980-982, ledger J1). Apps start at "/".
+    def location
+      @location || "/"
     end
 
     def destroy(send_event: true)
@@ -375,6 +389,8 @@ class Shoes
     end
 
     def visit(name_or_path)
+      @location = name_or_path.is_a?(Symbol) ? "/#{name_or_path}" : name_or_path.to_s
+
       # First, check for exact page match (symbol)
       if @pages && @pages[name_or_path]
         show_page do
