@@ -146,7 +146,7 @@ fn a_secret_field_shows_automation_bullets() {
 #[test]
 fn a_secret_field_with_a_newline_selects_without_panicking() {
     let mut h = field("EditLine", json!({"text": "ab\n\u{e9}\u{e9}", "secret": true}));
-    key(&mut h, "end");
+    key(&mut h, ":control_end");
     key(&mut h, "shift_left");
     key(&mut h, "shift_home");
     let path = std::env::temp_dir().join(format!("scarpe-secret-{}.png", std::process::id()));
