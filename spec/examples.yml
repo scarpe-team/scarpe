@@ -376,6 +376,12 @@
 "examples/margin.rb": {category: ".", needs: [], status: "loads"}
 "examples/margin_check.rb": {category: ".", needs: ["dialog"], status: "loads"}
 "examples/motion_events.rb": {category: ".", needs: [], status: "loads"}
+"examples/native/showcase/for_noah.rb": {category: "native/showcase", needs: [], status: "loads"}
+"examples/native/showcase/notes.rb": {category: "native/showcase", needs: [], status: "loads", steps: [{click: "Sourdough, Saturday"}, {click_at: [700, 380]}, {type: " Take a loaf next door."}]}
+"examples/native/showcase/pomodoro.rb": {category: "native/showcase", needs: ["timer/animation"], status: "loads", steps: [{click: "Start"}, {wait: 2.2}]}
+"examples/native/showcase/sketchpad.rb": {category: "native/showcase", needs: [], status: "loads", steps: [{click_at: [190, 32]}, {click_at: [578, 32]}, {click_at: [300, 260]}, {click_at: [340, 280]}]}
+"examples/native/showcase/snake.rb": {category: "native/showcase", needs: ["timer/animation"], status: "loads", steps: [{key: "down"}, {wait: 0.6}]}
+"examples/native/showcase/starfield.rb": {category: "native/showcase", needs: ["timer/animation"], status: "loads", steps: [{wait: 1}]}
 "examples/oval-with-kwargs.rb": {category: ".", needs: [], status: "loads"}
 "examples/oval.rb": {category: ".", needs: [], status: "loads"}
 "examples/page_navigation_single_app.rb": {category: ".", needs: [], status: "loads"}

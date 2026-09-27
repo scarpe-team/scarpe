@@ -1,0 +1,35 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/showcase/starfield.rb")
+----------- test code
+stars = Shoes.APPS.first.instance_variable_get(:@stars)
+assert_equal 420, stars.size
+assert_equal 460, ovals.size, "420 stars, 40 of them with a glow"
+
+assert_equal "-- fps  ·  420 stars", para("@fps").text
+advance 0.6
+assert_match(/\A\d+ fps  ·  420 stars\z/, para("@fps").text, "the corner reports the frame rate")
+
+# Every star is drawn where the app put it: its dot centred on its pixel.
+check = lambda do
+  boxes = layout_tree.to_h { |node| [node[:id], node] }
+  stars.each do |star|
+    box = boxes.fetch(star.dot.linkable_id)
+    size = star.dot.width
+    assert_in_delta star.shown_x - size / 2.0, box[:x], 1, "star at #{star.shown_x}"
+    assert_in_delta star.shown_y - size / 2.0, box[:y], 1, "star at #{star.shown_y}"
+  end
+end
+check.call
+
+# Looking right turns the view, and the near layer shifts furthest (40 px).
+# (One frame at a time: a single long advance of 460 moving shapes wedges the headless pipes.)
+near = stars.last
+move_mouse 799, 250
+60.times { advance 1 / 60.0 }
+view = Shoes.APPS.first.instance_variable_get(:@view)
+assert_operator view[0], :>, 0.9, "the view turned towards the pointer"
+assert_equal ((near.x + view[0] * 40) % 800).round, near.shown_x
+check.call

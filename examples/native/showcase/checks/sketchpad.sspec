@@ -1,0 +1,31 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/showcase/sketchpad.rb")
+----------- test code
+paper = [251, 250, 247]
+coral = [239, 111, 83]
+ink = [43, 45, 66]
+near = ->(pixel, color) { pixel.first(3).zip(color).all? { |got, want| (got - want).abs <= 10 } }
+
+assert near.(pixel_at(300, 250), paper), "a clean page"
+
+click_at 190, 32 # the coral swatch
+assert near.(pixel_at(544, 32), coral), "the brush previews take the colour"
+click_at 300, 250
+assert near.(pixel_at(300, 250), coral), "a click leaves a dab"
+click_on "Undo"
+assert near.(pixel_at(300, 250), paper), "undo takes it back"
+
+# a stroke: press, drag across, let go
+click_at 150, 32 # ink
+mouse = Scarpe::Native::DisplayService.instance.automation
+mouse.mouse(:down, 200, 300)
+(205..400).step(5) { |x| mouse.mouse(:move, x, 300 + (x % 20 == 0 ? 1 : 0)) }
+mouse.mouse(:up, 400, 300)
+[240, 300, 360].each { |x| assert near.(pixel_at(x, 300), ink), "the stroke passes #{x}, 300: #{pixel_at(x, 300).inspect}" }
+refute near.(pixel_at(300, 330), ink), "and stays a line"
+
+click_on "Clear"
+[240, 300, 360].each { |x| assert near.(pixel_at(x, 300), paper), "clear empties the page at #{x}" }
