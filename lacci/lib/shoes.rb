@@ -134,7 +134,7 @@ class Shoes
     # @param height [Integer] The new app window height
     # @param resizable [Boolean] Whether the app window should be resizeable
     # @param features [Symbol,Array<Symbol>] Additional Shoes extensions requested by the app
-    # @return [void]
+    # @return [Shoes::App] the new app (manual 859, ledger A3)
     # @see Shoes::App#new
     def app(
       title: Shoes::App::DEFAULT_TITLE,
@@ -192,7 +192,7 @@ class Shoes
 
       app.init
       app.run
-      nil
+      app
     end
 
     # Load a Shoes app from a file. By default, this will load old-style Shoes apps

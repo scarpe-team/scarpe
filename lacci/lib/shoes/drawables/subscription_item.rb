@@ -16,6 +16,23 @@ class Shoes::SubscriptionItem < Shoes::Drawable
   shoes_styles :shoes_api_name, :args, :stopped
   shoes_events :animate, :every, :timer, :hover, :leave, :motion, :click, :release, :keypress, :wheel
 
+  # animate, every and timer make a Shoes::Animation, Shoes::Every or Shoes::Timer
+  # (manual 1877, 1989, 2111). Displays still see each as a SubscriptionItem.
+  TIMER_CLASS_NAMES = { "animate" => "Animation", "every" => "Every", "timer" => "Timer" }.freeze
+
+  class << self
+    def new(*args, shoes_api_name:, **kwargs, &block)
+      timer_class = TIMER_CLASS_NAMES[shoes_api_name.to_s]&.then { |name| Shoes.const_get(name) }
+      return timer_class.new(*args, shoes_api_name:, **kwargs, &block) if timer_class && timer_class != self
+
+      super
+    end
+
+    def display_class_name
+      "SubscriptionItem"
+    end
+  end
+
   def initialize(args: [], shoes_api_name:, &block)
     super
 
@@ -129,4 +146,15 @@ class Shoes::SubscriptionItem < Shoes::Drawable
 
     super
   end
+end
+
+class Shoes
+  # What animate returns: its block gets the frame number, from 0 (manual 1877-1897).
+  class Animation < Shoes::SubscriptionItem; end
+
+  # What every returns: its block gets the count, from 0 (ledger I1).
+  class Every < Shoes::SubscriptionItem; end
+
+  # What timer returns: its block runs once (manual 2111-2114).
+  class Timer < Shoes::SubscriptionItem; end
 end

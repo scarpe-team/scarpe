@@ -46,4 +46,22 @@ class TestSubscriptionItem < NienteTest
       assert_equal [[1, 5, 6]], app.instance_variable_get(:@presses)
     SHOES_SPEC
   end
+
+  # Manual 1877, 1989, 2111: animate, every and timer return a Shoes::Animation,
+  # Shoes::Every and Shoes::Timer. A display still sees each as a SubscriptionItem
+  # (wire contract (e)), so it needs no change.
+  def test_timers_have_their_own_classes
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $animation = animate(10) { }
+        $every = every(1) { }
+        $timer = timer(1) { }
+      end
+    SHOES_APP
+      assert_equal %w[Shoes::Animation Shoes::Every Shoes::Timer], [$animation, $every, $timer].map { |t| t.class.name }
+      assert [$animation, $every, $timer].all? { |t| t.is_a?(Shoes::SubscriptionItem) }
+      kinds = [$animation, $every, $timer].map { |t| drawable("id:\#{t.linkable_id}").display.shoes_type }
+      assert_equal ["SubscriptionItem"] * 3, kinds
+    SHOES_SPEC
+  end
 end
