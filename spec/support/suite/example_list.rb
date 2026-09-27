@@ -15,12 +15,15 @@ module SpecSuite
         status.is_a?(Hash) ? status.fetch(display, "loads") : status
       end
 
-      def slug
-        path.delete_prefix("examples/").delete_suffix(".rb").gsub("/", "__")
-      end
+      def slug = ExampleList.slug(path)
     end
 
     STATUSES = %w[loads fails skip].freeze
+
+    # The file name stem of an example's sandbox and gallery snapshot.
+    def self.slug(path)
+      path.delete_prefix("examples/").delete_suffix(".rb").gsub("/", "__")
+    end
 
     def self.load(file = EXAMPLES_YML)
       new(YAML.safe_load_file(file) || {})
