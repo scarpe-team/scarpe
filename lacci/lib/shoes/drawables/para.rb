@@ -7,6 +7,12 @@ class Shoes
     shoes_style(:stroke) { |val, _name| Shoes::Colors.to_rgb(val) }
     shoes_style(:fill) { |val, _name| Shoes::Colors.to_rgb(val) }
 
+    # The manual's text styles (manual 1268-1286, 1366-1373, 1423-1441, 1489-1519;
+    # ledger F4, F5, F10). variant is the manual's name; font_variant stays for Scarpe.
+    shoes_styles :justify, :leading, :rise, :stretch, :variant
+    shoes_style(:strikecolor) { |val, _name| Shoes::Colors.to_rgb(val) }
+    shoes_style(:undercolor) { |val, _name| Shoes::Colors.to_rgb(val) }
+
     # Text cursor system (Shoes3 Para cursor/marker/hit)
     # text_cursor: integer character position of the caret, or nil (no cursor)
     # text_marker: integer character position of the selection anchor, or nil (no selection)
@@ -22,6 +28,11 @@ class Shoes
     end
 
     Shoes::Drawable.drawable_default_styles[Shoes::Para][:size] = :para
+
+    # Title, Banner and the other kinds below are Paras to a display.
+    def self.display_class_name
+      "Para"
+    end
 
     shoes_events # No Para-specific events yet
 
@@ -227,12 +238,20 @@ class Shoes
       Shoes::DisplayService.para_cursor_top_cache[linkable_id] || 0
     end
 
+    protected
+
+    # Shoes 3's text margins (ledger C9): 4 px on every side, and 12 below unless
+    # margin or margin_bottom is given (s3t_textblock.c:108-110).
+    def default_margins
+      [4, 4, 4, @margin.nil? && @margin_bottom.nil? ? 12 : 4]
+    end
+
     private
 
     # Text_children alternates strings and TextDrawables, so we can't just pass
     # it as a Shoes style. It won't serialize.
     def update_text_children(children)
-      @text_children = children.flatten
+      @text_children = children.flatten.map { |child| utf8_text(child) }
       # This should signal the display drawable to change
       self.text_items = text_children_to_items(@text_children)
     end
@@ -242,59 +261,12 @@ class Shoes
 end
 
 class Shoes
-  class Drawable
-    # Return a banner-sized para. This can use all the normal
-    # Para styles and arguments. See {Para#initialize} for
-    # details.
-    #
-    # @return [Shoes::Para] the new para drawable
-    def banner(*args, **kwargs)
-      para(*args, **{ size: :banner }.merge(kwargs))
-    end
-
-    # Return a title-sized para. This can use all the normal
-    # Para styles and arguments. See {Para#initialize} for
-    # details.
-    #
-    # @return [Shoes::Para] the new para drawable
-    def title(*args, **kwargs)
-      para(*args, **{ size: :title }.merge(kwargs))
-    end
-
-    # Return a subtitle-sized para. This can use all the normal
-    # Para styles and arguments. See {Para#initialize} for
-    # details.
-    #
-    # @return [Shoes::Para] the new para drawable
-    def subtitle(*args, **kwargs)
-      para(*args, **{ size: :subtitle }.merge(kwargs))
-    end
-
-    # Return a tagline-sized para. This can use all the normal
-    # Para styles and arguments. See {Para#initialize} for
-    # details.
-    #
-    # @return [Shoes::Para] the new para drawable
-    def tagline(*args, **kwargs)
-      para(*args, **{ size: :tagline }.merge(kwargs))
-    end
-
-    # Return a caption-sized para. This can use all the normal
-    # Para styles and arguments. See {Para#initialize} for
-    # details.
-    #
-    # @return [Shoes::Para] the new para drawable
-    def caption(*args, **kwargs)
-      para(*args, **{ size: :caption }.merge(kwargs))
-    end
-
-    # Return an inscription-sized para. This can use all the normal
-    # Para styles and arguments. See {Para#initialize} for
-    # details.
-    #
-    # @return [Shoes::Para] the new para drawable
-    def inscription(*args, **kwargs)
-      para(*args, **{ size: :inscription }.merge(kwargs))
-    end
+  # banner, title, subtitle, tagline, caption and inscription make text blocks of their
+  # own classes (manual 1921-2129, ledger F2), so style(Shoes::Title, ...) styles titles
+  # alone. Each is a Para at its own size (manual 3378-3384), and displays are told Para.
+  { Banner: :banner, Title: :title, Subtitle: :subtitle, Tagline: :tagline,
+    Caption: :caption, Inscription: :inscription }.each do |class_name, size|
+    text_block = const_set(class_name, Class.new(Para))
+    Shoes::Drawable.drawable_default_styles[text_block][:size] = size
   end
 end

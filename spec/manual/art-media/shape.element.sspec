@@ -4,8 +4,6 @@ lines: [3363, 3366]
 testability: api
 display: any
 ledger: E11
-expect: fail
-reason: Lacci's art methods return their own classes (Shoes::Oval, Shoes::Rect...), none of them a Shoes::Shape (E11).
 ----------- app code
 Shoes.app do
   $made = {

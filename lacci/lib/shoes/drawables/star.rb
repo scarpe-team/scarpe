@@ -2,8 +2,11 @@
 
 class Shoes
   class Star < Shoes::Drawable
+    include Shoes::Art
+
     uses_draw_context
     shoes_styles :left, :top, :draw_context
+    shoes_style :strokewidth # every shape takes its own (ledger D8)
 
     shoes_style(:points) { |val| convert_to_integer(val, "points") }
     shoes_style(:outer) { |val| convert_to_float(val, "outer") }

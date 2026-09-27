@@ -26,6 +26,53 @@ class TestShape < NienteTest
     SHOES_SPEC
   end
 
+  # Shoes 3 makes the shape after its block runs and copies the pens then
+  # (s3t_shape.c:290-315, COPY_PENS at :206), so `stroke color` inside the block
+  # strokes that shape. curve-animation.rb drew black without this.
+  def test_pens_set_inside_the_block_style_the_shape
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $sent_pens = []
+        Shoes::DisplayService.subscribe_to_event("prop_change", :any) do |changes, **_kwargs|
+          $sent_pens << changes["draw_context"].dup if changes.key?("draw_context")
+        end
+
+        strokewidth 3
+        shape do
+          move_to 0, 0
+          stroke red
+          nofill
+          line_to 50, 10
+        end
+      end
+    SHOES_APP
+      assert_equal 1, $sent_pens.size, "the pens went out once, after the block"
+      shown = $sent_pens.last
+      assert_equal [255, 0, 0, 255], shown["stroke"], "the stroke set in the block reached the display"
+      assert_equal [0, 0, 0, 0], shown["fill"], "and so did nofill"
+      assert_equal 3, shown["strokewidth"], "the slot's pens still come through"
+    SHOES_SPEC
+  end
+
+  # Ledger E11: the manual heads arc, arrow, line, oval, rect and star "» Shoes::Shape"
+  # (manual 1665-1826). They answer is_a?(Shoes::Shape), and still tell the display
+  # their own kind; Shoes::Shape === is left meaning the shape { } block.
+  def test_art_is_a_shape_and_keeps_its_own_kind
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $made = [oval(0, 0, 5), rect(0, 0, 5), star(5, 5), line(0, 0, 5, 5), arrow(5, 5, 5), arc(0, 0, 5, 5, 0, 1)]
+        shape { move_to 0, 0; line_to 5, 5 }
+      end
+    SHOES_APP
+      $made.each do |art|
+        assert art.is_a?(Shoes::Shape), "\#{art.class} is a Shoes::Shape"
+        assert art.kind_of?(Shoes::Shape)
+      end
+      assert_equal %w[Oval Rect Star Line Arrow Arc], $made.map { |art| art.class.display_class_name }
+      assert_equal 1, shapes.size, "the shape finder still means shape blocks"
+    SHOES_SPEC
+  end
+
   def test_commands_added_after_the_block_are_sent
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do

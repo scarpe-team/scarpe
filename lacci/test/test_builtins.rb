@@ -19,6 +19,18 @@ class TestBuiltinResponse < Minitest::Test
   def test_shoes_rgb_exists_for_ask_color
     assert_equal [10, 20, 30, 255], Shoes.rgb(10, 20, 30)
   end
+
+  # Ledger K3: error(message) reaches the console and returns nil; an exception comes
+  # out as its class and message (manual 732-739).
+  def test_error_reports_messages_and_exceptions
+    reporter = Object.new
+    out, err = capture_io do
+      assert_nil reporter.error("The sprockets are jammed")
+      reporter.error(ArgumentError.new("the flux capacitor jammed"))
+    end
+    assert_includes out + err, "The sprockets are jammed"
+    assert_includes out + err, "ArgumentError: the flux capacitor jammed"
+  end
 end
 
 class TestBuiltins < NienteTest
@@ -47,6 +59,23 @@ class TestBuiltins < NienteTest
       end
     SHOES_APP
       assert_equal [false, "", nil, nil], Shoes.APPS[0].instance_variable_get(:@answers)
+    SHOES_SPEC
+  end
+
+  # Ledger K1: ask takes secret: and title:, and hands them to the display.
+  def test_ask_passes_its_options_on
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        define_singleton_method(:native_builtin_fallback) { |*_args| :fell_back }
+        $asked = []
+        Shoes::DisplayService.subscribe_to_event("builtin", nil) do |cmd_name, args|
+          $asked << args if cmd_name == "ask"
+        end
+        ask("Password?", secret: true, title: "Log in")
+        ask("Name?")
+      end
+    SHOES_APP
+      assert_equal [["Password?", { secret: true, title: "Log in" }], ["Name?"]], $asked
     SHOES_SPEC
   end
 end

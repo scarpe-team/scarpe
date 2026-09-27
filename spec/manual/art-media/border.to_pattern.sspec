@@ -4,8 +4,6 @@ lines: [2854, 2858]
 testability: api
 display: any
 ledger: D9
-expect: fail
-reason: Lacci's Border has no to_pattern, and there is no Shoes::Pattern (D9).
 ----------- app code
 Shoes.app do
   @edge = border blue, strokewidth: 4

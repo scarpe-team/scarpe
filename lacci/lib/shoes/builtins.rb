@@ -26,16 +26,22 @@ module Shoes::Builtins
     families
   end
 
-  def ask(message_string)
-    shoes_builtin("ask", message_string)
+  # @param options [Hash] secret: true asks the display to mask what is typed, and title:
+  #   names the dialog (manual 629-641, 1385-1391; ledger K1)
+  # @return [String] what was typed, "" on Cancel
+  def ask(message_string, **options)
+    return shoes_builtin("ask", message_string) if options.empty?
+
+    shoes_builtin("ask", message_string, options)
   end
 
   def alert(message)
     shoes_builtin("alert", message)
   end
 
+  # @return [Shoes::Color, nil] the colour picked, or nil on Cancel (manual 643-655)
   def ask_color(title_bar)
-    shoes_builtin("ask_color", title_bar)
+    Shoes::Color.from(shoes_builtin("ask_color", title_bar))
   end
 
   def ask_open_file()
@@ -58,6 +64,16 @@ module Shoes::Builtins
     shoes_builtin("confirm", question)
   end
 
+  # The [width, height] stored in an image file, read without showing or caching the
+  # image (manual 2017-2023).
+  #
+  # @param path [String] a local image file
+  # @return [Array(Integer, Integer), nil] nil if the file is not a picture
+  def imagesize(path)
+    require "fastimage"
+    FastImage.size(path)
+  end
+
   # Shoes logging builtins — these output to the Shoes console/debug log.
   # In Scarpe, they simply print to stdout since there's no Shoes console.
   def debug(msg)
@@ -66,6 +82,16 @@ module Shoes::Builtins
 
   def info(msg)
     puts "[INFO] #{msg}"
+  end
+
+  # Reports an error on the console (manual 732-739). An exception comes out as its
+  # class and message.
+  #
+  # @return [nil]
+  def error(message)
+    message = "#{message.class}: #{message.message}" if message.is_a?(Exception)
+    $stderr.puts "[ERROR] #{message}"
+    nil
   end
 
   # rgb, gray and gradient are built-ins too, callable from any object (manual

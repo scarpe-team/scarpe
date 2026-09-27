@@ -25,7 +25,7 @@ class Shoes
 
       # Bind event handlers for click/hover/leave (like Button)
       bind_self_event("click") do
-        @click_handler&.call
+        @click&.call
       end
 
       bind_self_event("hover") do
@@ -37,7 +37,11 @@ class Shoes
       end
 
       # Shoes 3 takes a file image's block as its click (simple-bounce.rb, mask2.rb).
-      canvas ? @app.with_slot(self, &block) : click(&block)
+      if canvas
+        @app.with_slot(self, &block)
+      elsif block
+        click(&block)
+      end
     end
 
     # What was drawn on the image. Do not call add_child or remove_child directly,
@@ -65,7 +69,7 @@ class Shoes
 
     # Set the click handler. Returns self for method chaining (Shoes3 convention).
     def click(&block)
-      @click_handler = block
+      @click = block
       self
     end
 
@@ -83,6 +87,32 @@ class Shoes
 
     def replace(url)
       self.url = url
+    end
+
+    # The file name or URL of the picture (manual 3158-3160).
+    #
+    # @return [String]
+    def path
+      @url
+    end
+
+    # Swap in a different picture, from a file or URL (manual 3162-3164).
+    def path=(new_path)
+      self.url = new_path
+    end
+
+    # The width stored in the file, whatever size the image is shown at (manual 3153-3156).
+    #
+    # @return [Integer, nil] nil for a canvas or a file that is not a picture
+    def full_width
+      size.first
+    end
+
+    # The height stored in the file (manual 3143-3151). See #full_width.
+    #
+    # @return [Integer, nil]
+    def full_height
+      size.last
     end
 
     # Rotate this image by the given angle (in degrees).

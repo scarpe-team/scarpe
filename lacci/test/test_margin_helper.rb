@@ -4,6 +4,8 @@ require "minitest/autorun"
 require_relative "../lib/shoes/margin_helper"
 
 
+# margin_parse spreads margin over the four sides and keeps margin itself, so the
+# margin getter reads back what was given (ledger C3).
 class TestMarginHelper < Minitest::Test
 include MarginHelper
 
@@ -11,7 +13,7 @@ include MarginHelper
 
         kwargs = {:margin => 20}
 
-        assert_equal({:margin => nil, :margin_left => 20, :margin_top => 20, :margin_right => 20, :margin_bottom => 20},margin_parse(kwargs))
+        assert_equal({:margin => 20, :margin_left => 20, :margin_top => 20, :margin_right => 20, :margin_bottom => 20},margin_parse(kwargs))
 
     end
 
@@ -19,7 +21,7 @@ include MarginHelper
 
         kwargs = {:margin => [20,20,30,40]}
 
-        assert_equal({:margin => nil, :margin_left => 20, :margin_top => 20, :margin_right => 30, :margin_bottom => 40},margin_parse(kwargs))
+        assert_equal({:margin => [20,20,30,40], :margin_left => 20, :margin_top => 20, :margin_right => 30, :margin_bottom => 40},margin_parse(kwargs))
 
     end
 
@@ -27,7 +29,7 @@ include MarginHelper
 
         kwargs = {:margin => [20]}
 
-        assert_equal({:margin => nil, :margin_left => 20, :margin_top => 20, :margin_right => 20, :margin_bottom => 20},margin_parse(kwargs))
+        assert_equal({:margin => [20], :margin_left => 20, :margin_top => 20, :margin_right => 20, :margin_bottom => 20},margin_parse(kwargs))
 
     end
 
@@ -36,7 +38,7 @@ include MarginHelper
 
         kwargs = {:margin => "20 30 40 50"}
 
-        assert_equal({:margin => nil, :margin_left => "20", :margin_top => "30", :margin_right => "40", :margin_bottom => "50"},margin_parse(kwargs))
+        assert_equal({:margin => "20 30 40 50", :margin_left => "20", :margin_top => "30", :margin_right => "40", :margin_bottom => "50"},margin_parse(kwargs))
 
     end
 
@@ -44,7 +46,7 @@ include MarginHelper
 
         kwargs = {:margin => "20"}
 
-        assert_equal({:margin => nil, :margin_left => "20", :margin_top => "20", :margin_right => "20", :margin_bottom => "20"},margin_parse(kwargs))
+        assert_equal({:margin => "20", :margin_left => "20", :margin_top => "20", :margin_right => "20", :margin_bottom => "20"},margin_parse(kwargs))
 
     end
 
@@ -52,7 +54,7 @@ include MarginHelper
 
         kwargs = {:margin => {left:20,top:20,right:30,bottom:30}}
 
-        assert_equal({:margin => nil, :margin_left => 20, :margin_top => 20, :margin_right => 30, :margin_bottom => 30},margin_parse(kwargs))
+        assert_equal({:margin => {left:20,top:20,right:30,bottom:30}, :margin_left => 20, :margin_top => 20, :margin_right => 30, :margin_bottom => 30},margin_parse(kwargs))
 
     end
 
@@ -60,7 +62,7 @@ include MarginHelper
 
         kwargs = {:margin => {top:20,right:30,bottom:30}}
 
-        assert_equal({:margin => nil, :margin_top => 20, :margin_right => 30, :margin_bottom => 30},margin_parse(kwargs))
+        assert_equal({:margin => {top:20,right:30,bottom:30}, :margin_top => 20, :margin_right => 30, :margin_bottom => 30},margin_parse(kwargs))
 
     end
 
@@ -68,7 +70,7 @@ include MarginHelper
 
         kwargs = {:margin => {left:20,top:20}}
 
-        assert_equal({:margin => nil, :margin_left => 20, :margin_top => 20},margin_parse(kwargs))
+        assert_equal({:margin => {left:20,top:20}, :margin_left => 20, :margin_top => 20},margin_parse(kwargs))
 
     end
 
@@ -76,7 +78,7 @@ include MarginHelper
 
         kwargs = {:margin => {bottom:30}}
 
-        assert_equal({:margin => nil, :margin_bottom => 30},margin_parse(kwargs))
+        assert_equal({:margin => {bottom:30}, :margin_bottom => 30},margin_parse(kwargs))
 
     end
 

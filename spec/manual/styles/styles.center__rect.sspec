@@ -4,8 +4,6 @@ lines: [1115, 1121]
 testability: visual
 display: native
 ledger: E2
-expect: fail
-reason: "Rect does not declare :center, so Lacci drops it before it reaches the display (see styles.center__accepted)."
 ----------- app code
 Shoes.app width: 300, height: 300 do
   fill red

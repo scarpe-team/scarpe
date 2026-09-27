@@ -4,8 +4,6 @@ lines: [1144, 1151]
 testability: interactive
 display: any
 ledger: E8
-expect: fail
-reason: "Para declares no :click style, so the proc is dropped; fix 10.9 only binds the click method, not the style."
 ----------- app code
 Shoes.app do
   @count = para "0"

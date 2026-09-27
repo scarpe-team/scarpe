@@ -466,6 +466,7 @@ change the code and this list together.
   centre when the draw context says `transform: "center"` or the shape has `center: true`; positive
   `rotate` turns counter-clockwise. The draw context's `translate: [x, y]` (Lacci's running total)
   moves shapes before they turn. A shape's layout box is its transformed box, so hit-testing follows.
+  Turns add up: `rotate` in the draw context is Lacci's running total too (ledger E10).
   `cap` is `"curve"` (round), `"rect"` (flat, the default) or `"project"` (square, half the stroke
   width longer). Unset fill and stroke are black, strokewidth 1.
 - **Shape blocks.** Art drawn inside a `shape` block joins the shape's path, measured from the

@@ -1,0 +1,32 @@
+---
+manual: art.stroke
+lines: [1835, 1837]
+testability: visual
+display: native
+ledger: X20
+----------- app code
+# stroke and fill colour "any subsequent shape" (manual 1682-1686, 1835-1837). Text and
+# controls keep their own colours, as in Shoes 3 (s3t_textblock.c:250-258): ledger X20
+# found Lacci painting every later para and button with the slot's stroke.
+Shoes.app width: 300, height: 200 do
+  stroke red
+  fill red
+  strokewidth 4
+  @words = para "Hello there", size: 20
+  @push = button "Push"
+  @dot = oval 240, 140, 40
+end
+----------- test code
+red = ->(px) { r, g, b = px; r > 200 && g < 80 && b < 80 }
+pixels_in = lambda do |box|
+  xs = (box.x.ceil...(box.x + box.w).floor).step(2).to_a
+  ys = (box.y.ceil...(box.y + box.h).floor).step(2).to_a
+  xs.product(ys).map { |x, y| pixel_at(x, y) }
+end
+
+assert red.(pixel_at(260, 160)), "the oval drawn after stroke and fill is red: #{pixel_at(260, 160).inspect}"
+
+words = pixels_in.(layout_of(para("@words")))
+refute words.any?(&red), "the para is neither stroked nor filled red"
+assert words.any? { |px| px.first(3).max < 100 }, "its letters are drawn dark"
+refute pixels_in.(layout_of(button("@push"))).any?(&red), "and the button keeps its own colours"

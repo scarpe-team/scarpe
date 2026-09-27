@@ -5,7 +5,7 @@ testability: interactive
 display: native
 ledger: G9
 expect: fail
-reason: Lacci's Check has no focus method (G9, an unscheduled Lacci change).
+reason: "Lacci focuses the check (G9), but the native display clicks only a focused button on Enter, not a check."
 ----------- app code
 Shoes.app do
   @first = check

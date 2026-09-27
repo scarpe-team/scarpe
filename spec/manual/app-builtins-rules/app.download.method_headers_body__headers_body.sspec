@@ -4,8 +4,6 @@ lines: [957, 960]
 testability: api
 display: any
 ledger: K5
-expect: fail
-reason: "Lacci's download takes method: and save: only; headers: and body: raise ArgumentError (K5)"
 ----------- app code
 Shoes.app do
   $finished = Queue.new

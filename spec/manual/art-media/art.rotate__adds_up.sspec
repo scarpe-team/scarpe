@@ -1,0 +1,24 @@
+---
+manual: art.rotate
+lines: [1783, 1786]
+testability: visual
+display: native
+ledger: E10
+----------- app code
+# "Rotates the pen used for drawing by a certain number of degrees": two turns of 45
+# add up to 90, as on Shoes 3's canvas matrix (ledger E10, s3_ruby.c:645, s3_ruby.h:472-480).
+Shoes.app width: 300, height: 300 do
+  fill red
+  nostroke
+  rotate 45
+  rotate 45
+  rect 100, 100, 60, 20
+end
+----------- test code
+# Turned 90 degrees about its corner (100, 100), the 60x20 bar stands on end, above or
+# below the corner depending on the direction of turn. At 45 degrees it would lie
+# across the diagonal and cover none of these points.
+red = ->(x, y) { pixel_at(x, y).first(3) == [255, 0, 0] }
+
+refute red.(130, 110), "the bar has turned away from where it was drawn"
+assert red.(90, 130) || red.(110, 70), "the two turns added up to 90 degrees about its corner (100, 100)"

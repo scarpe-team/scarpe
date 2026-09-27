@@ -33,6 +33,8 @@ class Shoes::Slot < Shoes::Drawable; end
 class Shoes::Widget < Shoes::Slot; end
 
 require_relative 'shoes/log'
+require_relative 'shoes/pattern'
+require_relative 'shoes/color'
 require_relative 'shoes/colors'
 
 require_relative 'shoes/font_file'
@@ -41,6 +43,7 @@ require_relative 'shoes/builtins'
 require_relative 'shoes/background'
 
 require_relative 'shoes/drawable'
+require_relative 'shoes/art'
 require_relative 'shoes/draw_context'
 require_relative 'shoes/app'
 require_relative 'shoes/drawables'

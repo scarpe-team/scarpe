@@ -1,0 +1,23 @@
+---
+manual: common.width
+lines: [2725, 2726]
+testability: visual
+display: native
+ledger: A4
+----------- app code
+# "The pixel width for the full size of the element." Shoes 3 reports an element's
+# place, margins included (s3_ruby.h:376-413), and a para carries 4 px margins with
+# 12 below (ledger C9), where layout_of gives the box inside them.
+Shoes.app do
+  stack do
+    @words = para "Some words"
+  end
+end
+----------- test code
+text = layout_of(para("@words"))
+words = para("@words")
+
+assert_in_delta text.x - 4, words.left, 1, "left is the edge of the margin, 4 px before the text"
+assert_in_delta text.y - 4, words.top, 1, "top likewise"
+assert_in_delta text.w + 8, words.width, 1, "width counts both side margins"
+assert_in_delta text.h + 16, words.height, 1, "height counts 4 px above and 12 below"

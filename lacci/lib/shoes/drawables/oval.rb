@@ -3,6 +3,8 @@
 class Shoes
   # Docs: https://github.com/scarpe-team/scarpe/blob/main/docs/static/manual.md#ovalleft-top-radius--shoesshape
   class Oval < Shoes::Drawable
+    include Shoes::Art
+
     uses_draw_context
     shoes_styles :center, :draw_context, :stroke, :fill
 

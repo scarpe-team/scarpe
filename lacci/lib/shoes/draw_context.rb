@@ -22,7 +22,7 @@ class Shoes
     # @param color [Nil,Color] a Shoes color for the fill color or nil to use parent setting
     # @return [Color, nil] the pattern, as the manual's fill(pattern) » pattern
     def fill(color)
-      draw_context["fill"] = color
+      draw_context["fill"] = Shoes::Pattern.paint(color)
     end
 
     # Set the default fill in this slot and child slots to transparent.
@@ -39,7 +39,7 @@ class Shoes
     # @param color [Nil,Color] a Shoes color for the stroke color or nil to use parent setting
     # @return [Color, nil] the pattern, as the manual's stroke(pattern) » pattern
     def stroke(color)
-      draw_context["stroke"] = color
+      draw_context["stroke"] = Shoes::Pattern.paint(color)
     end
 
     # Set the default strokewidth in this slot and child slots.
@@ -61,13 +61,15 @@ class Shoes
       self
     end
 
-    # Set the current rotation in this slot and any child slots.
-    # Pass nil to reset the angle to default.
+    # Turn the pen by `angle` degrees more (manual 1783-1797). Turns add up, as they do
+    # on Shoes 3's canvas matrix (ledger E10), so rotate 1 in every frame of an animate
+    # spins what it draws. The draw context carries the running total.
+    # Pass nil to drop this slot's own turn and use its parent's.
     #
-    # @param angle [Numeric,Nil] the new default rotation for shapes or nil to use parent setting
+    # @param angle [Numeric,Nil] degrees to turn by, or nil to use the parent setting
     # @return [self]
     def rotate(angle)
-      draw_context["rotate"] = angle
+      draw_context["rotate"] = angle && (current_draw_context["rotate"] || 0) + angle
       self
     end
 

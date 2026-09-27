@@ -4,8 +4,6 @@ lines: [1268, 1273]
 testability: visual
 display: native
 ledger: F5
-expect: fail
-reason: "Para does not declare :justify, so Lacci drops it before it reaches the display (see styles.justify__accepted)."
 ----------- app code
 Shoes.app width: 400, height: 300 do
   stack width: 200 do

@@ -5,6 +5,7 @@ class Shoes
     include Shoes::Focusable
 
     shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size, :tooltip, :icon, :icon_pos, :font, :stroke
+    shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
     shoes_events :click
 
     opt_init_args :text
@@ -35,14 +36,12 @@ class Shoes
     #     }
     #   end
     def initialize(*args, **kwargs, &block)
-      # Properties passed as positional args, not keywords, don't get auto-set
-      @block = block
-
       super
+      @click = block if block
 
       # The block is handed the button (manual 2918-2921, ledger G1)
       bind_self_event("click") do
-        @block&.call(self)
+        @click&.call(self)
       end
 
       create_display_drawable
@@ -53,7 +52,7 @@ class Shoes
     # @yield [button] A block to be called with the button when it is clicked.
     # @return [self]
     def click(&block)
-      @block = block
+      @click = block
       self
     end
   end

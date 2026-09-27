@@ -4,8 +4,6 @@ lines: [1463, 1468]
 testability: visual
 display: native
 ledger: D8
-expect: fail
-reason: "Rect declares no :strokewidth style, so Lacci drops it before it reaches the display (see styles.strokewidth__accepted)."
 ----------- app code
 Shoes.app width: 300, height: 200 do
   fill white

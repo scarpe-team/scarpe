@@ -4,8 +4,6 @@ lines: [2017, 2020]
 testability: api
 display: any
 ledger: C5
-expect: fail
-reason: Lacci has no imagesize method
 ----------- app code
 Shoes.app do
   $size = imagesize("assets/red-40x30.png")

@@ -4,8 +4,6 @@ lines: [2098, 2098]
 testability: api
 display: any
 ledger: F2
-expect: fail
-reason: "Lacci's subtitle returns a Shoes::Para with size :subtitle; there is no Shoes::Subtitle class"
 ----------- app code
 Shoes.app do
   $block = subtitle "Shoes"

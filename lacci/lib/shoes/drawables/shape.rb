@@ -40,23 +40,25 @@ class Shoes
     # be JSON-serializable.
     def add_shape_command(cmd)
       @shape_commands << cmd
-      send_shape_commands unless @drawing
+      send_changes("shape_commands" => @shape_commands.dup) unless @drawing
     end
 
     private
 
-    # The display was created with an empty command list, so the whole
-    # path goes out in one prop_change once the block has built it.
+    # The display was created with an empty command list, so the whole path goes
+    # out in one prop_change once the block has built it, with the pens the block
+    # set. Shoes 3 makes the shape after its block and copies the pens then
+    # (s3t_shape.c:290-315), so `stroke red` inside the block strokes this shape.
     def draw(&block)
       @drawing = true
       @app.with_slot(self, &block)
     ensure
       @drawing = false
-      send_shape_commands
+      send_changes("shape_commands" => @shape_commands.dup, "draw_context" => draw_context.dup)
     end
 
-    def send_shape_commands
-      self.shape_commands = @shape_commands.dup
+    def send_changes(changes)
+      send_shoes_event(changes, event_name: "prop_change", target: linkable_id)
     end
   end
 end

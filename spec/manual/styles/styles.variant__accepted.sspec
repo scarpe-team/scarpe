@@ -4,8 +4,6 @@ lines: [1511, 1519]
 testability: api
 display: any
 ledger: F4
-expect: fail
-reason: "Para declares font_variant, not :variant, so Lacci drops it with a warning (F4)."
 ----------- app code
 Shoes.app do
   @it = para "small caps", variant: "smallcaps"

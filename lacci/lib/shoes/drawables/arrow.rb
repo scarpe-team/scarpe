@@ -2,8 +2,11 @@
 
 class Shoes
   class Arrow < Shoes::Drawable
+    include Shoes::Art
+
     uses_draw_context
     shoes_style :draw_context
+    shoes_style :strokewidth # every shape takes its own (ledger D8)
     shoes_events # No Arrow-specific events yet
 
     [:left, :top, :width].each do |prop|
