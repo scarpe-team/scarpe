@@ -2,6 +2,8 @@
 //! stdin is read on a thread and fed to the event loop through a proxy; the
 //! loop waits (ControlFlow::Wait) and redraws only apps whose view is dirty.
 
+mod pacing;
+
 use crate::input::{CursorShape, Key, KeyInput, Modifiers, Named};
 use crate::paint::damage::FrameMemory;
 use crate::props::Id;
@@ -9,6 +11,7 @@ use crate::protocol::Outbox;
 use crate::runtime::stats::{self, Phase};
 use crate::runtime::{load_fonts, Effect, Options, Runtime};
 use crate::text::FontMode;
+use pacing::Pacing;
 use std::collections::HashMap;
 use std::io::BufRead;
 use std::num::NonZeroU32;
@@ -45,6 +48,7 @@ struct Win {
     /// The last frame, kept so the next one repaints only what changed.
     pixmap: Option<Pixmap>,
     memory: FrameMemory,
+    pacing: Pacing,
     modifiers: ModifiersState,
 }
 
@@ -153,6 +157,7 @@ impl Shell {
         if match_frame_colour_space(&window) {
             self.rt.stats.mark("colour_space_matched");
         }
+        let pacing = Pacing::new(window.current_monitor().and_then(|m| m.refresh_rate_millihertz()));
         window.request_redraw();
         let id = window.id();
         self.windows.insert(
@@ -165,6 +170,7 @@ impl Shell {
                 surface_size: (0, 0),
                 pixmap: None,
                 memory: FrameMemory::default(),
+                pacing,
                 modifiers: ModifiersState::empty(),
             },
         );
@@ -207,8 +213,9 @@ impl Shell {
     fn settle(&mut self, el: &ActiveEventLoop) {
         self.apply_effects(el);
         if !self.rt.mid_batch {
-            for win in self.windows.values() {
-                if self.rt.views.get(&win.app).is_some_and(|v| v.dirty) {
+            let now = Instant::now();
+            for win in self.windows.values_mut() {
+                if self.rt.views.get(&win.app).is_some_and(|v| v.dirty) && win.pacing.want_frame(now) {
                     win.window.request_redraw();
                 }
             }
@@ -227,6 +234,7 @@ impl Shell {
 
     fn redraw(&mut self, id: WindowId) {
         let Some(win) = self.windows.get_mut(&id) else { return };
+        win.pacing.drawing(Instant::now());
         let size = win.window.inner_size();
         let (w, h) = (size.width.max(1), size.height.max(1));
         let scale = win.window.scale_factor() as f32;
@@ -361,7 +369,14 @@ impl ApplicationHandler<UserEvent> for Shell {
             el.exit();
             return;
         }
-        let wake = [self.deadline, self.orphaned_since.map(|t| t + Duration::from_secs(3))].into_iter().flatten().min();
+        // Frames that waited for the display's next refresh (window::pacing).
+        for win in self.windows.values_mut() {
+            if win.pacing.take_due(now) {
+                win.window.request_redraw();
+            }
+        }
+        let next_frame = self.windows.values().filter_map(|w| w.pacing.due()).min();
+        let wake = [self.deadline, self.orphaned_since.map(|t| t + Duration::from_secs(3)), next_frame].into_iter().flatten().min();
         el.set_control_flow(match wake {
             Some(at) => ControlFlow::WaitUntil(at),
             None => ControlFlow::Wait,
