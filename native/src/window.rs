@@ -615,16 +615,34 @@ fn set_opacity(window: &Window, opacity: f32) {
 fn set_opacity(_window: &Window, _opacity: f32) {}
 
 fn open_url(url: &str) {
-    let cmd = if cfg!(target_os = "macos") {
-        std::process::Command::new("open").arg(url).spawn()
-    } else if cfg!(target_os = "windows") {
-        std::process::Command::new("cmd").args(["/C", "start", "", url]).spawn()
-    } else {
-        std::process::Command::new("xdg-open").arg(url).spawn()
-    };
-    if let Err(e) = cmd {
+    if let Err(e) = spawn_and_reap(opener(std::env::consts::OS, url)) {
         eprintln!("[scarpe-native] could not open {url}: {e}");
     }
+}
+
+/// The command that opens `url` in the browser on `os`. Windows gets url.dll's handler, not
+/// `cmd /C start`: cmd.exe would read `&`, `|` and `^` in a URL as its own, so a link to
+/// `https://example.com/?a=1&calc` would run calc.
+fn opener(os: &str, url: &str) -> std::process::Command {
+    let (program, args): (&str, &[&str]) = match os {
+        "macos" => ("open", &[]),
+        "windows" => ("rundll32", &["url.dll,FileProtocolHandler"]),
+        _ => ("xdg-open", &[]),
+    };
+    let mut command = std::process::Command::new(program);
+    command.args(args).arg(url);
+    command
+}
+
+/// Starts a helper process without our stdin and stdout (they carry the protocol: an opener
+/// must neither read Ruby's lines nor write its own into them, nor keep the pipe open after we
+/// die) and reaps it on a thread of its own, so it never lingers as a zombie. Returns its pid.
+fn spawn_and_reap(mut command: std::process::Command) -> std::io::Result<u32> {
+    use std::process::Stdio;
+    let mut child = command.stdin(Stdio::null()).stdout(Stdio::null()).spawn()?;
+    let pid = child.id();
+    std::thread::spawn(move || child.wait());
+    Ok(pid)
 }
 
 #[cfg(test)]
@@ -638,6 +656,31 @@ mod tests {
 
     fn name(logical: WKey, bare: WKey, text: Option<&str>, m: Modifiers) -> Option<String> {
         key_from(&logical, &bare, text, m).and_then(|k| k.shoes_name())
+    }
+
+    #[test]
+    fn links_open_without_a_shell_on_windows() {
+        let url = "https://example.com/?a=1&calc";
+        let args = |c: &std::process::Command| c.get_args().map(|a| a.to_string_lossy().into_owned()).collect::<Vec<_>>();
+        let windows = opener("windows", url);
+        assert_eq!(windows.get_program(), "rundll32");
+        assert_eq!(args(&windows), ["url.dll,FileProtocolHandler", url], "the URL is one argument, never cmd.exe's");
+        assert_eq!(opener("macos", url).get_program(), "open");
+        assert_eq!(args(&opener("linux", url)), [url]);
+    }
+
+    /// An opener that has exited is waited for, not left a zombie for the life of the app.
+    #[test]
+    fn a_finished_opener_is_reaped() {
+        let mut quick = std::process::Command::new("sh");
+        quick.args(["-c", "exit 0"]);
+        let pid = spawn_and_reap(quick).expect("sh runs");
+        let gone = (0..200).any(|_| {
+            std::thread::sleep(std::time::Duration::from_millis(10));
+            let ps = std::process::Command::new("ps").args(["-o", "stat=", "-p", &pid.to_string()]).output().expect("ps runs");
+            ps.stdout.is_empty()
+        });
+        assert!(gone, "pid {pid} is still in the process table");
     }
 
     /// Only a commit inserts text; composing, and switching the input method on or off, do not.
