@@ -1,0 +1,910 @@
+//! Input: hit-testing, hover transitions, press/release routing, focus and
+//! tab order, keys (with Shoes key names), text editing and the wheel.
+//!
+//! The window and the automation ops both come through these methods, so a
+//! synthetic click takes exactly the path a real one does.
+
+use crate::doc::{Doc, Kind};
+use crate::elements::list_box::{self, Popup, PopupKey};
+use crate::elements::text_field::{self, TextField};
+use crate::elements::{button, check};
+use crate::layout::{Layout, TextBox};
+use crate::props::Id;
+use crate::protocol::Outgoing;
+use crate::runtime::{Effect, Runtime};
+use serde_json::{json, Value};
+use std::collections::{HashMap, HashSet};
+use std::time::{Duration, Instant};
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Key {
+    Char(String),
+    Named(Named),
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Named {
+    Enter,
+    Tab,
+    Backspace,
+    Delete,
+    Escape,
+    Left,
+    Right,
+    Up,
+    Down,
+    Home,
+    End,
+    PageUp,
+    PageDown,
+    Insert,
+    F(u8),
+}
+
+impl Named {
+    fn shoes(self) -> String {
+        match self {
+            Named::Enter => "enter".into(),
+            Named::Tab => "tab".into(),
+            Named::Backspace => "backspace".into(),
+            Named::Delete => "delete".into(),
+            Named::Escape => "escape".into(),
+            Named::Left => "left".into(),
+            Named::Right => "right".into(),
+            Named::Up => "up".into(),
+            Named::Down => "down".into(),
+            Named::Home => "home".into(),
+            Named::End => "end".into(),
+            Named::PageUp => "page_up".into(),
+            Named::PageDown => "page_down".into(),
+            Named::Insert => "insert".into(),
+            Named::F(n) => format!("f{n}"),
+        }
+    }
+
+    fn from_shoes(name: &str) -> Option<Named> {
+        Some(match name {
+            "\n" | "return" | "enter" => Named::Enter,
+            "tab" => Named::Tab,
+            "backspace" => Named::Backspace,
+            "delete" => Named::Delete,
+            "escape" | "esc" => Named::Escape,
+            "left" => Named::Left,
+            "right" => Named::Right,
+            "up" => Named::Up,
+            "down" => Named::Down,
+            "home" => Named::Home,
+            "end" => Named::End,
+            "page_up" => Named::PageUp,
+            "page_down" => Named::PageDown,
+            "insert" => Named::Insert,
+            f if f.starts_with('f') && f.len() > 1 => Named::F(f[1..].parse().ok().filter(|n| (1..=12).contains(n))?),
+            _ => return None,
+        })
+    }
+}
+
+/// A key press, independent of winit so automation can make them too.
+/// `ctrl` is Control, or Command on macOS (Shoes names both `control_`).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct KeyInput {
+    pub key: Key,
+    pub text: Option<String>,
+    pub ctrl: bool,
+    pub alt: bool,
+    pub shift: bool,
+}
+
+impl KeyInput {
+    pub fn char(c: char) -> KeyInput {
+        match c {
+            '\n' | '\r' => KeyInput::named(Named::Enter),
+            '\t' => KeyInput::named(Named::Tab),
+            c => KeyInput { key: Key::Char(c.to_string()), text: Some(c.to_string()), ctrl: false, alt: false, shift: false },
+        }
+    }
+
+    pub fn named(named: Named) -> KeyInput {
+        KeyInput { key: Key::Named(named), text: None, ctrl: false, alt: false, shift: false }
+    }
+
+    /// The value a `keypress` handler receives (DESIGN 4.4). Symbols travel as
+    /// Strings starting with ":".
+    pub fn shoes_name(&self) -> Option<String> {
+        let mods = |shift: bool| {
+            let mut m = String::new();
+            if self.ctrl {
+                m.push_str("control_");
+            }
+            if shift {
+                m.push_str("shift_");
+            }
+            if self.alt {
+                m.push_str("alt_");
+            }
+            m
+        };
+        match &self.key {
+            Key::Named(Named::Enter) if !(self.ctrl || self.alt || self.shift) => Some("\n".into()),
+            Key::Named(named) => Some(format!(":{}{}", mods(self.shift), named.shoes())),
+            Key::Char(c) if self.ctrl || self.alt => Some(format!(":{}{}", mods(false), c.to_lowercase())),
+            Key::Char(c) => Some(self.text.clone().filter(|t| !t.is_empty()).unwrap_or_else(|| c.clone())),
+        }
+    }
+
+    /// A Shoes key name ("left", ":control_a", "a", "\n") as a key press.
+    pub fn parse(name: &str) -> Option<KeyInput> {
+        if name == "\n" || name == " " {
+            return Some(KeyInput::char(name.chars().next()?));
+        }
+        let mut rest = name.strip_prefix(':').unwrap_or(name);
+        let (mut ctrl, mut shift, mut alt) = (false, false, false);
+        loop {
+            if let Some(r) = rest.strip_prefix("control_").or_else(|| rest.strip_prefix("ctrl_")).or_else(|| rest.strip_prefix("super_")) {
+                ctrl = true;
+                rest = r;
+            } else if let Some(r) = rest.strip_prefix("shift_") {
+                shift = true;
+                rest = r;
+            } else if let Some(r) = rest.strip_prefix("alt_") {
+                alt = true;
+                rest = r;
+            } else {
+                break;
+            }
+        }
+        if rest.is_empty() {
+            return None;
+        }
+        let key = match Named::from_shoes(rest) {
+            Some(named) => Key::Named(named),
+            None if rest == "space" => Key::Char(" ".into()),
+            None if rest.chars().count() == 1 => Key::Char(rest.into()),
+            None => return None,
+        };
+        let text = match &key {
+            Key::Char(c) if !ctrl && !alt => Some(if shift { c.to_uppercase() } else { c.clone() }),
+            _ => None,
+        };
+        Some(KeyInput { key, text, ctrl, alt, shift })
+    }
+}
+
+/// Clipboard: the system one in a window, a private one when headless so a
+/// test run never touches what the user copied.
+pub struct Clipboard {
+    system: Option<arboard::Clipboard>,
+    local: String,
+}
+
+impl Clipboard {
+    pub fn local() -> Self {
+        Clipboard { system: None, local: String::new() }
+    }
+
+    pub fn system() -> Self {
+        Clipboard { system: arboard::Clipboard::new().ok(), local: String::new() }
+    }
+
+    pub fn get(&mut self) -> String {
+        match self.system.as_mut() {
+            Some(sys) => sys.get_text().unwrap_or_default(),
+            None => self.local.clone(),
+        }
+    }
+
+    pub fn set(&mut self, text: String) {
+        match self.system.as_mut() {
+            Some(sys) => {
+                let _ = sys.set_text(text);
+            }
+            None => self.local = text,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PressKind {
+    /// Button, Check, Radio, Image, Link: `click` on release over the target.
+    Click,
+    /// A text field: dragging extends the selection.
+    Field,
+    /// Anything else (slots, text): no click of its own.
+    Plain,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Press {
+    pub target: Id,
+    pub button: u8,
+    pub kind: PressKind,
+    /// An input widget or link took the press, so slot subscriptions stay quiet.
+    pub consumed: bool,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum CursorShape {
+    #[default]
+    Arrow,
+    Hand,
+    Text,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Modifiers {
+    pub ctrl: bool,
+    pub shift: bool,
+    pub alt: bool,
+}
+
+/// Per-app interaction state.
+#[derive(Default)]
+pub struct ViewState {
+    pub pointer: Option<(f32, f32)>,
+    pub buttons: u8,
+    pub modifiers: Modifiers,
+    /// The hovered drawable and its ancestors, innermost first.
+    pub hover_chain: Vec<Id>,
+    pub hover_link: Option<Id>,
+    /// SubscriptionItems whose parent slot holds the pointer.
+    pub hover_items: HashSet<Id>,
+    pub hover_para: Option<(Id, Option<i64>)>,
+    pub pressed: Option<Press>,
+    pub focus: Option<Id>,
+    /// Focus arrived from the keyboard (tab, `focus`): buttons show their ring.
+    pub focus_visible: bool,
+    pub fields: HashMap<Id, TextField>,
+    pub popup: Option<Popup>,
+    pub modal: Option<crate::dialogs::Modal>,
+    pub scroll: HashMap<Id, f32>,
+    pub cursor: CursorShape,
+    last_click: Option<(Instant, f32, f32, u32)>,
+}
+
+impl ViewState {
+    /// Forgets destroyed nodes.
+    pub fn forget(&mut self, removed: &[Id]) {
+        let gone = |id: &Id| removed.contains(id);
+        self.hover_chain.retain(|id| !gone(id));
+        self.hover_items.retain(|id| !gone(id));
+        if self.hover_link.is_some_and(|id| gone(&id)) {
+            self.hover_link = None;
+        }
+        if self.hover_para.is_some_and(|(id, _)| gone(&id)) {
+            self.hover_para = None;
+        }
+        if self.pressed.as_ref().is_some_and(|p| gone(&p.target)) {
+            self.pressed = None;
+        }
+        if self.focus.is_some_and(|id| gone(&id)) {
+            self.focus = None;
+        }
+        if self.popup.as_ref().is_some_and(|p| gone(&p.list_box)) {
+            self.popup = None;
+        }
+        self.fields.retain(|id, _| !gone(id));
+        self.scroll.retain(|id, _| !gone(id));
+    }
+
+    fn click_count(&mut self, x: f32, y: f32) -> u32 {
+        let now = Instant::now();
+        let count = match self.last_click {
+            Some((at, lx, ly, n)) if now.duration_since(at) < Duration::from_millis(450) && (lx - x).abs() < 4.0 && (ly - y).abs() < 4.0 => n + 1,
+            _ => 1,
+        };
+        self.last_click = Some((now, x, y, count));
+        count
+    }
+}
+
+/// What the pointer is over: a drawable and, inside a para, the text
+/// fragments (spans, links) under it, innermost first.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Hit {
+    pub node: Id,
+    pub link: Option<Id>,
+    pub spans: Vec<Id>,
+}
+
+/// Topmost drawable at (x, y), in reverse paint order. Backgrounds and borders
+/// never catch the pointer; the window's root catches whatever is left, and
+/// nothing is hit outside the window.
+pub fn hit_test(doc: &Doc, layout: &Layout, x: f32, y: f32) -> Option<Hit> {
+    if x < 0.0 || y < 0.0 || x >= layout.size.0 || y >= layout.size.1 {
+        return None;
+    }
+    for &id in layout.order.iter().rev() {
+        let Some(node) = doc.get(id) else { continue };
+        if node.kind.is_decor() || id == layout.root {
+            continue;
+        }
+        let Some(b) = layout.boxes.get(&id) else { continue };
+        if !b.rect.contains(x, y) || b.clip.is_some_and(|c| !c.contains(x, y)) {
+            continue;
+        }
+        let fragment = layout.texts.get(&id).filter(|_| matches!(node.kind, Kind::Para | Kind::TextDrawable)).and_then(|tb| span_at(tb, x, y));
+        let (link, spans) = fragment.map(|m| (m.link, m.spans.clone())).unwrap_or_default();
+        return Some(Hit { node: id, link, spans });
+    }
+    layout.boxes.contains_key(&layout.root).then_some(Hit { node: layout.root, link: None, spans: Vec::new() })
+}
+
+/// The styled run whose glyphs are under (x, y), if any.
+pub fn span_at(tb: &TextBox, x: f32, y: f32) -> Option<&crate::text::SpanMeta> {
+    let (lx, ly) = (x - tb.x, y - tb.y);
+    for run in tb.shaped.buffer.layout_runs() {
+        if ly < run.line_top || ly >= run.line_top + run.line_height {
+            continue;
+        }
+        for g in run.glyphs {
+            if lx >= g.x && lx < g.x + g.w {
+                return tb.shaped.meta(g.metadata);
+            }
+        }
+    }
+    None
+}
+
+/// The character index under (x, y) in a text block (for Para#hit).
+pub fn char_at(tb: &TextBox, x: f32, y: f32) -> Option<i64> {
+    let (lx, ly) = (x - tb.x, y - tb.y);
+    if lx < 0.0 || ly < 0.0 || lx > tb.shaped.width + 1.0 || ly > tb.shaped.height {
+        return None;
+    }
+    let cursor = tb.shaped.buffer.hit(lx, ly)?;
+    let lines = &tb.shaped.buffer.lines;
+    let mut index = 0usize;
+    for line in lines.iter().take(cursor.line) {
+        index += line.text().chars().count() + 1;
+    }
+    let text = lines.get(cursor.line)?.text();
+    index += text[..cursor.index.min(text.len())].chars().count();
+    Some(index as i64)
+}
+
+pub fn chain(doc: &Doc, hit: &Hit) -> Vec<Id> {
+    let mut chain = hit.spans.clone();
+    if let Some(link) = hit.link.filter(|l| !chain.contains(l)) {
+        chain.push(link);
+    }
+    chain.push(hit.node);
+    chain.extend(doc.ancestors(hit.node));
+    chain
+}
+
+fn api(doc: &Doc, item: Id) -> Option<&str> {
+    let node = doc.get(item)?;
+    if node.props.truthy("stopped") {
+        return None;
+    }
+    node.props.str("shoes_api_name")
+}
+
+impl Runtime {
+    /// Items of one api (click, motion, keypress...) with their parent slot's box.
+    fn subscriptions(&self, app: Id, name: &str) -> Vec<(Id, crate::layout::LBox)> {
+        let Some(layout) = self.views.get(&app).and_then(|v| v.layout.as_ref()) else { return Vec::new() };
+        layout
+            .subscriptions
+            .iter()
+            .filter(|&&item| api(&self.doc, item) == Some(name))
+            .filter_map(|&item| {
+                let parent = self.doc.get(item)?.parent?;
+                Some((item, layout.boxes.get(&parent)?.clone()))
+            })
+            .collect()
+    }
+
+    fn inside(b: &crate::layout::LBox, x: f32, y: f32) -> bool {
+        b.rect.contains(x, y) && b.clip.is_none_or(|c| c.contains(x, y))
+    }
+
+    fn send_mouse_state(&mut self, app: Id) {
+        let Some(view) = self.views.get(&app) else { return };
+        let (x, y) = view.ui.pointer.unwrap_or((0.0, 0.0));
+        let held = (view.ui.buttons & 1 != 0) as i64;
+        self.out.send(Outgoing::Mouse { state: [held, x.round() as i64, y.round() as i64] });
+    }
+
+    fn hit(&mut self, app: Id, x: f32, y: f32) -> Option<Hit> {
+        self.ensure_layout(app);
+        let layout = self.views.get(&app)?.layout.as_ref()?;
+        hit_test(&self.doc, layout, x, y)
+    }
+
+    pub fn set_modifiers(&mut self, app: Id, modifiers: Modifiers) {
+        if let Some(view) = self.views.get_mut(&app) {
+            view.ui.modifiers = modifiers;
+        }
+    }
+
+    pub fn pointer_move(&mut self, app: Id, x: f32, y: f32) {
+        if !self.views.contains_key(&app) {
+            return;
+        }
+        self.ensure_layout(app);
+        if let Some(view) = self.views.get_mut(&app) {
+            view.ui.pointer = Some((x, y));
+        }
+        self.send_mouse_state(app);
+        if self.modal_pointer(app, x, y, crate::dialogs::PointerPhase::Move) {
+            return;
+        }
+        let view = self.views.get_mut(&app).expect("view");
+        if let Some(popup) = view.ui.popup.as_mut() {
+            if let Some(i) = popup.item_at(x, y) {
+                if popup.hovered != Some(i) {
+                    popup.hovered = Some(i);
+                    self.request_redraw(app);
+                }
+            }
+            return;
+        }
+        if let Some(press) = view.ui.pressed.clone().filter(|p| p.kind == PressKind::Field) {
+            if let Some(field) = view.ui.fields.get_mut(&press.target) {
+                field.drag(&mut self.text.fonts.system, x, y);
+                self.request_redraw(app);
+            }
+        }
+        let hit = self.hit(app, x, y);
+        self.update_hover(app, hit, x, y, true);
+    }
+
+    /// Hover transitions for drawables and slot items. `moved`: the pointer
+    /// itself moved (a scroll moves the page under it instead), so motion fires.
+    fn update_hover(&mut self, app: Id, hit: Option<Hit>, x: f32, y: f32, moved: bool) {
+        let new_chain = hit.as_ref().map(|h| chain(&self.doc, h)).unwrap_or_default();
+        let link = hit.as_ref().and_then(|h| h.link);
+        let view = self.views.get_mut(&app).expect("view");
+        let old_chain = std::mem::replace(&mut view.ui.hover_chain, new_chain.clone());
+        let link_changed = view.ui.hover_link != link;
+        view.ui.hover_link = link;
+        for id in old_chain.iter().filter(|id| !new_chain.contains(id)) {
+            self.out.event("leave", Some(*id), vec![]);
+        }
+        for id in new_chain.iter().rev().filter(|id| !old_chain.contains(id)) {
+            self.out.event("hover", Some(*id), vec![]);
+        }
+        let changed = old_chain != new_chain || link_changed;
+
+        let mods = self.views[&app].ui.modifiers;
+        for (item, parent) in self.subscriptions(app, "motion") {
+            if moved && Self::inside(&parent, x, y) {
+                let (px, py) = (x - parent.rect.x, y - parent.rect.y);
+                self.out.event("motion", Some(item), vec![json!(px.round() as i64), json!(py.round() as i64), json!(mods.ctrl), json!(mods.shift)]);
+            }
+        }
+        for name in ["hover", "leave"] {
+            for (item, parent) in self.subscriptions(app, name) {
+                let now = Self::inside(&parent, x, y);
+                let ui = &mut self.views.get_mut(&app).expect("view").ui;
+                let was = ui.hover_items.contains(&item);
+                if now && !was {
+                    ui.hover_items.insert(item);
+                    if name == "hover" {
+                        self.out.event("hover", Some(item), vec![]);
+                    }
+                } else if !now && was {
+                    ui.hover_items.remove(&item);
+                    if name == "leave" {
+                        self.out.event("leave", Some(item), vec![]);
+                    }
+                }
+            }
+        }
+        self.update_para_hit(app, hit.as_ref(), x, y);
+        let cursor = self.cursor_for(hit.as_ref());
+        let view = self.views.get_mut(&app).expect("view");
+        if view.ui.cursor != cursor {
+            view.ui.cursor = cursor;
+            self.effects.push(Effect::Cursor(app, cursor));
+        }
+        if changed {
+            self.request_redraw(app);
+        }
+    }
+
+    fn cursor_for(&self, hit: Option<&Hit>) -> CursorShape {
+        match hit {
+            Some(h) if h.link.is_some() => CursorShape::Hand,
+            Some(h) if self.doc.get(h.node).is_some_and(|n| n.kind.is_text_input()) => CursorShape::Text,
+            _ => CursorShape::Arrow,
+        }
+    }
+
+    fn update_para_hit(&mut self, app: Id, hit: Option<&Hit>, x: f32, y: f32) {
+        let para = hit.filter(|h| self.doc.get(h.node).is_some_and(|n| n.kind == Kind::Para)).map(|h| h.node);
+        let value = para.and_then(|id| {
+            let tb = self.views.get(&app)?.layout.as_ref()?.texts.get(&id)?;
+            char_at(tb, x, y)
+        });
+        let view = self.views.get_mut(&app).expect("view");
+        let previous = view.ui.hover_para;
+        match (previous, para) {
+            (Some((old, _)), new) if Some(old) != new => {
+                self.out.send(Outgoing::ParaHit { id: old, value: None });
+            }
+            _ => {}
+        }
+        if let Some(id) = para {
+            if previous != Some((id, value)) {
+                self.out.send(Outgoing::ParaHit { id, value });
+            }
+        }
+        self.views.get_mut(&app).expect("view").ui.hover_para = para.map(|id| (id, value));
+    }
+
+    pub fn pointer_left(&mut self, app: Id) {
+        if !self.views.contains_key(&app) {
+            return;
+        }
+        let view = self.views.get_mut(&app).expect("view");
+        view.ui.pointer = None;
+        self.update_hover(app, None, -1.0, -1.0, false);
+    }
+
+    pub fn pointer_down(&mut self, app: Id, button: u8) {
+        let Some((x, y)) = self.views.get(&app).and_then(|v| v.ui.pointer) else { return };
+        self.ensure_layout(app);
+        self.views.get_mut(&app).expect("view").ui.buttons |= 1 << (button - 1);
+        self.send_mouse_state(app);
+        if self.modal_pointer(app, x, y, crate::dialogs::PointerPhase::Down) {
+            return;
+        }
+        if self.views[&app].ui.popup.is_some() {
+            self.popup_press(app, x, y);
+            return;
+        }
+        let Some(hit) = self.hit(app, x, y) else { return };
+        let chain = chain(&self.doc, &hit);
+        let kind = match self.doc.get(hit.node) {
+            Some(n) if crate::elements::disabled(n) => Kind::Unknown("disabled".into()),
+            Some(n) => n.kind.clone(),
+            None => Kind::Unknown(String::new()),
+        };
+        let shift = self.views[&app].ui.modifiers.shift;
+        let clicks = self.views.get_mut(&app).expect("view").ui.click_count(x, y);
+        let target = hit.link.unwrap_or(hit.node);
+        let (press_kind, consumed) = if hit.link.is_some() {
+            (PressKind::Click, true)
+        } else {
+            match kind {
+                Kind::Button | Kind::Check | Kind::Radio => (PressKind::Click, true),
+                Kind::Image => (PressKind::Click, false),
+                Kind::EditLine | Kind::EditBox => {
+                    self.focus_field_at(app, hit.node, x, y, clicks, shift);
+                    (PressKind::Field, true)
+                }
+                Kind::ListBox => {
+                    if button == 1 {
+                        self.open_popup(app, hit.node);
+                    }
+                    (PressKind::Plain, true)
+                }
+                _ => (PressKind::Plain, false),
+            }
+        };
+        if kind.is_focusable() {
+            self.set_focus(app, Some(hit.node));
+            self.views.get_mut(&app).expect("view").ui.focus_visible = false;
+        } else if !consumed {
+            self.set_focus(app, None);
+        }
+        self.views.get_mut(&app).expect("view").ui.pressed = Some(Press { target, button, kind: press_kind, consumed });
+        if !consumed {
+            let args = vec![json!(button), json!(x.round() as i64), json!(y.round() as i64)];
+            if let Some(owner) = chain.iter().find(|id| self.doc.get(**id).is_some_and(|n| n.props.truthy("has_click"))) {
+                self.out.event("click", Some(*owner), args);
+            }
+            for (item, parent) in self.subscriptions(app, "click") {
+                if Self::inside(&parent, x, y) {
+                    let (px, py) = (x - parent.rect.x, y - parent.rect.y);
+                    self.out.event("click", Some(item), vec![json!(button), json!(px.round() as i64), json!(py.round() as i64)]);
+                }
+            }
+        }
+        self.request_redraw(app);
+    }
+
+    pub fn pointer_up(&mut self, app: Id, button: u8) {
+        let Some((x, y)) = self.views.get(&app).and_then(|v| v.ui.pointer) else { return };
+        self.views.get_mut(&app).expect("view").ui.buttons &= !(1 << (button - 1));
+        self.send_mouse_state(app);
+        if self.modal_pointer(app, x, y, crate::dialogs::PointerPhase::Up) {
+            return;
+        }
+        let press = self.views.get_mut(&app).expect("view").ui.pressed.take();
+        if let Some(p) = press.as_ref().filter(|p| p.kind == PressKind::Field) {
+            if let Some(field) = self.views.get_mut(&app).and_then(|v| v.ui.fields.get_mut(&p.target)) {
+                field.drop_empty_selection();
+            }
+        }
+        let hit = self.hit(app, x, y);
+        let chain = hit.as_ref().map(|h| chain(&self.doc, h)).unwrap_or_default();
+        if let Some(press) = &press {
+            if press.kind == PressKind::Click && chain.contains(&press.target) {
+                self.out.event("click", Some(press.target), vec![]);
+                self.follow_link(press.target);
+            }
+        }
+        if !press.as_ref().is_some_and(|p| p.consumed) {
+            let args = vec![json!(button), json!(x.round() as i64), json!(y.round() as i64)];
+            if let Some(owner) = chain.iter().find(|id| self.doc.get(**id).is_some_and(|n| n.props.truthy("has_release"))) {
+                self.out.event("release", Some(*owner), args);
+            }
+            for (item, parent) in self.subscriptions(app, "release") {
+                if Self::inside(&parent, x, y) {
+                    let (px, py) = (x - parent.rect.x, y - parent.rect.y);
+                    self.out.event("release", Some(item), vec![json!(button), json!(px.round() as i64), json!(py.round() as i64)]);
+                }
+            }
+        }
+        self.request_redraw(app);
+    }
+
+    /// A link with a URL and no block: the display opens it (never when headless).
+    fn follow_link(&mut self, id: Id) {
+        let Some(node) = self.doc.get(id).filter(|n| n.kind == Kind::Link) else { return };
+        if node.props.truthy("has_block") {
+            return;
+        }
+        if let Some(url) = node.props.str("click").filter(|u| u.starts_with("http://") || u.starts_with("https://")) {
+            if !self.opts.headless {
+                self.effects.push(Effect::OpenUrl(url.to_string()));
+            }
+        }
+    }
+
+    fn focus_field_at(&mut self, app: Id, id: Id, x: f32, y: f32, clicks: u32, extend: bool) {
+        let Some(node) = self.doc.get(id) else { return };
+        let rect = self.views.get(&app).and_then(|v| v.layout.as_ref()).and_then(|l| l.rect(id));
+        let view = self.views.get_mut(&app).expect("view");
+        let field = text_field::ensure(&mut view.ui.fields, node, &mut self.text.fonts);
+        if let Some(r) = rect {
+            let inner = if node.kind == Kind::EditBox {
+                crate::elements::edit_box::inner_rect(r)
+            } else {
+                crate::elements::edit_line::inner_rect(r, field.line_height())
+            };
+            field.fit(&mut self.text.fonts.system, inner);
+        }
+        field.press(&mut self.text.fonts.system, x, y, clicks, extend && view.ui.focus == Some(id));
+    }
+
+    pub fn set_focus(&mut self, app: Id, id: Option<Id>) {
+        let Some(view) = self.views.get_mut(&app) else { return };
+        if view.ui.focus != id {
+            view.ui.focus = id;
+            if let Some(node) = id.and_then(|i| self.doc.get(i)).filter(|n| n.kind.is_text_input()) {
+                text_field::ensure(&mut view.ui.fields, node, &mut self.text.fonts);
+            }
+            self.request_redraw(app);
+        }
+    }
+
+    fn open_popup(&mut self, app: Id, id: Id) {
+        let (Some(node), Some(view)) = (self.doc.get(id), self.views.get_mut(&app)) else { return };
+        let Some(anchor) = view.layout.as_ref().and_then(|l| l.rect(id)) else { return };
+        if list_box::items(node).is_empty() {
+            return;
+        }
+        view.ui.popup = Some(Popup::open(node, anchor, view.size, &mut self.text));
+        self.request_redraw(app);
+    }
+
+    fn popup_press(&mut self, app: Id, x: f32, y: f32) {
+        let view = self.views.get_mut(&app).expect("view");
+        let Some(popup) = view.ui.popup.take() else { return };
+        if let Some(i) = popup.item_at(x, y) {
+            self.choose(popup.list_box, &popup.items[i]);
+        }
+        self.request_redraw(app);
+    }
+
+    fn choose(&mut self, list_box: Id, item: &str) {
+        self.out.event("change", Some(list_box), vec![Value::String(item.to_string())]);
+    }
+
+    pub fn wheel(&mut self, app: Id, dy: f32, at: Option<(f32, f32)>) {
+        self.ensure_layout(app);
+        let Some(view) = self.views.get_mut(&app) else { return };
+        let (x, y) = at.or(view.ui.pointer).unwrap_or((0.0, 0.0));
+        if let Some(popup) = view.ui.popup.as_mut() {
+            popup.scroll_by(dy);
+            self.request_redraw(app);
+            return;
+        }
+        let hit = self.hit(app, x, y);
+        if let Some(field) = hit.as_ref().and_then(|h| self.views.get_mut(&app).and_then(|v| v.ui.fields.get_mut(&h.node))) {
+            if field.scroll_by(dy) {
+                self.request_redraw(app);
+                return;
+            }
+        }
+        let chain = hit.as_ref().map(|h| chain(&self.doc, h)).unwrap_or_default();
+        let view = self.views.get_mut(&app).expect("view");
+        let layout = view.layout.as_ref().expect("layout");
+        let scroller = chain
+            .iter()
+            .find(|id| layout.scrollers.get(id).is_some_and(|s| s.max_top() > 0.0 && (dy > 0.0 && s.top < s.max_top() || dy < 0.0 && s.top > 0.0)))
+            .and_then(|id| layout.scrollers.get(id).map(|s| (*id, s.top, s.max_top())));
+        if let Some((id, top, max)) = scroller {
+            let new_top = (top + dy).clamp(0.0, max);
+            if new_top != top {
+                view.ui.scroll.insert(id, new_top);
+                view.layout = None;
+                self.out.send(Outgoing::Scroll { id, top: new_top.round() as i64 });
+                self.request_redraw(app);
+            }
+        }
+        for (item, parent) in self.subscriptions(app, "wheel") {
+            if Self::inside(&parent, x, y) {
+                self.out.event("wheel", Some(item), vec![json!(-dy), json!(x.round() as i64), json!(y.round() as i64)]);
+            }
+        }
+        if let Some((px, py)) = self.views.get(&app).and_then(|v| v.ui.pointer) {
+            let hit = self.hit(app, px, py);
+            self.update_hover(app, hit, px, py, false);
+        }
+    }
+
+    pub fn type_text(&mut self, app: Id, text: &str) {
+        for c in text.chars() {
+            self.key_input(app, KeyInput::char(c));
+        }
+    }
+
+    pub fn key_input(&mut self, app: Id, key: KeyInput) {
+        if !self.views.contains_key(&app) {
+            return;
+        }
+        self.ensure_layout(app);
+        if self.modal_key(app, &key) {
+            return;
+        }
+        if self.popup_key(app, &key) {
+            return;
+        }
+        let focus = self.views[&app].ui.focus.filter(|id| self.doc.get(*id).is_some_and(|n| !crate::elements::disabled(n)));
+        let focus_kind = focus.and_then(|id| self.doc.get(id)).map(|n| n.kind.clone());
+        let tab = key.key == Key::Named(Named::Tab) && !key.ctrl && !key.alt;
+        let mut send_keypress = true;
+        match (focus, focus_kind) {
+            (Some(id), Some(Kind::EditLine)) | (Some(id), Some(Kind::EditBox)) => {
+                if tab {
+                    self.focus_step(app, key.shift);
+                    return;
+                }
+                let edited = {
+                    let view = self.views.get_mut(&app).expect("view");
+                    let node = self.doc.get(id).expect("focused node");
+                    let locked = crate::elements::readonly(node) || crate::elements::disabled(node);
+                    let field = text_field::ensure(&mut view.ui.fields, node, &mut self.text.fonts);
+                    let edited = if locked && text_field::edits(&key) {
+                        text_field::Edited { handled: true, changed: false }
+                    } else {
+                        field.key(&mut self.text.fonts.system, &key, &mut self.clipboard)
+                    };
+                    (edited, field.text())
+                };
+                if edited.0.changed {
+                    self.out.event("change", Some(id), vec![Value::String(edited.1)]);
+                }
+                self.request_redraw(app);
+                send_keypress = key.key == Key::Named(Named::Escape) || key.ctrl || key.alt;
+            }
+            (Some(id), Some(Kind::Button)) if button::activates(&key) => {
+                self.out.event("click", Some(id), vec![]);
+                send_keypress = false;
+            }
+            (Some(id), Some(Kind::Check)) | (Some(id), Some(Kind::Radio)) if check::activates(&key) => {
+                self.out.event("click", Some(id), vec![]);
+                send_keypress = false;
+            }
+            (Some(id), Some(Kind::ListBox))
+                if matches!(key.key, Key::Named(Named::Enter) | Key::Named(Named::Up) | Key::Named(Named::Down)) || key.key == Key::Char(" ".into()) =>
+            {
+                self.open_popup(app, id);
+                send_keypress = false;
+            }
+            _ => {}
+        }
+        if tab && self.focus_step(app, key.shift) {
+            return;
+        }
+        if send_keypress {
+            if let Some(name) = key.shoes_name() {
+                for (item, _) in self.subscriptions(app, "keypress") {
+                    self.out.event("keypress", Some(item), vec![Value::String(name.clone())]);
+                }
+            }
+        }
+    }
+
+    fn popup_key(&mut self, app: Id, key: &KeyInput) -> bool {
+        let view = self.views.get_mut(&app).expect("view");
+        let Some(popup) = view.ui.popup.as_mut() else { return false };
+        match list_box::popup_key(popup, key) {
+            PopupKey::Choose(i) => {
+                let (id, item) = (popup.list_box, popup.items[i].clone());
+                view.ui.popup = None;
+                self.choose(id, &item);
+            }
+            PopupKey::Close => view.ui.popup = None,
+            PopupKey::Moved => {}
+            PopupKey::Ignored => return true,
+        }
+        self.request_redraw(app);
+        true
+    }
+
+    /// Moves focus along the tab order (paint order). Returns false when
+    /// nothing can take focus.
+    pub fn focus_step(&mut self, app: Id, backwards: bool) -> bool {
+        let Some(layout) = self.views.get(&app).and_then(|v| v.layout.as_ref()) else { return false };
+        let order: Vec<Id> = layout
+            .order
+            .iter()
+            .copied()
+            .filter(|id| self.doc.get(*id).is_some_and(|n| n.kind.is_focusable() && !crate::elements::disabled(n)) && layout.visible_rect(*id).is_some())
+            .collect();
+        if order.is_empty() {
+            return false;
+        }
+        let current = self.views[&app].ui.focus.and_then(|f| order.iter().position(|id| *id == f));
+        let next = match (current, backwards) {
+            (None, false) => 0,
+            (None, true) => order.len() - 1,
+            (Some(i), false) => (i + 1) % order.len(),
+            (Some(i), true) => (i + order.len() - 1) % order.len(),
+        };
+        let id = order[next];
+        self.set_focus(app, Some(id));
+        self.views.get_mut(&app).expect("view").ui.focus_visible = true;
+        if let Some(field) = self.views.get_mut(&app).and_then(|v| v.ui.fields.get_mut(&id)) {
+            field.select_all();
+        }
+        true
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn key_names_follow_the_manual() {
+        assert_eq!(KeyInput::char('a').shoes_name().as_deref(), Some("a"));
+        assert_eq!(KeyInput::char('\n').shoes_name().as_deref(), Some("\n"));
+        assert_eq!(KeyInput::named(Named::Left).shoes_name().as_deref(), Some(":left"));
+        assert_eq!(KeyInput::named(Named::F(5)).shoes_name().as_deref(), Some(":f5"));
+        let mut k = KeyInput::char('a');
+        k.ctrl = true;
+        assert_eq!(k.shoes_name().as_deref(), Some(":control_a"));
+        let mut k = KeyInput::named(Named::PageUp);
+        k.ctrl = true;
+        k.shift = true;
+        k.alt = true;
+        assert_eq!(k.shoes_name().as_deref(), Some(":control_shift_alt_page_up"));
+        let mut k = KeyInput::named(Named::Enter);
+        k.ctrl = true;
+        assert_eq!(k.shoes_name().as_deref(), Some(":control_enter"));
+        let mut k = KeyInput::char('&');
+        k.shift = true;
+        assert_eq!(k.shoes_name().as_deref(), Some("&"));
+    }
+
+    #[test]
+    fn parses_shoes_key_names() {
+        assert_eq!(KeyInput::parse("left"), Some(KeyInput::named(Named::Left)));
+        assert_eq!(KeyInput::parse(":left"), Some(KeyInput::named(Named::Left)));
+        assert_eq!(KeyInput::parse("\n"), Some(KeyInput::named(Named::Enter)));
+        assert_eq!(KeyInput::parse("a"), Some(KeyInput::char('a')));
+        let k = KeyInput::parse(":control_a").unwrap();
+        assert!(k.ctrl && k.key == Key::Char("a".into()) && k.text.is_none());
+        let k = KeyInput::parse("shift_tab").unwrap();
+        assert!(k.shift && k.key == Key::Named(Named::Tab));
+        assert_eq!(KeyInput::parse("f12"), Some(KeyInput::named(Named::F(12))));
+        assert_eq!(KeyInput::parse("nonsense"), None);
+    }
+}
