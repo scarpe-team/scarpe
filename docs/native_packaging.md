@@ -78,8 +78,8 @@ a plain `FileUtils.cp_r` would reset them and every file would quietly load from
 
 The compile step is also a boot check: it runs the bundled Ruby through `require "scarpe"`, so a
 library the strip removed fails the build instead of the app (that is how `--minimal` was found to
-remove `net/http`, `resolv` and `digest`, which the shim loads at boot; native minimal builds put
-them back).
+remove `net/http`, `resolv` and `digest`, which the shim needs for image downloads; native minimal
+builds put them back).
 
 ## YJIT
 
@@ -141,10 +141,11 @@ Where the time goes (button, 15 rounds, the bundled Ruby run directly):
 | `require "scarpe"` from bytecode | +28 ms |
 | `scarpe-native --headless` start, handshake, exit | 22 ms |
 
-Bytecode takes about 15 ms off `require "scarpe"` and 6 to 22 ms off the first frame. The biggest
-single item left on the Ruby side is `lib/scarpe/native/normalize.rb` requiring `net/http` and
-`uri` at load time for image downloads: 18 ms from source. Moving those two requires into
-`download` measured 116 ms against 107 ms to first frame for button with bytecode (15 rounds).
+Bytecode takes about 15 ms off `require "scarpe"` and 6 to 22 ms off the first frame. When these
+were measured, the biggest single item left on the Ruby side was `lib/scarpe/native/normalize.rb`
+requiring `net/http` and `uri` at load time for image downloads: 18 ms from source. Moving those
+two requires into `download` measured 116 ms against 107 ms to first frame for button with
+bytecode (15 rounds), and the shim now loads them on the first download (native/PERF.md).
 
 ## Try a packaged app without taking the keyboard
 
