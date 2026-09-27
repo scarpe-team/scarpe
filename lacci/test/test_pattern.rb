@@ -28,4 +28,15 @@ class TestPattern < NienteTest
       assert_equal $stripe.fill, $shape.fill, "and fill takes a pattern too"
     SHOES_SPEC
   end
+
+  # Border declared strokewidth twice, plain first, so its integer validator never ran.
+  def test_border_strokewidth_is_read_as_a_whole_number
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $edge = border red, strokewidth: "3"
+      end
+    SHOES_APP
+      assert_equal 3, $edge.strokewidth
+    SHOES_SPEC
+  end
 end
