@@ -2,6 +2,7 @@
 //! handler, shared by the window and the headless canvas.
 
 mod repaint;
+mod startup;
 pub mod stats;
 
 use crate::doc::{Doc, Kind, NewNode};
@@ -16,6 +17,7 @@ use crate::text::{FontMode, TextEngine};
 use serde_json::{Map, Value};
 use stats::{Phase, Stats};
 use repaint::DamageMode;
+pub use startup::{load_fonts, FontsLoading};
 use std::collections::{BTreeMap, HashMap};
 use std::time::Instant;
 use tiny_skia::Pixmap;
@@ -97,6 +99,8 @@ pub struct Runtime {
     /// app repainted in part alongside every picture.
     last_full: HashMap<Id, Pixmap>,
     checked_frames: HashMap<Id, (Pixmap, FrameMemory)>,
+    /// System fonts still loading on another thread; the first layout waits for them.
+    fonts_loading: Option<FontsLoading>,
 }
 
 impl Runtime {
@@ -123,6 +127,7 @@ impl Runtime {
             damage: DamageMode::from_env(),
             last_full: HashMap::new(),
             checked_frames: HashMap::new(),
+            fonts_loading: None,
         }
     }
 
@@ -193,6 +198,7 @@ impl Runtime {
                 }
             }
             Incoming::Font { path } => {
+                self.fonts_ready();
                 self.text.fonts.register(std::path::Path::new(&path));
                 self.revisions.touch_everything();
                 self.invalidate();
@@ -372,6 +378,7 @@ impl Runtime {
     }
 
     pub fn ensure_layout(&mut self, app: Id) {
+        self.fonts_ready();
         let Some(view) = self.views.get_mut(&app) else { return };
         if view.layout.is_some() {
             return;
