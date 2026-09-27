@@ -11,7 +11,7 @@ Status: v1.1, 27 Sep 2026. The orchestrator ruled the seven open questions (Q1 t
 | Tag | Source | Where |
 |---|---|---|
 | Manual | The Shoes manual, `docs/static/manual.md` (3,533 lines). A Markdown copy of Shoes 3's built-in "Policeman"-era manual. Cited as `manual 1716-1722`. | this repo |
-| Shoes 3 | `shoes/shoes3@master` C source (3.3.x). Files are named as fetched: `s3_ruby.c` is `shoes/ruby.c`, `s3t_shape.c` is `shoes/types/shape.c`, `s3_gtk.c` and `s3_cocoa.m` are the GTK and Cocoa backends. | fetched copies in the session scratchpad `research/probe06/src/` (not vendored; see the end of this page) |
+| Shoes 3 | `shoes/shoes3@master` C source (3.3.x). Files are named as fetched: `s3_ruby.c` is `shoes/ruby.c`, `s3t_shape.c` is `shoes/types/shape.c`, `s3_gtk.c` and `s3_cocoa.m` are the GTK and Cocoa backends. | fetched copies in `native/research/sources/` (see the end of this page) |
 | Shoes 4 | `shoes/shoes4@main`, `shoes-core`. `s4_dsl_art.rb` is `shoes-core/lib/shoes/dsl/art.rb`; `s4swt_key_listener.rb` is the SWT key listener. | same folder |
 | Examples | `examples/` (424 `.rb` files). `legacy/working/` means "boots", not "behaves" (see G2). Counts come from report 04's inventory unless marked as a fresh count. | this repo |
 | Lacci / WV | What Scarpe does today: Lacci (`lacci/lib/shoes/`), the Webview display (`lib/scarpe/wv/`) and its Calzini HTML renderer (`scarpe-components/lib/scarpe/components/calzini/`). Line numbers are as of commit `fdcee7a`. Other lanes are fixing Lacci right now, so those numbers will drift. | this repo |
@@ -1454,7 +1454,7 @@ Not re-read, taken from the research reports as written: the Webview and Calzini
 
 ## Keeping this page honest
 
-- The fetched Shoes 3 and Shoes 4 files live in a session scratchpad (`research/probe06/src/`), not in this repo. Until someone vendors them (for example under `native/research/sources/`), a reader re-checks a citation by fetching `shoes/shoes3@master` or `shoes/shoes4@main` and applying the file-name mapping in "How to read this".
+- The fetched Shoes 3 and Shoes 4 files are vendored in `native/research/sources/` (MIT, fetched 27 Sep 2026), under the file names this page cites. A reader re-checks a citation there, or against `shoes/shoes3@master` or `shoes/shoes4@main` with the file-name mapping in "How to read this".
 - When a Lacci fix lands, update the row's "Lacci today" field and the X row, and leave the ruling alone. If Nick overrules one of the 27 Sep 2026 rulings, replace the ruling line with his answer and its date, and retag the cases that cite the row.
 - Line numbers in rows added on 27 Sep 2026 (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20) are as of commit `36c6282`.
 - New disagreements get the next free id in their area (C13, H9, ...). Ids are never reused or renumbered.
