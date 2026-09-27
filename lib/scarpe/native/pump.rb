@@ -75,7 +75,7 @@ module Scarpe::Native
     def wake_on_interrupt
       child = @service.child
       previous = Signal.trap("INT") do |signal|
-        previous.call(signal)
+        previous.arity.zero? ? previous.call : previous.call(signal)
         child.wake!
       end
       Signal.trap("INT", previous) unless previous.respond_to?(:call)
