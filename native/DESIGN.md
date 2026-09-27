@@ -141,8 +141,14 @@ Mouse buttons are 1 = left, 2 = middle, 3 = right (manual numbering).
 - Printable characters: the String itself (`"a"`, `"A"`, `" "`, `"&"`).
 - Return: `"\n"`. Tab `:tab`, Backspace `:backspace`, Delete `:delete`, arrows `:left :right :up :down`, `:home :end :page_up :page_down :escape :insert :f1`..`:f12`.
 - Modifiers prefix in the order `control_`, `shift_`, `alt_` (shift only for non-printables). A modified printable key is a Symbol: `:control_a`, `:alt_q`. Modified return: `:control_enter`.
+- Shift folds into characters the way a US keyboard types them (manual 2223-2227): Shift-7 is `"&"`,
+  Shift-Alt-7 is `:alt_&`, Control-Shift-a is `:control_A`. Automation's `key` op folds `shift_7` the same way.
 - On the wire a Symbol travels as a String starting with `":"` (`":left"`); Lacci's SubscriptionItem turns it back into a Symbol. Plain printable keys travel as themselves.
-- On macOS, Cmd maps to `control_` as well (Shoes 3 did this), so `:control_q` works with Cmd-Q.
+- On macOS, Cmd is named `alt_`, as Shoes 3's Cocoa backend did (ledger H1, Q5 ruled 27 Sep 2026):
+  Cmd-q arrives as `:alt_q`, which is what the example editors bind. In text fields Cmd still works
+  like Control (copy, paste, select all, line ends); Option moves by words. The default app menu
+  still quits on Cmd-Q before the app sees the key; Rust then reports every open window `closed`.
+  The `key` op accepts `command_` (or `cmd_`, `super_`) for Cmd.
 
 ## 5. The Ruby shim
 
@@ -432,7 +438,9 @@ change the code and this list together.
 - **`para_hit {id, value}`** is sent while the pointer moves over a para (the character index), and
   with `value: null` when it leaves.
 - **Focus.** Text fields show a focus ring whenever focused; buttons, checks, radios and list boxes
-  only when focus came from the keyboard (tab or a `focus` message).
+  only when focus came from the keyboard (tab or a `focus` message). On a focused list box Up and
+  Down choose the previous and next item without opening the popup (manual 3221-3224); Return and
+  Space open it.
 - **`state: "disabled"`** greys a control out and it ignores the pointer, keys and tab;
   **`"readonly"`** fields can be focused, selected and copied but not edited.
 - **Bundled fonts** (`--fonts bundled`) are Inter (sans, and the serif fallback) and Fira Mono

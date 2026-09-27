@@ -184,3 +184,39 @@ fn a_blank_image_inside_an_image_block_fills_it() {
     let para = h.node(|n| n["id"] == 6);
     assert_eq!((para["x"].clone(), para["y"].clone()), (json!(50.0), json!(30.0)), "text starts at the image's corner");
 }
+
+// ---- Keys (ledger H1, Q5) ----
+
+fn key(h: &mut Harness, name: &str) -> Vec<(String, Value, Value)> {
+    let (evs, reply) = h.req(json!({"op": "key", "key": name}));
+    assert_eq!(reply["error"], Value::Null, "{reply}");
+    events(&evs)
+}
+
+/// manual 3221-3224 (spec list_box.focus): the arrows pick the other choices.
+#[test]
+fn arrows_on_a_focused_list_box_choose_without_the_popup() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(3, "ListBox", 2, json!({"items": ["Grapes", "Pears", "Apricots"], "chosen": "Grapes"}))]));
+    h.feed("{\"t\":\"focus\",\"id\":3}\n");
+    let evs = key(&mut h, "down");
+    assert_eq!(named(&evs, "change").iter().map(|e| e.2.clone()).collect::<Vec<_>>(), vec![json!(["Pears"])]);
+    assert!(h.rt.views[&1].ui.popup.is_none(), "no popup");
+    h.feed("{\"t\":\"props\",\"id\":3,\"props\":{\"chosen\":\"Pears\"}}\n");
+    assert_eq!(named(&key(&mut h, "up"), "change")[0].2, json!(["Grapes"]));
+    h.feed("{\"t\":\"props\",\"id\":3,\"props\":{\"chosen\":\"Grapes\"}}\n");
+    assert!(named(&key(&mut h, "up"), "change").is_empty(), "nothing before the first");
+    key(&mut h, "\n");
+    assert!(h.rt.views[&1].ui.popup.is_some(), "Return still opens the popup");
+}
+
+/// Command edits like Control in a text field, while keypress names it alt_ (Q5).
+#[test]
+fn command_a_selects_all_in_a_field() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(3, "EditLine", 2, json!({"text": "hello"}))]));
+    h.value(json!({"op": "click", "target": {"id": 3}}));
+    key(&mut h, ":command_a");
+    let (evs, _) = h.req(json!({"op": "type", "text": "x"}));
+    assert_eq!(named(&events(&evs), "change")[0].2, json!(["x"]), "the whole text was selected and replaced");
+}

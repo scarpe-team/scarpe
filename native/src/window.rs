@@ -2,7 +2,7 @@
 //! stdin is read on a thread and fed to the event loop through a proxy; the
 //! loop waits (ControlFlow::Wait) and redraws only apps whose view is dirty.
 
-use crate::input::{CursorShape, Key, KeyInput, Modifiers, Named};
+use crate::input::{us_shifted, CursorShape, Key, KeyInput, Modifiers, Named};
 use crate::props::Id;
 use crate::protocol::Outbox;
 use crate::runtime::{Effect, Options, Runtime};
@@ -317,6 +317,15 @@ impl ApplicationHandler<UserEvent> for Shell {
         self.settle(el);
     }
 
+    /// The app menu's Quit (Cmd-Q on macOS, Q5) ends the process as soon as this returns,
+    /// so every window still open tells Ruby it closed, the way a click on its close box does.
+    fn exiting(&mut self, _el: &ActiveEventLoop) {
+        for (_, win) in std::mem::take(&mut self.windows) {
+            self.rt.window_closed(win.app);
+        }
+        self.rt.out.flush();
+    }
+
     fn about_to_wait(&mut self, el: &ActiveEventLoop) {
         let now = Instant::now();
         if self.deadline.is_some_and(|d| now >= d) && !self.windows.is_empty() {
@@ -342,14 +351,21 @@ impl ApplicationHandler<UserEvent> for Shell {
     }
 }
 
+/// On macOS, Command is Shoes 3's `alt_` in key names (Q5) and Control in text fields.
 fn modifiers(state: ModifiersState) -> Modifiers {
     let command = cfg!(target_os = "macos") && state.super_key();
-    Modifiers { ctrl: state.control_key() || command, shift: state.shift_key(), alt: state.alt_key() }
+    Modifiers { ctrl: state.control_key(), shift: state.shift_key(), alt: state.alt_key(), command }
 }
 
 fn key_input(event: &KeyEvent, state: ModifiersState) -> Option<KeyInput> {
-    let m = modifiers(state);
-    let key = match &event.logical_key {
+    key_from(&event.logical_key, &event.key_without_modifiers(), event.text.as_deref(), modifiers(state))
+}
+
+/// A winit key press as Shoes sees it. With Control, Alt or Command held a character
+/// is the bare key with Shift folded in the US way, so Shift-Alt-7 is `:alt_&` (manual
+/// 2223-2227), whatever the platform's Option layer would type.
+fn key_from(logical: &WKey, bare: &WKey, text: Option<&str>, m: Modifiers) -> Option<KeyInput> {
+    let key = match logical {
         WKey::Named(named) => match named {
             NamedKey::Enter => Key::Named(Named::Enter),
             NamedKey::Tab => Key::Named(Named::Tab),
@@ -380,20 +396,16 @@ fn key_input(event: &KeyEvent, state: ModifiersState) -> Option<KeyInput> {
             NamedKey::F12 => Key::Named(Named::F(12)),
             _ => return None,
         },
-        WKey::Character(s) => {
-            if m.ctrl || m.alt {
-                match event.key_without_modifiers() {
-                    WKey::Character(base) => Key::Char(base.to_string()),
-                    _ => Key::Char(s.to_string()),
-                }
-            } else {
-                Key::Char(s.to_string())
-            }
-        }
+        WKey::Character(typed) => match bare {
+            WKey::Character(bare) if m.ctrl || m.alt || m.command => Key::Char(if m.shift { us_shifted(bare) } else { bare.to_string() }),
+            _ => Key::Char(typed.to_string()),
+        },
         _ => return None,
     };
-    let text = if m.ctrl || m.alt { None } else { event.text.as_ref().map(|t| t.to_string()) };
-    Some(KeyInput { key, text, ctrl: m.ctrl, alt: m.alt, shift: m.shift })
+    let modified = m.ctrl || m.alt || m.command;
+    let shift = m.shift && matches!(key, Key::Named(_));
+    let text = if modified { None } else { text.map(str::to_string) };
+    Some(KeyInput { key, text, ctrl: m.ctrl, alt: m.alt, shift, command: m.command })
 }
 
 fn open_url(url: &str) {
@@ -406,5 +418,39 @@ fn open_url(url: &str) {
     };
     if let Err(e) = cmd {
         eprintln!("[scarpe-native] could not open {url}: {e}");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use winit::keyboard::SmolStr;
+
+    fn chr(s: &str) -> WKey {
+        WKey::Character(SmolStr::new(s))
+    }
+
+    fn name(logical: WKey, bare: WKey, text: Option<&str>, m: Modifiers) -> Option<String> {
+        key_from(&logical, &bare, text, m).and_then(|k| k.shoes_name())
+    }
+
+    /// Q5: on macOS Cmd-q arrives as :alt_q, like Shoes 3's Cocoa backend.
+    #[test]
+    fn command_is_named_alt() {
+        let cmd = Modifiers { command: true, ..Modifiers::default() };
+        assert_eq!(name(chr("q"), chr("q"), None, cmd).as_deref(), Some(":alt_q"));
+        assert!(key_from(&chr("c"), &chr("c"), None, cmd).unwrap().shortcut(), "and copies in a text field");
+    }
+
+    /// manual 2223-2227: Shift folds into the character, even under Option's own layer.
+    #[test]
+    fn shift_folds_into_characters() {
+        let shift = Modifiers { shift: true, ..Modifiers::default() };
+        assert_eq!(name(chr("&"), chr("7"), Some("&"), shift).as_deref(), Some("&"));
+        let shift_alt = Modifiers { shift: true, alt: true, ..Modifiers::default() };
+        assert_eq!(name(chr("‡"), chr("7"), Some("‡"), shift_alt).as_deref(), Some(":alt_&"));
+        let shift_ctrl = Modifiers { shift: true, ctrl: true, ..Modifiers::default() };
+        assert_eq!(name(chr("A"), chr("a"), None, shift_ctrl).as_deref(), Some(":control_A"));
+        assert_eq!(name(WKey::Named(NamedKey::F1), WKey::Named(NamedKey::F1), None, shift).as_deref(), Some(":shift_f1"));
     }
 }
