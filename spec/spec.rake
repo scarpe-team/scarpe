@@ -23,4 +23,9 @@ namespace :spec do
   task :check do
     ruby run, "--check"
   end
+
+  desc "Unit-test the spec runner itself (spec/support/test)"
+  task :selftest do
+    ruby File.expand_path("support/test/run.rb", __dir__)
+  end
 end

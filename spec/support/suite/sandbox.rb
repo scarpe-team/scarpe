@@ -7,6 +7,12 @@ module SpecSuite
   class Sandbox
     attr_reader :root
 
+    # Readable, and unique even for cases whose names differ only in characters a directory
+    # name cannot keep: check.checked?.sspec and check.checked=.sspec both flatten to "_".
+    def self.dir_name(relative_path)
+      "#{relative_path.gsub(/[^\w.-]+/, "_")}-#{Zlib.crc32(relative_path).to_s(16)}"
+    end
+
     def initialize(parent, name)
       @root = File.join(parent, name)
       FileUtils.mkdir_p([home, local_app_data, work])
