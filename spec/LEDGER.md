@@ -1140,7 +1140,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** `ask(message)` returns a string (manual 629-641); `:secret` is "For: ask, edit_line" (manual 1385-1391).
 - **Shoes 3:** `ask(msg, opts)` reads `:title` and `:secret`; the answer starts as `Qnil` and is set only on `GTK_RESPONSE_OK` (`s3_gtk.c:1772-1826`).
 - **Docs:** "Classic Shoes: ask() returned nil on cancel; Scarpe returns """ (`docs/scarpe_shoes_incompatibilities.md:104-107`). Commit `6ce3d28` says the opposite ("Shoes3 likely returned empty string") to stop Hackety Hack's guessing game crashing on `nil.to_i`.
-- **Lacci today:** `ask(message_string)` takes one argument (`builtins.rb:20-22`); WV returns `""` on Cancel; a `nil` answer would trigger the `osascript` fallback (X8).
+- **Lacci today:** `ask(message_string)` takes one argument (`builtins.rb:20-22`); WV returns `""` on Cancel; a `nil` answer would trigger the `osascript` fallback (X8). Since the wave-4 Lacci lane `ask` takes `secret:` and `title:` (and any other option) and hands them to the display as a third builtin argument; a plain `ask` still sends one. The native shim reads only the message, so its dialog does not mask a secret yet.
 - **Spec:** the runner answers an unanswered `ask` with `""`, the Cancel answer, and `harness/dialogs_never_open` pins it; no `osascript` runs. `builtins.ask.secret`: `ask("x", secret: true)` is accepted. A stubbed `nil` still comes back as nil (the stub is only a stand-in for a display).
 - **Native:** the dialog reply carries `value` null and `cancelled: true` (DESIGN 4.1); since 27 Sep the shim turns a cancelled `ask` into `""` (`app_test.rb`, `test_a_cancelled_ask_is_an_empty_string`). Headless mode already answered `""` (DESIGN 5.2).
 
