@@ -401,7 +401,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** a number, or "an array of four numbers in the form `[left, top, right, bottom]`" (manual 1298-1309). `margin: 0.1` is used as a fraction (manual 3250; see M10).
 - **Shoes 3:** `ATTR_MARGINS` reads array entries 0 to 3; a missing entry falls back to the element's default margin (0 for slots, 4 for text blocks), and every entry goes through `shoes_px`, so Floats are fractions (`s3_ruby.h:147-165`).
 - **Lacci today:** `MarginHelper#margin_parse` accepts a number, a Hash, a String `"1 2 3 4"`, and 1- or 4-element arrays; **2- and 3-element arrays raise `InvalidAttributeValueError`** (`margin_helper.rb:45-51`).
-- **Also today:** `margin_parse` expands `margin` into the four sides and then clears it, so `stack(margin: 10).margin` reads nil (`slot.style_getter_methods__margin`, from the events writer).
+- **Also today:** `margin_parse` expands `margin` into the four sides and then clears it, so `stack(margin: 10).margin` reads nil (`slot.style_getter_methods__margin`, from the events writer). Since the wave-4 Lacci lane it keeps `margin` as given beside the four sides, so the getter reads 10 and the wire carries both; displays read the sides over it, so nothing moves, except that a text block given a partial Hash margin now gets 4 px below instead of 12, as Shoes 3's "margin or margin_bottom given" rule says (C9).
 - **Spec:** `margin: [10, 20]` is accepted: left 10, top 20, right and bottom default. `margin: 0.1` in a 400-wide parent gives 40 px left and right.
 - **Native:** DESIGN 6 reads arrays as `[left, top, right, bottom]`; missing entries use the default margin.
 
