@@ -188,6 +188,7 @@ module Scarpe::Native
       @stderr_tail = []
       @stderr_lock = Mutex.new
       @stderr_thread = Thread.new { drain_stderr }
+      @wake_reader, @wake_writer = IO.pipe
 
       say_hello
     end
@@ -207,6 +208,15 @@ module Scarpe::Native
     def post(message)
       line = Stats.time(:encode) { encode(message) }
       @write_lock.synchronize { @outbox << line } if line
+      # A download thread's change waits for the pump's flush: wake it rather than wait for a timer.
+      wake! if line && !Thread.current.equal?(Thread.main)
+    end
+
+    # Ends a wait_for_input early. Safe from a signal trap, where Mutexes are off limits.
+    def wake!
+      @wake_writer.write_nonblock(".", exception: false)
+    rescue IOError
+      nil
     end
 
     # Ends a batch: Rust applies everything, lays out and paints once.
@@ -330,7 +340,12 @@ module Scarpe::Native
 
     def read_some(timeout)
       return if @eof
-      return unless IO.select([@stdout], nil, nil, timeout)
+
+      readable, = IO.select([@stdout, @wake_reader], nil, nil, timeout)
+      return unless readable
+
+      @wake_reader.read_nonblock(4096, exception: false) if readable.include?(@wake_reader)
+      return unless readable.include?(@stdout)
 
       chunk = @stdout.read_nonblock(65_536, exception: false)
       return if chunk == :wait_readable

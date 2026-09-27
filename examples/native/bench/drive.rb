@@ -5,6 +5,7 @@
 # driver.json in that directory, next to the shim's ruby.json and Rust's rust.json.
 #
 #   ruby drive.rb APP.rb run SECONDS        the app runs free; measure SECONDS of it after a warm-up
+#   ruby drive.rb APP.rb idle SECONDS       as run, but hands off: nothing steps the pump but itself
 #   ruby drive.rb APP.rb paced SECONDS      like run, but every pump step waits for a frame (headless paints)
 #   ruby drive.rb APP.rb type KEYS          type KEYS into the first edit_line, one key at a time
 #   ruby drive.rb APP.rb click TEXT TIMES   click TEXT, TIMES times, each time until it is drawn
@@ -33,14 +34,18 @@ module Bench
     def run
       Scarpe::Native.on_first_heartbeat do
         @report["first_heartbeat_unix"] = unix_now
+        next watch_idly(*@args) if @action == "idle"
+
         @report["ping_ms"] = ping_times
         send("do_#{@action}", *@args)
       rescue StandardError => e
         @report["error"] = "#{e.class}: #{e.message}"
         warn("drive.rb: #{@report["error"]}")
       ensure
-        write_report
-        Shoes.APPS.each(&:destroy)
+        unless @action == "idle"
+          write_report
+          Shoes.APPS.each(&:destroy)
+        end
       end
       Shoes.run_app(@app_path)
     end
@@ -50,6 +55,29 @@ module Bench
     def do_run(seconds)
       automation.advance(WARMUP)
       measure_window { automation.advance(seconds.to_f) }
+    end
+
+    # Measures from a thread of its own, so the pump runs its own loop the way an app left alone
+    # does, then ends the app the way Ctrl-C would. Only clocks and ps are read from here.
+    def watch_idly(seconds)
+      child = Scarpe::Native::DisplayService.instance.child
+      Thread.new do
+        sleep(WARMUP)
+        before = idle_snapshot(child)
+        sleep(seconds.to_f)
+        after = idle_snapshot(child)
+        @report["window"] = {
+          "from_unix" => before[:unix], "to_unix" => after[:unix], "wall" => after[:wall] - before[:wall],
+          "ruby_cpu" => after[:ruby_cpu] - before[:ruby_cpu],
+          "rust_cpu" => after[:rust_cpu] && before[:rust_cpu] && after[:rust_cpu] - before[:rust_cpu],
+        }
+        write_report
+        Process.kill("INT", Process.pid)
+      end
+    end
+
+    def idle_snapshot(child)
+      { unix: unix_now, wall: monotonic, ruby_cpu: Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID), rust_cpu: cpu_seconds(child.pid) }
     end
 
     # Headless, nothing is painted unless asked, so each timer tick is followed by a frame request:

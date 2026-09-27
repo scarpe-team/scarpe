@@ -113,11 +113,11 @@ module Bench
     end
 
     def bench_idle
-      cpu("idle (still app)", drive("still.rb", "run", @seconds * 2))
+      cpu("idle (still app)", drive("still.rb", "idle", @seconds * 2))
     end
 
     def bench_clock
-      cpu("clock (every 1s)", drive("clock.rb", "run", @seconds * 2))
+      cpu("clock (every 1s)", drive("clock.rb", "idle", @seconds * 2))
     end
 
     # Clear a slot of 2000 paras and fill it again, five times.
