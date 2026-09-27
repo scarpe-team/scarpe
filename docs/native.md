@@ -96,6 +96,7 @@ kind, position and size in window pixels, and its text.
 | `--size WxH` | resize the window first |
 | `--click TEXT` | click whatever shows that text (exact first, then the first that contains it) |
 | `--click-at X,Y` | click a point |
+| `--drag X,Y,X,Y...` | press at the first point, move through the rest a frame apart, release at the last |
 | `--type TEXT`, `--key NAME` | type into the focused field, or press one key (`"\n"`, `left`, `control_a`) |
 | `--wheel DY[,X,Y]` | scroll; positive `DY` scrolls down |
 | `--wait SECS` | let timers and animations run |
@@ -225,7 +226,7 @@ and the numbers.
 | `SCARPE_NATIVE_SNAPSHOT_DIR` | where a spec's `snapshot("name")` writes its picture |
 | `SCARPE_NATIVE_STATS=DIR` | each process writes where its time went (`ruby.json`, `rust.json`) when it exits |
 | `SCARPE_NATIVE_DAMAGE` | `off` repaints every frame whole; `check` verifies every partial repaint pixel by pixel |
-| `SCARPE_NATIVE_WINDOWED_TESTS=1` | let `rake native_test` open real (inactive) windows |
+| `SCARPE_NATIVE_WINDOWED_TESTS=1` | let `rake native_test` open real windows, as ghosts |
 | `SCARPE_BYTECODE=0` | a packaged app loads source instead of bytecode |
 | `RUBY_YJIT_ENABLE=0` | a packaged app leaves YJIT off |
 
@@ -316,30 +317,33 @@ The smallest real one to copy is `progress`, and its trail is below.
 
 As of 27 Sep 2026. Each has more detail in the ledger or in DESIGN.
 
-- **Windows on screen.** The spec suite and peek never open a window, and none was opened when
-  the third build wave merged, so the merged window paths have not run on screen: the tooltip
-  wake-up with frame pacing, the layout push before a frame is presented, and window opacity with
-  the colour space. Cmd-Q from the app menu has never been pressed in a test. Ghost windows are
-  meant to let these run on a machine someone is using.
+- **Windows on screen.** The spec suite and peek never open a window. The windowed tests and
+  benches open ghosts, which present real frames nobody can see, so nothing has been checked by
+  eye on screen: the tooltip wake-up with frame pacing, window opacity with the colour space, and
+  input methods, whose composing text shows in their own panel rather than in the field. Cmd-Q
+  from the app menu has never been pressed in a test.
 - **Platforms.** Only macOS is tested, and only macOS apps can be packaged: no Linux, Windows or
   universal builds, no notarisation. Window opacity works on macOS only.
 - **Drawing.** Radial gradients, dash styles, and `blur`, `glow` and `shadow` are not drawn. Video
   shows a placeholder frame and does not play. The bundled fonts have no emoji.
-- **Art.** `rotate` does not add up across calls (`rotating-star.rb`). `stroke` set inside a
-  `shape` block does not reach the shape (`curve-animation.rb` draws black). A shape group whose
-  members carry their own rotation has a slightly wrong hit box. `right:` and `bottom:` do not size
-  art the way Shoes 3 does.
-- **Lacci.** `left`, `top`, `width` and `height` report the border box, where Shoes 3 reports the
-  margin box (4 px apart for text). `font(url)` returns the file's name before the font is fetched.
+- **Art.** `right:` and `bottom:` place art from the slot's far edges, but Lacci always sends
+  `left` and `top` with them, and those win (ledger C10); Shoes 3 read them on art as end points.
+  Pens set inside a `shape` block style that shape only, where Shoes 3 carries them on to the
+  shapes after it (E7). `scale` and `skew` set their value outright, where Shoes 3 multiplies
+  them into what came before; only `rotate` adds up (E10).
+- **Lacci.** `left` and `top` answer in window coordinates, where Shoes 3 answers from the
+  parent's content origin. `font(url)` returns the file's name before the font is fetched.
   A slot's `start` fires on the first heartbeat after it appears. Image downloads happen at create
-  time and hold up building the tree. Ledger rows C5, D9, E11 and G10 still wait on Lacci work.
-- **`clear` and timers.** The ruling on 27 Sep (Q8) is that `clear` keeps the timers a slot started,
-  as Shoes 3 and ten examples need. The code does that; the ledger row (B7) and its case
-  (`manip.clear.stops_timers`, still marked as expected to fail) have not caught up yet.
+  time and hold up building the tree. `download` reads the whole body before its one `progress`.
+  Ledger rows A8 (closing one window), B1 (a slot block's `self`) and K6 (`exit` at once) are
+  still open.
 - **Packaging.** No YJIT in the shipped Ruby yet. Bytecode only helps when the app runs from where it
   was compiled for. Only the app file and its assets are copied, not other `.rb` files it requires.
-- **Examples.** 23 examples fail on native (see above), and `rotate_shapes.rb` turns its shapes
-  about their corners, as the manual says, where it was written for the centre.
+- **Text.** The stretch (condensed, expanded) and small-caps styles are not drawn (ledger F4, F5),
+  and Enter on a focused check or radio does not click it (G9).
+- **Examples.** The ones marked failing on native in `spec/examples.yml` each say why (see above),
+  and `rotate_shapes.rb` turns its shapes about their corners, as the manual says, where it was
+  written for the centre.
 
 ## Where to read more
 
