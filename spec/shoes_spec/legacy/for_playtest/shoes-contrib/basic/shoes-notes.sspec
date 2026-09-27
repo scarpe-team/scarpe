@@ -5,9 +5,9 @@ source: cases/scarpe_examples/legacy/for_playtest/shoes-contrib/basic/shoes-note
 source_commit: 1e766c6
 display: any
 expect: fail
-reason: Lacci makes title, subtitle, banner and caption a Para with a :size, so paras()
-  includes them and restyling the size loses the banner; the manual gives each its
-  own class (element.title)
+reason: Lacci makes title, subtitle, banner and caption Para subclasses (element.title),
+  so paras() still includes them, and the finders go by size, so restyling the size
+  loses the banner
 ----------- app code
 Shoes.app do
   stack :margin => 20, :width => 250 do
