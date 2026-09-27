@@ -694,3 +694,39 @@ fn quitting_one_of_two_apps_frees_it_and_keeps_the_other() {
     assert_eq!(h.rt.exit, None, "the first window is still open");
     assert_eq!(h.node(|n| n["id"] == 3)["text"], json!("first"));
 }
+
+/// `animate(10) { @t.replace strong(Time.now.to_s) }`: Lacci makes a span a tick and destroys
+/// none, so Rust's document grew by a node a tick for the life of the app. Past a bound, the
+/// spans no text names any more are let go, oldest first.
+#[test]
+fn a_clock_of_new_spans_does_not_grow_the_document_forever() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 100, &[create(3, "Para", 2, json!({"text_items": ["start"]}))]));
+    let base = h.rt.doc.len();
+    let mut ticks = String::new();
+    for tick in 0..12_000 {
+        let span = 100 + tick;
+        ticks.push_str(&format!("{}\n", json!({"t": "create", "id": span, "kind": "Strong", "parent": null, "props": {"text_items": [format!("12:{tick:05}")]}})));
+        ticks.push_str(&format!("{}\n{{\"t\":\"flush\"}}\n", json!({"t": "props", "id": 3, "props": {"text_items": [span]}})));
+    }
+    h.feed(&ticks);
+    assert!(h.rt.doc.len() <= base + 10_001, "{} nodes after 12,000 ticks", h.rt.doc.len());
+    assert_eq!(h.node(|n| n["id"] == 3)["text"], json!("12:11999"), "the latest span still shows");
+}
+
+/// `@s.clear { para "Again ", @bold }` names a span whose only para just went: it is still
+/// there (the refutation of the naive fix, review wave 4).
+#[test]
+fn a_span_named_again_after_its_para_went_still_shows() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 100, &[
+        create(3, "Stack", 2, json!({})),
+        json!({"t": "create", "id": 4, "kind": "Strong", "parent": null, "props": {"text_items": ["kept"]}}),
+        create(6, "Para", 3, json!({"text_items": ["Hi ", 4]})),
+    ]));
+    h.feed(&[json!({"t": "destroy", "id": 6}), json!({"t": "flush"}), create(9, "Para", 3, json!({"text_items": ["Again ", 4]})), json!({"t": "flush"})]
+        .iter()
+        .map(|l| format!("{l}\n"))
+        .collect::<String>());
+    assert_eq!(h.node(|n| n["id"] == 9)["text"], json!("Again kept"));
+}

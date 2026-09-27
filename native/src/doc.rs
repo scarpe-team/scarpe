@@ -1,8 +1,8 @@
 //! The retained document: every drawable Lacci created, as a tree per app.
 
-use crate::props::{Id, Props};
+use crate::props::{Id, Props, TextItem};
 use serde_json::{Map, Value};
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Kind {
@@ -199,6 +199,53 @@ pub struct AppEntry {
 pub struct Doc {
     nodes: HashMap<Id, Node>,
     apps: Vec<AppEntry>,
+    spans: SpanNames,
+}
+
+/// Text spans (strong, em, link...) have no parent: paras, and spans, name them in their
+/// text_items. Lacci makes a new span for every `strong("12:00:01")` and destroys none, and it
+/// may name an old one again (`@p.replace(@bold)` long after `@bold` was last shown), so a span
+/// is kept while any text names it, and after that until more than a bound of such loose
+/// spans pile up (Doc::let_go_of_loose_spans), oldest first.
+#[derive(Default, Debug)]
+struct SpanNames {
+    /// How many text_items lists name each id.
+    named: HashMap<Id, u32>,
+    /// Spans no list names, and when each became so (a running count).
+    loose_since: HashMap<Id, u64>,
+    /// The same, oldest first; an entry whose count is no longer in loose_since is stale.
+    loose: VecDeque<(u64, Id)>,
+    count: u64,
+}
+
+impl SpanNames {
+    fn name(&mut self, items: &[TextItem]) {
+        for item in items {
+            if let TextItem::Ref(id) = item {
+                *self.named.entry(*id).or_default() += 1;
+                self.loose_since.remove(id);
+            }
+        }
+    }
+
+    fn unname(&mut self, items: &[TextItem]) {
+        for item in items {
+            if let TextItem::Ref(id) = item {
+                let Some(n) = self.named.get_mut(id) else { continue };
+                *n -= 1;
+                if *n == 0 {
+                    self.named.remove(id);
+                    self.let_loose(*id);
+                }
+            }
+        }
+    }
+
+    fn let_loose(&mut self, id: Id) {
+        self.count += 1;
+        self.loose_since.insert(id, self.count);
+        self.loose.push_back((self.count, id));
+    }
 }
 
 pub struct NewNode {
@@ -247,7 +294,9 @@ impl Doc {
 
     pub fn create(&mut self, new: NewNode) {
         let kind = Kind::from_wire(&new.class, new.widget);
-        if self.nodes.contains_key(&new.id) {
+        if let Some(old) = self.nodes.get(&new.id) {
+            let old_items = old.props.text_items();
+            self.spans.unname(&old_items);
             self.detach(new.id);
         }
         let children = self.nodes.get(&new.id).map(|n| n.children.clone()).unwrap_or_default();
@@ -256,10 +305,13 @@ impl Doc {
             self.apps.retain(|a| a.id != new.id);
             self.apps.push(AppEntry { id: new.id, doc_root, owner: new.owner });
         }
-        self.nodes.insert(
-            new.id,
-            Node { id: new.id, kind, class: new.class, parent: new.parent, children, props: Props::new(new.props) },
-        );
+        let node = Node { id: new.id, kind, class: new.class, parent: new.parent, children, props: Props::new(new.props) };
+        self.spans.name(&node.props.text_items());
+        if node.kind.is_span() && node.parent.is_none() && !self.spans.named.contains_key(&node.id) {
+            // Lacci makes a span before the text that names it.
+            self.spans.let_loose(node.id);
+        }
+        self.nodes.insert(new.id, node);
         if let Some(parent) = new.parent {
             self.attach(new.id, parent, new.index);
         }
@@ -268,13 +320,14 @@ impl Doc {
     /// Applies prop changes. Unknown ids are ignored: Lacci sends a Para's
     /// text_items before its create.
     pub fn set_props(&mut self, id: Id, changes: Map<String, Value>) -> bool {
-        match self.nodes.get_mut(&id) {
-            Some(node) => {
-                node.props.merge(changes);
-                true
-            }
-            None => false,
+        let Some(node) = self.nodes.get_mut(&id) else { return false };
+        if changes.contains_key("text_items") {
+            let (old, new) = (node.props.text_items(), Props::new(changes.clone()).text_items());
+            self.spans.name(&new);
+            self.spans.unname(&old);
         }
+        node.props.merge(changes);
+        true
     }
 
     /// Removes the node and its whole subtree. Returns every removed id.
@@ -287,12 +340,36 @@ impl Doc {
         let mut stack = vec![id];
         while let Some(next) = stack.pop() {
             if let Some(node) = self.nodes.remove(&next) {
+                self.spans.unname(&node.props.text_items());
+                self.spans.loose_since.remove(&next);
                 stack.extend(node.children.iter().copied());
                 removed.push(next);
             }
         }
         self.apps.retain(|a| !removed.contains(&a.id));
         removed
+    }
+
+    /// Destroys the spans no text has named for longest, while more than `keep` are loose.
+    /// Returns every removed id.
+    pub fn let_go_of_loose_spans(&mut self, keep: usize) -> Vec<Id> {
+        let mut removed = Vec::new();
+        while self.spans.loose_since.len() > keep {
+            let Some((when, id)) = self.spans.loose.pop_front() else { break };
+            if self.spans.loose_since.get(&id) != Some(&when) {
+                continue;
+            }
+            self.spans.loose_since.remove(&id);
+            if self.nodes.get(&id).is_some_and(|n| n.kind.is_span() && n.parent.is_none()) {
+                removed.extend(self.destroy(id));
+            }
+        }
+        removed
+    }
+
+    /// How many spans no text names at the moment.
+    pub fn loose_spans(&self) -> usize {
+        self.spans.loose_since.len()
     }
 
     pub fn remove_app(&mut self, app: Id) -> Vec<Id> {
@@ -458,6 +535,71 @@ mod tests {
         doc.create(new(5, "Stack", Some(5), None));
         assert!(doc.children(5).is_empty(), "or under itself");
         assert_eq!(doc.ancestors(4), vec![3]);
+    }
+
+    fn span(doc: &mut Doc, id: Id, text: &str) {
+        let mut s = new(id, "Strong", None, None);
+        s.props = json!({"text_items": [text]}).as_object().unwrap().clone();
+        doc.create(s);
+    }
+
+    fn show(doc: &mut Doc, para: Id, items: serde_json::Value) {
+        doc.set_props(para, json!({ "text_items": items }).as_object().unwrap().clone());
+    }
+
+    /// A clock that shows `strong(Time.now)` every tick makes a span a tick and destroys none.
+    #[test]
+    fn spans_no_text_names_are_let_go_oldest_first_past_the_bound() {
+        let mut doc = Doc::default();
+        doc.create(new(2, "DocumentRoot", None, None));
+        doc.create(new(3, "Para", Some(2), None));
+        for tick in 0..10 {
+            span(&mut doc, 100 + tick, "12:00");
+            show(&mut doc, 3, json!([100 + tick]));
+            doc.let_go_of_loose_spans(3);
+        }
+        assert_eq!(doc.len(), 2 + 1 + 3, "the root, the para, its span and three loose ones");
+        assert!(doc.contains(109), "the span on show stays");
+        assert!(doc.contains(106) && !doc.contains(105), "the three let go most recently stay, older ones go");
+    }
+
+    /// Lacci names a span again after the text that named it went (`@s.clear { para @bold }`,
+    /// or `@p.replace(@on)` after `@p.replace(@off)`): while loose spans are few it is there.
+    #[test]
+    fn a_span_named_again_is_still_there() {
+        let mut doc = Doc::default();
+        doc.create(new(2, "DocumentRoot", None, None));
+        span(&mut doc, 4, "kept");
+        doc.create(new(6, "Para", Some(2), None));
+        show(&mut doc, 6, json!(["Hi ", 4]));
+        doc.destroy(6);
+        assert_eq!(doc.loose_spans(), 1);
+        doc.let_go_of_loose_spans(10);
+        doc.create(new(9, "Para", Some(2), None));
+        show(&mut doc, 9, json!(["Again ", 4]));
+        assert!(doc.contains(4));
+        assert_eq!(doc.loose_spans(), 0, "named again, it is no longer loose");
+        show(&mut doc, 9, json!(["plain"]));
+        doc.let_go_of_loose_spans(0);
+        assert!(!doc.contains(4), "past the bound it goes");
+    }
+
+    /// A span inside a span is named by the outer one's text.
+    #[test]
+    fn letting_a_span_go_loosens_the_spans_it_names() {
+        let mut doc = Doc::default();
+        doc.create(new(2, "DocumentRoot", None, None));
+        span(&mut doc, 4, "inner");
+        let mut outer = new(5, "Em", None, None);
+        outer.props = json!({"text_items": ["a ", 4]}).as_object().unwrap().clone();
+        doc.create(outer);
+        doc.create(new(6, "Para", Some(2), None));
+        show(&mut doc, 6, json!([5]));
+        assert_eq!(doc.loose_spans(), 0);
+        show(&mut doc, 6, json!(["plain"]));
+        let mut gone = doc.let_go_of_loose_spans(0);
+        gone.sort();
+        assert_eq!(gone, vec![4, 5]);
     }
 
     #[test]

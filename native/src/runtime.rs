@@ -448,6 +448,13 @@ impl Runtime {
     /// End of a batch: lay out whatever changed.
     pub fn flush(&mut self) {
         self.images.next_batch();
+        let let_go = self.doc.let_go_of_loose_spans(limits::LOOSE_SPANS);
+        if !let_go.is_empty() {
+            self.revisions.forget(&let_go);
+            for view in self.views.values_mut() {
+                view.ui.forget(&let_go);
+            }
+        }
         if std::mem::take(&mut self.pictures_to_check) && !self.images.is_empty() {
             let shown: std::collections::HashSet<std::path::PathBuf> = self.doc.iter().flat_map(crate::elements::image::shown_by).collect();
             self.images.retain(|path| shown.contains(path));
