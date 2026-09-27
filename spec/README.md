@@ -28,16 +28,16 @@ spec/
 From the repo root:
 
 ```sh
-spec/run spec/manual/button/button.click.sspec             # one case, on niente
-spec/run spec/manual/button                                # a whole directory
-spec/run --check spec/manual/button                        # front matter only, runs nothing
-spec/run --display native spec/manual/button               # on the Rust display
-spec/run --keep -v spec/manual/button/button.click.sspec   # keep the sandbox, show every message
+spec/run spec/manual/elements-common/element.button.block.sspec             # one case, on niente
+spec/run spec/manual/widgets-text                                           # a whole directory
+spec/run --check spec/manual/widgets-text                                   # front matter only, runs nothing
+spec/run --display native spec/manual/widgets-text                          # on the Rust display
+spec/run --keep -v spec/manual/elements-common/element.button.block.sspec   # keep the sandbox, show every message
 ```
 
-Paths may also be given relative to `spec/` (`spec/run manual/button`). With no paths it runs
-everything under `spec/`. The same runs through rake: `rake spec:run`, `rake spec:run[native]`,
-`PATHS="manual/button" rake spec:run`, `rake spec:check`, `rake spec:examples`.
+Paths may also be given relative to `spec/` (`spec/run manual/widgets-text`). With no paths it
+runs everything under `spec/`. The same runs through rake: `rake spec:run`, `rake spec:run[native]`,
+`PATHS="manual/widgets-text" rake spec:run`, `rake spec:check`, `rake spec:examples`.
 
 Your case is done when `spec/run --check` accepts it and `spec/run` reports it `pass`
 (or `not_applicable` on niente for a `display: native` case, then `pass` on native once
@@ -236,7 +236,7 @@ directories add up to one picture. `spec/results/examples-<display>.json` holds 
 
 ## Examples
 
-`spec/examples.yml` lists all 424 examples under `examples/` with a `status`: `loads`,
+`spec/examples.yml` lists all 430 examples under `examples/` with a `status`: `loads`,
 `fails` (known broken, with a `reason`) or `skip` (Shoes 3 only, missing gems, the network,
 side effects). `spec/run --examples` smoke-runs every non-skipped one:
 
