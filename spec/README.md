@@ -237,8 +237,10 @@ side effects). `spec/run --examples` smoke-runs every non-skipped one:
   (default 3) or exits 0.
 - native: `scarpe peek EXAMPLE --wait 1.5 --shot spec/results/gallery/<slug>.png`, then no Ruby
   error, no Rust panic, and a snapshot that is not one flat colour. Add `steps:` to click or
-  type before the shot (`click`, `click_at`, `type`, `key`, and `wait` to let a timer tick,
-  since the shot follows the last step at once).
+  type before the shot (`click`, `click_at`, `type`, `key`, `drag` through a list of points
+  with the button down, and `wait` to let a timer tick, since the shot follows the last step at
+  once). `dialogs:` answers the example's dialogs on both displays, the way a case's front
+  matter does, so an app that asks before it draws (`if confirm(...)`) shows what it draws.
 
 Every `--examples` run also writes `spec/results/gallery/index.html`: one card per example with
 its native snapshot, its path, and each display's status and error line, broken examples
