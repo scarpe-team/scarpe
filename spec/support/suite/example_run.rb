@@ -88,6 +88,7 @@ module SpecSuite
           when "click_at" then ["--click-at", Array(value).join(",")]
           when "type" then ["--type", value.to_s]
           when "key" then ["--key", value.to_s]
+          when "wait" then ["--wait", value.to_s]
           else raise ArgumentError, "#{@example.path}: unknown peek step #{kind.inspect}"
           end
         end
