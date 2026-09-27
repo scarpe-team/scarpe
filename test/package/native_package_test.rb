@@ -9,10 +9,12 @@ require "json"
 class NativePackageTest < Minitest::Test
   include PackageTestHelpers
 
+  RED_PNG = File.join(ROOT, "spec", "support", "assets", "red-40x30.png")
   APP = <<~RUBY
     Shoes.app(width: 240, height: 120) do
       background "#dde"
       button "Packaged"
+      warn "scarpe-imagesize \#{imagesize(#{RED_PNG.inspect}).inspect}"
     end
   RUBY
 
@@ -56,6 +58,14 @@ class NativePackageTest < Minitest::Test
     assert_operator run[:probe]["frames"], :>=, 1
     assert_operator run[:probe]["bytecode_hits"], :>, 50, "Lacci, the shim and the app should load from bytecode"
     assert_equal "\x89PNG".b, File.binread(snapshot, 4)
+  end
+
+  # Image#size, full_width and imagesize read files through FastImage, a gem, and a native
+  # bundle carries no gems of its own.
+  def test_image_sizes_read_in_the_bundle
+    run = launch(bundle)
+
+    assert_includes run[:stderr], "scarpe-imagesize [40, 30]"
   end
 
   def test_a_moved_app_boots_from_source
