@@ -1,0 +1,15 @@
+---
+manual: slot.style_getter_methods
+lines: [2378, 2380]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @panel = stack hidden: true do
+    para "tucked away"
+  end
+end
+----------- test code
+panel = stack("@panel")
+assert panel.respond_to?(:hidden), "the slot answers to its style's method"
+assert_equal true, panel.hidden, "so a finder's proxy forwards it"
