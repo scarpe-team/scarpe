@@ -215,10 +215,12 @@ is the one bug we never want. Must never load `scarpe/wv` (set-once globals coll
 
 - Spawns the child lazily, the first time something needs it: the first `create_display_drawable_for`,
   or a windowed builtin before any app.
-  Binary: `ENV["SCARPE_NATIVE_BIN"]`; else, in a dev checkout (one with `native/Cargo.toml`),
-  `native/target/release/scarpe-native`, running `cargo build --release` first (one line to stderr)
-  when it is missing or older than any file under `native/src`, `Cargo.toml` or `Cargo.lock`;
-  else a packaged binary beside the running script, in `../MacOS`, or on `PATH`.
+  Binary: `ENV["SCARPE_NATIVE_BIN"]`; else a packaged binary beside the running script or in
+  `../MacOS`; else `scarpe-native` on `PATH`; else, only in a git checkout of Scarpe (`.git` and
+  `native/Cargo.toml` at the root), `native/target/release/scarpe-native`, running
+  `cargo build --release` first (one line to stderr) when it is missing or older than any file
+  under `native/src`, `Cargo.toml` or `Cargo.lock`. An installed gem ships the crate (not
+  `native/research` or `native/tests`) but never builds it at launch.
   Extra child arguments come from `SCARPE_NATIVE_ARGS`. The child runs in its own process group,
   so a terminal Ctrl-C reaches Ruby, which quits it.
 - Headless when `SCARPE_NATIVE_HEADLESS` is set to anything but `""`, `0`, `false` or `no` (passes
