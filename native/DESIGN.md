@@ -372,8 +372,10 @@ on top of the Niente-compatible finders and proxies (`button`, `para`, `edit_lin
 | `stub_dialog(kind, value)` | answer the next `kind` builtin with `value` |
 
 `scarpe peek APP.rb [--size WxH] [--scale 2] [--wait SECS] [--click TEXT | --click-at X,Y]
-[--type TEXT] [--key NAME] [--wheel DY[,X,Y]] [--window N | --app ID] [--shot OUT.png] [--layout]`
-runs an app headless, performs the steps in order, and exits. It is the quick "look and click" tool
+[--drag X,Y,X,Y...] [--type TEXT] [--key NAME] [--wheel DY[,X,Y]] [--window N | --app ID]
+[--shot OUT.png] [--layout]` runs an app headless, performs the steps in order, and exits.
+`--drag` presses at its first point and moves through the rest a frame apart, so an app that
+reads `mouse` in a timer sees the button down at each. It is the quick "look and click" tool
 for humans and agents. `--window N` (counting from 1 in `Shoes.APPS`) or `--app ID` sends every
 later step to that window.
 

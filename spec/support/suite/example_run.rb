@@ -28,6 +28,7 @@ module SpecSuite
       return row("skip", @example.reason || "status: skip") if expected == "skip" && !@include_skipped
 
       sandbox = Sandbox.new(@sandboxes, @example.slug)
+      @env = sandbox.env(@display, dialog_stubs)
       status, message, secs = @display == "native" ? peek(sandbox) : load_under_niente(sandbox)
       status, message = apply_expectation(expected, status, message)
       row(status, message, secs:, blocked: sandbox.trapped_commands.first(3), sandbox: (sandbox.root if @keep))
@@ -42,7 +43,7 @@ module SpecSuite
     def file = @tree.example_path(@example.path)
 
     def load_under_niente(sandbox)
-      finished = Child.run([RbConfig.ruby, SCARPE_EXE, "--dev", file], env: sandbox.env("niente"), chdir: File.dirname(file),
+      finished = Child.run([RbConfig.ruby, SCARPE_EXE, "--dev", file], env: @env, chdir: File.dirname(file),
         log: sandbox.log, deadline_after: @wait)
       error = first_error(finished.output)
       verdict =
@@ -59,7 +60,7 @@ module SpecSuite
       FileUtils.mkdir_p(File.dirname(shot))
       FileUtils.rm_f(shot)
       argv = [RbConfig.ruby, SCARPE_EXE, "--dev", "peek", file, "--wait", @wait.to_s, *step_args, "--shot", shot]
-      finished = Child.run(argv, env: sandbox.env("native"), chdir: File.dirname(file), log: sandbox.log,
+      finished = Child.run(argv, env: @env, chdir: File.dirname(file), log: sandbox.log,
         deadline_after: @wait + PEEK_ALLOWANCE)
       [*judge_peek(finished, shot), finished.secs]
     end
@@ -86,6 +87,7 @@ module SpecSuite
           case kind.to_s
           when "click" then ["--click", value.to_s]
           when "click_at" then ["--click-at", Array(value).join(",")]
+          when "drag" then ["--drag", Array(value).flatten.join(",")]
           when "type" then ["--type", value.to_s]
           when "key" then ["--key", value.to_s]
           when "wait" then ["--wait", value.to_s]
@@ -93,6 +95,12 @@ module SpecSuite
           end
         end
       end
+    end
+
+    # examples.yml `dialogs:` answer the example's dialogs the way a case's front matter does,
+    # so an app that asks before it draws (confirm, ask_color) shows what it draws.
+    def dialog_stubs
+      @example.dialogs ? { "SPEC_DIALOG_STUBS" => JSON.generate(@example.dialogs) } : {}
     end
 
     def apply_expectation(expected, status, message)
