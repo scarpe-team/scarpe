@@ -626,7 +626,16 @@ class Shoes
       Shoes::Drawable.unregister_drawable_id(linkable_id)
       Shoes::DisplayService.layout_cache.delete(linkable_id)
     end
-    alias_method :remove, :destroy
+
+    # Take the drawable away for good (manual 2430-2433, 2681-2684). This calls
+    # destroy by name, so a slot's own destroy clears its children and fires
+    # finish (ledger B5; an alias_method bound the base destroy and skipped both).
+    #
+    # @return [self]
+    def remove
+      destroy
+      self
+    end
 
     # Move the drawable to an absolute position.
     # In Shoes, move(left, top) repositions an element

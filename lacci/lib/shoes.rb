@@ -40,6 +40,7 @@ require_relative 'shoes/builtins'
 require_relative 'shoes/background'
 
 require_relative 'shoes/drawable'
+require_relative 'shoes/draw_context'
 require_relative 'shoes/app'
 require_relative 'shoes/drawables'
 # Turtle graphics is loaded on-demand via `require 'scarpe/turtle'`

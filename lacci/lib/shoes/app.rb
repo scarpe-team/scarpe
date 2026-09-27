@@ -567,6 +567,12 @@ class Shoes::App < Shoes::Drawable
   alias info puts
   alias debug puts
 
+  # Image effects (Shoes 3's blur, glow and shadow on image(w, h) { } canvases) are an
+  # extension no display draws yet (ledger E9); they must not stop the app.
+  %i[blur glow shadow].each do |effect|
+    define_method(effect) { |*_args, **_opts| self }
+  end
+
   # Returns the app's scrollbar gutter width (the width of the scrollbar).
   # In classic Shoes this is typically 28 pixels.
   def gutter
