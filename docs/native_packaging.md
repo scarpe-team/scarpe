@@ -155,8 +155,9 @@ window that closes itself:
 SCARPE_NATIVE_INACTIVE=1 SCARPE_NATIVE_ARGS='--exit-after 3' MyApp.app/Contents/MacOS/scarpe-launcher; echo $?
 ```
 
-That prints `0` with nothing on stderr for button, othello and calc. Headless with a snapshot of
-the first frame:
+That prints `0` with nothing on stderr for button, othello and calc. From a script or an agent,
+add `SCARPE_NATIVE_GHOST=1`: the window still opens and presents frames, but nobody sees it or can
+click it (native/DESIGN.md section 12). Headless with a snapshot of the first frame:
 
 ```sh
 ruby scripts/native_cold_start.rb myapp.rb --runs 1 --snapshot first_frame.png

@@ -16,6 +16,7 @@
 ROOT = File.expand_path("../../..", __dir__)
 %w[lib lacci/lib scarpe-components/lib].each { |dir| $LOAD_PATH.unshift(File.join(ROOT, dir)) }
 ENV["SCARPE_DISPLAY_SERVICE"] = "native"
+ENV["SCARPE_NATIVE_GHOST"] ||= "1" # run by hand too, its window is a ghost (native/DESIGN.md 12)
 require "scarpe"
 
 module Bench

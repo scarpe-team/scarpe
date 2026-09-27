@@ -11,7 +11,8 @@
 #   options: --seconds N (measured stretch, default 5)  --runs N (cold starts, default 5)
 #            --bundler (cold start through `exe/scarpe --dev`, as in a dev checkout)  --json OUT
 #
-# Windows open without activating or taking focus (SCARPE_NATIVE_INACTIVE) and close by themselves.
+# Windows are ghosts (SCARPE_NATIVE_GHOST: real frames, but invisible and click-through, never
+# taking focus; native/PERF.md says how that can differ from a visible window) and close by themselves.
 
 require "json"
 require "optparse"
@@ -68,7 +69,7 @@ module Bench
 
     private
 
-    # 500 ovals under animate(60) in a real (inactive) window.
+    # 500 ovals under animate(60) in a real (ghost) window.
     def bench_ovals
       result = drive("ovals.rb", "run", @seconds)
       frame_rate("ovals", result)
@@ -268,7 +269,8 @@ module Bench
       args += ["--scale", "2"] if headless # a Retina window's pixels, so headless numbers compare
       {
         "SCARPE_NATIVE_STATS" => dir,
-        "SCARPE_NATIVE_INACTIVE" => "1",
+        "SCARPE_NATIVE_GHOST" => "1",
+        "SCARPE_NATIVE_INACTIVE" => "1", # for a shim or binary older than the ghost flag
         "SCARPE_NATIVE_HEADLESS" => (headless ? "1" : nil),
         "SCARPE_NATIVE_ARGS" => args.join(" "),
         "SCARPE_NATIVE_LOG_LEVEL" => "error",

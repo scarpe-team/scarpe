@@ -8,7 +8,8 @@ commands under "Running the benchmarks".
 
 - **Machine:** Apple M5 (10 cores), 32 GB, macOS 26.2, built-in Liquid Retina XDR display
   (120 Hz ProMotion, 2x). Windows are 600x500 logical, 1200x1000 pixels, opened inactive
-  (`SCARPE_NATIVE_INACTIVE=1`).
+  (`SCARPE_NATIVE_INACTIVE=1`) and visible. The benches have opened ghost windows since
+  (see "Windows as ghosts" below).
 - **Build:** `cargo build --release` with Rust 1.93.1. Ruby 4.0.1 without YJIT unless a row says
   otherwise (4.0.1 on this machine has no YJIT; the YJIT rows use 4.0.5, with and without it).
 - **Before** is commit 32a2b47: the measurement layer alone, on top of native-rust 36c6282.
@@ -213,7 +214,81 @@ loaded machine (load average 20 to 40), with `bench.rb ovals_headless --seconds 
 | frame interval p50 | 20.6-20.9 ms | 21.0-21.1 ms |
 
 The push costs Rust about 0.11 ms a frame here; the Ruby side stays within the noise. The windowed
-benches were not rerun: no windows were opened for the merge.
+benches were not rerun: no windows were opened for the merge. They ran later as ghost windows
+(next section).
+
+## Windows as ghosts (27 Sep, after the merge)
+
+From 18:15 on 27 Sep a watchdog killed any `scarpe-native` that could show a window, so the merged
+tree's windowed benches never ran. The benches now open ghost windows (native/DESIGN.md section
+12): real windows whose frames are laid out, painted and presented, at alphaValue 0 and
+click-through. Below is the merged tree (native-rust 877e262 plus the ghost commits) in ghost
+windows. Each cell is the median of four interleaved rounds taken while the 1-minute load
+average was 6 to 12 (the tables above ran at 7 to 14). A round is `bench.rb ovals ovals_headless`,
+`typing typing_headless`, `startup` and `idle`, each under Ruby 4.0.1, 4.0.5 and 4.0.5 `--yjit`
+(`--ruby`), in an order that rotated from round to round, so each windowed bench ran back to back
+with its headless twin. The visible column repeats the perf lane's `after` numbers from the
+tables above, Ruby 4.0.1.
+
+| benchmark | measure | visible window (above, 4.0.1) | ghost window, 4.0.1 | ghost window, 4.0.5 | ghost window, 4.0.5 + YJIT |
+|---|---|---|---|---|---|
+| **500 ovals, animate(60)** (`ovals`) | frames per second | 60.0 | 60.0 | 60.0 | 60.0 |
+| | frame interval p50 / p95 / max | 16.6 / 18.8 / 28.5 ms | 16.3 / 21.5 / 26.5 ms | 16.6 / 21.4 / 23.7 ms | 16.5 / 22.3 / 29.9 ms |
+| | Ruby CPU / Rust CPU | 25.4% / 41.1% | 30.4% / 47.6% | 29.3% / 45.2% | 25.4% / 44.8% |
+| | Ruby handler per tick | 3.9 ms | 4.8 ms | 4.6 ms | 4.0 ms |
+| | Rust parse, apply, layout, paint per frame | 0.25, 0.16, 0.22, 5.30 ms | 0.27, 0.18, 0.32, 5.86 ms | 0.26, 0.18, 0.31, 5.56 ms | 0.26, 0.18, 0.29, 5.54 ms |
+| | Rust present per frame | 0.79 ms | 1.08 ms | 1.01 ms | 1.07 ms |
+| | headless twin: Rust CPU / paint per frame | 35.7% / n/a | 40.1% / 5.92 ms | 39.2% / 5.63 ms | 38.5% / 5.52 ms |
+| **Keystroke to pixels** (`typing`) | key in, to the frame showing it (p50 / p95) | 3.8 / 6.5 ms | 1.38 / 1.87 ms | 1.28 / 1.68 ms | 1.38 / 1.74 ms |
+| | key, Ruby handler, form redrawn (p50 / p95) | 7.9 / 10.5 ms | 2.78 / 3.29 ms | 2.56 / 3.15 ms | 2.80 / 3.70 ms |
+| | headless twin: key in, to the frame (p50 / p95) | 2.0 / 5.1 ms | 0.90 / 2.00 ms | 0.88 / 1.28 ms | 0.98 / 2.13 ms |
+| **Cold start, hello world** (`startup`, median of 5 a round) | spawn to first frame presented | 191 ms (149-151 quiet) | 155 ms | 149 ms | 148 ms |
+| | Ruby: load Scarpe, Lacci and the shim, start the app | 41 ms | 38 ms | 32 ms | 35 ms |
+| | Rust: event loop running and hello answered | 47 ms | 49 ms | 50 ms | 47 ms |
+| | Rust: window open (after `run`) | 44 ms | 37 ms | 35 ms | 36 ms |
+| | first layout, paint and present | 1.0 ms | 1.06 ms | 1.04 ms | 1.04 ms |
+| **Idle, a still app** (`idle`, 10 s) | Ruby CPU / Rust CPU | 0.035% / 0% | 0.02% / 0% | 0.02% / 0% | 0.05% / 0% |
+
+- Ghost windows hold 60 fps on every Ruby, at the visible window's median frame interval (their
+  p95 runs 2.6 to 3.5 ms longer).
+- Rust spends about a millisecond more per oval frame than the perf lane's `after`. Layout is
+  0.1 ms of it, the layout push-back measured above. The headless twin, seconds apart, paints the
+  same frame in the same 5.5 to 5.9 ms, so the extra paint is not the window. Present is
+  discussed below.
+- The Ruby handler is 0.7 to 0.9 ms slower than the perf lane measured, and 4.1 to 4.4 ms in the
+  headless twin, so that is the merged Lacci or the machine, not the window.
+- YJIT cuts the animation's Ruby CPU from 29.3% to 25.4% and its handler from 4.6 to 4.0 ms,
+  13% each (the perf lane saw 23% and 17% before the merge). Cold start does not move.
+- Typing is faster than the perf lane's columns in the ghost and in its headless twin alike, so
+  that gain is not the ghost's.
+- Four earlier rounds, started at load 12 to 25 and running past 30, were slower: the ovals fell
+  as low as 23 fps (Ruby 4.0.1), and in three of them paint took 10 to 13 ms a frame. The
+  Rust-only frame bench, run in the same session at load 60, painted the same 500 ovals in
+  12.2 ms, so that was the machine.
+
+### What a ghost changes
+
+Our two processes do the same work for a ghost as for a visible window. Ruby's handlers, the pipe,
+Rust's parse, apply, layout and paint, softbuffer's copy and CoreAnimation's commit all run every
+frame, and `frames` counts every present. The differences are on the window server's side:
+
+- A ghost's alphaValue is 0, so compositing it blends nothing. The DeviceRGB conversion that
+  b844dd9 moved onto the GPU happens there too. None of that was ever on our CPU, so the Ruby and
+  Rust CPU columns compare with a visible window's; the window server's and the GPU's load do not.
+- A film played full screen in Chrome's own Space throughout these runs, so every ghost opened
+  on another Space: the window list had it off screen and nothing composited it at all. When the
+  user came back to the desktop for a minute, a ghost there was on screen, at alpha 0 in all 120
+  samples the window list gave.
+- Present is the one number where a ghost could look better than a visible window, since the
+  commit still hands every frame to the window server but nothing shows it. It came out 0.2 to
+  0.3 ms slower than the perf lane's visible window, not faster. Why is not known: the merged tree,
+  or a window server busy with a full-screen film.
+- macOS may App Nap an app nobody can see (timers coalesced, low priority). It did not: an idle
+  ghost kept a background app's scheduling priority, 46 in `ps -o pri` (processes the system runs
+  in the background show 4), for 40 s, and the animation held 60 fps.
+- Frame pacing holds a ghost to 120 Hz, as it does a visible window on this display. A ghost is
+  never key, as the inactive windows before were not, so keys arrive through automation, which is
+  how `typing` has always measured.
 
 ## Running the benchmarks
 
@@ -230,14 +305,17 @@ cd native && cargo test --release --test bench -- --ignored --nocapture --test-t
 
 `bench.rb` runs each app in `examples/native/bench` through `drive.rb`, which starts it the way
 `scarpe --native` does and acts on it from the first heartbeat (cold start runs the real
-`exe/scarpe`). Both processes report where their time went when `SCARPE_NATIVE_STATS=<dir>` is set
+`exe/scarpe`). Both open ghost windows (`SCARPE_NATIVE_GHOST=1`), so a bench never puts a
+window in front of anyone. Both processes report where their time went when `SCARPE_NATIVE_STATS=<dir>` is set
 (`ruby.json`, `rust.json`), for any app:
 
 ```
 SCARPE_NATIVE_STATS=/tmp/stats bundle exec ruby exe/scarpe --dev --native app.rb
 ```
 
-To reproduce a before column, run today's harness against the old tree and its binary:
+To reproduce a before column, run today's harness against the old tree and its binary. A tree
+older than the ghost flag opens visible windows (its shim never passes `--ghost`), so do that
+only when a window on screen is fine:
 
 ```
 mkdir /tmp/before

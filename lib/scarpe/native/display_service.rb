@@ -47,9 +47,10 @@ module Scarpe::Native
       log_init("Scarpe::Native::DisplayService")
 
       @headless = Scarpe::Native.truthy_env?("SCARPE_NATIVE_HEADLESS")
+      @ghost = Scarpe::Native.truthy_env?("SCARPE_NATIVE_GHOST")
       @clock = Clock.new
       @timers = Timers.new
-      @builtins = Builtins.new(self, interactive: !@headless)
+      @builtins = Builtins.new(self, interactive: !@headless && !@ghost)
       @automation = Automation.new(self)
       @pump = Pump.new(self)
       @open_apps = {}
@@ -184,7 +185,7 @@ module Scarpe::Native
     private
 
     def start_child
-      started = Child.start(headless: @headless)
+      started = Child.start(headless: @headless, ghost: @ghost)
       at_exit { started.close }
       started
     end
