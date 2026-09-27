@@ -461,8 +461,10 @@ change the code and this list together.
 - **Backgrounds and borders** fill their slot less the edges they name: `left`/`top`/`right`/`bottom`
   place them, a missing `width` or `height` runs to the far edge (`top: 50` covers from 50 down),
   and margins inset them.
-- **`wrap: "trim"`** keeps a para on one line and cuts it off with an ellipsis at the para's own
-  box (manual 1552-1556). The ellipsis takes the style of the para's first run.
+- **`wrap`**: `"word"` (the default) breaks lines only between words, and a word too long for
+  its line runs past it, as under Shoes 3's PANGO_WRAP_WORD; `"char"` breaks anywhere;
+  `"trim"` keeps a para on one line and cuts it off with an ellipsis at the para's own box
+  (manual 1552-1556). The ellipsis takes the style of the para's first run.
 - **Para `cursor` and `marker`** count from the end when negative (`-1` sits after the last
   character, as Shoes 3 editors use it). The caret takes the text's colour, so it shows on dark
   backgrounds.
