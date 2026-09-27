@@ -50,6 +50,19 @@ end
 
 More examples can be found in the [`examples` folder](https://github.com/scarpe-team/scarpe/tree/main/examples)!
 
+## Native display service
+
+Scarpe can also draw your app without a webview. Ruby keeps Lacci and every block you write, and a small Rust program paints the window, on screen or headless.
+
+```
+bundle exec ruby exe/scarpe --native examples/button.rb
+bundle exec ruby exe/scarpe peek examples/button.rb --click "Push me" --shot after.png
+```
+
+The first run builds the Rust program, so you need `cargo`. [docs/native.md](docs/native.md) covers running it, looking and clicking with `scarpe peek`, the spec suite, packaging a macOS app with `scarpe package --native --dmg`, and how it all fits together. The contract lives in [native/DESIGN.md](native/DESIGN.md).
+
+It is dedicated to the late Noah Gibbs, who made Scarpe's display services swappable.
+
 ## Wiki
 
 Explore more in the [Scarpe Wiki](https://github.com/scarpe-team/scarpe/wiki) for in-depth documentation, tutorials, and additional resources. Whether you're a new user, a new contributor or an experienced user, the Wiki provides valuable information to enhance your Scarpe experience.
