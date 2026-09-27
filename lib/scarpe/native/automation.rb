@@ -95,6 +95,24 @@ module Scarpe::Native
       request(:focused)
     end
 
+    # The accessibility tree as a screen reader meets it (DESIGN 12): the window's Hash, with
+    # Symbol keys, each node's :children inside it. platform: what AppKit hands VoiceOver,
+    # read from a real window (macOS).
+    def a11y(app: app_id, platform: false)
+      symbolize(request(:a11y, app: app, platform: platform))
+    end
+
+    # What a screen reader asks of one node: :click, :focus, :set_value (with a value), :expand
+    # or :collapse. Rust finds the node's own window.
+    def a11y_action(id, action, value: nil)
+      request(:a11y_action, id: id, action: action.to_s, value: value&.to_s, app: @app)
+    end
+
+    # The same through AppKit, the way VoiceOver works a real window: on the element with this title.
+    def platform_a11y_action(title, action, value: nil)
+      request(:a11y_action, platform: true, name: title.to_s, action: action.to_s, value: value&.to_s, app: app_id)
+    end
+
     def resize(width, height)
       request(:resize, app: app_id, w: width, h: height)
     end
@@ -141,6 +159,14 @@ module Scarpe::Native
     def app_for(target)
       id = target.is_a?(Hash) ? (target[:id] || target["id"]) : nil
       id ? app_of(id) : app_id
+    end
+
+    def symbolize(value)
+      case value
+      when Hash then value.to_h { |key, v| [key.to_sym, symbolize(v)] }
+      when Array then value.map { |v| symbolize(v) }
+      else value
+      end
     end
 
     # Handlers run now, and one that raises fails the caller (a test, a peek step).
