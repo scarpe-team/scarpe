@@ -666,6 +666,10 @@ change the code and this list together.
   Francisco, and text under 20px gets a little extra tracking to stand in for SF Text's optical size,
   which cosmic-text never selects. The bundled fonts have no emoji.
 - **`sub` and `sup`** draw x-small, 10 px below or above the baseline.
+- **`variant: "smallcaps"`** (or `font_variant`) draws small capitals: the face's own (OpenType
+  `smcp`) when it has them, else lower-case letters as capitals at 0.78 of the size, one letter for
+  one, so indexes, the layout dump and `click {text}` still read the text as written. `stretch`
+  (condensed, expanded) is not drawn: cosmic-text varies only a font's weight axis.
 - **Closing a window** sends `closed {app}`; the window goes at once, and if no `quit` follows
   within 3 seconds the process exits by itself. Ruby may be blocked on that window, so an `ask`
   open in it is answered as cancelled, and a `frames` request with an error, before `closed`.
