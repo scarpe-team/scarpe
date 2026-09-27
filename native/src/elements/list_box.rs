@@ -17,6 +17,7 @@ use tiny_skia::{LineCap, LineJoin, PathBuilder, Shader, Stroke, Transform};
 const RADIUS: f32 = 6.0;
 const PAD_X: f32 = 10.0;
 const BADGE: f32 = 16.0;
+const SHADOW: f32 = 1.0;
 pub const ITEM_H: f32 = 22.0;
 
 pub fn items(node: &Node) -> Vec<String> {
@@ -38,17 +39,18 @@ fn style(node: &Node) -> TextStyle {
 pub fn label(node: &Node, _w: f32, h: f32, engine: &mut TextEngine) -> Option<Label> {
     let text = chosen(node)?;
     let shaped = engine.shape(&RichText::plain(&text, style(node)), None);
-    let dy = (h - shaped.height) / 2.0;
+    let dy = (h - SHADOW - shaped.height) / 2.0;
     Some(Label { shaped, dx: PAD_X, dy })
 }
 
 pub fn paint(canvas: &mut Canvas, _node: &Node, lbox: &LBox, label: Option<&TextBox>, state: WidgetState, engine: &mut TextEngine) {
-    let r = lbox.rect;
+    // The face sits above a one-pixel shadow, both inside the box.
+    let r = Rect::new(lbox.rect.x, lbox.rect.y, lbox.rect.w, lbox.rect.h - SHADOW);
     let clip = lbox.clip;
     if state.focused {
         focus_ring(canvas, r, RADIUS, clip);
     }
-    canvas.fill_rounded(Rect::new(r.x, r.y + 1.0, r.w, r.h), RADIUS, Color::rgba(0, 0, 0, 20), clip);
+    canvas.fill_rounded(Rect::new(r.x, r.y + SHADOW, r.w, r.h), RADIUS, Color::rgba(0, 0, 0, 20), clip);
     let (top, bottom) = if state.pressed {
         (Color::rgb(0xe6, 0xe6, 0xeb), Color::rgb(0xdc, 0xdc, 0xe2))
     } else {

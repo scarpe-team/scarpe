@@ -17,6 +17,13 @@ const PAD_X: f32 = 14.0;
 const MIN_HEIGHT: f32 = 28.0;
 const RADIUS: f32 = 6.0;
 const ICON: f32 = 16.0;
+/// The soft shadow's share of the button's box, below its face.
+const SHADOW: f32 = 1.5;
+
+/// The button's face: its box less the shadow, which stays inside the box.
+fn face(r: Rect) -> Rect {
+    Rect::new(r.x + 0.5, r.y, r.w - 1.0, r.h - SHADOW)
+}
 const ICON_GAP: f32 = 6.0;
 
 #[derive(Clone, Copy, PartialEq)]
@@ -113,7 +120,7 @@ pub fn size(node: &Node, engine: &mut TextEngine) -> (f32, f32) {
 pub fn label(node: &Node, w: f32, h: f32, engine: &mut TextEngine) -> Label {
     let rich = rich(node, engine);
     let shaped = engine.shape(&rich, None);
-    let ((dx, dy), _) = arrange(node, w, h, (shaped.width, shaped.height));
+    let ((dx, dy), _) = arrange(node, w, h - SHADOW, (shaped.width, shaped.height));
     Label { shaped, dx, dy }
 }
 
@@ -131,12 +138,12 @@ pub fn paint(
     engine: &mut TextEngine,
     images: &mut ImageCache,
 ) {
-    let r = lbox.rect;
+    let (bx, r) = (lbox.rect, face(lbox.rect));
     let clip = lbox.clip;
     if state.focused {
         focus_ring(canvas, r, RADIUS, clip);
     }
-    canvas.fill_rounded(Rect::new(r.x - 0.5, r.y + 0.5, r.w + 1.0, r.h + 1.5), RADIUS + 1.0, Color::rgba(0, 0, 0, 14), clip);
+    canvas.fill_rounded(Rect::new(bx.x, bx.y + 0.5, bx.w, bx.h - 0.5), RADIUS + 0.5, Color::rgba(0, 0, 0, 14), clip);
     canvas.fill_rounded(Rect::new(r.x, r.y + 1.0, r.w, r.h), RADIUS, Color::rgba(0, 0, 0, 22), clip);
     let (top, bottom) = match surface(node) {
         Some(c) => {
@@ -155,8 +162,8 @@ pub fn paint(
         text::draw_shaped(canvas, engine, &tb.shaped, tb.x, tb.y, inner_clip, None);
     }
     let label_size = label.map_or((0.0, 0.0), |tb| (tb.shaped.width, tb.shaped.height));
-    if let (Some(icon), Some(img)) = (arrange(node, r.w, r.h, label_size).1, icon_path(node).and_then(|p| images.get(Path::new(p)))) {
-        image::draw_fitted(canvas, &img, icon.translate(r.x, r.y), inner_clip);
+    if let (Some(icon), Some(img)) = (arrange(node, bx.w, bx.h - SHADOW, label_size).1, icon_path(node).and_then(|p| images.get(Path::new(p)))) {
+        image::draw_fitted(canvas, &img, icon.translate(bx.x, bx.y), inner_clip);
     }
 }
 

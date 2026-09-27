@@ -419,3 +419,38 @@ fn a_button_draws_its_icon_beside_its_label() {
     assert_eq!(rgb(&mut h, rx + rw - 14.0 - 8.0, ry + rh / 2.0), RED, "icon_pos: right puts it after the label");
     let _ = std::fs::remove_file(icon);
 }
+
+// ---- Widget polish (DESIGN look and feel, ledger C4) ----
+
+#[test]
+fn control_shadows_stay_inside_their_boxes() {
+    let mut h = Harness::new();
+    h.feed(&app(400, 100, &[
+        create(3, "Button", 2, json!({"text": "Push", "left": 10, "top": 10})),
+        create(4, "ListBox", 2, json!({"items": ["Grapes"], "chosen": "Grapes", "left": 150, "top": 10})),
+    ]));
+    for id in [3, 4] {
+        let n = h.node(|n| n["id"] == id);
+        let (x, w, bottom) = (n["x"].as_f64().unwrap(), n["w"].as_f64().unwrap(), n["y"].as_f64().unwrap() + n["h"].as_f64().unwrap());
+        assert_eq!(rgb(&mut h, x + w / 2.0, bottom + 0.5), WHITE, "nothing drawn below #{id}'s box");
+        assert_ne!(rgb(&mut h, x + w / 2.0, bottom - 0.5), WHITE, "its shadow is inside");
+    }
+}
+
+/// DESIGN: check boxes are accent blue when on, even at the middle of the box.
+#[test]
+fn a_checked_box_is_accent_blue_in_the_middle() {
+    let mut h = Harness::new();
+    h.feed(&app(100, 100, &[create(3, "Check", 2, json!({"checked": true, "left": 10, "top": 10}))]));
+    let [r, g, b] = rgb(&mut h, 19.0, 19.0);
+    assert!(r < 60 && g < 160 && b > 200, "accent at the centre: {:?}", [r, g, b]);
+}
+
+/// Manual 3183, 3245 (spec list_box.default_size, progress.default_width): 200 wide.
+#[test]
+fn list_boxes_and_progress_bars_are_200_wide() {
+    let mut h = Harness::new();
+    h.feed(&app(500, 100, &[create(3, "ListBox", 2, json!({"items": ["a"]})), create(4, "Progress", 2, json!({}))]));
+    assert_eq!(h.node(|n| n["id"] == 3)["w"], json!(200.0));
+    assert_eq!(h.node(|n| n["id"] == 4)["w"], json!(200.0));
+}

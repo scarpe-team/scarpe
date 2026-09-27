@@ -49,8 +49,9 @@ pub fn intrinsic_size(node: &Node, text: &mut TextEngine, images: &mut ImageCach
         Kind::Check | Kind::Radio => (18.0, 18.0),
         Kind::EditLine => (200.0, 28.0),
         Kind::EditBox => (200.0, 108.0),
-        Kind::ListBox => (160.0, 28.0),
-        Kind::Progress => (160.0, 14.0),
+        // "about 200 pixels wide" (manual 3183, 3245; ledger C4).
+        Kind::ListBox => (200.0, 28.0),
+        Kind::Progress => (200.0, 14.0),
         Kind::Slider => (160.0, 20.0),
         Kind::Image => image::natural_size(node, images),
         Kind::Video => (300.0, 150.0),
