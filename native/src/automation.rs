@@ -30,18 +30,18 @@ impl Runtime {
         match op {
             Op::Ping => Ok(Some(json!("pong"))),
             Op::Invalid(e) => Err((e, Value::Null)),
-            Op::Dialog { kind, message, default, ask } => {
+            Op::Dialog(dialog) => {
                 if self.opts.headless {
-                    let (value, cancelled) = crate::dialogs::headless_answer(&kind);
+                    let (value, cancelled) = crate::dialogs::headless_answer(&dialog.kind);
                     self.out.send(crate::dialogs::reply(req, value, cancelled));
                     return Ok(None);
                 }
-                match kind.as_str() {
-                    "ask" | "ask_color" => match self.app_for(None) {
-                        Some(app) => self.open_modal(app, req, &kind, &message, &default, &ask),
-                        None => self.out.send(crate::dialogs::reply(req, Value::Null, true)),
-                    },
-                    _ => self.effects.push(Effect::Dialog { req, kind, message, default }),
+                // `ask` and `ask_color` are drawn in a running app's window. Asked while no app
+                // window is up (inside an app's body before `run`, or before any app), the window
+                // layer gives the dialog a window of its own instead.
+                match self.modal_host().filter(|_| crate::dialogs::drawn_by_us(&dialog.kind)) {
+                    Some(app) => self.open_modal(app, req, &dialog),
+                    None => self.effects.push(Effect::Dialog { req, dialog }),
                 }
                 Ok(None)
             }

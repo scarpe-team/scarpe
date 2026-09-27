@@ -4,8 +4,6 @@ lines: [1516, 1518]
 testability: visual
 display: native
 ledger: F4
-expect: fail
-reason: "Lacci sends :variant, but the native display draws no small capitals yet (F4)."
 ----------- app code
 Shoes.app width: 400, height: 300 do
   flow { @plain = para "pppp", size: 30 }

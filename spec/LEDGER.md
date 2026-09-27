@@ -519,8 +519,8 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Shoes 3:** a given `width` is the margin box: `place->w = PX(attr, width, ...)`, then the content is `place->iw = place->w - (lmargin + rmargin)` and likewise `ih` for `height` (`s3_ruby.c:506, 537, 540`). Slots are placed that way (`s3_canvas.c:468`), and text blocks too (`s3t_textblock.c:125-126`): `para "x", width: 200` wraps its text at 192, inside Shoes 3's 4 px text margins (C9).
 - **Examples:** `legacy/for_playtest/simple/menu1.rb` sets four panels of 170, 140, 140 and 140 px with `margin: 4` in a 600 px window; they fit on one row only if the margins are inside the widths (590 px against 622). `shoes-contrib/simple/simple-control-sizes.rb` is Shoes 3's own check that controls "size appropriately despite the platform": it stacks controls such as `button ..., margin: 2, height: 30` against a 30 px grid, and they keep to the grid only if each height holds its margins (here that button takes 34 px). 39 lines under `examples/` give an element both a px width and a margin; 17 manual cases do.
 - **Lacci / WV today:** Webview writes CSS `margin`, which always sits outside a CSS `width` (`calzini.rb:148-151`).
-- **Native:** DESIGN 12 (the M1 clarification) makes a px size the border box, with margins outside it; relative sizes already size the margin box, as Shoes 3 does for every size. So menu1's fourth panel wraps below the window. The layout change is the wave-5 Rust lane's; until it lands both cases below are `expect: fail` on native.
-- **Spec:** `styles.margin__inside_width`: `stack width: 100, margin: 10` takes 100 px of its flow's row, with an 80 px box inside its margins, and its `width` reads 100. `styles.height.pixels__margin_box`: `button "OK", height: 30, margin: 2` is 26 px tall and what follows starts 30 px down, the grid `simple-control-sizes.rb` checks.
+- **Native:** since wave 5 (27 Sep 2026), every width or height the app gives, px or relative, sizes the margin box (`layout::sized`, DESIGN 12), so menu1's four panels share its 600 px row. Before, a px size was the border box with margins outside it, and menu1's fourth panel wrapped below the window.
+- **Spec:** `styles.margin__inside_width`: `stack width: 100, margin: 10` takes 100 px of its flow's row, with an 80 px box inside its margins, and its `width` reads 100. `styles.height.pixels__margin_box`: `button "OK", height: 30, margin: 2` is 26 px tall and what follows starts 30 px down, the grid `simple-control-sizes.rb` checks. `border.box_size_constant` checks the margins sit inside the fifty pixels.
 - **Lacci:** nothing to change: the getters already report a px size as given (A4), which is the margin box under this ruling.
 
 ### C15. A negative `left` or `top` on art is a plain coordinate
@@ -531,8 +531,8 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Shoes 3:** `shoes_place_exact` reads art's `left` and `top` as they are: `place->x = ATTR2(int, attr, left, 0) + ox` (`s3_ruby.c:385-392`), with no far-edge reading for negatives.
 - **Examples:** the showcase's starfield wraps its stars with `%` to avoid the far-edge jump; any shape animated off the left or top edge jumped to the far side.
 - **Lacci today:** passes the number through. Oval, arc and arrow declare clamping validators for `left`, `top`, `width` and `height`, but none of them runs: `validate_as` takes the base Drawable's declaration of those names first, so `Shoes::Oval.validate_as(:left, -30)` is -30.
-- **Spec:** `styles.left__art_negative` (both displays): an oval, arc, arrow and rect keep a negative `left` and `top` as given. `styles.left__art_negative__drawn` (native): `oval -30, 50, 100` has its box at x = -30 and shows its right half at the window's left edge; `expect: fail` until the layout follows the ruling.
-- **Native:** today reads a negative art `left` as that far in from the slot's far edge, the dimension rule for every element (`#3 Oval 270,50` for the example above). The change is the wave-5 Rust lane's.
+- **Spec:** `styles.left__art_negative` (both displays): an oval, arc, arrow and rect keep a negative `left` and `top` as given. `styles.left__art_negative__drawn` (native): `oval -30, 50, 100` has its box at x = -30 and shows its right half at the window's left edge.
+- **Native:** since wave 5 (`b52957b`, `shapes::coordinate`) art's `left` and `top`, a line's ends and a shape block's origin read a negative number as a plain coordinate: the example above lays out at `#3 Oval -30,50`. Before, it read as that far in from the slot's far edge (`#3 Oval 270,50`), the dimension rule every other element keeps. Fractions and percentages stay relative to the slot.
 
 ## D. Colours and patterns
 
@@ -794,16 +794,16 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 - **Manual:** `:weight` names from `ultralight` (200) to `heavy` (900), or a number (manual 1521-1537); `:variant` is `"normal"` or `"smallcaps"` (manual 1511-1519); `:font` is a Pango description `"[FAMILY-LIST] [STYLE-OPTIONS] [SIZE]"` (manual 1212-1224).
 - **Examples:** `weight:` in 4 files (`"bold"`, `"ultrabold"`, `"strong"`).
-- **Lacci / WV today:** Para declares `:weight`, but Calzini only renders `font_weight` (`calzini/para.rb:47`), so `weight: "bold"` shows normal. `variant:` is not a style and is dropped with a warning. `FontHelper#parse_font` knows CSS names only (`font_helper.rb:15-18`). Since the wave-4 Lacci lane text blocks and text fragments keep `variant:` as a style and send it; the native display does not draw small capitals yet, so `styles.variant.normal` and `.smallcaps` stay `expect: fail` on native.
+- **Lacci / WV today:** Para declares `:weight`, but Calzini only renders `font_weight` (`calzini/para.rb:47`), so `weight: "bold"` shows normal. `variant:` is not a style and is dropped with a warning. `FontHelper#parse_font` knows CSS names only (`font_helper.rb:15-18`). Since the wave-4 Lacci lane text blocks and text fragments keep `variant:` as a style and send it.
 - **Spec:** `para "x", weight: "bold"` lays out wider than `para "x"`.
-- **Native:** maps weight names to numeric weights and parses the Pango-style font string (family list, style words, size).
+- **Native:** maps weight names to numeric weights and parses the Pango-style font string (family list, style words, size). Since wave 5 (27 Sep 2026) `variant: "smallcaps"` draws small capitals: the face's own (OpenType `smcp`) when it has them, else lower-case letters as capitals at 0.78 of the size (the bundled Inter has none), so `styles.variant.normal` and `.smallcaps` pass on native.
 
 ### F5. Text styles Lacci drops
 
 **Ruling: MANUAL.** **Lacci change, done 27 Sep 2026.**
 
 - **Manual:** `:leading` (manual 1282-1286, see F10), `:justify` (1268-1273), `:rise` (1366-1373), `:stretch` (1423-1434), `:strikecolor` (1436-1441), `:undercolor` on Para (1489-1494).
-- **Lacci / WV today:** none are Para styles (`para.rb:6-36`); they hit the "Unexpected non-style keyword" warning (`drawable.rb:385-388`). TextDrawable has `:undercolor` (`text_drawable.rb:15`). Calzini already renders `rise`, `strikecolor` and `undercolor` when present (`calzini/para.rb:43-50, 79-82`). Since the wave-4 Lacci lane Para declares all six (colours through `to_rgb`, as its stroke), and text fragments `justify`, `rise`, `stretch` and `strikecolor` besides their `undercolor`. The native display draws all but `stretch`, so the four `styles.stretch` visual cases stay `expect: fail` on native.
+- **Lacci / WV today:** none are Para styles (`para.rb:6-36`); they hit the "Unexpected non-style keyword" warning (`drawable.rb:385-388`). TextDrawable has `:undercolor` (`text_drawable.rb:15`). Calzini already renders `rise`, `strikecolor` and `undercolor` when present (`calzini/para.rb:43-50, 79-82`). Since the wave-4 Lacci lane Para declares all six (colours through `to_rgb`, as its stroke), and text fragments `justify`, `rise`, `stretch` and `strikecolor` besides their `undercolor`. The native display draws all but `stretch`, so the four `styles.stretch` visual cases stay `expect: fail` on native: cosmic-text varies only a font's weight axis, not its width, and the bundled fonts have no condensed or expanded faces (checked in wave 5).
 - **Spec:** each style is accepted without a warning and reads back through `style`; `leading` and `rise` change layout.
 - **Native:** honours them once Lacci sends them.
 
@@ -955,7 +955,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** button `focus`: "The button will be highlighted and, if the user hits Enter, the button will be clicked." (manual 2923-2926); radio `focus`, Enter toggles (manual 3356-3359).
 - **Lacci today:** Button has no `focus` (report 03 probe); ListBox, EditBox and EditLine do. Since 27 Sep (`c91ffd6`) Button, Check and Radio have `focus` too, shared with the other controls through `Shoes::Focusable`.
 - **Spec:** `button.focus`, then `press_key "\n"`, fires the click block once.
-- **Native:** accepts `focus` for buttons, checks and radios; Enter or Space on a focused button sends `click`. Enter on a focused check or radio sends nothing yet (`check.rs` `activates` takes Space only, and radios share it), so `check.focus` and `radio.focus` stay `expect: fail` on native (the manual's Enter toggles them, manual 3356-3359) until the wave-5 Rust lane adds Enter.
+- **Native:** accepts `focus` for buttons, checks and radios; Enter or Space on a focused button, check or radio sends `click` (since wave 5, 27 Sep 2026; the manual's Enter toggles them, manual 3356-3359), so `check.focus` and `radio.focus` pass on native.
 
 ### G10. `click:` and `change:` styles are the handlers
 

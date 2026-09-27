@@ -112,3 +112,26 @@ fn a_turned_shape_block_is_hit_where_the_group_is_drawn() {
     assert_eq!(clicked(&mut h, 110.0, 110.0), vec![json!(3)]);
     assert!(clicked(&mut h, 190.0, 210.0).is_empty(), "the unturned second member's place is empty");
 }
+
+/// Ruled 27 Sep 2026: a negative left or top on art is a plain coordinate, as in Shoes 3
+/// (shoes_place_exact, s3_ruby.c:385-392), so art can move off the left and top edges. It
+/// read as "the slot less 30", and anything animated past the left edge jumped to the right.
+#[test]
+fn negative_art_coordinates_are_plain_coordinates() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "Oval", 2, json!({"left": -30, "top": 50, "width": 100})),
+        create(4, "Rect", 2, json!({"left": -30, "top": -10, "width": 100, "height": 20})),
+        create(5, "Line", 2, json!({"left": 10, "top": 10, "x2": -20, "y2": -40})),
+        create(6, "Star", 2, json!({"left": -5, "top": -5, "outer": 20, "inner": 10})),
+    ]));
+    let at = |h: &mut Harness, id: i64| {
+        let n = h.node(|n| n["id"] == id);
+        (n["x"].as_f64().unwrap(), n["y"].as_f64().unwrap())
+    };
+    assert_eq!(at(&mut h, 3), (-30.0, 50.0));
+    assert_eq!(at(&mut h, 4), (-30.0, -10.0));
+    assert_eq!(at(&mut h, 5), (-20.5, -40.5), "a line runs to its end point, half its stroke round it");
+    assert_eq!(at(&mut h, 6), (-25.0, -25.0), "a star centred on (-5, -5)");
+    assert_eq!(h.value(json!({"op": "pixel", "x": 10, "y": 100})), json!([0, 0, 0, 255]), "the oval's right part shows");
+}

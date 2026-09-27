@@ -116,7 +116,7 @@ that last ran or had input, else the first running one.
 
 | op | fields | reply `value` |
 |---|---|---|
-| `dialog` | `kind` (alert confirm ask ask_color ask_open_file ask_save_file ask_open_folder ask_save_folder), `message`, `default`; for ask, `secret` (mask the typing) and `title` (heads the modal) when the app gave them (ledger K1) | alert: null; confirm: bool; ask: String, or null on Cancel in a window (headless: `""`); ask_color: [r,g,b,a] or null; file/folder: path or null. `cancelled` bool alongside. The shim hands Lacci `""` for a cancelled ask either way (ledger K1, Q6) |
+| `dialog` | `kind` (alert confirm ask ask_color ask_open_file ask_save_file ask_open_folder ask_save_folder), `message`, `default`; for `ask`, optional `title` (a heading, and the title of a window of its own) and `secret` (typed as bullets), sent when the app gives them (ledger K1) | alert: null; confirm: bool; ask: String, or null on Cancel in a window (headless: `""`); ask_color: [r,g,b,a] or null; file/folder: path or null. `cancelled` bool alongside. The shim hands Lacci `""` for a cancelled ask either way (ledger K1, Q6) |
 | `layout` | `app` | array of `{id, kind, x, y, w, h, visible, text?}` in window coordinates, rounded to 1/100, paint order; text fragments follow their para |
 | `snapshot` | `path`, `app`, `scale` (default: the app's scale) | writes a PNG; value = `{path, w, h}` in pixels |
 | `click` | `target`: `{id}` or `{text}` or `{x,y}`, `button` (1 default), `app` | synthesises press+release at the target's centre through the real input path. value = `{hit: id or null, x, y}`. Error if the target is not visible or something else is on top (the value says what was hit). `{id}` goes to the drawable's own window whatever `app` says. `{text}` matches exact text first, then text that contains it, links included, and also picks an item of an open list_box popup |
@@ -154,7 +154,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 
 | user action | event | target | args |
 |---|---|---|---|
-| click Button, Check, Radio, Image, Link | `click` | that id | `[]`, on release over the same drawable (Check/Radio: Lacci toggles and echoes `checked`; Rust shows the echo, it does not toggle on its own). Return or Space on a focused button, or Space on a focused check or radio, clicks it too |
+| click Button, Check, Radio, Image, Link | `click` | that id | `[]`, on release over the same drawable (Check/Radio: Lacci toggles and echoes `checked`; Rust shows the echo, it does not toggle on its own). Return or Space on a focused button, check or radio clicks it too (ledger G9) |
 | edit EditLine / EditBox | `change` | that id | `[new_text]` on every edit. Lacci echoes `props {text}`: apply idempotently, keep caret. Echoes can trail later edits, so any text the field reported and has not seen echoed yet counts as an echo |
 | pick in ListBox (popup, or Up/Down while focused) | `change` | that id | `[item_string]` |
 | pointer enters / leaves a drawable | `hover` / `leave` | that id | `[]`, on transitions only, for every drawable in the hovered chain |
@@ -334,7 +334,9 @@ moved there the same day, so apps normally send it.
   the parent less that fraction; any other Float is px, because Ruby code often computes widths like
   `w / 2.0`. String `"N%"` = percent (negative: 100% less N%); `"Npx"` or a numeric String = px.
   Shoes 3 treats every Float as a fraction, 1.5 included (ledger C1); native keeps the Floats
-  above 1 as pixels.
+  above 1 as pixels. On art (`rect`, `oval`, `line`, `star`, `arrow`, `arc`, `shape`) a negative
+  `left`, `top` or line end is a plain coordinate, as in Shoes 3 (`shoes_place_exact`,
+  s3_ruby.c:385-392; ruled 27 Sep 2026), so art can move off the left and top edges.
 - **DocumentRoot** is a flow filling the window. If content is taller than the window, the root
   scrolls vertically (wheel + a thin overlay scrollbar), and the window's own backgrounds scroll
   with it.
@@ -370,7 +372,9 @@ moved there the same day, so apps normally send it.
   list_box 200x28, progress 200x14 (manual sizes, ledger C4), check/radio 18x18, slider 160x20,
   video 300x150 (a placeholder frame; playback is not built). An image is its file's size, or keeps its aspect when given only
   a width or a height. Shadows stay inside a control's box. Explicit width/height override.
-- **Margins** add outside the box (`margin`, `margin_left/top/right/bottom`; arrays are
+- **Margins** add outside a size the element finds for itself, and sit inside a width or height
+  the app gives it, which is the margin box (ledger C14, Q9 ruled 27 Sep 2026; section 12)
+  (`margin`, `margin_left/top/right/bottom`; arrays are
   [left, top, right, bottom], and a short array keeps the default for the sides it leaves out,
   ledger C3). Text blocks default to Shoes 3's margins: 4 px on every side, and 12 px below
   unless `margin` or `margin_bottom` is given (ledger C9, Q3, s3t_textblock.c:108-110); everything
@@ -424,9 +428,10 @@ src/runtime.rs     Runtime: owns Doc + per-app view state (scroll, focus, hover,
 src/window.rs      winit 0.30 ApplicationHandler; one Window + softbuffer Surface per App; ControlFlow::Wait;
                    stdin reader thread -> EventLoopProxy<UserEvent>, one wake per batch of lines;
                    window/pacing.rs holds floods of frames to the display's refresh rate
-src/headless.rs    same Runtime with offscreen pixmaps; main thread reads stdin directly
+src/headless.rs    same Runtime with offscreen pixmaps; stdin read on its own thread too, so Rust
+                   blocked writing to a Ruby that is not reading yet never stops Ruby writing
 src/automation.rs  req ops that synthesise input (click, mouse, type, key, wheel), layout dump, snapshot, pixel
-src/dialogs.rs     rfd message/file dialogs; in-window modal for `ask` and `ask_color`
+src/dialogs.rs     rfd message/file dialogs; the modal for `ask` and `ask_color`, in an app's window or its own
 ```
 
 Stack: tiny-skia 0.12, cosmic-text 0.19, swash 0.2, winit 0.30.x (not the 0.31 beta), softbuffer 0.4,
@@ -601,9 +606,12 @@ open classes. The hot paths (layout, text, paint, hit-testing, input) are alread
 Where the sections above left a choice open, the Rust side does this. Lanes that disagree should
 change the code and this list together.
 
-- **Margins and relative sizes.** A relative width or height (a fraction, `"N%"`, a negative number,
-  or a slot's default fill) sizes the margin box, so two `width: 0.5, margin: 10` flows share a row.
-  A px size is the box itself, and margins add outside it.
+- **Margins and sizes.** A width or height the app gives, px or relative (a fraction, `"N%"`, a
+  negative number), sizes the margin box, as Shoes 3 does (s3_ruby.c:506, 537, s3t_textblock.c:125-126;
+  ledger C14, Q9 ruled 27 Sep 2026): two `width: 0.5, margin: 10` flows share a row, `stack width:
+  100, margin: 10` is an 80 px box, and `para "x", width: 200` wraps at 192 inside its 4 px
+  margins. So do a slot's default fill and a text block's. A size the element finds for itself (a
+  button's label, a check's 18 px, an image's pixels) is the box, and margins add outside it.
 - **Text in a flow** flows as a paragraph (section 6). Text that does not (centred, right-aligned,
   justified, trimmed, or given a width or height) is a box: as wide as its longest line
   (max-content) if that fits in the rest of the row, else it starts a new row and wraps at the
@@ -641,21 +649,32 @@ change the code and this list together.
   out inside its own box, like a flow, in image-local coordinates, and clips them to it. A blank
   canvas with no size of its own (only `left`/`top`) fills the rest of its line and its parent's
   height. Effects (`blur`, `glow`, `shadow`) are not drawn: the manual never documents them.
+- **Image files** are decoded once and read again when the file changes (its modification time
+  or length, looked at once a batch), so an app that rewrites a picture and sets its path again
+  shows the new one, and a file that was not there yet shows once it is. Pictures no drawable
+  shows any more are let go at the next flush.
 - **Gradients** follow Shoes 3: angle 0 runs top to bottom, 90 left to right, across the shape's
   box. A wire gradient without `angle` gets 0. Radial gradients are not drawn (Lacci's `gradient()`
   cannot ask for one).
 - **Wheel.** `req wheel` takes `dy` in logical px with DOM sign: positive scrolls down (content
   moves up). The `wheel` event sent to subscription items carries `delta = -dy` (positive = up)
-  and window coordinates. Scrolling a slot or the window also sends `scroll {id, top}`.
+  and window coordinates. Scrolling a slot or the window also sends `scroll {id, top}`. A scroll
+  (wheel or `scroll_to`) moves what the slot holds within the layout that stands, from where it
+  was laid out by the scrollers' offsets, rather than laying the window out again; Ruby still
+  hears every rect that moved (contract a), so a slot of 5000 rows re-sends 5000 rects a tick.
+  A layout with anything `attach`ed lays out again instead.
 - **Hit-testing.** Nothing is hit outside the window, so moving the pointer to (-1, -1) leaves every
   drawable including the DocumentRoot. Backgrounds and borders never catch the pointer. A clipped
   slot's hidden part catches nothing.
 - **Headless dialogs** reply with `cancelled: true` for everything but `alert`.
 - **Windowed dialogs.** `alert`, `confirm` and the file/folder pickers are native (rfd); `ask` and
-  `ask_color` draw an in-window modal (a text field, or twelve swatches; a `secret` ask's field
-  shows bullets, and its `title` is the panel's bold first line) and reply when the user
+  `ask_color` draw a modal (a text field, or twelve swatches) and reply when the user
   presses OK/Return (`cancelled: false`) or Cancel/Escape (`value: null, cancelled: true`; the shim
-  turns a null `ask` into `""`).
+  turns a null `ask` into `""`). The modal sits in a running app's window, the active one first.
+  Asked while no app window is up (inside `Shoes.app` or `start` before `run`, or before any app),
+  it gets a small window of its own, sized to it; closing that window is a Cancel, and Ruby never
+  hears of the window. `ask`'s `title` heads the modal and names that window; `secret` types bullets.
+  A ghost answers either kind the headless way.
 - **`layout`** lists every laid-out node in paint order; each text fragment (Link, Strong, Em...)
   follows its Para as its own entry, with the box of its first line of glyphs and its text, and
   `click {id}` on a fragment clicks there. Fragments are hit-tested like drawables: a press inside
@@ -675,10 +694,16 @@ change the code and this list together.
   Francisco, and text under 20px gets a little extra tracking to stand in for SF Text's optical size,
   which cosmic-text never selects. The bundled fonts have no emoji.
 - **`sub` and `sup`** draw x-small, 10 px below or above the baseline.
+- **`variant: "smallcaps"`** (or `font_variant`) draws small capitals: the face's own (OpenType
+  `smcp`) when it has them, else lower-case letters as capitals at 0.78 of the size, one letter for
+  one, so indexes, the layout dump and `click {text}` still read the text as written. `stretch`
+  (condensed, expanded) is not drawn: cosmic-text varies only a font's weight axis.
 - **Closing a window** sends `closed {app}`; the window goes at once, and if no `quit` follows
-  within 3 seconds the process exits by itself. `--exit-after SECS` closes every window that way
-  when the time is up, so a Ruby app quits cleanly (headless it is a hard stop). It and `--inactive`
-  (or `SCARPE_NATIVE_INACTIVE=1`) open windows without activating the app or taking keyboard focus.
+  within 3 seconds the process exits by itself. Ruby may be blocked on that window, so an `ask`
+  open in it is answered as cancelled, and a `frames` request with an error, before `closed`.
+  `--exit-after SECS` closes every window that way when the time is up, so a Ruby app quits
+  cleanly; headless, every running app's canvas closes the same way. It and `--inactive` (or
+  `SCARPE_NATIVE_INACTIVE=1`) open windows without activating the app or taking keyboard focus.
 - **Ghost windows** (`--ghost`, which the shim passes for `SCARPE_NATIVE_GHOST=1`; implies
   `--inactive`) lay out, paint and present real frames, but nobody can see or touch them. Every
   automated windowed run opens them: the test helpers, the benches, `native_cold_start.rb
@@ -715,6 +740,9 @@ change the code and this list together.
 - **Looks-only changes keep the layout.** A check's `checked`, a field's echoed `text`, a shape's
   `fill`, `stroke` or `cap`, a background's or border's `fill`, `stroke`, `strokewidth` or `curve`,
   a bar's `fraction` and a para's cursor and marker repaint without laying anything out again (`runtime.rs` `changes_only_looks`).
+  Any other prop change lays out again only the app the node is drawn in (every app for a text
+  span, which has no parent). The shaped-text cache keeps what each app's last layout used, so
+  one window laying out never throws away another's text.
 - **Text fields** keep an undo history: Cmd-Z (`:alt_z` by Shoes' name, Q5) or Control-Z undoes,
   Cmd-Shift-Z, Control-Shift-Z or Control-Y redoes. A run of typing, or of deleting, is one step,
   as in a Mac or GTK field; a paste, a cut or a caret move ends it, and the caret and selection
@@ -733,10 +761,16 @@ change the code and this list together.
   for at most 1,000. A node is never attached inside itself, so the tree has no loops; layout
   stops 128 slots deep and masks stop masking 4 deep, so no document overflows the stack or piles
   up layers. Paths reaching more than a million device pixels out are not drawn (tiny-skia's
-  fixed point panicked on a stroke 2^31 px wide). Image and font files are read only when they
+  fixed point panicked on a stroke 2^31 px wide); rects (backgrounds, borders, controls) are
+  cut to the window first, so the part of a box millions of pixels tall that is on screen draws. Image and font files are read only when they
   are plain files (a FIFO would block, /dev/zero never ends) within 256 MB, and images within
   16,384 px a side, whatever their extension says. `tests/fuzz.rs` feeds generated hostile
   sessions through the real entry point (SCARPE_NATIVE_FUZZ_RUNS, SCARPE_NATIVE_FUZZ_SEED).
+- **Text spans** (`strong`, `em`, `link` and the rest) have no parent: a para names them in its
+  `text_items`. Lacci makes a new span for every `strong(...)` and destroys none, and may name an
+  old one again, so Rust keeps a span while any text names it, and after that until more than
+  `limits::LOOSE_SPANS` (10,000) such loose spans pile up, when the oldest go. A clock that shows
+  `strong(Time.now)` every tick stays bounded, and `@p.replace(@bold)` still finds `@bold`.
 - **Para `cursor` and `marker`** count from the end when negative (`-1` sits after the last
   character, as Shoes 3 editors use it). The caret takes the text's colour, so it shows on dark
   backgrounds.

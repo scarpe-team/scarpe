@@ -1,10 +1,11 @@
 //! The Shoes layout engine (DESIGN section 6): stacks, flows, text blocks,
 //! widgets, out-of-flow placement, scrolling. Logical pixels throughout.
 //!
-//! Sizing rule for margins: a relative width or height (fraction, percent,
-//! negative, or a slot filling its line) sizes the margin box, so two
-//! `width: 0.5, margin: 10` flows sit side by side; a px size is the box
-//! itself, and margins add outside it.
+//! Sizing rule for margins: a width or height the app gives, px or relative, sizes the
+//! margin box, margins inside it, as in Shoes 3 (ledger C14, Q9): two `width: 0.5,
+//! margin: 10` flows sit side by side, and `stack width: 100, margin: 10` is an 80 px box
+//! with 10 px either side. A size the element finds for itself (a button's label, an
+//! image's pixels) is the box, and margins add outside it.
 
 use crate::doc::{Doc, Kind, Node};
 use crate::elements::{self, image::ImageCache};
@@ -143,6 +144,23 @@ pub struct Layout {
     pub content_heights: HashMap<Id, f32>,
     /// Live SubscriptionItems (their parent slot is laid out), in tree order.
     pub subscriptions: Vec<Id>,
+    /// Slots with a fixed height: they chop off what does not fit, scrolling or not.
+    clips: HashMap<Id, Rect>,
+    /// Something is placed against the window or another drawable (`attach`): it does not
+    /// scroll with its slot, so a scroll lays everything out again.
+    attached: bool,
+    /// Where things were laid out, kept from the first scroll after a layout (Layout::scroll).
+    as_laid_out: Option<Box<AsLaidOut>>,
+}
+
+/// A layout's positions before anything scrolled it in place. Each scroll places what moves
+/// from here by the scrollers' total change, so the offsets never add up rounding errors.
+#[derive(Clone, Default)]
+struct AsLaidOut {
+    boxes: HashMap<Id, LBox>,
+    texts: HashMap<Id, (f32, f32)>,
+    scrollers: HashMap<Id, Scroller>,
+    clips: HashMap<Id, Rect>,
 }
 
 impl Layout {
@@ -177,9 +195,9 @@ pub fn layout(inputs: Inputs, root: Id, size: (f32, f32)) -> Layout {
         scroll: inputs.scroll,
         out: Layout { size, root, ..Layout::default() },
         attached: Vec::new(),
-        clips: HashMap::new(),
         depth: 0,
     };
+    engine.text.begin_layout(root);
     engine.root(root, size);
     let out = engine.finish(root);
     inputs.text.end_layout();
@@ -193,8 +211,6 @@ struct Engine<'a> {
     scroll: &'a HashMap<Id, f32>,
     out: Layout,
     attached: Vec<(Id, Attach)>,
-    /// Slots with a fixed height: they chop off what does not fit, scrolling or not.
-    clips: HashMap<Id, Rect>,
     /// How many slots (and shape blocks) deep the node being placed sits.
     depth: usize,
 }
@@ -294,6 +310,7 @@ impl Engine<'_> {
     fn finish(mut self, root: Id) -> Layout {
         let doc = self.doc;
         let window = Rect::new(0.0, 0.0, self.out.size.0, self.out.size.1);
+        self.out.attached = !self.attached.is_empty();
         for (id, attach) in std::mem::take(&mut self.attached) {
             let frame = match attach {
                 Attach::Window => window,
@@ -303,7 +320,7 @@ impl Engine<'_> {
                 self.place_positioned(node, frame, window.h);
             }
         }
-        self.assign_clips(root, None);
+        self.out.assign_clips(doc, root, None);
         let mut order = Vec::with_capacity(self.out.boxes.len());
         let mut subs = Vec::new();
         collect_order(doc, root, &self.out.boxes, &mut order, &mut subs);
@@ -551,7 +568,7 @@ impl Engine<'_> {
         let scrolls = node.props.truthy("scroll") && explicit_h.is_some();
         if explicit_h.is_some() {
             // Manual 345-352: a fixed height makes the slot a nested window, cut off at its edges.
-            self.clips.insert(node.id, slot_box);
+            self.out.clips.insert(node.id, slot_box);
         }
         self.scroll_subtree(node.id, slot_box, used + padding.vertical(), scrolls, false);
         self.displace(node);
@@ -685,18 +702,79 @@ impl Engine<'_> {
     }
 
     fn translate_subtree(&mut self, id: Id, dx: f32, dy: f32) {
-        let doc = self.doc;
+        self.out.translate_subtree(self.doc, id, dx, dy);
+    }
+}
+
+impl Layout {
+    /// Scrolls `slot` to `top` without laying anything out again: what it holds moves by the
+    /// difference, and clips are worked out anew, just as a fresh layout would place them.
+    /// Returns the top it settled on, clamped; None when `slot` does not scroll or the layout
+    /// has something `attach`ed, which only a fresh layout places.
+    pub fn scroll(&mut self, doc: &Doc, slot: Id, top: f32) -> Option<f32> {
+        if self.attached {
+            return None;
+        }
+        let scroller = self.scrollers.get(&slot)?;
+        let top = top.clamp(0.0, scroller.max_top());
+        if top == scroller.top {
+            return Some(top);
+        }
+        if self.as_laid_out.is_none() {
+            let texts = self.texts.iter().map(|(id, t)| (*id, (t.x, t.y))).collect();
+            let kept = AsLaidOut { boxes: self.boxes.clone(), texts, scrollers: self.scrollers.clone(), clips: self.clips.clone() };
+            self.as_laid_out = Some(Box::new(kept));
+        }
+        if let Some(scroller) = self.scrollers.get_mut(&slot) {
+            scroller.top = top;
+        }
+        self.place_scrolled(doc);
+        self.assign_clips(doc, self.root, None);
+        Some(top)
+    }
+
+    /// Puts everything where the scrollers' tops now put it: where it was laid out, moved by how
+    /// far each scroller above it has scrolled since. A slot's own backgrounds stay put; the
+    /// window's scroll with the document, as a fresh layout does (Engine::scroll_subtree).
+    fn place_scrolled(&mut self, doc: &Doc) {
+        let Some(laid_out) = self.as_laid_out.take() else { return };
+        let mut stack = vec![(self.root, 0.0f32)];
+        while let Some((id, dy)) = stack.pop() {
+            if let Some(b) = laid_out.boxes.get(&id) {
+                let placed = LBox { rect: b.rect.translate(0.0, dy), clip: None, origin: (b.origin.0, b.origin.1 + dy), parent_size: b.parent_size };
+                self.boxes.insert(id, placed);
+            }
+            if let (Some((x, y)), Some(t)) = (laid_out.texts.get(&id), self.texts.get_mut(&id)) {
+                (t.x, t.y) = (*x, *y + dy);
+            }
+            if let Some(c) = laid_out.clips.get(&id) {
+                self.clips.insert(id, c.translate(0.0, dy));
+            }
+            let mut scrolled = 0.0;
+            if let (Some(was), Some(now)) = (laid_out.scrollers.get(&id), self.scrollers.get_mut(&id)) {
+                now.viewport = was.viewport.translate(0.0, dy);
+                scrolled = was.top - now.top;
+            }
+            for &child in doc.children(id).iter().filter(|c| laid_out.boxes.contains_key(c)) {
+                let moves = id == self.root || !doc.get(child).is_some_and(|c| c.kind.is_decor());
+                stack.push((child, if moves { dy + scrolled } else { dy }));
+            }
+        }
+        self.as_laid_out = Some(laid_out);
+    }
+
+    fn translate_subtree(&mut self, doc: &Doc, id: Id, dx: f32, dy: f32) {
         let mut stack = vec![id];
         while let Some(next) = stack.pop() {
-            if let Some(b) = self.out.boxes.get_mut(&next) {
+            if let Some(b) = self.boxes.get_mut(&next) {
                 b.rect = b.rect.translate(dx, dy);
                 b.origin = (b.origin.0 + dx, b.origin.1 + dy);
             }
-            if let Some(t) = self.out.texts.get_mut(&next) {
+            if let Some(t) = self.texts.get_mut(&next) {
                 t.x += dx;
                 t.y += dy;
             }
-            if let Some(s) = self.out.scrollers.get_mut(&next) {
+            if let Some(s) = self.scrollers.get_mut(&next) {
                 s.viewport = s.viewport.translate(dx, dy);
             }
             if let Some(c) = self.clips.get_mut(&next) {
@@ -707,13 +785,12 @@ impl Engine<'_> {
     }
 
     /// Scrolling and fixed-height slots clip their descendants (not their own decor).
-    fn assign_clips(&mut self, id: Id, clip: Option<Rect>) {
-        let doc = self.doc;
-        if let Some(b) = self.out.boxes.get_mut(&id) {
+    fn assign_clips(&mut self, doc: &Doc, id: Id, clip: Option<Rect>) {
+        if let Some(b) = self.boxes.get_mut(&id) {
             b.clip = clip;
         }
-        let own = match self.out.scrollers.get(&id) {
-            Some(s) if id != self.out.root => Some(s.viewport),
+        let own = match self.scrollers.get(&id) {
+            Some(s) if id != self.root => Some(s.viewport),
             _ => self.clips.get(&id).copied(),
         };
         let inner = match (own, clip) {
@@ -721,17 +798,17 @@ impl Engine<'_> {
             (Some(own), None) => Some(own),
             (None, c) => c,
         };
-        let inner = match doc.get(id).filter(|n| canvas_image(doc, n)).and_then(|_| self.out.rect(id)) {
+        let inner = match doc.get(id).filter(|n| canvas_image(doc, n)).and_then(|_| self.rect(id)) {
             Some(canvas) => Some(inner.map_or(canvas, |c| c.intersect(&canvas).unwrap_or(Rect::new(canvas.x, canvas.y, 0.0, 0.0)))),
             None => inner,
         };
         // Only laid-out nodes need a clip, and only they have laid-out children.
         for &child in doc.children(id) {
-            if !self.out.boxes.contains_key(&child) {
+            if !self.boxes.contains_key(&child) {
                 continue;
             }
             let child_clip = if doc.get(child).is_some_and(|c| c.kind.is_decor()) { clip } else { inner };
-            self.assign_clips(child, child_clip);
+            self.assign_clips(doc, child, child_clip);
         }
     }
 }
@@ -785,12 +862,10 @@ fn is_window(s: &str) -> bool {
     lower == "window" || lower == "shoes::app" || lower == "shoes::window" || lower == "app"
 }
 
-/// A requested size as a border-box size (see the module comment on margins).
+/// A requested size, which is the margin box, as the box inside the margins (see the module
+/// comment on margins).
 fn sized(dim: Dim, parent: f32, margins: f32) -> f32 {
-    match dim {
-        Dim::Px(px) => px.max(0.0),
-        relative => (relative.resolve(parent) - margins).max(0.0),
-    }
+    (dim.resolve(parent) - margins).max(0.0)
 }
 
 fn collect_order(doc: &Doc, id: Id, boxes: &HashMap<Id, LBox>, order: &mut Vec<Id>, subs: &mut Vec<Id>) {

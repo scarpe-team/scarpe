@@ -34,6 +34,8 @@ straightforward as possible.
 - Lacci: art can be placed by `right:` and `bottom:` alone, and a rect or oval naming both edges runs between them
 - Lacci: `line`, `arc`, `arrow`, `star` and `shape` take `stroke:` and `fill:` (and `shape` `strokewidth:`) as the manual lists; a border's `strokewidth` reads back as a number; slots answer `respond_to?` for their style methods
 - Native packages read image sizes (`Image#size`, `imagesize`): FastImage is copied in; requiring Lacci no longer runs git
+- Native: long Shoes-Spec `advance` runs no longer deadlock the headless pipes; `ask` while an app is still being built opens a small window of its own; closing a window answers the `ask` open in it; headless `--exit-after` closes cleanly; Enter clicks a focused check or radio; `variant: "smallcaps"` draws small capitals; error underlines keep inside their slot; rewritten image files show their new pixels
+- Native: text in several windows is no longer shaped again on every change, clipped rows paint without a mask per clip, and scrolling moves the layout instead of laying the window out again
 
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
@@ -45,6 +47,8 @@ straightforward as possible.
 - `clear` keeps the slot's event handlers and the timers it started, as Shoes 3 does
 - A `list_box` starts with nothing chosen unless `choose:` names an item
 - The draw context's `fill`, `stroke` and `strokewidth` no longer reach text and controls
+- Native: a `width` or `height` the app gives includes the element's margins, as in Shoes 3 (`stack width: 100, margin: 10` is an 80 px box); before, margins went outside a px size
+- Native: a negative `left` or `top` on art is a plain coordinate, as in Shoes 3, so art moves off the left and top edges instead of jumping to the far side
 
 ## [0.4.0] - 2024-05-06 - Strangers
 
