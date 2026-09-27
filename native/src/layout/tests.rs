@@ -508,3 +508,16 @@ fn right_and_bottom_place_from_the_far_edges() {
     let t = r(&l, text);
     assert!((t.right() + 4.0 - 380.0).abs() < 0.01 && (t.y - 104.0).abs() < 0.01, "a text's margin box ends 20 px in: {t:?}");
 }
+
+#[test]
+fn word_wrap_never_breaks_a_word() {
+    // Manual 1552-1556: "word" breaks lines at word breaks; only "char" breaks words.
+    // Shoes 3 leaves Pango's PANGO_WRAP_WORD, which lets a word too long for the line overflow.
+    let mut s = Scene::new();
+    let narrow = s.add("Stack", ROOT, json!({"width": 100}));
+    let word = s.add("Para", narrow, json!({"text_items": ["Seven"], "size": 32}));
+    let chars = s.add("Para", narrow, json!({"text_items": ["Seven"], "size": 32, "wrap": "char"}));
+    let l = s.layout(480.0, 420.0);
+    assert_eq!(l.texts[&word].shaped.buffer.layout_runs().count(), 1, "one line, running past the box");
+    assert_eq!(l.texts[&chars].shaped.buffer.layout_runs().count(), 2, "wrap: char breaks the word");
+}

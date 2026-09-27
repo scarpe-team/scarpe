@@ -151,7 +151,9 @@ fn shape(fs: &mut FontSystem, rich: &RichText, width: Option<f32>, indent: f32, 
     let indent = if rich.runs.is_empty() { 0.0 } else { indent.max(0.0) };
     let mut buffer = Buffer::new(fs, Metrics::new(rich.size.max(1.0), rich.line_height));
     buffer.set_wrap(match rich.wrap {
-        WrapMode::Word => Wrap::WordOrGlyph,
+        // "word" breaks at word breaks only; a word too long for its line runs past it, as
+        // under Shoes 3's default PANGO_WRAP_WORD (manual 1552-1556).
+        WrapMode::Word => Wrap::Word,
         WrapMode::Char => Wrap::Glyph,
         WrapMode::Trim => Wrap::None,
     });
