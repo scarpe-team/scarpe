@@ -53,8 +53,7 @@ module Scarpe::Native
       @builtins = Builtins.new(self, interactive: !@headless && !@ghost)
       @automation = Automation.new(self)
       @pump = Pump.new(self)
-      @open_apps = {}
-      @started_apps = []
+      @open_apps = {} # every app that has run => whether its window is still open
       @child_log = Shoes::Log.logger("scarpe-native")
 
       on_bus("run", nil) { run_latest_app }
@@ -80,7 +79,6 @@ module Scarpe::Native
       if kind == "App"
         message[:doc_root] = id + 1
         message[:owner] = Normalize.value(properties["owner"])
-        @open_apps[id] = true
       end
       child.post(message)
 
@@ -124,6 +122,7 @@ module Scarpe::Native
     def dispatch_from_child(name, target, args)
       Shoes::DisplayService.dispatch_event(name, target, *decode_args(name, target, args))
     rescue StandardError => e
+      drop_unstarted_apps
       @surfaced_errors ? @surfaced_errors << e : report_handler_error(e, "#{name} handler for #{target.inspect}")
     end
 
@@ -146,6 +145,7 @@ module Scarpe::Native
     def dispatch_heartbeat
       Shoes::DisplayService.dispatch_event("heartbeat", nil)
     rescue StandardError => e
+      drop_unstarted_apps
       report_handler_error(e, "heartbeat handler")
     end
 
@@ -251,11 +251,12 @@ module Scarpe::Native
     end
 
     # The app being run is the newest one not yet started. That is Shoes.APPS.last, except when
-    # a Shoes.app nested in another's body ran first.
+    # a Shoes.app nested in another's body ran first. An app counts as open from here, not from
+    # its create: one whose block raises never gets this far.
     def run_latest_app
       Shoes::DisplayService.dispatch_event("custom_event_loop", nil, "return")
-      app = Shoes.APPS.reverse.find { |candidate| !@started_apps.include?(candidate.linkable_id) } or return
-      @started_apps << app.linkable_id
+      app = Shoes.APPS.reverse.find { |candidate| !@open_apps.key?(candidate.linkable_id) } or return
+      @open_apps[app.linkable_id] = true
       child.post(t: "run", app: app.linkable_id)
       child.flush
       @pump.install
@@ -265,6 +266,23 @@ module Scarpe::Native
     # signal trap, where Mutexes are off limits, so this only flips flags; the pump sends the quit.
     def quit_all
       @open_apps.transform_values! { false }
+    end
+
+    # Apps are built and run inside one handler, so an app still unrun after a handler raised is
+    # a `window` whose block raised. It never opens: Rust frees it and Shoes.APPS lets it go.
+    def drop_unstarted_apps
+      Shoes.APPS.reject { |app| @open_apps.key?(app.linkable_id) }.each do |app|
+        Shoes.APPS.delete(app)
+        app.destroy(send_event: false)
+        free_app(app.linkable_id)
+      end
+    end
+
+    # Rust frees the app's window and document, and its timers, drawables and layout go here.
+    def free_app(app_id)
+      child.post(t: "quit", app: app_id)
+      timers.remove_app(app_id)
+      @display_drawable_for.filter_map { |id, display| id if display.app_id == app_id }.each { |id| forget(id) }
     end
 
     def closed(app_id)

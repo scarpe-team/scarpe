@@ -233,7 +233,9 @@ is the one bug we never want. Must never load `scarpe/wv` (set-once globals coll
 - Nil-target bus events: `run` (answer `custom_event_loop "return"`, then send `run` for the newest
   app not yet started, normally `Shoes.APPS.last`), `destroy` (quit every app; it may arrive from a
   signal trap, so it only flips flags and the pump sends the quit) and `builtin`. `init` and
-  `full_redraw_request` need nothing: Rust is retained.
+  `full_redraw_request` need nothing: Rust is retained. An app counts as open from its `run`, not
+  its `create`: a `window` whose block raised never runs, so after the handler's error the shim
+  sends `quit {app}` for it, forgets its drawables and takes it out of `Shoes.APPS`.
 - `builtin` is answered synchronously: a stubbed answer first, then a quiet answer when nobody can
   click (headless, or a Shoes-Spec run), else `req dialog`, blocking on the reply while incoming
   events queue for the pump. Then `set_builtin_response(value)`. It must never leave a builtin
