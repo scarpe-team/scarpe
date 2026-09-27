@@ -123,8 +123,7 @@ module ShoesSpecImport
     "scarpe_examples/examples/legacy/for_playtest/simple/path-animation.sspec" =>
       { test: DRIVEN[:path_animation], display: "native" },
     "scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-downloader.sspec" =>
-      { test: DRIVEN[:simple_downloader], expect: "fail",
-        reason: "Lacci's download takes no :progress or :finish (ledger K5), so the Download button raises" },
+      { test: DRIVEN[:simple_downloader] },
   }.freeze
 
   # Mechanical rewrites of test code, applied to every imported case.
