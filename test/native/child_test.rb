@@ -1,0 +1,116 @@
+# frozen_string_literal: true
+
+require_relative "helper"
+
+class ChildTest < Minitest::Test
+  include NativeTestHelpers
+  Child = Scarpe::Native::Child
+
+  def setup
+    @dir = Dir.mktmpdir("scarpe-native-child")
+    @log = File.join(@dir, "child.log")
+  end
+
+  def teardown
+    @child&.close
+    FileUtils.rm_rf(@dir)
+  end
+
+  def start(script = [])
+    File.write(File.join(@dir, "script.json"), JSON.generate(script))
+    with_env("FAKE_CHILD_LOG" => @log, "FAKE_CHILD_SCRIPT" => File.join(@dir, "script.json")) do
+      @child = Child.new([FAKE_CHILD])
+    end
+  end
+
+  def received
+    File.readlines(@log).map { |line| JSON.parse(line) }
+  end
+
+  def test_handshake
+    start
+    assert_equal "fake", @child.version
+    assert_equal [{ "t" => "hello", "v" => 1, "pid" => Process.pid }], received
+  end
+
+  def test_request_returns_the_reply
+    start
+    assert_equal "pong", @child.request(:ping)["value"]
+  end
+
+  def test_events_a_request_causes_wait_in_the_inbox
+    start([{ "on" => "req:ping", "emit" => [{ "t" => "event", "name" => "click", "target" => 5, "args" => [] }] }])
+    @child.request(:ping)
+    assert_equal [{ "t" => "event", "name" => "click", "target" => 5, "args" => [] }], @child.messages
+    assert_empty @child.messages
+  end
+
+  def test_posts_are_buffered_until_flush
+    start
+    @child.post(t: "props", id: 1, props: { "text" => "é" })
+    @child.request(:ping) # a round trip, so the log is written
+    refute_includes received.map { |m| m["t"] }, "flush", "a request does not need a flush"
+    assert_equal({ "t" => "props", "id" => 1, "props" => { "text" => "é" } }, received[1])
+
+    @child.post(t: "destroy", id: 1)
+    @child.flush
+    @child.request(:ping)
+    assert_equal(%w[destroy flush], received[3, 2].map { |m| m["t"] })
+  end
+
+  def test_flush_with_nothing_buffered_sends_nothing
+    start
+    @child.flush
+    @child.request(:ping)
+    assert_equal(%w[hello req], received.map { |m| m["t"] })
+  end
+
+  def test_a_crash_while_waiting_raises_with_the_stderr_tail
+    start([{ "on" => "req:ping", "crash" => "thread 'main' panicked at src/runtime.rs:42" }])
+    error = assert_raises(Scarpe::Native::ChildDied) { capture_subprocess_io { @child.request(:ping) } }
+    assert_match(/exited with status 101/, error.message)
+    assert_match(%r{panicked at src/runtime.rs:42}, error.message)
+    assert @child.dead?
+  end
+
+  def test_a_missing_binary_is_reported
+    assert_raises(Scarpe::Native::ChildNotFound) { Child.new([File.join(@dir, "nope")]) }
+  end
+
+  def test_close_ends_the_child
+    start
+    @child.close
+    assert @child.dead? || @child.exit_status
+    assert_equal 0, @child.exit_status.exitstatus
+  end
+
+  def test_binary_path_prefers_scarpe_native_bin
+    with_env("SCARPE_NATIVE_BIN" => "/opt/scarpe-native") do
+      assert_equal "/opt/scarpe-native", Scarpe::Native::Binary.path
+    end
+  end
+
+  def test_a_binary_older_than_any_crate_source_is_stale
+    crate = File.join(@dir, "crate")
+    FileUtils.mkdir_p(File.join(crate, "src", "layout"))
+    source = File.join(crate, "src", "layout", "mod.rs")
+    binary = File.join(@dir, "scarpe-native")
+    [File.join(crate, "Cargo.toml"), source, binary].each { |file| File.write(file, "") }
+
+    assert Scarpe::Native::Binary.stale?(binary: File.join(@dir, "missing"), crate: crate)
+    File.utime(Time.now - 60, Time.now - 60, source, File.join(crate, "Cargo.toml"))
+    refute Scarpe::Native::Binary.stale?(binary: binary, crate: crate)
+    File.utime(Time.now + 60, Time.now + 60, source)
+    assert Scarpe::Native::Binary.stale?(binary: binary, crate: crate)
+  end
+
+  private
+
+  def with_env(vars)
+    saved = vars.keys.to_h { |key| [key, ENV[key]] }
+    vars.each { |key, value| ENV[key] = value }
+    yield
+  ensure
+    saved.each { |key, value| ENV[key] = value }
+  end
+end
