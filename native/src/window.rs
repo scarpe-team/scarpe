@@ -2,10 +2,16 @@
 //! stdin is read on a thread and fed to the event loop through a proxy; the
 //! loop waits (ControlFlow::Wait) and redraws only apps whose view is dirty.
 
+mod pacing;
+
 use crate::input::{us_shifted, CursorShape, Key, KeyInput, Modifiers, Named};
+use crate::paint::damage::FrameMemory;
 use crate::props::Id;
 use crate::protocol::Outbox;
-use crate::runtime::{Effect, Options, Runtime};
+use crate::runtime::stats::{self, Phase};
+use crate::runtime::{load_fonts, Effect, Options, Runtime};
+use crate::text::FontMode;
+use pacing::Pacing;
 use std::collections::HashMap;
 use std::io::BufRead;
 use std::num::NonZeroU32;
@@ -15,13 +21,14 @@ use tiny_skia::Pixmap;
 use winit::application::ApplicationHandler;
 use winit::dpi::LogicalSize;
 use winit::event::{ElementState, KeyEvent, MouseButton, MouseScrollDelta, WindowEvent};
-use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
+use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy};
 use winit::keyboard::{Key as WKey, ModifiersState, NamedKey};
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 use winit::window::{CursorIcon, Window, WindowId};
 
 pub enum UserEvent {
-    Line(String),
+    /// Every complete line stdin had ready, so a batch wakes the loop once.
+    Lines(Vec<String>),
     Eof,
 }
 
@@ -38,7 +45,10 @@ struct Win {
     surface: softbuffer::Surface<Rc<Window>, Rc<Window>>,
     _context: softbuffer::Context<Rc<Window>>,
     surface_size: (u32, u32),
+    /// The last frame, kept so the next one repaints only what changed.
     pixmap: Option<Pixmap>,
+    memory: FrameMemory,
+    pacing: Pacing,
     modifiers: ModifiersState,
 }
 
@@ -55,6 +65,9 @@ struct Shell {
 }
 
 pub fn run(opts: Options, window_opts: WindowOptions) -> i32 {
+    stats::process_started();
+    // The system fonts load while the event loop starts and the window opens (runtime::startup).
+    let fonts = (opts.fonts == FontMode::System).then(|| load_fonts(FontMode::System));
     let trace = opts.trace;
     let mut builder = EventLoop::<UserEvent>::with_user_event();
     #[cfg(target_os = "macos")]
@@ -73,25 +86,21 @@ pub fn run(opts: Options, window_opts: WindowOptions) -> i32 {
         }
     };
     event_loop.set_control_flow(ControlFlow::Wait);
+    let loop_built = Instant::now();
     let proxy = event_loop.create_proxy();
-    std::thread::spawn(move || {
-        let stdin = std::io::stdin();
-        for line in stdin.lock().lines() {
-            let Ok(line) = line else { break };
-            if proxy.send_event(UserEvent::Line(line)).is_err() {
-                return;
-            }
-        }
-        let _ = proxy.send_event(UserEvent::Eof);
-    });
+    std::thread::spawn(move || read_stdin(proxy));
     let mut shell = Shell {
-        rt: Runtime::new(opts, Outbox::stdout(trace)),
+        rt: match fonts {
+            Some(loading) => Runtime::with_fonts_loading(opts, Outbox::stdout(trace), loading),
+            None => Runtime::new(opts, Outbox::stdout(trace)),
+        },
         windows: HashMap::new(),
         deadline: window_opts.exit_after.map(|d| Instant::now() + d),
         inactive: window_opts.inactive,
         user_closed: false,
         orphaned_since: None,
     };
+    shell.rt.stats.mark_at("event_loop_built", loop_built);
     if let Err(e) = event_loop.run_app(&mut shell) {
         eprintln!("[scarpe-native] event loop failed: {e}");
         return 1;
@@ -125,6 +134,7 @@ impl Shell {
                 return;
             }
         };
+        self.rt.stats.mark("window_created");
         let context = match softbuffer::Context::new(window.clone()) {
             Ok(c) => c,
             Err(e) => {
@@ -146,11 +156,26 @@ impl Shell {
         if let Some(opacity) = props.f32("opacity") {
             set_opacity(&window, opacity);
         }
+        self.rt.stats.mark("window");
+        if match_frame_colour_space(&window) {
+            self.rt.stats.mark("colour_space_matched");
+        }
+        let pacing = Pacing::new(window.current_monitor().and_then(|m| m.refresh_rate_millihertz()));
         window.request_redraw();
         let id = window.id();
         self.windows.insert(
             id,
-            Win { app, window, surface, _context: context, surface_size: (0, 0), pixmap: None, modifiers: ModifiersState::empty() },
+            Win {
+                app,
+                window,
+                surface,
+                _context: context,
+                surface_size: (0, 0),
+                pixmap: None,
+                memory: FrameMemory::default(),
+                pacing,
+                modifiers: ModifiersState::empty(),
+            },
         );
     }
 
@@ -197,8 +222,9 @@ impl Shell {
     fn settle(&mut self, el: &ActiveEventLoop) {
         self.apply_effects(el);
         if !self.rt.mid_batch {
-            for win in self.windows.values() {
-                if self.rt.views.get(&win.app).is_some_and(|v| v.dirty) {
+            let now = Instant::now();
+            for win in self.windows.values_mut() {
+                if self.rt.views.get(&win.app).is_some_and(|v| v.dirty) && win.pacing.want_frame(now) {
                     win.window.request_redraw();
                 }
             }
@@ -217,6 +243,7 @@ impl Shell {
 
     fn redraw(&mut self, id: WindowId) {
         let Some(win) = self.windows.get_mut(&id) else { return };
+        win.pacing.drawing(Instant::now());
         let size = win.window.inner_size();
         let (w, h) = (size.width.max(1), size.height.max(1));
         let scale = win.window.scale_factor() as f32;
@@ -230,9 +257,10 @@ impl Shell {
         if let Some(view) = self.rt.views.get_mut(&win.app) {
             view.scale = scale;
         }
-        self.rt.render(win.app, pm, scale);
+        self.rt.repaint(win.app, pm, scale, &mut win.memory);
         // A layout done for this frame has told Ruby where things are: say it before showing it.
         self.rt.out.flush();
+        let presenting = Instant::now();
         if win.surface_size != (w, h) {
             if win.surface.resize(NonZeroU32::new(w).expect("w"), NonZeroU32::new(h).expect("h")).is_err() {
                 return;
@@ -244,6 +272,7 @@ impl Shell {
             *dst = ((px[0] as u32) << 16) | ((px[1] as u32) << 8) | (px[2] as u32);
         }
         let _ = buffer.present();
+        self.rt.stats.since(Phase::Present, presenting);
         let app = win.app;
         self.rt.frame_presented(app);
     }
@@ -254,7 +283,11 @@ impl ApplicationHandler<UserEvent> for Shell {
 
     fn user_event(&mut self, el: &ActiveEventLoop, event: UserEvent) {
         match event {
-            UserEvent::Line(line) => self.rt.handle_line(&line),
+            UserEvent::Lines(lines) => {
+                for line in &lines {
+                    self.rt.handle_line(line);
+                }
+            }
             UserEvent::Eof => {
                 self.rt.out.flush();
                 el.exit();
@@ -291,6 +324,7 @@ impl ApplicationHandler<UserEvent> for Shell {
             }
             WindowEvent::CursorLeft { .. } => self.rt.pointer_left(app),
             WindowEvent::MouseInput { state, button, .. } => {
+                self.rt.stats.input();
                 let b = match button {
                     MouseButton::Left => 1,
                     MouseButton::Middle => 2,
@@ -318,6 +352,7 @@ impl ApplicationHandler<UserEvent> for Shell {
                 self.rt.set_modifiers(app, modifiers(state));
             }
             WindowEvent::KeyboardInput { event, .. } if event.state == ElementState::Pressed => {
+                self.rt.stats.input();
                 let mods = self.windows.get(&id).map(|w| w.modifiers).unwrap_or_default();
                 if let Some(key) = key_input(&event, mods) {
                     self.rt.key_input(app, key);
@@ -363,12 +398,77 @@ impl ApplicationHandler<UserEvent> for Shell {
             }
         }
         let tooltip_wake = tooltip.map(|(_, due)| due).filter(|due| *due > now);
-        let wake = [self.deadline, self.orphaned_since.map(|t| t + Duration::from_secs(3)), tooltip_wake].into_iter().flatten().min();
+        // Frames that waited for the display's next refresh (window::pacing).
+        for win in self.windows.values_mut() {
+            if win.pacing.take_due(now) {
+                win.window.request_redraw();
+            }
+        }
+        let next_frame = self.windows.values().filter_map(|w| w.pacing.due()).min();
+        let wake = [self.deadline, self.orphaned_since.map(|t| t + Duration::from_secs(3)), tooltip_wake, next_frame]
+            .into_iter()
+            .flatten()
+            .min();
         el.set_control_flow(match wake {
             Some(at) => ControlFlow::WaitUntil(at),
             None => ControlFlow::Wait,
         });
     }
+}
+
+/// Reads stdin on a thread of its own. Complete lines already in the buffer travel together:
+/// a frame of a thousand prop changes wakes the event loop once, not a thousand times.
+fn read_stdin(proxy: EventLoopProxy<UserEvent>) {
+    let mut reader = std::io::BufReader::with_capacity(1 << 16, std::io::stdin());
+    let mut batch = Vec::new();
+    loop {
+        let mut line = String::new();
+        match reader.read_line(&mut line) {
+            Ok(0) | Err(_) => break,
+            Ok(_) => batch.push(line),
+        }
+        if reader.buffer().contains(&b'\n') {
+            continue;
+        }
+        if proxy.send_event(UserEvent::Lines(std::mem::take(&mut batch))).is_err() {
+            return;
+        }
+    }
+    if !batch.is_empty() {
+        let _ = proxy.send_event(UserEvent::Lines(batch));
+    }
+    let _ = proxy.send_event(UserEvent::Eof);
+}
+
+/// softbuffer hands CoreAnimation DeviceRGB frames. A window in any other colour space makes
+/// CoreAnimation colour-match every frame on the CPU as it commits (2.4 ms of a 2.7 ms present
+/// at 1200x1000, native/PERF.md). In the frame's own colour space the window server does that
+/// conversion while compositing, on the GPU, and the colours on screen are the same.
+#[cfg(target_os = "macos")]
+fn match_frame_colour_space(window: &Window) -> bool {
+    use objc2::runtime::AnyObject;
+    use objc2::{class, msg_send};
+    use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+
+    let Ok(handle) = window.window_handle() else { return false };
+    let RawWindowHandle::AppKit(appkit) = handle.as_raw() else { return false };
+    // SAFETY: winit hands us a live NSView on the main thread; NSView -window and the
+    // NSWindow/NSColorSpace calls below are plain AppKit API with object arguments.
+    unsafe {
+        let view: &AnyObject = appkit.ns_view.cast().as_ref();
+        let ns_window: Option<&AnyObject> = msg_send![view, window];
+        let Some(ns_window) = ns_window else { return false };
+        let device_rgb: *const AnyObject = msg_send![class!(NSColorSpace), deviceRGBColorSpace];
+        let _: () = msg_send![ns_window, setColorSpace: device_rgb];
+        let now: *const AnyObject = msg_send![ns_window, colorSpace];
+        let same: bool = msg_send![now, isEqual: device_rgb];
+        same
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn match_frame_colour_space(_window: &Window) -> bool {
+    false
 }
 
 /// On macOS, Command is Shoes 3's `alt_` in key names (Q5) and Control in text fields.

@@ -5,7 +5,6 @@ use crate::doc::Node;
 use crate::layout::{Rect, TextBox};
 use crate::props::Id;
 use crate::style::Color;
-use crate::text::raster::blit;
 use crate::text::rich::{Underline, INK, LINK_HOVER};
 use crate::text::shape_cache::INDENT_META;
 use crate::text::{ShapedText, SpanMeta, TextEngine};
@@ -56,7 +55,7 @@ fn draw_runs(canvas: &mut Canvas, text: &mut TextEngine, buffer: &Buffer, x: f32
     let RunStyle { default, metas, hover_link, half_leading } = *style;
     let s = canvas.scale;
     let px_clip = canvas.px_clip(clip);
-    let visible = clip.unwrap_or(Rect::new(0.0, 0.0, canvas.pm.width() as f32 / s, canvas.pm.height() as f32 / s));
+    let visible = clip.unwrap_or_else(|| canvas.visible());
     for run in buffer.layout_runs() {
         if y + run.line_top > visible.bottom() || y + run.line_top + run.line_height < visible.y {
             continue;
@@ -74,7 +73,7 @@ fn draw_runs(canvas: &mut Canvas, text: &mut TextEngine, buffer: &Buffer, x: f32
             let pg = glyph.physical((x * s, (y + run.line_y - rise) * s), s);
             let fonts = &mut text.fonts.system;
             if let Some(img) = text.raster.image(fonts, pg.cache_key) {
-                blit(canvas.pm, img, pg.x, pg.y, color, px_clip);
+                canvas.blit(img, pg.x, pg.y, color, px_clip);
             }
         }
         draw_decorations(canvas, &run, x, y, default, metas, hover_link, px_clip);
@@ -196,7 +195,7 @@ fn fill_px(canvas: &mut Canvas, x: f32, y: f32, w: f32, h: f32, color: Color, cl
         let mut paint = tiny_skia::Paint::default();
         paint.set_color(color.to_skia());
         paint.anti_alias = false;
-        canvas.pm.fill_rect(r, &paint, tiny_skia::Transform::identity(), None);
+        canvas.fill_px(r, &paint);
     }
 }
 

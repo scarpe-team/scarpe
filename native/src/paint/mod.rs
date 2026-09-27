@@ -2,6 +2,7 @@
 //! drawn in logical coordinates under a scale transform; text is rasterised at
 //! the physical size so it stays crisp on HiDPI screens.
 
+pub mod damage;
 pub mod decor;
 pub mod shapes;
 pub mod text;
@@ -12,8 +13,9 @@ use crate::elements::{self, image::ImageCache};
 use crate::input::ViewState;
 use crate::layout::{Layout, Rect};
 use crate::style::{Color, Paint};
-use crate::text::raster::PxClip;
+use crate::text::raster::{self, PxClip};
 use crate::text::TextEngine;
+use cosmic_text::SwashImage;
 use std::collections::HashMap;
 use tiny_skia::{
     FillRule, FilterQuality, GradientStop, LinearGradient, Mask, MaskType, Path, PathBuilder, Pattern, Pixmap, PixmapPaint,
@@ -25,16 +27,43 @@ pub const BACKGROUND: Color = Color::WHITE;
 pub struct Canvas<'a> {
     pub pm: &'a mut Pixmap,
     pub scale: f32,
+    /// Where the pixmap's top-left sits in the window, in physical pixels: a repaint of one
+    /// damaged rect paints into a pixmap of that rect's size (paint::damage).
+    origin: (i32, i32),
     masks: HashMap<[u32; 4], Mask>,
 }
 
 impl<'a> Canvas<'a> {
     pub fn new(pm: &'a mut Pixmap, scale: f32) -> Self {
-        Canvas { pm, scale, masks: HashMap::new() }
+        Canvas::at(pm, scale, (0, 0))
     }
 
+    pub fn at(pm: &'a mut Pixmap, scale: f32, origin: (i32, i32)) -> Self {
+        Canvas { pm, scale, origin, masks: HashMap::new() }
+    }
+
+    /// Logical window coordinates to the pixmap's pixels.
     pub fn base(&self) -> Transform {
-        Transform::from_scale(self.scale, self.scale)
+        Transform::from_row(self.scale, 0.0, 0.0, self.scale, -self.origin.0 as f32, -self.origin.1 as f32)
+    }
+
+    /// The part of the window this pixmap covers, in logical px.
+    pub fn visible(&self) -> Rect {
+        let s = self.scale;
+        Rect::new(self.origin.0 as f32 / s, self.origin.1 as f32 / s, self.pm.width() as f32 / s, self.pm.height() as f32 / s)
+    }
+
+    /// Draws a glyph image whose origin is at (gx, gy) in window pixels.
+    pub fn blit(&mut self, img: &SwashImage, gx: i32, gy: i32, color: Color, clip: Option<PxClip>) {
+        let (ox, oy) = self.origin;
+        let clip = clip.map(|c| PxClip { x0: c.x0 - ox, y0: c.y0 - oy, x1: c.x1 - ox, y1: c.y1 - oy });
+        raster::blit(self.pm, img, gx - ox, gy - oy, color, clip);
+    }
+
+    /// Fills a rectangle given in window pixels, unantialiased.
+    pub fn fill_px(&mut self, rect: tiny_skia::Rect, paint: &tiny_skia::Paint) {
+        let to_pixmap = Transform::from_translate(-self.origin.0 as f32, -self.origin.1 as f32);
+        self.pm.fill_rect(rect, paint, to_pixmap, None);
     }
 
     fn mask_key(&mut self, clip: Option<Rect>) -> Option<[u32; 4]> {
@@ -195,12 +224,17 @@ pub struct Scene<'a> {
 }
 
 /// Paints the whole app: nodes in tree order, then overlays (scrollbars,
-/// list_box popup, in-window dialog).
+/// list_box popup, tooltip, in-window dialog).
 pub fn paint(scene: &mut Scene, pm: &mut Pixmap, scale: f32) {
-    pm.fill(BACKGROUND.to_skia());
-    let mut canvas = Canvas::new(pm, scale);
+    paint_nodes(scene, Canvas::new(pm, scale), None);
+}
+
+/// Paints what `canvas` covers, from the background up. `only`: a damaged rect (logical px);
+/// nodes that cannot touch it are skipped, and the canvas clips the rest (paint::damage).
+pub fn paint_nodes(scene: &mut Scene, mut canvas: Canvas, only: Option<Rect>) {
+    canvas.pm.fill(BACKGROUND.to_skia());
     let layout = scene.layout;
-    paint_nodes(scene, &mut canvas, &layout.order);
+    paint_run(scene, &mut canvas, &layout.order, only);
     decor::scrollbars(&mut canvas, layout);
     elements::list_box::paint_popup(&mut canvas, scene.view, scene.text);
     if scene.view.popup.is_none() {
@@ -211,16 +245,16 @@ pub fn paint(scene: &mut Scene, pm: &mut Pixmap, scale: f32) {
 
 /// Paints a run of the paint order. A slot holding a mask paints the rest of its
 /// contents through the mask's alpha, as Shoes 3 does (s3_canvas.c:531-613).
-fn paint_nodes(scene: &mut Scene, canvas: &mut Canvas, ids: &[Id]) {
+fn paint_run(scene: &mut Scene, canvas: &mut Canvas, ids: &[Id], only: Option<Rect>) {
     let mut i = 0;
     while i < ids.len() {
         let masks = masks_in(scene, ids[i]);
         if masks.is_empty() {
-            paint_node(scene, canvas, ids[i]);
+            paint_node(scene, canvas, ids[i], only);
             i += 1;
         } else {
             let end = subtree_end(scene.doc, ids, i);
-            paint_masked(scene, canvas, &ids[i + 1..end], &masks);
+            paint_masked(scene, canvas, &ids[i + 1..end], &masks, only);
             i = end;
         }
     }
@@ -247,24 +281,28 @@ fn subtree_end(doc: &Doc, ids: &[Id], start: usize) -> usize {
 }
 
 /// Draws a masked slot's contents into one layer and its masks into another, then
-/// shows the contents only where the masks drew something.
-fn paint_masked(scene: &mut Scene, canvas: &mut Canvas, contents: &[Id], masks: &[Id]) {
+/// shows the contents only where the masks drew something. The layers cover what the
+/// canvas covers, so a partial repaint (paint::damage) masks just its own rect.
+fn paint_masked(scene: &mut Scene, canvas: &mut Canvas, contents: &[Id], masks: &[Id], only: Option<Rect>) {
     let doc = scene.doc;
     let (mask_ids, content_ids): (Vec<Id>, Vec<Id>) = contents.iter().partition(|id| masks.iter().any(|m| doc.is_descendant_of(**id, *m)));
     let (w, h) = (canvas.pm.width(), canvas.pm.height());
     let (Some(mut content), Some(mut alpha)) = (Pixmap::new(w, h), Pixmap::new(w, h)) else { return };
-    paint_nodes(scene, &mut Canvas::new(&mut content, canvas.scale), &content_ids);
-    paint_nodes(scene, &mut Canvas::new(&mut alpha, canvas.scale), &mask_ids);
+    paint_run(scene, &mut Canvas::at(&mut content, canvas.scale, canvas.origin), &content_ids, only);
+    paint_run(scene, &mut Canvas::at(&mut alpha, canvas.scale, canvas.origin), &mask_ids, only);
     let mask = Mask::from_pixmap(alpha.as_ref(), MaskType::Alpha);
     canvas.pm.draw_pixmap(0, 0, content.as_ref(), &PixmapPaint::default(), Transform::identity(), Some(&mask));
 }
 
-fn paint_node(scene: &mut Scene, canvas: &mut Canvas, id: Id) {
+fn paint_node(scene: &mut Scene, canvas: &mut Canvas, id: Id, only: Option<Rect>) {
     let layout = scene.layout;
     let doc = scene.doc;
     let window = Rect::new(0.0, 0.0, layout.size.0, layout.size.1);
     let (Some(node), Some(lbox)) = (doc.get(id), layout.boxes.get(&id)) else { return };
     if !on_screen(node.kind.is_art(), lbox, window) {
+        return;
+    }
+    if only.is_some_and(|region| !damage::may_touch(node, lbox, layout.texts.get(&id), region)) {
         return;
     }
     match &node.kind {

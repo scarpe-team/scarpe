@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
-require "digest"
 require "fileutils"
-require "net/http"
-require "tmpdir"
-require "uri"
 
 # Ruby value -> wire value, in one place (DESIGN 5.3). Everything that crosses to Rust goes
 # through here, so Rust only ever sees JSON data: colors as {"rgba"}, {"gradient"} or {"image"},
@@ -210,10 +206,13 @@ module Scarpe::Native::Normalize
 
   alias_method :font_path, :image_path
 
+  # net/http and friends cost ~45 ms at startup (native/PERF.md), so only a download loads them.
   def download(url)
     @downloads ||= {}
     return @downloads[url] if @downloads.key?(url)
 
+    require "digest"
+    require "uri"
     path = File.join(cache_dir, Digest::SHA256.hexdigest(url)[0, 32] + File.extname(URI(url).path.to_s))
     fetch(url, path) unless File.size?(path)
     @downloads[url] = path
@@ -223,12 +222,14 @@ module Scarpe::Native::Normalize
   end
 
   def cache_dir
+    require "tmpdir"
     dir = ENV["SCARPE_NATIVE_CACHE"] || File.join(Dir.tmpdir, "scarpe-native-cache")
     FileUtils.mkdir_p(dir)
     dir
   end
 
   def fetch(url, path, redirects_left: 5)
+    require "net/http"
     uri = URI(url)
     response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https", open_timeout: 10, read_timeout: 10) do |http|
       http.request(Net::HTTP::Get.new(uri))

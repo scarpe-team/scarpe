@@ -1573,6 +1573,7 @@ dependencies = [
  "arboard",
  "cosmic-text",
  "image",
+ "objc2 0.6.4",
  "rfd",
  "serde",
  "serde_json",

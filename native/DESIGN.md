@@ -204,7 +204,7 @@ which is the only mode that supports `window()`:
 
 ```
 loop until no apps remain or the child exited:
-  timeout = time until the next timer deadline, capped at 50 ms
+  timeout = time until the next timer deadline, capped at 1 s (Automation#advance steps at 50 ms)
   IO.select([child_out], nil, nil, timeout) -> read and dispatch every complete message
   tick due timers: animate (frame starts at 0), every (count starts at 0, ledger I1), timer (one shot);
     honour `stopped` and destroyed items; timers can be created at any time
@@ -213,6 +213,11 @@ loop until no apps remain or the child exited:
 ```
 
 Handler exceptions are rescued per dispatch, logged with the app file/line, and the loop continues.
+
+An idle pump sleeps. Besides the child's output, the select watches a wake pipe that a post from
+another thread (a download) and Ctrl-C (the pump chains Lacci's INT trap) write to, so nothing
+waits on the timeout. Hello goes out without waiting for `ready`; the pump raises ChildTimeout if
+the child never answers (native/PERF.md).
 
 ## 6. Layout rules (canonical)
 
@@ -318,6 +323,8 @@ Hard-won API notes (from research 07, spike code in the session scratchpad `spik
 - On macOS create windows with `.with_active(false)` in automated runs and never steal focus in
   headless tests.
 - softbuffer on macOS copies the frame on present: redraw only when dirty.
+- softbuffer tags macOS frames DeviceRGB; the window is given the same colour space, or CoreAnimation
+  colour-matches every frame on the CPU (2.4 ms of a 2.7 ms present at 1200x1000, native/PERF.md).
 
 ### Look and feel (beautiful by default)
 
@@ -504,6 +511,13 @@ change the code and this list together.
 - **Tooltips.** A drawable's `tooltip` text (Shoes 3.3; Lacci gives every drawable the style) shows
   in a bubble below the pointer once it rests on that drawable: at once headless, so snapshots are
   deterministic, and after 600 ms in a window. A press hides it until the pointer moves on.
+- **Partial repaints.** A window keeps its last frame and repaints only the rects of nodes whose box,
+  props, text or widget state changed (`paint::damage`). Anything it cannot bound repaints the whole
+  frame: a new size or scale, scrolling, a popup, modal or tooltip, a change of paint order, and art
+  under rotate, scale, skew or translate. Headless pictures and snapshots are always painted whole. A
+  node must never paint outside `paint::damage::paint_bounds`: code that makes a node draw further (a
+  new transform, a bigger shadow) grows that function too, or `SCARPE_NATIVE_DAMAGE=check` will say so.
+  A masked slot's layers cover only the repainted rect, so masks repaint in part like anything else.
 - **Para `cursor` and `marker`** count from the end when negative (`-1` sits after the last
   character, as Shoes 3 editors use it). The caret takes the text's colour, so it shows on dark
   backgrounds.
@@ -522,3 +536,5 @@ change the code and this list together.
 | `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept |
 | `SCARPE_NATIVE_SNAPSHOT_DIR` | where relative `snapshot(name)` paths go (default `spec/results/snapshots`) |
 | `SCARPE_NATIVE_WINDOWED_TESTS` | lets `rake native_test` open real, inactive windows |
+| `SCARPE_NATIVE_STATS` | a directory: each process writes where its time went (`ruby.json`, `rust.json`) as it exits (native/PERF.md) |
+| `SCARPE_NATIVE_DAMAGE` | `off` repaints every window frame whole; `check` also paints each one whole and reports any pixel a partial repaint got wrong (headless too) |

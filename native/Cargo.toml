@@ -36,3 +36,7 @@ opt-level = 1
 
 [profile.dev.package."*"]
 opt-level = 3
+
+# Colour-space matching on the window (window.rs). Already in the tree through softbuffer and rfd.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
