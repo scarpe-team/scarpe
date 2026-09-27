@@ -2,6 +2,8 @@
 
 class Shoes
   class ListBox < Shoes::Drawable
+    include Shoes::Focusable
+
     shoes_styles :items, :height, :width, :font, :stroke
 
     # Shoes3 uses choose as the initialize arg, and .choose(item) as the setter here,
@@ -16,7 +18,8 @@ class Shoes
       # These aren't being set as styles -- remove them from kwargs before calling super
       # TODO: set [] as default value for items?
       @items = kwargs.delete(:items) || []
-      @chosen = kwargs.delete(:choose) || @items&.first
+      # Nothing is selected unless choose: says so (manual 3234-3237, ledger G3)
+      @chosen = kwargs.delete(:choose)
       @callback = block
 
       super(**kwargs)
@@ -56,13 +59,6 @@ class Shoes
     def change(&block)
       @callback = block
       self # Allow chaining calls
-    end
-
-    # Set keyboard focus to this list box.
-    # @return [self]
-    def focus
-      send_shoes_event({}, event_name: "focus", target: linkable_id)
-      self
     end
   end
 end

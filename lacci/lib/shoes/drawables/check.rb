@@ -2,6 +2,8 @@
 
 class Shoes
   class Check < Shoes::Drawable
+    include Shoes::Focusable
+
     shoes_styles :checked
     shoes_events :click
 
@@ -18,8 +20,11 @@ class Shoes
       create_display_drawable
     end
 
+    # @yield [check] the check box, already toggled
+    # @return [self]
     def click(&block)
       @block = block
+      self
     end
 
     def checked?
