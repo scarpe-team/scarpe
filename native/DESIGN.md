@@ -146,7 +146,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 | `resize` | `app`, `w`, `h` (Integers) | set the App's `@width`/`@height` ivars directly (no prop_change echo) |
 | `scroll` | `id`, `top` (Integer) | set the slot's `@scroll_top` directly |
 | `layout` | `app`, `rects`: `[[id, x, y, w, h, scroll_h], ...]` | `Shoes::DisplayService.layout_cache[id] = [x, y, w, h, scroll_h]` (Integer keys; the shim defines the accessor if Lacci lacks it and deletes ids on destroy). Sent after every layout pass, before its frame is presented and before the reply of any request that caused it: every laid-out node on an app's first layout, then only those whose rect changed, sorted by id. Window logical px, rounded to 1/100; `scroll_h` is a slot's content height, padding included, else `h`. Art reports its transformed box. Destroyed ids are simply not sent again (contract a; ledger A4, C5) |
-| `closed` | `app` | user closed a window: destroy that app (all apps if it was the last) |
+| `closed` | `app` | user closed a window: close that app, as `App#close` does (`quit {app}`, and it leaves `Shoes.APPS`), or every app if it was the last |
 | `reply` | `req`, `value`, `error` (null or String), plus op extras like `cancelled` | answers a `req` |
 | `log` | `level`, `msg` | forwarded to Shoes::Log (`scarpe-native` component) |
 
@@ -237,7 +237,9 @@ is the one bug we never want. Must never load `scarpe/wv` (set-once globals coll
   signal trap, so it only flips flags and the pump sends the quit) and `builtin`. `init` and
   `full_redraw_request` need nothing: Rust is retained. An app counts as open from its `run`, not
   its `create`: a `window` whose block raised never runs, so after the handler's error the shim
-  sends `quit {app}` for it, forgets its drawables and takes it out of `Shoes.APPS`.
+  sends `quit {app}` for it, forgets its drawables and takes it out of `Shoes.APPS`. One window
+  closing while another is open (Rust's `closed`, or a `destroy` aimed at an App, which is what
+  `App#close` sends, ledger A8) goes the same way; the last one quits everything.
 - `builtin` is answered synchronously: a stubbed answer first, then a quiet answer when nobody can
   click (headless, or a Shoes-Spec run), else `req dialog`, blocking on the reply while incoming
   events queue for the pump. Then `set_builtin_response(value)`. It must never leave a builtin

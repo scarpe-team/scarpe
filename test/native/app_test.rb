@@ -257,7 +257,51 @@ class AppTest < Minitest::Test
     assert_clean_exit(run)
     assert_equal([1, 4], run.of_type("run").map { |message| message["app"] })
     assert_equal 1, run.creates("App").last["owner"]
-    assert_equal [{ "t" => "quit", "app" => nil }], run.of_type("quit"), "one quit, at the very end"
+    assert_equal [{ "t" => "quit", "app" => 1 }, { "t" => "quit", "app" => nil }], run.of_type("quit"),
+      "Rust frees the first window as it closes, and everything at the end"
+  end
+
+  # A closed window's app is done with: Rust frees its view and document, and it leaves
+  # Shoes.APPS (manual 887-888), while the app goes on in the other window (review, ledger A8).
+  def test_closing_one_of_two_windows_frees_it_and_the_app_goes_on
+    run = run_app(<<~RUBY, script: [
+      Shoes.app do
+        button("new") { window(title: "two") { para "second" } }
+        button("titles") { p Shoes.APPS.map { |app| app.style[:title] } }
+      end
+    RUBY
+      { "on" => "run", "match" => { "app" => 1 }, "emit" => [{ "t" => "event", "name" => "click", "target" => { "text" => "new" }, "args" => [] }] },
+      { "on" => "run", "match" => { "app" => 5 }, "emit" => [
+        { "t" => "closed", "app" => 5 },
+        { "t" => "event", "name" => "click", "target" => { "text" => "titles" }, "args" => [] },
+        { "t" => "closed", "app" => 1 },
+      ] },
+    ])
+    assert_clean_exit(run)
+    assert_equal "[\"Shoes\"]\n", run.stdout
+    assert_equal [{ "t" => "quit", "app" => 5 }, { "t" => "quit", "app" => nil }], run.of_type("quit")
+  end
+
+  # Manual 901-904: close "Closes the app window"; exit is for closing the whole application.
+  def test_close_in_a_window_closes_that_window_only
+    run = run_app(<<~RUBY, script: [
+      Shoes.app do
+        button("new") { window(title: "two") { button("bye") { close } } }
+        button("count") { p Shoes.APPS.size }
+      end
+    RUBY
+      { "on" => "run", "match" => { "app" => 1 }, "emit" => [{ "t" => "event", "name" => "click", "target" => { "text" => "new" }, "args" => [] }] },
+      { "on" => "run", "match" => { "app" => 5 }, "emit" => [
+        { "t" => "event", "name" => "click", "target" => { "text" => "bye" }, "args" => [] },
+      ] },
+      { "on" => "quit", "match" => { "app" => 5 }, "emit" => [
+        { "t" => "event", "name" => "click", "target" => { "text" => "count" }, "args" => [] },
+        { "t" => "closed", "app" => 1 },
+      ] },
+    ])
+    assert_clean_exit(run)
+    assert_equal "1\n", run.stdout, "the first window stayed open"
+    assert_equal [{ "t" => "quit", "app" => 5 }, { "t" => "quit", "app" => nil }], run.of_type("quit")
   end
 
   # A window whose block raises was created but never run. It must not count as open, or closing

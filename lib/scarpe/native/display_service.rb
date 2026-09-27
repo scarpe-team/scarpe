@@ -262,8 +262,12 @@ module Scarpe::Native
     # Rust drops the whole subtree, so we forget it too. Slot#remove does not cascade in Lacci,
     # and a timer inside a removed slot must stop with it.
     def destroyed(id)
+      display = display_drawable(id)
+      return close_app(id) if display&.kind == "App" # App#close, while another window stays open
+
       child.post(t: "destroy", id: id)
-      display = display_drawable(id) or return
+      return unless display
+
       display.detach
       display.subtree.each { |node| forget(node.id) }
     end
@@ -309,11 +313,7 @@ module Scarpe::Native
     # a `window` whose block raised. It never opens: Rust frees it and Shoes.APPS lets it go.
     def drop_unstarted_apps
       unstarted = Shoes.APPS.reject { |app| @open_apps.key?(app.linkable_id) }
-      unstarted.each do |app|
-        Shoes.APPS.delete(app)
-        app.destroy(send_event: false)
-        free_app(app.linkable_id)
-      end
+      unstarted.each { |app| close_app(app.linkable_id) }
       @pump.wake_on_interrupt unless unstarted.empty? # each trapped INT as it was made
     end
 
@@ -324,16 +324,27 @@ module Scarpe::Native
       @display_drawable_for.filter_map { |id, display| id if display.app_id == app_id }.each { |id| forget(id) }
     end
 
+    # The user closed a window. The last one takes the app with it (every App hears the nil-target
+    # destroy); any other is that one app closing, as App#close does (ledger A8).
     def closed(app_id)
       return unless @open_apps[app_id]
 
       if @open_apps.count { |_id, open| open } == 1
         Shoes::DisplayService.dispatch_event("destroy", nil)
       else
-        @open_apps[app_id] = false
-        timers.remove_app(app_id)
-        lacci_drawable(app_id)&.destroy(send_event: false)
+        close_app(app_id)
       end
+    end
+
+    # One window closes and the others stay: the app leaves Shoes.APPS (manual 887-888), and Rust
+    # frees its window and document.
+    def close_app(app_id)
+      @open_apps[app_id] = false
+      if (app = lacci_drawable(app_id))
+        Shoes.APPS.delete(app)
+        app.destroy(send_event: false)
+      end
+      free_app(app_id)
     end
 
     # Set the ivars directly: going through the setter would echo a prop_change back to Rust.

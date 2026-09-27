@@ -4,8 +4,6 @@ lines: [887, 888]
 testability: api
 display: any
 ledger: A8
-expect: fail
-reason: "Lacci's close sends a destroy every app obeys, and nothing removes a closed app from Shoes.APPS (A8, X16)"
 ----------- app code
 Shoes.app title: "First" do
   $first = self
