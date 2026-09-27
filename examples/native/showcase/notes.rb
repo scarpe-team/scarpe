@@ -48,7 +48,7 @@ Shoes.app(title: "Notes", width: 780, height: 540, resizable: false) do
 
   # One row in the sidebar: title, a line of preview, and the tag.
   def note_row(note)
-    row = stack(width: 1.0, height: 70, margin: [10, 0, 10, 4]) do
+    row = stack(width: 1.0, height: 74, margin: [10, 0, 10, 4]) do
       note[:look] = background white, curve: 10, hidden: true
       note[:edge] = border LINE, strokewidth: 1, curve: 10, hidden: true
       note[:title] = para "", size: 13, weight: "semibold", stroke: INK, wrap: "trim", margin: [12, 10, 12, 0]
@@ -117,7 +117,7 @@ Shoes.app(title: "Notes", width: 780, height: 540, resizable: false) do
         para "Notes", size: 22, weight: "bold", stroke: INK, margin: 0
         @total = para "#{@notes.size} notes", size: 12, stroke: MUTED, margin: [0, 2, 0, 0]
       end
-      new_button = stack(width: 76, height: 32, margin_top: 6) do
+      new_button = stack(width: 76, height: 38, margin_top: 6) do
         background INK, curve: 16
         para "New note", align: "center", size: 12, weight: "semibold", stroke: white, margin_top: 8
       end
@@ -130,7 +130,7 @@ Shoes.app(title: "Notes", width: 780, height: 540, resizable: false) do
 
   # the editor
   stack left: 250, top: 0, width: 530, height: 540 do
-    flow margin: [32, 24, 32, 0], height: 52 do
+    flow margin: [32, 24, 32, 0], height: 76 do
       para "Tag", size: 12, weight: "semibold", stroke: MUTED, margin: [0, 7, 10, 0]
       @tag = list_box(items: TAGS.keys, width: 140) do |box|
         @note[:tag] = box.text
@@ -138,7 +138,7 @@ Shoes.app(title: "Notes", width: 780, height: 540, resizable: false) do
       end
       @count = para "", align: "right", size: 12, stroke: MUTED, margin: [0, 7, 0, 0]
     end
-    @editor = edit_box(width: 466, height: 440, margin: [32, 0, 32, 0], font: "Iowan Old Style, Georgia, serif 15px") do
+    @editor = edit_box(width: 530, height: 440, margin: [32, 0, 32, 0], font: "Iowan Old Style, Georgia, serif 15px") do
       @note[:body] = @editor.text
       show_row(@note)
       count_words
