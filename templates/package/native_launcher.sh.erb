@@ -23,6 +23,7 @@ export RUBYOPT="-rtraveling_ruby_restore_environment"
 export <%= name %>="<%= value %>"
 <% end -%>
 export SCARPE_NATIVE_BIN="$MACOS/<%= BINARY %>"
+# YJIT is not switched on here: boot.rb turns it on after the first frame (RUBY_YJIT_ENABLE=0 opts out).
 
 # The strip removes did_you_mean, error_highlight and syntax_suggest, so Ruby is told not to look.
 cd "$RES/app"

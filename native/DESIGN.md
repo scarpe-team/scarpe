@@ -373,8 +373,12 @@ native packages are not built yet.
 
 Ruby speed in packaged apps (Nick's call, 27 Sep 2026). Two cheap wins, both measured before and after:
 
-1. **YJIT on by default.** The packaged launcher starts Ruby with `--yjit` (or `RUBY_YJIT_ENABLE=1`).
-   It ships inside CRuby; it helps method-heavy per-frame code such as `animate` handlers.
+1. **YJIT on by default, after the first frame.** It helps method-heavy per-frame code such as
+   `animate` handlers, but switched on at process start (`--yjit`, `RUBY_YJIT_ENABLE=1`) it made the
+   first frame about 22 ms later on a YJIT build of Ruby, while `RubyVM::YJIT.enable` at the first
+   heartbeat cost nothing measurable. So `boot.rb` does that (`lib/scarpe/package/yjit.rb`), and
+   `RUBY_YJIT_ENABLE=0` opts out. The bundled Traveling Ruby 3.4.7 is built without YJIT, so
+   packaged apps run without it until the runtime has it.
 2. **Precompiled bytecode for startup.** At package time the bundled Ruby compiles Lacci, the shim,
    scarpe-components, the app and the standard library files `require "scarpe"` loads, and boot
    hands them to `require` through `RubyVM::InstructionSequence.load_iseq` (the bootsnap hook;

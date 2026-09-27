@@ -13,4 +13,7 @@ require "scarpe/package/bytecode"
 Scarpe::Package::Bytecode.install(__dir__) unless ENV["SCARPE_BYTECODE"] == "0"
 
 require "scarpe"
+require "scarpe/package/yjit"
+Scarpe::Package::YJIT.enable_after_first_frame
+
 Shoes.run_app(File.join(__dir__, "app", ARGV.fetch(0)))
