@@ -66,6 +66,7 @@ class ArtInputTest < Minitest::Test
     APP
     assert_clean_exit(run)
     assert_match(/^wheel 30 at 50,40$/, run.stdout)
-    assert_match(/^#\d+ Para 0,-30 [\d.]+x[\d.]+ hidden "line 0"$/, run.stdout)
+    # The first line sits in its 4 px text margin (ledger C9), so 30 px of wheel leaves it at -26.
+    assert_match(/^#\d+ Para 4,-26 [\d.]+x[\d.]+ hidden "line 0"$/, run.stdout)
   end
 end
