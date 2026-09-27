@@ -102,8 +102,9 @@ app block has finished and before any timer fires. Every Minitest assertion is a
 - Name what you will assert on with an `@ivar` in the app code. Plural finders return
   drawables breadth-first, not in document order, so never index into `paras` for meaning.
 - `title`, `subtitle`, `banner`, `tagline`, `caption`, `inscription` find paras by size.
-  In Lacci those are paras too, so `paras` includes them (ledger F2). They match on the size
-  name, so `title "x", size: 16` is only found as `para("@ivar")`.
+  In Lacci they are Para subclasses (`Shoes::Title` and so on), so `paras` includes them
+  (ledger F2). They match on the size name, so `title "x", size: 16` is only found as
+  `para("@ivar")`.
 - `drawable(MyWidget)` finds `Shoes::Widget` subclasses, which get no named finder.
 - A finder returns a proxy that forwards to the Lacci drawable: `.text`, `.text=`,
   `.checked?`, `.style`, `.hide`, `.contents` and the rest. `respond_to?` answers for the
