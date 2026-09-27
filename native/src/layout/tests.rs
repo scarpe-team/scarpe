@@ -311,3 +311,17 @@ fn risen_text_makes_room_in_its_line() {
     // A sub drops 10 px below a 12 px line whose descent is about 3 px.
     assert!(sub_h >= plain_h + 2.0 * 7.0, "the line holding the sub grows: {plain_h} -> {sub_h}");
 }
+
+#[test]
+fn trimmed_text_ends_in_an_ellipsis_inside_its_box() {
+    let mut s = Scene::new();
+    let stack = s.add("Stack", ROOT, json!({"width": 100}));
+    let para = s.add("Para", stack, json!({"text_items": ["HHHHHHHHHHHHHHHHHHHHHHHHHHHHHH"], "wrap": "trim"}));
+    let l = s.layout(480.0, 420.0);
+    let (tb, b) = (&l.texts[&para], r(&l, para));
+    let runs: Vec<_> = tb.shaped.buffer.layout_runs().collect();
+    assert_eq!(runs.len(), 1, "trim keeps one line");
+    assert!(runs[0].line_w <= b.w + 0.5, "the line fits its box: {} > {}", runs[0].line_w, b.w);
+    let last = runs[0].glyphs.last().expect("glyphs");
+    assert_eq!(last.start, last.end, "the last glyph is the ellipsis, which stands for no text of its own");
+}

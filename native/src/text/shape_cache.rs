@@ -4,7 +4,7 @@
 use super::rich::{Align, RichText, Underline, WrapMode};
 use crate::props::Id;
 use crate::style::Color;
-use cosmic_text::{Attrs, Buffer, Family, FontSystem, Metrics, Shaping, Style, UnderlineStyle, Weight, Wrap};
+use cosmic_text::{Attrs, Buffer, Ellipsize, EllipsizeHeightLimit, Family, FontSystem, Metrics, Shaping, Style, UnderlineStyle, Weight, Wrap};
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -90,6 +90,10 @@ fn shape(fs: &mut FontSystem, rich: &RichText, width: Option<f32>, optical_track
         WrapMode::Char => Wrap::Glyph,
         WrapMode::Trim => Wrap::None,
     });
+    // "trim": cut the line off with an ellipsis if it goes too long (manual 1552-1556).
+    if rich.wrap == WrapMode::Trim {
+        buffer.set_ellipsize(Ellipsize::End(EllipsizeHeightLimit::Lines(1)));
+    }
     buffer.set_size(width.map(|w| w.max(1.0)), None);
     let align = match rich.align {
         Align::Left => cosmic_text::Align::Left,
