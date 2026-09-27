@@ -119,8 +119,6 @@ pub struct RichText {
     pub leading: f32,
     pub align: Align,
     pub wrap: WrapMode,
-    /// Para-level `fill`: painted behind the whole block.
-    pub fill: Option<Color>,
 }
 
 impl RichText {
@@ -133,7 +131,6 @@ impl RichText {
             leading: 0.0,
             align: Align::Left,
             wrap: WrapMode::Word,
-            fill: None,
         }
     }
 
@@ -170,6 +167,9 @@ pub fn resolve_block(doc: &Doc, fonts: &Fonts, id: Id) -> Option<RichText> {
     let node = doc.get(id)?;
     let mut style = TextStyle::new(class_size(&node.class), INK);
     apply_text_props(&mut style, &node.props, fonts);
+    // A block's fill is a highlighter over its text, not paint over its box (manual 1208-1210;
+    // Shoes 3 makes it a Pango background, s3t_textblock.c:258, 477).
+    style.highlight = node.props.color("fill").filter(|c| !c.is_invisible());
     let mut runs = Vec::new();
     collect(doc, fonts, &node.props, &style, id, &[], &mut runs);
     let leading = node.props.f32("leading").unwrap_or(DEFAULT_LEADING).max(0.0);
@@ -187,7 +187,6 @@ pub fn resolve_block(doc: &Doc, fonts: &Fonts, id: Id) -> Option<RichText> {
         Some("char") => WrapMode::Char,
         _ => WrapMode::Word,
     };
-    let fill = node.props.color("fill").filter(|c| !c.is_invisible());
     Some(RichText {
         runs,
         size: style.size,
@@ -195,7 +194,6 @@ pub fn resolve_block(doc: &Doc, fonts: &Fonts, id: Id) -> Option<RichText> {
         leading,
         align,
         wrap,
-        fill,
     })
 }
 

@@ -218,19 +218,6 @@ fn wavy(canvas: &mut Canvas, x0: f32, x1: f32, y: f32, size: f32, color: Color, 
     }
 }
 
-/// A text block's `fill`, over its box less any first-line indent, which shows what came
-/// before it on the line.
-pub fn fill_block(canvas: &mut Canvas, tb: &TextBox, rect: Rect, color: Color, clip: Option<Rect>) {
-    match tb.indent_corner() {
-        None => canvas.fill_rect(rect, color, clip),
-        Some(corner) => {
-            let first = corner.h.min(rect.h);
-            canvas.fill_rect(Rect::new(corner.right(), rect.y, rect.right() - corner.right(), first), color, clip);
-            canvas.fill_rect(Rect::new(rect.x, rect.y + first, rect.w, rect.h - first), color, clip);
-        }
-    }
-}
-
 /// Where a cursor sits: (x, line_top, line_height) in buffer coordinates.
 pub fn caret_position(buffer: &Buffer, cursor: Cursor) -> Option<(f32, f32, f32)> {
     let mut fallback = None;
