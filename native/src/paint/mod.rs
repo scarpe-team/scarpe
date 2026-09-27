@@ -7,6 +7,7 @@ pub mod shapes;
 pub mod text;
 
 use crate::doc::{Doc, Kind};
+use crate::props::Id;
 use crate::elements::{self, image::ImageCache};
 use crate::input::ViewState;
 use crate::layout::{Layout, Rect};
@@ -15,8 +16,8 @@ use crate::text::raster::PxClip;
 use crate::text::TextEngine;
 use std::collections::HashMap;
 use tiny_skia::{
-    FillRule, FilterQuality, GradientStop, LinearGradient, Mask, Path, PathBuilder, Pattern, Pixmap, Point, Shader,
-    SpreadMode, Stroke, Transform,
+    FillRule, FilterQuality, GradientStop, LinearGradient, Mask, MaskType, Path, PathBuilder, Pattern, Pixmap, PixmapPaint,
+    Point, Shader, SpreadMode, Stroke, Transform,
 };
 
 pub const BACKGROUND: Color = Color::WHITE;
@@ -190,39 +191,92 @@ pub fn paint(scene: &mut Scene, pm: &mut Pixmap, scale: f32) {
     pm.fill(BACKGROUND.to_skia());
     let mut canvas = Canvas::new(pm, scale);
     let layout = scene.layout;
-    let doc = scene.doc;
-    let window = Rect::new(0.0, 0.0, layout.size.0, layout.size.1);
-    for &id in &layout.order {
-        let (Some(node), Some(lbox)) = (doc.get(id), layout.boxes.get(&id)) else { continue };
-        if !on_screen(node.kind.is_art(), lbox, window) {
-            continue;
-        }
-        match &node.kind {
-            Kind::Background => decor::background(&mut canvas, node, lbox, scene.images),
-            Kind::Border => decor::border(&mut canvas, node, lbox, scene.images),
-            // Art inside a shape block is painted with its shape, as one path.
-            k if k.is_art() && shapes::in_shape(doc, node) => {}
-            k if k.is_art() => shapes::paint_art(&mut canvas, doc, &layout.boxes, node, lbox, scene.images),
-            Kind::Para | Kind::TextDrawable => {
-                if let Some(tb) = layout.texts.get(&id) {
-                    if let Some(fill) = tb.shaped.fill {
-                        canvas.fill_rect(lbox.rect, fill, lbox.clip);
-                    }
-                    // `wrap: "trim"` keeps the text on one line and cuts it off at the para's own edge.
-                    let clip = if node.props.str("wrap") == Some("trim") {
-                        lbox.clip.map_or(Some(lbox.rect), |c| c.intersect(&lbox.rect)).or(Some(Rect::new(0.0, 0.0, 0.0, 0.0)))
-                    } else {
-                        lbox.clip
-                    };
-                    let hover = scene.view.hover_link;
-                    text::draw_shaped(&mut canvas, scene.text, &tb.shaped, tb.x, tb.y, clip, hover);
-                    text::draw_para_cursor(&mut canvas, node, tb, clip);
-                }
-            }
-            _ => elements::paint(&mut canvas, node, lbox, layout.texts.get(&id), scene.view, scene.text, scene.images),
-        }
-    }
+    paint_nodes(scene, &mut canvas, &layout.order);
     decor::scrollbars(&mut canvas, layout);
     elements::list_box::paint_popup(&mut canvas, scene.view, scene.text);
     crate::dialogs::paint_modal(&mut canvas, scene.view, scene.text, layout.size);
+}
+
+/// Paints a run of the paint order. A slot holding a mask paints the rest of its
+/// contents through the mask's alpha, as Shoes 3 does (s3_canvas.c:531-613).
+fn paint_nodes(scene: &mut Scene, canvas: &mut Canvas, ids: &[Id]) {
+    let mut i = 0;
+    while i < ids.len() {
+        let masks = masks_in(scene, ids[i]);
+        if masks.is_empty() {
+            paint_node(scene, canvas, ids[i]);
+            i += 1;
+        } else {
+            let end = subtree_end(scene.doc, ids, i);
+            paint_masked(scene, canvas, &ids[i + 1..end], &masks);
+            i = end;
+        }
+    }
+}
+
+/// The laid-out Mask children of a slot.
+fn masks_in(scene: &Scene, slot: Id) -> Vec<Id> {
+    let doc = scene.doc;
+    doc.children(slot)
+        .iter()
+        .copied()
+        .filter(|c| doc.get(*c).is_some_and(|n| n.kind == Kind::Mask) && scene.layout.boxes.contains_key(c))
+        .collect()
+}
+
+/// Where the subtree starting at ids[start] ends in a pre-order run.
+fn subtree_end(doc: &Doc, ids: &[Id], start: usize) -> usize {
+    let root = ids[start];
+    let mut end = start + 1;
+    while end < ids.len() && doc.is_descendant_of(ids[end], root) {
+        end += 1;
+    }
+    end
+}
+
+/// Draws a masked slot's contents into one layer and its masks into another, then
+/// shows the contents only where the masks drew something.
+fn paint_masked(scene: &mut Scene, canvas: &mut Canvas, contents: &[Id], masks: &[Id]) {
+    let doc = scene.doc;
+    let (mask_ids, content_ids): (Vec<Id>, Vec<Id>) = contents.iter().partition(|id| masks.iter().any(|m| doc.is_descendant_of(**id, *m)));
+    let (w, h) = (canvas.pm.width(), canvas.pm.height());
+    let (Some(mut content), Some(mut alpha)) = (Pixmap::new(w, h), Pixmap::new(w, h)) else { return };
+    paint_nodes(scene, &mut Canvas::new(&mut content, canvas.scale), &content_ids);
+    paint_nodes(scene, &mut Canvas::new(&mut alpha, canvas.scale), &mask_ids);
+    let mask = Mask::from_pixmap(alpha.as_ref(), MaskType::Alpha);
+    canvas.pm.draw_pixmap(0, 0, content.as_ref(), &PixmapPaint::default(), Transform::identity(), Some(&mask));
+}
+
+fn paint_node(scene: &mut Scene, canvas: &mut Canvas, id: Id) {
+    let layout = scene.layout;
+    let doc = scene.doc;
+    let window = Rect::new(0.0, 0.0, layout.size.0, layout.size.1);
+    let (Some(node), Some(lbox)) = (doc.get(id), layout.boxes.get(&id)) else { return };
+    if !on_screen(node.kind.is_art(), lbox, window) {
+        return;
+    }
+    match &node.kind {
+        Kind::Background => decor::background(canvas, node, lbox, scene.images),
+        Kind::Border => decor::border(canvas, node, lbox, scene.images),
+        // Art inside a shape block is painted with its shape, as one path.
+        k if k.is_art() && shapes::in_shape(doc, node) => {}
+        k if k.is_art() => shapes::paint_art(canvas, doc, &layout.boxes, node, lbox, scene.images),
+        Kind::Para | Kind::TextDrawable => {
+            if let Some(tb) = layout.texts.get(&id) {
+                if let Some(fill) = tb.shaped.fill {
+                    canvas.fill_rect(lbox.rect, fill, lbox.clip);
+                }
+                // `wrap: "trim"` keeps the text on one line and cuts it off at the para's own edge.
+                let clip = if node.props.str("wrap") == Some("trim") {
+                    lbox.clip.map_or(Some(lbox.rect), |c| c.intersect(&lbox.rect)).or(Some(Rect::new(0.0, 0.0, 0.0, 0.0)))
+                } else {
+                    lbox.clip
+                };
+                let hover = scene.view.hover_link;
+                text::draw_shaped(canvas, scene.text, &tb.shaped, tb.x, tb.y, clip, hover);
+                text::draw_para_cursor(canvas, node, tb, clip);
+            }
+        }
+        _ => elements::paint(canvas, node, lbox, layout.texts.get(&id), scene.view, scene.text, scene.images),
+    }
 }

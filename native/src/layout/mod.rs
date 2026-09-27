@@ -189,7 +189,7 @@ fn role(node: &Node) -> Role {
     match &node.kind {
         Kind::SubscriptionItem => Role::Subscription,
         k if k.is_span() => Role::Skip,
-        Kind::App | Kind::DocumentRoot | Kind::Mask | Kind::Unknown(_) => Role::Skip,
+        Kind::App | Kind::DocumentRoot | Kind::Unknown(_) => Role::Skip,
         k if k.is_art() || k.is_decor() => Role::OutOfFlow,
         _ => {
             let p = &node.props;
@@ -293,7 +293,8 @@ impl Engine<'_> {
         }
         let fill = (remaining - m.horizontal()).max(0.0);
         match &node.kind {
-            Kind::Flow => (parent_w - m.horizontal()).max(0.0),
+            // A mask lays out like a flow (Shoes 3 draws it as a canvas, s3_canvas.c:531-613).
+            Kind::Flow | Kind::Mask => (parent_w - m.horizontal()).max(0.0),
             Kind::Stack | Kind::Widget => fill,
             Kind::Para | Kind::TextDrawable => {
                 let full = (parent_w - m.horizontal()).max(0.0);
@@ -373,7 +374,7 @@ impl Engine<'_> {
         let padding = node.props.padding(frame.w);
         let content = Rect::new(frame.x + padding.left, frame.y + padding.top, (frame.w - padding.horizontal()).max(0.0), 0.0);
         let avail_h = explicit_h.map(|h| (h - padding.vertical()).max(0.0)).unwrap_or(parent.1);
-        let flow = matches!(node.kind, Kind::Flow | Kind::DocumentRoot | Kind::Widget);
+        let flow = matches!(node.kind, Kind::Flow | Kind::DocumentRoot | Kind::Widget | Kind::Mask);
         let (used, later) = self.children(node.id, flow, content, avail_h);
         let h = explicit_h.unwrap_or(used + padding.vertical());
         let slot_box = Rect::new(frame.x, frame.y, frame.w, h);

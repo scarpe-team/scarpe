@@ -404,7 +404,9 @@ change the code and this list together.
   Text with `align: center/right` fills the rest of the row so the alignment shows. Positioned
   text (`left`/`top`) shrinks to fit the same way. `right:` and `bottom:` place from the far edges.
 - **Widget** (a `Shoes::Widget` subclass) lays its children out as a flow; its default width
-  fills the rest of the line, like a stack. **Mask** is not drawn yet.
+  fills the rest of the line, like a stack. **Mask** is a slot in the flow, laid out like a flow; the
+  slot holding it paints all its other contents (backgrounds included) through the alpha of what the
+  mask draws, and the window shows through everywhere else (Shoes 3, `s3_canvas.c:531-613`).
 - **Art geometry.** `star` follows Shoes 3 exactly (centred on left/top, first point straight
   down, radii outer/inner). `arrow` is centred on left/top, points right, is 0.8 x width tall with a
   head 0.42 x width long. `arc` sits in its (left, top, width, height) box like `oval` (Shoes 3
