@@ -14,14 +14,14 @@ class Shoes
       # log_init("Changelog")
     end
 
-    def get_latest_release_info
-      root_dir = File.dirname(__FILE__, 4) # this duplicates constants.rb, but how to share?
-
+    # root_dir duplicates constants.rb, but how to share?
+    def get_latest_release_info(root_dir = File.dirname(__FILE__, 4))
       revision = git_revision(root_dir)
 
       changelog_file = "#{root_dir}/CHANGELOG.md"
       if File.exist?(changelog_file)
-        changelog_content = File.read(changelog_file)
+        # UTF-8 whatever the locale: a packaged app starts with no LANG, where Ruby reads US-ASCII.
+        changelog_content = File.read(changelog_file, encoding: Encoding::UTF_8)
         release_name_pattern = /^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2}) - (\w+)$/m
         release_matches = changelog_content.scan(release_name_pattern)
         latest_release = release_matches.max_by { |version, _date, _name| Gem::Version.new(version) }
