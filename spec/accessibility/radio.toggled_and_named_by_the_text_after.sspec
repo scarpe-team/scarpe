@@ -1,0 +1,19 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: visual
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  flow do
+    @tea = radio :drink, checked: true
+    para "Tea"
+  end
+  flow do
+    @coffee = radio :drink
+    para "Coffee"
+  end
+end
+----------- test code
+radios = a11y_nodes.select { |n| n[:role] == "radio_button" }
+assert_equal [["Tea", true], ["Coffee", false]], radios.map { |n| n.values_at(:name, :toggled) }

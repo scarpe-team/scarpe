@@ -8,6 +8,8 @@ class Shoes
     include Shoes::DrawContext
 
     shoes_styles :url, :width, :height, :top, :left, :click, :rotate_angle, :transform_origin
+    # What a screen reader calls the picture (EXT, ledger N1); Shoes 3 left images unnamed.
+    shoes_style :alt
     shoes_events :click, :hover, :leave
 
     init_args :url

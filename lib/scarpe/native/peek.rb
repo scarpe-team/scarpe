@@ -9,10 +9,11 @@ module Scarpe::Native
     BANNER = <<~USAGE
       Usage: scarpe peek APP.rb [--size WxH] [--scale 2] [--wait SECS] [--click TEXT | --click-at X,Y]
                                 [--drag X,Y,X,Y...] [--type TEXT] [--key NAME] [--wheel DY[,X,Y]]
-                                [--window N | --app ID] [--shot OUT.png] [--layout]
+                                [--window N | --app ID] [--shot OUT.png] [--layout] [--a11y]
       Steps run in the order given. --drag moves to the first point and presses there, moves
       through the rest a frame apart and releases at the last. --window N (counting from 1) or --app ID sends the
-      steps after it to that window. With no --shot and no --layout, it saves peek.png here.
+      steps after it to that window. --a11y prints what a screen reader meets. With no --shot, no
+      --layout and no --a11y, it saves peek.png here.
     USAGE
 
     # How long a drag rests at each point: a frame of a 24 fps animate block and then some, so
@@ -27,7 +28,7 @@ module Scarpe::Native
       @origin = Dir.pwd # Shoes.run_app changes directory to the app's
       @steps = []
       @app_path = parse(argv)
-      @steps << [:shot, File.join(@origin, "peek.png")] if @steps.none? { |action, _| %i[shot layout].include?(action) }
+      @steps << [:shot, File.join(@origin, "peek.png")] if @steps.none? { |action, _| %i[shot layout a11y].include?(action) }
     end
 
     def run
@@ -59,6 +60,7 @@ module Scarpe::Native
         opts.on("--app ID", Integer) { |id| @steps << [:app, id] }
         opts.on("--shot OUT.png") { |path| @steps << [:shot, File.expand_path(path, @origin)] }
         opts.on("--layout") { @steps << [:layout, nil] }
+        opts.on("--a11y") { @steps << [:a11y, nil] }
         opts.on("-h", "--help") { quit_with(BANNER, 0) }
       end
       paths = parser.parse(argv)
@@ -161,6 +163,18 @@ module Scarpe::Native
         puts "##{node[:id]} #{node[:kind]} #{number(node[:x])},#{number(node[:y])} " \
           "#{number(node[:w])}x#{number(node[:h])}#{hidden}#{label}"
       end
+    end
+
+    A11Y_STATES = { selected: "selected", expanded: "open", focused: "focused", disabled: "disabled", read_only: "read-only" }.freeze
+
+    # One line per node a screen reader meets, indented under its parent:
+    # `#5 text_input "Name" = "Nick" (focused)`, the name first and then the value.
+    def do_a11y(_, node = automation.a11y, depth = 0)
+      said = [node[:name]&.inspect, ("= #{node[:value].inspect}" if node[:value])].compact.join(" ")
+      state = [{ true => "checked", false => "unchecked" }[node[:toggled]], *A11Y_STATES.filter_map { |key, word| word if node[key] == true }]
+      id = "##{node[:id]} " if node[:id] < 2**62 # parts of a drawable (list items, runs of text) have no id of Lacci's
+      puts "#{"  " * depth}#{id}#{node[:role]}#{" #{said}" unless said.empty?}#{" (#{state.compact.join(", ")})" if state.compact.any?}"
+      Array(node[:children]).each { |child| do_a11y(nil, child, depth + 1) }
     end
 
     def report_click(target, hit)

@@ -195,6 +195,12 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | L4 | Shoes 3 only widgets | OOS | | |
 | L5 | Scripts with no `Shoes.app` | MANUAL | | |
 
+### N. Screen readers
+
+| Row | Behaviour | Ruling | Fix | Note |
+|---|---|---|---|---|
+| N1 | A screen reader reads and works what Scarpe draws | EXT | | |
+
 ### X and M
 
 X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): M1 ERRATA, M2 MANUAL, M3 ERRATA, M4 ERRATA, M5 ERRATA, M6 ERRATA, M7 ERRATA, M8 ERRATA, M9 ERRATA, M10 MANUAL, M11 ERRATA, M12 ERRATA, M13 ERRATA, M14 MANUAL, M15 OOS, M16 ERRATA, M17 MANUAL, M18 S3, M19 ERRATA, M20 MANUAL, M21 S3, M22 MANUAL, M23 MANUAL, M24 MANUAL, M25 MANUAL, M26 MANUAL, M27 S3, M28 MANUAL, M29 BOTH, M30 MANUAL, M31 S3, M32 BOTH, M33 BOTH, M34 S3, M35 MANUAL, M36 OOS, M37 OOS, M38 ERRATA, M39 ERRATA, M40 ERRATA.
@@ -1247,6 +1253,20 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** test code is hooked from `Shoes::App#initialize` (`app.rb:95-103`), so a script without `Shoes.app` can never run spec code, and the spec process writes no result (report 04, Surprise 3).
 - **Spec:** the runner executes each such script with dialogs stubbed and asserts exit 0, no Ruby error, and no `osascript` spawn.
 - **Native:** must answer built-ins with no App open (A5).
+
+## N. Screen readers
+
+### N1. A screen reader reads and works what Scarpe draws
+
+**Ruling: EXT** (`ext-scarpe`). New row, 27 Sep 2026, after Nick ruled that Scarpe draws its own controls ("our buttons are OUR buttons"): what the operating system's controls gave a screen reader for free, Scarpe now has to give it.
+
+- **Manual:** silent on screen readers. Its controls are the platform's own: "native controls (like edit lines and edit boxes) will match the look of the window theme" (manual 76-79).
+- **Shoes 3:** native Cocoa and GTK controls (`s3_cocoa.m:1283-1289` sets an `NSTextField` and an `NSProgressIndicator`), which VoiceOver reads like any others. Text, shapes and images are painted into each slot's `ShoesView` (`s3_cocoa.m:1145`), and neither `s3_cocoa.m` nor `s3_gtk.c` mentions accessibility, so nothing tells a screen reader what is painted there.
+- **Shoes 4:** SWT's native widgets, likewise.
+- **Examples:** none ask for anything.
+- **Lacci today:** nothing to name a picture with. Since 27 Sep, `image(path, alt: "...")` (`e51c23c`).
+- **Spec:** `spec/accessibility/` (`display: native`): a button is named by its label; a check or radio carries its state and the text block after it; a field its live text (bullets when secret) and the text block before it; a list box its choice and items; text is static text, big text a heading, a link a link; decoration and hidden things stay out; and a screen reader's click, focus and new value run the app's own blocks.
+- **Native:** every window carries an AccessKit adapter built from the document and layout, and the `a11y` and `a11y_action` ops read and work that tree (DESIGN 12, "Screen readers"). A ghost-window test reads it back through AppKit, as VoiceOver does.
 
 ## X. Lacci and Webview defects
 

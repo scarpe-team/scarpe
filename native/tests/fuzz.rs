@@ -2,14 +2,51 @@
 //! ops, NaN, infinite, negative or huge numbers, missing files, loops, deep nesting), Rust logs
 //! what it cannot use and carries on drawing. These tests feed generated bad input through the
 //! real entry point (`Runtime::handle_line`), then lay out, paint and poke the app the way a
-//! test or a person would. SCARPE_NATIVE_FUZZ_RUNS=N runs more sessions, and
-//! SCARPE_NATIVE_FUZZ_SEED=N replays one (SCARPE_NATIVE_FUZZ_TRACE=1 prints its lines).
+//! test or a person would. A screen reader listens throughout, as AccessKit's platform adapters
+//! do, so no hostile document makes a tree or an update that would panic one.
+//! SCARPE_NATIVE_FUZZ_RUNS=N runs more sessions, and SCARPE_NATIVE_FUZZ_SEED=N replays one
+//! (SCARPE_NATIVE_FUZZ_TRACE=1 prints its lines).
 
 mod common;
 
+use accesskit_consumer::{Node as SeenNode, Tree, TreeChangeHandler};
 use common::{app, create, snapshot_path, still_answers, Harness};
+use scarpe_native::a11y::{self, Mirror};
 use serde_json::{json, Value};
 use std::panic::{catch_unwind, AssertUnwindSafe};
+
+struct Quiet;
+
+impl TreeChangeHandler for Quiet {
+    fn node_added(&mut self, _: &SeenNode) {}
+    fn node_updated(&mut self, _: &SeenNode, _: &SeenNode) {}
+    fn focus_moved(&mut self, _: Option<&SeenNode>, _: Option<&SeenNode>) {}
+    fn node_removed(&mut self, _: &SeenNode) {}
+}
+
+/// What a platform adapter does with app 1's window: the whole tree once, then each update,
+/// through AccessKit's own consumer, which panics on any update that does not fit.
+#[derive(Default)]
+struct ScreenReader {
+    mirror: Mirror,
+    tree: Option<Tree>,
+}
+
+impl ScreenReader {
+    fn listen(&mut self, h: &mut Harness) {
+        let update = self.mirror.update(h.rt.a11y_tree(1, 2.0));
+        match &mut self.tree {
+            Some(tree) => tree.update_and_process_changes(update, &mut Quiet),
+            None => self.tree = Some(Tree::new(update, true)),
+        }
+    }
+
+    /// After all those updates it holds what a fresh tree would.
+    fn in_step(&self, h: &mut Harness) {
+        let fresh = a11y::read_back(h.rt.a11y_tree(1, 2.0));
+        assert_eq!(self.tree.as_ref().map(a11y::read), Some(fresh), "the screen reader fell out of step");
+    }
+}
 
 /// xorshift64*: small, deterministic, so a failing seed reproduces.
 struct Rng(u64);
@@ -152,10 +189,13 @@ fn hostile_session(rng: &mut Rng, h: &mut Harness) {
         eprintln!("fuzz >> {lines}");
     }
     h.feed(&lines);
+    let mut reader = ScreenReader::default();
+    reader.listen(h);
 
     for _ in 0..(10 + rng.below(30)) {
         let id = rng.pick(&ids);
-        let line = match rng.below(17) {
+        let part = a11y::part(id, rng.below(3)).0;
+        let line = match rng.below(19) {
             0 => json!({"t": "props", "id": id, "props": hostile_props(rng, &ids)}),
             1 => json!({"t": "reparent", "id": id, "parent": rng.pick(&ids), "index": rng.pick(&hostile_numbers())}),
             2 => json!({"t": "destroy", "id": id}),
@@ -172,13 +212,22 @@ fn hostile_session(rng: &mut Rng, h: &mut Harness) {
             13 => json!({"t": "req", "req": 7, "op": "frames", "n": rng.pick(&[json!(3), json!(0), json!(-1), json!(1e300)])}),
             14 => json!({"t": "req", "req": 7, "op": "snapshot", "path": snapshot_path(), "scale": rng.pick(&hostile_numbers())}),
             15 => json!({"t": "create", "id": id, "kind": rng.pick(KINDS), "parent": rng.pick(&ids), "props": hostile_props(rng, &ids)}),
+            16 => json!({"t": "req", "req": 7, "op": "a11y", "app": rng.pick(&[json!(null), json!(id)])}),
+            17 => json!({
+                "t": "req", "req": 7, "op": "a11y_action",
+                "id": rng.pick(&[json!(id), json!(part), json!(u64::MAX), json!(-1)]),
+                "action": rng.pick(&["click", "focus", "set_value", "expand", "collapse", "fly"]),
+                "value": hostile_value(rng),
+            }),
             _ => json!({"t": "flush"}),
         };
         if std::env::var_os("SCARPE_NATIVE_FUZZ_TRACE").is_some() {
             eprintln!("fuzz >> {line}");
         }
         h.feed(&format!("{line}\n"));
+        reader.listen(h);
     }
+    reader.in_step(h);
     // A pixel paints the whole picture, as a snapshot does, without the PNG encoding.
     h.feed(&format!("{}\n", json!({"t": "req", "req": 8, "op": "pixel", "x": 10, "y": 10})));
 }

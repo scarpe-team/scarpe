@@ -42,6 +42,14 @@ pub enum Target {
     Point(f32, f32),
 }
 
+/// The node a screen reader acts on: one of the tree's by id, or, through AppKit the way
+/// VoiceOver works a window, the first element with this title (`platform: true`).
+#[derive(Clone, Debug, PartialEq)]
+pub enum A11yTarget {
+    Id(u64),
+    Titled(String),
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MouseAction {
     Move,
@@ -75,6 +83,11 @@ pub enum Op {
     Pixel { x: f32, y: f32, app: Option<Id> },
     Frames { n: u32, app: Option<Id> },
     Focused { app: Option<Id> },
+    /// The accessibility tree, as a screen reader meets it (a11y.rs). `platform`: as AppKit hands
+    /// it to VoiceOver, read from the window itself (macOS windows only).
+    A11y { app: Option<Id>, platform: bool },
+    /// What a screen reader asks of one node: click, focus, set_value, expand or collapse.
+    A11yAction { target: A11yTarget, action: String, value: Option<String>, app: Option<Id> },
     Ping,
     /// Anything we cannot run still gets a reply, with this error.
     Invalid(String),
@@ -224,9 +237,24 @@ fn op_fields(obj: &Map<String, Value>) -> Result<Op, ParseError> {
         "pixel" => Op::Pixel { x: required(f(obj, "x"), "x")?, y: required(f(obj, "y"), "y")?, app },
         "frames" => Op::Frames { n: obj.get("n").and_then(Value::as_u64).unwrap_or(1).min(u32::MAX as u64) as u32, app },
         "focused" => Op::Focused { app },
+        "a11y" => Op::A11y { app, platform: platform(obj) },
+        "a11y_action" => Op::A11yAction {
+            target: if platform(obj) {
+                A11yTarget::Titled(required(s(obj, "name"), "name")?)
+            } else {
+                A11yTarget::Id(required(obj.get("id").and_then(Value::as_u64), "id")?)
+            },
+            action: required(s(obj, "action"), "action")?,
+            value: obj.get("value").filter(|v| !v.is_null()).map(crate::props::value_text),
+            app,
+        },
         "ping" => Op::Ping,
         other => Op::Invalid(format!("unknown op `{other}`")),
     })
+}
+
+fn platform(obj: &Map<String, Value>) -> bool {
+    obj.get("platform").and_then(Value::as_bool).unwrap_or(false)
 }
 
 fn button(obj: &Map<String, Value>) -> u8 {
@@ -428,6 +456,17 @@ mod tests {
         assert_eq!(op(r#"{"t":"req","req":1,"op":"pixel","x":1,"y":2}"#), Op::Pixel { x: 1.0, y: 2.0, app: None });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"frames","n":3}"#), Op::Frames { n: 3, app: None });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"focused"}"#), Op::Focused { app: None });
+        assert_eq!(op(r#"{"t":"req","req":1,"op":"a11y","app":1}"#), Op::A11y { app: Some(1), platform: false });
+        assert_eq!(op(r#"{"t":"req","req":1,"op":"a11y","platform":true}"#), Op::A11y { app: None, platform: true });
+        assert_eq!(
+            op(r#"{"t":"req","req":1,"op":"a11y_action","id":9,"action":"set_value","value":"Nick"}"#),
+            Op::A11yAction { target: A11yTarget::Id(9), action: "set_value".into(), value: Some("Nick".into()), app: None }
+        );
+        assert_eq!(
+            op(r#"{"t":"req","req":1,"op":"a11y_action","platform":true,"name":"Go","action":"click"}"#),
+            Op::A11yAction { target: A11yTarget::Titled("Go".into()), action: "click".into(), value: None, app: None }
+        );
+        assert!(matches!(op(r#"{"t":"req","req":1,"op":"a11y_action","action":"click"}"#), Op::Invalid(_)));
         assert_eq!(op(r#"{"t":"req","req":1,"op":"ping"}"#), Op::Ping);
         assert!(matches!(op(r#"{"t":"req","req":1,"op":"teleport"}"#), Op::Invalid(_)));
         assert!(matches!(op(r#"{"t":"req","req":1,"op":"click"}"#), Op::Invalid(_)));
