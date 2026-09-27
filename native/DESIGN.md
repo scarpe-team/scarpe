@@ -556,11 +556,12 @@ used, so any Scarpe display service can run them. `spec/README.md` is the writer
   kept in a file), writes `spec/results/<display>.json` and prints a scoreboard. Exit code
   non-zero on failures.
 
-At the fourth build wave's merge (`5b0c9d2`, 27 Sep 2026) the suite holds 983 cases: native 958
-pass, 0 fail, 1 skip and 24 expected failures, each citing its ledger row; niente 534 pass and 16
-expected failures (432 need layout or input and are n/a there). Examples on native: 317 pass, 0
+At the fifth build wave's merge (`7e847ff`, 28 Sep 2026) the suite holds 1019 cases: native 1003
+pass, 0 fail, 1 skip and 15 expected failures, each citing its ledger row; niente 540 pass and 12
+expected failures (466 need layout or input and are n/a there). Examples on native: 317 pass, 0
 fail, 90 skipped, and 23 that `spec/examples.yml` expects to fail there, each with its reason
-(dialog-only apps, scripts that never start an app, apps that only log or paint one flat colour).
+(dialog-only apps, scripts that never start an app or stop on a missing library, apps that only
+log or paint one flat colour, and `colours.rb`, whose colours `flatten` dissolves, ledger D1).
 
 ## 10. Lacci fixes this work depends on (each has a LEDGER row and a test)
 
