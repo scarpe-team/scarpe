@@ -466,3 +466,23 @@ fn arrows_on_an_empty_list_box_do_nothing() {
     assert!(named(&key(&mut h, "down"), "change").is_empty());
     assert!(named(&key(&mut h, "up"), "change").is_empty());
 }
+
+/// manual 3356-3359 and ledger G9: Enter on a focused radio (or check) clicks it, as Space
+/// does; Lacci toggles it. Only a focused button took Enter before.
+#[test]
+fn enter_clicks_a_focused_check_or_radio() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(3, "Check", 2, json!({})), create(4, "Radio", 2, json!({}))]));
+    for id in [3, 4] {
+        h.feed(&format!("{}\n", json!({"t": "focus", "id": id})));
+        for name in ["\n", " "] {
+            let evs = key(&mut h, name);
+            assert_eq!(named(&evs, "click").iter().map(|e| e.1.clone()).collect::<Vec<_>>(), vec![json!(id)], "{name:?} on {id}");
+            assert!(named(&evs, "keypress").is_empty(), "the control used the key");
+        }
+    }
+    let mut modified = scarpe_native::input::KeyInput::named(scarpe_native::input::Named::Enter);
+    modified.ctrl = true;
+    h.rt.key_input(1, modified);
+    assert!(named(&events(&h.rt.out.take_captured()), "click").is_empty(), "Control-Enter is a keypress, not a click");
+}

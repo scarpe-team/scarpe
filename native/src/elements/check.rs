@@ -3,7 +3,7 @@
 
 use super::{focus_ring, WidgetState, ACCENT};
 use crate::doc::Node;
-use crate::input::{Key, KeyInput};
+use crate::input::KeyInput;
 use crate::layout::{LBox, Rect};
 use crate::paint::Canvas;
 use crate::style::Color;
@@ -15,8 +15,10 @@ pub fn box_rect(r: Rect) -> Rect {
     Rect::new(r.x + (r.w - BOX) / 2.0, r.y + (r.h - BOX) / 2.0, BOX, BOX)
 }
 
+/// Space and Return click a focused check or radio, as they press a focused button
+/// (manual 3356-3359, ledger G9); Lacci toggles it.
 pub fn activates(key: &KeyInput) -> bool {
-    !key.modified() && key.key == Key::Char(" ".into())
+    super::button::activates(key)
 }
 
 pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, state: WidgetState) {

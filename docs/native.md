@@ -341,8 +341,7 @@ As of 27 Sep 2026. Each has more detail in the ledger or in DESIGN.
   still open.
 - **Packaging.** No YJIT in the shipped Ruby yet. Bytecode only helps when the app runs from where it
   was compiled for. Only the app file and its assets are copied, not other `.rb` files it requires.
-- **Text.** The stretch (condensed, expanded) and small-caps styles are not drawn (ledger F4, F5),
-  and Enter on a focused check or radio does not click it (G9).
+- **Text.** The stretch (condensed, expanded) and small-caps styles are not drawn (ledger F4, F5).
 - **Examples.** The ones marked failing on native in `spec/examples.yml` each say why (see above),
   and `rotate_shapes.rb` turns its shapes about their corners, as the manual says, where it was
   written for the centre.
