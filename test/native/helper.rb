@@ -123,6 +123,15 @@ module NativeTestHelpers
     assert_operator run.result["assertions"], :>, 0
   end
 
+  # Sets environment variables (nil unsets) for the block, then puts them back.
+  def with_env(vars)
+    saved = vars.keys.to_h { |key| [key, ENV[key]] }
+    vars.each { |key, value| ENV[key] = value }
+    yield
+  ensure
+    saved.each { |key, value| ENV[key] = value }
+  end
+
   private
 
   def fake_commands(dir)

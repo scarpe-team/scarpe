@@ -21,6 +21,13 @@ module Scarpe::Native::Normalize
   # Stands in for a value that cannot cross the process boundary (a Proc); containers skip it.
   DROP = Object.new.freeze
 
+  # How the image and font files Rust reads begin: PNG, JPEG, GIF, BMP, WebP, TIFF (both byte
+  # orders), ICO, TrueType, OpenType, a font collection, WOFF and WOFF2.
+  MEDIA_SIGNATURES = [
+    "\x89PNG", "\xFF\xD8\xFF", "GIF8", "BM", "RIFF", "II*\x00", "MM\x00*", "\x00\x00\x01\x00",
+    "\x00\x01\x00\x00", "OTTO", "true", "ttcf", "wOFF", "wOF2",
+  ].map(&:b).freeze
+
   def props(kind, hash)
     dropped_click = false
     out = hash.each_with_object({}) do |(key, value), wire|
@@ -211,41 +218,27 @@ module Scarpe::Native::Normalize
     @downloads ||= {}
     return @downloads[url] if @downloads.key?(url)
 
-    require "digest"
-    require "uri"
-    path = File.join(cache_dir, Digest::SHA256.hexdigest(url)[0, 32] + File.extname(URI(url).path.to_s))
-    fetch(url, path) unless File.size?(path)
+    path = cache_entry(url)
+    fetch(url, path) unless cached?(path)
     @downloads[url] = path
   rescue StandardError => e
     log.warn("Could not download #{url}: #{e.class}: #{e.message}")
     @downloads[url] = nil
   end
 
-  def cache_dir
-    require "tmpdir"
-    dir = ENV["SCARPE_NATIVE_CACHE"] || File.join(Dir.tmpdir, "scarpe-native-cache")
-    FileUtils.mkdir_p(dir)
-    dir
+  def cache_entry(url)
+    require "digest"
+    require "uri"
+    File.join(cache_dir, Digest::SHA256.hexdigest(url)[0, 32] + File.extname(URI(url).path.to_s))
   end
 
-  def fetch(url, path, redirects_left: 5)
-    require "net/http"
-    uri = URI(url)
-    response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https", open_timeout: 10, read_timeout: 10) do |http|
-      http.request(Net::HTTP::Get.new(uri))
-    end
-
-    case response
-    when Net::HTTPRedirection
-      raise "too many redirects" if redirects_left.zero?
-
-      fetch(URI.join(url, response["location"]).to_s, path, redirects_left: redirects_left - 1)
-    when Net::HTTPSuccess
-      File.binwrite("#{path}.part", response.body)
-      File.rename("#{path}.part", path)
-    else
-      raise "HTTP #{response.code}"
-    end
+  # Rust reads whatever path the cache hands it, so the cache is the user's own: never the
+  # shared temp dir, where another user could plant a link or a file first.
+  def cache_dir
+    dir = ENV["SCARPE_NATIVE_CACHE"].to_s
+    dir = per_user_cache_dir if dir.empty?
+    FileUtils.mkdir_p(dir, mode: 0o700)
+    private_dir(dir)
   end
 
   def utf8(string)
@@ -259,6 +252,78 @@ module Scarpe::Native::Normalize
   end
 
   private
+
+  def per_user_cache_dir
+    if Gem.win_platform?
+      File.join(ENV.fetch("LOCALAPPDATA", Dir.home), "scarpe-native", "cache")
+    elsif RUBY_PLATFORM.include?("darwin")
+      File.join(Dir.home, "Library", "Caches", "scarpe-native")
+    else
+      xdg = ENV["XDG_CACHE_HOME"].to_s
+      File.join(xdg.empty? ? File.join(Dir.home, ".cache") : xdg, "scarpe-native")
+    end
+  end
+
+  # A directory of our own, not a link, that nobody else may write to.
+  def private_dir(dir)
+    return dir if Gem.win_platform? # %LOCALAPPDATA% belongs to the user by its access list
+
+    stat = File.lstat(dir)
+    raise "the cache #{dir} is a link" if stat.symlink?
+    raise "the cache #{dir} is not a directory" unless stat.directory?
+    raise "the cache #{dir} belongs to someone else" unless stat.owned?
+
+    File.chmod(0o700, dir) unless (stat.mode & 0o077).zero?
+    dir
+  end
+
+  # An entry counts only as a plain file of ours that starts like an image or a font: never a
+  # link, a pipe, a stranger's file or a saved error page.
+  def cached?(path)
+    stat = File.lstat(path)
+    stat.file? && stat.owned? && media?(File.binread(path, 16))
+  rescue SystemCallError
+    false
+  end
+
+  def media?(head)
+    MEDIA_SIGNATURES.any? { |signature| head.start_with?(signature) }
+  end
+
+  def fetch(url, path, redirects_left: 5)
+    require "net/http"
+    uri = URI(url)
+    response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https", open_timeout: 10, read_timeout: 10) do |http|
+      http.request(Net::HTTP::Get.new(uri))
+    end
+
+    case response
+    when Net::HTTPRedirection
+      raise "too many redirects" if redirects_left.zero?
+
+      target = URI.join(url, response["location"])
+      raise "refusing the redirect from https to #{target}" if uri.scheme == "https" && target.scheme != "https"
+
+      fetch(target.to_s, path, redirects_left: redirects_left - 1)
+    when Net::HTTPSuccess
+      write_entry(path, response.body)
+    else
+      raise "HTTP #{response.code}"
+    end
+  end
+
+  # Into a new file with a name nobody could guess (created exclusively, 0600), then renamed over
+  # the entry: a link planted at either name is replaced, never written through.
+  def write_entry(path, body)
+    require "tempfile"
+    part = Tempfile.create(["#{File.basename(path)}.", ".part"], File.dirname(path))
+    part.binmode
+    part.write(body)
+    part.close
+    File.rename(part.path, path)
+  ensure
+    File.unlink(part.path) if part && File.exist?(part.path)
+  end
 
   def log
     @log ||= Shoes::Log.logger("Scarpe::Native::Normalize")
