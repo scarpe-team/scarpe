@@ -120,6 +120,14 @@ module SpecSuite
     end
   end
 
+  # Prepended to Niente::ShoesSpecProxy, whose own respond_to_missing? calls the drawable's
+  # private respond_to_missing? and raises NoMethodError (lacci/lib/scarpe/niente/shoes_spec.rb).
+  module NienteRespondTo
+    def respond_to_missing?(name, include_private = false)
+      @obj.respond_to?(name, include_private)
+    end
+  end
+
   INSTALLERS = {
     "Shoes::Builtins" => ->(builtins) { builtins.prepend(AnsweredBuiltins) },
     "Minitest::Test" => ->(test_class) { test_class.include(TestHelpers) },
@@ -129,6 +137,7 @@ module SpecSuite
 
         proxy_class.define_method(name, NienteTriggers.instance_method(name))
       end
+      proxy_class.prepend(NienteRespondTo)
     end,
   }
 

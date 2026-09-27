@@ -101,10 +101,24 @@ app block has finished and before any timer fires. Every Minitest assertion is a
 - Name what you will assert on with an `@ivar` in the app code. Plural finders return
   drawables breadth-first, not in document order, so never index into `paras` for meaning.
 - `title`, `subtitle`, `banner`, `tagline`, `caption`, `inscription` find paras by size.
-  In Lacci those are paras too, so `paras` includes them.
+  In Lacci those are paras too, so `paras` includes them (ledger F2). They match on the size
+  name, so `title "x", size: 16` is only found as `para("@ivar")`.
 - `drawable(MyWidget)` finds `Shoes::Widget` subclasses, which get no named finder.
 - A finder returns a proxy that forwards to the Lacci drawable: `.text`, `.text=`,
-  `.checked?`, `.style`, `.hide`, `.contents` and the rest.
+  `.checked?`, `.style`, `.hide`, `.contents` and the rest. `respond_to?` answers for the
+  drawable on both displays. `to_s` does not forward (the proxy's own `Object#to_s` wins):
+  assert on `.text`, or call `to_s` in the app code and keep the result in a global.
+- **Text fragments are not in the drawable tree.** `link`, `strong`, `em`, `code` and the
+  rest live inside their para's text, so no finder reaches them (`codes` finds nothing).
+  Keep the fragment in an `@ivar` or `$global` and, under niente, fire its event directly:
+  `Shoes::DisplayService.dispatch_event("click", $link.linkable_id)`. On native,
+  `click_on("link text")` clicks it through Rust, and `layout_tree` lists each fragment
+  right after its para.
+
+**Manipulate the app from app code, not test code.** Test code runs with the Minitest test as
+`self`, so `$slot.append { para "x" }` in test code calls the `para` *finder*, which raises
+`Don't know how to find drawables by "x"`. Put the `append`, `clear` or `prepend` in a button
+handler in the app code and `trigger_click` it from the test.
 
 ### `display: any`
 
@@ -131,9 +145,9 @@ Everything above, plus the native API (DESIGN.md section 8):
 | `click_on(proxy_or_text)`, `click_at(x, y, button: 1)` | a real click through layout and hit-testing |
 | `hover_at(x, y)`, `move_mouse(x, y)` | pointer motion |
 | `type_text(str)`, `press_key(name)` | keys into the focused input or the app (`"a"`, `:left`, `:control_a`, `"\n"`) |
-| `wheel(dy, x:, y:)` | scroll |
+| `wheel(dy, x:, y:)` | scroll at window point (x, y); see below for the sign |
 | `layout_of(proxy)` | a Rect with `x`, `y`, `w`, `h` in window coordinates |
-| `layout_tree` | every laid-out node as a Hash, in paint order |
+| `layout_tree` | every laid-out node as a Hash with **Symbol** keys (`:id`, `:kind`, `:x`, `:y`, `:w`, `:h`, `:visible`, `:text`), in paint order |
 | `pixel_at(x, y)` | `[r, g, b, a]` |
 | `snapshot(name)` | writes `spec/results/snapshots/<name>.png`, returns the path |
 | `wait_frames(n = 1)`, `advance(seconds)` | pump the loop; `advance` fires timers |
@@ -142,7 +156,17 @@ Everything above, plus the native API (DESIGN.md section 8):
 Every event a synthetic input causes has been dispatched by the time the call returns
 (DESIGN 4.1), so assert straight after `click_on` or `type_text`. Use `advance` for
 `animate`, `every` and `timer`; never `sleep`. Layout is deterministic because native runs
-headless with bundled fonts (`SCARPE_NATIVE_FONTS=bundled`).
+headless with bundled fonts (spec/run passes `--fonts bundled` through `SCARPE_NATIVE_ARGS`).
+
+`wheel(dy, x:, y:)` takes `dy` in logical pixels with the browser's sign: `dy > 0` scrolls
+down, towards the end of the content, so the content moves up by `dy`. A `wheel { |delta, x, y| }`
+handler receives `delta = -dy`, positive for up (DESIGN 12, ledger H7). So `wheel 40, x: 10, y: 10`
+scrolls whatever scrolls under (10, 10) down by up to 40 px and hands a wheel handler -40.
+Without `x:` and `y:` it aims at the middle of the first window.
+
+Mouse coordinates are window coordinates everywhere: `click_at`, `layout_of`, and the
+`[button, x, y]` a `click`, `release` or `motion` handler receives, nested slots included
+(ledger H3, ruled 27 Sep 2026).
 
 ## Rules
 
