@@ -39,6 +39,7 @@ module Scarpe::Native
     end
 
     def step
+      @service.child.check_started!
       Stats.time(:wait) { @service.child.wait_for_input(wait_time) }
       Stats.time(:drain) { drain }
       Stats.time(:timers) { @service.fire_timers }

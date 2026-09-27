@@ -30,13 +30,16 @@ require_relative "native/pump"
 require_relative "native/display_drawable"
 require_relative "native/display_service"
 
-# Packaged apps may leave minitest out; they lose Shoes-Spec and nothing else.
-begin
-  require "minitest"
-  require_relative "native/shoes_spec"
-  Shoes::Spec.instance = Scarpe::Native::Test
-rescue LoadError
-  Shoes::Spec.instance = nil
+# Shoes-Spec needs minitest, 10-45 ms to load (native/PERF.md), and only a spec run uses it: Lacci
+# runs the code in SHOES_SPEC_TEST. Packaged apps may leave minitest out; they lose Shoes-Spec only.
+if ENV["SHOES_SPEC_TEST"]
+  begin
+    require "minitest"
+    require_relative "native/shoes_spec"
+    Shoes::Spec.instance = Scarpe::Native::Test
+  rescue LoadError
+    Shoes::Spec.instance = nil
+  end
 end
 
 Shoes::FEATURES.push(:multi_app)
