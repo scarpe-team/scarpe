@@ -4,8 +4,6 @@ lines: [2286, 2289]
 testability: api
 display: native
 ledger: H8
-expect: fail
-reason: "Lacci runs a slot's start on the first heartbeat after it is registered (H8); test code runs inside the first heartbeat, ahead of the slot's own subscriber, and wait_frames dispatches no heartbeat."
 ----------- app code
 $started = []
 Shoes.app width: 400, height: 300 do

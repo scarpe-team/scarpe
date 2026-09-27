@@ -117,6 +117,36 @@ class AppTest < Minitest::Test
     assert_match(/RuntimeError: kaboom in the click handler for 3 \(at .*app\.rb:2/, run.stderr)
   end
 
+  # A failed require, a runaway recursion or NotImplementedError are not StandardErrors, but a bad
+  # block is a bad block: logged, and the app carries on (review).
+  def test_a_handler_that_raises_beyond_standard_error_is_logged_and_the_loop_keeps_going
+    clicks = %w[require recurse unimplemented fine].map do |text|
+      { "t" => "event", "name" => "click", "target" => { "text" => text }, "args" => [] }
+    end
+    run = run_app(<<~RUBY, script: [{ "on" => "run", "emit" => clicks }])
+      Shoes.app do
+        button("require") { require "definitely_not_a_gem_xyz" }
+        button("recurse") { recurse = ->(depth) { recurse.(depth + 1) }; recurse.(0) }
+        button("unimplemented") { raise NotImplementedError, "not yet" }
+        button("fine") { puts "still alive"; Shoes.quit }
+      end
+    RUBY
+    assert_clean_exit(run)
+    assert_equal "still alive\n", run.stdout
+    assert_match(/LoadError: cannot load such file -- definitely_not_a_gem_xyz in the click handler/, run.stderr)
+    assert_match(/SystemStackError: stack level too deep in the click handler/, run.stderr)
+    assert_match(/NotImplementedError: not yet in the click handler/, run.stderr)
+  end
+
+  # Inside an app `exit` is Shoes' own quit; Kernel.exit raises SystemExit, which still ends it.
+  def test_kernel_exit_in_a_handler_still_ends_the_app
+    run = run_app(<<~RUBY, script: [{ "on" => "run", "emit" => [{ "t" => "event", "name" => "click", "target" => { "kind" => "Button" }, "args" => [] }] }])
+      Shoes.app { button("bye") { Kernel.exit(3) } }
+    RUBY
+    refute run.timed_out
+    assert_equal 3, run.status.exitstatus
+  end
+
   def test_a_child_crash_is_reported_with_its_stderr
     run = run_app(<<~RUBY, script: [{ "on" => "run", "crash" => "thread 'main' panicked at src/paint.rs:7:5" }])
       Shoes.app { para "hi" }
@@ -151,6 +181,22 @@ class AppTest < Minitest::Test
     assert_equal ["answer: Nick", "confirm: true", "clicked"], run.stdout.lines.map(&:chomp)
     dialogs = run.of_type("req").select { |req| req["op"] == "dialog" }
     assert_equal([["ask", "Your name?"], ["confirm", "Sure?"]], dialogs.map { |req| [req["kind"], req["message"]] })
+  end
+
+  # Ledger K1: ask takes secret: and title: (manual 1385-1391, Shoes 3 s3_gtk.c:1772-1826); Lacci
+  # hands them over beside the message, and they reach Rust with the dialog.
+  def test_ask_hands_its_secret_and_title_to_the_dialog
+    run = run_app(<<~RUBY, headless: false, script: [{ "on" => "req:dialog", "reply" => "hunter2" }])
+      Shoes.app do
+        puts ask("Password?", secret: true, title: "Log in")
+        timer(0.05) { Shoes.quit }
+      end
+    RUBY
+    assert_clean_exit(run)
+    assert_equal "hunter2\n", run.stdout
+    dialog = run.of_type("req").find { |req| req["op"] == "dialog" }
+    assert_equal({ "kind" => "ask", "message" => "Password?", "secret" => true, "title" => "Log in" },
+      dialog.slice("kind", "message", "secret", "title"))
   end
 
   def test_a_cancelled_file_dialog_is_nil_and_never_falls_back_to_osascript
@@ -227,7 +273,74 @@ class AppTest < Minitest::Test
     assert_clean_exit(run)
     assert_equal([1, 4], run.of_type("run").map { |message| message["app"] })
     assert_equal 1, run.creates("App").last["owner"]
-    assert_equal [{ "t" => "quit", "app" => nil }], run.of_type("quit"), "one quit, at the very end"
+    assert_equal [{ "t" => "quit", "app" => 1 }, { "t" => "quit", "app" => nil }], run.of_type("quit"),
+      "Rust frees the first window as it closes, and everything at the end"
+  end
+
+  # A closed window's app is done with: Rust frees its view and document, and it leaves
+  # Shoes.APPS (manual 887-888), while the app goes on in the other window (review, ledger A8).
+  def test_closing_one_of_two_windows_frees_it_and_the_app_goes_on
+    run = run_app(<<~RUBY, script: [
+      Shoes.app do
+        button("new") { window(title: "two") { para "second" } }
+        button("titles") { p Shoes.APPS.map { |app| app.style[:title] } }
+      end
+    RUBY
+      { "on" => "run", "match" => { "app" => 1 }, "emit" => [{ "t" => "event", "name" => "click", "target" => { "text" => "new" }, "args" => [] }] },
+      { "on" => "run", "match" => { "app" => 5 }, "emit" => [
+        { "t" => "closed", "app" => 5 },
+        { "t" => "event", "name" => "click", "target" => { "text" => "titles" }, "args" => [] },
+        { "t" => "closed", "app" => 1 },
+      ] },
+    ])
+    assert_clean_exit(run)
+    assert_equal "[\"Shoes\"]\n", run.stdout
+    assert_equal [{ "t" => "quit", "app" => 5 }, { "t" => "quit", "app" => nil }], run.of_type("quit")
+  end
+
+  # Manual 901-904: close "Closes the app window"; exit is for closing the whole application.
+  def test_close_in_a_window_closes_that_window_only
+    run = run_app(<<~RUBY, script: [
+      Shoes.app do
+        button("new") { window(title: "two") { button("bye") { close } } }
+        button("count") { p Shoes.APPS.size }
+      end
+    RUBY
+      { "on" => "run", "match" => { "app" => 1 }, "emit" => [{ "t" => "event", "name" => "click", "target" => { "text" => "new" }, "args" => [] }] },
+      { "on" => "run", "match" => { "app" => 5 }, "emit" => [
+        { "t" => "event", "name" => "click", "target" => { "text" => "bye" }, "args" => [] },
+      ] },
+      { "on" => "quit", "match" => { "app" => 5 }, "emit" => [
+        { "t" => "event", "name" => "click", "target" => { "text" => "count" }, "args" => [] },
+        { "t" => "closed", "app" => 1 },
+      ] },
+    ])
+    assert_clean_exit(run)
+    assert_equal "1\n", run.stdout, "the first window stayed open"
+    assert_equal [{ "t" => "quit", "app" => 5 }, { "t" => "quit", "app" => nil }], run.of_type("quit")
+  end
+
+  # A window whose block raises was created but never run. It must not count as open, or closing
+  # the one real window leaves the pump waiting on it forever (review).
+  def test_a_window_whose_block_raises_is_dropped_and_never_counted_as_open
+    run = run_app(<<~RUBY, timeout: 8, script: [
+      Shoes.app do
+        button("broken") { window(title: "broken") { para "about to fail"; raise "typo in the window block" } }
+        button("count") { puts Shoes.APPS.size }
+      end
+    RUBY
+      { "on" => "run", "emit" => [{ "t" => "event", "name" => "click", "target" => { "text" => "broken" }, "args" => [] }] },
+      { "on" => "create", "match" => { "kind" => "Para" }, "after" => 0.1, "emit" => [
+        { "t" => "event", "name" => "click", "target" => { "text" => "count" }, "args" => [] },
+        { "t" => "closed", "app" => 1 },
+      ] },
+    ])
+    assert_clean_exit(run)
+    assert_match(/RuntimeError: typo in the window block in the click handler/, run.stderr)
+    assert_equal "1\n", run.stdout, "the broken window left Shoes.APPS"
+    broken = run.creates("App").last["id"]
+    assert_includes run.of_type("quit"), { "t" => "quit", "app" => broken }, "and Rust was told to free it"
+    assert_equal [1], run.of_type("run").map { |message| message["app"] }
   end
 
   def test_an_app_nested_in_another_apps_body_shows_both
@@ -297,6 +410,14 @@ class AppTest < Minitest::Test
     resize = run.of_type("req").find { |req| req["op"] == "resize" }
     assert_equal({ "w" => 300, "h" => 200 }, resize.slice("w", "h"))
     assert_operator run.received.index(resize), :<, run.received.index(run.of_type("req").find { |req| req["op"] == "layout" })
+  end
+
+  def test_peek_looks_once_the_slots_have_started
+    run = run_app(<<~RUBY, argv: ->(app) { ["peek", app, "--layout"] })
+      Shoes.app { stack { start { |slot| slot.append { para "started" } } } }
+    RUBY
+    assert_clean_exit(run)
+    assert_includes run.stdout, "\"started\"", "what the start block drew is in the layout"
   end
 
   def test_peek_with_nothing_to_do_saves_peek_png_here

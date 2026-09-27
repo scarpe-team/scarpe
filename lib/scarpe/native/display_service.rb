@@ -22,6 +22,17 @@ module Scarpe::Native
     end
   end
 
+  # Runs block once, after every handler of the pump's next heartbeat (the first, when called
+  # before the app runs). Lacci starts slots on that heartbeat (ledger H8), so a slot's start
+  # block has run and drawn by then: Shoes-Spec tests and peek's steps begin here.
+  def self.after_first_heartbeat(&block)
+    after_heartbeat << block
+  end
+
+  def self.after_heartbeat
+    @after_heartbeat ||= []
+  end
+
   def self.truthy_env?(name)
     value = ENV[name].to_s.downcase
     !value.empty? && !%w[0 false no].include?(value)
@@ -34,6 +45,9 @@ module Scarpe::Native
     include Shoes::Log
 
     LIBRARY_DIRS = %w[lacci lib scarpe-components].map { |dir| File.join(ROOT, dir) + "/" }.freeze
+
+    # What a handler may raise that ends the app instead of being logged.
+    FATAL = [SystemExit, SignalException, NoMemoryError].freeze
 
     class << self
       attr_accessor :instance
@@ -53,8 +67,7 @@ module Scarpe::Native
       @builtins = Builtins.new(self, interactive: !@headless && !@ghost)
       @automation = Automation.new(self)
       @pump = Pump.new(self)
-      @open_apps = {}
-      @started_apps = []
+      @open_apps = {} # every app that has run => whether its window is still open
       @child_log = Shoes::Log.logger("scarpe-native")
 
       on_bus("run", nil) { run_latest_app }
@@ -80,7 +93,6 @@ module Scarpe::Native
       if kind == "App"
         message[:doc_root] = id + 1
         message[:owner] = Normalize.value(properties["owner"])
-        @open_apps[id] = true
       end
       child.post(message)
 
@@ -119,11 +131,16 @@ module Scarpe::Native
       end
     end
 
-    # A handler that raises is logged and forgotten, so one bad block never takes the window down.
+    # A handler that raises is logged and forgotten, so one bad block never takes the window down:
+    # a failed require (ScriptError) or a runaway recursion (SystemStackError) as much as a
+    # StandardError. Only exit, signals and running out of memory end the app.
     # Inside surfacing_handler_errors (test code clicking things) it is kept to raise afterwards.
     def dispatch_from_child(name, target, args)
       Shoes::DisplayService.dispatch_event(name, target, *decode_args(name, target, args))
-    rescue StandardError => e
+    rescue *FATAL
+      raise
+    rescue Exception => e
+      drop_unstarted_apps
       @surfaced_errors ? @surfaced_errors << e : report_handler_error(e, "#{name} handler for #{target.inspect}")
     end
 
@@ -145,7 +162,11 @@ module Scarpe::Native
 
     def dispatch_heartbeat
       Shoes::DisplayService.dispatch_event("heartbeat", nil)
-    rescue StandardError => e
+      Scarpe::Native.after_heartbeat.shift.call until Scarpe::Native.after_heartbeat.empty?
+    rescue *FATAL
+      raise
+    rescue Exception => e
+      drop_unstarted_apps
       report_handler_error(e, "heartbeat handler")
     end
 
@@ -187,7 +208,23 @@ module Scarpe::Native
     def start_child
       started = Child.start(headless: @headless, ghost: @ghost)
       at_exit { started.close }
+      kill_on_term(started)
       started
+    end
+
+    # TERM means stop now. at_exit gives the child 2 s to quit before it insists, and a harness that
+    # follows its TERM with a KILL a second later never waits that out: a child stuck in layout
+    # then outlived us in its own process group. So TERM ends it at once, then does what it did.
+    def kill_on_term(child)
+      previous = Signal.trap("TERM") do |signo|
+        child.kill!
+        case previous
+        when Proc then previous.arity.zero? ? previous.call : previous.call(signo)
+        when "IGNORE", "SIG_IGN" then nil
+        when "EXIT" then exit
+        else raise SignalException, "TERM"
+        end
+      end
     end
 
     def on_bus(name, target, &handler)
@@ -225,8 +262,12 @@ module Scarpe::Native
     # Rust drops the whole subtree, so we forget it too. Slot#remove does not cascade in Lacci,
     # and a timer inside a removed slot must stop with it.
     def destroyed(id)
+      display = display_drawable(id)
+      return close_app(id) if display&.kind == "App" # App#close, while another window stays open
+
       child.post(t: "destroy", id: id)
-      display = display_drawable(id) or return
+      return unless display
+
       display.detach
       display.subtree.each { |node| forget(node.id) }
     end
@@ -251,11 +292,12 @@ module Scarpe::Native
     end
 
     # The app being run is the newest one not yet started. That is Shoes.APPS.last, except when
-    # a Shoes.app nested in another's body ran first.
+    # a Shoes.app nested in another's body ran first. An app counts as open from here, not from
+    # its create: one whose block raises never gets this far.
     def run_latest_app
       Shoes::DisplayService.dispatch_event("custom_event_loop", nil, "return")
-      app = Shoes.APPS.reverse.find { |candidate| !@started_apps.include?(candidate.linkable_id) } or return
-      @started_apps << app.linkable_id
+      app = Shoes.APPS.reverse.find { |candidate| !@open_apps.key?(candidate.linkable_id) } or return
+      @open_apps[app.linkable_id] = true
       child.post(t: "run", app: app.linkable_id)
       child.flush
       @pump.install
@@ -267,16 +309,42 @@ module Scarpe::Native
       @open_apps.transform_values! { false }
     end
 
+    # Apps are built and run inside one handler, so an app still unrun after a handler raised is
+    # a `window` whose block raised. It never opens: Rust frees it and Shoes.APPS lets it go.
+    def drop_unstarted_apps
+      unstarted = Shoes.APPS.reject { |app| @open_apps.key?(app.linkable_id) }
+      unstarted.each { |app| close_app(app.linkable_id) }
+      @pump.wake_on_interrupt unless unstarted.empty? # each trapped INT as it was made
+    end
+
+    # Rust frees the app's window and document, and its timers, drawables and layout go here.
+    def free_app(app_id)
+      child.post(t: "quit", app: app_id)
+      timers.remove_app(app_id)
+      @display_drawable_for.filter_map { |id, display| id if display.app_id == app_id }.each { |id| forget(id) }
+    end
+
+    # The user closed a window. The last one takes the app with it (every App hears the nil-target
+    # destroy); any other is that one app closing, as App#close does (ledger A8).
     def closed(app_id)
       return unless @open_apps[app_id]
 
       if @open_apps.count { |_id, open| open } == 1
         Shoes::DisplayService.dispatch_event("destroy", nil)
       else
-        @open_apps[app_id] = false
-        timers.remove_app(app_id)
-        lacci_drawable(app_id)&.destroy(send_event: false)
+        close_app(app_id)
       end
+    end
+
+    # One window closes and the others stay: the app leaves Shoes.APPS (manual 887-888), and Rust
+    # frees its window and document.
+    def close_app(app_id)
+      @open_apps[app_id] = false
+      if (app = lacci_drawable(app_id))
+        Shoes.APPS.delete(app)
+        app.destroy(send_event: false)
+      end
+      free_app(app_id)
     end
 
     # Set the ivars directly: going through the setter would echo a prop_change back to Rust.

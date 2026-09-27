@@ -4,8 +4,6 @@ lines: [901, 904]
 testability: api
 display: any
 ledger: A8
-expect: fail
-reason: "Lacci's close sends a nil-target destroy, which closes every app (A8, X16)"
 ----------- app code
 Shoes.app title: "First" do
   $first = self
@@ -19,8 +17,9 @@ Shoes.app title: "First" do
 end
 ----------- test code
 find_button("Another").trigger_click
+Shoes::DisplayService.subscribe_to_event("destroy", nil) { $closed << "every app" }
 [$first, $second].each do |app|
-  app.bind_shoes_event(event_name: "destroy") { $closed << app.style[:title] }
+  app.bind_shoes_event(event_name: "destroy", target: app.linkable_id) { $closed << app.style[:title] }
 end
 
 find_button("Close me").trigger_click

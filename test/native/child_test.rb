@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "helper"
+require "minitest/mock"
 
 class ChildTest < Minitest::Test
   include NativeTestHelpers
@@ -73,6 +74,11 @@ class ChildTest < Minitest::Test
     assert @child.dead?
   end
 
+  def test_a_pid_file_it_cannot_write_still_starts_the_child
+    with_env("SCARPE_NATIVE_PID_FILE" => File.join(@dir, "missing", "renderer.pid")) { start }
+    assert_equal "pong", @child.request(:ping)["value"]
+  end
+
   def test_a_missing_binary_is_reported
     assert_raises(Scarpe::Native::ChildNotFound) { Child.new([File.join(@dir, "nope")]) }
   end
@@ -90,6 +96,48 @@ class ChildTest < Minitest::Test
     end
   end
 
+  # An installed gem ships the crate but is no place to run cargo (review): a scarpe-native on
+  # PATH comes first, and only a git checkout of Scarpe builds its own.
+  def test_a_scarpe_native_on_path_comes_before_building_one
+    bin = File.join(@dir, "bin")
+    FileUtils.mkdir_p(bin)
+    File.write(File.join(bin, "scarpe-native"), "#!/bin/sh\n")
+    File.chmod(0o755, File.join(bin, "scarpe-native"))
+    with_env("SCARPE_NATIVE_BIN" => nil, "PATH" => bin) do
+      Scarpe::Native::Binary.stub(:build, -> { flunk "ran cargo" }) do
+        assert_equal File.join(bin, "scarpe-native"), Scarpe::Native::Binary.path
+      end
+    end
+  end
+
+  def test_only_a_git_checkout_with_the_crate_counts_as_one
+    installed_gem = File.join(@dir, "gems", "scarpe-0.5.0")
+    FileUtils.mkdir_p(File.join(installed_gem, "native"))
+    File.write(File.join(installed_gem, "native", "Cargo.toml"), "")
+    refute Scarpe::Native::Binary.checkout?(root: installed_gem), "the crate ships in the gem, .git does not"
+
+    File.write(File.join(installed_gem, ".git"), "gitdir: elsewhere\n") # a worktree's .git is a file
+    assert Scarpe::Native::Binary.checkout?(root: installed_gem)
+    assert Scarpe::Native::Binary.checkout?, "and the tests run from one"
+  end
+
+  def test_outside_a_checkout_with_nothing_on_path_it_says_so_instead_of_building
+    with_env("SCARPE_NATIVE_BIN" => nil, "PATH" => @dir) do
+      Scarpe::Native::Binary.stub(:checkout?, false) do
+        Scarpe::Native::Binary.stub(:build, -> { flunk "ran cargo" }) do
+          error = assert_raises(Scarpe::Native::ChildNotFound) { Scarpe::Native::Binary.path }
+          assert_match(/SCARPE_NATIVE_BIN/, error.message)
+        end
+      end
+    end
+  end
+
+  def test_the_gem_leaves_out_the_research_and_the_rust_tests
+    files = Gem::Specification.load(File.join(ROOT, "scarpe.gemspec")).files
+    assert_includes files, "native/src/main.rs", "the crate itself still ships"
+    assert_empty files.grep(%r{\Anative/(research|tests)/}), "reports, fixtures and golden PNGs stay home"
+  end
+
   def test_a_binary_older_than_any_crate_source_is_stale
     crate = File.join(@dir, "crate")
     FileUtils.mkdir_p(File.join(crate, "src", "layout"))
@@ -102,15 +150,5 @@ class ChildTest < Minitest::Test
     refute Scarpe::Native::Binary.stale?(binary: binary, crate: crate)
     File.utime(Time.now + 60, Time.now + 60, source)
     assert Scarpe::Native::Binary.stale?(binary: binary, crate: crate)
-  end
-
-  private
-
-  def with_env(vars)
-    saved = vars.keys.to_h { |key| [key, ENV[key]] }
-    vars.each { |key, value| ENV[key] = value }
-    yield
-  ensure
-    saved.each { |key, value| ENV[key] = value }
   end
 end

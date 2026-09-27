@@ -18,14 +18,17 @@ module Scarpe::Native
     def initialize(service)
       @service = service
       @last_heartbeat_at = nil
+      @interrupts = 0
     end
 
+    # Called at every run: each Shoes::App traps INT afresh as it is made (a window, a dialog),
+    # which drops the pump's link in the chain, so it goes back on for the app about to run.
     def install
+      wake_on_interrupt
       return if @installed
 
       @installed = true
       Stats.mark("run")
-      wake_on_interrupt
       # A script that died with an exception (or called exit) wants to stop, not show a window.
       at_exit { run unless $! }
     end
@@ -61,6 +64,23 @@ module Scarpe::Native
       end
     end
 
+    # Lacci quits on Ctrl-C from a signal trap, which may only flip flags (DisplayService#quit_all);
+    # a sleeping pump would not look at them until it woke. The trap now wakes it too. A second
+    # Ctrl-C ends the child as well: Ruby may be stuck writing to a child that stopped reading,
+    # where asking it to quit changes nothing.
+    def wake_on_interrupt
+      child = @service.child
+      previous = nil
+      chained = proc do |signal|
+        previous.arity.zero? ? previous.call : previous.call(signal)
+        (@interrupts += 1) > 1 ? child.kill! : child.wake!
+      end
+      previous = Signal.trap("INT", chained)
+      return @chained = chained if previous.respond_to?(:call) && !previous.equal?(@chained)
+
+      Signal.trap("INT", previous) # nothing new to chain: ours is still on, or no app trapped INT
+    end
+
     private
 
     def wait_time(longest)
@@ -68,17 +88,6 @@ module Scarpe::Native
       return longest unless due
 
       (due - @service.clock.now).clamp(0, longest)
-    end
-
-    # Lacci quits on Ctrl-C from a signal trap, which may only flip flags (DisplayService#quit_all);
-    # a sleeping pump would not look at them until it woke. The trap now wakes it too.
-    def wake_on_interrupt
-      child = @service.child
-      previous = Signal.trap("INT") do |signal|
-        previous.arity.zero? ? previous.call : previous.call(signal)
-        child.wake!
-      end
-      Signal.trap("INT", previous) unless previous.respond_to?(:call)
     end
 
     def heartbeat

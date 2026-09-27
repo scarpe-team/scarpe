@@ -116,7 +116,7 @@ that last ran or had input, else the first running one.
 
 | op | fields | reply `value` |
 |---|---|---|
-| `dialog` | `kind` (alert confirm ask ask_color ask_open_file ask_save_file ask_open_folder ask_save_folder), `message`, `default` | alert: null; confirm: bool; ask: String, or null on Cancel in a window (headless: `""`); ask_color: [r,g,b,a] or null; file/folder: path or null. `cancelled` bool alongside. The shim hands Lacci `""` for a cancelled ask either way (ledger K1, Q6) |
+| `dialog` | `kind` (alert confirm ask ask_color ask_open_file ask_save_file ask_open_folder ask_save_folder), `message`, `default`; for ask, `secret` (mask the typing) and `title` (heads the modal) when the app gave them (ledger K1) | alert: null; confirm: bool; ask: String, or null on Cancel in a window (headless: `""`); ask_color: [r,g,b,a] or null; file/folder: path or null. `cancelled` bool alongside. The shim hands Lacci `""` for a cancelled ask either way (ledger K1, Q6) |
 | `layout` | `app` | array of `{id, kind, x, y, w, h, visible, text?}` in window coordinates, rounded to 1/100, paint order; text fragments follow their para |
 | `snapshot` | `path`, `app`, `scale` (default: the app's scale) | writes a PNG; value = `{path, w, h}` in pixels |
 | `click` | `target`: `{id}` or `{text}` or `{x,y}`, `button` (1 default), `app` | synthesises press+release at the target's centre through the real input path. value = `{hit: id or null, x, y}`. Error if the target is not visible or something else is on top (the value says what was hit). `{id}` goes to the drawable's own window whatever `app` says. `{text}` matches exact text first, then text that contains it, links included, and also picks an item of an open list_box popup |
@@ -146,7 +146,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 | `resize` | `app`, `w`, `h` (Integers) | set the App's `@width`/`@height` ivars directly (no prop_change echo) |
 | `scroll` | `id`, `top` (Integer) | set the slot's `@scroll_top` directly |
 | `layout` | `app`, `rects`: `[[id, x, y, w, h, scroll_h], ...]` | `Shoes::DisplayService.layout_cache[id] = [x, y, w, h, scroll_h]` (Integer keys; the shim defines the accessor if Lacci lacks it and deletes ids on destroy). Sent after every layout pass, before its frame is presented and before the reply of any request that caused it: every laid-out node on an app's first layout, then only those whose rect changed, sorted by id. Window logical px, rounded to 1/100; `scroll_h` is a slot's content height, padding included, else `h`. Art reports its transformed box. Destroyed ids are simply not sent again (contract a; ledger A4, C5) |
-| `closed` | `app` | user closed a window: destroy that app (all apps if it was the last) |
+| `closed` | `app` | user closed a window: close that app, as `App#close` does (`quit {app}`, and it leaves `Shoes.APPS`), or every app if it was the last |
 | `reply` | `req`, `value`, `error` (null or String), plus op extras like `cancelled` | answers a `req` |
 | `log` | `level`, `msg` | forwarded to Shoes::Log (`scarpe-native` component) |
 
@@ -215,10 +215,12 @@ is the one bug we never want. Must never load `scarpe/wv` (set-once globals coll
 
 - Spawns the child lazily, the first time something needs it: the first `create_display_drawable_for`,
   or a windowed builtin before any app.
-  Binary: `ENV["SCARPE_NATIVE_BIN"]`; else, in a dev checkout (one with `native/Cargo.toml`),
-  `native/target/release/scarpe-native`, running `cargo build --release` first (one line to stderr)
-  when it is missing or older than any file under `native/src`, `Cargo.toml` or `Cargo.lock`;
-  else a packaged binary beside the running script, in `../MacOS`, or on `PATH`.
+  Binary: `ENV["SCARPE_NATIVE_BIN"]`; else a packaged binary beside the running script or in
+  `../MacOS`; else `scarpe-native` on `PATH`; else, only in a git checkout of Scarpe (`.git` and
+  `native/Cargo.toml` at the root), `native/target/release/scarpe-native`, running
+  `cargo build --release` first (one line to stderr) when it is missing or older than any file
+  under `native/src`, `Cargo.toml` or `Cargo.lock`. An installed gem ships the crate (not
+  `native/research` or `native/tests`) but never builds it at launch.
   Extra child arguments come from `SCARPE_NATIVE_ARGS`. The child runs in its own process group,
   so a terminal Ctrl-C reaches Ruby, which quits it.
 - Headless when `SCARPE_NATIVE_HEADLESS` is set to anything but `""`, `0`, `false` or `no` (passes
@@ -233,7 +235,11 @@ is the one bug we never want. Must never load `scarpe/wv` (set-once globals coll
 - Nil-target bus events: `run` (answer `custom_event_loop "return"`, then send `run` for the newest
   app not yet started, normally `Shoes.APPS.last`), `destroy` (quit every app; it may arrive from a
   signal trap, so it only flips flags and the pump sends the quit) and `builtin`. `init` and
-  `full_redraw_request` need nothing: Rust is retained.
+  `full_redraw_request` need nothing: Rust is retained. An app counts as open from its `run`, not
+  its `create`: a `window` whose block raised never runs, so after the handler's error the shim
+  sends `quit {app}` for it, forgets its drawables and takes it out of `Shoes.APPS`. One window
+  closing while another is open (Rust's `closed`, or a `destroy` aimed at an App, which is what
+  `App#close` sends, ledger A8) goes the same way; the last one quits everything.
 - `builtin` is answered synchronously: a stubbed answer first, then a quiet answer when nobody can
   click (headless, or a Shoes-Spec run), else `req dialog`, blocking on the reply while incoming
   events queue for the pump. Then `set_builtin_response(value)`. It must never leave a builtin
@@ -243,7 +249,9 @@ is the one bug we never want. Must never load `scarpe/wv` (set-once globals coll
 - Outgoing messages are buffered and written on `flush`; the pump flushes once per iteration, and a
   `req` writes the buffer ahead of itself. A Mutex guards writes (downloads call back on threads),
   and a post from another thread wakes the pump.
-- If the child has not answered `hello` within 20 s, the pump raises `ChildTimeout`.
+- If the child has not answered `hello` within 20 s of the pump's first step, the pump raises
+  `ChildTimeout`. The clock starts there and not at the spawn, because the app body runs in
+  between with the answer unread in the pipe, so a slow body is not a stuck child.
 
 ### 5.3 Normalisation (Ruby value -> wire value), in one place
 
@@ -257,8 +265,15 @@ is the one bug we never want. Must never load `scarpe/wv` (set-once globals coll
 - The draw context: `fill` and `stroke` as colours, everything else (`translate`, `transform`, `cap`,
   `strokewidth`, `rotate`...) as plain values (contract b).
 - Paths (`url`, image backgrounds, `icon`, `font`) -> absolute (`File.expand_path` against `Dir.pwd`).
-  `http(s)` image and font URLs are downloaded once into a cache dir (`SCARPE_NATIVE_CACHE`) and sent
-  as local paths; net/http loads on the first download only. A non-Image `url` with a scheme stays as it is.
+  `http(s)` image and font URLs are downloaded once into the user's own cache and sent as local
+  paths; net/http loads on the first download only. A non-Image `url` with a scheme stays as it is.
+  The cache is `SCARPE_NATIVE_CACHE`, else `~/Library/Caches/scarpe-native` on macOS,
+  `scarpe-native` under `$XDG_CACHE_HOME` (default `~/.cache`) on Linux, or
+  `%LOCALAPPDATA%\scarpe-native\cache` on Windows, and never the shared temp dir: a directory
+  that is a link or someone else's is refused, and ours is kept 0700. An entry counts only as a
+  plain file of the user's that starts like an image or font, else it is fetched again; a
+  download goes to a new file and is renamed over the entry, so a link planted at either name is
+  never followed. An https download never follows a redirect to plain http.
 - Ruby objects: `owner` -> its linkable id; `attach: Shoes::App` (the Window constant) -> `"window"`;
   `attach: drawable` -> its id; Procs -> dropped (a dropped `click` sets `has_block: true`).
   ListBox `items` and `chosen` travel as Strings.
@@ -279,11 +294,14 @@ loop until no app is open or the child's stdout ended:
   dispatch every complete message
   tick due timers: animate (frame starts at 0), every (count starts at 0, ledger I1), timer (one shot);
     honour `stopped` and destroyed items; timers can be created at any time
-  dispatch "heartbeat" (nil target) at most every 50 ms (Shoes-Spec hooks run on the first one)
+  dispatch "heartbeat" (nil target) at most every 50 ms; Shoes-Spec tests and peek's steps start
+    once the first one's handlers are done, so the slot start blocks Lacci hangs on it have run
   flush
 ```
 
 Handler exceptions are rescued per dispatch, logged with the app file/line, and the loop continues.
+That covers a failed `require` (ScriptError) and a runaway recursion (SystemStackError) as well
+as StandardError; only `exit` (SystemExit), a signal and NoMemoryError end the app.
 
 Deadlines are `origin + n * interval`, so ten 0.1 s frames land on one second instead of drifting.
 A timer that fell behind skips the deadlines it missed rather than firing a burst, and a restarted
@@ -294,9 +312,16 @@ need. Removing or destroying the slot stops them with it.
 
 An idle pump sleeps. Besides the child's output, the select watches a wake pipe that a post from
 another thread (a download) and Ctrl-C (the pump chains Lacci's INT trap) write to, so nothing
-waits on the timeout (native/PERF.md). Hello goes out without waiting for `ready`. When the loop
+waits on the timeout (native/PERF.md). Every `Shoes::App` traps INT afresh as it is made (a
+`window` is one), so the pump chains itself again at every run. A second Ctrl-C ends the child
+outright, since Ruby may be stuck writing to a child that stopped reading, where asking it to quit
+changes nothing. Hello goes out without waiting for `ready`. When the loop
 ends the shim sends `quit`, closes the child's stdin and gives it 2 s before TERM and KILL; if the
-child died while an app was still open, it raises `ChildDied`.
+child died while an app was still open, it raises `ChildDied`. A TERM to Ruby ends the child at
+once (its whole process group) before Ruby goes on to die of it, because a child stuck in layout
+never reads that EOF and a harness that follows TERM with KILL never waits out the grace. While the
+child runs, `SCARPE_NATIVE_PID_FILE` (when set) holds its pid, so a harness that had to kill Ruby
+can kill the child's group too: `spec/run` and `rake native_test` do.
 
 ## 6. Layout rules (canonical)
 
@@ -470,7 +495,7 @@ on top of the Niente-compatible finders and proxies (`button`, `para`, `edit_lin
 | `layout_tree` | array of hashes from `req layout`, Symbol keys |
 | `snapshot(name)` | writes `spec/results/snapshots/<name>.png` (or `SCARPE_NATIVE_SNAPSHOT_DIR`, or an absolute path), returns the path |
 | `pixel_at(x, y)` | `[r, g, b, a]` |
-| `wait_frames(n = 1)`, `advance(seconds)` | pump the loop. The clock is frozen in spec runs, so `advance` steps from one timer deadline to the next and fires exactly the timers due |
+| `wait_frames(n = 1)`, `advance(seconds)` | pump the loop. `wait_frames` beats the heart as the pump does, so a slot made since starts (ledger H8), and then waits for the frames. The clock is frozen in spec runs, so `advance` steps from one timer deadline to the next and fires exactly the timers due |
 | `resize_window(w, h)` | resize the window |
 | `focused_drawable` | proxy or nil |
 | `stub_dialog(kind, value)`, `dialogs_seen` | answer the next `kind` builtin with `value`; every `[kind, message]` asked for |
@@ -479,11 +504,12 @@ A handler that raises while test code is clicking or advancing fails the test in
 
 `scarpe peek APP.rb [--size WxH] [--scale 2] [--wait SECS] [--click TEXT | --click-at X,Y]
 [--drag X,Y,X,Y...] [--type TEXT] [--key NAME] [--wheel DY[,X,Y]] [--window N | --app ID]
-[--shot OUT.png] [--layout]` runs an app headless, performs the steps in order from the first
-heartbeat, prints one line per click, drag, wheel, window, shot and laid-out node, and exits (1
-when a step failed or no app started). With no `--shot` and no `--layout` it saves `peek.png` in
-the current directory. `--drag` presses at its first point and moves through the rest a frame
-apart, so an app that reads `mouse` in a timer sees the button down at each. It is the quick
+[--shot OUT.png] [--layout]` runs an app headless, performs the steps in order once the first
+heartbeat has started the slots, prints one line per click, drag, wheel, window, shot and
+laid-out node, and exits (1 when a step failed or no app started). With no `--shot` and no
+`--layout` it saves `peek.png` in the current directory. `--drag` presses at its first point and
+moves through the rest a frame apart, so an app that reads `mouse` in a timer sees the button
+down at each. It is the quick
 "look and click" tool for humans and agents. `--window N` (counting from 1 in `Shoes.APPS`) or
 `--app ID` sends every later step to that window.
 
@@ -508,8 +534,9 @@ used, so any Scarpe display service can run them. `spec/README.md` is the writer
   with the ruling. Default rule: the manual wins, unless a large body of working examples depends on
   the other behaviour, then accept both.
 - `spec/run [--display native|niente] [--jobs N] [paths...]` runs cases in parallel, sandboxed
-  (HOME, LOCALAPPDATA, cwd in a temp dir, dialogs stubbed, clipboard kept in a file), writes
-  `spec/results/<display>.json` and prints a scoreboard. Exit code non-zero on failures.
+  (HOME, LOCALAPPDATA, cwd, TMPDIR and the download cache in a temp dir, dialogs stubbed, clipboard
+  kept in a file), writes `spec/results/<display>.json` and prints a scoreboard. Exit code
+  non-zero on failures.
 
 At the fourth build wave's merge (`5b0c9d2`, 27 Sep 2026) the suite holds 983 cases: native 958
 pass, 0 fail, 1 skip and 24 expected failures, each citing its ledger row; niente 534 pass and 16
@@ -625,7 +652,8 @@ change the code and this list together.
   slot's hidden part catches nothing.
 - **Headless dialogs** reply with `cancelled: true` for everything but `alert`.
 - **Windowed dialogs.** `alert`, `confirm` and the file/folder pickers are native (rfd); `ask` and
-  `ask_color` draw an in-window modal (a text field, or twelve swatches) and reply when the user
+  `ask_color` draw an in-window modal (a text field, or twelve swatches; a `secret` ask's field
+  shows bullets, and its `title` is the panel's bold first line) and reply when the user
   presses OK/Return (`cancelled: false`) or Cancel/Escape (`value: null, cancelled: true`; the shim
   turns a null `ask` into `""`).
 - **`layout`** lists every laid-out node in paint order; each text fragment (Link, Strong, Em...)
@@ -725,8 +753,9 @@ change the code and this list together.
 | `SCARPE_NATIVE_GHOST` | passes `--ghost` (scarpe-native honours it too): windows present real frames but are invisible, click-through and never in front (section 12). Every automated windowed run sets it; `0` turns it off |
 | `SCARPE_NATIVE_TRACE` | prints every NDJSON line both ways to stderr (Ruby side; the child's `--trace` does it from Rust) |
 | `SCARPE_NATIVE_LOG_LEVEL` | `debug`, `info`, `warn` (default; `debug` under `SCARPE_DEBUG`) or `error` |
-| `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept |
+| `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept (default: the user's cache directory, 5.3) |
 | `SCARPE_NATIVE_SNAPSHOT_DIR` | where relative `snapshot(name)` paths go (default `spec/results/snapshots`) |
+| `SCARPE_NATIVE_PID_FILE` | a file that holds the child's pid while it runs, for harnesses that may have to kill it (5.4) |
 | `SCARPE_NATIVE_WINDOWED_TESTS` | lets `rake native_test` open real windows, as ghosts |
 | `SCARPE_NATIVE_STATS` | a directory: each process writes where its time went (`ruby.json`, `rust.json`) as it exits (native/PERF.md) |
 | `SCARPE_NATIVE_DAMAGE` | `off` repaints every window frame whole; `check` also paints each one whole and reports any pixel a partial repaint got wrong (headless too) |

@@ -58,7 +58,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | A5 | Built-in dialogs with no app open | MANUAL | 10.6 | |
 | A6 | `Shoes.app("/start/url")` | EXT | | |
 | A7 | Shoes 3.3 app styles | OOS | | |
-| A8 | `close` closes one window | MANUAL | unsched. | |
+| A8 | `close` closes one window | MANUAL | | |
 | A9 | `Shoes.app`, `window` and `dialog` return the App | MANUAL | | |
 
 ### B. Blocks, `self` and slot manipulation
@@ -270,13 +270,13 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### A8. `close` closes one window
 
-**Ruling: MANUAL.** **Lacci change, unscheduled.** New row.
+**Ruling: MANUAL.** **Lacci change, done 27 Sep 2026.** New row.
 
 - **Manual:** "Closes the app window. If multiple windows are open and you want to close the entire application, use the built-in method `exit`." (manual 901-904).
 - **Shoes 3:** not checked.
-- **Lacci today:** `App#destroy` sends `destroy` with a **nil** target (`app.rb:280-283`), every App listens for nil-target `destroy` (`app.rb:109-113`), and `close` is an alias of `destroy` (`app.rb:287`). So `close` on any window closes every app.
-- **Spec:** with two windows open, `close` on the second leaves the first open and `Shoes.APPS.size == 1`.
-- **Native:** DESIGN 4.1 `quit` takes an app id or null, but a nil-target `destroy` does not say which app. It needs Lacci to target the App's id.
+- **Lacci today:** `App#destroy` sends `destroy` with a **nil** target (`app.rb:280-283`), every App listens for nil-target `destroy` (`app.rb:109-113`), and `close` is an alias of `destroy` (`app.rb:287`). So `close` on any window closes every app. Since the wave-5 shim lane `close` is its own method: while another started app is open it leaves `Shoes.APPS` and sends `destroy` aimed at its own id; the last window's `close` is still `destroy`. Niente's App ends its loop on that aimed destroy.
+- **Spec:** with two windows open, `close` on the second leaves the first open and `Shoes.APPS.size == 1` (`app.close`, `app.Shoes.APPS__closed_removed`, both passing on both displays; `app.close` watches destroys aimed at each app, and a nil-target one, which would mean every app quit).
+- **Native:** the shim takes a `destroy` aimed at an App as that window closing: it sends `quit {app}`, so Rust frees the view and its document, and forgets the app's timers and drawables. A window the user closes while another is open goes the same way, and leaves `Shoes.APPS` too.
 
 ### A9. `Shoes.app`, `window` and `dialog` return the App
 
@@ -1103,7 +1103,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Shoes 4:** adds `keyrelease` and `resize` (`s4_dsl_interaction.rb:32-35, 78-81`).
 - **Lacci today:** `start` exists only on App and runs after the body with no argument (`app.rb:146-159`); `finish` on Slot fires on destroy with no argument (`slot.rb:209-219`, commit `1ce13b0`). No `keydown`, `keyup`, `keyrelease`, `resize`. Worse than a missing argument: `finish { }` written inside a slot's block runs against the App (B1) and raises `NoMethodError` at load time (the events writer's report). Since 27 Sep (`8d4e3ef`) slots have `start { |slot| }`, run once on the first heartbeat after it is registered (the display draws before that), and `finish` hands over the slot; written inside a slot's block, both belong to that slot. App-level `start` keeps its old timing.
 - **Spec:** `stack { start { |s| $started = s } }` sets `$started` to the stack after the first frame; `finish { |s| }` gets the slot on `clear`.
-- **Native:** the pump dispatches the first `heartbeat` after the first frame; `start` should hang off that point (DESIGN 5.4). `events.start` still fails there: Shoes-Spec test code runs inside that first heartbeat, ahead of the slot's own subscriber, and `wait_frames` dispatches no heartbeat of its own, so the case sees `start` not yet run. Either the automation's `wait_frames` dispatches a heartbeat, or Lacci hangs `start` off the slot's first `layout` push instead.
+- **Native:** the pump dispatches the first `heartbeat` after the first frame; `start` hangs off that point (DESIGN 5.4). Since the wave-5 shim lane, Shoes-Spec test code and `scarpe peek`'s steps run once every handler of that first heartbeat has run (`Scarpe::Native.after_first_heartbeat`), so the slots have started, and `wait_frames` beats the heart as the pump does, so a slot made by test code starts by the next frame. `events.start` passes; before, test code ran inside that heartbeat, ahead of the slot's own subscriber.
 
 ### H9. Slot event handlers survive `clear`
 
@@ -1176,9 +1176,9 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** `ask(message)` returns a string (manual 629-641); `:secret` is "For: ask, edit_line" (manual 1385-1391).
 - **Shoes 3:** `ask(msg, opts)` reads `:title` and `:secret`; the answer starts as `Qnil` and is set only on `GTK_RESPONSE_OK` (`s3_gtk.c:1772-1826`).
 - **Docs:** "Classic Shoes: ask() returned nil on cancel; Scarpe returns """ (`docs/scarpe_shoes_incompatibilities.md:104-107`). Commit `6ce3d28` says the opposite ("Shoes3 likely returned empty string") to stop Hackety Hack's guessing game crashing on `nil.to_i`.
-- **Lacci today:** `ask(message_string)` takes one argument (`builtins.rb:20-22`); WV returns `""` on Cancel; a `nil` answer would trigger the `osascript` fallback (X8). Since the wave-4 Lacci lane `ask` takes `secret:` and `title:` (and any other option) and hands them to the display as a third builtin argument; a plain `ask` still sends one. The native shim reads only the message, so its dialog does not mask a secret yet.
+- **Lacci today:** `ask(message_string)` takes one argument (`builtins.rb:20-22`); WV returns `""` on Cancel; a `nil` answer would trigger the `osascript` fallback (X8). Since the wave-4 Lacci lane `ask` takes `secret:` and `title:` (and any other option) and hands them to the display as a third builtin argument; a plain `ask` still sends one. The native shim passes both on since wave 5.
 - **Spec:** the runner answers an unanswered `ask` with `""`, the Cancel answer, and `harness/dialogs_never_open` pins it; no `osascript` runs. `builtins.ask.secret`: `ask("x", secret: true)` is accepted. A stubbed `nil` still comes back as nil (the stub is only a stand-in for a display).
-- **Native:** the dialog reply carries `value` null and `cancelled: true` (DESIGN 4.1); since 27 Sep the shim turns a cancelled `ask` into `""` (`app_test.rb`, `test_a_cancelled_ask_is_an_empty_string`). Headless mode already answered `""` (DESIGN 5.2).
+- **Native:** the dialog reply carries `value` null and `cancelled: true` (DESIGN 4.1); since 27 Sep the shim turns a cancelled `ask` into `""` (`app_test.rb`, `test_a_cancelled_ask_is_an_empty_string`). Headless mode already answered `""` (DESIGN 5.2). Since the wave-5 shim lane the shim sends `secret` and `title` with the dialog request, and Rust's in-window modal shows a secret answer as bullets under the title in bold.
 
 ### K2. Option hashes on dialogs
 
@@ -1269,7 +1269,7 @@ These are bugs, not disagreements about Shoes. A new display service inherits ev
 | X13 | `#rgb` expands each nibble times 16; `rgb()` picks int or float mode from `r` alone. | `colors.rb:229-234`, `:168-176` | `#DFA` is `[208, 240, 160]`; `rgb(0, 0.4, 0)` keeps a raw 0.4. | D2, D5 | 10.7 |
 | X14 | Oval's third positional is stored as a radius and doubled. | `drawables/oval.rb:18-19, 33, 42` | Every three-argument oval is twice the size; four-argument ovals are 2w x h. | E1, M2 | 10.10 |
 | X15 | `alias_method :remove, :destroy` on Drawable binds the base `destroy`, so `slot.remove` skips the cascade and `finish`. | `drawable.rb:615`, `drawables/slot.rb:231-235` | Removed slots leak their children in Lacci; `finish` never fires on `remove`. | B5 | fixed 27 Sep (`64e1ca6`) |
-| X16 | `App#destroy` (and its alias `close`) sends a nil-target `destroy`, which every App obeys. | `app.rb:109-113, 280-287` | Closing one window closes all of them. | A8 | unscheduled |
+| X16 | `App#destroy` (and its alias `close`) sends a nil-target `destroy`, which every App obeys. | `app.rb:109-113, 280-287` | Closing one window closes all of them. | A8 | fixed (wave 5): `close` closes one window while another is open |
 | X17 | `all_drawables` seeds its queue with `[@document_root, @document_root.children]`, so the children Array itself lands in the result. | `app.rb:289-299` | Class-filtered finders hide it; `drawables()` with no filter returns an Array among the drawables. Matters to the spec finders. | spec API | unscheduled |
 | X18 | `download`'s failure path calls `handle_failure(code)` against `def handle_failure(code, logger)`, requires `nokogiri` unconditionally, and runs blocks on a background Thread. | `download.rb:31-125` | Every non-2xx response logs an ArgumentError instead of failing cleanly. | K5 | failure path fixed 27 Sep (`3dcf19a`); `nokogiri` dropped in wave 4 (K5); blocks still run on the download's thread |
 | X19 | Webview subscribes to `full_redraw_request`, `focus` and `scroll_top` with the wrong target (nil against id, or the reverse). | `drawables/slot.rb:243, 267` against `wv/slot.rb:14`; `edit_line.rb:45` against `wv/edit_line.rb:19`; `drawables/stack.rb:29` against `wv/stack.rb:8` | `slot.clear { }` never redraws in Webview; `focus` and `scroll_top` never arrive. The native shim subscribes by id and ignores `full_redraw_request` (DESIGN 5.2). | C5, G9 | WV only |

@@ -4,8 +4,9 @@ require "scarpe/components/string_helpers"
 
 module Scarpe::Native
   # Shoes-Spec for the native backend (DESIGN section 8). Test code runs in this process against
-  # the real Lacci tree, on the first heartbeat after the app is up and painted. Clicks go through
-  # Rust's layout and hit-testing; the clock is frozen so timers move only on advance(seconds).
+  # the real Lacci tree, once the first heartbeat after the app is up and painted has started its
+  # slots. Clicks go through Rust's layout and hit-testing; the clock is frozen so timers move only
+  # on advance(seconds).
   module Test
     def self.run_shoes_spec_test_code(code, class_name: nil, test_name: nil, filename: "(eval)", line: 1)
       raise Shoes::Errors::MultipleShoesSpecRunsError, "Scarpe Native runs one Shoes spec per process" if @started
@@ -20,7 +21,7 @@ module Scarpe::Native
       Shoes::DisplayService.display_service.spec_mode!
       define_test(code, class_name, test_name, filename, line)
 
-      Scarpe::Native.on_first_heartbeat do
+      Scarpe::Native.after_first_heartbeat do
         DisplayService.instance.automation.frames(1)
         Minitest.run([])
       ensure

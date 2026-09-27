@@ -103,8 +103,11 @@ module Scarpe::Native
       request(:frames, n: count)
     end
 
-    # Pumps queued events and changes through, then waits until Rust has painted them.
+    # Pumps queued events and changes through, beats the heart as the pump does (so a slot made
+    # since starts, ledger H8), then waits until Rust has painted all of it.
     def wait_frames(count = 1)
+      dispatch_caused_events
+      @service.surfacing_handler_errors { Shoes::DisplayService.dispatch_event("heartbeat", nil) }
       dispatch_caused_events
       frames(count)
     end
