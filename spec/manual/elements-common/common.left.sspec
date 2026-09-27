@@ -4,8 +4,6 @@ lines: [2644, 2646]
 testability: visual
 display: native
 ledger: A4
-expect: fail
-reason: "Lacci's left and top return the left and top styles, nil for an element its slot placed; the laid-out position never comes back from the display"
 ----------- app code
 Shoes.app do
   @one = button "One"

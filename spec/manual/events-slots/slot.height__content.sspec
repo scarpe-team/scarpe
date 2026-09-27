@@ -4,8 +4,6 @@ lines: [2412, 2413]
 testability: visual
 display: native
 ledger: A4
-expect: fail
-reason: Lacci's height getter falls back to the parent's height for an unsized slot, and nothing feeds laid-out slot sizes back from the display (ledger A4)
 ----------- app code
 Shoes.app width: 400, height: 300 do
   @box = stack width: 200 do

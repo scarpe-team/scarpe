@@ -4,8 +4,6 @@ lines: [2630, 2635]
 testability: visual
 display: native
 ledger: A4
-expect: fail
-reason: Lacci's height reads the height style, which is nil when only width is given; nothing feeds the shown size back (A4, Lacci change unscheduled).
 ----------- app code
 Shoes.app width: 200, height: 200 do
   @thumb = image "assets/checker-20x20.png", width: 50

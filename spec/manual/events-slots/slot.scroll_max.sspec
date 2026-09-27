@@ -4,8 +4,6 @@ lines: [2444, 2451]
 testability: visual
 display: native
 ledger: C5
-expect: fail
-reason: Lacci has no scroll_max or scroll_height (ledger C5)
 ----------- app code
 Shoes.app width: 400, height: 300 do
   @list = stack width: 200, height: 100, scroll: true do
