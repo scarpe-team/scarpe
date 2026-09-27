@@ -295,6 +295,8 @@ loop until no app is open or the child's stdout ended:
 ```
 
 Handler exceptions are rescued per dispatch, logged with the app file/line, and the loop continues.
+That covers a failed `require` (ScriptError) and a runaway recursion (SystemStackError) as well
+as StandardError; only `exit` (SystemExit), a signal and NoMemoryError end the app.
 
 Deadlines are `origin + n * interval`, so ten 0.1 s frames land on one second instead of drifting.
 A timer that fell behind skips the deadlines it missed rather than firing a burst, and a restarted

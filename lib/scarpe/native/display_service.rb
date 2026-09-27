@@ -35,6 +35,9 @@ module Scarpe::Native
 
     LIBRARY_DIRS = %w[lacci lib scarpe-components].map { |dir| File.join(ROOT, dir) + "/" }.freeze
 
+    # What a handler may raise that ends the app instead of being logged.
+    FATAL = [SystemExit, SignalException, NoMemoryError].freeze
+
     class << self
       attr_accessor :instance
     end
@@ -117,11 +120,15 @@ module Scarpe::Native
       end
     end
 
-    # A handler that raises is logged and forgotten, so one bad block never takes the window down.
+    # A handler that raises is logged and forgotten, so one bad block never takes the window down:
+    # a failed require (ScriptError) or a runaway recursion (SystemStackError) as much as a
+    # StandardError. Only exit, signals and running out of memory end the app.
     # Inside surfacing_handler_errors (test code clicking things) it is kept to raise afterwards.
     def dispatch_from_child(name, target, args)
       Shoes::DisplayService.dispatch_event(name, target, *decode_args(name, target, args))
-    rescue StandardError => e
+    rescue *FATAL
+      raise
+    rescue Exception => e
       drop_unstarted_apps
       @surfaced_errors ? @surfaced_errors << e : report_handler_error(e, "#{name} handler for #{target.inspect}")
     end
@@ -144,7 +151,9 @@ module Scarpe::Native
 
     def dispatch_heartbeat
       Shoes::DisplayService.dispatch_event("heartbeat", nil)
-    rescue StandardError => e
+    rescue *FATAL
+      raise
+    rescue Exception => e
       drop_unstarted_apps
       report_handler_error(e, "heartbeat handler")
     end
