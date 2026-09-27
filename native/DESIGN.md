@@ -746,7 +746,9 @@ change the code and this list together.
   showing; `set_value` replaces a field's text as one edit and one `change`, or chooses a list
   box's item; `expand` and `collapse` open and close a popup. Each window creates its adapter while
   still hidden (AccessKit panics on a visible window), then shows the way winit showed it: key and
-  in front, or with `--inactive` in front without the keyboard. The adapter asks for nothing until
+  in front, or with `--inactive` in front without the keyboard. That last holds on macOS; elsewhere
+  the window shows through winit's `set_visible`, which may activate it (no automated run opens a
+  window off macOS yet). The adapter asks for nothing until
   a screen reader does; after that each presented frame builds the tree and sends only the nodes
   that changed (`Mirror`). Not exposed yet: a field's caret and selection (a screen reader reads a
   field whole), click handlers on slots and art, radio groups, scrolling a node into view.
