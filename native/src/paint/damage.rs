@@ -111,6 +111,11 @@ impl Revisions {
         self.now
     }
 
+    /// How many nodes have a revision.
+    pub fn tracked(&self) -> usize {
+        self.nodes.len()
+    }
+
     fn changed_after(&self, seen: u64) -> impl Iterator<Item = Id> + '_ {
         self.nodes.iter().filter(move |(_, at)| **at > seen).map(|(id, _)| *id)
     }
@@ -438,7 +443,7 @@ pub fn paint_bounds(node: &Node, lbox: &LBox, text: Option<&TextBox>) -> Option<
             if transformed(node) {
                 return None;
             }
-            p.art_f32("strokewidth").unwrap_or(1.0).abs() + 2.0
+            p.art_f32("strokewidth").unwrap_or(1.0).abs() + 2.0 + super::shapes::overhang(node)
         }
         Kind::Image if p.f32("rotate_angle").is_some_and(|deg| deg != 0.0) => return None,
         Kind::Background | Kind::Border => 2.0,
@@ -447,7 +452,8 @@ pub fn paint_bounds(node: &Node, lbox: &LBox, text: Option<&TextBox>) -> Option<
     let mut bounds = grow(lbox.rect, slack);
     if let Some(tb) = text {
         let reach = slack + tb.shaped.buffer.metrics().line_height * 0.5;
-        bounds = union(bounds, grow(Rect::new(tb.x, tb.y, tb.shaped.width, tb.shaped.height), reach));
+        let (left, right) = (tb.shaped.ink.0.min(0.0), tb.shaped.ink.1.max(tb.shaped.width));
+        bounds = union(bounds, grow(Rect::new(tb.x + left, tb.y, right - left, tb.shaped.height), reach));
     }
     Some(match lbox.clip {
         Some(clip) => bounds.intersect(&clip).unwrap_or(Rect::new(clip.x, clip.y, 0.0, 0.0)),

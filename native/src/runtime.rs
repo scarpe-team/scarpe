@@ -13,7 +13,7 @@ use crate::limits;
 use crate::paint::damage::{FrameMemory, Revisions};
 use crate::paint::{self, Scene};
 use crate::props::Id;
-use crate::protocol::{self, Create, Incoming, Op, Outbox, Outgoing};
+use crate::protocol::{self, Create, DialogRequest, Incoming, Op, Outbox, Outgoing};
 use crate::text::{FontMode, TextEngine};
 use serde_json::{Map, Value};
 use stats::{Phase, Stats};
@@ -25,6 +25,9 @@ use tiny_skia::Pixmap;
 
 /// An app that names no size opens at Shoes 3 and Shoes 4's 600x500 (ledger A1).
 pub const DEFAULT_SIZE: (f32, f32) = (600.0, 500.0);
+
+/// How long Rust waits for Ruby's `quit` after telling it every window closed, then leaves.
+pub const QUIT_GRACE: std::time::Duration = std::time::Duration::from_secs(3);
 
 #[derive(Clone, Debug)]
 pub struct Options {
@@ -51,7 +54,8 @@ pub enum Effect {
     Cursor(Id, CursorShape),
     /// App `opacity`, 0.0 (clear) to 1.0.
     Opacity(Id, f32),
-    Dialog { req: u64, kind: String, message: String, default: Value },
+    /// A native dialog, or an `ask` no app window can hold (dialogs::open_standalone).
+    Dialog { req: u64, dialog: DialogRequest },
     OpenUrl(String),
 }
 
@@ -72,6 +76,27 @@ pub struct AppView {
     pub frames: u64,
     /// The rects Ruby was last told about, `[x, y, w, h, scroll_h]` by id.
     pub told: HashMap<Id, [f64; 5]>,
+    /// A window of its own for a dialog no app window could hold (dialogs::open_standalone):
+    /// no document, and Ruby never hears of it.
+    pub standalone: bool,
+}
+
+impl AppView {
+    pub fn new(app: Id, doc_root: Id, size: (f32, f32), scale: f32) -> Self {
+        AppView {
+            app,
+            doc_root,
+            size,
+            scale,
+            running: false,
+            layout: None,
+            ui: ViewState::default(),
+            dirty: true,
+            frames: 0,
+            told: HashMap::new(),
+            standalone: false,
+        }
+    }
 }
 
 struct PendingFrames {
@@ -107,6 +132,9 @@ pub struct Runtime {
     checked_frames: HashMap<Id, (Pixmap, FrameMemory)>,
     /// System fonts still loading on another thread; the first layout waits for them.
     fonts_loading: Option<FontsLoading>,
+    /// Something that could show a picture went away or changed: the next flush lets go of
+    /// pictures nothing shows any more.
+    pictures_to_check: bool,
 }
 
 impl Runtime {
@@ -134,6 +162,7 @@ impl Runtime {
             last_full: HashMap::new(),
             checked_frames: HashMap::new(),
             fonts_loading: None,
+            pictures_to_check: false,
         }
     }
 
@@ -196,11 +225,7 @@ impl Runtime {
             }
             Incoming::ScrollTo { id, top } => {
                 if let Some(app) = self.doc.app_of(id) {
-                    if let Some(view) = self.views.get_mut(&app) {
-                        view.ui.scroll.insert(id, top.max(0.0));
-                        view.layout = None;
-                        view.dirty = true;
-                    }
+                    self.scroll_slot(app, id, top.max(0.0));
                 }
             }
             Incoming::Font { path } => {
@@ -244,21 +269,7 @@ impl Runtime {
         self.revisions.touch(c.id);
         if is_app {
             let scale = self.default_scale();
-            self.views.insert(
-                c.id,
-                AppView {
-                    app: c.id,
-                    doc_root,
-                    size,
-                    scale,
-                    running: false,
-                    layout: None,
-                    ui: ViewState::default(),
-                    dirty: true,
-                    frames: 0,
-                    told: HashMap::new(),
-                },
-            );
+            self.views.insert(c.id, AppView::new(c.id, doc_root, size, scale));
         }
         self.invalidate();
     }
@@ -270,6 +281,7 @@ impl Runtime {
         let restyled = ["font", "stroke", "secret"].iter().any(|k| props.contains_key(*k));
         let opacity = props.get("opacity").and_then(Value::as_f64).map(|o| o as f32);
         let recursor = props.contains_key("cursor");
+        self.pictures_to_check |= ["url", "icon", "fill", "stroke", "draw_context"].iter().any(|k| props.contains_key(*k));
         let looks_only = self.doc.get(id).is_some_and(|n| props.keys().all(|key| changes_only_looks(&n.kind, key)));
         if !self.doc.set_props(id, props) {
             return;
@@ -309,11 +321,19 @@ impl Runtime {
                 self.refresh_cursor(app);
             }
         }
-        if looks_only {
-            // Paint reads these straight from the props: the layout stands and the node repaints.
-            self.views.values_mut().for_each(|view| view.dirty = true);
-        } else {
-            self.invalidate();
+        // Only the app the node is drawn in can change. A node no app holds (a text span, which
+        // its paras list without being its parent) might show in any.
+        let changed: Vec<Id> = match self.doc.app_of(id).filter(|app| self.views.contains_key(app)) {
+            Some(app) => vec![app],
+            None => self.views.keys().copied().collect(),
+        };
+        for app in changed {
+            let Some(view) = self.views.get_mut(&app) else { continue };
+            view.dirty = true;
+            if !looks_only {
+                // Else paint reads these straight from the props: the layout stands and the node repaints.
+                view.layout = None;
+            }
         }
     }
 
@@ -326,6 +346,7 @@ impl Runtime {
         if removed.is_empty() {
             return;
         }
+        self.pictures_to_check = true;
         self.revisions.forget(&removed);
         for view in self.views.values_mut() {
             view.ui.forget(&removed);
@@ -358,33 +379,73 @@ impl Runtime {
         }
     }
 
-    /// The user closed a window: tell Ruby, which destroys the app and sends `quit`.
+    /// The user closed a window. Ruby may be blocked waiting on it (an `ask` in its modal, a
+    /// `frames` request), so those are answered first; then Ruby hears `closed`, destroys the
+    /// app and sends `quit`.
     pub fn window_closed(&mut self, app: Id) {
+        self.answer_what_waits_on(app, "window closed");
+        if self.is_standalone(app) {
+            // Ruby never knew this window: the dialog's answer was all it waited for.
+            self.drop_standalone(app);
+            return;
+        }
         if let Some(view) = self.views.get_mut(&app) {
             view.running = false;
+        }
+        if self.active_app == Some(app) {
+            self.active_app = self.views.iter().find(|(_, v)| v.running).map(|(id, _)| *id);
         }
         self.out.send(Outgoing::Closed { app });
         self.out.flush();
     }
 
+    /// Lets go of a dialog's own view (dialogs::open_standalone), and what it owned.
+    pub(crate) fn drop_standalone(&mut self, app: Id) {
+        self.views.remove(&app);
+        self.text.forget_layout(app);
+        if self.active_app == Some(app) {
+            self.active_app = None;
+        }
+    }
+
     fn close_view(&mut self, app: Id) {
+        self.answer_what_waits_on(app, "app closed");
         let Some(view) = self.views.remove(&app) else { return };
-        if let Some(modal) = view.ui.modal {
-            self.out.send(crate::dialogs::reply(modal.req, Value::Null, true));
-        }
-        let mut still_pending = Vec::new();
-        for p in std::mem::take(&mut self.pending_frames) {
-            if p.app == app {
-                self.out.send(Outgoing::error(p.req, "app closed", Value::Null));
-            } else {
-                still_pending.push(p);
-            }
-        }
-        self.pending_frames = still_pending;
-        self.doc.remove_app(app);
+        self.text.forget_layout(view.doc_root);
+        let removed = self.doc.remove_app(app);
+        self.revisions.forget(&removed);
         self.effects.push(Effect::CloseWindow(app));
         if self.active_app == Some(app) {
             self.active_app = self.views.keys().next().copied();
+        }
+    }
+
+    /// Answers every request still waiting on `app`'s window: its modal as cancelled, its
+    /// `frames` requests with `why`.
+    fn answer_what_waits_on(&mut self, app: Id, why: &str) {
+        if let Some(modal) = self.views.get_mut(&app).and_then(|view| view.ui.modal.take()) {
+            self.out.send(crate::dialogs::reply(modal.req, Value::Null, true));
+        }
+        let (theirs, others): (Vec<_>, Vec<_>) = std::mem::take(&mut self.pending_frames).into_iter().partition(|p| p.app == app);
+        self.pending_frames = others;
+        for p in theirs {
+            self.out.send(Outgoing::error(p.req, why, Value::Null));
+        }
+    }
+
+    /// Scrolls a slot of `app` to `top`. Its contents move in the layout that stands, and Ruby
+    /// hears the rects that moved; nothing is laid out again unless the layout cannot move
+    /// them by itself (layout::Layout::scroll), when it is dropped instead.
+    pub(crate) fn scroll_slot(&mut self, app: Id, slot: Id, top: f32) {
+        let Some(view) = self.views.get_mut(&app) else { return };
+        let before = view.layout.as_ref().and_then(|layout| layout.scrollers.get(&slot)).map(|s| s.top);
+        let settled = view.layout.as_mut().and_then(|layout| layout.scroll(&self.doc, slot, top));
+        view.ui.scroll.insert(slot, settled.unwrap_or(top));
+        view.dirty = true;
+        if settled.is_none() {
+            view.layout = None;
+        } else if settled != before {
+            self.push_layout(app);
         }
     }
 
@@ -404,9 +465,31 @@ impl Runtime {
 
     /// End of a batch: lay out whatever changed.
     pub fn flush(&mut self) {
+        self.images.next_batch();
+        self.let_go_of_loose_spans();
+        self.let_go_of_unshown_pictures();
         let running: Vec<Id> = self.views.iter().filter(|(_, v)| v.running && v.layout.is_none()).map(|(id, _)| *id).collect();
         for app in running {
             self.ensure_layout(app);
+        }
+    }
+
+    /// Text spans no text has named for longest, past limits::LOOSE_SPANS (Doc's span names).
+    fn let_go_of_loose_spans(&mut self) {
+        let let_go = self.doc.let_go_of_loose_spans(limits::LOOSE_SPANS);
+        if !let_go.is_empty() {
+            self.revisions.forget(&let_go);
+            for view in self.views.values_mut() {
+                view.ui.forget(&let_go);
+            }
+        }
+    }
+
+    /// Pictures no drawable shows any more, once something that could show one went or changed.
+    fn let_go_of_unshown_pictures(&mut self) {
+        if std::mem::take(&mut self.pictures_to_check) && !self.images.is_empty() {
+            let shown: std::collections::HashSet<std::path::PathBuf> = self.doc.iter().flat_map(crate::elements::image::shown_by).collect();
+            self.images.retain(|path| shown.contains(path));
         }
     }
 
@@ -427,7 +510,7 @@ impl Runtime {
     /// Tells Ruby where nodes landed, so Lacci's left, top, width, height and scroll_height
     /// can answer in pixels (contract a; ledger A4, C5): every rect after an app's first
     /// layout, then only those that moved. Ids that left the layout are simply dropped.
-    fn push_layout(&mut self, app: Id) {
+    pub(crate) fn push_layout(&mut self, app: Id) {
         let Some(view) = self.views.get_mut(&app) else { return };
         let Some(layout) = view.layout.as_ref() else { return };
         let mut told = HashMap::with_capacity(layout.boxes.len());
@@ -506,15 +589,17 @@ impl Runtime {
         }
     }
 
-    /// Picks the app a request means: the named one, else the active one.
+    /// Picks the app a request means: the named one, else the active one. A dialog's window of
+    /// its own is never the one meant unless named.
     pub fn app_for(&self, app: Option<Id>) -> Option<Id> {
         if let Some(a) = app.filter(|a| self.views.contains_key(a)) {
             return Some(a);
         }
+        let apps = || self.views.iter().filter(|(_, v)| !v.standalone);
         self.active_app
-            .filter(|a| self.views.contains_key(a))
-            .or_else(|| self.views.iter().find(|(_, v)| v.running).map(|(id, _)| *id))
-            .or_else(|| self.views.keys().next().copied())
+            .filter(|a| self.views.get(a).is_some_and(|v| !v.standalone))
+            .or_else(|| apps().find(|(_, v)| v.running).map(|(id, _)| *id))
+            .or_else(|| apps().next().map(|(id, _)| *id))
     }
 
     pub(crate) fn wait_frames(&mut self, req: u64, app: Id, n: u32) {

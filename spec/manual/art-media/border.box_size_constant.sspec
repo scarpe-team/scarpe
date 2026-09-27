@@ -3,6 +3,7 @@ manual: border.box_size_constant
 lines: [2847, 2850]
 testability: visual
 display: native
+ledger: C14
 ----------- app code
 Shoes.app width: 300, height: 300 do
   @plain = stack width: 50, height: 30
@@ -15,7 +16,8 @@ Shoes.app width: 300, height: 300 do
 end
 ----------- test code
 %w[@plain @bordered @margined].each do |name|
-  box = layout_of(stack(name))
-  assert_in_delta 50, box.w, 0.5, "#{name} is fifty pixels wide whatever its borders or margins"
-  assert_in_delta 30, box.h, 0.5, "#{name} keeps its height too"
+  assert_in_delta 50, stack(name).width, 0.5, "#{name} is fifty pixels wide whatever its borders or margins"
+  assert_in_delta 30, stack(name).height, 0.5, "#{name} keeps its height too"
 end
+assert_in_delta 50, layout_of(stack("@bordered")).w, 0.5, "the border is drawn inside the box"
+assert_in_delta 30, layout_of(stack("@margined")).w, 0.5, "and the margins sit inside the fifty pixels (ledger C14, Q9)"

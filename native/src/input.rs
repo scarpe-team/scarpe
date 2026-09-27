@@ -483,8 +483,10 @@ impl Runtime {
         b.rect.contains(x, y) && b.clip.is_none_or(|c| c.contains(x, y))
     }
 
+    /// Tells Ruby where the pointer is and whether it is held (the `mouse` builtin). A dialog's
+    /// own window is none of the app's business.
     fn send_mouse_state(&mut self, app: Id) {
-        let Some(view) = self.views.get(&app) else { return };
+        let Some(view) = self.views.get(&app).filter(|v| !v.standalone) else { return };
         let (x, y) = view.ui.pointer.unwrap_or((0.0, 0.0));
         let held = (view.ui.buttons & 1 != 0) as i64;
         self.out.send(Outgoing::Mouse { state: [held, x.round() as i64, y.round() as i64] });
@@ -858,10 +860,8 @@ impl Runtime {
         if let Some((id, top, max)) = scroller {
             let new_top = (top + dy).clamp(0.0, max);
             if new_top != top {
-                view.ui.scroll.insert(id, new_top);
-                view.layout = None;
                 self.out.send(Outgoing::Scroll { id, top: new_top.round() as i64 });
-                self.request_redraw(app);
+                self.scroll_slot(app, id, new_top);
             }
         }
         for (item, parent) in self.subscriptions(app, "wheel") {

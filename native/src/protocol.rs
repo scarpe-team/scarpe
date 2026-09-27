@@ -49,17 +49,21 @@ pub enum MouseAction {
     Up,
 }
 
-/// What `ask` adds to its message (ledger K1): `secret` masks the answer as it is typed, and
-/// `title` heads the dialog.
-#[derive(Clone, Debug, Default, PartialEq)]
-pub struct AskOptions {
-    pub secret: bool,
+/// A builtin dialog Ruby is blocked on (DESIGN 4.1 `dialog`).
+#[derive(Clone, Debug, PartialEq)]
+pub struct DialogRequest {
+    pub kind: String,
+    pub message: String,
+    pub default: Value,
+    /// `ask`'s `title:`: the title of a dialog in a window of its own, and a heading.
     pub title: Option<String>,
+    /// `ask`'s `secret:`: the answer is typed as bullets.
+    pub secret: bool,
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Op {
-    Dialog { kind: String, message: String, default: Value, ask: AskOptions },
+    Dialog(DialogRequest),
     Layout { app: Option<Id> },
     Snapshot { path: String, app: Option<Id>, scale: Option<f32> },
     Click { target: Target, button: u8, app: Option<Id> },
@@ -117,6 +121,27 @@ pub fn read_line_lossy(input: &mut impl std::io::BufRead, buf: &mut Vec<u8>) -> 
     }
 }
 
+/// Reads `input` to its end, handing `deliver` every complete line the buffer holds as one
+/// batch: a frame of a thousand prop changes arrives once, not a thousand times. Stops early
+/// when `deliver` says nobody is listening.
+pub fn read_batches(input: impl std::io::Read, mut deliver: impl FnMut(Vec<String>) -> bool) {
+    let mut reader = std::io::BufReader::with_capacity(1 << 16, input);
+    let mut batch = Vec::new();
+    let mut bytes = Vec::new();
+    while let Some(line) = read_line_lossy(&mut reader, &mut bytes) {
+        batch.push(line);
+        if reader.buffer().contains(&b'\n') {
+            continue;
+        }
+        if !deliver(std::mem::take(&mut batch)) {
+            return;
+        }
+    }
+    if !batch.is_empty() {
+        deliver(batch);
+    }
+}
+
 pub fn parse_line(line: &str) -> Result<Incoming, ParseError> {
     let value: Value = serde_json::from_str(line).map_err(|e| ParseError::Json(e.to_string()))?;
     let Value::Object(obj) = value else {
@@ -170,12 +195,13 @@ fn op_fields(obj: &Map<String, Value>) -> Result<Op, ParseError> {
     let app = id(obj, "app");
     let op = obj.get("op").and_then(Value::as_str).unwrap_or("");
     Ok(match op {
-        "dialog" => Op::Dialog {
+        "dialog" => Op::Dialog(DialogRequest {
             kind: required(s(obj, "kind"), "kind")?,
             message: obj.get("message").map(crate::props::value_text).unwrap_or_default(),
             default: obj.get("default").cloned().unwrap_or(Value::Null),
-            ask: AskOptions { secret: obj.get("secret").and_then(Value::as_bool).unwrap_or(false), title: s(obj, "title") },
-        },
+            title: s(obj, "title"),
+            secret: obj.get("secret").is_some_and(|v| !matches!(v, Value::Null | Value::Bool(false))),
+        }),
         "layout" => Op::Layout { app },
         "snapshot" => Op::Snapshot { path: required(s(obj, "path"), "path")?, app, scale: f(obj, "scale") },
         "click" => Op::Click { target: target(obj.get("target"))?, button: button(obj), app },
@@ -371,16 +397,11 @@ mod tests {
         };
         assert_eq!(
             op(r#"{"t":"req","req":1,"op":"dialog","kind":"ask","message":"Name?","default":null}"#),
-            Op::Dialog { kind: "ask".into(), message: "Name?".into(), default: Value::Null, ask: AskOptions::default() }
+            Op::Dialog(DialogRequest { kind: "ask".into(), message: "Name?".into(), default: Value::Null, title: None, secret: false })
         );
         assert_eq!(
-            op(r#"{"t":"req","req":1,"op":"dialog","kind":"ask","message":"Pin?","default":null,"secret":true,"title":"Log in"}"#),
-            Op::Dialog {
-                kind: "ask".into(),
-                message: "Pin?".into(),
-                default: Value::Null,
-                ask: AskOptions { secret: true, title: Some("Log in".into()) },
-            }
+            op(r#"{"t":"req","req":1,"op":"dialog","kind":"ask","message":"PIN?","title":"Bank","secret":true}"#),
+            Op::Dialog(DialogRequest { kind: "ask".into(), message: "PIN?".into(), default: Value::Null, title: Some("Bank".into()), secret: true })
         );
         assert_eq!(op(r#"{"t":"req","req":1,"op":"layout"}"#), Op::Layout { app: None });
         assert_eq!(
