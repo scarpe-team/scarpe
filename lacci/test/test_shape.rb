@@ -26,6 +26,34 @@ class TestShape < NienteTest
     SHOES_SPEC
   end
 
+  # Shoes 3 makes the shape after its block runs and copies the pens then
+  # (s3t_shape.c:290-315, COPY_PENS at :206), so `stroke color` inside the block
+  # strokes that shape. curve-animation.rb drew black without this.
+  def test_pens_set_inside_the_block_style_the_shape
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $sent_pens = []
+        Shoes::DisplayService.subscribe_to_event("prop_change", :any) do |changes, **_kwargs|
+          $sent_pens << changes["draw_context"].dup if changes.key?("draw_context")
+        end
+
+        strokewidth 3
+        shape do
+          move_to 0, 0
+          stroke red
+          nofill
+          line_to 50, 10
+        end
+      end
+    SHOES_APP
+      assert_equal 1, $sent_pens.size, "the pens went out once, after the block"
+      shown = $sent_pens.last
+      assert_equal [255, 0, 0, 255], shown["stroke"], "the stroke set in the block reached the display"
+      assert_equal [0, 0, 0, 0], shown["fill"], "and so did nofill"
+      assert_equal 3, shown["strokewidth"], "the slot's pens still come through"
+    SHOES_SPEC
+  end
+
   def test_commands_added_after_the_block_are_sent
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do

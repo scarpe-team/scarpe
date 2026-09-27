@@ -677,7 +677,9 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Shoes 3:** builds a cairo path and measures its extents into width/height (`s3t_shape.c:300-316`); art calls inside a shape add sub-paths to it (`:326-331`).
 - **Examples:** `for_playtest/expert/curve-control-point.rb:16` calls `move_to *xy[0]` outside any shape.
 - **Lacci today:** `Shape < Shoes::Slot` with `@incompatibility A Shoes3 Shape is *not* a slot; Scarpe does *not* do union shapes` (`shape.rb:11-12`). `shape_commands` is sent empty at create and mutated afterwards without a `prop_change` (`shape.rb:25-31`, X7). `move_to` and friends are ignored outside a Shape (`app.rb:509-568`).
-- **Spec:** a closed `shape` fills its interior with the current fill; an oval created inside a shape paints (is not dropped).
+- **Shoes 3, pens:** the shape is made after its block runs and copies the canvas's pens then (`s3t_shape.c:290-315`, `COPY_PENS` at `:206`), so `stroke red` inside the block strokes that shape; since the block draws on the enclosing canvas, the pen also stays set for later shapes there.
+- **Lacci, pens:** since 27 Sep (wave-4 Lacci lane) the prop_change that carries the finished `shape_commands` carries the shape's final `draw_context` too, so pens set inside the block style the shape (`expert/curve-animation.rb` drew all three waves black before). A Lacci Shape is a slot, so those pens stay inside it and do not reach the shapes drawn after it, where Shoes 3 would carry them on.
+- **Spec:** a closed `shape` fills its interior with the current fill; an oval created inside a shape paints (is not dropped). `art.shape__pens_in_block`: a stroke set inside the block colours the line.
 - **Native:** builds one path from the complete `shape_commands`, offset by (left, top). Art children of the shape join the same path, measured from the shape's (left, top), and the whole group is filled once (nonzero) and stroked once with the shape's own draw context (DESIGN 12).
 
 ### E8. `click`, `release`, `hover` and `leave` on shapes, text blocks and images
