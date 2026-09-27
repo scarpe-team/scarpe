@@ -5,7 +5,7 @@ use super::fonts::{FamilyName, Fonts};
 use crate::doc::{Doc, Kind};
 use crate::props::{Id, Props, TextItem};
 use crate::style::color::Color;
-use crate::style::font::{named_size, parse_font, parse_size, parse_weight};
+use crate::style::font::{named_size, parse_font, parse_size, parse_weight, X_SMALL};
 use std::hash::{Hash, Hasher};
 
 pub const INK: Color = Color::rgb(0x1d, 0x1d, 0x1f);
@@ -13,6 +13,10 @@ pub const LINK: Color = Color::rgb(0x00, 0x66, 0xee);
 pub const LINK_HOVER: Color = Color::rgb(0x00, 0x33, 0x99);
 pub const DEFAULT_SIZE: f32 = 12.0;
 pub const LINE_HEIGHT: f32 = 1.2;
+/// Space between the lines of a text block unless it says otherwise (manual 1286, Shoes 3).
+pub const DEFAULT_LEADING: f32 = 4.0;
+/// How far sub and sup move their baseline, in pixels.
+pub const SCRIPT_RISE: f32 = 10.0;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Underline {
@@ -109,11 +113,12 @@ pub struct Run {
 pub struct RichText {
     pub runs: Vec<Run>,
     pub size: f32,
+    /// The distance from one line to the next: 1.2 x size plus `leading`.
     pub line_height: f32,
+    /// Extra space between lines (manual 1286); none above the first or below the last.
+    pub leading: f32,
     pub align: Align,
     pub wrap: WrapMode,
-    /// Para-level `fill`: painted behind the whole block.
-    pub fill: Option<Color>,
 }
 
 impl RichText {
@@ -123,9 +128,9 @@ impl RichText {
             runs: vec![Run { text: text.to_string(), style, node: 0, spans: Vec::new() }],
             size,
             line_height: (size * LINE_HEIGHT).max(1.0),
+            leading: 0.0,
             align: Align::Left,
             wrap: WrapMode::Word,
-            fill: None,
         }
     }
 
@@ -144,6 +149,7 @@ impl RichText {
         }
         self.size.to_bits().hash(&mut h);
         self.line_height.to_bits().hash(&mut h);
+        self.leading.to_bits().hash(&mut h);
         self.align.hash(&mut h);
         self.wrap.hash(&mut h);
         width.map(f32::to_bits).hash(&mut h);
@@ -161,9 +167,12 @@ pub fn resolve_block(doc: &Doc, fonts: &Fonts, id: Id) -> Option<RichText> {
     let node = doc.get(id)?;
     let mut style = TextStyle::new(class_size(&node.class), INK);
     apply_text_props(&mut style, &node.props, fonts);
+    // A block's fill is a highlighter over its text, not paint over its box (manual 1208-1210;
+    // Shoes 3 makes it a Pango background, s3t_textblock.c:258, 477).
+    style.highlight = node.props.color("fill").filter(|c| !c.is_invisible());
     let mut runs = Vec::new();
     collect(doc, fonts, &node.props, &style, id, &[], &mut runs);
-    let leading = node.props.f32("leading").unwrap_or(0.0);
+    let leading = node.props.f32("leading").unwrap_or(DEFAULT_LEADING).max(0.0);
     let align = if node.props.truthy("justify") {
         Align::Justify
     } else {
@@ -178,14 +187,13 @@ pub fn resolve_block(doc: &Doc, fonts: &Fonts, id: Id) -> Option<RichText> {
         Some("char") => WrapMode::Char,
         _ => WrapMode::Word,
     };
-    let fill = node.props.color("fill").filter(|c| !c.is_invisible());
     Some(RichText {
         runs,
         size: style.size,
         line_height: (style.size * LINE_HEIGHT + leading).max(1.0),
+        leading,
         align,
         wrap,
-        fill,
     })
 }
 
@@ -233,13 +241,14 @@ fn apply_span_kind(style: &mut TextStyle, kind: &Kind, id: Id, parent_size: f32)
         Kind::Code => style.family = FamilyName::Mono,
         Kind::Del => style.strike = true,
         Kind::Ins => style.underline = Underline::Single,
+        // Manual 2093-2105: "x-small", lowered or raised by 10 pixels.
         Kind::Sub => {
-            style.size = parent_size * 0.75;
-            style.rise = -0.25 * parent_size;
+            style.size = parent_size * X_SMALL;
+            style.rise = -SCRIPT_RISE;
         }
         Kind::Sup => {
-            style.size = parent_size * 0.75;
-            style.rise = 0.4 * parent_size;
+            style.size = parent_size * X_SMALL;
+            style.rise = SCRIPT_RISE;
         }
         Kind::Link => {
             style.color = LINK;
@@ -360,6 +369,38 @@ mod tests {
     }
 
     #[test]
+    fn sub_and_sup_are_x_small_and_move_ten_pixels() {
+        // Manual 2093-2105: x-small (64%), lowered or raised by 10 pixels.
+        let fonts = Fonts::new(FontMode::Bundled);
+        let mut doc = Doc::default();
+        node(&mut doc, 2, "DocumentRoot", None, json!({}));
+        node(&mut doc, 5, "Sub", None, json!({"text_items": ["2"]}));
+        node(&mut doc, 6, "Sup", None, json!({"text_items": ["3"]}));
+        node(&mut doc, 7, "Para", Some(2), json!({"text_items": ["x", 5, "y", 6], "size": 30}));
+        let rich = resolve_block(&doc, &fonts, 7).unwrap();
+        let (sub, sup) = (&rich.runs[1].style, &rich.runs[3].style);
+        assert!((sub.size - 19.2).abs() < 0.01 && (sup.size - 19.2).abs() < 0.01, "{} {}", sub.size, sup.size);
+        assert_eq!((sub.rise, sup.rise), (-10.0, 10.0));
+    }
+
+    #[test]
+    fn none_turns_a_default_decoration_off() {
+        // Contract (d): Lacci sends "none" when a style sets underline or strikethrough to nil/false,
+        // as `style(Shoes::Link, underline: nil)` does in the accordion samples.
+        let fonts = Fonts::new(FontMode::Bundled);
+        let mut doc = Doc::default();
+        node(&mut doc, 2, "DocumentRoot", None, json!({}));
+        node(&mut doc, 5, "Link", None, json!({"text_items": ["plain link"], "underline": "none"}));
+        node(&mut doc, 6, "Del", None, json!({"text_items": ["kept"], "strikethrough": "none"}));
+        node(&mut doc, 7, "Link", None, json!({"text_items": ["usual"]}));
+        node(&mut doc, 8, "Para", Some(2), json!({"text_items": [5, 6, 7]}));
+        let rich = resolve_block(&doc, &fonts, 8).unwrap();
+        assert_eq!(rich.runs[0].style.underline, Underline::None);
+        assert!(!rich.runs[1].style.strike);
+        assert_eq!(rich.runs[2].style.underline, Underline::Single, "a link keeps its underline otherwise");
+    }
+
+    #[test]
     fn class_sizes_and_props() {
         let fonts = Fonts::new(FontMode::Bundled);
         let mut doc = Doc::default();
@@ -369,6 +410,6 @@ mod tests {
         assert_eq!(rich.size, 34.0);
         assert_eq!(rich.runs[0].style.color, Color::rgb(255, 0, 0));
         assert_eq!(rich.align, Align::Center);
-        assert!((rich.line_height - 40.8).abs() < 0.01);
+        assert!((rich.line_height - 44.8).abs() < 0.01, "1.2 x 34 plus the default leading");
     }
 }

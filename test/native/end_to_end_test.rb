@@ -26,6 +26,25 @@ class EndToEndTest < Minitest::Test
     assert_spec_passed(run)
   end
 
+  def test_rust_pushes_where_things_landed_into_the_layout_cache
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        @box = stack(width: 120) { @b = button "B", width: 50, height: 20 }
+      end
+    APP
+      cache = Shoes::DisplayService.layout_cache
+      b = button("@b")
+      assert_equal layout_of(b).to_a, cache[b.linkable_id].first(4), "the button's rect, as Rust laid it out"
+      assert_equal 20, cache[b.linkable_id][4], "an element's scroll height is its height"
+      assert_equal [0, 0, 120, 20, 20], cache[stack("@box").linkable_id], "a slot's is its content's"
+
+      id = b.linkable_id
+      b.remove
+      refute cache.key?(id), "a destroyed drawable leaves the cache"
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_short_hex_colours_expand_the_same_on_both_sides
     run = run_real(<<~APP, test_code: <<~TEST)
       Shoes.app { background "#DFA" }
@@ -279,14 +298,15 @@ class EndToEndTest < Minitest::Test
       end
     APP
       first = -> { layout_tree.find { |node| node[:text] == "line 0" }[:y] }
-      assert_equal 0, first.call
+      top = first.call
+      assert_equal 4, top, "the first line sits in its 4 px text margin"
       wheel(50, x: 20, y: 50)
       assert_equal 50, stack("@list").scroll_top, "Rust reports where it scrolled to"
-      assert_equal(-50, first.call)
+      assert_equal top - 50, first.call
 
       stack("@list").scroll_top = 10
       wait_frames
-      assert_equal(-10, first.call)
+      assert_equal top - 10, first.call
     TEST
     assert_spec_passed(run)
   end

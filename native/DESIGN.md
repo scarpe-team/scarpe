@@ -115,6 +115,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 | `para_hit` | `id`, `value` | `para_hit_cache[id] = value` (Integer keys) |
 | `resize` | `app`, `w`, `h` | set the App's `@width`/`@height` ivars directly (no prop_change echo) |
 | `scroll` | `id`, `top` | set the slot's `@scroll_top` directly |
+| `layout` | `app`, `rects`: `[[id, x, y, w, h, scroll_h], ...]` | `Shoes::DisplayService.layout_cache[id] = [x, y, w, h, scroll_h]` (Integer keys; the shim defines the accessor if Lacci lacks it and deletes ids on destroy). Sent after every layout pass, before its frame is presented and before the reply of any request that caused it: every laid-out node on an app's first layout, then only those whose rect changed. Window logical px, rounded to 1/100; `scroll_h` is a slot's content height, else `h`. Destroyed ids are simply not sent again (ledger A4, C5) |
 | `closed` | `app` | user closed a window: destroy that app (all apps if it was the last) |
 | `reply` | `req`, `value`, `error` (null or String), plus op extras like `cancelled` | answers a `req` |
 | `log` | `level`, `msg` | forwarded to Shoes::Log |
@@ -199,7 +200,7 @@ which is the only mode that supports `window()`:
 loop until no apps remain or the child exited:
   timeout = time until the next timer deadline, capped at 50 ms
   IO.select([child_out], nil, nil, timeout) -> read and dispatch every complete message
-  tick due timers: animate (frame starts at 0), every (count starts at 1), timer (one shot);
+  tick due timers: animate (frame starts at 0), every (count starts at 0, ledger I1), timer (one shot);
     honour `stopped` and destroyed items; timers can be created at any time
   dispatch "heartbeat" (nil target) at most every 50 ms (Shoes-Spec hooks run on the first one)
   flush
@@ -209,7 +210,8 @@ Handler exceptions are rescued per dispatch, logged with the app file/line, and 
 
 ## 6. Layout rules (canonical)
 
-Units are logical pixels (f32). Window content size = App `width` x `height` (Lacci default 480x420).
+Units are logical pixels (f32). Window content size = App `width` x `height`; an App that sends
+neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1).
 
 - **Dimensions** for width/height/left/top/margins: Integer = px; negative Integer = parent inner size
   minus |v|; Float between 0 and 1 exclusive = fraction of parent inner size (1.0 = 100%); String
@@ -219,20 +221,42 @@ Units are logical pixels (f32). Window content size = App `width` x `height` (La
 - **Flow**: default width 100% of parent inner width. In-flow children are packed left to right;
   a child that does not fit on the current row starts a new row (unless the row is empty). Row height =
   tallest child; children top-aligned.
-- **Stack**: children top to bottom, each on its own row, left-aligned. Default width: the
-  remaining width on the current line of its parent (Shoes 3; in a stack parent that is the full
-  inner width).
-- Slot height = content height unless `height` given. `scroll: true` with a height clips and scrolls.
-- **Text blocks** (para and family) with no width: in a stack, full inner width; in a flow,
-  shrink-to-fit (max-content width capped at the remaining row width, wrapping at that width).
-  Line height = 1.2 x size (plus `leading` if given).
+- **Stack**: children top to bottom, each on its own row, left-aligned. Default width: its
+  parent's inner width, like a flow's, so an unsized slot after anything else on a line starts a
+  row (ledger C8: Shoes 3 s3_canvas.c:468 with s3_ruby.c:505-532, Shoes 4 s4_slot.rb:48).
+- Slot height = content height unless `height` given. A slot with a fixed `height` clips what
+  does not fit, scrolling or not (manual 345-352: it becomes a "nested window"); `scroll: true`
+  with a height also scrolls.
+- **Text blocks** (para and family) with no width: in a stack, full inner width. In a flow they
+  read as one paragraph with what came before them on the line (manual 1610-1612, ledger C7,
+  Shoes 3 s3t_textblock.c:134-228): text that fits on the rest of the line sits there as a box
+  as wide as its text; longer text starts its first line where the line stands (a first-line
+  indent) and wraps its later lines back to the flow's left edge, its box spanning the flow.
+  The next element carries on from the end of the last line. After text the line goes on from
+  the end of the text plus whatever its right margin adds to its left one, so two paras sit one
+  margin apart. Text starts a new row instead when not even its first word fits on the rest of
+  the line, or when something earlier on the line reaches more than half a line below its first
+  line (a picture, a title), where Shoes 3 would wrap lines under it. The indent is a blank
+  wide as the indent at the head of the cosmic-text buffer; hit-testing and a para's `fill`
+  leave its corner to what came before. Centred, right-aligned, justified, trimmed and sized
+  text keeps the box rule of section 12. A text block's `fill` is a highlighter over its text,
+  line by line (manual 1208-1210; Shoes 3's Pango background), not paint over its box.
+  Line height = 1.2 x size. `leading` (default 4 px, manual 1286, ledger F10) goes between lines
+  only, as Pango's spacing does: one line is 1.2 x size tall, two are 2.4 x size + 4.
 - **Widgets** have intrinsic sizes (research 02 section 13): button = label + padding (min 22 high),
-  edit_line 200x28, edit_box 200x108, list_box 160x28, progress 160x14, check/radio 18x18.
+  edit_line 200x28, edit_box 200x108, list_box 200x28, progress 200x14 (manual sizes, ledger C4),
+  check/radio 18x18.
   Explicit width/height override.
 - **Margins** add outside the box (`margin`, `margin_left/top/right/bottom`; arrays are
-  [left, top, right, bottom]). `padding` (Scarpe extension) adds inside slots.
-- **Absolute placement**: any child with `left` or `top` set, and every art shape, is out of flow,
-  placed at (left, top) relative to its slot's content origin, does not affect siblings or slot height.
+  [left, top, right, bottom], and a short array keeps the default for the sides it leaves out,
+  ledger C3). Text blocks default to Shoes 3's margins: 4 px on every side, and 12 px below
+  unless `margin` or `margin_bottom` is given (ledger C9, s3t_textblock.c:108-110); everything
+  else defaults to 0. `padding` (Scarpe extension) adds inside slots.
+- **Absolute placement**: any child with `left`, `top`, `right` or `bottom` set, and every art
+  shape, is out of flow, placed at (left, top) relative to its slot's content origin, does not
+  affect siblings or slot height. `right: n` puts the element's right margin edge n px in from the
+  slot's right edge, `bottom: n` likewise from the bottom (manual 1100-1106, 1356-1364, ledger
+  C10); `left` and `top` win when both are given.
   `displace_left/top` shifts a laid-out element visually without affecting others.
 - `hidden: true` removes the element from layout and painting.
 - `attach: "window"` positions relative to the window instead of the slot.
@@ -388,12 +412,14 @@ change the code and this list together.
 - **Margins and relative sizes.** A relative width or height (a fraction, `"N%"`, a negative number,
   or a slot's default fill) sizes the margin box, so two `width: 0.5, margin: 10` flows share a row.
   A px size is the box itself, and margins add outside it.
-- **Text in a flow** is as wide as its longest line (max-content). If that does not fit in the rest
-  of the row and the row is not empty, it starts a new row and wraps at the full width there.
-  Text with `align: center/right` fills the rest of the row so the alignment shows. Positioned
-  text (`left`/`top`) shrinks to fit the same way. `right:` and `bottom:` place from the far edges.
-- **Widget** (a `Shoes::Widget` subclass) lays its children out as a flow; its default width
-  fills the rest of the line, like a stack. **Mask** is not drawn yet.
+- **Text in a flow** flows as a paragraph (section 6). Text that does not (centred, right-aligned,
+  justified, trimmed, or given a width or height) is a box: as wide as its longest line
+  (max-content) if that fits in the rest of the row, else it starts a new row and wraps at the
+  full width there. Text with `align: center/right` fills the rest of the row so the alignment
+  shows. Positioned text (`left`/`top`) shrinks to fit the same way. `right:` and `bottom:`
+  place from the far edges.
+- **Widget** (a `Shoes::Widget` subclass) lays its children out as a flow; its default width is
+  its parent's, like any slot. **Mask** is not drawn yet.
 - **Art geometry.** `star` follows Shoes 3 exactly (centred on left/top, first point straight
   down, radii outer/inner). `arrow` is centred on left/top, points right, is 0.8 x width tall with a
   head 0.42 x width long. `arc` sits in its (left, top, width, height) box like `oval` (Shoes 3
@@ -435,7 +461,10 @@ change the code and this list together.
 - **Backgrounds and borders** fill their slot less the edges they name: `left`/`top`/`right`/`bottom`
   place them, a missing `width` or `height` runs to the far edge (`top: 50` covers from 50 down),
   and margins inset them.
-- **`wrap: "trim"`** keeps a para on one line and clips it at the para's own box (no ellipsis yet).
+- **`wrap`**: `"word"` (the default) breaks lines only between words, and a word too long for
+  its line runs past it, as under Shoes 3's PANGO_WRAP_WORD; `"char"` breaks anywhere;
+  `"trim"` keeps a para on one line and cuts it off with an ellipsis at the para's own box
+  (manual 1552-1556). The ellipsis takes the style of the para's first run.
 - **Para `cursor` and `marker`** count from the end when negative (`-1` sits after the last
   character, as Shoes 3 editors use it). The caret takes the text's colour, so it shows on dark
   backgrounds.

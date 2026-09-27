@@ -126,14 +126,20 @@ impl Props {
 
     /// `margin` (number, [l,t,r,b], "l t r b" or {left:..}) overridden by `margin_<side>`.
     pub fn margins(&self, parent_w: f32) -> Edges {
-        let mut edges = self.get("margin").map(|v| edges_from(v, parent_w, MARGIN_ORDER)).unwrap_or_default();
+        self.margins_or(parent_w, Edges::default())
+    }
+
+    /// Margins over an element's own defaults: sides that neither `margin` nor
+    /// `margin_<side>` names keep them (Shoes 3's ATTR_MARGINS, ledger C3).
+    pub fn margins_or(&self, parent_w: f32, defaults: Edges) -> Edges {
+        let mut edges = self.get("margin").map(|v| edges_from(v, parent_w, MARGIN_ORDER, defaults)).unwrap_or(defaults);
         override_sides(self, "margin_", parent_w, &mut edges);
         edges
     }
 
     /// Scarpe's `padding`; arrays use Calzini's [left, right, top, bottom] order.
     pub fn padding(&self, parent_w: f32) -> Edges {
-        let mut edges = self.get("padding").map(|v| edges_from(v, parent_w, PADDING_ORDER)).unwrap_or_default();
+        let mut edges = self.get("padding").map(|v| edges_from(v, parent_w, PADDING_ORDER, Edges::default())).unwrap_or_default();
         override_sides(self, "padding_", parent_w, &mut edges);
         edges
     }
@@ -171,8 +177,8 @@ fn px_of(v: &Value, parent_w: f32) -> Option<f32> {
     parse_dim(v).map(|d| d.resolve(parent_w))
 }
 
-fn edges_from(v: &Value, parent_w: f32, order: [Side; 4]) -> Edges {
-    let mut edges = Edges::default();
+fn edges_from(v: &Value, parent_w: f32, order: [Side; 4], defaults: Edges) -> Edges {
+    let mut edges = defaults;
     let list: Vec<Value> = match v {
         Value::Array(items) => items.clone(),
         Value::String(s) if s.contains(|c: char| c.is_whitespace() || c == ',') => s
@@ -195,8 +201,9 @@ fn edges_from(v: &Value, parent_w: f32, order: [Side; 4]) -> Edges {
         return Edges { left: px, top: px, right: px, bottom: px };
     }
     for (i, side) in order.iter().enumerate() {
-        let px = list.get(i).and_then(|v| px_of(v, parent_w)).unwrap_or(0.0);
-        set_side(&mut edges, *side, px);
+        if let Some(px) = list.get(i).and_then(|v| px_of(v, parent_w)) {
+            set_side(&mut edges, *side, px);
+        }
     }
     edges
 }
@@ -239,6 +246,17 @@ mod tests {
         );
         assert_eq!(props(json!({"margin": 10, "margin_left": 0})).margins(480.0).left, 0.0);
         assert_eq!(props(json!({"margin_left": "10%"})).margins(200.0).left, 20.0);
+    }
+
+    #[test]
+    fn short_margin_arrays_keep_the_default_for_missing_sides() {
+        // Ledger C3: Shoes 3 reads missing array entries as the element's default margin.
+        let four = Edges { left: 4.0, top: 4.0, right: 4.0, bottom: 4.0 };
+        assert_eq!(props(json!({"margin": [10, 20]})).margins_or(480.0, four), Edges { left: 10.0, top: 20.0, right: 4.0, bottom: 4.0 });
+        assert_eq!(props(json!({"margin": 0})).margins_or(480.0, four), Edges::default());
+        assert_eq!(props(json!({})).margins_or(480.0, four), four);
+        assert_eq!(props(json!({"margin_left": 9})).margins_or(480.0, four).left, 9.0);
+        assert_eq!(props(json!({"margin": {"top": 2}})).margins_or(480.0, four), Edges { left: 4.0, top: 2.0, right: 4.0, bottom: 4.0 });
     }
 
     #[test]
