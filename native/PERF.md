@@ -290,6 +290,30 @@ frame, and `frames` counts every present. The differences are on the window serv
   never key, as the inactive windows before were not, so keys arrive through automation, which is
   how `typing` has always measured.
 
+## Wave 5 (27 Sep, late)
+
+Measured on the same machine, often at a load average of 10 to 45 while other lanes ran, so each
+before and after ran interleaved. The review's drivers are Python scripts feeding the release
+binary headless; "before" is native-rust 98ad233's binary.
+
+| change | measure | before | after |
+|---|---|---|---|
+| shaped text kept per app, a prop change lays out its own window only (fff74e9) | one para changing in window 1, 300 paras a window: 1 / 3 / 4 windows | 0.42 / 50.2 / 63.8 ms | 0.45 / 0.46 / 0.48 ms |
+| one reused clip mask, used only for paths a clip cuts across (a58b49b) | 48 rows of `stack(height: 20)` at 2x, full paint (median of 5) / RSS | 11.7 ms / 174 MB | 7.7 ms / 29 MB (free rows: 7.2 to 7.8 ms, 26 MB) |
+| a scroll moves the layout that stands (45e887c) | 5000 paras in a scrolling stack, 50 wheel ticks: layouts / wheel request / one tick's round trip | 51 / 1.96 ms / 5.4 ms | 1 / 0.67 ms / 3.0 ms |
+
+The scroll still pushes every rect that moved to Ruby (5000 rects, 210 KB a tick for that list),
+as contract a asks; only a wire change on the Lacci side can shrink that.
+
+Partial repaints were measured again against whole ones on the showcase lane's starfield traces,
+replayed through `Runtime::repaint` at 2x (paint p50, partial / whole): the shipped starfield 3.57 /
+3.46 ms, `no_nebula` 7.09 / 7.34, `oneglow` 6.92 / 6.51, `twograd` 14.5 / 13.8, `solid` 2.36 /
+2.75, `bare` 6.14 / 6.35. The lane's 19.9 against 12.9 ms (`no_nebula`, before the wave-4 merge)
+no longer happens: those frames mostly move more than half the window, which the existing rules
+(more than half the frame, or more than 8 rects whose bounding box is) already paint whole. A few
+stars twinkling over a 72-circle nebula (`bench.rs`, `stars_twinkling_over_a_nebula`) paints in
+0.93 ms in part and 58.3 ms whole, so the thresholds stay as they are.
+
 ## Running the benchmarks
 
 ```
