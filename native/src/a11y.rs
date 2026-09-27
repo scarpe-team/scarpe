@@ -548,9 +548,10 @@ impl Runtime {
         Ok(())
     }
 
-    /// Picking a list box item as a screen reader would, open popup or not.
+    /// Picking a list box item as a screen reader would, open popup or not. The other parts of a
+    /// drawable, a para's runs of text, take no action.
     fn option_action(&mut self, app: Id, list_box: Id, index: usize, action: Action) -> Result<(), String> {
-        let node = self.doc.get(list_box).filter(|n| n.kind == Kind::ListBox).ok_or_else(|| format!("no list box {list_box}"))?;
+        let node = self.doc.get(list_box).filter(|n| n.kind == Kind::ListBox).ok_or_else(|| format!("part {index} of {list_box} takes no action"))?;
         if disabled(node) {
             return Err(format!("ListBox {list_box} is disabled"));
         }
