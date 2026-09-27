@@ -238,7 +238,8 @@ neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1).
   line (a picture, a title), where Shoes 3 would wrap lines under it. The indent is a blank
   wide as the indent at the head of the cosmic-text buffer; hit-testing and a para's `fill`
   leave its corner to what came before. Centred, right-aligned, justified, trimmed and sized
-  text keeps the box rule of section 12.
+  text keeps the box rule of section 12. A text block's `fill` is a highlighter over its text,
+  line by line (manual 1208-1210; Shoes 3's Pango background), not paint over its box.
   Line height = 1.2 x size. `leading` (default 4 px, manual 1286, ledger F10) goes between lines
   only, as Pango's spacing does: one line is 1.2 x size tall, two are 2.4 x size + 4.
 - **Widgets** have intrinsic sizes (research 02 section 13): button = label + padding (min 22 high),

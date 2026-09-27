@@ -450,6 +450,23 @@ fn an_app_without_a_size_opens_at_600_by_500() {
 }
 
 #[test]
+fn a_para_fill_highlights_its_text_not_its_box() {
+    // Manual 1208-1210: text's fill is "painted in the background (as if marked with a
+    // highlighter pen)"; Shoes 3 makes it a Pango background over the text.
+    let mut h = Harness::new();
+    let yellow = json!({"rgba": [255, 255, 0, 255]});
+    h.feed(&app(300, 100, &[create(4, "Stack", 2, json!({})), create(3, "Para", 4, json!({"text_items": ["Hi"], "fill": yellow}))]));
+    let para = h.node(|n| n["id"] == 3);
+    let (x, y, w, ht) = (para["x"].as_f64().unwrap(), para["y"].as_f64().unwrap(), para["w"].as_f64().unwrap(), para["h"].as_f64().unwrap());
+    assert!(w > 250.0, "a para in a stack has a box as wide as the stack: {para}");
+    // Just inside the line's top, above the letters.
+    let at = |h: &mut Harness, px: f64| h.value(json!({"op": "pixel", "x": px, "y": y + 1.0}));
+    assert_eq!(at(&mut h, x + 2.0), json!([255, 255, 0, 255]), "behind the text is yellow");
+    assert_eq!(at(&mut h, x + w - 2.0), json!([255, 255, 255, 255]), "the rest of the box is not");
+    assert!(ht < 20.0, "{ht}");
+}
+
+#[test]
 fn app_title_and_size_props() {
     let mut h = Harness::new();
     h.feed(&app(200, 100, &[]));

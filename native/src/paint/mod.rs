@@ -203,9 +203,6 @@ pub fn paint(scene: &mut Scene, pm: &mut Pixmap, scale: f32) {
             k if k.is_art() => shapes::paint_art(&mut canvas, node, lbox, scene.images),
             Kind::Para | Kind::TextDrawable => {
                 if let Some(tb) = layout.texts.get(&id) {
-                    if let Some(fill) = tb.shaped.fill {
-                        text::fill_block(&mut canvas, tb, lbox.rect, fill, lbox.clip);
-                    }
                     // `wrap: "trim"` keeps the text on one line and cuts it off at the para's own edge.
                     let clip = if node.props.str("wrap") == Some("trim") {
                         lbox.clip.map_or(Some(lbox.rect), |c| c.intersect(&lbox.rect)).or(Some(Rect::new(0.0, 0.0, 0.0, 0.0)))

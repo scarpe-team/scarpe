@@ -42,7 +42,6 @@ pub struct ShapedText {
     /// line's leading in the line, so the first line would otherwise start half of it low.
     pub top: f32,
     pub metas: Rc<Vec<SpanMeta>>,
-    pub fill: Option<Color>,
     /// The first-line indent, in px, of text that continues a line in a flow; 0 otherwise.
     pub indent: f32,
 }
@@ -199,7 +198,7 @@ fn shape(fs: &mut FontSystem, rich: &RichText, width: Option<f32>, indent: f32, 
         h = rich.line_height;
     }
     let height = (h - rich.leading).max(1.0);
-    ShapedText { buffer: Rc::new(buffer), width: w, height, top: -rich.leading / 2.0, metas: Rc::new(metas), fill: rich.fill, indent }
+    ShapedText { buffer: Rc::new(buffer), width: w, height, top: -rich.leading / 2.0, metas: Rc::new(metas), indent }
 }
 
 /// The blank that stands in for a first-line indent: the first run's face, so no font
