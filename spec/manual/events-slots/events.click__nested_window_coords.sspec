@@ -4,8 +4,6 @@ lines: [2189, 2191]
 testability: interactive
 display: native
 ledger: H3
-expect: fail
-reason: "DESIGN 4.3 still hands a slot's click block coordinates relative to the slot; ledger H3 was ruled window coordinates on 27 Sep 2026 (Q4, wire contract g)"
 ----------- app code
 $clicks = []
 Shoes.app width: 400, height: 300 do
