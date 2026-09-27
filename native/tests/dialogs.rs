@@ -97,3 +97,33 @@ fn native_dialogs_are_left_to_the_window_layer() {
     rt.dialog_answered(1, Value::Null, false);
     assert_eq!(reply(&rt.out.take_captured(), 1).unwrap()["cancelled"], json!(false));
 }
+
+fn position(msgs: &[Value], wanted: impl Fn(&Value) -> bool) -> Option<usize> {
+    msgs.iter().position(wanted)
+}
+
+/// Ruby blocks on an `ask` until it is answered. A user who closes the window instead of
+/// pressing OK or Cancel must still answer it, or Ruby never handles the `closed` behind it.
+#[test]
+fn closing_the_window_cancels_its_ask_before_saying_closed() {
+    let mut rt = windowed_runtime();
+    send(&mut rt, json!({"t":"req","req":1,"op":"dialog","kind":"ask","message":"Name?","default":null}));
+    rt.window_closed(1);
+    let msgs = rt.out.take_captured();
+    let answered = position(&msgs, |m| m["t"] == "reply" && m["req"] == json!(1)).expect("the ask was answered");
+    let closed = position(&msgs, |m| m["t"] == "closed").expect("Ruby heard the window close");
+    assert!(answered < closed, "the answer comes first, so Ruby is free to handle `closed`: {msgs:?}");
+    assert_eq!(msgs[answered]["cancelled"], json!(true));
+    assert!(rt.views[&1].ui.modal.is_none());
+}
+
+/// A `frames` request waits for presents the closed window will never make.
+#[test]
+fn closing_the_window_fails_its_frames_request() {
+    let mut rt = windowed_runtime();
+    let msgs = send(&mut rt, json!({"t":"req","req":1,"op":"frames","n":3}));
+    assert!(reply(&msgs, 1).is_none(), "frames waits for the window to present");
+    rt.window_closed(1);
+    let answer = reply(&rt.out.take_captured(), 1).expect("answered when the window closed");
+    assert_eq!(answer["error"], json!("window closed"));
+}
