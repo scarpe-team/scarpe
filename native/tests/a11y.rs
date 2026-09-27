@@ -8,6 +8,7 @@ use accesskit::TreeUpdate;
 use accesskit_consumer::{Node as SeenNode, Tree, TreeChangeHandler};
 use common::{app, create, events, named, Harness};
 use scarpe_native::a11y::{self, Mirror};
+use scarpe_native::dialogs::ModalKind;
 use serde_json::{json, Value};
 
 /// Every node of the read-back tree, depth first.
@@ -334,6 +335,19 @@ fn an_ask_dialog_is_modal_holds_the_focus_and_answers() {
     let answer = msgs.iter().find(|m| m["t"] == "reply" && m["req"] == json!(77)).expect("the dialog answered");
     assert_eq!((answer["value"].as_str(), &answer["cancelled"]), (Some("Noah"), &json!(false)));
     assert!(with_role(&mut h, "dialog").is_empty(), "and closed");
+}
+
+/// `ask(..., secret: true)` masks its field; the tree must never give the answer away either.
+#[test]
+fn a_secret_ask_reads_as_bullets() {
+    let mut h = Harness::new();
+    h.feed(&app(400, 300, &[]));
+    h.rt.open_modal(1, 79, "ask", "Your PIN?", &json!("1234"));
+    if let Some(ModalKind::Ask(field)) = h.rt.views.get_mut(&1).and_then(|v| v.ui.modal.as_mut()).map(|m| &mut m.kind) {
+        field.secret = true;
+    }
+    assert_eq!(one(&mut h, "password_input")["value"], json!("\u{2022}".repeat(4)));
+    assert!(!tree(&mut h).to_string().contains("1234"), "the answer is nowhere in the tree");
 }
 
 #[test]

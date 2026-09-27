@@ -371,8 +371,8 @@ impl Builder<'_> {
         kids.extend(self.add(part(app, MESSAGE), m));
         match &modal.kind {
             ModalKind::Ask(field) => {
-                let mut f = Node::new(Role::TextInput);
-                f.set_value(field.text());
+                let mut f = Node::new(if field.secret { Role::PasswordInput } else { Role::TextInput });
+                f.set_value(if field.secret { field.bullets() } else { field.text() });
                 f.set_bounds(bounds(g.field));
                 f.add_action(Action::Focus);
                 f.add_action(Action::SetValue);
