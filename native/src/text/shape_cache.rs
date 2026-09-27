@@ -47,6 +47,12 @@ impl ShapedText {
     pub fn meta(&self, metadata: usize) -> Option<&SpanMeta> {
         metadata.checked_sub(1).and_then(|i| self.metas.get(i))
     }
+
+    /// The part of a line its text fills, `(top, height)` in buffer coordinates: the line
+    /// less the half of the leading cosmic-text puts above and below it.
+    pub fn line_box(&self, line_top: f32, line_height: f32) -> (f32, f32) {
+        (line_top - self.top, (line_height + 2.0 * self.top).max(0.0))
+    }
 }
 
 #[derive(Default)]
