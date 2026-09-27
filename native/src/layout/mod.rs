@@ -58,6 +58,12 @@ impl Rect {
     pub fn inset(&self, e: &Edges) -> Rect {
         Rect::new(self.x + e.left, self.y + e.top, (self.w - e.horizontal()).max(0.0), (self.h - e.vertical()).max(0.0))
     }
+
+    /// The smallest box holding both.
+    pub fn union(&self, other: &Rect) -> Rect {
+        let (x0, y0) = (self.x.min(other.x), self.y.min(other.y));
+        Rect::new(x0, y0, self.right().max(other.right()) - x0, self.bottom().max(other.bottom()) - y0)
+    }
 }
 
 /// Where a laid-out node ended up.
@@ -395,21 +401,22 @@ impl Engine<'_> {
     fn place_art(&mut self, node: &Node, content: Rect) {
         let doc = self.doc;
         let parent = (content.w, content.h);
-        let bounds = match shapes::art(node, (content.x, content.y), parent) {
-            Some(art) => art.bounds,
-            // A shape block holding only other art has no path of its own.
-            None if node.kind == Kind::Shape => Rect::new(content.x, content.y, 0.0, 0.0),
-            None => return,
-        };
-        self.out.boxes.insert(node.id, LBox { rect: bounds, clip: None, origin: (content.x, content.y), parent_size: parent });
+        let mut bounds = shapes::art(node, (content.x, content.y), parent).map(|art| art.bounds);
         if node.kind == Kind::Shape {
-            // Art drawn inside a shape block is positioned like its siblings.
+            // Art drawn inside a shape block joins its path, measured from the shape's left/top (E7).
+            let (x, y) = shapes::group_origin(node, (content.x, content.y), parent);
+            let inner = Rect::new(x, y, content.w, content.h);
             for &child in doc.children(node.id) {
                 if let Some(c) = doc.get(child).filter(|c| c.kind.is_art() && !hidden(c)) {
-                    self.place_art(c, content);
+                    self.place_art(c, inner);
+                    if let Some(r) = self.out.rect(child) {
+                        bounds = Some(bounds.map_or(r, |b| b.union(&r)));
+                    }
                 }
             }
         }
+        let Some(rect) = bounds else { return };
+        self.out.boxes.insert(node.id, LBox { rect, clip: None, origin: (content.x, content.y), parent_size: parent });
         self.displace(node);
     }
 

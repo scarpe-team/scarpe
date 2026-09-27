@@ -90,3 +90,58 @@ fn caps_round_project_or_stop_flat() {
     assert!(near(rgb(&mut h, 148.0, 108.0), BLACK));
     assert_eq!(rgb(&mut h, 153.0, 100.0), WHITE, "a flat end stops at the end point");
 }
+
+// ---- Shape blocks (ledger E7, M21) ----
+
+/// A Shape (id 3) holding `members`, each created inside it the way Lacci does.
+fn shape_with(shape_props: Value, members: &[(i64, &str, Value)]) -> Harness {
+    let mut body = vec![art(3, "Shape", 2, shape_props)];
+    body.extend(members.iter().map(|(id, kind, props)| art(*id, kind, 3, props.clone())));
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &body));
+    h
+}
+
+/// The Rules chapter (manual 392-408): ovals combined in a shape are one shape, so a
+/// translucent fill does not build up where they overlap (nested_ovals.rb went black).
+#[test]
+fn art_in_a_shape_block_is_filled_once() {
+    let grey = json!({"fill": {"rgba": [0, 0, 0, 128]}, "stroke": {"rgba": [0, 0, 0, 0]}});
+    let red = json!({"fill": {"rgba": [255, 0, 0, 255]}, "stroke": {"rgba": [0, 0, 0, 0]}});
+    let mut h = shape_with(json!({"shape_commands": [], "draw_context": grey}), &[
+        (4, "Rect", json!({"left": 0, "top": 0, "width": 100, "height": 100, "draw_context": red})),
+        (5, "Rect", json!({"left": 50, "top": 0, "width": 100, "height": 100, "draw_context": red})),
+    ]);
+    let single = rgb(&mut h, 25.0, 50.0);
+    let overlap = rgb(&mut h, 75.0, 50.0);
+    assert!(single[0] > 100 && single[0] < 160 && single[0] == single[1], "the shape's own grey, not its members' red: {single:?}");
+    assert_eq!(overlap, single, "the overlap is filled once");
+}
+
+#[test]
+fn a_shape_block_strokes_every_outline_it_holds() {
+    let outline = json!({"fill": {"rgba": [0, 0, 0, 0]}, "stroke": {"rgba": [0, 0, 0, 255]}, "strokewidth": 2});
+    let mut h = shape_with(json!({"shape_commands": [], "draw_context": outline.clone()}), &[
+        (4, "Oval", json!({"left": 20, "top": 20, "width": 100, "height": 100, "draw_context": outline.clone()})),
+        (5, "Oval", json!({"left": 160, "top": 20, "width": 100, "height": 100, "draw_context": outline})),
+    ]);
+    assert!(near(rgb(&mut h, 20.5, 70.0), BLACK), "the first outline");
+    assert!(near(rgb(&mut h, 259.5, 70.0), BLACK), "the second outline");
+    assert_eq!(rgb(&mut h, 70.0, 70.0), WHITE, "no fill");
+    assert_eq!(rgb(&mut h, 140.0, 70.0), WHITE, "and no line joining them");
+}
+
+/// `shape(left, top) { oval 0, 0, 20 }`: the art is measured from the shape's corner,
+/// and the shape's box holds it all, so clicks and culling find it.
+#[test]
+fn a_shape_block_box_holds_its_art_from_its_left_top() {
+    let red = json!({"fill": {"rgba": [255, 0, 0, 255]}, "stroke": {"rgba": [0, 0, 0, 0]}});
+    let mut h = shape_with(json!({"left": 100, "top": 100, "shape_commands": [], "draw_context": red.clone()}), &[
+        (4, "Oval", json!({"left": 0, "top": 0, "width": 20, "height": 20, "draw_context": red.clone()})),
+        (5, "Rect", json!({"left": 50, "top": 0, "width": 10, "height": 10, "draw_context": red})),
+    ]);
+    assert_eq!(rgb(&mut h, 110.0, 110.0), RED);
+    assert_eq!(rgb(&mut h, 155.0, 105.0), RED);
+    let shape = h.node(|n| n["id"] == 3);
+    assert_eq!((shape["x"].clone(), shape["y"].clone(), shape["w"].clone(), shape["h"].clone()), (json!(100.0), json!(100.0), json!(60.0), json!(20.0)));
+}
