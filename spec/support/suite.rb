@@ -10,6 +10,7 @@ require "fileutils"
 require "tmpdir"
 require "rbconfig"
 require "etc"
+require "zlib"
 
 module SpecSuite
   SPEC_DIR = File.expand_path("..", __dir__)
