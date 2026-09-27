@@ -55,6 +55,7 @@ module NativeTestHelpers
         "SCARPE_NATIVE_HEADLESS" => headless ? "1" : nil,
         "SCARPE_NATIVE_GHOST" => nil, # the fake child has no window; a test that means a ghost says so
         "SCARPE_NATIVE_SNAPSHOT_DIR" => File.join(dir, "snapshots"),
+        "SCARPE_NATIVE_PID_FILE" => File.join(dir, "renderer.pid"),
         "SCARPE_NATIVE_LOG_LEVEL" => "warn",
         "LOCALAPPDATA" => dir,
         "PATH" => "#{File.join(dir, "bin")}#{File::PATH_SEPARATOR}#{ENV["PATH"]}",
@@ -166,5 +167,15 @@ module NativeTestHelpers
       sleep 0.02
     end
     [readers[0].value, readers[1].value.lines.grep_v(/Gem::Platform|previous definition/).join, status, timed_out]
+  ensure
+    kill_renderer(env["SCARPE_NATIVE_PID_FILE"])
+  end
+
+  # The renderer leads a process group of its own, out of reach of Ruby's; the shim leaves its pid
+  # in the file until it has gone, so a file still there means Ruby died before stopping it.
+  def kill_renderer(pid_file)
+    Process.kill("KILL", -Integer(File.read(pid_file))) if pid_file && File.exist?(pid_file)
+  rescue ArgumentError, SystemCallError
+    nil
   end
 end

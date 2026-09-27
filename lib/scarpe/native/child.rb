@@ -182,6 +182,7 @@ module Scarpe::Native
       Stats.mark("spawn")
       @stdin, @stdout, @stderr, @wait_thread = spawn(command)
       @pid = @wait_thread.pid
+      name_in_pid_file
       [@stdin, @stdout].each(&:binmode)
 
       @outbox = []
@@ -299,19 +300,43 @@ module Scarpe::Native
       return if @closed
 
       @closed = true
+      close_stdin
+      unless @wait_thread.join(grace)
+        signal("TERM")
+        signal("KILL") unless @wait_thread.join(1)
+      end
+      forget_pid_file
+    end
+
+    # Ends the child, and anything it started, at once: for when Ruby itself is being stopped and
+    # has no time to wait for a child that may be stuck. Safe from a signal trap.
+    def kill!
+      signal("TERM") if @wait_thread.alive?
+    end
+
+    private
+
+    # SCARPE_NATIVE_PID_FILE names the child's process group for as long as the child runs, so a
+    # harness that had to kill Ruby (whose group signals never reach the child's) can end it too.
+    def name_in_pid_file
+      @pid_file = ENV["SCARPE_NATIVE_PID_FILE"].to_s
+      File.write(@pid_file, "#{@pid}\n") unless @pid_file.empty?
+    end
+
+    def forget_pid_file
+      File.delete(@pid_file) unless @pid_file.empty? || !File.exist?(@pid_file)
+    rescue SystemCallError
+      nil
+    end
+
+    def close_stdin
       @write_lock.synchronize do
         write_outbox
         @stdin.close unless @stdin.closed?
       end
-      return if @wait_thread.join(grace)
-
-      signal("TERM")
-      signal("KILL") unless @wait_thread.join(1)
     rescue IOError, SystemCallError
       nil
     end
-
-    private
 
     # Its own process group, so a terminal Ctrl-C reaches Ruby (which quits the child) and not the child.
     def spawn(command)
@@ -427,8 +452,9 @@ module Scarpe::Native
       nil
     end
 
+    # To the child's whole process group (it leads one), so what it started goes with it.
     def signal(name)
-      Process.kill(name, @pid)
+      Process.kill(name, -@pid)
     rescue SystemCallError
       nil
     end
