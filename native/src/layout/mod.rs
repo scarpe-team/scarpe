@@ -1,10 +1,11 @@
 //! The Shoes layout engine (DESIGN section 6): stacks, flows, text blocks,
 //! widgets, out-of-flow placement, scrolling. Logical pixels throughout.
 //!
-//! Sizing rule for margins: a relative width or height (fraction, percent,
-//! negative, or a slot filling its line) sizes the margin box, so two
-//! `width: 0.5, margin: 10` flows sit side by side; a px size is the box
-//! itself, and margins add outside it.
+//! Sizing rule for margins: a width or height the app gives, px or relative, sizes the
+//! margin box, margins inside it, as in Shoes 3 (ledger C14, Q9): two `width: 0.5,
+//! margin: 10` flows sit side by side, and `stack width: 100, margin: 10` is an 80 px box
+//! with 10 px either side. A size the element finds for itself (a button's label, an
+//! image's pixels) is the box, and margins add outside it.
 
 use crate::doc::{Doc, Kind, Node};
 use crate::elements::{self, image::ImageCache};
@@ -786,12 +787,10 @@ fn is_window(s: &str) -> bool {
     lower == "window" || lower == "shoes::app" || lower == "shoes::window" || lower == "app"
 }
 
-/// A requested size as a border-box size (see the module comment on margins).
+/// A requested size, which is the margin box, as the box inside the margins (see the module
+/// comment on margins).
 fn sized(dim: Dim, parent: f32, margins: f32) -> f32 {
-    match dim {
-        Dim::Px(px) => px.max(0.0),
-        relative => (relative.resolve(parent) - margins).max(0.0),
-    }
+    (dim.resolve(parent) - margins).max(0.0)
 }
 
 fn collect_order(doc: &Doc, id: Id, boxes: &HashMap<Id, LBox>, order: &mut Vec<Id>, subs: &mut Vec<Id>) {

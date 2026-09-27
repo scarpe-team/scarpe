@@ -347,7 +347,9 @@ moved there the same day, so apps normally send it.
   list_box 200x28, progress 200x14 (manual sizes, ledger C4), check/radio 18x18, slider 160x20,
   video 300x150 (a placeholder frame; playback is not built). An image is its file's size, or keeps its aspect when given only
   a width or a height. Shadows stay inside a control's box. Explicit width/height override.
-- **Margins** add outside the box (`margin`, `margin_left/top/right/bottom`; arrays are
+- **Margins** add outside a size the element finds for itself, and sit inside a width or height
+  the app gives it, which is the margin box (ledger C14, Q9 ruled 27 Sep 2026; section 12)
+  (`margin`, `margin_left/top/right/bottom`; arrays are
   [left, top, right, bottom], and a short array keeps the default for the sides it leaves out,
   ledger C3). Text blocks default to Shoes 3's margins: 4 px on every side, and 12 px below
   unless `margin` or `margin_bottom` is given (ledger C9, Q3, s3t_textblock.c:108-110); everything
@@ -576,9 +578,12 @@ open classes. The hot paths (layout, text, paint, hit-testing, input) are alread
 Where the sections above left a choice open, the Rust side does this. Lanes that disagree should
 change the code and this list together.
 
-- **Margins and relative sizes.** A relative width or height (a fraction, `"N%"`, a negative number,
-  or a slot's default fill) sizes the margin box, so two `width: 0.5, margin: 10` flows share a row.
-  A px size is the box itself, and margins add outside it.
+- **Margins and sizes.** A width or height the app gives, px or relative (a fraction, `"N%"`, a
+  negative number), sizes the margin box, as Shoes 3 does (s3_ruby.c:506, 537, s3t_textblock.c:125-126;
+  ledger C14, Q9 ruled 27 Sep 2026): two `width: 0.5, margin: 10` flows share a row, `stack width:
+  100, margin: 10` is an 80 px box, and `para "x", width: 200` wraps at 192 inside its 4 px
+  margins. So do a slot's default fill and a text block's. A size the element finds for itself (a
+  button's label, a check's 18 px, an image's pixels) is the box, and margins add outside it.
 - **Text in a flow** flows as a paragraph (section 6). Text that does not (centred, right-aligned,
   justified, trimmed, or given a width or height) is a box: as wide as its longest line
   (max-content) if that fits in the rest of the row, else it starts a new row and wraps at the
