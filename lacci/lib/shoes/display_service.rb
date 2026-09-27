@@ -51,6 +51,14 @@ class Shoes
         @para_cursor_top_cache ||= {}
       end
 
+      # Where a display that lays drawables out last put each one, pushed back after
+      # every layout pass: layout_cache[id] = [x, y, w, h, scroll_h] in window pixels,
+      # scroll_h being a slot's content height. Drawable getters (width, left,
+      # scroll_max...) read it. Displays that push nothing leave it empty.
+      def layout_cache
+        @layout_cache ||= {}
+      end
+
       # Builtin response mechanism: allows display service handlers to return
       # values to the Shoes-side caller (e.g. ask, confirm, clipboard).
       # The handler calls set_builtin_response(value) during synchronous dispatch,

@@ -76,6 +76,27 @@ class Shoes::Slot < Shoes::Drawable
     super || 0
   end
 
+  # The height of everything in the slot, including what is scrolled out of view
+  # (manual 2440-2442). Without a display reporting layout, that is the slot's height.
+  #
+  # @return [Numeric] the content height in pixels
+  def scroll_height
+    laid_out_at(:scroll_height) || height
+  end
+
+  # How far the slot can scroll: scroll_height minus height, and never below zero
+  # (manual 2444-2451, Shoes 3 shoes_canvas_get_scroll_max).
+  #
+  # @return [Numeric] the largest scroll_top, in pixels
+  def scroll_max
+    [scroll_height - height, 0].max
+  end
+
+  # The width of the scrollbar area, one of the slot position methods (manual 2394-2399).
+  def gutter
+    @app.gutter
+  end
+
   # We use method_missing for drawable-creating methods like "button".
   # The parent's method_missing will auto-create Shoes style getters and setters.
   # This is similar to the method_missing in Shoes::App, but differs in where

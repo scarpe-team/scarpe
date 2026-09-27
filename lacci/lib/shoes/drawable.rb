@@ -611,6 +611,7 @@ class Shoes
       unsub_all_shoes_events
       send_shoes_event(event_name: "destroy", target: linkable_id)
       Shoes::Drawable.unregister_drawable_id(linkable_id)
+      Shoes::DisplayService.layout_cache.delete(linkable_id)
     end
     alias_method :remove, :destroy
 
@@ -641,62 +642,101 @@ class Shoes
       self
     end
 
-    # Get the width of the drawable, computing pixel values for percentages and
-    # negative values. Shoes3 apps expect slot.width to return the actual pixel width.
-    # For slots without explicit width, defaults to parent's width (100% fill).
+    # The width in pixels (manual 2511-2513: "returns an exact pixel size").
+    # A pixel width the app gave is the truth. Anything else (unset, "50%", 0.5, -100)
+    # is what the display laid out, or failing that, worked out here from the parent.
+    # Slots without a width fill their parent.
     #
-    # @return [Integer, nil] the width in pixels, or nil if not determinable
+    # @return [Numeric, nil] the width in pixels, or nil if not determinable
     def width
-      result = compute_dimension(@width, :width)
-      # Slots without explicit width should fill their parent (Shoes3 behavior)
-      return result if result
-      return parent_dimension(:width) if self.is_a?(Shoes::Slot)
-      nil
+      size_in_pixels(@width, :width)
     end
 
-    # Get the height of the drawable, computing pixel values for percentages and
-    # negative values. Shoes3 apps expect slot.height to return the actual pixel height.
-    # For slots without explicit height, defaults to parent's height (100% fill).
+    # The height in pixels. See #width.
     #
-    # @return [Integer, nil] the height in pixels, or nil if not determinable
+    # @return [Numeric, nil] the height in pixels, or nil if not determinable
     def height
-      result = compute_dimension(@height, :height)
-      # Slots without explicit height should fill their parent (Shoes3 behavior)
-      return result if result
-      return parent_dimension(:height) if self.is_a?(Shoes::Slot)
-      nil
+      size_in_pixels(@height, :height)
+    end
+
+    # Where the drawable sits, in window pixels. A drawable the app placed with left:
+    # (or move) gets that number back, so `el.left += 5` never drifts through a
+    # rounded layout; one its slot placed reports where the display put it.
+    #
+    # @return [Numeric, nil] the left edge, or nil if not determinable
+    def left
+      @left || laid_out_at(:left)
+    end
+
+    # The top edge. See #left.
+    #
+    # @return [Numeric, nil] the top edge, or nil if not determinable
+    def top
+      @top || laid_out_at(:top)
+    end
+
+    protected
+
+    LAYOUT_FIELDS = { left: 0, top: 1, width: 2, height: 3, scroll_height: 4 }.freeze
+
+    # A field of the rect the display last pushed for this drawable, rounded to whole
+    # pixels as Shoes 3 reports them, or nil when no display reports layout.
+    def laid_out_at(field)
+      Shoes::DisplayService.layout_cache[linkable_id]&.fetch(LAYOUT_FIELDS.fetch(field))&.round
     end
 
     private
 
-    # Compute a dimension (width or height) by resolving percentages and negative values.
-    # - Numbers are returned as-is
-    # - "100%" returns the parent's dimension
-    # - Negative values return parent_dimension - |value|
-    # - For document_root with no parent, uses App dimensions
+    def size_in_pixels(given, dimension)
+      return given if pixel_size?(given)
+
+      laid_out_at(dimension) ||
+        compute_dimension(given, dimension) ||
+        (parent_dimension(dimension) if is_a?(Shoes::Slot))
+    end
+
+    # Read like the native display reads it (native/src/style/dim.rs): Integers of 0 and
+    # up are pixels, and so are Floats outside (0, 1], which Ruby code computes all the time.
+    def pixel_size?(value)
+      (value.is_a?(Integer) && value >= 0) || (value.is_a?(Float) && (value.zero? || value > 1))
+    end
+
+    # Resolve a size relative to the parent: a Float in (0, 1] is that fraction of it
+    # (manual 1239-1245), "N%" a percentage, a negative number the parent minus that
+    # much, and "Npx" plain pixels. For the document root the parent is the App.
     #
-    # @param value [Integer, String, nil] the stored dimension value
+    # @param value [Numeric, String, nil] the stored dimension value
     # @param dimension [Symbol] :width or :height
-    # @return [Integer, nil] the computed pixel value
+    # @return [Numeric, nil] the computed pixel value
     def compute_dimension(value, dimension)
-      return nil if value.nil?
-      return value if value.is_a?(Numeric) && value >= 0
+      value = pixels_in(value) if value.is_a?(String) && !percentage(value)
+      return value if value.nil? || pixel_size?(value)
 
-      # Get parent's dimension for percentage/negative calculations
-      parent_dim = parent_dimension(dimension)
-      return nil unless parent_dim
-
-      if value.is_a?(String) && value.end_with?("%")
-        # Percentage of parent
-        percent = value.to_f
-        (parent_dim * percent / 100.0).to_i
+      parent = parent_dimension(dimension) or return nil
+      if (fraction = fraction_of_parent(value))
+        (parent * fraction).round
       elsif value.is_a?(Numeric) && value < 0
-        # Negative means parent dimension minus the absolute value
-        parent_dim + value.to_i
-      else
-        # Unknown format, return nil
-        nil
+        [parent + value, 0].max
       end
+    end
+
+    # A Float in (-1, 0) is the rest of the parent: -0.25 leaves 75% (dim.rs agrees).
+    def fraction_of_parent(value)
+      fraction = value.is_a?(String) ? percentage(value) : value
+      return nil unless fraction.is_a?(Numeric)
+      return fraction if fraction > 0 && fraction <= 1
+
+      1 + fraction if fraction < 0 && fraction > -1
+    end
+
+    def percentage(string)
+      string.strip.end_with?("%") ? string.to_f / 100.0 : nil
+    end
+
+    # "120px" and "120" are pixels.
+    def pixels_in(string)
+      number = string.strip.delete_suffix("px").strip
+      Integer(number, exception: false) || Float(number, exception: false)
     end
 
     # Get the parent's dimension (width or height) for computing percentages.
