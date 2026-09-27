@@ -1,0 +1,225 @@
+# Scarpe Native: performance
+
+Nick's brief: performance is critical, so measure, optimise, measure again. This page has the
+numbers, how each was taken, and what moved them. Everything here can be run again with the
+commands under "Running the benchmarks".
+
+## How these were measured
+
+- **Machine:** Apple M5 (10 cores), 32 GB, macOS 26.2, built-in Liquid Retina XDR display
+  (120 Hz ProMotion, 2x). Windows are 600x500 logical, 1200x1000 pixels, opened inactive
+  (`SCARPE_NATIVE_INACTIVE=1`).
+- **Build:** `cargo build --release` with Rust 1.93.1. Ruby 4.0.1 without YJIT unless a row says
+  otherwise (4.0.1 on this machine has no YJIT; the YJIT rows use 4.0.5, with and without it).
+- **Before** is commit 32a2b47: the measurement layer alone, on top of native-rust 36c6282.
+  **After** is w3/perf. Both ran the same harness (the after tree's `examples/native/bench`).
+- Other work ran on the machine throughout (load average 7 to 14). Before and after ran
+  interleaved, three rounds of the whole suite; the table shows the median of the three.
+
+## The numbers
+
+| benchmark | measure | before | after |
+|---|---|---|---|
+| **500 ovals, animate(60), window** (`ovals`) | frames per second | 60.0 | 60.0 |
+| | frame interval p50 / p95 / max | 16.7 / 18.9 / 30.8 ms | 16.6 / 18.8 / 28.5 ms |
+| | Rust CPU / Ruby CPU | 53.8% / 24.7% | **41.1%** / 25.4% |
+| | Rust present per frame | 2.70 ms | **0.79 ms** |
+| | Rust parse, apply, layout, paint per frame | 0.25, 0.15, 0.22, 5.09 ms | 0.25, 0.16, 0.22, 5.30 ms |
+| **500 ovals, headless 2x** (`ovals_headless`, each tick painted) | frames per second / Rust CPU | 60.1 / 35.3% | 59.7 / 35.7% |
+| **One ball over a busy still window** (`backdrop`) | frames per second | 34.3 | **60.0** |
+| | frame interval p50 / p95 | 28.6 / 32.3 ms | 16.6 / 19.5 ms |
+| | Rust CPU | 99.7% | **15.5%** |
+| | Rust paint per frame | 26.4 ms | **0.47 ms** |
+| **Keystroke to pixels, window** (`typing`) | key in, to the frame showing it (p50 / p95) | 9.1 / 14.5 ms | **3.8 / 6.5 ms** |
+| | key, Ruby handler, form redrawn (p50 / p95) | 16.4 / 25.7 ms | **7.9 / 10.5 ms** |
+| **Keystroke to pixels, headless** (`typing_headless`) | key in, to the frame showing it (p50 / p95) | 2.5 / 4.4 ms | 2.0 / 5.1 ms |
+| **Cold start, hello world** (`startup`, median of 5 a round) | spawn to first frame on screen | 244 ms | **191 ms** |
+| | Ruby VM boot | 45 ms | 52 ms |
+| | Ruby: load Scarpe, Lacci and the shim, start the app | 83 ms | **41 ms** |
+| | Rust: event loop running and hello answered (from its start) | 66 ms | **47 ms** |
+| | Rust: system fonts loaded (from its start) | 45 ms, blocking | 14 ms, on its own thread |
+| | Ruby: app built and `run` sent (from spawn) | 73 ms (waited on hello) | **2 ms** |
+| | Rust: window open (after `run`) | 35 ms | 44 ms |
+| | first layout, paint and present | 4.9 ms | 1.0 ms |
+| **Idle, a still app** (`idle`, 10 s) | Ruby CPU / Rust CPU | 0.32% / 0% | **0.035%** / 0% |
+| **A clock, every(1)** (`clock`, 10 s) | Ruby CPU / Rust CPU | 0.49% / 1.0% | **0.054% / 0.2%** |
+| **Clear and rebuild 2000 paras** (`rebuild`) | Rust parse, apply per rebuild | 1.70, 1.16 ms | 1.64, 1.21 ms |
+| | Rust layout, paint, present per rebuild | 41.5, 1.18, 3.04 ms | 38.0, 1.50, **0.64 ms** |
+| | click to rebuilt frame (Lacci's unsubscribes, see below) | 4367 ms | 4347 ms |
+| **Memory, footprint / RSS** (`memory`) | hello world: Ruby | 20 / 27.6 MB | **13** / 20.7 MB |
+| | hello world: Rust | 32 / 98.7 MB | **27** / 94.5 MB |
+| | 2000 drawables: Ruby | 35 / 42.7 MB | **28** / 35.6 MB |
+| | 2000 drawables: Rust | 67 / 134 MB | **49** / 116 MB |
+
+Footprint is what Activity Monitor calls Memory (dirty and compressed pages). RSS also counts
+AppKit's and CoreAnimation's shared pages, which is most of the Rust process's 94 MB.
+
+Single changes, measured as interleaved A/B pairs on their own (numbers from the commits):
+
+| change | measure | before | after |
+|---|---|---|---|
+| window in DeviceRGB (b844dd9) | present per 1200x1000 frame | 2.75-2.99 ms | 0.76-0.79 ms |
+| fonts on their own thread (f6d9636) | Rust start to first frame, hello world, warm | ~80 ms | ~72 ms |
+| lazy requires, no handshake wait (6dc4f07) | spawn to first frame, quiet machine, median of 7, twice | 198-200 ms | 149-151 ms |
+| batched stdin (f6e46da) | Rust CPU, 500 ovals | 42-44% | 40.5-41% |
+| frame pacing (1075123) | 100 ovals at animate(240) on 120 Hz: presents / Rust CPU | 240/s, 54% | 116/s, 34-35% |
+| looks-only changes (48a0a06) | recolouring one shape over 2000 paras, per frame | 1.45 ms | 0.32 ms |
+| kept JSON::State (493db5e) | JSON per tick, Ruby 3.2.2 / 4.0.1 | 0.55 / 0.24 ms | 0.36 / 0.22 ms |
+
+YJIT (Ruby 4.0.5, the after tree, two rounds each):
+
+| measure | 4.0.5 | 4.0.5 with RUBY_YJIT_ENABLE=1 |
+|---|---|---|
+| 500 ovals, window: Ruby CPU | 24.0-25.2% | 18.7-19.2% |
+| 500 ovals: Ruby handler per tick | 3.68-3.96 ms | 3.04-3.26 ms |
+| 500 ovals: JSON per tick | 0.25 ms | 0.18 ms |
+| 500 ovals, headless: Ruby CPU | 23.4-25.0% | 17.6-18.4% |
+| cold start, hello world | 163-181 ms | 161-174 ms |
+
+YJIT takes a quarter off the Ruby side of an animation and does nothing for cold start.
+
+Rust alone, no Ruby and no window (`native/tests/bench.rs`), per frame at 2x, the same binary
+with partial repaints off and on (`SCARPE_NATIVE_DAMAGE=off`), two runs each, load about 11:
+
+| scene | repaint everything | repaint what changed |
+|---|---|---|
+| 500 moving ovals | 11.6-12.2 ms | 12.0-12.1 ms (all of it changes) |
+| one ball over a still window | 4.69-4.86 ms | 0.17 ms |
+| one ball over 2000 paras | 3.95-4.02 ms | 2.85-2.94 ms (2.3 ms is layout) |
+| one shape changing colour over 2000 paras | 1.65 ms | 0.63 ms |
+| clearing and rebuilding 2000 paras | 96 ms | 95 ms (all of it changes) |
+
+On a quieter machine the same benches ran about twice as fast (6.2 ms for the ovals, 0.09 ms
+for the ball); compare the columns, not these numbers with the tables above.
+
+## Where a frame's time goes
+
+500 ovals moving at 60 fps, after. Ruby and Rust work side by side, each on its own frame:
+
+| side | step | per frame |
+|---|---|---|
+| Ruby | animate handler: Lacci moves 500 ovals, the shim normalises 1000 prop changes | 3.9 ms, 57% of it GC |
+| Ruby | JSON encoding, 1001 lines | 0.23 ms |
+| pipe | one write of 43 KB; a ping round trip is 0.02 ms | 0.03 ms |
+| Rust | parse, apply | 0.25, 0.16 ms |
+| Rust | layout | 0.22 ms |
+| Rust | paint: tiny-skia antialiased fills of 500 translucent ovals at 2x | 5.3 ms |
+| Rust | present: softbuffer's new 4.8 MB buffer (0.47), conversion (0.19), CoreAnimation | 0.8 ms |
+
+So at 60 fps the Ruby side is 25% busy and the Rust side 41%. Paint is the biggest single step
+and is real rasterising: every oval moves, so nothing can be skipped.
+
+## What changed, and what each bought
+
+Each is its own commit on w3/perf with its own before and after in the message.
+
+1. **Frames presented in the window's own colour space** (b844dd9). Sampling the ovals showed
+   vImage lookup tables and matrix multiplies inside CoreAnimation's commit: softbuffer tags
+   frames DeviceRGB, the window was in the display's colour space, so every frame was
+   colour-matched on the CPU (2.4 ms of a 2.7 ms present). The window now uses DeviceRGB and the
+   window server converts while compositing, on the GPU. The colours on screen are the same.
+2. **Repaint only what changed** (f34f6b1, `src/paint/damage.rs`). The window keeps its last
+   frame and repaints the rects of nodes whose box, props, text or widget state changed, each
+   into a pixmap of its own under a translated transform. Whatever cannot be bounded repaints
+   everything: first frame, new size or scale, scrolling, popups and modals, paint order
+   changes, and art under rotate, scale, skew or translate. A change to a node that is not
+   painted on its own counts against its nearest painted ancestor (f84cf7b).
+3. **System fonts loaded while the window opens** (f6d9636). The font database, 11 ms warm and
+   85 to 190 ms with a cold disk cache, no longer sits in front of the handshake.
+4. **The shim starts without waiting** (6dc4f07). net/http, digest, uri and tmpdir (about 45 ms)
+   load on the first download; minitest (10 to 45 ms) loads for Shoes-Spec runs only; hello goes
+   out and Ruby builds the app while Rust starts.
+5. **An idle app sleeps** (7ae4272, f245d77). The pump woke every 50 ms. A wake pipe now ends its
+   wait for posts from other threads and for Ctrl-C (the INT trap is chained), so its own loop
+   waits up to a second when no timer is due.
+6. **One event-loop wake per batch of lines** (f6e46da), instead of 60,000 a second.
+7. **Floods held to the refresh rate** (1075123, `src/window/pacing.rs`). A frame that would be
+   the third within two refreshes waits for the next one. A lone frame never waits.
+8. **The layout kept when a change only alters looks** (48a0a06): a check's `checked`, a field's
+   echoed `text`, a shape's colour, a bar's fraction, a para's caret.
+9. **A kept JSON::State per thread** (493db5e) instead of one built per message.
+10. **A stale-pixel bug in the shaped-text cache** (299cdbd): a para whose `fill` changed kept
+    painting the old one, because the cache key left the fill out.
+
+## Looked at and left alone
+
+- **Moving art without laying everything out.** Art never moves anything else, so a moved shape
+  could be re-placed alone: a ball over 2000 paras spends 1.16 ms of its 1.44 ms frame laying the
+  paras out again (quiet machine). It is not done here because the layout lane is changing
+  placement right now and the new layout push-back (Rust tells Ruby every rect that moved) would
+  have to see such updates, or Lacci's `left`/`top` getters would go stale. After the merge:
+  re-place art whose only changed keys are geometry, from the LBox's stored origin (less its own
+  displacement) and parent size, and push that rect back.
+- **A sprite cache for art.** Paint is 5.3 ms of the ovals' frame, nearly all of it tiny-skia's
+  antialiased fills. Caching each shape's raster needs a key covering everything its paint reads,
+  and the art lane is adding transforms now; not worth a stale sprite.
+- **softbuffer's present.** It allocates and zero-fills a new 4.8 MB buffer every frame (0.47 ms
+  of page faults). Its API gives no way to reuse one.
+- **Opening the window.** At 31 to 44 ms it is now the largest step of Rust's startup, and it is
+  AppKit's.
+- **The 2000-para rebuild** is 38 ms of layout on the Rust side, and sampling shows harfrust
+  shaping new text. The 4.3 s a click takes is Lacci unsubscribing 6000 handlers (the Lacci lane
+  is on it).
+- **String buffer instead of Array#join** for the outbox: 67 against 73 µs per 1000 lines.
+
+## For the Lacci lane
+
+Measured on the ovals, in a scratch copy:
+
+- `Shoes::DisplayService.dispatch_event` always builds its debug string (`args.inspect` and all):
+  11 objects and 1.1 µs per dispatch. Without it the animate handler fell from 3.88-3.96 to
+  3.39-3.54 ms per tick and Ruby's CPU from 25% to 21-22%.
+- `move(x, y)` sends two prop changes (left, then top). One message would cut the pipe from 43 to
+  27 KB per tick and Rust's parse and apply from 0.41 to 0.27 ms; `style(left:, top:)` is heavier
+  in Ruby than the two setters, so it wants a lean combined setter.
+- Garbage collection is 57% of Ruby's CPU in the oval animation (stackprof).
+
+## Keeping partial repaints honest
+
+A stale pixel is worse than a slow one, so partial repaints are checked three ways.
+
+- `SCARPE_NATIVE_DAMAGE=check` verifies every partial repaint, in a window or headless: outside
+  the repainted rects a full paint must equal the previous full paint bit for bit (anything else
+  is a stale pixel), and inside them the frame must equal the same rects painted with no node
+  skipped. A rect is not compared with a full paint: tiny-skia approximates a curve the pixmap
+  edge cuts through a shade differently, and both shades are right. Mismatches go to stderr and
+  the full paint goes on screen. `SCARPE_NATIVE_DAMAGE=off` repaints everything.
+- `native/tests/damage.rs` (15 tests, including a 150-step random walk at three scales) runs that
+  check after every change; each of five deliberately broken versions of the damage code fails it.
+- All 424 examples, headless, in check mode, with clicks, keys, typing and waits: 1400 repaints
+  verified (398 of them partial), no mismatch, no panic.
+
+A node must never paint outside `paint::damage::paint_bounds`. Code that makes a node draw
+further (a new transform, a shadow) grows that function too; check mode says when it did not.
+
+## Running the benchmarks
+
+```
+bundle exec ruby examples/native/bench/bench.rb                  # everything, about 2.5 minutes
+bundle exec ruby examples/native/bench/bench.rb ovals typing     # some: ovals ovals_headless backdrop
+                                                                 #   typing typing_headless startup idle
+                                                                 #   clock rebuild memory
+ruby examples/native/bench/bench.rb --ruby ~/.local/share/mise/installs/ruby/4.0.5/bin/ruby --yjit
+    # options: --seconds N (the measured stretch), --runs N (cold starts), --bundler, --json OUT
+cd native && cargo test --release --test bench -- --ignored --nocapture --test-threads 1
+    # prefix SCARPE_NATIVE_DAMAGE=off for the repaint-everything column
+```
+
+`bench.rb` runs each app in `examples/native/bench` through `drive.rb`, which starts it the way
+`scarpe --native` does and acts on it from the first heartbeat (cold start runs the real
+`exe/scarpe`). Both processes report where their time went when `SCARPE_NATIVE_STATS=<dir>` is set
+(`ruby.json`, `rust.json`), for any app:
+
+```
+SCARPE_NATIVE_STATS=/tmp/stats bundle exec ruby exe/scarpe --dev --native app.rb
+```
+
+To reproduce a before column, run today's harness against the old tree and its binary:
+
+```
+mkdir /tmp/before
+git archive 32a2b47 lib lacci/lib scarpe-components/lib exe examples docs/image.png native | tar -x -C /tmp/before
+(cd /tmp/before/native && cargo build --release)
+cp examples/native/bench/*.rb /tmp/before/examples/native/bench/
+SCARPE_NATIVE_BIN=/tmp/before/native/target/release/scarpe-native ruby /tmp/before/examples/native/bench/bench.rb
+```
