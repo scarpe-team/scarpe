@@ -67,6 +67,22 @@ impl<'a> Canvas<'a> {
         Transform::from_row(self.scale, 0.0, 0.0, self.scale, -self.origin.0 as f32, -self.origin.1 as f32)
     }
 
+    /// `r` (logical px) cut down, if it has to be, to what tiny-skia can rasterise. A rect
+    /// reaching past MAX_DEVICE_REACH (a list box a billion px tall scrolled into view) would be
+    /// skipped whole, the part on screen with it; it is cut to this canvas grown by `margin`,
+    /// which keeps the cut edges, their corners and any stroke out of sight. Any other rect
+    /// comes back as it is, so ordinary drawing does not change by a bit.
+    pub fn reachable(&self, r: Rect, margin: f32) -> Rect {
+        let bounds = tiny_skia::Rect::from_xywh(r.x, r.y, r.w.max(0.001), r.h.max(0.001));
+        if bounds.is_some_and(|b| within_reach(b, self.base(), margin.max(0.0) * self.scale)) {
+            return r;
+        }
+        let v = self.visible();
+        let (x0, y0) = (r.x.max(v.x - margin), r.y.max(v.y - margin));
+        let (x1, y1) = (r.right().min(v.right() + margin), r.bottom().min(v.bottom() + margin));
+        Rect::new(x0, y0, x1 - x0, y1 - y0)
+    }
+
     /// The part of the window this pixmap covers, in logical px.
     pub fn visible(&self) -> Rect {
         let s = self.scale;
@@ -137,14 +153,19 @@ impl<'a> Canvas<'a> {
         }
     }
 
+    /// A rounded rect's path, cut down to what tiny-skia can rasterise (`reachable`).
+    pub fn rect_path(&self, rect: Rect, radius: f32, stroke_width: f32) -> Option<Path> {
+        shapes::rounded_rect(self.reachable(rect, radius.max(0.0) + stroke_width.max(0.0) + 2.0), radius)
+    }
+
     pub fn fill_rect(&mut self, rect: Rect, color: Color, clip: Option<Rect>) {
-        if let Some(path) = shapes::rounded_rect(rect, 0.0) {
+        if let Some(path) = self.rect_path(rect, 0.0, 0.0) {
             self.fill(&path, color, clip);
         }
     }
 
     pub fn fill_rounded(&mut self, rect: Rect, radius: f32, color: Color, clip: Option<Rect>) {
-        if let Some(path) = shapes::rounded_rect(rect, radius) {
+        if let Some(path) = self.rect_path(rect, radius, 0.0) {
             self.fill(&path, color, clip);
         }
     }
@@ -153,13 +174,13 @@ impl<'a> Canvas<'a> {
     pub fn stroke_rounded(&mut self, rect: Rect, radius: f32, color: Color, width: f32, clip: Option<Rect>) {
         let half = width / 2.0;
         let inner = Rect::new(rect.x + half, rect.y + half, rect.w - width, rect.h - width);
-        if let Some(path) = shapes::rounded_rect(inner, (radius - half).max(0.0)) {
+        if let Some(path) = self.rect_path(inner, (radius - half).max(0.0), width) {
             self.stroke(&path, color, width, clip);
         }
     }
 
     pub fn fill_gradient(&mut self, rect: Rect, radius: f32, top: Color, bottom: Color, clip: Option<Rect>) {
-        let Some(path) = shapes::rounded_rect(rect, radius) else { return };
+        let Some(path) = self.rect_path(rect, radius, 0.0) else { return };
         let stops = vec![GradientStop::new(0.0, top.to_skia()), GradientStop::new(1.0, bottom.to_skia())];
         if let Some(shader) = LinearGradient::new(
             Point::from_xy(rect.x, rect.y),

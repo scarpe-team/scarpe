@@ -714,7 +714,8 @@ change the code and this list together.
   for at most 1,000. A node is never attached inside itself, so the tree has no loops; layout
   stops 128 slots deep and masks stop masking 4 deep, so no document overflows the stack or piles
   up layers. Paths reaching more than a million device pixels out are not drawn (tiny-skia's
-  fixed point panicked on a stroke 2^31 px wide). Image and font files are read only when they
+  fixed point panicked on a stroke 2^31 px wide); rects (backgrounds, borders, controls) are
+  cut to the window first, so the part of a box millions of pixels tall that is on screen draws. Image and font files are read only when they
   are plain files (a FIFO would block, /dev/zero never ends) within 256 MB, and images within
   16,384 px a side, whatever their extension says. `tests/fuzz.rs` feeds generated hostile
   sessions through the real entry point (SCARPE_NATIVE_FUZZ_RUNS, SCARPE_NATIVE_FUZZ_SEED).

@@ -109,7 +109,7 @@ pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, images: &mut ImageCa
     // draw_pixmap has no clip rect of its own: clip by drawing through a pattern-filled rect.
     if mask_clip.is_some() {
         let shader = tiny_skia::Pattern::new(img.as_ref().as_ref(), tiny_skia::SpreadMode::Pad, FilterQuality::Bicubic, 1.0, transform);
-        if let Some(path) = crate::paint::shapes::rounded_rect(r, 0.0) {
+        if let Some(path) = canvas.rect_path(r, 0.0, 0.0) {
             canvas.fill_path(&path, shader, tiny_skia::FillRule::Winding, Transform::identity(), mask_clip);
         }
         return;

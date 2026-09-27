@@ -117,3 +117,29 @@ fn art_too_big_to_rasterise_is_skipped() {
     assert_eq!(h.value(json!({"op": "pixel", "x": 160, "y": 70})), json!([255, 0, 0, 255]), "the sane rect still draws on top");
     still_answers(&mut h);
 }
+
+/// A slot or control millions of pixels tall reaches past what tiny-skia can rasterise. Wave 4
+/// stopped the panic by skipping such paths, which also dropped the part on screen: a red
+/// background 3,000,000 px tall, or a button a billion px tall scrolled into view, showed
+/// nothing. Rects are cut down to what the window shows instead.
+#[test]
+fn the_visible_part_of_a_huge_box_still_draws() {
+    let look = |kind: &str, height: f64, dy: f64, background: bool| {
+        let mut h = Harness::new();
+        let mut body = vec![create(14, kind, 2, json!({"height": height, "width": 200}))];
+        if background {
+            body.push(create(15, "Background", 14, json!({"fill": {"rgba": [255, 0, 0, 255]}})));
+        }
+        h.feed(&app(300, 200, &body));
+        if dy > 0.0 {
+            h.value(json!({"op": "wheel", "dy": dy, "x": 20, "y": 20}));
+        }
+        h.value(json!({"op": "pixel", "x": 10, "y": 100}))
+    };
+    for dy in [0.0, 1.5e6] {
+        assert_eq!(look("Stack", 3e6, dy, true), json!([255, 0, 0, 255]), "a 3e6 px red stack scrolled {dy}");
+    }
+    for kind in ["Button", "ListBox"] {
+        assert_ne!(look(kind, 1e9, 5e8, false), json!([255, 255, 255, 255]), "a 1e9 px {kind} shows its face");
+    }
+}
