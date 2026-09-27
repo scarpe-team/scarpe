@@ -4,8 +4,6 @@ lines: [1921, 1921]
 testability: api
 display: any
 ledger: F2
-expect: fail
-reason: "Lacci's banner returns a Shoes::Para with size :banner; there is no Shoes::Banner class"
 ----------- app code
 Shoes.app do
   $block = banner "Shoes"
