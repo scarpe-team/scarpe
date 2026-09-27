@@ -375,7 +375,7 @@ Ruby speed in packaged apps (Nick's call, 27 Sep 2026). Two cheap wins, both mea
 
 1. **YJIT on by default, after the first frame.** It helps method-heavy per-frame code such as
    `animate` handlers, but switched on at process start (`--yjit`, `RUBY_YJIT_ENABLE=1`) it made the
-   first frame about 22 ms later on a YJIT build of Ruby, while `RubyVM::YJIT.enable` at the first
+   first frame 22 to 57 ms later on a YJIT build of Ruby, while `RubyVM::YJIT.enable` at the first
    heartbeat cost nothing measurable. So `boot.rb` does that (`lib/scarpe/package/yjit.rb`), and
    `RUBY_YJIT_ENABLE=0` opts out. The bundled Traveling Ruby 3.4.7 is built without YJIT, so
    packaged apps run without it until the runtime has it.
@@ -387,7 +387,7 @@ Ruby speed in packaged apps (Nick's call, 27 Sep 2026). Two cheap wins, both mea
    app will be installed (`/Applications/Name.app` unless `--install-dir`). Run from anywhere else,
    by another Ruby (`RUBY_REVISION`), or after a source changed (size, mtime), the app loads source.
    The target is cold start to first frame, which is the speed people feel: bytecode took
-   `require "scarpe"` from 57 to 37 ms (docs/native_packaging.md).
+   `require "scarpe"` from 43 to 28 ms (docs/native_packaging.md).
 
 Transpiling Ruby to Rust is out of scope: the DSL depends on `instance_eval`, `method_missing` and
 open classes. The hot paths (layout, text, paint, hit-testing, input) are already Rust.
