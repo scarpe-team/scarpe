@@ -136,7 +136,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | F9 | `link(click: proc)` fires | MANUAL | 10.5 | |
 | F10 | `:leading` defaults to 4 px | MANUAL | | |
 | F11 | `para` with non-String arguments | BOTH | | |
-| F12 | Text with invalid UTF-8 is reported | MANUAL | unsched. | |
+| F12 | Text with invalid UTF-8 is reported | MANUAL | | |
 
 ### G. Native controls
 
@@ -846,7 +846,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 - **Manual:** "Edit boxes, edit lines, list boxes, window titles and text blocks all take UTF-8. If you give a string with bad characters in it, an error will show up in the console." (manual 482-485).
 - **Shoes 3:** not checked.
-- **Lacci today:** passes the bytes through without a word; neither display reports them.
+- **Lacci today:** passes the bytes through without a word; neither display reports them. Since the wave-4 Lacci lane text blocks and text fragments print `[ERROR] para text is not valid UTF-8: ...` on stderr and replace the bad bytes with U+FFFD, so every display gets valid text and the app carries on. Edit lines, edit boxes, list boxes and window titles are not checked yet.
 - **Spec:** `rules.utf8_bad_chars_error`: a para made from a string with a stray Latin-1 byte puts a UTF-8 or encoding message on stdout or stderr, and the app carries on. Scarpe has no console window (H10), so the log stands in for it.
 - **Native:** the shim must not crash on such a string: JSON generation of invalid UTF-8 raises, so it should report and replace the bad bytes before the text crosses the wire.
 

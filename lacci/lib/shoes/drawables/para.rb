@@ -246,7 +246,7 @@ class Shoes
     # Text_children alternates strings and TextDrawables, so we can't just pass
     # it as a Shoes style. It won't serialize.
     def update_text_children(children)
-      @text_children = children.flatten
+      @text_children = children.flatten.map { |child| utf8_text(child) }
       # This should signal the display drawable to change
       self.text_items = text_children_to_items(@text_children)
     end
