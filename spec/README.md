@@ -180,7 +180,8 @@ Mouse coordinates are window coordinates everywhere: `click_at`, `layout_of`, an
 4. **No `dom_html`**, no webview helpers, no `Shoes::App.find_drawables_by` when a finder will do.
 5. **Never a real dialog.** Answer dialogs with `stub_dialog` or front matter `dialogs:`.
    Unanswered ones get the headless answers (alert nil, confirm false, ask `""`, file and colour
-   dialogs nil) and are still recorded in `dialog_calls`. The runner fails any case that
+   dialogs nil), which are also what each dialog returns on Cancel (ask's `""` is ledger K1),
+   and are still recorded in `dialog_calls`. The runner fails any case that
    reaches `osascript`.
 6. **No network, no sleeping, no writing outside the working directory.** Each case runs in a
    throwaway directory with its own `HOME`; `say`, `open`, `afplay` and `osascript` are trapped.

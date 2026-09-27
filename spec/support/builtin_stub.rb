@@ -93,7 +93,8 @@ module SpecSuite
 
   # Included into Minitest::Test, so every display's test class has them unless it defines its own.
   module TestHelpers
-    # Answer the next `kind` dialog with `value` (nil means Cancel for ask and the file dialogs).
+    # Answer the next `kind` dialog with `value`. A cancelled ask returns "" (ledger K1); a
+    # cancelled file, folder or colour dialog returns nil.
     def stub_dialog(kind, value)
       Dialogs.stub(kind, value)
     end
