@@ -390,8 +390,13 @@ impl Engine<'_> {
         let parent = (content.w, avail_h);
         let full = (content.w - m.horizontal()).max(0.0);
         let wanted = self.text.max_content(rich);
+        // A newline in the text ends a line, so it cannot sit on this one as a single box. A
+        // closing newline leaves an empty line under the text, as Pango lays it out (cosmic-text
+        // drops it): what follows starts there, at the flow's left edge.
+        let one_line = !rich.runs.iter().any(|run| run.text.contains('\n'));
+        let closing_newline = rich.runs.last().is_some_and(|run| run.text.ends_with('\n'));
         loop {
-            if wanted <= full - cursor.x + 0.5 {
+            if one_line && wanted <= full - cursor.x + 0.5 {
                 // One line beside what came before, as wide as its text.
                 let shaped = self.text.shape(rich, Some(wanted.max(1.0)));
                 let rect = Rect::new(content.x + cursor.x + m.left, content.y + cursor.y + m.top, wanted, shaped.height);
@@ -416,15 +421,22 @@ impl Engine<'_> {
             } else {
                 self.text.shape(rich, Some(full.max(1.0)))
             };
-            let last = shaped.buffer.layout_runs().last().map(|run| (run.line_top, run.line_w)).unwrap_or_default();
-            let rect = Rect::new(content.x + m.left, content.y + cursor.y + m.top, full, shaped.height);
+            let (mut last_top, last_w) = shaped.buffer.layout_runs().last().map(|run| (run.line_top, run.line_w)).unwrap_or_default();
+            let mut height = shaped.height;
+            if closing_newline {
+                last_top += rich.line_height;
+                height += rich.line_height;
+            }
+            let rect = Rect::new(content.x + m.left, content.y + cursor.y + m.top, full, height);
             self.put_text(node, shaped, rect, parent);
             // The next child goes on the last line, as if the rows before it were done.
             let row_bottom = (cursor.y + cursor.row_h).max(rect.bottom() - content.y + m.bottom);
-            cursor.y = rect.y - content.y + last.0 - m.top;
+            cursor.y = rect.y - content.y + last_top - m.top;
             cursor.row_h = row_bottom - cursor.y;
             cursor.content_bottom = rect.bottom() - content.y;
-            cursor.x = carry_on(m.left + last.1, &m);
+            // "Newlines have an empty size" (s3t_textblock.c:217-228): after one, the next line
+            // starts at the flow's edge, margin and all.
+            cursor.x = if closing_newline { 0.0 } else { carry_on(m.left + last_w, &m) };
             return;
         }
     }

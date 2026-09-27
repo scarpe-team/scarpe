@@ -463,6 +463,27 @@ fn what_follows_a_paragraph_carries_on_from_its_last_line() {
     assert!(r(&l, flow).h >= p.bottom() + 12.0 - 0.01, "the flow still holds the whole paragraph and its margin");
 }
 
+/// examples/radio/radio_same_slot.rb (the manual's radio example): `para "...?\n"; radio;
+/// para "..."`. A text that ends in a newline ends its line, so what follows starts the next
+/// one at the flow's left edge (Shoes 3 s3t_textblock.c:217-228: "newlines have an empty size").
+#[test]
+fn a_trailing_newline_ends_the_line() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"width": 400}));
+    let question = s.add("Para", flow, json!({"text_items": ["Among these films, which do you prefer?\n"]}));
+    let radio = s.add("Radio", flow, json!({}));
+    let answer = s.add("Para", flow, json!({"text_items": ["The Taste of Tea\n"]}));
+    let second = s.add("Radio", flow, json!({}));
+    let l = s.layout(480.0, 420.0);
+    let (q, r1, a, r2) = (r(&l, question), r(&l, radio), r(&l, answer), r(&l, second));
+    let first_line = l.texts[&question].shaped.buffer.layout_runs().next().unwrap();
+    assert_eq!(r1.x, 0.0, "the radio starts the next line at the flow's edge: {r1:?}");
+    assert!(r1.y >= q.y + first_line.line_top + first_line.line_height - 4.0 - 0.5, "below the question's line: {r1:?} {q:?}");
+    assert!((a.y - q.y - (r1.y - q.y)).abs() < 12.0 && a.x < r1.right() + 8.0, "its answer sits beside it: {a:?} {r1:?}");
+    assert_eq!(r2.x, 0.0, "and the next radio starts a line of its own: {r2:?}");
+    assert!(r2.y > r1.y + 10.0, "{r2:?} {r1:?}");
+}
+
 #[test]
 fn words_in_a_flow_sit_one_margin_apart() {
     // examples/para/rainbow.rb: one para per word must read as a sentence.
