@@ -220,9 +220,9 @@ neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1).
 - **Flow**: default width 100% of parent inner width. In-flow children are packed left to right;
   a child that does not fit on the current row starts a new row (unless the row is empty). Row height =
   tallest child; children top-aligned.
-- **Stack**: children top to bottom, each on its own row, left-aligned. Default width: the
-  remaining width on the current line of its parent (Shoes 3; in a stack parent that is the full
-  inner width).
+- **Stack**: children top to bottom, each on its own row, left-aligned. Default width: its
+  parent's inner width, like a flow's, so an unsized slot after anything else on a line starts a
+  row (ledger C8: Shoes 3 s3_canvas.c:468 with s3_ruby.c:505-532, Shoes 4 s4_slot.rb:48).
 - Slot height = content height unless `height` given. A slot with a fixed `height` clips what
   does not fit, scrolling or not (manual 345-352: it becomes a "nested window"); `scroll: true`
   with a height also scrolls.
@@ -413,8 +413,8 @@ change the code and this list together.
   full width there. Text with `align: center/right` fills the rest of the row so the alignment
   shows. Positioned text (`left`/`top`) shrinks to fit the same way. `right:` and `bottom:`
   place from the far edges.
-- **Widget** (a `Shoes::Widget` subclass) lays its children out as a flow; its default width
-  fills the rest of the line, like a stack. **Mask** is not drawn yet.
+- **Widget** (a `Shoes::Widget` subclass) lays its children out as a flow; its default width is
+  its parent's, like any slot. **Mask** is not drawn yet.
 - **Art geometry.** `star` follows Shoes 3 exactly (centred on left/top, first point straight
   down, radii outer/inner). `arrow` is centred on left/top, points right, is 0.8 x width tall with a
   head 0.42 x width long. `arc` sits in its (left, top, width, height) box like `oval` (Shoes 3
