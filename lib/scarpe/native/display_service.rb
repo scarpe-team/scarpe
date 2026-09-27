@@ -22,6 +22,17 @@ module Scarpe::Native
     end
   end
 
+  # Runs block once, after every handler of the pump's next heartbeat (the first, when called
+  # before the app runs). Lacci starts slots on that heartbeat (ledger H8), so a slot's start
+  # block has run and drawn by then: Shoes-Spec tests and peek's steps begin here.
+  def self.after_first_heartbeat(&block)
+    after_heartbeat << block
+  end
+
+  def self.after_heartbeat
+    @after_heartbeat ||= []
+  end
+
   def self.truthy_env?(name)
     value = ENV[name].to_s.downcase
     !value.empty? && !%w[0 false no].include?(value)
@@ -151,6 +162,7 @@ module Scarpe::Native
 
     def dispatch_heartbeat
       Shoes::DisplayService.dispatch_event("heartbeat", nil)
+      Scarpe::Native.after_heartbeat.shift.call until Scarpe::Native.after_heartbeat.empty?
     rescue *FATAL
       raise
     rescue Exception => e

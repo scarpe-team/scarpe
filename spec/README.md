@@ -153,7 +153,7 @@ Everything above, plus the native API (DESIGN.md section 8):
 | `layout_tree` | every laid-out node as a Hash with **Symbol** keys (`:id`, `:kind`, `:x`, `:y`, `:w`, `:h`, `:visible`, `:text`), in paint order |
 | `pixel_at(x, y)` | `[r, g, b, a]` |
 | `snapshot(name)` | writes `spec/results/snapshots/<name>.png`, returns the path |
-| `wait_frames(n = 1)`, `advance(seconds)` | pump the loop; `advance` fires timers |
+| `wait_frames(n = 1)`, `advance(seconds)` | pump the loop; `wait_frames` also beats the heart, so a slot made since starts; `advance` fires timers |
 | `focused_drawable` | proxy or nil |
 
 Every event a synthetic input causes has been dispatched by the time the call returns
