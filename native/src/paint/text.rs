@@ -199,21 +199,33 @@ fn fill_px(canvas: &mut Canvas, x: f32, y: f32, w: f32, h: f32, color: Color, cl
     }
 }
 
-fn wavy(canvas: &mut Canvas, x0: f32, x1: f32, y: f32, size: f32, color: Color, _clip: Option<crate::text::raster::PxClip>) {
+/// The error underline: a squiggle of waves `2 x amp` wide from x0 to x1, cut to `clip` like
+/// the glyphs. Only the waves the canvas and the clip can show are built, counted from x0 (in
+/// f64, so far along a span a wave still moves on), so a span miles wide costs no more than one
+/// the window can show, and a partial repaint draws the very waves a full one does.
+fn wavy(canvas: &mut Canvas, x0: f32, x1: f32, y: f32, size: f32, color: Color, px_clip: Option<crate::text::raster::PxClip>) {
     let amp = (size * 0.08).max(1.0);
-    let step = amp * 2.0;
+    let step = amp as f64 * 2.0;
+    let s = canvas.scale;
+    let clip = px_clip.map(|c| Rect::new(c.x0 as f32 / s, c.y0 as f32 / s, (c.x1 - c.x0) as f32 / s, (c.y1 - c.y0) as f32 / s));
+    let Some(shown) = clip.map_or(Some(canvas.visible()), |c| c.intersect(&canvas.visible())) else { return };
+    let (from, to) = (x0 as f64, x1 as f64);
+    if !(from.is_finite() && to.is_finite() && step.is_finite()) || to <= from {
+        return;
+    }
+    let waves = ((to - from) / step).ceil();
+    // A wave either side more, for the stroke's own width.
+    let first = (((shown.x as f64 - from) / step).floor() - 1.0).clamp(0.0, waves) as i64;
+    let last = (((shown.right() as f64 - from) / step).ceil() + 1.0).clamp(0.0, waves) as i64;
+    let at = |wave: i64| (from + wave as f64 * step).min(to) as f32;
     let mut pb = PathBuilder::new();
-    pb.move_to(x0, y);
-    let mut x = x0;
-    let mut up = true;
-    while x < x1 {
-        let next = (x + step).min(x1);
-        pb.quad_to((x + next) / 2.0, if up { y - amp } else { y + amp }, next, y);
-        up = !up;
-        x = next;
+    pb.move_to(at(first), y);
+    for wave in first..last {
+        let (a, b) = (at(wave), at(wave + 1));
+        pb.quad_to((a + b) / 2.0, if wave % 2 == 0 { y - amp } else { y + amp }, b, y);
     }
     if let Some(path) = pb.finish() {
-        canvas.stroke(&path, color, (size * 0.07).max(1.0), None);
+        canvas.stroke(&path, color, (size * 0.07).max(1.0), clip);
     }
 }
 
