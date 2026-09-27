@@ -6,7 +6,7 @@ display: native
 ----------- app code
 Shoes.app do
   @box = stack width: 200, scroll: true do
-    20.times do |i|
+    10.times do |i|
       @last = para "Paragraph No. #{i}"
     end
   end
