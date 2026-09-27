@@ -541,7 +541,8 @@ default, and a `clear` that keeps the slot's handlers and timers (ledger H9, B7)
 
 `scarpe package --native` (or `SCARPE_DISPLAY_SERVICE=native scarpe package`) builds a macOS `.app`,
 and with `--dmg` a disk image (`lib/scarpe/package/native.rb`, docs/native_packaging.md): Traveling
-Ruby, `lib`, `lacci/lib` and `scarpe-components/lib` copied from source (no gems, no webview), the
+Ruby, `lib`, `lacci/lib` and `scarpe-components/lib` copied from source (no installed gems and no
+webview; FastImage and base64 go in as plain source for image sizes, except with `--minimal`), the
 release binary stripped into `Contents/MacOS` and signed explicitly, a boot script that never loads
 `scarpe/wv` and sets `SCARPE_DISPLAY_SERVICE=native`, and an ad-hoc signature on the whole bundle.
 A button app is 32.4 MB (13.4 MB as a `.dmg`), or 17.7 MB with `--minimal`. Linux, Windows and
