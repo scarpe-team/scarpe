@@ -4,8 +4,6 @@ lines: [1268, 1273]
 testability: api
 display: any
 ledger: F5
-expect: fail
-reason: "Para does not declare :justify, so Lacci drops it with a warning (F5, Lacci change unscheduled)."
 ----------- app code
 Shoes.app do
   @it = para "spread me out", justify: true

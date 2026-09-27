@@ -5,7 +5,7 @@ testability: visual
 display: native
 ledger: F4
 expect: fail
-reason: "Para declares font_variant, not :variant, so Lacci drops it before it reaches the display (see styles.variant__accepted)."
+reason: "Lacci sends :variant, but the native display draws no small capitals yet (F4)."
 ----------- app code
 Shoes.app width: 400, height: 300 do
   flow { @plain = para "pppp", size: 30 }

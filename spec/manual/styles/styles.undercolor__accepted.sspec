@@ -4,8 +4,6 @@ lines: [1489, 1494]
 testability: api
 display: any
 ledger: F5
-expect: fail
-reason: "Para does not declare :undercolor (only TextDrawable does), so Lacci drops it with a warning (F5, Lacci change unscheduled)."
 ----------- app code
 Shoes.app do
   @it = para "under", underline: "single", undercolor: red

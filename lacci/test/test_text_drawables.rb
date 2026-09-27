@@ -61,4 +61,23 @@ class TestTextDrawables < NienteTest
       assert_nil para("@plain").underline
     SHOES_SPEC
   end
+
+  # Ledger F4, F5, F10: the manual's text styles are kept and read back, where Lacci
+  # used to drop them with an "Unexpected non-style keyword" warning.
+  def test_the_manuals_text_styles_are_kept
+    run_test_niente_code(<<~'SHOES_APP', app_test_code: <<~'SHOES_SPEC')
+      Shoes.app do
+        @block = para "words", justify: true, leading: 8, rise: 2, stretch: "condensed",
+          variant: "smallcaps", strikecolor: red, undercolor: "#00f"
+        @span = para strong("bold", rise: 10, stretch: "expanded", variant: "smallcaps", strikecolor: red)
+      end
+    SHOES_APP
+      block = para("@block")
+      assert_equal [true, 8, 2, "condensed", "smallcaps"], %i[justify leading rise stretch variant].map { |name| block.style[name] }
+      assert_equal [[255, 0, 0, 255], [0, 0, 255, 255]], [block.style[:strikecolor], block.style[:undercolor]]
+
+      span = para("@span").contents.first
+      assert_equal [10, "expanded", "smallcaps"], %i[rise stretch variant].map { |name| span.style[name] }
+    SHOES_SPEC
+  end
 end

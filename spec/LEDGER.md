@@ -129,7 +129,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | F2 | Text blocks are distinct classes | MANUAL | unsched. | |
 | F3 | Relative `:size` strings | MANUAL | | |
 | F4 | `:weight`, `:variant`, `:font` | MANUAL | | |
-| F5 | Text styles Lacci drops | MANUAL | unsched. | |
+| F5 | Text styles Lacci drops | MANUAL | | |
 | F6 | `underline: true` | BOTH | | |
 | F7 | Link and LinkHover defaults | MANUAL | | |
 | F8 | Argument of a link's click block | S3 | | |
@@ -768,16 +768,16 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 - **Manual:** `:weight` names from `ultralight` (200) to `heavy` (900), or a number (manual 1521-1537); `:variant` is `"normal"` or `"smallcaps"` (manual 1511-1519); `:font` is a Pango description `"[FAMILY-LIST] [STYLE-OPTIONS] [SIZE]"` (manual 1212-1224).
 - **Examples:** `weight:` in 4 files (`"bold"`, `"ultrabold"`, `"strong"`).
-- **Lacci / WV today:** Para declares `:weight`, but Calzini only renders `font_weight` (`calzini/para.rb:47`), so `weight: "bold"` shows normal. `variant:` is not a style and is dropped with a warning. `FontHelper#parse_font` knows CSS names only (`font_helper.rb:15-18`).
+- **Lacci / WV today:** Para declares `:weight`, but Calzini only renders `font_weight` (`calzini/para.rb:47`), so `weight: "bold"` shows normal. `variant:` is not a style and is dropped with a warning. `FontHelper#parse_font` knows CSS names only (`font_helper.rb:15-18`). Since the wave-4 Lacci lane text blocks and text fragments keep `variant:` as a style and send it; the native display does not draw small capitals yet, so `styles.variant.normal` and `.smallcaps` stay `expect: fail` on native.
 - **Spec:** `para "x", weight: "bold"` lays out wider than `para "x"`.
 - **Native:** maps weight names to numeric weights and parses the Pango-style font string (family list, style words, size).
 
 ### F5. Text styles Lacci drops
 
-**Ruling: MANUAL.** **Lacci change, unscheduled.**
+**Ruling: MANUAL.** **Lacci change, done 27 Sep 2026.**
 
 - **Manual:** `:leading` (manual 1282-1286, see F10), `:justify` (1268-1273), `:rise` (1366-1373), `:stretch` (1423-1434), `:strikecolor` (1436-1441), `:undercolor` on Para (1489-1494).
-- **Lacci / WV today:** none are Para styles (`para.rb:6-36`); they hit the "Unexpected non-style keyword" warning (`drawable.rb:385-388`). TextDrawable has `:undercolor` (`text_drawable.rb:15`). Calzini already renders `rise`, `strikecolor` and `undercolor` when present (`calzini/para.rb:43-50, 79-82`).
+- **Lacci / WV today:** none are Para styles (`para.rb:6-36`); they hit the "Unexpected non-style keyword" warning (`drawable.rb:385-388`). TextDrawable has `:undercolor` (`text_drawable.rb:15`). Calzini already renders `rise`, `strikecolor` and `undercolor` when present (`calzini/para.rb:43-50, 79-82`). Since the wave-4 Lacci lane Para declares all six (colours through `to_rgb`, as its stroke), and text fragments `justify`, `rise`, `stretch` and `strikecolor` besides their `undercolor`. The native display draws all but `stretch`, so the four `styles.stretch` visual cases stay `expect: fail` on native.
 - **Spec:** each style is accepted without a warning and reads back through `style`; `leading` and `rise` change layout.
 - **Native:** honours them once Lacci sends them.
 
@@ -829,7 +829,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Shoes 3:** `ld = ATTR2(int, self_t->attr, leading, 4)`, passed to `pango_layout_set_spacing` (`s3t_textblock.c:127, 148`).
 - **Lacci / WV today:** no `leading` style (F5); CSS line height applies.
 - **Spec:** a two-line para with `leading: 0` lays out shorter than the same para with default leading.
-- **Native:** since 27 Sep leading defaults to 4 px and goes between lines only, as Pango's spacing does: one line is 1.2 x size, two are 2.4 x size + 4 (DESIGN 6). Lacci does not send `:leading` yet (F5).
+- **Native:** since 27 Sep leading defaults to 4 px and goes between lines only, as Pango's spacing does: one line is 1.2 x size, two are 2.4 x size + 4 (DESIGN 6). Lacci sends `:leading` since the wave-4 Lacci lane (F5), and `styles.leading` and `styles.leading__default` pass.
 
 ### F11. `para` with non-String arguments
 
