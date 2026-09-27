@@ -384,6 +384,23 @@ mod tests {
     }
 
     #[test]
+    fn none_turns_a_default_decoration_off() {
+        // Contract (d): Lacci sends "none" when a style sets underline or strikethrough to nil/false,
+        // as `style(Shoes::Link, underline: nil)` does in the accordion samples.
+        let fonts = Fonts::new(FontMode::Bundled);
+        let mut doc = Doc::default();
+        node(&mut doc, 2, "DocumentRoot", None, json!({}));
+        node(&mut doc, 5, "Link", None, json!({"text_items": ["plain link"], "underline": "none"}));
+        node(&mut doc, 6, "Del", None, json!({"text_items": ["kept"], "strikethrough": "none"}));
+        node(&mut doc, 7, "Link", None, json!({"text_items": ["usual"]}));
+        node(&mut doc, 8, "Para", Some(2), json!({"text_items": [5, 6, 7]}));
+        let rich = resolve_block(&doc, &fonts, 8).unwrap();
+        assert_eq!(rich.runs[0].style.underline, Underline::None);
+        assert!(!rich.runs[1].style.strike);
+        assert_eq!(rich.runs[2].style.underline, Underline::Single, "a link keeps its underline otherwise");
+    }
+
+    #[test]
     fn class_sizes_and_props() {
         let fonts = Fonts::new(FontMode::Bundled);
         let mut doc = Doc::default();
