@@ -66,6 +66,9 @@ module Scarpe::Native
         @log.warn("The #{kind} dialog failed: #{reply["error"]}")
         return QUIET_ANSWERS[kind]
       end
+      # A cancelled ask answers "" (ledger K1, Q6): legacy scripts compare it without a nil check.
+      return "" if kind == "ask" && reply["value"].nil?
+
       reply["value"]
     end
   end

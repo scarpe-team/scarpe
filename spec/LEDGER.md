@@ -180,7 +180,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | I2 | `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer` | MANUAL | | |
 | J1 | `url`, `visit`, pages, `location` | BOTH | | |
 | J2 | `link(click: "/path")` visits | MANUAL | | |
-| K1 | `ask` on Cancel; its options | MANUAL, ruled (Q6) | 10.6 | DESIGN |
+| K1 | `ask` on Cancel; its options | MANUAL, ruled (Q6) | 10.6 | |
 | K2 | Option hashes on dialogs | EXT | unsched. | |
 | K3 | `debug`, `info`, `warn`, `error` | MANUAL | unsched. | |
 | K4 | `font(path)` returns family names | MANUAL | | |
@@ -1133,7 +1133,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Docs:** "Classic Shoes: ask() returned nil on cancel; Scarpe returns """ (`docs/scarpe_shoes_incompatibilities.md:104-107`). Commit `6ce3d28` says the opposite ("Shoes3 likely returned empty string") to stop Hackety Hack's guessing game crashing on `nil.to_i`.
 - **Lacci today:** `ask(message_string)` takes one argument (`builtins.rb:20-22`); WV returns `""` on Cancel; a `nil` answer would trigger the `osascript` fallback (X8).
 - **Spec:** the runner answers an unanswered `ask` with `""`, the Cancel answer, and `harness/dialogs_never_open` pins it; no `osascript` runs. `builtins.ask.secret`: `ask("x", secret: true)` is accepted. A stubbed `nil` still comes back as nil (the stub is only a stand-in for a display).
-- **Native:** the dialog reply carries `value` null and `cancelled: true` (DESIGN 4.1); the shim should turn a cancelled `ask` into `""`. Headless mode already answers `""` (DESIGN 5.2).
+- **Native:** the dialog reply carries `value` null and `cancelled: true` (DESIGN 4.1); since 27 Sep the shim turns a cancelled `ask` into `""` (`app_test.rb`, `test_a_cancelled_ask_is_an_empty_string`). Headless mode already answered `""` (DESIGN 5.2).
 
 ### K2. Option hashes on dialogs
 
@@ -1401,7 +1401,7 @@ M1 to M37 carry the numbers of the contradictions in `native/research/03_manual_
 5. **Text-block margins (C9, ruled with Q3)** and **leading (F10).** Resolved 27 Sep: DESIGN 6 and the layout give text Shoes 3's 4 px margins (12 px below) and 4 px of leading between lines.
 6. **Nested-slot event coordinates (H3, ruled with Q4).** Resolved 27 Sep: DESIGN 4.3 gives SubscriptionItem `click`, `release` and `motion` window coordinates, as the ruling and contract (g) say.
 7. **Default window (A1, ruled with Q1).** Resolved 27 Sep: DESIGN 6 and Rust fall back to 600x500, as Shoes 3 and Shoes 4 do, and Lacci's own default moved there the same day.
-8. **Smaller points.** DESIGN 6's Float rule says "between 0 and 1 exclusive" and "1.0 = 100%" in the same breath; Shoes 3 treats every Float as a fraction (C1). DESIGN 6 describes `right`/`bottom` (C10) and a fixed height clipping (C13) since 27 Sep. DESIGN 4.1's `ask` reply is `null` on Cancel; the shim must hand Lacci `""` (K1).
+8. **Smaller points.** DESIGN 6's Float rule says "between 0 and 1 exclusive" and "1.0 = 100%" in the same breath; Shoes 3 treats every Float as a fraction (C1). DESIGN 6 describes `right`/`bottom` (C10) and a fixed height clipping (C13) since 27 Sep. DESIGN 4.1's `ask` reply is `null` on Cancel, and since 27 Sep the shim hands Lacci `""` for it (K1, DESIGN 5.2).
 9. **Wire contracts from 27 Sep 2026.** (a) the `layout` push (A4, C5); (b) `translate`, `transform` and `cap` in the draw context (E10); (c) the `image(w, h) { }` canvas (E9); (d) `underline`/`strikethrough` `"none"` (F7); (e) timer classes announced as `SubscriptionItem` (I2); (f) `every` from 0 and `animate` from frame 0 (I1); (g) window coordinates for SubscriptionItem mouse events (H3). Since 27 Sep DESIGN carries (a) in 4.2, (g) in 4.3, (f) in 5.4, and (b) and (c) in 12. (d) and (e) need no Rust change and DESIGN does not mention them yet.
 
 ## Rulings on the questions (27 Sep 2026)

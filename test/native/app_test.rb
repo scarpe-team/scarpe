@@ -162,6 +162,19 @@ class AppTest < Minitest::Test
     assert_equal "nil\n", run.stdout
   end
 
+  # Ledger K1, ruled 27 Sep 2026 (Q6): a cancelled ask answers "", as Nick's commit 6ce3d28 made
+  # the webview do, so legacy scripts can compare the answer without checking for nil.
+  def test_a_cancelled_ask_is_an_empty_string
+    run = run_app(<<~RUBY, headless: false, script: [{ "on" => "req:dialog", "match" => { "kind" => "ask" }, "reply" => nil }])
+      Shoes.app do
+        puts ask("Your name?").inspect
+        timer(0.05) { Shoes.quit }
+      end
+    RUBY
+    assert_clean_exit(run)
+    assert_equal "\"\"\n", run.stdout
+  end
+
   def test_headless_dialogs_answer_quietly_without_asking_the_child
     run = run_app(<<~RUBY)
       Shoes.app do
