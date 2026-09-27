@@ -343,3 +343,47 @@ fn a_tooltip_shows_under_the_pointer_and_a_press_hides_it() {
     h.value(json!({"op": "mouse", "action": "move", "x": 250, "y": 150}));
     assert!(h.rt.views[&1].ui.tooltip.is_none(), "and forgotten once the pointer leaves");
 }
+
+// ---- Cursors and App opacity ----
+
+fn cursor_at(h: &mut Harness, x: f64, y: f64) -> scarpe_native::input::CursorShape {
+    h.value(json!({"op": "mouse", "action": "move", "x": x, "y": y}));
+    h.rt.views[&1].ui.cursor
+}
+
+/// DESIGN look and feel: a pointing hand over links and buttons, an I-beam over text
+/// fields; a drawable's `cursor` style wins, and the App's (`app.cursor = :watch_cursor`,
+/// shoes3-tests/cursor/c1.rb) covers the rest, at once.
+#[test]
+fn the_pointer_follows_what_it_is_over() {
+    use scarpe_native::input::CursorShape::{Arrow, Hand, Text, Wait};
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "Button", 2, json!({"text": "Go", "left": 10, "top": 10})),
+        create(4, "EditLine", 2, json!({"left": 10, "top": 60})),
+        create(5, "Para", 2, json!({"text_items": ["point here"], "left": 10, "top": 120, "cursor": "hand_cursor"})),
+    ]));
+    assert_eq!(cursor_at(&mut h, 20.0, 20.0), Hand);
+    assert_eq!(cursor_at(&mut h, 20.0, 70.0), Text);
+    assert_eq!(cursor_at(&mut h, 20.0, 125.0), Hand);
+    assert_eq!(cursor_at(&mut h, 250.0, 150.0), Arrow);
+    h.feed("{\"t\":\"props\",\"id\":1,\"props\":{\"cursor\":\"watch_cursor\"}}\n");
+    assert_eq!(h.rt.views[&1].ui.cursor, Wait, "without the pointer moving");
+    assert_eq!(cursor_at(&mut h, 20.0, 20.0), Hand, "the button still says hand");
+}
+
+/// shoes3-tests/opacity_test.rb: `app.opacity = 0.5` makes the whole window see-through.
+/// A picture of it keeps half of every pixel; a real window gets the Opacity effect.
+#[test]
+fn app_opacity_makes_the_window_see_through() {
+    use scarpe_native::runtime::Effect;
+    let mut h = Harness::new();
+    h.feed(&app(200, 100, &[create(3, "Background", 2, json!({"fill": {"rgba": [255, 0, 0, 255]}}))]));
+    assert_eq!(pixel(&mut h, 10.0, 10.0), [255, 0, 0, 255]);
+    h.feed("{\"t\":\"props\",\"id\":1,\"props\":{\"opacity\":0.5}}\n");
+    let [r, g, b, a] = pixel(&mut h, 10.0, 10.0);
+    assert!(r >= 254 && g == 0 && b == 0 && (127..=129).contains(&a), "half see-through red: {:?}", [r, g, b, a]);
+    assert!(h.rt.effects.contains(&Effect::Opacity(1, 0.5)));
+    h.feed("{\"t\":\"props\",\"id\":1,\"props\":{\"opacity\":1.0}}\n");
+    assert_eq!(pixel(&mut h, 10.0, 10.0), [255, 0, 0, 255]);
+}

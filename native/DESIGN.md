@@ -299,7 +299,10 @@ Default background white, text #1d1d1f, system sans (San Francisco on macOS) at 
 (banner 48, title 34, subtitle 26, tagline 18, caption 14, para 12, inscription 10). Buttons: rounded
 6 px, subtle vertical gradient, 1 px border, soft shadow, pressed and hover states. Inputs: white,
 1 px #c7c7cc border, 6 px radius, blue focus ring. Check/radio: drawn, accent blue when on.
-Links: #0066ee, underline, darker on hover, pointer cursor. Everything antialiased. Spike A
+Links: #0066ee, underline, darker on hover, pointer cursor. Buttons, checks, radios and list boxes
+also show the pointing hand and text fields an I-beam; a drawable's own `cursor` style
+(`:hand_cursor`, `:text_cursor`, `:watch_cursor`, `:arrow_cursor`) wins, and the App's `cursor`
+covers the rest. Everything antialiased. Spike A
 (`native/research/07_spike_skia.md`, scene PNG) is the reference look.
 
 ## 8. Testing
@@ -461,6 +464,8 @@ change the code and this list together.
 - **Backgrounds and borders** fill their slot less the edges they name: `left`/`top`/`right`/`bottom`
   place them, a missing `width` or `height` runs to the far edge (`top: 50` covers from 50 down),
   and margins inset them.
+- **App `opacity`** (0.0 to 1.0) makes the whole window see-through: NSWindow's alphaValue on macOS
+  (other platforms stay opaque), and snapshots and `pixel` keep that share of every pixel's alpha.
 - **Tooltips.** A drawable's `tooltip` text (Shoes 3.3; Lacci gives every drawable the style) shows
   in a bubble below the pointer once it rests on that drawable: at once headless, so snapshots are
   deterministic, and after 600 ms in a window. A press hides it until the pointer moves on.

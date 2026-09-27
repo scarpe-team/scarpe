@@ -143,6 +143,9 @@ impl Shell {
             view.scale = window.scale_factor() as f32;
             view.dirty = true;
         }
+        if let Some(opacity) = props.f32("opacity") {
+            set_opacity(&window, opacity);
+        }
         window.request_redraw();
         let id = window.id();
         self.windows.insert(
@@ -172,7 +175,13 @@ impl Shell {
                             CursorShape::Arrow => CursorIcon::Default,
                             CursorShape::Hand => CursorIcon::Pointer,
                             CursorShape::Text => CursorIcon::Text,
+                            CursorShape::Wait => CursorIcon::Wait,
                         });
+                    }
+                }
+                Effect::Opacity(app, opacity) => {
+                    if let Some(win) = self.window_for(app) {
+                        set_opacity(&win.window, opacity);
                     }
                 }
                 Effect::Dialog { req, kind, message, default } => {
@@ -416,6 +425,35 @@ fn key_from(logical: &WKey, bare: &WKey, text: Option<&str>, m: Modifiers) -> Op
     let text = if modified { None } else { text.map(str::to_string) };
     Some(KeyInput { key, text, ctrl: m.ctrl, alt: m.alt, shift, command: m.command })
 }
+
+/// App `opacity` (Shoes 3.3): the whole window turns see-through. On macOS that is
+/// NSWindow's alphaValue, sent through the Objective-C runtime that winit already links;
+/// elsewhere winit has no such knob and the window stays opaque.
+#[cfg(target_os = "macos")]
+fn set_opacity(window: &Window, opacity: f32) {
+    use std::ffi::{c_char, c_void};
+    use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+    extern "C" {
+        fn sel_registerName(name: *const c_char) -> *mut c_void;
+        fn objc_msgSend();
+    }
+    let Ok(handle) = window.window_handle() else { return };
+    let RawWindowHandle::AppKit(appkit) = handle.as_raw() else { return };
+    // SAFETY: ns_view is the live NSView winit made for this window, and each call site
+    // gives objc_msgSend the exact signature of the method it sends (-window, -setAlphaValue:).
+    unsafe {
+        let send = objc_msgSend as unsafe extern "C" fn();
+        let get: unsafe extern "C" fn(*mut c_void, *mut c_void) -> *mut c_void = std::mem::transmute(send);
+        let set: unsafe extern "C" fn(*mut c_void, *mut c_void, f64) = std::mem::transmute(send);
+        let ns_window = get(appkit.ns_view.as_ptr(), sel_registerName(c"window".as_ptr()));
+        if !ns_window.is_null() {
+            set(ns_window, sel_registerName(c"setAlphaValue:".as_ptr()), opacity.clamp(0.0, 1.0) as f64);
+        }
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn set_opacity(_window: &Window, _opacity: f32) {}
 
 fn open_url(url: &str) {
     let cmd = if cfg!(target_os = "macos") {

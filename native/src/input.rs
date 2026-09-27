@@ -280,6 +280,21 @@ pub enum CursorShape {
     Arrow,
     Hand,
     Text,
+    Wait,
+}
+
+impl CursorShape {
+    /// A `cursor` style: Shoes 3's `:arrow_cursor`, `:hand_cursor`, `:text_cursor` and
+    /// `:watch_cursor`, or the plain and CSS names.
+    pub fn parse(name: &str) -> Option<CursorShape> {
+        match name.trim_start_matches(':').trim_end_matches("_cursor") {
+            "arrow" | "default" => Some(CursorShape::Arrow),
+            "hand" | "pointer" | "link" => Some(CursorShape::Hand),
+            "text" | "ibeam" => Some(CursorShape::Text),
+            "watch" | "wait" | "busy" => Some(CursorShape::Wait),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -430,6 +445,20 @@ pub fn chain(doc: &Doc, hit: &Hit) -> Vec<Id> {
     chain
 }
 
+/// The pointer a drawable asks for, if it has a say.
+fn cursor_of(node: &crate::doc::Node) -> Option<CursorShape> {
+    if let Some(own) = node.props.str("cursor").and_then(CursorShape::parse) {
+        return Some(own);
+    }
+    match node.kind {
+        Kind::Link => Some(CursorShape::Hand),
+        _ if crate::elements::disabled(node) => None,
+        Kind::Button | Kind::Check | Kind::Radio | Kind::ListBox => Some(CursorShape::Hand),
+        Kind::EditLine | Kind::EditBox => Some(CursorShape::Text),
+        _ => None,
+    }
+}
+
 fn api(doc: &Doc, item: Id) -> Option<&str> {
     let node = doc.get(item)?;
     if node.props.truthy("stopped") {
@@ -553,12 +582,7 @@ impl Runtime {
         if self.update_tooltip(app, &new_chain, x, y) {
             self.request_redraw(app);
         }
-        let cursor = self.cursor_for(hit.as_ref());
-        let view = self.views.get_mut(&app).expect("view");
-        if view.ui.cursor != cursor {
-            view.ui.cursor = cursor;
-            self.effects.push(Effect::Cursor(app, cursor));
-        }
+        self.refresh_cursor(app);
         if changed {
             self.request_redraw(app);
         }
@@ -598,11 +622,19 @@ impl Runtime {
         self.views.iter().filter_map(|(app, v)| Some((*app, v.ui.tooltip.as_ref()?.pending()?))).min_by_key(|(_, due)| *due)
     }
 
-    fn cursor_for(&self, hit: Option<&Hit>) -> CursorShape {
-        match hit {
-            Some(h) if h.link.is_some() => CursorShape::Hand,
-            Some(h) if self.doc.get(h.node).is_some_and(|n| n.kind.is_text_input()) => CursorShape::Text,
-            _ => CursorShape::Arrow,
+    /// Sets the window's pointer for what it is over now: a drawable's own `cursor` style,
+    /// else a hand on links and clickable controls and an I-beam on text fields, else the
+    /// App's `cursor` (Shoes 3's `app.cursor = :watch_cursor`), else the arrow.
+    pub fn refresh_cursor(&mut self, app: Id) {
+        let Some(view) = self.views.get(&app) else { return };
+        let over = view.ui.hover_chain.iter().find_map(|id| self.doc.get(*id).and_then(cursor_of));
+        let cursor = over
+            .or_else(|| self.doc.get(app).and_then(|n| n.props.str("cursor")).and_then(CursorShape::parse))
+            .unwrap_or_default();
+        let view = self.views.get_mut(&app).expect("view");
+        if view.ui.cursor != cursor {
+            view.ui.cursor = cursor;
+            self.effects.push(Effect::Cursor(app, cursor));
         }
     }
 
