@@ -1,0 +1,26 @@
+---
+manual: radio.click
+lines: [3349, 3354]
+testability: interactive
+display: any
+ledger: M27
+----------- app code
+Shoes.app do
+  $clicks = 0
+  stack do
+    @mine = radio
+    @other = radio
+  end
+  @mine.click { $clicks += 1 }
+end
+----------- test code
+mine = radio("@mine")
+assert_equal 0, $clicks
+
+mine.trigger_click
+assert_equal 1, $clicks, "marking the radio calls its click block"
+assert mine.checked?
+
+mine.trigger_click
+assert_equal 2, $clicks, "clicking it again calls the block again"
+assert mine.checked?, "and leaves it marked (ledger M27)"

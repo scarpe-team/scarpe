@@ -1,0 +1,16 @@
+---
+manual: list_box.items
+lines: [3226, 3228]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @fruit = list_box items: ["Grapes", "Pears", "Apricots"]
+  @empty = list_box
+end
+----------- test code
+fruit = list_box("@fruit").items
+assert_equal ["Grapes", "Pears", "Apricots"], fruit, "items returns every option the box shows"
+assert fruit.all?(String), "as Strings"
+
+assert_equal [], list_box("@empty").items, "a box with no options returns an empty list"

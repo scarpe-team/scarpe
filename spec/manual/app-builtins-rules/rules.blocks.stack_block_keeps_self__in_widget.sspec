@@ -1,0 +1,26 @@
+---
+manual: rules.blocks.stack_block_keeps_self
+lines: [198, 198]
+testability: api
+display: any
+ledger: B1
+expect: fail
+reason: "Lacci instance_evals slot blocks on the App, so inside a widget the stack block loses the widget's self and ivars (B1)"
+----------- app code
+class Nametag < Shoes::Widget
+  def initialize(name)
+    @name = name
+    $widget_self = self
+    stack do
+      $stack_self = self
+      @tag = para @name
+    end
+  end
+end
+
+Shoes.app do
+  nametag "Ada"
+end
+----------- test code
+assert $stack_self.equal?($widget_self), "inside a widget, the stack block keeps the widget as self, not a #{$stack_self.class}"
+assert_equal "Ada", para.text, "so it reads the widget's own instance variables"

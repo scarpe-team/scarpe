@@ -1,0 +1,17 @@
+---
+manual: element.edit_line
+lines: [1980, 1980]
+testability: api
+display: native
+----------- app code
+Shoes.app do
+  edit_line
+end
+----------- test code
+click_on edit_line
+type_text "one"
+press_key "\n"
+type_text "two"
+
+refute_includes edit_line.text, "\n", "Return never adds a line to a single-line box"
+assert_equal "onetwo", edit_line.text

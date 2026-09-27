@@ -1,0 +1,14 @@
+---
+manual: element.textblock.size_override
+lines: [919, 921]
+testability: visual
+display: any
+----------- app code
+Shoes.app do
+  stack do
+    $title = title "Searching Google", size: 16
+    @status = para "One moment..."
+  end
+end
+----------- test code
+assert_equal 16, $title.style[:size], "the :size style replaces the title's own size"

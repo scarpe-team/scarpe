@@ -1,0 +1,24 @@
+---
+manual: element.border
+lines: [1925, 1929]
+testability: visual
+display: native
+ledger: M4
+----------- app code
+Shoes.app do
+  @box = stack width: 100, height: 60, margin: 20 do
+    border red, strokewidth: 4
+  end
+end
+----------- test code
+px = ->(x, y) { pixel_at(x.round, y.round).first(3) }
+
+box = layout_of(stack("@box"))
+red = [255, 0, 0]
+white = [255, 255, 255]
+
+assert_equal red, px.(box.x + 1, box.y + 30), "the stroke starts at the slot's edge"
+assert_equal red, px.(box.x + 3, box.y + 30), "and is four pixels wide"
+assert_equal white, px.(box.x + 6, box.y + 30), "no wider"
+assert_equal white, px.(box.x + 50, box.y + 30), "the middle is left alone"
+assert_equal white, px.(box.x - 3, box.y + 30), "and nothing is drawn outside the slot"

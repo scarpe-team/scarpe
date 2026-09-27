@@ -1,0 +1,18 @@
+---
+manual: styles.width.percent_string
+lines: [2730, 2744]
+testability: visual
+display: native
+ledger: C2
+----------- app code
+Shoes.app do
+  stack width: 120 do
+    @b = button "Click me", width: "100%" do
+      alert "button.width = #{@b.width}\n" +
+        "button.style[:width] = #{@b.style[:width]}"
+    end
+  end
+end
+----------- test code
+assert_in_delta 120, layout_of(stack).w, 0.5, "the stack is 120 pixels wide"
+assert_in_delta 120, layout_of(button).w, 0.5, "a \"100%\" button spans the whole 120 pixel stack"

@@ -1,0 +1,22 @@
+---
+manual: art.oval.center
+lines: [1745, 1745]
+testability: visual
+display: native
+ledger: E2
+----------- app code
+Shoes.app width: 200, height: 200 do
+  fill red
+  nostroke
+  oval 100, 100, 50, center: true
+end
+----------- test code
+box = layout_of(oval)
+assert_in_delta 75, box.x, 1, "center: true puts the box's middle at (left, top): x"
+assert_in_delta 75, box.y, 1, "and y"
+assert_in_delta 50, box.w, 1
+assert_in_delta 50, box.h, 1
+
+assert_equal [255, 0, 0], pixel_at(100, 100).first(3), "the oval covers (left, top)"
+assert_equal [255, 0, 0], pixel_at(78, 100).first(3), "and reaches 25 px to the left of it"
+assert_equal [255, 255, 255], pixel_at(128, 100).first(3), "and no more than 25 px to the right"

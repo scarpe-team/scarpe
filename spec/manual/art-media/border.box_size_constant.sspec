@@ -1,0 +1,21 @@
+---
+manual: border.box_size_constant
+lines: [2847, 2850]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 300 do
+  @plain = stack width: 50, height: 30
+  @bordered = stack width: 50, height: 30 do
+    border black, strokewidth: 10
+  end
+  @margined = stack width: 50, height: 30, margin: 10 do
+    border black, strokewidth: 10
+  end
+end
+----------- test code
+%w[@plain @bordered @margined].each do |name|
+  box = layout_of(stack(name))
+  assert_in_delta 50, box.w, 0.5, "#{name} is fifty pixels wide whatever its borders or margins"
+  assert_in_delta 30, box.h, 0.5, "#{name} keeps its height too"
+end

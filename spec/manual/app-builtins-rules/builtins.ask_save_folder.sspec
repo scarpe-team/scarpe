@@ -1,0 +1,15 @@
+---
+manual: builtins.ask_save_folder
+lines: [695, 704]
+testability: dialog
+display: any
+dialogs: {ask_save_folder: "backups"}
+----------- app code
+save_to = ask_save_folder
+
+Shoes.app do
+  @chosen = para save_to
+end
+----------- test code
+assert_equal [[:ask_save_folder]], dialog_calls, "ask_save_folder shows the Save Folder window"
+assert_equal "backups", para("@chosen").text, "it hands back the chosen folder name"

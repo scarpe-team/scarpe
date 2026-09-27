@@ -1,0 +1,23 @@
+---
+manual: art.nostroke
+lines: [1706, 1708]
+testability: visual
+display: native
+ledger: D7
+----------- app code
+Shoes.app width: 200, height: 200 do
+  fill red
+  stroke blue
+  strokewidth 10
+  nostroke
+  rect 50, 50, 100, 100
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(52, 100, [255, 0, 0], "no blue line on the inside of the edge, only the fill")
+paints.(47, 100, [255, 255, 255], "no line on the outside of the edge either")

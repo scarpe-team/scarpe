@@ -1,0 +1,25 @@
+---
+manual: element.em.default_style
+lines: [1984, 1987]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  flow { @plain = para "I", size: 48 }
+  flow { @em = para em("I"), size: 48 }
+end
+----------- test code
+columns = ->(box, step = 1) { (box.x.ceil..(box.x + box.w).floor - 1).step(step).to_a }
+dark = ->(x, y) { pixel_at(x, y).first(3).sum < 384 }
+rows = ->(box) { (box.y.ceil..(box.y + box.h).floor - 1).to_a }
+ink_rows = ->(box) { rows.(box).select { |y| columns.(box).any? { |x| dark.(x, y) } } }
+
+# How far the stroke of an I leans: its left edge near the top minus near the bottom.
+lean = lambda do |box|
+  ink = ink_rows.(box)
+  left_edge = ->(y) { columns.(box).find { |x| dark.(x, y) } }
+  left_edge.(ink.first + 2) - left_edge.(ink.last - 2)
+end
+
+assert_in_delta 0, lean.(layout_of(para("@plain"))), 1, "a plain I stands upright"
+assert_operator lean.(layout_of(para("@em"))), :>=, 3, "an em I leans right: italics"

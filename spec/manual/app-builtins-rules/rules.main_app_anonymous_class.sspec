@@ -1,0 +1,13 @@
+---
+manual: rules.main_app_anonymous_class
+lines: [489, 502]
+testability: api
+display: any
+ledger: L1
+----------- app code
+main = self
+Shoes.app do
+  para main.to_s
+end
+----------- test code
+assert_equal "main", para.text, "Policeman runs the app file at the top level, so main is Ruby's own top-level object (L1)"

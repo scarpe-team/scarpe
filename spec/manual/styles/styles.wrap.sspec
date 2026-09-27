@@ -1,0 +1,13 @@
+---
+manual: styles.wrap
+lines: [1547, 1556]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  %w[word char trim].each { |kind| instance_variable_set("@#{kind}", para(kind, wrap: kind)) }
+end
+----------- test code
+%w[word char trim].each do |kind|
+  assert_equal kind, para("@#{kind}").style[:wrap], "wrap: #{kind.inspect} is accepted and kept"
+end

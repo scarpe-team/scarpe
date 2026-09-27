@@ -1,0 +1,19 @@
+---
+manual: styles.displace_top
+lines: [1175, 1179]
+testability: visual
+display: native
+ledger: M9
+----------- app code
+Shoes.app width: 300, height: 200 do
+  @moved = stack left: 20, top: 40, width: 40, height: 30, displace_top: 6 do
+    background red
+  end
+end
+----------- test code
+moved = stack("@moved")
+red = ->(y) { r, g, b, = pixel_at(30, y); r > 200 && g < 60 && b < 60 }
+
+assert_equal 40, moved.top, "the element's true top coordinate is still 40"
+refute red.call(43), "nothing is drawn between y 40 and 46 any more"
+assert red.call(73), "the block now ends at y 76 instead of 70"

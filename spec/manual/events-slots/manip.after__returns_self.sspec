@@ -1,0 +1,13 @@
+---
+manual: manip.after
+lines: [2315, 2315]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $slot = stack { $first = para "first" }
+  @go = button("Go") { $returned = $slot.after($first) { para "second" } }
+end
+----------- test code
+button("@go").trigger_click
+assert_same $slot, $returned, "after returns self"

@@ -1,0 +1,38 @@
+---
+manual: common.style_example
+lines: [2565, 2583]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @column = stack do
+    # Background, text and a button: both are elements!
+    @back  = background green
+    @text  = banner "A Message for You, Rudy"
+    @press = button "Stop your messin about!"
+
+    # And so, both can be styled.
+    @text.style size: 12, stroke: red, margin: 10
+    @press.style width: 400
+    @back.style height: 10
+  end
+end
+----------- test code
+px = ->(x, y) { pixel_at(x.round, y.round).first(3) }
+near = ->(expected, actual, tolerance = 24) { expected.zip(actual).all? { |e, a| (e - a).abs <= tolerance } }
+columns = ->(box, step = 1) { (box.x.ceil..(box.x + box.w).floor - 1).step(step).to_a }
+darkest = ->(box) do
+  points = (box.y.ceil..(box.y + box.h).floor - 1).flat_map { |y| columns.(box).map { |x| [x, y] } }
+  points.map { |x, y| pixel_at(x, y).first(3) }.min_by(&:sum)
+end
+
+column = layout_of(stack("@column"))
+green = px.(column.x + 450, column.y + 5)
+
+assert_operator green[1], :>, 100, "the background is green along the top, got #{green.inspect}"
+assert_equal [255, 255, 255], px.(column.x + 450, column.y + 15), "but only 10 pixels high"
+assert_in_delta 400, layout_of(button("@press")).w, 0.5, "the button is 400 pixels wide"
+
+text = layout_of(drawable("@text"))
+inside = Struct.new(:x, :y, :w, :h).new(text.x, text.y + 1, text.w, text.h - 2)
+assert near.([255, 0, 0], darkest.(inside), 40), "the text is red"

@@ -1,0 +1,25 @@
+---
+manual: element.border
+lines: [1925, 1934]
+testability: visual
+display: native
+ledger: M4
+----------- app code
+Shoes.app do
+  @box = stack width: 50 do
+    border black, strokewidth: 5
+    para "=^.^=", stroke: green
+  end
+end
+----------- test code
+px = ->(x, y) { pixel_at(x.round, y.round).first(3) }
+
+box = layout_of(stack("@box"))
+black = [0, 0, 0]
+middle_y = box.y + box.h / 2
+
+assert_equal black, px.(box.x + 2, middle_y), "the left edge"
+assert_equal black, px.(box.x + box.w - 3, middle_y), "the right edge"
+assert_equal black, px.(box.x + 25, box.y + 2), "the top edge"
+assert_equal black, px.(box.x + 25, box.y + box.h - 3), "the bottom edge"
+assert_equal [255, 255, 255], px.(box.x + box.w + 3, middle_y), "the border stays inside the slot"

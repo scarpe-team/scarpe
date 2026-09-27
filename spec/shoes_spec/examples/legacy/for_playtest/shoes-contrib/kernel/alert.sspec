@@ -1,0 +1,17 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/kernel/alert.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+# Original: Shoes.app do alert "No dots in sight" end
+# Disabled: alert() blocks and requires manual dismissal
+Shoes.app do
+  para "Alert test disabled - modal dialogs block test runner"
+end
+----------- test code
+# Alert dialog test - app code disabled to prevent blocking
+# Original functionality: alert() displays modal dialog
+p = para()
+assert p.text.include?("disabled"), "Alert test shows disabled message"

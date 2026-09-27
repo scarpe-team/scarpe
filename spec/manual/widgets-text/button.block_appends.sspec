@@ -1,0 +1,26 @@
+---
+manual: button.block_appends
+lines: [2877, 2890]
+testability: interactive
+display: any
+----------- app code
+Shoes.app do
+  button "OK!" do
+    append { para "Well okay then." }
+  end
+  button "Are you sure?" do
+    append { para "Your confidence is inspiring." }
+  end
+end
+----------- test code
+assert_empty paras, "no paragraphs before any click"
+
+find_button("OK!").trigger_click
+assert_equal ["Well okay then."], paras.map(&:text), "one click, one paragraph"
+
+find_button("OK!").trigger_click
+find_button("OK!").trigger_click
+find_button("Are you sure?").trigger_click
+
+expected = { "Well okay then." => 3, "Your confidence is inspiring." => 1 }
+assert_equal expected, paras.map(&:text).tally, "the more you click, the more paragraphs get added"

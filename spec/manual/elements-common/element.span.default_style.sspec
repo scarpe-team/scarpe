@@ -1,0 +1,27 @@
+---
+manual: element.span.default_style
+lines: [2076, 2078]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @plain = para "Shoes", left: 10, top: 10
+  @span = para span("Shoes"), left: 10, top: 110
+  @strong = para strong("Shoes"), left: 10, top: 210
+end
+----------- test code
+near = ->(expected, actual, tolerance = 24) { expected.zip(actual).all? { |e, a| (e - a).abs <= tolerance } }
+
+plain = layout_of(para("@plain"))
+looks_like_plain = lambda do |name|
+  box = layout_of(para(name))
+  same_box = (box.w - plain.w).abs < 0.5 && (box.h - plain.h).abs < 0.5
+  same_box && (0...plain.h.floor).step(2).all? do |dy|
+    (0...plain.w.floor).step(2).all? do |dx|
+      near.(pixel_at(plain.x + dx, plain.y + dy).first(3), pixel_at(box.x + dx, box.y + dy).first(3), 8)
+    end
+  end
+end
+
+refute looks_like_plain.("@strong"), "a styled fragment does look different"
+assert looks_like_plain.("@span"), "a span looks exactly like plain text"

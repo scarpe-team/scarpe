@@ -1,0 +1,16 @@
+---
+manual: art.strokewidth
+lines: [1851, 1855]
+testability: visual
+display: native
+ledger: D8
+----------- app code
+Shoes.app width: 300, height: 200 do
+  stroke black
+  strokewidth 4
+  line 50, 100, 250, 100
+end
+----------- test code
+column = (90..110).map { |y| pixel_at(150, y).first(3) }
+dark = column.count { |rgb| rgb.max < 128 }
+assert_equal 4, dark, "strokewidth(4) draws lines 4 pixels wide: #{column.inspect}"

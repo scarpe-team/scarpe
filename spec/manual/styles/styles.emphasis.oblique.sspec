@@ -1,0 +1,17 @@
+---
+manual: styles.emphasis.oblique
+lines: [1186, 1191]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  flow { @text = para "I", emphasis: "oblique", size: 80 }
+end
+----------- test code
+box = layout_of(para("@text"))
+starts = lambda do |fraction|
+  y = (box.y + box.h * fraction).round
+  ([box.x - 10, 0].max.floor...(box.x + box.w + 20).ceil).find { |x| pixel_at(x, y).first(3).sum < 384 }
+end
+lean = -> { starts.call(0.3) - starts.call(0.7) }
+assert_operator lean.call, :>=, 4, "an oblique stem is slanted: higher up, it starts further right"

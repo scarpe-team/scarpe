@@ -1,0 +1,18 @@
+---
+manual: rules.fill_with_alpha_color
+lines: [380, 387]
+testability: api
+display: any
+ledger: D3
+----------- app code
+Shoes.app do
+  $faint = black(0.1)
+  fill black(0.1)
+  100.times do |i|
+    oval i, i, i * 2
+  end
+end
+----------- test code
+assert_equal [0, 0, 0, 26], $faint.to_a, "black(0.1) is black at 10% alpha"
+assert_equal [[0, 0, 0, 26]], ovals.map { |shape| shape.draw_context["fill"].to_a }.uniq,
+  "every oval drawn after fill black(0.1) is filled with it"

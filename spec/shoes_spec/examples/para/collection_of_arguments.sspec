@@ -1,0 +1,18 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/para/collection_of_arguments.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  para "Testing test test. ",
+   "Breadsticks. ",
+   "Breadsticks. ",
+   "Breadsticks. ",
+   "Very good."
+end
+----------- test code
+p = para()
+# Para with multiple string arguments should concatenate them
+assert_equal "Testing test test. Breadsticks. Breadsticks. Breadsticks. Very good.", p.text

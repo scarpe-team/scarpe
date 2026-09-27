@@ -1,0 +1,23 @@
+---
+manual: common.hide
+lines: [2641, 2641]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @b = button "Now you see me"
+end
+----------- test code
+drawn = lambda do |box|
+  (0...box.h.floor).step(2).any? do |dy|
+    (0...box.w.floor).step(2).any? { |dx| pixel_at(box.x + dx, box.y + dy).first(3).sum < 700 }
+  end
+end
+
+box = layout_of(button("@b"))
+assert drawn.(box), "the button is drawn"
+
+button("@b").hide
+wait_frames
+
+refute drawn.(box), "after hide nothing is drawn where it was"

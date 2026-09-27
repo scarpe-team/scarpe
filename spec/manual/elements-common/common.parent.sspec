@@ -1,0 +1,15 @@
+---
+manual: common.parent
+lines: [2676, 2679]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $column = stack do
+    $inner = para "inside a stack"
+  end
+  $outer = para "at the top level"
+end
+----------- test code
+assert_same $column, $inner.parent, "parent is the slot the element sits in"
+assert_kind_of Shoes::Flow, $outer.parent, "at the top level that is the window's flow"

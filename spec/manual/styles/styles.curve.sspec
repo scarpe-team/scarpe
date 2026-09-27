@@ -1,0 +1,20 @@
+---
+manual: styles.curve
+lines: [1153, 1159]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  fill black
+  stroke black
+  @round = rect 50, 50, 100, 60, curve: 6
+  @square = rect 170, 50, 100, 60
+end
+----------- test code
+dark = ->(x, y) { pixel_at(x, y).first(3).all? { |c| c < 60 } }
+light = ->(x, y) { pixel_at(x, y).first(3).all? { |c| c > 225 } }
+
+assert dark.call(170, 50), "a rect with no curve has a square corner"
+assert light.call(50, 50), "curve: 6 cuts the corner pixel away"
+assert dark.call(52, 52), "the cut is a 6 pixel radius, not a bigger one: two pixels in is inside"
+assert dark.call(57, 50), "the straight top edge starts where the curve ends"

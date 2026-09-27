@@ -1,0 +1,17 @@
+---
+manual: edit_box.size_styles
+lines: [3006, 3015]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @plain = edit_box
+  @sized = edit_box width: 100, height: 100
+end
+----------- test code
+plain = layout_of(edit_box("@plain"))
+sized = layout_of(edit_box("@sized"))
+
+assert_in_delta 100, sized.w, 0.5, ":width sets the width"
+assert_in_delta 100, sized.h, 0.5, ":height sets the height"
+refute_in_delta plain.w, sized.w, 2, "the styled box differs from the default one"

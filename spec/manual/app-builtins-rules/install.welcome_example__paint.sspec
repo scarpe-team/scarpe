@@ -1,0 +1,18 @@
+---
+manual: install.welcome_example
+lines: [114, 123]
+testability: visual
+display: native
+ledger: D5
+----------- app code
+Shoes.app do
+  background "#DFA"
+  para "Welcome to Shoes"
+end
+----------- test code
+assert_equal [221, 255, 170, 255], pixel_at(460, 400), "#DFA is #DDFFAA: each digit times 17"
+
+box = layout_of(para)
+middle = (box.y + box.h / 2).round
+ink = box.x.ceil.upto((box.x + box.w - 1).floor).count { |x| pixel_at(x, middle)[0, 3].sum < 300 }
+assert_operator ink, :>, 5, "and the words are drawn over it"

@@ -1,0 +1,26 @@
+---
+manual: intro.text_styling_fonts_from_file
+lines: [64, 66]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  stack do
+    @plain = para "Handwriting", size: 32
+    @bold = para strong("Handwriting"), size: 32
+  end
+end
+----------- test code
+# The rightmost dark pixel across two rows through the middle of a text block.
+ink_right_edge = lambda do |rect|
+  [0.4, 0.6].map do |fraction|
+    y = (rect.y + rect.h * fraction).round
+    (rect.x + rect.w - 1).floor.downto(rect.x.ceil).find { |x| pixel_at(x, y)[0, 3].sum < 384 } || 0
+  end.max
+end
+
+plain = ink_right_edge.call(layout_of(para("@plain")))
+bold = ink_right_edge.call(layout_of(para("@bold")))
+
+assert_operator plain, :>, 0, "the plain words drew ink"
+assert_operator bold, :>, plain + 3, "bold letters are heavier and wider than regular ones"

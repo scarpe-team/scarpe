@@ -1,0 +1,40 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/simple/list_box-shape-report.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/working/simple/list_box-shape-report.sspec
+- cases/scarpe_examples/legacy/for_playtest/simple/list_box-shape-report.sspec
+- cases/scarpe_examples/legacy/working/simple/list_box-shape-report.sspec
+----------- app code
+#
+# Example from Getting Started with Shoes on OS X blog post found here:
+# http://lethain.com/entry/2007/oct/15/getting-started-shoes-os-x/
+#
+shape = nil
+Shoes.app do
+  stack :width => 400, :height => 200, :margin => 50 do
+    shape = list_box :items => ["Square", "Oval", "Rectangle"]
+    button "Report" do
+      para [shape.text]
+    end
+    para "Just some filler text"
+  end
+  flow :margin => 10 do
+    para "Text"
+    para "More"
+    para "Less"
+  end
+end
+----------- test code
+# Verify list_box has correct items
+assert_equal ["Square", "Oval", "Rectangle"], list_box().items
+# Verify button exists
+assert_equal "Report", button().text
+# Verify para text in flow
+all_paras = paras()
+assert all_paras.any? { |p| p.text == "Text" }, "Should have 'Text' para"
+assert all_paras.any? { |p| p.text == "More" }, "Should have 'More' para"
+assert all_paras.any? { |p| p.text == "Less" }, "Should have 'Less' para"

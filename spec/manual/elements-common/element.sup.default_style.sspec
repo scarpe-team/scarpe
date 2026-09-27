@@ -1,0 +1,27 @@
+---
+manual: element.sup.default_style
+lines: [2102, 2105]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  flow(margin: 20) { @p = para "x  ", sup("x"), size: 30 }
+end
+----------- test code
+columns = ->(box, step = 1) { (box.x.ceil..(box.x + box.w).floor - 1).step(step).to_a }
+dark = ->(x, y) { pixel_at(x, y).first(3).sum < 384 }
+rows = ->(box) { (box.y.ceil..(box.y + box.h).floor - 1).to_a }
+glyph_boxes = lambda do |name|
+  box = layout_of(para(name))
+  tall = Struct.new(:x, :y, :w, :h).new(box.x, box.y - 20, box.w, box.h + 40) # sub and sup may leave the line box
+  inked = columns.(tall).select { |x| rows.(tall).any? { |y| dark.(x, y) } }
+  runs = inked.slice_when { |a, b| b > a + 1 }.to_a
+  [runs.first, runs.last].map do |xs|
+    ys = rows.(tall).select { |y| xs.any? { |x| dark.(x, y) } }
+    { top: ys.first, bottom: ys.last, height: ys.last - ys.first + 1 }
+  end
+end
+
+big, small = glyph_boxes.("@p")
+
+assert_in_delta(-10, small[:bottom] - big[:bottom], 2, "sup raises its text by 10 pixels")

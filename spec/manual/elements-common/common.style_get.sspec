@@ -1,0 +1,23 @@
+---
+manual: common.style_get
+lines: [2691, 2707]
+testability: api
+display: any
+ledger: C2
+----------- app code
+Shoes.app do
+  # A button which take up the whole page
+  @b = button "All of it", width: 1.0, height: 1.0
+
+  # When clicked, show the styles
+  @b.click { alert(@b.style.inspect) }
+end
+----------- test code
+styles = button("@b").style
+
+assert_kind_of Hash, styles, "style gives the styles as a Hash"
+assert_equal 1.0, styles[:width], "holding the width as it was set"
+assert_equal 1.0, styles[:height], "and the height"
+
+button("@b").trigger_click
+assert_equal [[:alert, styles.inspect]], dialog_calls, "the example's button shows that Hash"

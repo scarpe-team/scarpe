@@ -1,0 +1,18 @@
+---
+manual: edit_line.focus
+lines: [3092, 3095]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  @first = edit_line
+  @second = edit_line
+end
+----------- test code
+second = edit_line("@second")
+second.focus
+assert_equal second.linkable_id, focused_drawable&.linkable_id, "focus moves keyboard focus to the edit line"
+
+type_text "no click needed"
+assert_equal "no click needed", second.text, "the user can type straight into it"
+refute_equal "no click needed", edit_line("@first").text, "the other line gets nothing"

@@ -1,0 +1,19 @@
+---
+manual: common.displace
+lines: [2596, 2599]
+testability: visual
+display: native
+ledger: M9
+----------- app code
+Shoes.app do
+  @b = button "Shake", left: 20, top: 40
+end
+----------- test code
+before = layout_of(button("@b"))
+assert_equal [20, 40], [before.x.round, before.y.round], "the button starts at (20, 40)"
+
+button("@b").displace(2, 6)
+wait_frames
+
+after = layout_of(button("@b"))
+assert_equal [22, 46], [after.x.round, after.y.round], "displace(2, 6) draws it at (22, 46)"

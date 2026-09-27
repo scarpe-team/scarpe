@@ -1,0 +1,13 @@
+---
+manual: styles.checked
+lines: [1130, 1135]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  stack { @on = radio checked: true }
+  stack { @off = radio }
+end
+----------- test code
+assert radio("@on").checked?, "checked: true creates the radio already marked"
+refute radio("@off").checked?, "without the style the radio starts unmarked"

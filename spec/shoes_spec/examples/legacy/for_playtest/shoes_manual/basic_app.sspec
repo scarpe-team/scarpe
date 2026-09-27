@@ -1,0 +1,27 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/basic_app.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+#!ruby
+ Shoes.app(title: "White Circle",
+   width: 200, height: 200, resizable: false) {
+     background black
+     fill white
+     oval top: 20, left: 20, radius: 160
+ }
+----------- test code
+# Tests basic app with drawing: background, fill, oval
+# Verifies art elements exist
+
+# Verify background exists (black)
+backgrounds = Shoes::App.find_drawables_by(Shoes::Background)
+assert backgrounds.length >= 1, "Should have background"
+
+# Verify oval exists
+ovals = Shoes::App.find_drawables_by(Shoes::Oval)
+assert_equal 1, ovals.length, "Should have exactly one oval"
+
+assert true, "Basic app test completed"

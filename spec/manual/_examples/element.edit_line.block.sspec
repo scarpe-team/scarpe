@@ -1,0 +1,18 @@
+---
+manual: element.edit_line.block
+lines: [1981, 1982]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  @echo = para "nothing yet"
+  @line = edit_line { @echo.replace "saw #{@line.text}" }
+end
+----------- test code
+assert_equal "nothing yet", para.text, "the block waits for the user"
+
+click_on edit_line
+type_text "hi"
+
+assert_equal "hi", edit_line.text
+assert_equal "saw hi", para.text, "the block ran as the user typed"

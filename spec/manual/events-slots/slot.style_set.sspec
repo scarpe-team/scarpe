@@ -1,0 +1,14 @@
+---
+manual: slot.style_set
+lines: [2489, 2501]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @s = stack { background green }
+  @s.style(width: 400, height: 200)
+end
+----------- test code
+assert_equal 400, stack("@s").width, "style(width: 400) changed the width"
+assert_equal 200, stack("@s").height, "and the height"
+assert_equal 400, stack("@s").style[:width]

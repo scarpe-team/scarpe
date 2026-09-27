@@ -1,0 +1,13 @@
+---
+manual: events.release
+lines: [2277, 2277]
+testability: api
+display: any
+expect: fail
+reason: Lacci's slot release returns the SubscriptionItem it creates, not the slot (ledger row requested)
+----------- app code
+Shoes.app do
+  $slot = stack { para "let go over me" }
+end
+----------- test code
+assert_same $slot, $slot.release { }, "release { } returns self"

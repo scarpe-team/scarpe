@@ -1,0 +1,13 @@
+---
+manual: events.keypress.special.f7
+lines: [2242, 2245]
+testability: interactive
+display: native
+----------- app code
+$keys = []
+Shoes.app do
+  keypress { |key| $keys << key }
+end
+----------- test code
+press_key :f7
+assert_equal [:f7], $keys, "the f7 key arrives once, as the Symbol :f7"

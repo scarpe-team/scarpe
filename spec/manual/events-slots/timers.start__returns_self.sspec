@@ -1,0 +1,14 @@
+---
+manual: timers.start
+lines: [3419, 3419]
+testability: api
+display: any
+expect: fail
+reason: Lacci's start returns the new value of its stopped style (false), not the timer (ledger row requested)
+----------- app code
+Shoes.app do
+  $animation = animate(10) { }
+end
+----------- test code
+$animation.stop
+assert_same $animation, $animation.start, "start returns self"

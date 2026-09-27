@@ -1,0 +1,20 @@
+---
+manual: slots.flow.packs_and_wraps
+lines: [1610, 1611]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  flow width: 200 do
+    @a = stack width: 80, height: 30
+    @b = stack width: 80, height: 30
+    @c = stack width: 80, height: 30
+  end
+end
+----------- test code
+a, b, c = %w[@a @b @c].map { |name| layout_of(stack(name)) }
+
+assert_in_delta a.x + 80, b.x, 0.5, "the second box packs right up against the first"
+assert_in_delta a.y, b.y, 0.5, "on the same row"
+assert_in_delta a.x, c.x, 0.5, "the third does not fit in 200 pixels, so it wraps to the left edge"
+assert_in_delta a.y + 30, c.y, 0.5, "beneath the first row"

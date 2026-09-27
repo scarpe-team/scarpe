@@ -1,0 +1,21 @@
+---
+manual: app.clipboard
+lines: [891, 895]
+testability: api
+display: any
+----------- app code
+Shoes.app { para "Reads the clipboard from its test code" }
+----------- test code
+# A stand-in system clipboard in this sandbox, so the case never touches the real one.
+# Other programs (pbcopy/pbpaste, xclip) read and write it through a file.
+board = File.expand_path("system-clipboard.txt")
+Dir.mkdir("fakeclip")
+File.write("fakeclip/pbcopy", "#!/bin/sh\ncat > '#{board}'\n")
+File.write("fakeclip/pbpaste", "#!/bin/sh\ncat '#{board}'\n")
+File.write("fakeclip/xclip", "#!/bin/sh\nfor arg; do [ \"$arg\" = -o ] && exec cat '#{board}'; done\ncat > '#{board}'\n")
+Dir["fakeclip/*"].each { |tool| File.chmod(0o755, tool) }
+ENV["PATH"] = "#{File.expand_path("fakeclip")}:#{ENV["PATH"]}"
+
+File.write(board, "copied in another program")
+
+assert_equal "copied in another program", Shoes.APPS.first.clipboard, "clipboard reads the system-wide clipboard"

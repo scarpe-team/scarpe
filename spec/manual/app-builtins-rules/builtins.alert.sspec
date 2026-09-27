@@ -1,0 +1,19 @@
+---
+manual: builtins.alert
+lines: [616, 623]
+testability: dialog
+display: any
+----------- app code
+Shoes.app do
+  button "Interject" do
+    $returned = :not_called
+    $returned = alert("I'm afraid I must interject!")
+  end
+end
+----------- test code
+assert_empty dialog_calls, "nothing pops up until the button is pressed"
+
+find_button("Interject").trigger_click
+
+assert_equal [[:alert, "I'm afraid I must interject!"]], dialog_calls, "alert shows its message"
+assert_nil $returned, "alert returns nil"

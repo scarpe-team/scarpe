@@ -1,0 +1,12 @@
+---
+manual: element.para
+lines: [2064, 2064]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $block = para "Shoes"
+end
+----------- test code
+assert Shoes.const_defined?(:Para), "Shoes::Para exists"
+assert_kind_of Shoes::Para, $block, "para returns a Shoes::Para"

@@ -1,0 +1,20 @@
+---
+manual: builtins.no_receiver
+lines: [571, 584]
+testability: api
+display: any
+----------- app code
+# A plain Ruby class, nothing to do with Shoes.
+class Narrator
+  def speak
+    alert "No dots in sight"
+  end
+end
+
+Shoes.app do
+  button("Speak") { Narrator.new.speak }
+end
+----------- test code
+find_button("Speak").trigger_click
+
+assert_equal [[:alert, "No dots in sight"]], dialog_calls, "a built-in needs no receiver, even inside a plain object"

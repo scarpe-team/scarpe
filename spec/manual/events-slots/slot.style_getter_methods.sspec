@@ -1,0 +1,16 @@
+---
+manual: slot.style_getter_methods
+lines: [2378, 2380]
+testability: api
+display: any
+----------- app code
+Shoes.app width: 400, height: 300 do
+  $slot = stack width: "50%", height: 100, scroll: true, displace_left: 3 do
+    para "styled"
+  end
+end
+----------- test code
+assert_equal true, $slot.scroll, "every style has a method of the same name"
+assert_equal 100, $slot.height
+assert_equal 3, $slot.displace_left
+assert_equal 200, $slot.width, "and width answers in pixels, not with the \"50%\" it was given"

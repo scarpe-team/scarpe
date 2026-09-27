@@ -1,0 +1,15 @@
+---
+manual: manip.clear_with_block
+lines: [2331, 2331]
+testability: api
+display: any
+expect: fail
+reason: Lacci's clear returns nil, not the slot (ledger row requested)
+----------- app code
+Shoes.app do
+  $slot = stack { para "Old text" }
+  @go = button("Go") { $returned = $slot.clear { para "Brand new text" } }
+end
+----------- test code
+button("@go").trigger_click
+assert_same $slot, $returned, "clear { } returns self"

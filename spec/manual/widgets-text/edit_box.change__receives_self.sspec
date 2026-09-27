@@ -1,0 +1,19 @@
+---
+manual: edit_box.change
+lines: [3038, 3042]
+testability: interactive
+display: any
+ledger: G1
+----------- app code
+Shoes.app do
+  @box = edit_box
+  @box.change { |box| $handed = box }
+end
+----------- test code
+assert_nil $handed
+
+edit_box.trigger_change("typed")
+
+assert_kind_of Shoes::EditBox, $handed, "the change block is given the edit box"
+assert_equal edit_box.linkable_id, $handed.linkable_id, "the one that changed"
+assert_equal "typed", $handed.text, "already holding the new text"

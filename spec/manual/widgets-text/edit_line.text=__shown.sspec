@@ -1,0 +1,18 @@
+---
+manual: edit_line.text=
+lines: [3101, 3103]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  @line = edit_line
+end
+----------- test code
+edit_line.text = "fill"
+
+# A click past the end of the text puts the caret after it.
+r = layout_of(edit_line)
+click_at r.x + r.w - 6, r.y + r.h / 2.0
+type_text "ed"
+
+assert_equal "filled", edit_line.text, "the line was showing the string, so typing continues it"

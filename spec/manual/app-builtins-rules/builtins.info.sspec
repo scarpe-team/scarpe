@@ -1,0 +1,18 @@
+---
+manual: builtins.info
+lines: [800, 810]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  button "Tell" do
+    $returned = :not_called
+    $returned = info("You just ran the info example on Shoes #{Shoes::RELEASE_NAME}.")
+  end
+end
+----------- test code
+out, err = capture_io { find_button("Tell").trigger_click }
+
+assert_includes out + err, "You just ran the info example on Shoes #{Shoes::RELEASE_NAME}.",
+  "the message reaches the console"
+assert_nil $returned, "info returns nil"

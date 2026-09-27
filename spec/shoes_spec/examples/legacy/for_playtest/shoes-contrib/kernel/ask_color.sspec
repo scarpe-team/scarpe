@@ -1,0 +1,17 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/kernel/ask_color.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+# Original: Shoes.app do backcolor = ask_color("..."); background backcolor end
+# Disabled: ask_color() blocks and requires manual selection
+Shoes.app do
+  para "Ask color test disabled - modal dialogs block test runner"
+end
+----------- test code
+# Color picker dialog test - app code disabled to prevent blocking
+# Original functionality: ask_color() displays color picker
+p = para()
+assert p.text.include?("disabled"), "Ask color test shows disabled message"

@@ -1,0 +1,16 @@
+---
+manual: list_box.items=
+lines: [3230, 3232]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  @fruit = list_box items: ["Grapes", "Pears", "Apricots"]
+end
+----------- test code
+list_box.items = ["Kiwi", "Plum"]
+
+click_on list_box
+click_on "Plum"
+
+assert_equal "Plum", list_box.text, "the drop-down offers the new options"

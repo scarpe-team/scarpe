@@ -1,0 +1,14 @@
+---
+manual: events.keypress.return
+lines: [2247, 2248]
+testability: interactive
+display: native
+ledger: H1
+----------- app code
+$keys = []
+Shoes.app do
+  keypress { |key| $keys << key }
+end
+----------- test code
+press_key "\n"
+assert_equal ["\n"], $keys, "Return on its own is the String \"\\n\""

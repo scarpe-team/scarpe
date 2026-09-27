@@ -1,0 +1,20 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/elements/edit_line-character-count.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  edit_line do |e|
+    @counter.text = e.text.size
+  end
+  @counter = strong("0")
+  para @counter, " characters"
+end
+----------- test code
+# Edit line with change handler updating character count
+# Initial state should show "0 characters"
+p = para()
+assert p.text.include?("0"), "Initial character count is 0"
+assert p.text.include?("characters"), "Para shows 'characters' label"

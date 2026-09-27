@@ -1,0 +1,18 @@
+---
+manual: element.image
+lines: [2006, 2009]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  para "Nice, nice, very nice.  Busy, busy, busy."
+  @picture = image "assets/red-40x30.png"
+end
+----------- test code
+px = ->(x, y) { pixel_at(x.round, y.round).first(3) }
+near = ->(expected, actual, tolerance = 24) { expected.zip(actual).all? { |e, a| (e - a).abs <= tolerance } }
+
+picture = layout_of(image("@picture"))
+
+assert_equal [40, 30], [picture.w.round, picture.h.round], "the PNG shows at its own size"
+assert near.([255, 0, 0], px.(picture.x + 20, picture.y + 15), 4), "and shows its red pixels"

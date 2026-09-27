@@ -1,0 +1,17 @@
+---
+manual: art.fill.subsequent_shapes
+lines: [1684, 1686]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $blue = blue
+  $red = red
+  fill $blue
+  @before = oval 0, 0, 10
+  fill $red
+  @after = oval 20, 0, 10
+end
+----------- test code
+assert_equal $red, oval("@after").fill, "a shape drawn after fill carries that fill"
+assert_equal $blue, oval("@before").fill, "a shape drawn earlier keeps its own"

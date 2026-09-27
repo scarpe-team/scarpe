@@ -1,0 +1,19 @@
+---
+manual: element.para.no_args
+lines: [989, 998]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @p = para
+  animate do
+    button, left, top = self.mouse
+    @p.replace "mouse: #{button}, #{left}, #{top}"
+  end
+end
+----------- test code
+assert_equal "", para("@p").text, "para with no arguments starts empty"
+
+para("@p").replace "filled in later"
+
+assert_equal "filled in later", para("@p").text, "and can be filled later"

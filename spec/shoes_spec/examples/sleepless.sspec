@@ -1,0 +1,25 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/sleepless.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app title: "Sleepless", width: 80, height: 120 do
+  @push = button "Coffee"
+  @note = para "Sleepy"
+  @push.click {
+    @note.replace "Awake"
+  }
+end
+----------- test code
+btn = button("@push")
+note = para("@note")
+
+# Initial state
+assert_equal "Coffee", btn.text
+assert_equal "Sleepy", note.text
+
+# Click changes text
+btn.trigger_click
+assert_equal "Awake", note.text

@@ -1,0 +1,21 @@
+---
+manual: styles.checked
+lines: [1130, 1135]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  @on = check checked: true
+  @off = check
+end
+----------- test code
+on = layout_of(check("@on"))
+off = layout_of(check("@off"))
+changed = (0...on.h.round).sum do |dy|
+  (0...on.w.round).count do |dx|
+    a = pixel_at((on.x + dx).round, (on.y + dy).round).first(3)
+    b = pixel_at((off.x + dx).round, (off.y + dy).round).first(3)
+    a.zip(b).sum { |p, q| (p - q).abs } > 150
+  end
+end
+assert_operator changed, :>=, 8, "the box created with checked: true is drawn checked: it looks clearly different from the unchecked one"

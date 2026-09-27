@@ -1,0 +1,24 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/shoes-contrib/elements/button-block.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  button "OK!" do
+    append { para "Well okay then." }
+  end
+  button "Are you sure?" do
+    append { para "Your confidence is inspiring." }
+  end
+end
+----------- test code
+# Tests buttons with click handlers that append paras
+all_buttons = buttons()
+assert_equal "OK!", all_buttons[0].text
+assert_equal "Are you sure?", all_buttons[1].text
+
+# Test button click appends text
+all_buttons[0].trigger_click
+assert_includes para().text, "Well okay then."

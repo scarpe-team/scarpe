@@ -1,0 +1,17 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-oval.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  fill red(0.1)
+  100.times do |i|
+    oval i, i, i *2
+  end
+end
+----------- test code
+# Verify 100 ovals are rendered
+all_ovals = ovals()
+assert_equal 100, all_ovals.count, "Should have exactly 100 ovals"

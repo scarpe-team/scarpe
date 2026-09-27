@@ -1,0 +1,16 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/shoes-contrib/styles/emphasis.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/styles/emphasis.sspec
+----------- app code
+Shoes.app do
+  para "Say it like you mean it!", :emphasis => "oblique"
+end
+----------- test code
+# Test para text and emphasis style
+assert_equal "Say it like you mean it!", para().text
+assert_includes ["oblique", :oblique], para().style[:emphasis]

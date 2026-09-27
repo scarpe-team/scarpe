@@ -1,0 +1,29 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/custom_header.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+#!ruby
+ Shoes.app do
+   stack do
+     title "GET Google", size: 16
+     @status = para "One moment..."
+
+     download "http://www.google.com/search?q=shoes",
+         method: "GET" do |dump|
+       @status.text = dump.response.body
+     end
+       para 'Hii'
+   end
+ end
+----------- test code
+# Tests download with method: "GET" custom header
+# Verifies initial structure
+
+# Find paras
+paras = Shoes::App.find_drawables_by(Shoes::Para)
+assert paras.any? { |p| p.text == "One moment..." }, "Should show loading status"
+
+assert true, "Custom header test completed"

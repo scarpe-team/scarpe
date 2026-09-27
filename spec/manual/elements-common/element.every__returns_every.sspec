@@ -1,0 +1,14 @@
+---
+manual: element.every
+lines: [1989, 1989]
+testability: api
+display: any
+expect: fail
+reason: "Lacci's animate, every and timer return a Shoes::SubscriptionItem; Shoes::Animation, Shoes::Every and Shoes::Timer do not exist"
+----------- app code
+Shoes.app do
+  $every = every(300) { |count| }
+end
+----------- test code
+assert Shoes.const_defined?(:Every), "Shoes::Every exists"
+assert_kind_of Shoes::Every, $every, "every returns a Shoes::Every"

@@ -1,0 +1,45 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/simple/control-sizes.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/for_playtest/simple/control-sizes.sspec
+----------- app code
+Shoes.app :width => 360, :height => 600, :resizable => false do
+  stroke "#dde"
+  background "#f1f5ff"
+  13.times { |x| line 20, 142 + (30 * x), 320, 142 + (30 * x) }
+  11.times { |x| line 20 + (30 * x), 142, 20 + (30 * x), 502 }
+
+  stack :margin => 20 do
+    title "Control Sizes", :size => 16
+    para "This app measures various controls against a grid of lines, to be sure they size appropriately despite the platform."
+    stack :top => 122, :left => 30 do
+      button "Standard"
+      button "Margin: 2, Height: 30", :margin => 2, :height => 30
+      edit_line "Standard", :margin => 1
+      edit_line "Margin: 4, Height: 30", :height => 30, :margin => 4
+      list_box :items => ["Standard"], :choose => "Standard"
+      list_box :items => ["Margin: 4, Height: 32"],
+        :choose => "Margin: 4, Height: 32",
+        :height => 32, :margin => 4
+      progress
+      progress :height => 32, :margin => 4
+      edit_box
+    end
+  end
+end
+----------- test code
+# Test: Various UI control sizes against a grid
+# Tests button, edit_line, list_box, progress, edit_box sizing
+
+assert_equal 2, buttons().count, "Should have 2 buttons"
+assert_equal "Standard", buttons()[0].text
+assert_equal "Margin: 2, Height: 30", buttons()[1].text
+
+assert_equal 2, edit_lines().count, "Should have 2 edit_lines"
+assert_equal 2, list_boxes().count, "Should have 2 list_boxes"
+assert_equal 2, progresses().count, "Should have 2 progress bars"
+assert edit_box(), "Should have an edit_box"

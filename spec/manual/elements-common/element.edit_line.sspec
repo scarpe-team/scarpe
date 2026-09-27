@@ -1,0 +1,17 @@
+---
+manual: element.edit_line
+lines: [1978, 1982]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  stack do
+    $plain = edit_line
+    $wide = edit_line width: 400
+    $filled = edit_line "starts out the box"
+  end
+end
+----------- test code
+assert_instance_of Shoes::EditLine, $plain, "edit_line returns a Shoes::EditLine"
+assert_equal 3, edit_lines.size, "each call adds a text box to the slot"
+assert_equal "starts out the box", $filled.text, "the text starts out the box"

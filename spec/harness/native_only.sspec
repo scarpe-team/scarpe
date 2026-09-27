@@ -1,0 +1,10 @@
+---
+# Runner self-test: display: native cases are not_applicable under niente.
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  button "Sized"
+end
+----------- test code
+assert_operator layout_of(button).w, :>, 0

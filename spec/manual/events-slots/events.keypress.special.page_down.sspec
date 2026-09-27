@@ -1,0 +1,13 @@
+---
+manual: events.keypress.special.page_down
+lines: [2242, 2245]
+testability: interactive
+display: native
+----------- app code
+$keys = []
+Shoes.app do
+  keypress { |key| $keys << key }
+end
+----------- test code
+press_key :page_down
+assert_equal [:page_down], $keys, "the page_down key arrives once, as the Symbol :page_down"

@@ -1,0 +1,15 @@
+---
+manual: list_box.choose
+lines: [3217, 3219]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @fruit = list_box items: ["Grapes", "Pears", "Apricots"]
+end
+----------- test code
+refute_equal "Pears", list_box.text
+
+returned = list_box.choose("Pears")
+assert_equal "Pears", list_box.text, "choose selects the option matching the string"
+assert_equal list_box.linkable_id, returned.linkable_id, "and returns the list box"

@@ -1,0 +1,26 @@
+---
+manual: rules.redirection.outside_app_fails
+lines: [271, 295]
+testability: api
+display: any
+ledger: B2
+----------- app code
+class Messenger
+  def initialize(stack)
+    @stack = stack
+  end
+  def add(msg)
+    @stack.append do
+      para msg
+    end
+  end
+end
+
+Shoes.app do
+  @log = stack { para "Welcome" }
+  $messenger = Messenger.new(@log)
+end
+----------- test code
+error = assert_raises(NoMethodError) { $messenger.add("A message came in") }
+assert_match(/para/, error.message, "the para method is not found, because self is the Messenger")
+assert_equal ["Welcome"], stack.contents.map(&:text), "nothing was appended"

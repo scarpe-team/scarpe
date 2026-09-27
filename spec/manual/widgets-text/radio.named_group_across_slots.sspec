@@ -1,0 +1,33 @@
+---
+manual: radio.named_group_across_slots
+lines: [3310, 3334]
+testability: interactive
+display: any
+ledger: G6
+----------- app code
+Shoes.app do
+  stack do
+    para "Among these films, which do you prefer?"
+    flow do
+      radio :films
+      para "The Taste of Tea by Katsuhito Ishii"
+    end
+    flow do
+      radio :films
+      para "Kin-Dza-Dza by Georgi Danelia"
+    end
+    flow do
+      radio :films
+      para "Children of Heaven by Majid Majidi"
+    end
+  end
+end
+----------- test code
+all = radios
+assert_equal 3, all.size
+
+all.each do |chosen|
+  chosen.trigger_click
+  assert_equal [chosen.linkable_id], all.select(&:checked?).map(&:linkable_id),
+    "the :films group allows one mark across the three flows"
+end

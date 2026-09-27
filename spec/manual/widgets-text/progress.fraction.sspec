@@ -1,0 +1,14 @@
+---
+manual: progress.fraction
+lines: [3264, 3266]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @bar = progress
+end
+----------- test code
+progress.fraction = 0.42
+
+assert_kind_of Float, progress.fraction, "fraction is a decimal number"
+assert_in_delta 0.42, progress.fraction, 1e-9, "telling how far along the bar is"

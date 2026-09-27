@@ -1,0 +1,24 @@
+---
+manual: element.window
+lines: [2135, 2154]
+testability: api
+display: any
+ledger: A3
+----------- app code
+Shoes.app title: "The Owner" do
+  button "Pop up?" do
+    window do
+      para "Okay, popped up from #{owner}"
+    end
+  end
+end
+----------- test code
+main = Shoes.APPS.first
+assert_nil main.owner, "a plain Shoes.app has no owner"
+assert_equal 1, Shoes.APPS.size
+
+find_button("Pop up?").trigger_click
+
+assert_equal 2, Shoes.APPS.size, "window opens a new app window"
+assert_same main, Shoes.APPS.last.owner, "its owner is the app that launched it"
+assert_equal "Okay, popped up from #{main}", para.text, "so the child window can call its parent"

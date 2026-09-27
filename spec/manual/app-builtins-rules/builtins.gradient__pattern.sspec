@@ -1,0 +1,13 @@
+---
+manual: builtins.gradient
+lines: [785, 788]
+testability: api
+display: any
+expect: fail
+reason: "Lacci's gradient returns Shoes::Colors::Gradient; there is no Shoes::Pattern (no ledger row yet)"
+----------- app code
+Shoes.app do
+  $fade = gradient(rgb(255, 0, 0), "#0000ff")
+end
+----------- test code
+assert_kind_of Shoes::Pattern, $fade, "gradient builds a Shoes::Pattern"

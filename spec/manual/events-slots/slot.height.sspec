@@ -1,0 +1,15 @@
+---
+manual: slot.height
+lines: [2412, 2415]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @list = stack width: 200, height: 100, scroll: true do
+    5.times { stack height: 40 }
+  end
+end
+----------- test code
+list = stack("@list")
+assert_in_delta 100, list.height, 0.5, "height is the viewable part of a scrolling slot, not its 200 pixels of content"
+assert_in_delta 100, layout_of(list).h, 0.5

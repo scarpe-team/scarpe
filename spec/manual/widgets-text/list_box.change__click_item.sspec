@@ -1,0 +1,18 @@
+---
+manual: list_box.change
+lines: [3211, 3215]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  $picked = []
+  @fruit = list_box items: ["Grapes", "Pears", "Apricots"], choose: "Grapes"
+  @fruit.change { $picked << @fruit.text }
+end
+----------- test code
+click_on list_box
+assert_empty $picked, "opening the list is not a change"
+
+click_on "Pears"
+assert_equal ["Pears"], $picked, "clicking an item calls the change block"
+assert_equal "Pears", list_box.text

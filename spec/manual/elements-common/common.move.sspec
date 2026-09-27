@@ -1,0 +1,30 @@
+---
+manual: common.move
+lines: [2648, 2674]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @row = flow margin: 12 do
+    # Set up three buttons
+    @one = button "One"
+    @two = button "Two"
+    @three = button "Three"
+
+    # Bounce the second button
+    animate do |i|
+      @two.move(40, 40 + (Math.sin(i) * 6).to_i)
+    end
+  end
+end
+----------- test code
+row = layout_of(flow("@row"))
+two_before = layout_of(button("@two"))
+
+button("@two").move(40, 40)
+wait_frames
+
+two = layout_of(button("@two"))
+assert_in_delta row.x + 40, two.x, 0.5, "Two is placed 40 pixels in from its slot's left"
+assert_in_delta row.y + 40, two.y, 0.5, "and 40 down from its top"
+assert_in_delta two_before.x, layout_of(button("@three")).x, 0.5, "Three slides over into Two's place"

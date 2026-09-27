@@ -1,0 +1,16 @@
+---
+manual: styles.stroke
+lines: [1453, 1461]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  strokewidth 4
+  @box = rect 50, 50, 100, 80, stroke: red, fill: white
+end
+----------- test code
+r, g, b, = pixel_at(50, 90)
+assert(r > 200 && g < 60 && b < 60, "the outline is drawn with the red stroke pen, got #{[r, g, b]}")
+
+r, g, b, = pixel_at(100, 90)
+assert(r > 230 && g > 230 && b > 230, "the inside is the fill, not the stroke, got #{[r, g, b]}")

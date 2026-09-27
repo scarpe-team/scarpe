@@ -1,0 +1,12 @@
+---
+manual: element.caption
+lines: [1941, 1944]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $block = caption "Shoes"
+end
+----------- test code
+assert_equal "Shoes", $block.text, "the text block holds the text it was given"
+assert_same $block, drawable("$block").obj, "and is in the window"

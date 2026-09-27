@@ -1,0 +1,12 @@
+---
+manual: art.fill
+lines: [1682, 1684]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $pattern = rgb(10, 20, 30)
+  $returned = fill($pattern)
+end
+----------- test code
+assert_equal $pattern, $returned, "fill returns the pattern it was given"

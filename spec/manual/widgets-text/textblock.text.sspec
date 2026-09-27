@@ -1,0 +1,14 @@
+---
+manual: textblock.text
+lines: [3394, 3398]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @heading = title "Shoes ", strong("is ", em("really")), " ", link("fun") { }
+end
+----------- test code
+heading = drawable("@heading")
+
+assert_includes heading.contents.map(&:class), Shoes::Strong, "the title holds styled text"
+assert_equal "Shoes is really fun", heading.text, "text strips the styles, even nested ones, and keeps the characters"

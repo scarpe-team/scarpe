@@ -1,0 +1,14 @@
+---
+manual: element.edit_line
+lines: [1980, 1981]
+testability: api
+display: any
+ledger: M5
+expect: fail
+reason: "Lacci's EditLine#text is nil, not a String, when the line was made without text"
+----------- app code
+Shoes.app do
+  edit_line
+end
+----------- test code
+assert_equal "", edit_line.text, "without the optional text the line starts out empty"

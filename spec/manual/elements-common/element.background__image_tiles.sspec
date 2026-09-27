@@ -1,0 +1,23 @@
+---
+manual: element.background
+lines: [1901, 1903]
+testability: visual
+display: native
+ledger: M20
+----------- app code
+Shoes.app do
+  @box = stack width: 60, height: 40 do
+    background "assets/checker-20x20.png"
+  end
+end
+----------- test code
+px = ->(x, y) { pixel_at(x.round, y.round).first(3) }
+
+box = layout_of(stack("@box"))
+black = [0, 0, 0]
+white = [255, 255, 255]
+
+assert_equal black, px.(box.x + 5, box.y + 5), "the image starts at the top left"
+assert_equal white, px.(box.x + 15, box.y + 5), "at its own size, not stretched"
+assert_equal black, px.(box.x + 45, box.y + 5), "and repeats across"
+assert_equal black, px.(box.x + 5, box.y + 25), "and down"

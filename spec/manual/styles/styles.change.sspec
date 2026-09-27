@@ -1,0 +1,18 @@
+---
+manual: styles.change
+lines: [1123, 1128]
+testability: interactive
+display: any
+expect: fail
+reason: "Lacci's EditLine does not declare a :change style, so the proc is dropped with an 'Unexpected non-style keyword' warning (no ledger row yet; requested)."
+----------- app code
+Shoes.app do
+  @said = para "nothing yet"
+  @line = edit_line change: proc { @said.replace "changed" }
+end
+----------- test code
+assert_equal "nothing yet", para("@said").text, "the handler waits for a change"
+
+edit_line.trigger_change("typed")
+
+assert_equal "changed", para("@said").text, "the proc given as the :change style ran"

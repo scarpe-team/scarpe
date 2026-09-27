@@ -1,0 +1,26 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/animation/oval-motion.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  @o = oval :top => 0, :left => 0, :radius => 40
+  
+  stack :margin => 40 do
+    title "Dancing With a Circle"
+    subtitle "How graceful and round."
+  end
+
+  motion do |x,y|
+    @o.move width - x, height - y
+  end
+end
+----------- test code
+# Verify title and subtitle content
+assert_equal "Dancing With a Circle", title().text
+assert_equal "How graceful and round.", subtitle().text
+
+# Verify oval exists
+assert oval(), "Should have an oval element"

@@ -1,0 +1,15 @@
+---
+manual: art.rotate
+lines: [1783, 1783]
+testability: api
+display: any
+ledger: E10
+expect: fail
+reason: Lacci's rotate returns the angle it stores in the draw context, not self (E10).
+----------- app code
+Shoes.app do
+  $app = self
+  $returned = rotate(45)
+end
+----------- test code
+assert_same $app, $returned, "rotate returns self"

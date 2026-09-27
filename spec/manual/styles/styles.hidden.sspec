@@ -1,0 +1,29 @@
+---
+manual: styles.hidden
+lines: [1247, 1252]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  @shown = stack width: 100, height: 40 do
+    background blue
+  end
+  @gone = stack width: 100, height: 40, hidden: true do
+    background red
+    @inner = button "Inside"
+  end
+end
+----------- test code
+tree = layout_tree
+visible = lambda do |proxy|
+  node = tree.find { |entry| entry[:id] == proxy.linkable_id }
+  !node.nil? && node[:visible] != false
+end
+assert visible.call(stack("@shown")), "the stack without hidden: is drawn"
+refute visible.call(stack("@gone")), "hidden: true hides the slot"
+refute visible.call(button("@inner")), "and hides its children with it"
+
+red = (0...200).step(4).flat_map { |y| (0...300).step(4).map { |x| pixel_at(x, y) } }.select do |r, g, b, _a|
+  r > 200 && g < 60 && b < 60
+end
+assert_empty red, "no red from the hidden slot's background reaches the screen"

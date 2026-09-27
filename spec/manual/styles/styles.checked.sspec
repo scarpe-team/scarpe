@@ -1,0 +1,13 @@
+---
+manual: styles.checked
+lines: [1130, 1135]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @on = check checked: true
+  @off = check
+end
+----------- test code
+assert check("@on").checked?, "checked: true creates the box already checked"
+refute check("@off").checked?, "without the style the box starts unchecked"

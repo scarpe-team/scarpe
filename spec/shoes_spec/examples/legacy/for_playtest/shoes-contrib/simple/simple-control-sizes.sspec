@@ -1,0 +1,50 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-control-sizes.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app :width => 360, :height => 600, :resizable => false do
+  stroke "#dde"
+  background "#f1f5ff"
+  13.times { |x| line 20, 142 + (30 * x), 320, 142 + (30 * x) }
+  11.times { |x| line 20 + (30 * x), 142, 20 + (30 * x), 502 }
+
+  stack :margin => 20 do
+    title "Control Sizes", :size => 16
+    para "This app measures various controls against a grid of lines, to be sure they size appropriately despite the platform."
+    stack :top => 122, :left => 40 do
+      button "Standard"
+      button "Margin: 2, Height: 28", :margin => 2, :height => 30
+      edit_line "Standard", :margin => 1
+      edit_line "Margin: 4, Height: 30", :height => 30, :margin => 4
+      list_box :items => ["Standard"], :choose => "Standard"
+      list_box :items => ["Margin: 4, Height: 32"], 
+        :choose => "Margin: 4, Height: 32",
+        :height => 32, :margin => 4
+      progress
+      progress :height => 32, :margin => 4
+      edit_box
+    end
+  end
+end
+----------- test code
+# Tests various control sizing options against a grid
+# Demonstrates button, edit_line, list_box, progress, edit_box
+# With standard and custom margin/height settings
+#
+# Fixed window: 360x600
+# Grid lines for visual size verification
+
+# Verify standard controls exist (multiple buttons)
+btns = buttons()
+assert btns.length >= 2, "Should have multiple buttons"
+assert_equal "Standard", btns.first.text
+
+# Verify edit_line exists with expected text
+# Note: Multiple edit_lines - first should have "Standard"
+
+# This is primarily a visual layout test
+# Full verification would require measuring actual widget dimensions
+assert true, "Control sizing demo rendered"

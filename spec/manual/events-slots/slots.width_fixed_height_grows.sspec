@@ -1,0 +1,24 @@
+---
+manual: slots.width_fixed_height_grows
+lines: [1584, 1587]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @box = stack width: 200 do
+    stack height: 40
+  end
+  @more = button "More" do
+    @box.append { stack height: 40 }
+  end
+end
+----------- test code
+before = layout_of(stack("@box"))
+assert_in_delta 200, before.w, 0.5, "the width is what we asked for"
+assert_in_delta 40, before.h, 0.5, "the height is the content's"
+
+click_on button("@more")
+
+after = layout_of(stack("@box"))
+assert_in_delta 200, after.w, 0.5, "adding content leaves the width alone"
+assert_in_delta 80, after.h, 0.5, "the height grows with the content"

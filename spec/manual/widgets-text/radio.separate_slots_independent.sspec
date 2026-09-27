@@ -1,0 +1,22 @@
+---
+manual: radio.separate_slots_independent
+lines: [3296, 3308]
+testability: interactive
+display: any
+ledger: G6
+----------- app code
+Shoes.app do
+  stack do
+    para "Among these films, which do you prefer?"
+    flow { radio; para "The Taste of Tea by Katsuhito Ishii" }
+    flow { radio; para "Kin-Dza-Dza by Georgi Danelia" }
+    flow { radio; para "Children of Heaven by Majid Majidi" }
+  end
+end
+----------- test code
+all = radios
+assert_equal 0, all.count(&:checked?)
+
+all.each(&:trigger_click)
+
+assert_equal 3, all.count(&:checked?), "ungrouped radios in separate slots do not unmark each other"

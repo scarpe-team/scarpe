@@ -1,0 +1,20 @@
+---
+manual: rules.utf8_edit_box_roundtrip
+lines: [446, 464]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  stack margin: 10 do
+    @edit = edit_box width: 1.0 do
+      @para.text = @edit.text
+    end
+    @para = para ""
+  end
+end
+----------- test code
+click_on edit_box
+type_text "Καλημέρα ñ"
+
+assert_equal "Καλημέρα ñ", edit_box.text, "the edit box gives back UTF-8 characters"
+assert_equal "Καλημέρα ñ", para.text, "and the para shows them"

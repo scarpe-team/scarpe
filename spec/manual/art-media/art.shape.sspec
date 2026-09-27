@@ -1,0 +1,28 @@
+---
+manual: art.shape
+lines: [1799, 1804]
+testability: visual
+display: native
+ledger: E7
+----------- app code
+Shoes.app width: 200, height: 200 do
+  fill red
+  nostroke
+  shape do
+    move_to 50, 50
+    line_to 150, 50
+    line_to 150, 150
+    line_to 50, 150
+    line_to 50, 50
+  end
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(100, 100, [255, 0, 0], "the closed path is filled with the current fill")
+paints.(53, 147, [255, 0, 0], "all the way to its corners")
+paints.(160, 100, [255, 255, 255], "and nothing outside it")

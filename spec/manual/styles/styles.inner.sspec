@@ -1,0 +1,23 @@
+---
+manual: styles.inner
+lines: [1254, 1259]
+testability: visual
+display: native
+ledger: E4
+----------- app code
+Shoes.app width: 300, height: 300 do
+  fill black
+  stroke black
+  @star = star 150, 150, points: 5, outer: 50, inner: 20
+end
+----------- test code
+dark = ->(x, y) { pixel_at(x.round, y.round).first(3).sum < 200 }
+ring = lambda do |radius, samples|
+  (0...samples).map do |i|
+    angle = 2 * Math::PI * i / samples
+    dark.call(150 + radius * Math.cos(angle), 150 + radius * Math.sin(angle))
+  end
+end
+
+assert ring.call(15, 72).all?, "inside the 20 pixel inner radius the star is solid all the way round"
+refute ring.call(25, 72).all?, "5 pixels past it, the gaps between the points begin"

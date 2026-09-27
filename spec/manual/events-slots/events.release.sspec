@@ -1,0 +1,17 @@
+---
+manual: events.release
+lines: [2277, 2284]
+testability: interactive
+display: native
+----------- app code
+$events = []
+Shoes.app width: 400, height: 300 do
+  stack width: 200, height: 100 do
+    click { |button, left, top| $events << [:click, button, left, top] }
+    release { |button, left, top| $events << [:release, button, left, top] }
+  end
+end
+----------- test code
+click_at 70, 30
+assert_equal [[:click, 1, 70, 30], [:release, 1, 70, 30]], $events,
+  "release runs once, after the press, with the button and where it was let go"

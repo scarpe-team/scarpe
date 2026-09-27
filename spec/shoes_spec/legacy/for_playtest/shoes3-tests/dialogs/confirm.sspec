@@ -1,0 +1,23 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/shoes3-tests/dialogs/confirm.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  button "confirm" do
+    ans = confirm "Feeling lucky?"
+    para ans.to_s
+  end
+end
+----------- test code
+# Verify button exists
+assert_equal "confirm", button().text
+
+# Stub confirm() to return true, then trigger the button
+stub_dialog(:confirm, true)
+button().trigger_click
+
+# The para should show "true"
+assert_equal "true", para().text

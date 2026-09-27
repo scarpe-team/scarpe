@@ -1,0 +1,16 @@
+---
+manual: builtins.rgb.alpha
+lines: [815, 818]
+testability: api
+display: any
+ledger: D2
+----------- app code
+Shoes.app do
+  $opaque = rgb(10, 20, 30)
+  $whole = rgb(10, 20, 30, 100)
+  $decimal = rgb(10, 20, 30, 0.5)
+end
+----------- test code
+assert_equal 255, $opaque.to_a[3], "without an alpha the colour is opaque"
+assert_equal [10, 20, 30, 100], $whole.to_a, "a whole-number alpha is 0-255"
+assert_equal [10, 20, 30, 128], $decimal.to_a, "a decimal alpha is 0.0-1.0, even after whole components"

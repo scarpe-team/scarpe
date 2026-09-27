@@ -1,0 +1,17 @@
+---
+manual: textblock.text=
+lines: [3400, 3402]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @sub = subtitle "Old ", em("styled"), " words"
+end
+----------- test code
+sub = drawable("@sub")
+assert_equal "Old styled words", sub.text
+
+sub.text = "Fresh"
+
+assert_equal "Fresh", sub.text, "text = replaces the text of the whole block"
+assert_equal ["Fresh"], sub.contents, "no styled piece of the old text survives"

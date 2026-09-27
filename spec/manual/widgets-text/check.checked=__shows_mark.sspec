@@ -1,0 +1,23 @@
+---
+manual: check.checked=
+lines: [2983, 2986]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @box = check
+end
+----------- test code
+box = check
+r = layout_of(box)
+look = lambda do
+  (1..5).flat_map { |i| (1..5).map { |j| pixel_at(r.x + r.w * i / 6.0, r.y + r.h * j / 6.0) } }
+end
+
+unchecked = look.call
+box.checked = true
+checked = look.call
+refute_equal unchecked, checked, "checked = true draws the mark"
+
+box.checked = false
+assert_equal unchecked, look.call, "checked = false clears it"

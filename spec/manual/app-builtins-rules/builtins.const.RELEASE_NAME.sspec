@@ -1,0 +1,14 @@
+---
+manual: builtins.const.RELEASE_NAME
+lines: [605, 606]
+testability: api
+display: any
+ledger: L3
+----------- app code
+Shoes.app do
+  @release = para "Running Shoes #{Shoes::RELEASE_NAME}"
+end
+----------- test code
+assert_kind_of String, Shoes::RELEASE_NAME, "the release name is a String"
+refute_empty Shoes::RELEASE_NAME.strip, "every release is named"
+assert_equal "Running Shoes #{Shoes::RELEASE_NAME}", para("@release").text

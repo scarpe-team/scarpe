@@ -1,0 +1,25 @@
+---
+manual: rules.blocks.normal_ruby_semantics
+lines: [166, 193]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  ary = ['potion', 'swords', 'shields']
+  ary.each do |item|
+    para item
+  end
+  $item_after_each = defined?(item)
+
+  outer = "from outside"
+  stack do
+    inner = "made inside"
+    $outer_seen_inside = outer
+  end
+  $inner_after_stack = defined?(inner)
+end
+----------- test code
+assert_equal %w[potion shields swords], paras.map(&:text).sort, "the each block ran once per item"
+assert_nil $item_after_each, "item goes out of scope when the each block ends"
+assert_nil $inner_after_stack, "a variable made inside a stack block goes out of scope the same way"
+assert_equal "from outside", $outer_seen_inside, "and the stack block sees the variables around it, like any Ruby block"

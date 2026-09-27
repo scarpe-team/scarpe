@@ -1,0 +1,13 @@
+---
+manual: events.finish
+lines: [2195, 2195]
+testability: api
+display: any
+expect: fail
+reason: Lacci's Slot#finish returns its Array of callbacks, not the slot (ledger row requested)
+----------- app code
+Shoes.app do
+  $slot = stack { para "going away" }
+end
+----------- test code
+assert_same $slot, $slot.finish { }, "finish { } returns self"

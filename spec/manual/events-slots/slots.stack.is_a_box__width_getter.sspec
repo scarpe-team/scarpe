@@ -1,0 +1,13 @@
+---
+manual: slots.stack.is_a_box
+lines: [1602, 1603]
+testability: api
+display: any
+----------- app code
+Shoes.app width: 400, height: 300 do
+  $box = stack width: 250 do
+    para "A short line."
+  end
+end
+----------- test code
+assert_equal 250, $box.width, "a stack given a width of 250 is 250 pixels wide"

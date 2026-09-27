@@ -1,0 +1,25 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/mouse-detection.sspec
+source_commit: 1e766c6
+display: any
+expect:
+  niente: fail
+reason: asserts on what an animate block draws, before any frame; Niente fires no
+  timers
+----------- app code
+Shoes.app do
+  @p = para
+  animate do
+    button, left, top = self.mouse
+    @p.replace "mouse: #{button}, #{left}, #{top}"
+  end
+end
+----------- test code
+# Verify para exists for mouse display
+assert para(), "Should have a para element for mouse position"
+
+# Initial state shows mouse coordinates
+text = para().text
+assert text.include?("mouse:"), "Para should display mouse info"

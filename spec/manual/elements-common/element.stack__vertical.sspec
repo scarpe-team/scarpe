@@ -1,0 +1,20 @@
+---
+manual: element.stack
+lines: [2085, 2087]
+testability: api
+display: native
+----------- app code
+Shoes.app do
+  stack do
+    @first = para "First"
+    @second = para "Second"
+    @third = para "Third"
+  end
+end
+----------- test code
+first, second, third = %w[@first @second @third].map { |name| layout_of(para(name)) }
+
+assert_in_delta first.x, second.x, 0.5, "each element starts at the stack's left edge"
+assert_in_delta first.x, third.x, 0.5
+assert_operator second.y, :>=, first.y + first.h - 0.5, "Second piles up under First"
+assert_operator third.y, :>=, second.y + second.h - 0.5, "Third under Second"

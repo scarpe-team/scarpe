@@ -1,0 +1,23 @@
+---
+manual: slots.flow.adjacent_text_one_paragraph
+lines: [1611, 1612]
+testability: visual
+display: native
+ledger: C7
+expect: fail
+reason: DESIGN 6 lays each text block out as its own shrink-to-fit box, so a long second para starts a new row; the manual's single paragraph waits on Q2 (ledger C7)
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @flow = flow width: 300 do
+    @short = para "Short."
+    @long = para "This second paragraph is long enough that it has to wrap onto more lines inside three hundred pixels."
+  end
+end
+----------- test code
+flow_box = layout_of(flow("@flow"))
+short = layout_of(para("@short"))
+long = layout_of(para("@long"))
+
+assert_operator long.h, :>, short.h * 1.5, "the long para needs more than one line"
+assert_in_delta short.y, long.y, 0.5, "it carries on from the end of the short one, on the same line"
+assert_in_delta flow_box.x, long.x, 0.5, "and its later lines wrap back to the flow's left edge, as one paragraph would"

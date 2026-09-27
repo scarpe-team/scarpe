@@ -1,0 +1,31 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/download.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/working/shoes_manual/download.sspec
+- cases/scarpe_examples/legacy/working/shoes_manual/download.sspec
+----------- app code
+#!ruby
+ Shoes.app do
+   stack do
+     title "Searching Google", size: 16
+     @status = para "One moment..."
+
+     # Search Google for 'shoes' and print the HTTP headers
+     download "http://www.google.com/search?q=shoes" do |goog|
+       @status.text = "Headers: " + goog.response.headers.inspect
+     end
+   end
+ end
+----------- test code
+# Tests download fetching URL and displaying headers
+# Verifies initial state before download completes
+
+# Find paras
+paras = Shoes::App.find_drawables_by(Shoes::Para)
+assert paras.any? { |p| p.text == "One moment..." }, "Should show loading status initially"
+
+assert true, "Download test completed"

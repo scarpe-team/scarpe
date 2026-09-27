@@ -1,0 +1,18 @@
+---
+manual: list_box.choose_style
+lines: [3199, 3202]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  para "Choose a fruit:"
+  list_box items: ["Grapes", "Pears", "Apricots"],
+    width: 120, choose: "Apricots" do |list|
+      @fruit.text = list.text
+  end
+
+  @fruit = para "No fruit selected"
+end
+----------- test code
+refute_equal "Apricots", list_box.items.first, "so the choice cannot come from a first-item default"
+assert_equal "Apricots", list_box.text, ":choose highlights that item from the beginning"

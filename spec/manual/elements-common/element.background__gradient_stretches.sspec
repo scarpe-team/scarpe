@@ -1,0 +1,22 @@
+---
+manual: element.background
+lines: [1901, 1903]
+testability: visual
+display: native
+ledger: D6
+----------- app code
+Shoes.app do
+  @box = stack width: 100, height: 300 do
+    background gradient(red, blue)
+  end
+end
+----------- test code
+px = ->(x, y) { pixel_at(x.round, y.round).first(3) }
+
+box = layout_of(stack("@box"))
+reds = (0..10).map { |i| px.(box.x + 50, box.y + 2 + i * 29.6).first }
+
+assert_operator reds.first, :>, 220, "red at the top edge"
+assert_operator reds.last, :<, 35, "blue at the bottom edge"
+assert reds.each_cons(2).all? { |upper, lower| lower <= upper + 2 }, "one ramp over the whole slot: #{reds.inspect}"
+assert_includes 90..165, reds[5], "halfway in the middle"

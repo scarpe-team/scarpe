@@ -1,0 +1,24 @@
+---
+manual: styles.style_method
+lines: [1037, 1045]
+testability: visual
+display: native
+----------- app code
+Shoes.app title: "A Styling Sample" do
+  @text = para "Red with an underline"
+end
+----------- test code
+text = para("@text")
+box = layout_of(text)
+covered = lambda do
+  (box.y.floor...(box.y + box.h).ceil).flat_map do |y|
+    (box.x.floor...(box.x + [box.w, 60].min).ceil).map { |x| pixel_at(x, y).first(3) }
+  end.select { |_r, g, b| g + b < 400 }
+end
+refute_empty covered.call, "the letters left ink"
+refute covered.call.all? { |r, _g, _b| r > 230 }, "the text starts out in the default dark colour"
+
+text.style(stroke: [255, 0, 0, 255])
+wait_frames
+
+assert covered.call.all? { |r, _g, _b| r > 230 }, "after style(stroke:) the letters are repainted red"

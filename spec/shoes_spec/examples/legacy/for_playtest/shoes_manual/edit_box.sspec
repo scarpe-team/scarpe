@@ -1,0 +1,22 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/edit_box.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+#!ruby
+ Shoes.app do
+   edit_box
+   edit_box "HORRAY EDIT ME"
+   edit_box "small one", width: 100, height: 160
+ end
+----------- test code
+# Tests edit_box text input widgets
+# Verifies multiple edit_boxes exist
+
+# Should have 3 edit_boxes
+edit_boxes = Shoes::App.find_drawables_by(Shoes::EditBox)
+assert_equal 3, edit_boxes.length, "Should have 3 edit_boxes"
+
+assert true, "Edit box test completed"

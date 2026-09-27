@@ -1,0 +1,20 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/alert_button.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/working/shoes_manual/alert_button.sspec
+----------- app code
+#!ruby
+ Shoes.app { button("Click me!") { alert("Good job.") } }
+----------- test code
+# Tests button with alert modal
+# Alert is a blocking modal dialog - skip interaction test
+
+# Verify button exists
+buttons = Shoes::App.find_drawables_by(Shoes::Button)
+assert_equal 1, buttons.length, "Should have exactly one button"
+
+assert true, "Alert button test completed"

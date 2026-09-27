@@ -1,0 +1,15 @@
+---
+manual: element.inscription
+lines: [2030, 2030]
+testability: api
+display: any
+ledger: F2
+expect: fail
+reason: "Lacci's inscription returns a Shoes::Para with size :inscription; there is no Shoes::Inscription class"
+----------- app code
+Shoes.app do
+  $block = inscription "Shoes"
+end
+----------- test code
+assert Shoes.const_defined?(:Inscription), "Shoes::Inscription exists"
+assert_kind_of Shoes::Inscription, $block, "inscription returns a Shoes::Inscription"

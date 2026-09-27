@@ -1,0 +1,13 @@
+---
+manual: styles.weight
+lines: [1521, 1537]
+testability: visual
+display: native
+ledger: F4
+----------- app code
+Shoes.app width: 500, height: 300 do
+  flow { @plain = para "Weight Watchers", size: 20 }
+  flow { @bold = para "Weight Watchers", weight: "bold", size: 20 }
+end
+----------- test code
+assert_operator layout_of(para("@bold")).w, :>, layout_of(para("@plain")).w + 2, "weight: \"bold\" sets heavier, wider letters"

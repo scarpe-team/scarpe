@@ -1,0 +1,21 @@
+---
+manual: slots.stack.is_a_box
+lines: [1602, 1603]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  flow do
+    @box = stack width: 250 do
+      para "A short line."
+    end
+    @neighbour = stack width: 50, height: 20
+  end
+end
+----------- test code
+box = layout_of(stack("@box"))
+neighbour = layout_of(stack("@neighbour"))
+
+assert_in_delta 250, box.w, 0.5, "the stack is 250 pixels wide whatever its text needs"
+assert_in_delta box.x + 250, neighbour.x, 0.5, "and takes up 250 pixels of its row, like any element"
+assert_in_delta box.y, neighbour.y, 0.5

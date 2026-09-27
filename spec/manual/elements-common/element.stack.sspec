@@ -1,0 +1,16 @@
+---
+manual: element.stack
+lines: [2080, 2087]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $column = stack do
+    para "First"
+    para "Second"
+    para "Third"
+  end
+end
+----------- test code
+assert_instance_of Shoes::Stack, $column, "stack returns a Shoes::Stack"
+assert_equal ["First", "Second", "Third"], $column.contents.map(&:text), "the block's elements go inside it, in order"
