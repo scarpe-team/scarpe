@@ -13,14 +13,13 @@ use crate::runtime::{load_fonts, Effect, Options, Runtime};
 use crate::text::FontMode;
 use pacing::Pacing;
 use std::collections::HashMap;
-use std::io::BufRead;
 use std::num::NonZeroU32;
 use std::rc::Rc;
 use std::time::{Duration, Instant};
 use tiny_skia::Pixmap;
 use winit::application::ApplicationHandler;
-use winit::dpi::LogicalSize;
-use winit::event::{ElementState, KeyEvent, MouseButton, MouseScrollDelta, WindowEvent};
+use winit::dpi::{LogicalPosition, LogicalSize};
+use winit::event::{ElementState, Ime, KeyEvent, MouseButton, MouseScrollDelta, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy};
 use winit::keyboard::{Key as WKey, ModifiersState, NamedKey};
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
@@ -50,6 +49,8 @@ struct Win {
     memory: FrameMemory,
     pacing: Pacing,
     modifiers: ModifiersState,
+    /// Where the input method was last told the caret is; None while it is off.
+    ime: Option<crate::layout::Rect>,
 }
 
 struct Shell {
@@ -175,6 +176,7 @@ impl Shell {
                 memory: FrameMemory::default(),
                 pacing,
                 modifiers: ModifiersState::empty(),
+                ime: None,
             },
         );
     }
@@ -221,6 +223,7 @@ impl Shell {
     /// After every event: run effects, ask dirty windows to redraw, write output.
     fn settle(&mut self, el: &ActiveEventLoop) {
         self.apply_effects(el);
+        self.follow_text_input();
         if !self.rt.mid_batch {
             let now = Instant::now();
             for win in self.windows.values_mut() {
@@ -238,6 +241,24 @@ impl Shell {
             self.orphaned_since.get_or_insert_with(Instant::now);
         } else {
             self.orphaned_since = None;
+        }
+    }
+
+    /// Input methods (dead keys, Japanese, emoji) are on while a text field that takes text
+    /// has focus, with their candidates beside its caret, and off otherwise.
+    fn follow_text_input(&mut self) {
+        for win in self.windows.values_mut() {
+            let area = self.rt.text_input_area(win.app);
+            if area == win.ime {
+                continue;
+            }
+            if area.is_some() != win.ime.is_some() {
+                win.window.set_ime_allowed(area.is_some());
+            }
+            if let Some(r) = area {
+                win.window.set_ime_cursor_area(LogicalPosition::new(r.x as f64, r.y as f64), LogicalSize::new(r.w.max(1.0) as f64, r.h as f64));
+            }
+            win.ime = area;
         }
     }
 
@@ -351,6 +372,12 @@ impl ApplicationHandler<UserEvent> for Shell {
                 }
                 self.rt.set_modifiers(app, modifiers(state));
             }
+            WindowEvent::Ime(ime) => {
+                if let Some(text) = committed(&ime) {
+                    self.rt.stats.input();
+                    self.rt.ime_commit(app, text);
+                }
+            }
             WindowEvent::KeyboardInput { event, .. } if event.state == ElementState::Pressed => {
                 self.rt.stats.input();
                 let mods = self.windows.get(&id).map(|w| w.modifiers).unwrap_or_default();
@@ -421,12 +448,9 @@ impl ApplicationHandler<UserEvent> for Shell {
 fn read_stdin(proxy: EventLoopProxy<UserEvent>) {
     let mut reader = std::io::BufReader::with_capacity(1 << 16, std::io::stdin());
     let mut batch = Vec::new();
-    loop {
-        let mut line = String::new();
-        match reader.read_line(&mut line) {
-            Ok(0) | Err(_) => break,
-            Ok(_) => batch.push(line),
-        }
+    let mut bytes = Vec::new();
+    while let Some(line) = crate::protocol::read_line_lossy(&mut reader, &mut bytes) {
+        batch.push(line);
         if reader.buffer().contains(&b'\n') {
             continue;
         }
@@ -469,6 +493,15 @@ fn match_frame_colour_space(window: &Window) -> bool {
 #[cfg(not(target_os = "macos"))]
 fn match_frame_colour_space(_window: &Window) -> bool {
     false
+}
+
+/// The text an input method committed. Preedit (text still being composed) is not shown in
+/// the field; the input method's own panel shows it until it commits.
+fn committed(ime: &Ime) -> Option<&str> {
+    match ime {
+        Ime::Commit(text) if !text.is_empty() => Some(text),
+        _ => None,
+    }
 }
 
 /// On macOS, Command is Shoes 3's `alt_` in key names (Q5) and Control in text fields.
@@ -581,6 +614,16 @@ mod tests {
 
     fn name(logical: WKey, bare: WKey, text: Option<&str>, m: Modifiers) -> Option<String> {
         key_from(&logical, &bare, text, m).and_then(|k| k.shoes_name())
+    }
+
+    /// Only a commit inserts text; composing, and switching the input method on or off, do not.
+    #[test]
+    fn only_a_commit_carries_text() {
+        assert_eq!(committed(&Ime::Commit("é".into())), Some("é"));
+        assert_eq!(committed(&Ime::Commit(String::new())), None);
+        assert_eq!(committed(&Ime::Preedit("ni".into(), Some((0, 2)))), None);
+        assert_eq!(committed(&Ime::Enabled), None);
+        assert_eq!(committed(&Ime::Disabled), None);
     }
 
     /// Q5: on macOS Cmd-q arrives as :alt_q, like Shoes 3's Cocoa backend.

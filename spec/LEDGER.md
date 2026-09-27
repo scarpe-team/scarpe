@@ -90,6 +90,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | C11 | `attach: Window` | MANUAL | | |
 | C12 | Paint order: backgrounds are layered elements | MANUAL | | |
 | C13 | A fixed height clips the slot | MANUAL | | |
+| C14 | An explicit width or height includes the margins | open (Q9) | | |
 
 ### D. Colours and patterns
 
@@ -444,7 +445,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Examples:** every app that puts two `para`s at the top level relies on this, since the top slot is a flow. Single-line paras look the same under every model. Multi-line paras differ.
 - **Lacci / WV today:** each para is its own flex item: shrink-to-fit, packed side by side, and a long para wraps onto a new row as its own box (report 02, 4.1).
 - **Spec:** two single-line paras in a flow share a row (`slots.flow.adjacent_text_one_paragraph`, all models agree). The multi-line case is `slots.flow.adjacent_text_one_paragraph__wraps_to_left_edge`: the second para carries on from the end of the first, on the same line, and its later lines wrap back to the flow's left edge, 4 px in for the para's margin (C9). It passes on native since the layout lane landed the paragraph model. Many style cases put one para alone in a flow and read `layout_of(para).w` as the text's width. That matches Shoes 3, where a one-line text block shrinks to its line (`s3t_textblock.c:207-210`), so a single-line para's box stays as wide as its text under the paragraph model.
-- **Native:** since 27 Sep, as Shoes 3 (DESIGN 6): text that fits on the rest of the line sits there; longer text indents its first line to where the line stands and wraps the rest to the left edge, and the next element carries on from its last line. Two paras sit one margin apart. Where Shoes 3 would wrap lines under something taller earlier on the line (a picture, a title), or not even the first word fits, the text starts a new row instead. Centred, right-aligned, justified, trimmed and sized text stays a box.
+- **Native:** since 27 Sep, as Shoes 3 (DESIGN 6): text that fits on the rest of the line sits there; longer text indents its first line to where the line stands and wraps the rest to the left edge, and the next element carries on from its last line. Two paras sit one margin apart. Where Shoes 3 would wrap lines under something taller earlier on the line (a picture, a title), or not even the first word fits, the text starts a new row instead. Centred, right-aligned, justified, trimmed and sized text stays a box. Since wave 4 a text that ends in a newline ends its line: Pango keeps an empty last line under it ("newlines have an empty size", `s3t_textblock.c:217-228`), so the next element starts the following line at the flow's left edge. The manual's radio example relies on it (manual 3285-3289, `radio; para strong(...), "...\n"`), as do 11 example files in all; before, the radios ran on after the text.
 
 ### C8. Default width of a slot
 
@@ -476,7 +477,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Shoes 3:** `shoes_px2` computes `(parent - dr) - px` when the right/bottom key is present (`s3_ruby.c:327-337`); art shapes read `right`/`bottom` as absolute coordinates instead (`s3_ruby.c:396-399`, see E6).
 - **Lacci / WV today:** declared as styles (`drawable.rb:264`) and never rendered (report 02, 4.2).
 - **Spec:** `background black, width: 50, right: 50` paints a 50 px column whose right edge is 50 px in from the window's right edge (see M19).
-- **Native:** an element with `right` or `bottom` is out of flow and placed from the slot's right or bottom edge; backgrounds and borders too (DESIGN 6 and 12, 27 Sep). Art ignores them; Shoes 3 reads them there as far-edge coordinates that size the shape (`s3_ruby.c:396-399`), not yet done.
+- **Native:** an element with `right` or `bottom` is out of flow and placed from the slot's right or bottom edge; backgrounds and borders too (DESIGN 6 and 12, 27 Sep). Art follows the same ruling since wave 4 (DESIGN 12): its far edge sits `right` px in from the slot's right edge, art that names both edges and no size runs between them, and `left`/`top` win when given; Shoes 3 instead read them on art as absolute far-edge coordinates that size the shape (`s3_ruby.c:396-399`), and no example uses either. **Lacci today** gives art no way to reach this: `rect` defaults `left` and `top` to 0 and every art class requires `left`, `top` and a size (`rect.rb:18-21`, `oval.rb`, `drawable.rb:343-349`), so `right`/`bottom` arrive only beside a `left` that wins. **Lacci change, unscheduled.**
 
 ### C11. `attach: Window`
 
@@ -507,6 +508,18 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci / WV today:** WV does not clip a fixed-height slot unless it scrolls.
 - **Spec:** `rules.fixed_height_clips`: a stack 100 px high holding a 300 px red stack shows red inside its height and not below it.
 - **Native:** since 27 Sep every slot with a fixed `height` clips what it holds, with or without `scroll: true`, and hit-testing respects the clip (DESIGN 6); `rules.fixed_height_clips` passes on native. Before, DESIGN 6 clipped only with `scroll: true`.
+
+### C14. An explicit width or height includes the margins
+
+**Ruling: open (Q9).** New row, found by the wave 4 native lane looking at example snapshots.
+
+- **Manual:** silent. `:margin` "space[s] an element out from its surroundings" (manual 1298-1309); `:width` says nothing of margins.
+- **Shoes 3:** a given `width` is the margin box: `place->w = PX(attr, width, ...)`, then the content is `place->iw = place->w - (lmargin + rmargin)` and likewise `ih` for `height` (`s3_ruby.c:506, 537, 540`). Slots are placed that way (`s3_canvas.c:468`), and text blocks too (`s3t_textblock.c:125-126`): `para "x", width: 200` wraps its text at 192, inside Shoes 3's 4 px text margins (C9).
+- **Examples:** `legacy/for_playtest/simple/menu1.rb` sets four panels of 170, 140, 140 and 140 px with `margin: 4` in a 600 px window; they fit on one row only if the margins are inside the widths (590 px against 622). `shoes-contrib/simple/simple-control-sizes.rb` is Shoes 3's own check that controls "size appropriately despite the platform": it stacks controls such as `button ..., margin: 2, height: 30` against a 30 px grid, and they keep to the grid only if each height holds its margins (here that button takes 34 px). 39 lines under `examples/` give an element both a px width and a margin; 17 manual cases do.
+- **Lacci / WV today:** Webview writes CSS `margin`, which always sits outside a CSS `width` (`calzini.rb:148-151`).
+- **Native:** DESIGN 12 (the M1 clarification) makes a px size the border box, with margins outside it; relative sizes already size the margin box, as Shoes 3 does for every size. So menu1's fourth panel wraps below the window.
+- **Spec:** nothing yet. Under S3, `stack width: 100, margin: 10` would be 100 wide in its parent's row with an 80 px content box.
+- **Proposal:** S3, since the manual is silent: a px width or height is the margin box, as relative ones already are. It moves every element that has both, text included, so it wants a ruling before the layout changes.
 
 ## D. Colours and patterns
 
@@ -681,7 +694,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Shoes 3, pens:** the shape is made after its block runs and copies the canvas's pens then (`s3t_shape.c:290-315`, `COPY_PENS` at `:206`), so `stroke red` inside the block strokes that shape; since the block draws on the enclosing canvas, the pen also stays set for later shapes there.
 - **Lacci, pens:** since 27 Sep (wave-4 Lacci lane) the prop_change that carries the finished `shape_commands` carries the shape's final `draw_context` too, so pens set inside the block style the shape (`expert/curve-animation.rb` drew all three waves black before). A Lacci Shape is a slot, so those pens stay inside it and do not reach the shapes drawn after it, where Shoes 3 would carry them on.
 - **Spec:** a closed `shape` fills its interior with the current fill; an oval created inside a shape paints (is not dropped). `art.shape__pens_in_block`: a stroke set inside the block colours the line.
-- **Native:** builds one path from the complete `shape_commands`, offset by (left, top). Art children of the shape join the same path, measured from the shape's (left, top), and the whole group is filled once (nonzero) and stroked once with the shape's own draw context (DESIGN 12).
+- **Native:** builds one path from the complete `shape_commands`, offset by (left, top). Art children of the shape join the same path, measured from the shape's (left, top), and the whole group is filled once (nonzero) and stroked once with the shape's own draw context (DESIGN 12). The group turns about its own corner by the shape's transform, members' own transforms ignored, and since wave 4 the layout boxes of the shape and its members follow that turn (before, each member's box turned about its own corner, so clicks missed what was drawn).
 
 ### E8. `click`, `release`, `hover` and `leave` on shapes, text blocks and images
 
@@ -1172,7 +1185,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 - **Manual:** runs in the background and "fires `start`, `progress` and `finish` events" (manual 906-975); only `finish` is shown (M30).
 - **Lacci today:** `Shoes::App#download` (`download.rb:31-125`) calls `handle_failure` with one argument though it takes two, so every non-2xx response logs an `ArgumentError` instead; it requires `nokogiri` unconditionally; it runs the user's block on a background `Thread` (report 04, C4). Since the wave-4 Lacci lane `download` takes `start:`, `progress:` and `finish:` (a block is `finish`), each handed a `Download` with `response`, `length`, `transferred` and `percent`; `headers:` and `body:` shape the request beside `method:`; and `save:` writes the file, hands the finish event the download too, and leaves `response.body` nil with the headers kept. It no longer needs `nokogiri`. The whole body is read at once, so `progress` fires once, at 100 percent, and every event still runs on the download's thread.
-- **Spec:** against a local HTTP server, `finish` fires once with the body and `start` fires before it.
+- **Spec:** against a local HTTP server, `finish` fires once with the body and `start` fires before it. The imported `simple-downloader` case (wave 4) clicks its Download button with a URL on a closed local port and checks the row it appends; it is held as `expect: fail` because `download(url, progress:, finish:)` raises `ArgumentError: unknown keywords` in Lacci today.
 - **Native:** display updates can arrive from that background thread; DESIGN 5.2 guards writes with a Mutex, which covers it.
 
 ### K6. `exit` stops the program at once
@@ -1445,6 +1458,7 @@ The evidence was balanced on each of these, so v1 asked Nick. The orchestrator r
 - **Q8 (B7), found at the 27 Sep 2026 merge.** Does `clear` stop the timers started inside the slot, as the manual says (manual 2327-2329), or leave them running, as Shoes 3's source does and ten examples that clear the app from inside their own `animate` need?
 
   **Ruled:** `clear` keeps the timers (S3); the manual's line is ERRATA (M40). `visit` still stops them (B7).
+- **Q9 (C14), open, found in wave 4.** Is an explicit `width` (or `height`) the element's **margin box**, margins inside it, as Shoes 3 does for slots and text blocks (`s3_ruby.c:506, 537`, `s3t_textblock.c:125-126`), or its **border box**, margins added outside, as DESIGN 12 and Webview do? The manual is silent. `menu1.rb`'s panels fit a row only under Shoes 3's rule; changing the rule moves every element that has both a px size and a margin.
 
 ## Citation check
 

@@ -507,6 +507,9 @@ impl Runtime {
             return;
         }
         self.ensure_layout(app);
+        // A press or release through automation moves the pointer first; where it is already
+        // there, that is no motion (a window only reports the pointer when it moves).
+        let moved = self.views.get(&app).is_some_and(|v| v.ui.pointer != Some((x, y)));
         if let Some(view) = self.views.get_mut(&app) {
             view.ui.pointer = Some((x, y));
         }
@@ -531,7 +534,7 @@ impl Runtime {
             }
         }
         let hit = self.hit(app, x, y);
-        self.update_hover(app, hit, x, y, true);
+        self.update_hover(app, hit, x, y, moved);
     }
 
     /// Hover transitions for drawables and slot items. `moved`: the pointer
@@ -878,6 +881,49 @@ impl Runtime {
         }
     }
 
+    /// The focused text field, if it takes edits.
+    fn editable_focus(&self, app: Id) -> Option<Id> {
+        let id = self.views.get(&app)?.ui.focus?;
+        let node = self.doc.get(id).filter(|n| n.kind.is_text_input())?;
+        (!crate::elements::readonly(node) && !crate::elements::disabled(node)).then_some(id)
+    }
+
+    /// Text an input method committed (a dead key's accent, a word of Japanese): into the
+    /// focused text field as one edit and one `change`, else as typed characters.
+    pub fn ime_commit(&mut self, app: Id, text: &str) {
+        if !self.views.contains_key(&app) {
+            return;
+        }
+        self.ensure_layout(app);
+        let Some(id) = self.editable_focus(app) else {
+            let focus_is_a_field = self.views[&app].ui.focus.and_then(|id| self.doc.get(id)).is_some_and(|n| n.kind.is_text_input());
+            if !focus_is_a_field {
+                self.type_text(app, text);
+            }
+            return;
+        };
+        let Some(node) = self.doc.get(id) else { return };
+        let view = self.views.get_mut(&app).expect("view");
+        let field = text_field::ensure(&mut view.ui.fields, node, &mut self.text.fonts);
+        if field.type_in(&mut self.text.fonts.system, text) {
+            let text = field.reported();
+            self.out.event("change", Some(id), vec![Value::String(text)]);
+        }
+        self.request_redraw(app);
+    }
+
+    /// Where an input method should show its candidates: the caret of the focused text field,
+    /// in window coordinates. None when no field that takes text has focus; a secret field
+    /// takes keys only, as a Mac's secure text field does.
+    pub fn text_input_area(&self, app: Id) -> Option<crate::layout::Rect> {
+        let id = self.editable_focus(app)?;
+        let view = self.views.get(&app)?;
+        if self.doc.get(id).is_some_and(|n| n.props.truthy("secret")) {
+            return None;
+        }
+        view.ui.fields.get(&id).and_then(|f| f.caret()).or_else(|| view.layout.as_ref()?.rect(id))
+    }
+
     pub fn key_input(&mut self, app: Id, key: KeyInput) {
         if !self.views.contains_key(&app) {
             return;
@@ -909,7 +955,8 @@ impl Runtime {
                     } else {
                         field.key(&mut self.text.fonts.system, &key, &mut self.clipboard)
                     };
-                    (edited, field.text())
+                    let text = if edited.changed { field.reported() } else { String::new() };
+                    (edited, text)
                 };
                 if edited.0.changed {
                     self.out.event("change", Some(id), vec![Value::String(edited.1)]);

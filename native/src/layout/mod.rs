@@ -8,6 +8,7 @@
 
 use crate::doc::{Doc, Kind, Node};
 use crate::elements::{self, image::ImageCache};
+use crate::limits;
 use crate::paint::shapes;
 use crate::props::{Edges, Id};
 use crate::style::Dim;
@@ -177,6 +178,7 @@ pub fn layout(inputs: Inputs, root: Id, size: (f32, f32)) -> Layout {
         out: Layout { size, root, ..Layout::default() },
         attached: Vec::new(),
         clips: HashMap::new(),
+        depth: 0,
     };
     engine.root(root, size);
     let out = engine.finish(root);
@@ -193,6 +195,8 @@ struct Engine<'a> {
     attached: Vec<(Id, Attach)>,
     /// Slots with a fixed height: they chop off what does not fit, scrolling or not.
     clips: HashMap<Id, Rect>,
+    /// How many slots (and shape blocks) deep the node being placed sits.
+    depth: usize,
 }
 
 #[derive(Clone, Copy)]
@@ -311,6 +315,17 @@ impl Engine<'_> {
     /// Lays out a slot's in-flow children in `content`. Returns the height they
     /// need and the children placed after the slot's size is known.
     fn children(&mut self, slot: Id, flow: bool, content: Rect, avail_h: f32) -> (f32, Vec<Id>) {
+        // Past limits::MAX_DEPTH a slot is laid out empty, so no input can overflow the stack.
+        if self.depth >= limits::MAX_DEPTH {
+            return (0.0, Vec::new());
+        }
+        self.depth += 1;
+        let placed = self.children_within_depth(slot, flow, content, avail_h);
+        self.depth -= 1;
+        placed
+    }
+
+    fn children_within_depth(&mut self, slot: Id, flow: bool, content: Rect, avail_h: f32) -> (f32, Vec<Id>) {
         let doc = self.doc;
         let mut cursor = Cursor::default();
         let mut later = Vec::new();
@@ -375,8 +390,13 @@ impl Engine<'_> {
         let parent = (content.w, avail_h);
         let full = (content.w - m.horizontal()).max(0.0);
         let wanted = self.text.max_content(rich);
+        // A newline in the text ends a line, so it cannot sit on this one as a single box. A
+        // closing newline leaves an empty line under the text, as Pango lays it out (cosmic-text
+        // drops it): what follows starts there, at the flow's left edge.
+        let one_line = !rich.runs.iter().any(|run| run.text.contains('\n'));
+        let closing_newline = rich.runs.last().is_some_and(|run| run.text.ends_with('\n'));
         loop {
-            if wanted <= full - cursor.x + 0.5 {
+            if one_line && wanted <= full - cursor.x + 0.5 {
                 // One line beside what came before, as wide as its text.
                 let shaped = self.text.shape(rich, Some(wanted.max(1.0)));
                 let rect = Rect::new(content.x + cursor.x + m.left, content.y + cursor.y + m.top, wanted, shaped.height);
@@ -401,15 +421,22 @@ impl Engine<'_> {
             } else {
                 self.text.shape(rich, Some(full.max(1.0)))
             };
-            let last = shaped.buffer.layout_runs().last().map(|run| (run.line_top, run.line_w)).unwrap_or_default();
-            let rect = Rect::new(content.x + m.left, content.y + cursor.y + m.top, full, shaped.height);
+            let (mut last_top, last_w) = shaped.buffer.layout_runs().last().map(|run| (run.line_top, run.line_w)).unwrap_or_default();
+            let mut height = shaped.height;
+            if closing_newline {
+                last_top += rich.line_height;
+                height += rich.line_height;
+            }
+            let rect = Rect::new(content.x + m.left, content.y + cursor.y + m.top, full, height);
             self.put_text(node, shaped, rect, parent);
             // The next child goes on the last line, as if the rows before it were done.
             let row_bottom = (cursor.y + cursor.row_h).max(rect.bottom() - content.y + m.bottom);
-            cursor.y = rect.y - content.y + last.0 - m.top;
+            cursor.y = rect.y - content.y + last_top - m.top;
             cursor.row_h = row_bottom - cursor.y;
             cursor.content_bottom = rect.bottom() - content.y;
-            cursor.x = carry_on(m.left + last.1, &m);
+            // "Newlines have an empty size" (s3t_textblock.c:217-228): after one, the next line
+            // starts at the flow's edge, margin and all.
+            cursor.x = if closing_newline { 0.0 } else { carry_on(m.left + last_w, &m) };
             return;
         }
     }
@@ -549,26 +576,55 @@ impl Engine<'_> {
         }
     }
 
+    /// Art turns about its own corner (or centre) by its draw context's rotate, scale and skew,
+    /// and its box is where it then shows. A shape block turns as one, about the group's
+    /// corner, and its members' own transforms play no part (DESIGN 12, ledger E7), just as
+    /// paint::shapes draws it; so the member boxes turn with the group.
     fn place_art(&mut self, node: &Node, content: Rect) {
+        let Some(frame) = self.art_frame(node, content) else { return };
+        let transform = shapes::art_transform(&node.props, frame);
+        if !transform.is_identity() {
+            self.turn_art(node.id, transform);
+        }
+    }
+
+    /// Lays out an art element, and a shape block's members inside it, at their untransformed
+    /// frames. Returns the element's frame: for a shape block, the union of its own and its
+    /// members'.
+    fn art_frame(&mut self, node: &Node, content: Rect) -> Option<Rect> {
         let doc = self.doc;
         let parent = (content.w, content.h);
-        let mut bounds = shapes::art(node, (content.x, content.y), parent).map(|art| art.bounds);
-        if node.kind == Kind::Shape {
+        let mut frame = shapes::art(node, (content.x, content.y), parent).map(|art| art.frame);
+        if node.kind == Kind::Shape && self.depth < limits::MAX_DEPTH {
             // Art drawn inside a shape block joins its path, measured from the shape's left/top (E7).
             let (x, y) = shapes::group_origin(node, (content.x, content.y), parent);
             let inner = Rect::new(x, y, content.w, content.h);
+            self.depth += 1;
             for &child in doc.children(node.id) {
-                if let Some(c) = doc.get(child).filter(|c| c.kind.is_art() && !hidden(c)) {
-                    self.place_art(c, inner);
-                    if let Some(r) = self.out.rect(child) {
-                        bounds = Some(bounds.map_or(r, |b| b.union(&r)));
+                if let Some(member) = doc.get(child).filter(|c| c.kind.is_art() && !hidden(c)) {
+                    if self.art_frame(member, inner).is_some() {
+                        let r = self.out.rect(child).unwrap_or_default();
+                        frame = Some(frame.map_or(r, |f| f.union(&r)));
                     }
                 }
             }
+            self.depth -= 1;
         }
-        let Some(rect) = bounds else { return };
-        self.out.boxes.insert(node.id, LBox { rect, clip: None, origin: (content.x, content.y), parent_size: parent });
+        self.out.boxes.insert(node.id, LBox { rect: frame?, clip: None, origin: (content.x, content.y), parent_size: parent });
         self.displace(node);
+        self.out.rect(node.id)
+    }
+
+    /// Turns the laid-out boxes of an art element and every member inside it by `transform`.
+    fn turn_art(&mut self, id: Id, transform: tiny_skia::Transform) {
+        let doc = self.doc;
+        let mut stack = vec![id];
+        while let Some(next) = stack.pop() {
+            if let Some(b) = self.out.boxes.get_mut(&next) {
+                b.rect = shapes::transformed_box(b.rect, transform);
+                stack.extend(doc.children(next).iter().copied());
+            }
+        }
     }
 
     /// `image(w, h) { ... }` is a canvas (manual 410-426, ledger E9): what the block draws
@@ -669,7 +725,11 @@ impl Engine<'_> {
             Some(canvas) => Some(inner.map_or(canvas, |c| c.intersect(&canvas).unwrap_or(Rect::new(canvas.x, canvas.y, 0.0, 0.0)))),
             None => inner,
         };
+        // Only laid-out nodes need a clip, and only they have laid-out children.
         for &child in doc.children(id) {
+            if !self.out.boxes.contains_key(&child) {
+                continue;
+            }
             let child_clip = if doc.get(child).is_some_and(|c| c.kind.is_decor()) { clip } else { inner };
             self.assign_clips(child, child_clip);
         }

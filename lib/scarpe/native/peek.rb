@@ -8,11 +8,16 @@ module Scarpe::Native
   class Peek
     BANNER = <<~USAGE
       Usage: scarpe peek APP.rb [--size WxH] [--scale 2] [--wait SECS] [--click TEXT | --click-at X,Y]
-                                [--type TEXT] [--key NAME] [--wheel DY[,X,Y]] [--window N | --app ID]
-                                [--shot OUT.png] [--layout]
-      Steps run in the order given. --window N (counting from 1) or --app ID sends the steps after
-      it to that window. With no --shot and no --layout, it saves peek.png here.
+                                [--drag X,Y,X,Y...] [--type TEXT] [--key NAME] [--wheel DY[,X,Y]]
+                                [--window N | --app ID] [--shot OUT.png] [--layout]
+      Steps run in the order given. --drag moves to the first point and presses there, moves
+      through the rest a frame apart and releases at the last. --window N (counting from 1) or --app ID sends the
+      steps after it to that window. With no --shot and no --layout, it saves peek.png here.
     USAGE
+
+    # How long a drag rests at each point: a frame of a 24 fps animate block and then some, so
+    # an app that reads `mouse` in a timer sees the button down at every point.
+    DRAG_STEP = 0.05
 
     def self.run(argv)
       new(argv).run
@@ -46,6 +51,7 @@ module Scarpe::Native
         opts.on("--wait SECS", Float) { |secs| @steps << [:wait, secs] }
         opts.on("--click TEXT") { |text| @steps << [:click, text] }
         opts.on("--click-at X,Y", Array) { |xy| @steps << [:click_at, xy.map { |n| Float(n) }] }
+        opts.on("--drag X,Y,X,Y...", Array) { |xys| @steps << [:drag, drag_points(xys)] }
         opts.on("--type TEXT") { |text| @steps << [:type, text] }
         opts.on("--key NAME") { |name| @steps << [:key, name] }
         opts.on("--wheel DY[,X,Y]", Array) { |values| @steps << [:wheel, values.map { |n| Float(n) }] }
@@ -60,6 +66,13 @@ module Scarpe::Native
       File.expand_path(paths.first, @origin)
     rescue OptionParser::ParseError, ArgumentError => e
       quit_with("#{e.message}\n#{BANNER}", 1)
+    end
+
+    def drag_points(values)
+      points = values.map { |n| Float(n) }.each_slice(2).to_a
+      raise ArgumentError, "--drag needs two or more X,Y points" if points.size < 2 || points.last.size < 2
+
+      points
     end
 
     def quit_with(message, status)
@@ -88,6 +101,20 @@ module Scarpe::Native
 
     def do_click_at((x, y))
       report_click("#{x},#{y}", automation.click({ x: x, y: y }))
+    end
+
+    def do_drag(points)
+      first, *rest = points
+      automation.mouse(:move, *first)
+      automation.advance(DRAG_STEP)
+      automation.mouse(:down, *first)
+      rest.each do |x, y|
+        automation.advance(DRAG_STEP)
+        automation.mouse(:move, x, y)
+      end
+      automation.advance(DRAG_STEP)
+      automation.mouse(:up, *points.last)
+      puts "drag #{points.map { |xy| xy.map { |n| number(n) }.join(",") }.join(" -> ")}"
     end
 
     def do_type(text)

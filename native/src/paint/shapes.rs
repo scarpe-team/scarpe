@@ -32,9 +32,31 @@ pub struct Art {
 /// The draw context's `translate` moves it; `rotate`, `scale` and `skew` turn it.
 pub fn art(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> Option<Art> {
     let (tx, ty) = translation(&node.props);
-    let (frame, path, fillable) = geometry(node, (origin.0 + tx, origin.1 + ty), parent)?;
+    let origin = (origin.0 + tx, origin.1 + ty);
+    let (frame, path, fillable) = geometry(node, origin, parent)?;
+    let (frame, path) = hug_far_edges(node, origin, parent, frame, path)?;
     let transform = art_transform(&node.props, frame);
     Some(Art { bounds: transformed_box(frame, transform), frame, path, transform, fillable })
+}
+
+/// Where `right:` and `bottom:` put an art element's far edges: that far in from the slot's
+/// own right and bottom edges, as for every element (manual 1100-1106, 1356-1364, ledger C10).
+fn far_edges(p: &Props, origin: (f32, f32), parent: (f32, f32)) -> (Option<f32>, Option<f32>) {
+    let dim = |key: &str, basis: f32| p.dim(key).map(|d| d.resolve(basis));
+    (dim("right", parent.0).map(|r| origin.0 + parent.0 - r), dim("bottom", parent.1).map(|b| origin.1 + parent.1 - b))
+}
+
+/// Art with a far edge but no near one sits against the far edge; `left` and `top` win
+/// when both are given (DESIGN 6).
+fn hug_far_edges(node: &Node, origin: (f32, f32), parent: (f32, f32), frame: Rect, path: Path) -> Option<(Rect, Path)> {
+    let p = &node.props;
+    let (right, bottom) = far_edges(p, origin, parent);
+    let dx = right.filter(|_| !p.has("left")).map_or(0.0, |r| r - frame.right());
+    let dy = bottom.filter(|_| !p.has("top")).map_or(0.0, |b| b - frame.bottom());
+    if dx == 0.0 && dy == 0.0 {
+        return Some((frame, path));
+    }
+    Some((frame.translate(dx, dy), path.transform(Transform::from_translate(dx, dy))?))
 }
 
 /// (box, path, fillable) of an untransformed art element.
@@ -43,6 +65,10 @@ fn geometry(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> Option<(Rect
     let dim = |key: &str, basis: f32| p.dim(key).map(|d| d.resolve(basis));
     let left = origin.0 + dim("left", parent.0).unwrap_or(0.0);
     let top = origin.1 + dim("top", parent.1).unwrap_or(0.0);
+    // Art that names a near and a far edge and no size runs from one to the other.
+    let (right, bottom) = far_edges(p, origin, parent);
+    let span_w = right.filter(|_| p.has("left")).map(|r| (r - left).max(0.0));
+    let span_h = bottom.filter(|_| p.has("top")).map(|b| (b - top).max(0.0));
     let centred = p.truthy("center");
     let boxed = |w: f32, h: f32| {
         if centred {
@@ -53,16 +79,16 @@ fn geometry(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> Option<(Rect
     };
     match node.kind {
         Kind::Rect => {
-            let w = dim("width", parent.0).unwrap_or(0.0);
-            let h = dim("height", parent.1).unwrap_or(w);
+            let w = dim("width", parent.0).or(span_w).unwrap_or(0.0);
+            let h = dim("height", parent.1).or(span_h).unwrap_or(w);
             let r = boxed(w, h);
             let curve = p.f32("curve").unwrap_or(0.0);
             Some((r, rounded_rect(r, curve)?, true))
         }
         Kind::Oval => {
-            let radius = p.f32("radius").unwrap_or(0.0);
-            let w = dim("width", parent.0).unwrap_or(radius * 2.0);
-            let h = dim("height", parent.1).unwrap_or(w);
+            let radius = p.f32("radius");
+            let w = dim("width", parent.0).or(radius.map(|r| r * 2.0)).or(span_w).unwrap_or(0.0);
+            let h = dim("height", parent.1).or(radius.map(|r| r * 2.0)).or(span_h).unwrap_or(w);
             let r = boxed(w, h);
             Some((r, ellipse(r)?, true))
         }
@@ -89,8 +115,8 @@ fn geometry(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> Option<(Rect
             Some((Rect::new(left - outer, top - outer, outer * 2.0, outer * 2.0), path, true))
         }
         Kind::Arc => {
-            let w = dim("width", parent.0).unwrap_or(0.0);
-            let h = dim("height", parent.1).unwrap_or(w);
+            let w = dim("width", parent.0).or(span_w).unwrap_or(0.0);
+            let h = dim("height", parent.1).or(span_h).unwrap_or(w);
             let r = boxed(w, h);
             let a1 = p.f32("angle1").unwrap_or(0.0);
             let a2 = p.f32("angle2").unwrap_or(0.0);
@@ -295,7 +321,7 @@ fn translation(props: &Props) -> (f32, f32) {
 }
 
 /// The box around `r` once transformed.
-fn transformed_box(r: Rect, t: Transform) -> Rect {
+pub fn transformed_box(r: Rect, t: Transform) -> Rect {
     if t.is_identity() {
         return r;
     }

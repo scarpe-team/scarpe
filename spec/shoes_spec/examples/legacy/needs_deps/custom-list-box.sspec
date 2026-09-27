@@ -59,11 +59,15 @@ Shoes.app {
   end
 }
 ----------- test code
-# Custom list_box widget using Observable pattern
-# Requires 'observer' stdlib and Shoes::Widget
-# Verify initial state
+# Custom list_box widget using the Observable pattern. The corpus stopped at
+# `skip "Requires Shoes::Widget and observer stdlib"`; both work, so the case drives it
+# (spec/import_shoes_spec.rb, DRIVEN).
 assert_equal "Any selection?", para().text
-assert edit_line()
-assert_equal "ok", buttons()[0].text
-assert_equal "collect", buttons()[1].text
-skip "Requires Shoes::Widget and observer stdlib"
+assert_equal ["first", "second"], list_box().items
+list_box().trigger_change("second")
+assert_equal "Selection is second.", para().text
+edit_line().text = "third"
+find_button("ok").trigger_click
+assert_equal ["first", "second", "third"], list_box().items, "ok adds the edit line's text through the observer"
+find_button("collect").trigger_click
+assert_equal ["tsrif", "dnoces", "driht"], list_box().items, "collect reverses every item in place"

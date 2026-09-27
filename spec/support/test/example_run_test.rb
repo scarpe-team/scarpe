@@ -10,6 +10,30 @@ class ExampleRunTest < Minitest::Test
     assert_equal ["--click-at", "200,200", "--wait", "0.5", "--key", "tab"], run.send(:step_args)
   end
 
+  def test_a_drag_step_passes_its_points_flat
+    example = SpecSuite::ExampleList::Example.new(path: "examples/demo.rb", steps: [{ "drag" => [[100, 100], [150, 120], [200, 90]] }])
+    run = SpecSuite::ExampleRun.new(example, display: "native", tree: nil, sandboxes: nil)
+
+    assert_equal ["--drag", "100,100,150,120,200,90"], run.send(:step_args)
+  end
+
+  def test_dialogs_become_the_stubbed_answers
+    example = SpecSuite::ExampleList::Example.new(path: "examples/demo.rb", dialogs: { "confirm" => true, "ask_color" => "#f80" })
+    run = SpecSuite::ExampleRun.new(example, display: "niente", tree: nil, sandboxes: nil)
+
+    assert_equal({ "SPEC_DIALOG_STUBS" => '{"confirm":true,"ask_color":"#f80"}' }, run.send(:dialog_stubs))
+    assert_empty SpecSuite::ExampleRun.new(SpecSuite::ExampleList::Example.new(path: "x.rb"), display: "native", tree: nil, sandboxes: nil).send(:dialog_stubs)
+  end
+
+  def test_a_warning_that_names_an_exception_is_not_an_error
+    run = SpecSuite::ExampleRun.new(SpecSuite::ExampleList::Example.new(path: "x.rb"), display: "native", tree: nil, sandboxes: nil)
+    warned = "[scarpe-native] Scarpe::Native::Normalize warn: Could not download https://x/y.png: OpenSSL::SSL::SSLError: eof\n"
+    run.instance_variable_set(:@tree, Struct.new(:root).new("/nowhere"))
+
+    assert_nil run.send(:first_error, warned)
+    assert_match(/NoMethodError/, run.send(:first_error, "app.rb:3:in 'block': undefined method 'x' for nil (NoMethodError)\n"))
+  end
+
   def test_an_unknown_step_names_the_example
     example = SpecSuite::ExampleList::Example.new(path: "examples/demo.rb", steps: [{ "hover" => [1, 2] }])
     run = SpecSuite::ExampleRun.new(example, display: "native", tree: nil, sandboxes: nil)

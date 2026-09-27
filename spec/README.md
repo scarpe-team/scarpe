@@ -146,6 +146,7 @@ Everything above, plus the native API (DESIGN.md section 8):
 |---|---|
 | `click_on(proxy_or_text)`, `click_at(x, y, button: 1)` | a real click through layout and hit-testing |
 | `hover_at(x, y)`, `move_mouse(x, y)` | pointer motion |
+| `drag([x, y], [x, y], ...)` | press, move through the points with the button down, release at the last; no time passes |
 | `type_text(str)`, `press_key(name)` | keys into the focused input or the app (`"a"`, `:left`, `:control_a`, `"\n"`) |
 | `wheel(dy, x:, y:)` | scroll at window point (x, y); see below for the sign |
 | `layout_of(proxy)` | a Rect with `x`, `y`, `w`, `h` in window coordinates |
@@ -221,6 +222,10 @@ backend follows the ruling).
 | `not_applicable` | a `display: native` case on niente | |
 | `timeout` | no result before the timeout | yes |
 
+One case skips on purpose: `spec/harness/skipped.sspec` is the runner's own check that `skip`
+reports `skip`. The imported cases that used to stop at a `skip` now drive the app instead
+(`DRIVEN` in `spec/import_shoes_spec.rb`), or say in `expect: fail` what still stops them.
+
 Failure messages point at the case file and line, e.g.
 `Expected: "y" Actual: "x" (manual/para/element.para.sspec:14)`.
 
@@ -238,8 +243,10 @@ side effects). `spec/run --examples` smoke-runs every non-skipped one:
   (default 3) or exits 0.
 - native: `scarpe peek EXAMPLE --wait 1.5 --shot spec/results/gallery/<slug>.png`, then no Ruby
   error, no Rust panic, and a snapshot that is not one flat colour. Add `steps:` to click or
-  type before the shot (`click`, `click_at`, `type`, `key`, and `wait` to let a timer tick,
-  since the shot follows the last step at once).
+  type before the shot (`click`, `click_at`, `type`, `key`, `drag` through a list of points
+  with the button down, and `wait` to let a timer tick, since the shot follows the last step at
+  once). `dialogs:` answers the example's dialogs on both displays, the way a case's front
+  matter does, so an app that asks before it draws (`if confirm(...)`) shows what it draws.
 
 Every `--examples` run also writes `spec/results/gallery/index.html`: one card per example with
 its native snapshot, its path, and each display's status and error line, broken examples
