@@ -119,10 +119,22 @@ class Shoes::Slot < Shoes::Drawable
     false
   end
 
-  # Register a callback to be called when this slot is removed/destroyed.
-  # In Shoes3, slot.finish { ... } is called when the slot is removed,
-  # NOT after initialization. Use App#start for post-init callbacks.
-  # Multiple finish handlers can be registered.
+  # Run the block, handed this slot, the first time the slot is drawn (manual
+  # 2286-2289, ledger H8). The display draws before its first heartbeat, so the
+  # first heartbeat after this call is the moment. Blocks run with the App as self,
+  # as finish blocks do.
+  #
+  # @yield [slot] this slot
+  def start(&block)
+    (@start_callbacks ||= []) << block if block
+    @waiting_to_start ||= bind_shoes_event(event_name: "heartbeat") { fire_start_callbacks }
+  end
+
+  # Run the block, handed this slot, when the slot is removed: by remove, by its
+  # parent's clear, or when its app goes (manual 2195-2198, ledger H8). It is not
+  # called after initialization; use start for that. Several may be registered.
+  #
+  # @yield [slot] this slot
   def finish(&block)
     @finish_callbacks ||= []
     @finish_callbacks << block if block
@@ -132,7 +144,7 @@ class Shoes::Slot < Shoes::Drawable
   def fire_finish_callbacks
     return unless @finish_callbacks
 
-    @finish_callbacks.each { |cb| @app.instance_eval(&cb) }
+    @finish_callbacks.each { |cb| @app.instance_exec(self, &cb) }
   end
 
   # Override destroy to fire finish callbacks before actual destruction.
@@ -151,6 +163,18 @@ class Shoes::Slot < Shoes::Drawable
     super
   end
 
+  private
+
+  # A dispatch already under way can call this once more after it unsubscribed.
+  def fire_start_callbacks
+    unsub_shoes_event(@waiting_to_start) if @waiting_to_start
+    @waiting_to_start = nil
+    callbacks, @start_callbacks = @start_callbacks, []
+    callbacks&.each { |cb| @app.instance_exec(self, &cb) }
+  end
+
+  public
+
   # Force a redraw of this slot and its contents.
   # In Shoes3, this is used after modifying styles that don't automatically
   # trigger a repaint, like gradients on backgrounds.
@@ -166,6 +190,11 @@ class Shoes::Slot < Shoes::Drawable
   # is given, call the block to replace the children with
   # new contents from that block.
   #
+  # The slot's own event handlers and timers (hover, click, animate...) stay: they
+  # belong to the slot, not to its contents. Shoes 3's clear empties the contents
+  # only (s3_canvas.c:759-781), and the manual's hover/leave example (2167-2185)
+  # clears the slot from inside those handlers.
+  #
   # Should only be called on Slots, which can
   # have children.
   #
@@ -174,8 +203,7 @@ class Shoes::Slot < Shoes::Drawable
   # @yield The block to call to replace the contents of the drawable (optional)
   # @return [void]
   def clear(&block)
-    @children ||= []
-    @children.dup.each(&:destroy)
+    contents.each { |child| child.destroy unless child.is_a?(Shoes::SubscriptionItem) }
     if block_given?
       append(&block)
       # After clear+rebuild, signal a full redraw to collapse all the individual
