@@ -769,6 +769,15 @@ class Shoes
 
     private
 
+    # Text must be UTF-8 (manual 482-485, ledger F12). A string with bad bytes is
+    # reported on the console and its bad bytes replaced, so the app carries on.
+    def utf8_text(text)
+      return text if !text.is_a?(String) || text.valid_encoding?
+
+      $stderr.puts "[ERROR] #{self.class.dsl_name} text is not valid UTF-8: #{text.inspect}"
+      text.scrub
+    end
+
     # One margin, read as the display reads dimensions (dim.rs), against the parent's width.
     def margin_in_pixels(value, parent_width)
       value = pixels_in(value) if value.is_a?(String) && !percentage(value)
