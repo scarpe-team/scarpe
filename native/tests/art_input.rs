@@ -271,3 +271,36 @@ fn a_click_by_id_goes_to_the_drawables_own_window() {
     }
     assert_eq!(h.rt.active_app, Some(9), "that window is now the active one");
 }
+
+// ---- Masks ----
+
+/// shoes-contrib art/mask.rb: a slot's other contents show only where its mask draws,
+/// and the window's white shows everywhere else (Shoes 3, s3_canvas.c:531-613).
+#[test]
+fn a_mask_shows_its_slots_contents_only_where_it_draws() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "Background", 2, json!({"fill": {"rgba": [255, 0, 0, 255]}})),
+        create(4, "Mask", 2, json!({})),
+        art(5, "Rect", 4, json!({"left": 50, "top": 50, "width": 100, "height": 100, "draw_context": {"fill": {"rgba": [0, 0, 0, 255]}}})),
+    ]));
+    assert_eq!(rgb(&mut h, 100.0, 100.0), RED, "the background shows through the mask's rect");
+    assert_eq!(rgb(&mut h, 20.0, 20.0), WHITE, "and nowhere else");
+    assert_eq!(rgb(&mut h, 180.0, 180.0), WHITE);
+}
+
+/// A mask is a slot in the flow, like Shoes 3's canvas: its text lays out at its corner.
+#[test]
+fn a_mask_lays_out_like_a_flow() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "Para", 2, json!({"text_items": ["before"], "width": 300})),
+        create(4, "Mask", 2, json!({})),
+        create(5, "Para", 4, json!({"text_items": ["Shoes"], "size": 48})),
+    ]));
+    let mask = h.node(|n| n["id"] == 4);
+    let para = h.node(|n| n["id"] == 5);
+    assert_eq!((mask["x"].clone(), mask["w"].clone()), (json!(0.0), json!(300.0)));
+    assert_eq!((para["x"].clone(), para["y"].clone()), (mask["x"].clone(), mask["y"].clone()));
+    assert!(mask["y"].as_f64().unwrap() > 10.0, "after the para before it");
+}
