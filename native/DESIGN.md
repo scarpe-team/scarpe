@@ -128,8 +128,8 @@ Rust processes `req`s after an implicit flush of everything received before them
 | pick in ListBox | `change` | that id | `[item_string]` |
 | pointer enters / leaves a drawable | `hover` / `leave` | that id | `[]`, on transitions only, for every drawable in the hovered chain |
 | press / release on a drawable that has `has_click` / `has_release` true | `click` / `release` | that id | `[button, x, y]` window coordinates |
-| SubscriptionItem `click`/`release` | same | item id | `[button, x, y]`, x/y relative to the item's parent slot. Fires for presses inside the parent slot unless an input widget or link consumed the press |
-| SubscriptionItem `motion` | `motion` | item id | `[x, y, ctrl, shift]` (booleans), parent-relative, on pointer move inside the parent slot |
+| SubscriptionItem `click`/`release` | same | item id | `[button, x, y]` in window coordinates, like drawable clicks (ledger H3, Q4 ruled 27 Sep 2026). Fires for presses inside the parent slot unless an input widget or link consumed the press |
+| SubscriptionItem `motion` | `motion` | item id | `[x, y, ctrl, shift]` (booleans) in window coordinates, on pointer move inside the parent slot |
 | SubscriptionItem `hover`/`leave` | same | item id | `[]` on entering/leaving the parent slot box |
 | SubscriptionItem `keypress` | `keypress` | item id | `[key]`, see 4.4. Not sent while a text input has focus, except escape and modified keys |
 | SubscriptionItem `wheel` | `wheel` | item id | `[delta, x, y]`, delta > 0 = up |

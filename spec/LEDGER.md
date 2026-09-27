@@ -151,7 +151,7 @@ Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Sho
 |---|---|---|---|---|
 | H1 | `keypress` values; Cmd on macOS | MANUAL | | |
 | H2 | Mouse button numbers | S3 | | |
-| H3 | Coordinate frame of mouse events | S3 (Q4) | | DESIGN |
+| H3 | Coordinate frame of mouse events | S3 | | |
 | H4 | The extra `mods` argument | MANUAL | | |
 | H5 | `hover`/`leave` get the slot | MANUAL | unsched. | |
 | H6 | Registering an event twice | BOTH | | |
@@ -846,15 +846,14 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### H3. Coordinate frame of `click`, `release` and `motion`
 
-**Ruling: S3 (Q4).** Window (app canvas) coordinates for every slot.
+**Ruling: S3.** Window (app canvas) coordinates for every slot (Q4, answered 27 Sep 2026).
 
 - **Manual:** silent. The motion example moves an oval by the reported coordinates in an app-level handler (manual 2264-2275), where every frame agrees.
 - **Shoes 3:** the slot's click block gets the `x, y` it was called with (`s3_canvas.c:1056-1061`), and nested slots are called with the same coordinates unless the child canvas has its own origin (`:1045-1051, 1065-1068`). That flag is set only for a child slot drawn on its own native surface (`DC(c->slot) != DC(pc->slot)`, `:445-450, 586-590`), which Shoes 3 gives to scrolling slots; not traced further. Inside such a slot, coordinates are slot-relative. Motion is the same (`:1181-1193`). The app's top slot adds its scroll offset (`:1053-1054`).
 - **Examples:** almost every coordinate reader binds at app level (`minesweeper.rb:256`, `tankspank.rb:362`, `othello.rb:304`, `curve-control-point.rb:33`, `mice-satellites.rb:24`). The one nested reader found, `examples/para_cursor_demo.rb:69-79`, passes x and y to `Para#hit`, which ignores them (`para.rb:232-234`).
 - **Lacci / WV today:** WV computes coordinates relative to `e.currentTarget.getBoundingClientRect()`, that is slot-relative (`wv/subscription_item.rb:66-100`).
-- **Spec:** app-level `click` reports window coordinates (every model agrees). The nested case (a click at window (150, 120) on a stack placed at (100, 100) reports (150, 120)) is written, tagged `ledger: H3`, and waits on Q4.
-- **Native:** DESIGN 4.3 gives drawable clicks window coordinates, and SubscriptionItem `click`/`release`/`motion` "x/y relative to the item's parent slot".
-- **DESIGN conflict:** the SubscriptionItem rule is WV's frame, not Shoes 3's.
+- **Spec:** app-level `click` reports window coordinates (every model agrees). The nested case (a click at window (150, 120) on a stack placed at (100, 100) reports (150, 120)) is written and tagged `ledger: H3`.
+- **Native:** since M2 drawable clicks and SubscriptionItem `click`/`release`/`motion` all carry window coordinates (DESIGN 4.3). Shoes 3's own motion adds the top slot's scroll offset while its click takes it away (`s3_canvas.c:1053-1061, 1181-1193`); native uses the window's coordinates for both.
 
 ### H4. The extra `mods` argument
 
@@ -1206,7 +1205,7 @@ M1 to M37 carry the numbers of the contradictions in `native/research/03_manual_
 3. **Control widths (C4).** DESIGN 6: `list_box 160x28`, `progress 160x14`. The manual: list_box "about 200 pixels wide" (manual 3183), progress "200 pixels wide" (manual 3245).
 4. **Text in a flow (C7, Q2).** DESIGN 6 makes each text block a shrink-to-fit box; the manual and Shoes 3 continue it as one paragraph. The rule is also ambiguous about whether the width cap comes before or after the "does it fit on this row" test.
 5. **Text-block margins (C9, Q3)** and **leading (F10).** DESIGN 6 gives text no default margin and adds `leading` only when given; Shoes 3 uses 4 px margins (12 px bottom) and the manual says leading defaults to 4 px.
-6. **Nested-slot event coordinates (H3, Q4).** DESIGN 4.3 makes SubscriptionItem coordinates parent-relative; Shoes 3 uses window coordinates.
+6. **Nested-slot event coordinates (H3, Q4).** Resolved in M2: DESIGN 4.3 now gives SubscriptionItems window coordinates, as Shoes 3 does.
 7. **Default window (A1, Q1).** DESIGN 6 names Lacci's 480x420 default; Shoes 3 and Shoes 4 use 600x500.
 8. **Smaller points.** DESIGN 6's Float rule says "between 0 and 1 exclusive" and "1.0 = 100%" in the same breath; Shoes 3 treats every Float as a fraction (C1). DESIGN 6 does not mention `right`/`bottom` (C10). DESIGN 5.2's headless `ask` answers `""`, while K1 rules nil.
 
@@ -1217,7 +1216,7 @@ The evidence is balanced on each of these, so the rows above carry a provisional
 - **Q1 (A1).** Should an app with no size open at **600x500 titled "Shoes"**, as Shoes 3 and Shoes 4 both do, or stay at Scarpe's **480x420 "Shoes!"**? The manual is silent. Changing it moves every snapshot of every example that does not pass a size (about 70% of them).
 - **Q2 (C7).** Two `para`s side by side in a flow: should the second **continue the first as one paragraph**, its later lines wrapping back to the flow's left edge (manual 1610-1612 and Shoes 3), or be **its own box** beside or below the first (Webview today, DESIGN 6)? Single-line paras look the same either way. The paragraph model needs a first-line indent in the text layout.
 - **Q3 (C9).** Should text blocks get Shoes 3's **default margins (4 px, 12 px below)**, or Webview's **zero**? Shoes 3 examples were written with the gap; Scarpe-authored examples were written without it.
-- **Q4 (H3).** When a stack nested at (100, 100) has its own `click` handler, should a click at window (150, 120) report **(150, 120)** (Shoes 3) or **(50, 20)** (Webview, DESIGN 4.3)? No example found depends on either.
+- **Q4 (H3).** When a stack nested at (100, 100) has its own `click` handler, should a click at window (150, 120) report **(150, 120)** (Shoes 3) or **(50, 20)** (Webview, DESIGN 4.3)? No example found depends on either. **Answered 27 Sep 2026:** window (app canvas) coordinates, (150, 120).
 - **Q5 (H1).** On a Mac, should **Cmd-q arrive as `:alt_q`**, as in Shoes 3 and as the example editors expect, or as `:control_q`, as DESIGN 4.4 says? And should Cmd-Q still quit through the app menu before the app sees it? **Answered 27 Sep 2026:** `:alt_q`, like Shoes 3; the default app menu may still quit on Cmd-Q.
 - **Q6 (K1).** When the user cancels `ask`, should it return **nil** (Shoes 3's source) or **""** (your commit `6ce3d28`, which kept Hackety Hack's guessing game alive)?
 - **Q7 (G5), lower priority.** Your commit `eda8975` makes `edit_line.text = "x"` fire `change`, on purpose. Should the spec pin that under `ext-scarpe`, or keep asserting neither?

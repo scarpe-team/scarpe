@@ -220,3 +220,23 @@ fn command_a_selects_all_in_a_field() {
     let (evs, _) = h.req(json!({"op": "type", "text": "x"}));
     assert_eq!(named(&events(&evs), "change")[0].2, json!(["x"]), "the whole text was selected and replaced");
 }
+
+// ---- Coordinates of slot events (ledger H3, Q4) ----
+
+/// Q4 (27 Sep 2026): a stack nested at (100, 100) hears a click at window (150, 120) as
+/// (150, 120), like Shoes 3, and so do its release and motion blocks.
+#[test]
+fn slot_click_release_and_motion_use_window_coordinates() {
+    let mut h = Harness::new();
+    h.feed(&app(400, 300, &[
+        create(3, "Stack", 2, json!({"left": 100, "top": 100, "width": 200, "height": 100})),
+        create(4, "SubscriptionItem", 3, json!({"shoes_api_name": "click"})),
+        create(5, "SubscriptionItem", 3, json!({"shoes_api_name": "release"})),
+        create(6, "SubscriptionItem", 3, json!({"shoes_api_name": "motion"})),
+    ]));
+    let (evs, _) = h.req(json!({"op": "click", "target": {"x": 150, "y": 120}}));
+    let evs = events(&evs);
+    assert_eq!(named(&evs, "click")[0].2, json!([1, 150, 120]));
+    assert_eq!(named(&evs, "release")[0].2, json!([1, 150, 120]));
+    assert_eq!(named(&evs, "motion")[0].2, json!([150, 120, false, false]));
+}
