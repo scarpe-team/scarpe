@@ -12,6 +12,7 @@ spec/
   manual/<group>/         cases written from the manual, one directory per group
   manual/_examples/       three worked cases to copy from
   shoes_spec/             cases imported from Noah's Shoes-Spec corpus (generated)
+  accessibility/          what a screen reader meets and does (ledger N1, native only)
   harness/                self-tests for spec/run
   examples.yml            every example under examples/ and what we expect of it
   LEDGER.md               rulings where the manual, Shoes 3, Shoes 4 and Lacci disagree
@@ -155,6 +156,8 @@ Everything above, plus the native API (DESIGN.md section 8):
 | `snapshot(name)` | writes `spec/results/snapshots/<name>.png`, returns the path |
 | `wait_frames(n = 1)`, `advance(seconds)` | pump the loop; `advance` fires timers |
 | `focused_drawable` | proxy or nil |
+| `a11y_tree`, `a11y_nodes` | what a screen reader meets: the window's Hash (Symbol keys: `:role`, `:name`, `:value`, `:toggled`, `:actions`, `:bounds`...) with `:children`, or every node in a flat list |
+| `a11y_action(target, action, value = nil)` | what a screen reader does to a drawable, an id or a tree node: `:click`, `:focus`, `:set_value`, `:expand`, `:collapse` |
 
 Every event a synthetic input causes has been dispatched by the time the call returns
 (DESIGN 4.1), so assert straight after `click_on` or `type_text`. Use `advance` for
@@ -256,6 +259,24 @@ add up to one page. Open it in a browser.
 `spec/run --examples examples/legacy/working` runs a subtree. `--include-skipped` runs the
 skipped ones too. When an example's status changes, edit its line in `examples.yml`;
 `ruby spec/generate_examples_yml.rb` keeps your edits and picks up new or deleted examples.
+
+## Screen readers
+
+`spec/accessibility/` checks what a screen reader meets in a Scarpe window, which draws its own
+controls and so owes the screen reader a description of them (ledger N1). The manual is silent
+on screen readers, so these cases cite the ledger row and no manual entry. Static text carries
+its words as `:value`; a control's `:name` is its label, or the text block beside it (after a
+check or radio, before a field or list box):
+
+```
+flow do
+  @keep = check
+  para "Remember me"
+end
+...
+node = a11y_nodes.find { |n| n[:role] == "check_box" }
+assert_equal ["Remember me", false], node.values_at(:name, :toggled)
+```
 
 ## The imported Shoes-Spec corpus
 

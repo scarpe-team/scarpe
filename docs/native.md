@@ -108,6 +108,41 @@ a step failed (a click on something covered, say) or the script never started an
 `--fonts bundled` swaps the system fonts for Inter and Fira Mono, which ship with Scarpe, so a
 picture comes out the same on every machine.
 
+## Screen readers
+
+Scarpe draws its own buttons, fields and text, so no control of the operating system is there to
+tell a screen reader what it is looking at. The native display tells it instead, through
+[AccessKit](https://github.com/AccessKit/accesskit): each window describes itself to VoiceOver the
+way a native app's window does. A button is announced by its label, a check box by the text after
+it and whether it is ticked, a field by the text before it, a list box as a popup button with its
+choice, big text as headings, and links as links. VoiceOver can press buttons, tick boxes, type
+into fields and pick list items, and the app's own blocks run as if someone had clicked.
+
+Two small habits make an app read well:
+
+```ruby
+flow do
+  @keep = check
+  para "Remember me"            # names the check box before it
+end
+para "Name"                     # names the field after it
+@name = edit_line
+image "chart.png", alt: "Sales by month, rising"
+button "Save", tooltip: "Saves to your Documents folder"   # read after the name
+```
+
+Nothing is built for a screen reader until one asks, so an app nobody reads aloud pays nothing.
+Tests can read the tree and act on it the way a screen reader does:
+
+```ruby
+node = a11y_nodes.find { |n| n[:role] == "check_box" }
+assert_equal ["Remember me", false], node.values_at(:name, :toggled)
+a11y_action check("@keep"), :click
+```
+
+The cases in `spec/accessibility/` show the rest, and DESIGN section 12 lists exactly what each
+drawable becomes.
+
 ## Tests, the spec suite and the ledger
 
 There are four kinds of test. All of them run headless.
@@ -303,7 +338,10 @@ The smallest real one to copy is `progress`, and its trail is below.
      (`Kind::Progress => (200.0, 14.0)`), and its arm in `paint`. Layout needs nothing more:
      anything with an intrinsic size flows like any other element.
    - If it takes the mouse or keys, give it a case in `pointer_down` or `key_input` in
-     `native/src/input.rs`, and in `Kind::is_focusable` if it can hold focus. If a style only
+     `native/src/input.rs`, and in `Kind::is_focusable` if it can hold focus.
+   - If a person reads it or works it, give it a node in `element` in `native/src/a11y.rs`, with
+     its role and state, so a screen reader can find it (progress is a `ProgressIndicator` with
+     its fraction), and a test in `native/tests/a11y.rs`. If a style only
      changes how it looks, list it in `changes_only_looks` in `native/src/runtime.rs` (progress
      lists `fraction`), so changing it repaints without laying the window out again.
    - A Rust test: `native/src/layout/tests.rs` checks progress is 200x14.
@@ -343,6 +381,10 @@ As of 27 Sep 2026. Each has more detail in the ledger or in DESIGN.
   was compiled for. Only the app file and its assets are copied, not other `.rb` files it requires.
 - **Text.** The stretch (condensed, expanded) and small-caps styles are not drawn (ledger F4, F5),
   and Enter on a focused check or radio does not click it (G9).
+- **Screen readers.** Only checked on macOS, in-process through AppKit, never by a person with
+  VoiceOver on. A field reads whole: its caret and selection are not exposed, so a screen reader
+  cannot move through its text a letter at a time. Click handlers on slots and shapes, radio
+  groups and scrolling a node into view are not exposed either.
 - **Examples.** The ones marked failing on native in `spec/examples.yml` each say why (see above),
   and `rotate_shapes.rb` turns its shapes about their corners, as the manual says, where it was
   written for the centre.

@@ -1,0 +1,14 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: interactive
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  @said = para "nothing"
+  @name = edit_line("Nick") { |line| @said.replace "saw #{line.text}" }
+end
+----------- test code
+a11y_action edit_line("@name"), :set_value, "Noah"
+assert_equal "Noah", edit_line("@name").text
+assert_equal "saw Noah", para("@said").text, "one change, with the whole new text"

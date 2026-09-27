@@ -1,0 +1,18 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: visual
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  background red
+  border blue
+  rect 0, 0, 20, 20
+  oval 30, 0, 20
+  @gone = button "Gone", hidden: true
+  @kept = button "Kept"
+end
+----------- test code
+roles = a11y_nodes.map { |n| n[:role] }
+assert_equal %w[window button], roles, "art, backgrounds, borders and hidden things are not content"
+assert_equal "Kept", a11y_nodes.last[:name]

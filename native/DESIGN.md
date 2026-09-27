@@ -65,7 +65,8 @@ native/                         Rust crate `scarpe-native` (bin + lib, so tests 
   research/                     the reports behind this design (research/README.md)
   src/...                       see section 7
   tests/                        Rust integration tests: protocol fixtures, golden PNGs, damage,
-                                art and input, dialogs, relayout, text cache, benches (ignored)
+                                art and input, dialogs, relayout, text cache, screen readers,
+                                benches (ignored)
 lib/scarpe/native.rb            registers the service (section 5.1)
 lib/scarpe/native/              the Ruby shim
   display_service.rb            Shoes::DisplayService subclass: Lacci's bus <-> the protocol
@@ -128,6 +129,8 @@ that last ran or had input, else the first running one.
 | `pixel` | `x`, `y` | `[r,g,b,a]` at logical point; error outside the window |
 | `frames` | `n` | reply after n frames have been laid out and painted (sync point); value = frames painted so far |
 | `focused` | | id of the focused input or null |
+| `a11y` | `app`, `platform` (default false) | the accessibility tree as a screen reader meets it (section 12, "Screen readers"): the window's node with its `children`. Each node has `id` and `role` (AccessKit's, snake_case: `button`, `check_box`, `label`...) and, when set, `name`, `value`, `description`, `toggled`, `numeric` `{value, min, max}`, `expanded`, `selected`, `url`, `level`, `focused`, `disabled`, `read_only`, `modal`, `actions`, `bounds` `[x, y, w, h]` (window coordinates). `platform: true` in a macOS window reads what AppKit hands VoiceOver instead: `role`, `subrole`, `title`, `value`, `help`; elsewhere it is an error |
+| `a11y_action` | `id` (a node's), `action` (click focus set_value expand collapse), `value` (for set_value), `app`; or `platform: true` with `name` (an element's title) | acts on the node as a screen reader does, through the path a click or key takes; the events it causes come first. Error when the node cannot do it (disabled, readonly, no such item). `platform: true` acts through AppKit in a macOS window |
 | `ping` | | `"pong"` |
 
 An unknown op, or one missing a field, gets a reply whose `error` says so.
@@ -396,17 +399,22 @@ src/runtime.rs     Runtime: owns Doc + per-app view state (scroll, focus, hover,
                    handle(req) -> reply; emits events into the Outbox; pushes layouts. Shared by window.rs and
                    headless.rs. runtime/repaint.rs (a window's partial repaint and its check), runtime/startup.rs
                    (system fonts load on their own thread), runtime/stats.rs (SCARPE_NATIVE_STATS)
-src/window.rs      winit 0.30 ApplicationHandler; one Window + softbuffer Surface per App; ControlFlow::Wait;
-                   stdin reader thread -> EventLoopProxy<UserEvent>, one wake per batch of lines;
-                   window/pacing.rs holds floods of frames to the display's refresh rate
+src/window.rs      winit 0.30 ApplicationHandler; one Window + softbuffer Surface + AccessKit adapter per App;
+                   ControlFlow::Wait; stdin reader thread -> EventLoopProxy<UserEvent>, one wake per batch
+                   of lines; window/pacing.rs holds floods of frames to the display's refresh rate;
+                   window/voiceover.rs reads a window as AppKit hands it to VoiceOver (a11y, `platform`)
 src/headless.rs    same Runtime with offscreen pixmaps; main thread reads stdin directly
 src/automation.rs  req ops that synthesise input (click, mouse, type, key, wheel), layout dump, snapshot, pixel
 src/dialogs.rs     rfd message/file dialogs; in-window modal for `ask` and `ask_color`
+src/a11y.rs        screen readers: the AccessKit tree built from Doc + Layout + view state, the actions a
+                   screen reader asks for, the Mirror that sends a window only what changed, and the read
+                   back through accesskit_consumer for the `a11y` op
 ```
 
 Stack: tiny-skia 0.12, cosmic-text 0.19, swash 0.2, winit 0.30.x (not the 0.31 beta), softbuffer 0.4,
-image 0.25 (png jpeg gif bmp), serde/serde_json, rfd 0.17, arboard, and objc2 0.6 on macOS (already
-in the tree through softbuffer and rfd). Rust 1.93 is installed and the crate asks for 1.89; do not
+image 0.25 (png jpeg gif bmp), serde/serde_json, rfd 0.17, arboard, objc2 0.6 on macOS (already
+in the tree through softbuffer and rfd), and for screen readers accesskit 0.24, accesskit_consumer 0.38
+and accesskit_winit 0.32 (the adapter for winit 0.30). Rust 1.93 is installed and the crate asks for 1.89; do not
 require a newer toolchain. `[profile.dev.package."*"] opt-level = 3`, since a debug frame is about
 60 times slower without optimised dependencies.
 
@@ -473,6 +481,8 @@ on top of the Niente-compatible finders and proxies (`button`, `para`, `edit_lin
 | `wait_frames(n = 1)`, `advance(seconds)` | pump the loop. The clock is frozen in spec runs, so `advance` steps from one timer deadline to the next and fires exactly the timers due |
 | `resize_window(w, h)` | resize the window |
 | `focused_drawable` | proxy or nil |
+| `a11y_tree(platform: false)`, `a11y_nodes` | the `a11y` op's tree with Symbol keys, or every node of it in a flat list, window first |
+| `a11y_action(target, action, value = nil, platform: false)` | a screen reader's act on a drawable, an id or a tree node (with `platform: true`, on the element with that title, through AppKit) |
 | `stub_dialog(kind, value)`, `dialogs_seen` | answer the next `kind` builtin with `value`; every `[kind, message]` asked for |
 
 A handler that raises while test code is clicking or advancing fails the test instead of being logged.
@@ -501,6 +511,8 @@ used, so any Scarpe display service can run them. `spec/README.md` is the writer
   `ledger: <row>` when a ruling applies, and `expect: fail` with a `reason` where Scarpe is known wrong).
 - `spec/shoes_spec/`: the cases imported from Noah's Shoes-Spec corpus that make a real assertion,
   regenerated by `spec/import_shoes_spec.rb`.
+- `spec/accessibility/`: what a screen reader meets and does in a native window (ledger N1, an
+  extension: the manual is silent on screen readers).
 - `spec/examples.yml`: every example under `examples/` with its expected status and optional
   interaction steps; the runner smoke-tests each one (loads, renders non-blank, no Ruby error,
   no Rust panic), saves a snapshot and writes a gallery page.
@@ -711,6 +723,32 @@ change the code and this list together.
 - **Para `cursor` and `marker`** count from the end when negative (`-1` sits after the last
   character, as Shoes 3 editors use it). The caret takes the text's colour, so it shows on dark
   backgrounds.
+- **Screen readers** (`src/a11y.rs`, ledger N1). Scarpe draws its own controls (Nick, 27 Sep 2026:
+  "our buttons are OUR buttons"), so it tells screen readers what they are, through AccessKit. The
+  tree follows the document: the window (named by the App's title) holds the laid-out slots as
+  containers a screen reader looks through; a text block is static text, its words its `value`,
+  or a heading at 48 px and up (level 1), 34 (2) and 26 (3), the sizes Scarpe's webview theme
+  (Tiranti) tags h1 to h3; a text block with links is a paragraph of its runs of text and its
+  links, each link a node with its URL. Buttons are named by their label; checks and radios carry
+  `toggled` and are named by the text block just after them in the same slot; edit lines and
+  boxes carry their live text (bullets when `secret`, and never the secret itself) and are named
+  by the text block just before them, as are list boxes, which are popup buttons valued at their
+  choice and holding their items (with bounds while the popup is open). Progress is a fraction
+  from 0 to 1, none when indeterminate. An image is named by its `alt:` (a Lacci style since 27
+  Sep). A `tooltip` is every node's description. `state: "disabled"` dims a node and takes its
+  actions away; `"readonly"` fields take no new value. Art, backgrounds, borders, masks, timers,
+  hidden and blank things stay out. The ask and ask_color dialogs are modal dialogs holding their
+  message, their field or twelve named swatches, and Cancel and OK. Focus is the focused control,
+  the popup's highlighted item, or the dialog's field or swatch. Actions go through the paths a
+  click or a key takes: `click` sends a control's `click` (a check still waits for Lacci's echo),
+  opens or closes a list box's popup, or picks an item; `focus` moves keyboard focus with the ring
+  showing; `set_value` replaces a field's text as one edit and one `change`, or chooses a list
+  box's item; `expand` and `collapse` open and close a popup. Each window creates its adapter while
+  still hidden (AccessKit panics on a visible window), then shows the way winit showed it: key and
+  in front, or with `--inactive` in front without the keyboard. The adapter asks for nothing until
+  a screen reader does; after that each presented frame builds the tree and sends only the nodes
+  that changed (`Mirror`). Not exposed yet: a field's caret and selection (a screen reader reads a
+  field whole), click handlers on slots and art, radio groups, scrolling a node into view.
 
 ## 13. Environment
 

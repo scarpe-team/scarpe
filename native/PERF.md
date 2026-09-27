@@ -290,6 +290,22 @@ frame, and `frames` counts every present. The differences are on the window serv
   never key, as the inactive windows before were not, so keys arrive through automation, which is
   how `typing` has always measured.
 
+## Screen readers (27 Sep, wave 5)
+
+Every window carries an AccessKit adapter (DESIGN 12, "Screen readers"). It asks for nothing
+until a screen reader does, so an app nobody reads aloud builds no tree and sends nothing; each
+presented frame costs it one look at the adapter's state. While a screen reader listens, every
+presented frame builds the app's tree and sends only the nodes that changed.
+`a_screen_reader_listening_to_2000_paras` in `tests/bench.rs`, three runs at load 16 to 30:
+
+| measure | time |
+|---|---|
+| the whole tree, 2003 nodes (a screen reader starting, or starting again) | 0.64-0.65 ms |
+| a frame in which one check toggles | 0.50-0.55 ms, 1 node sent |
+
+That is about a fifth of the 2.9 ms a frame of "one ball over 2000 paras" costs, paid only while
+VoiceOver is on. Two runs at load 48 took 1.1 and 4.9 ms a frame.
+
 ## Running the benchmarks
 
 ```

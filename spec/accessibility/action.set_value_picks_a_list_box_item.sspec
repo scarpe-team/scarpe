@@ -1,0 +1,14 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: interactive
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  @said = para "nothing"
+  @drink = list_box(items: ["Tea", "Coffee"]) { |box| @said.replace "chose #{box.text}" }
+end
+----------- test code
+a11y_action list_box("@drink"), :set_value, "Coffee"
+assert_equal "chose Coffee", para("@said").text
+assert_equal "Coffee", a11y_nodes.find { |n| n[:role] == "combo_box" }[:value]

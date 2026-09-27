@@ -1,0 +1,14 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: interactive
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  @said = para "waiting"
+  @go = button("Go") { @said.replace "pressed" }
+end
+----------- test code
+assert_equal "waiting", para("@said").text
+a11y_action button("@go"), :click
+assert_equal "pressed", para("@said").text, "a screen reader's press runs the block"

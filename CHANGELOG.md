@@ -14,6 +14,7 @@ straightforward as possible.
 - Lacci: `animate`, `every` and `timer` return `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer`; `Shoes.app`, `window` and `dialog` return the App; methods the manual marks "» self" return self
 - Lacci: `left`, `top`, `width` and `height` read laid-out pixels when the display reports them; slots gain `before`, `after`, `scroll_height`, `scroll_max` and `gutter`; `font(path)` returns the family names in the file
 - Native text fields undo and redo (Cmd-Z or Control-Z, Cmd-Shift-Z or Control-Y) and take an input method's commit as one edit
+- Native windows describe themselves to screen readers through AccessKit: VoiceOver reads and works buttons, checks, radios, fields, list boxes, text, headings, links, progress bars and images. `image(path, alt: "...")` names a picture, and Shoes-Spec gains `a11y_tree`, `a11y_nodes` and `a11y_action`
 - Ghost windows (`--ghost`, or `SCARPE_NATIVE_GHOST=1`): real windows that present frames nobody can see or click; every automated windowed run opens them
 - `scarpe peek --drag X,Y,X,Y...`, and `drag` in Shoes-Spec test code
 - Lacci: `download` takes `start:`, `progress:`, `finish:`, `headers:` and `body:` and no longer needs nokogiri; `Image#path`, `full_width` and `full_height` and the `imagesize` built-in; the `error` built-in; `rgb`, `gray` and the named colours return a `Shoes::Color`, an Array with `red`, `green`, `blue` and `alpha`; `banner`, `title` and the rest of that family are `Shoes::Para` subclasses
