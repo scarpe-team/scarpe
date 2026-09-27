@@ -6,7 +6,7 @@ kept as written: where the code has moved on since, DESIGN and the ledger say so
 
 Reports 01 to 08 were written in the first hour, before any native code existed, against the repo
 at `fdcee7a` (so their line numbers are from that commit). Report 09 came with the first build
-wave that afternoon. Paths under `/private/tmp/claude-501/...` or a "session scratchpad" point at
+wave that afternoon. Paths under `<scratch>/` or a "session scratchpad" point at
 working folders from those sessions; they are gone, and anything worth keeping from them is in
 this folder.
 

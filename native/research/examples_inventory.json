@@ -123,7 +123,7 @@
       "gem:bloops",
       "audio"
     ],
-    "status_note": "bloopsaphone: excluded from test/test_examples.rb (audio; 'How do we want to CI-check these?') | sspec case: scarpe_examples/examples/bloopsaphone/working/b1.sspec | sspec test: asserts(uses dom_html: webview-only) | shoes-spec webview run 2026-02-19: error (No result file produced) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "bloopsaphone: excluded from test/test_examples.rb (audio; 'How do we want to CI-check these?') | sspec case: scarpe_examples/examples/bloopsaphone/working/b1.sspec | sspec test: asserts(uses dom_html: webview-only) | shoes-spec webview run 2026-02-19: error (No result file produced) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/bloopsaphone/working/b1.sspec",
     "sspec_niente": "no_result",
@@ -141,7 +141,7 @@
       "audio",
       "no_shoes_app_call"
     ],
-    "status_note": "bloopsaphone: excluded from test/test_examples.rb (audio; 'How do we want to CI-check these?') | sspec case: scarpe_examples/examples/bloopsaphone/working/b2.sspec | sspec test: skip: \"NOT_A_SHOES_APP: Pure bloopsaphone audio script without GUI\" | shoes-spec webview run 2026-02-19: skip (NOT_A_SHOES_APP: Pure bloopsaphone audio script without GUI) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "bloopsaphone: excluded from test/test_examples.rb (audio; 'How do we want to CI-check these?') | sspec case: scarpe_examples/examples/bloopsaphone/working/b2.sspec | sspec test: skip: \"NOT_A_SHOES_APP: Pure bloopsaphone audio script without GUI\" | shoes-spec webview run 2026-02-19: skip (NOT_A_SHOES_APP: Pure bloopsaphone audio script without GUI) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/bloopsaphone/working/b2.sspec",
     "sspec_niente": "no_result",
@@ -159,7 +159,7 @@
       "audio",
       "no_shoes_app_call"
     ],
-    "status_note": "bloopsaphone: excluded from test/test_examples.rb (audio; 'How do we want to CI-check these?') | sspec case: scarpe_examples/examples/bloopsaphone/working/bloops_test.sspec | sspec test: skip: \"NOT_A_SHOES_APP: Pure bloopsaphone audio script without GUI\" | shoes-spec webview run 2026-02-19: skip (NOT_A_SHOES_APP: Pure bloopsaphone audio script without GUI) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "bloopsaphone: excluded from test/test_examples.rb (audio; 'How do we want to CI-check these?') | sspec case: scarpe_examples/examples/bloopsaphone/working/bloops_test.sspec | sspec test: skip: \"NOT_A_SHOES_APP: Pure bloopsaphone audio script without GUI\" | shoes-spec webview run 2026-02-19: skip (NOT_A_SHOES_APP: Pure bloopsaphone audio script without GUI) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/bloopsaphone/working/bloops_test.sspec",
     "sspec_niente": "no_result",
@@ -304,7 +304,7 @@
       "audio",
       "no_shoes_app_call"
     ],
-    "status_note": "bloopsaphone: excluded from test/test_examples.rb (audio; 'How do we want to CI-check these?') | sspec case: scarpe_examples/examples/bloopsaphone/working/tune_cheeky_drat.sspec | sspec test: skip: \"NOT_A_SHOES_APP: Pure bloopsaphone audio script without GUI\" | shoes-spec webview run 2026-02-19: skip (NOT_A_SHOES_APP: Pure bloopsaphone audio script without GUI) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "bloopsaphone: excluded from test/test_examples.rb (audio; 'How do we want to CI-check these?') | sspec case: scarpe_examples/examples/bloopsaphone/working/tune_cheeky_drat.sspec | sspec test: skip: \"NOT_A_SHOES_APP: Pure bloopsaphone audio script without GUI\" | shoes-spec webview run 2026-02-19: skip (NOT_A_SHOES_APP: Pure bloopsaphone audio script without GUI) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/bloopsaphone/working/tune_cheeky_drat.sspec",
     "sspec_niente": "no_result",
@@ -1305,7 +1305,7 @@
       "style:margin"
     ],
     "needs": [],
-    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/expert/url.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"Shoes::Errors::NoDrawablesFoundError: Found no para matching []!\\n    /Users/nickschwaderer/P) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: fail (Should show welcome message on root)",
+    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/expert/url.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"Shoes::Errors::NoDrawablesFoundError: Found no para matching []!\\n    <home>/P) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: fail (Should show welcome message on root)",
     "niente_load": "loads",
     "sspec_case": "scarpe_examples/examples/legacy/for_playtest/expert/url.sspec",
     "sspec_niente": "fail",
@@ -1358,7 +1358,7 @@
       "asset:robots.txt(missing?)",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/good/plots.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"NoMethodError: undefined method 'plot' for an instance of Shoes::App\\n    /Users/nickschwader) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: error (NoMethodError: undefined method 'plot' for an instance of Shoes::App)",
+    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/good/plots.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"NoMethodError: undefined method 'plot' for an instance of Shoes::App\\n    <home>) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: error (NoMethodError: undefined method 'plot' for an instance of Shoes::App)",
     "niente_load": "loads",
     "sspec_case": "scarpe_examples/examples/legacy/for_playtest/good/plots.sspec",
     "sspec_niente": "error",
@@ -1441,7 +1441,7 @@
     "needs": [
       "dialog"
     ],
-    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/philippe/ask_confirm_demo.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"ArgumentError: wrong number of arguments (given 1, expected 0)\\n    /Users/nickschwaderer/Pro) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: error (Shoes::Errors::InvalidAttributeValueError: Don't know how to find drawables by \"ask()\"!)",
+    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/philippe/ask_confirm_demo.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"ArgumentError: wrong number of arguments (given 1, expected 0)\\n    <home>/Pro) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: error (Shoes::Errors::InvalidAttributeValueError: Don't know how to find drawables by \"ask()\"!)",
     "niente_load": "loads",
     "sspec_case": "scarpe_examples/examples/legacy/for_playtest/philippe/ask_confirm_demo.sspec",
     "sspec_niente": "error",
@@ -1477,7 +1477,7 @@
       "asset:image.png(missing?)",
       "asset:avatar.png(missing?)"
     ],
-    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/philippe/fill_pattern_demo.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"ArgumentError: wrong number of arguments (given 1, expected 0)\\n    /Users/nickschwaderer/Pro) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: pass",
+    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/philippe/fill_pattern_demo.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"ArgumentError: wrong number of arguments (given 1, expected 0)\\n    <home>/Pro) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: pass",
     "niente_load": "loads",
     "sspec_case": "scarpe_examples/examples/legacy/for_playtest/philippe/fill_pattern_demo.sspec",
     "sspec_niente": "pass",
@@ -1539,7 +1539,7 @@
       "dialog",
       "timer/animation"
     ],
-    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/philippe/hh_patterns_test.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"ArgumentError: wrong number of arguments (given 1, expected 0)\\n    /Users/nickschwaderer/Pro) | niente load 2026-09-27: loads (✅ Class-level style) | sspec under niente 2026-09-27: error (Shoes::Errors::InvalidAttributeValueError: Don't know how to find drawables by \"Show Tab 1\"!)",
+    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/philippe/hh_patterns_test.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"ArgumentError: wrong number of arguments (given 1, expected 0)\\n    <home>/Pro) | niente load 2026-09-27: loads (✅ Class-level style) | sspec under niente 2026-09-27: error (Shoes::Errors::InvalidAttributeValueError: Don't know how to find drawables by \"Show Tab 1\"!)",
     "niente_load": "loads",
     "sspec_case": "scarpe_examples/examples/legacy/for_playtest/philippe/hh_patterns_test.sspec",
     "sspec_niente": "error",
@@ -1990,7 +1990,7 @@
       "network:download",
       "asset:shoes-icon.png(missing?)"
     ],
-    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/download-and-save.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"Shoes::Errors::NoDrawablesFoundError: Found no title!\\n    /Users/nickschwaderer/Progrumms/sc) | niente load 2026-09-27: loads_with_errors (Shoes::App#download error: An error occurred while downloading: wrong number of arguments (given 1, expected 2)) | sspec under niente 2026-09-27: fail (Should have a title)",
+    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/download-and-save.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"Shoes::Errors::NoDrawablesFoundError: Found no title!\\n    <home>/Progrumms/sc) | niente load 2026-09-27: loads_with_errors (Shoes::App#download error: An error occurred while downloading: wrong number of arguments (given 1, expected 2)) | sspec under niente 2026-09-27: fail (Should have a title)",
     "niente_load": "loads_with_errors",
     "sspec_case": "scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/download-and-save.sspec",
     "sspec_niente": "fail",
@@ -2013,7 +2013,7 @@
       "network",
       "network:download"
     ],
-    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/download.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"Shoes::Errors::NoDrawablesFoundError: Found no title!\\n    /Users/nickschwaderer/Progrumms/sc) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: fail (Should have a title)",
+    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/download.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"Shoes::Errors::NoDrawablesFoundError: Found no title!\\n    <home>/Progrumms/sc) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: fail (Should have a title)",
     "niente_load": "loads",
     "sspec_case": "scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/download.sspec",
     "sspec_niente": "fail",
@@ -2036,7 +2036,7 @@
       "network",
       "network:download"
     ],
-    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/get-google.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"Shoes::Errors::NoDrawablesFoundError: Found no title!\\n    /Users/nickschwaderer/Progrumms/sc) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: fail (Should have a title)",
+    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/get-google.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"Shoes::Errors::NoDrawablesFoundError: Found no title!\\n    <home>/Progrumms/sc) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: fail (Should have a title)",
     "niente_load": "loads",
     "sspec_case": "scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/get-google.sspec",
     "sspec_niente": "fail",
@@ -3025,7 +3025,7 @@
       "Shoes.app"
     ],
     "needs": [],
-    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/shoes-contrib/manipulation/prepend-slot.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"NoMethodError: undefined method 'prepend' for an instance of Shoes::Stack\\n    /Users/nicksch) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: pass",
+    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/shoes-contrib/manipulation/prepend-slot.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"NoMethodError: undefined method 'prepend' for an instance of Shoes::Stack\\n    <home>) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: pass",
     "niente_load": "loads",
     "sspec_case": "scarpe_examples/examples/legacy/for_playtest/shoes-contrib/manipulation/prepend-slot.sspec",
     "sspec_niente": "pass",
@@ -5705,7 +5705,7 @@
       "hex_color_string"
     ],
     "needs": [],
-    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/simple/vjot.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"ArgumentError: wrong number of arguments (given 1, expected 0)\\n    /Users/nickschwaderer/Pro) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: no_result (sspec_work/0310/app.rb:1: syntax error found (SyntaxError))",
+    "status_note": "legacy/for_playtest: 'Run without errors (agent verified); Need human playtesting before moving to working/' (for_playtest/README.md) | sspec case: scarpe_examples/examples/legacy/for_playtest/simple/vjot.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"ArgumentError: wrong number of arguments (given 1, expected 0)\\n    <home>/Pro) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: no_result (sspec_work/0310/app.rb:1: syntax error found (SyntaxError))",
     "niente_load": "loads",
     "sspec_case": "scarpe_examples/examples/legacy/for_playtest/simple/vjot.sspec",
     "sspec_niente": "no_result",
@@ -5742,7 +5742,7 @@
       "network:download",
       "gem:hpricot"
     ],
-    "status_note": "legacy/needs_deps: requires dead/incompatible gems or APIs (needs_deps/README.md) | needs_deps README: Requires `hpricot` gem (dead project, unmaintained since 2011) | sspec case: scarpe_examples/examples/legacy/needs_deps/expert-funnies.sspec | sspec test: skip: \"Requires hpricot gem and network access for RSS feeds\" | shoes-spec webview run 2026-02-19: skip (Requires hpricot gem and network access for RSS feeds) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- hpricot (LoadError)) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "legacy/needs_deps: requires dead/incompatible gems or APIs (needs_deps/README.md) | needs_deps README: Requires `hpricot` gem (dead project, unmaintained since 2011) | sspec case: scarpe_examples/examples/legacy/needs_deps/expert-funnies.sspec | sspec test: skip: \"Requires hpricot gem and network access for RSS feeds\" | shoes-spec webview run 2026-02-19: skip (Requires hpricot gem and network access for RSS feeds) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- hpricot (LoadError)) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/needs_deps/expert-funnies.sspec",
     "sspec_niente": "no_result",
@@ -5815,7 +5815,7 @@
       "gem:bluecloth =2.0.6(Shoes.setup)",
       "gem:metaid(Shoes.setup)"
     ],
-    "status_note": "legacy/needs_deps: requires dead/incompatible gems or APIs (needs_deps/README.md) | needs_deps README: Uses Shoes.setup to install `bluecloth` gem (dead project) | sspec case: scarpe_examples/examples/legacy/needs_deps/simple-rubygems.sspec | sspec test: skip: \"Requires Shoes.setup and bluecloth/metaid gems\" | shoes-spec webview run 2026-02-19: skip (Requires Shoes.setup and bluecloth/metaid gems) | niente load 2026-09-27: fail (/Users/schwad/.local/share/mise/installs/ruby/4.0.1/lib/ruby/gems/4.0.0/gems/bundler-2.4.10/lib/bundler/rubygems_integration.rb:280:in 'bloc) | sspec under niente 2026-09-27: no_result (/Users/schwad/.local/share/mise/installs/ruby/4.0.1/lib/ruby/gems/4.0.0/gems/bundler-2.4.10/lib/bundler/rubygems_integra)",
+    "status_note": "legacy/needs_deps: requires dead/incompatible gems or APIs (needs_deps/README.md) | needs_deps README: Uses Shoes.setup to install `bluecloth` gem (dead project) | sspec case: scarpe_examples/examples/legacy/needs_deps/simple-rubygems.sspec | sspec test: skip: \"Requires Shoes.setup and bluecloth/metaid gems\" | shoes-spec webview run 2026-02-19: skip (Requires Shoes.setup and bluecloth/metaid gems) | niente load 2026-09-27: fail (<rubies>/4.0.1/lib/ruby/gems/4.0.0/gems/bundler-2.4.10/lib/bundler/rubygems_integration.rb:280:in 'bloc) | sspec under niente 2026-09-27: no_result (<rubies>/4.0.1/lib/ruby/gems/4.0.0/gems/bundler-2.4.10/lib/bundler/rubygems_integra)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/needs_deps/simple-rubygems.sspec",
     "sspec_niente": "no_result",
@@ -5854,7 +5854,7 @@
       "asset:_why-stories.yaml(missing?)",
       "asset:__dir__-relative"
     ],
-    "status_note": "legacy/path_issues: hardcoded Shoes3 {DIR}/samples paths (path_issues/README.md) | path_issues README: Uses `#{DIR}/samples/good/_why-stories.yaml` path | sspec case: scarpe_examples/examples/legacy/path_issues/_why-stories.sspec | sspec test: skip: \"Requires _why-stories.yaml file and Shoes URL routing\" | shoes-spec webview run 2026-02-19: skip (Requires _why-stories.yaml file and Shoes URL routing) | niente load 2026-09-27: fail (/Users/schwad/.local/share/mise/installs/ruby/4.0.1/lib/ruby/gems/4.0.0/gems/psych-5.3.1/lib/psych.rb:717:in 'File#initialize': No such file) | sspec under niente 2026-09-27: no_result (/Users/schwad/.local/share/mise/installs/ruby/4.0.1/lib/ruby/gems/4.0.0/gems/psych-5.3.1/lib/psych.rb:717:in 'File#initi)",
+    "status_note": "legacy/path_issues: hardcoded Shoes3 {DIR}/samples paths (path_issues/README.md) | path_issues README: Uses `#{DIR}/samples/good/_why-stories.yaml` path | sspec case: scarpe_examples/examples/legacy/path_issues/_why-stories.sspec | sspec test: skip: \"Requires _why-stories.yaml file and Shoes URL routing\" | shoes-spec webview run 2026-02-19: skip (Requires _why-stories.yaml file and Shoes URL routing) | niente load 2026-09-27: fail (<rubies>/4.0.1/lib/ruby/gems/4.0.0/gems/psych-5.3.1/lib/psych.rb:717:in 'File#initialize': No such file) | sspec under niente 2026-09-27: no_result (<rubies>/4.0.1/lib/ruby/gems/4.0.0/gems/psych-5.3.1/lib/psych.rb:717:in 'File#initi)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/path_issues/_why-stories.sspec",
     "sspec_niente": "no_result",
@@ -5892,7 +5892,7 @@
       "dialog",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 app.cache API | sspec case: scarpe_examples/examples/legacy/shoes3_only/cache/cache.sspec | sspec test: skip: \"Shoes3-only: requires shoes/data, shoes/image, switch widget\" | shoes-spec webview run 2026-02-19: skip (Shoes3-only: requires shoes/data, shoes/image, switch widget) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- shoes/data (LoadErr) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 app.cache API | sspec case: scarpe_examples/examples/legacy/shoes3_only/cache/cache.sspec | sspec test: skip: \"Shoes3-only: requires shoes/data, shoes/image, switch widget\" | shoes-spec webview run 2026-02-19: skip (Shoes3-only: requires shoes/data, shoes/image, switch widget) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- shoes/data (LoadErr) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/cache/cache.sspec",
     "sspec_niente": "no_result",
@@ -5929,7 +5929,7 @@
       "timer/animation",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Uses svghandle widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/cardflip.sspec | sspec test: skip: \"Shoes3-only: requires svghandle and SVG manipulation\" | shoes-spec webview run 2026-02-19: skip (Shoes3-only: requires svghandle and SVG manipulation) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/builtins.rb:32:in 'Shoes::Builtins#ask_open_file': wrong number of arguments (given 1,) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/builtins.rb:32:in 'Shoes::Builtins#ask_open_file': wrong number of)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Uses svghandle widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/cardflip.sspec | sspec test: skip: \"Shoes3-only: requires svghandle and SVG manipulation\" | shoes-spec webview run 2026-02-19: skip (Shoes3-only: requires svghandle and SVG manipulation) | niente load 2026-09-27: fail (lacci/lib/shoes/builtins.rb:32:in 'Shoes::Builtins#ask_open_file': wrong number of arguments (given 1,) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/builtins.rb:32:in 'Shoes::Builtins#ask_open_file': wrong number of)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/cardflip.sspec",
     "sspec_niente": "no_result",
@@ -5947,7 +5947,7 @@
       "network:net_http",
       "gem:typhoeus"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Requires typhoeus gem + external deps | sspec case: scarpe_examples/examples/legacy/shoes3_only/curl/typ.sspec | sspec test: skip: \"Requires typhoeus gem and network access\" | shoes-spec webview run 2026-02-19: skip (Requires typhoeus gem and network access) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- typhoeus (LoadError) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Requires typhoeus gem + external deps | sspec case: scarpe_examples/examples/legacy/shoes3_only/curl/typ.sspec | sspec test: skip: \"Requires typhoeus gem and network access\" | shoes-spec webview run 2026-02-19: skip (Requires typhoeus gem and network access) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- typhoeus (LoadError) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/curl/typ.sspec",
     "sspec_niente": "no_result",
@@ -6013,7 +6013,7 @@
       "Shoes.app"
     ],
     "needs": [],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: ShoeEvent synthetic event system | sspec case: scarpe_examples/examples/legacy/shoes3_only/events/event0.sspec | sspec test: skip: \"Shoes3-only: requires shoesevent() constructor\" | shoes-spec webview run 2026-02-19: skip (Shoes3-only: requires shoesevent() constructor) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'shoesevent' for) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: ShoeEvent synthetic event system | sspec case: scarpe_examples/examples/legacy/shoes3_only/events/event0.sspec | sspec test: skip: \"Shoes3-only: requires shoesevent() constructor\" | shoes-spec webview run 2026-02-19: skip (Shoes3-only: requires shoesevent() constructor) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'shoesevent' for) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/events/event0.sspec",
     "sspec_niente": "no_result",
@@ -6042,7 +6042,7 @@
       "style:height"
     ],
     "needs": [],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: ShoeEvent synthetic event system | sspec case: scarpe_examples/examples/legacy/shoes3_only/events/event1.sspec | sspec test: skip: \"Shoes3-only: requires event {} block and evt.accept\" | shoes-spec webview run 2026-02-19: skip (Shoes3-only: requires event {} block and evt.accept) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of arguments (given 0, expect) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of argume)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: ShoeEvent synthetic event system | sspec case: scarpe_examples/examples/legacy/shoes3_only/events/event1.sspec | sspec test: skip: \"Shoes3-only: requires event {} block and evt.accept\" | shoes-spec webview run 2026-02-19: skip (Shoes3-only: requires event {} block and evt.accept) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of arguments (given 0, expect) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of argume)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/events/event1.sspec",
     "sspec_niente": "no_result",
@@ -6152,7 +6152,7 @@
       "asset:__dir__-relative",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: ShoeEvent synthetic event system | sspec case: scarpe_examples/examples/legacy/shoes3_only/events/event4.sspec | sspec test: skip: \"Shoes3-only: requires Shoes::Widget click handling, svg, plot\" | shoes-spec webview run 2026-02-19: skip (Shoes3-only: requires Shoes::Widget click handling, svg, plot) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'svg' for an ins) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: ShoeEvent synthetic event system | sspec case: scarpe_examples/examples/legacy/shoes3_only/events/event4.sspec | sspec test: skip: \"Shoes3-only: requires Shoes::Widget click handling, svg, plot\" | shoes-spec webview run 2026-02-19: skip (Shoes3-only: requires Shoes::Widget click handling, svg, plot) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'svg' for an ins) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/events/event4.sspec",
     "sspec_niente": "no_result",
@@ -6175,7 +6175,7 @@
       "asset:shoes-icon-blue.png(missing?)",
       "asset:__dir__-relative"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: ShoeEvent synthetic event system | sspec case: scarpe_examples/examples/legacy/shoes3_only/events/event5.sspec | sspec test: skip: \"Shoes 3 only: global event handler (event do |evt|) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: global event handler (event do |evt|) not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of arguments (given 0, expect) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of argume)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: ShoeEvent synthetic event system | sspec case: scarpe_examples/examples/legacy/shoes3_only/events/event5.sspec | sspec test: skip: \"Shoes 3 only: global event handler (event do |evt|) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: global event handler (event do |evt|) not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of arguments (given 0, expect) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of argume)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/events/event5.sspec",
     "sspec_niente": "no_result",
@@ -6203,7 +6203,7 @@
       "style:height"
     ],
     "needs": [],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: ShoeEvent synthetic event system | sspec case: scarpe_examples/examples/legacy/shoes3_only/events/event6.sspec | sspec test: skip: \"Shoes 3 only: global event system and keyup/keydown handlers not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: global event system and keyup/keydown handlers not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of arguments (given 0, expect) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of argume)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: ShoeEvent synthetic event system | sspec case: scarpe_examples/examples/legacy/shoes3_only/events/event6.sspec | sspec test: skip: \"Shoes 3 only: global event system and keyup/keydown handlers not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: global event system and keyup/keydown handlers not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of arguments (given 0, expect) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of argume)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/events/event6.sspec",
     "sspec_niente": "no_result",
@@ -6414,7 +6414,7 @@
       "Shoes.app"
     ],
     "needs": [],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Native menu bars | sspec case: scarpe_examples/examples/legacy/shoes3_only/menus/menu1.sspec | sspec test: skip: \"Shoes 3 only: native menu bar (menus: true) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: native menu bar (menus: true) not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'id' for an inst) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Native menu bars | sspec case: scarpe_examples/examples/legacy/shoes3_only/menus/menu1.sspec | sspec test: skip: \"Shoes 3 only: native menu bar (menus: true) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: native menu bar (menus: true) not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'id' for an inst) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/menus/menu1.sspec",
     "sspec_niente": "no_result",
@@ -6441,7 +6441,7 @@
       "dialog",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Native menu bars | sspec case: scarpe_examples/examples/legacy/shoes3_only/menus/menu2.sspec | sspec test: skip: \"Shoes 3 only: menu widgets (menubar, menu, menuitem) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: menu widgets (menubar, menu, menuitem) not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined local variable or metho) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined loc)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Native menu bars | sspec case: scarpe_examples/examples/legacy/shoes3_only/menus/menu2.sspec | sspec test: skip: \"Shoes 3 only: menu widgets (menubar, menu, menuitem) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: menu widgets (menubar, menu, menuitem) not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined local variable or metho) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined loc)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/menus/menu2.sspec",
     "sspec_niente": "no_result",
@@ -6529,7 +6529,7 @@
     "needs": [
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/cstest.sspec | sspec test: skip: \"Shoes 3 only: chart_series object not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: chart_series object not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/cstest.sspec | sspec test: skip: \"Shoes 3 only: chart_series object not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: chart_series object not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/plot/cstest.sspec",
     "sspec_niente": "no_result",
@@ -6563,7 +6563,7 @@
       "timer/animation",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/gr1.sspec | sspec test: skip: \"Shoes 3 only: plot widget (timeseries chart) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (timeseries chart) not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/gr1.sspec | sspec test: skip: \"Shoes 3 only: plot widget (timeseries chart) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (timeseries chart) not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/plot/gr1.sspec",
     "sspec_niente": "no_result",
@@ -6590,7 +6590,7 @@
     "needs": [
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/gr2.sspec | sspec test: skip: \"Shoes 3 only: plot widget (multiple plots, line chart) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (multiple plots, line chart) not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/gr2.sspec | sspec test: skip: \"Shoes 3 only: plot widget (multiple plots, line chart) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (multiple plots, line chart) not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/plot/gr2.sspec",
     "sspec_niente": "no_result",
@@ -6619,7 +6619,7 @@
     "needs": [
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/gr3.sspec | sspec test: skip: \"Shoes 3 only: plot widget (column/bar chart) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (column/bar chart) not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/gr3.sspec | sspec test: skip: \"Shoes 3 only: plot widget (column/bar chart) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (column/bar chart) not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/plot/gr3.sspec",
     "sspec_niente": "no_result",
@@ -6647,7 +6647,7 @@
     "needs": [
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/gr4.sspec | sspec test: skip: \"Shoes 3 only: plot widget (scatter chart) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (scatter chart) not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/gr4.sspec | sspec test: skip: \"Shoes 3 only: plot widget (scatter chart) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (scatter chart) not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/plot/gr4.sspec",
     "sspec_niente": "no_result",
@@ -6674,7 +6674,7 @@
       "asset:robots.txt(missing?)",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/gr5.sspec | sspec test: skip: \"Shoes 3 only: plot widget (pie chart) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (pie chart) not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/gr5.sspec | sspec test: skip: \"Shoes 3 only: plot widget (pie chart) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (pie chart) not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/plot/gr5.sspec",
     "sspec_niente": "no_result",
@@ -6702,7 +6702,7 @@
     "needs": [
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/gr6.sspec | sspec test: skip: \"Shoes 3 only: plot widget (radar chart) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (radar chart) not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/gr6.sspec | sspec test: skip: \"Shoes 3 only: plot widget (radar chart) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (radar chart) not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/plot/gr6.sspec",
     "sspec_niente": "no_result",
@@ -6729,7 +6729,7 @@
     "needs": [
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/gr7.sspec | sspec test: skip: \"Shoes 3 only: plot widget (radar chart with grid options) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (radar chart with grid options) not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/gr7.sspec | sspec test: skip: \"Shoes 3 only: plot widget (radar chart with grid options) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (radar chart with grid options) not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/plot/gr7.sspec",
     "sspec_niente": "no_result",
@@ -6759,7 +6759,7 @@
       "dialog",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/grcsv.sspec | sspec test: skip: \"Shoes 3 only: plot widget (CSV loading, zoom) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (CSV loading, zoom) not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for #<Sho) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/grcsv.sspec | sspec test: skip: \"Shoes 3 only: plot widget (CSV loading, zoom) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (CSV loading, zoom) not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for #<Sho) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/plot/grcsv.sspec",
     "sspec_niente": "no_result",
@@ -6788,7 +6788,7 @@
     "needs": [
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/manual.sspec | sspec test: skip: \"Shoes 3 only: plot widget (line and column combination) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (line and column combination) not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 graphing/charting widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/plot/manual.sspec | sspec test: skip: \"Shoes 3 only: plot widget (line and column combination) not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: plot widget (line and column combination) not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an in) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/plot/manual.sspec",
     "sspec_niente": "no_result",
@@ -6816,7 +6816,7 @@
       "timer/animation",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Chipmunk physics engine integration | sspec case: scarpe_examples/examples/legacy/shoes3_only/simple-chipmunk.sspec | sspec test: skip: \"Shoes 3 only: Chipmunk physics integration not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: Chipmunk physics integration not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- shoes/chipmunk (Loa) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Chipmunk physics engine integration | sspec case: scarpe_examples/examples/legacy/shoes3_only/simple-chipmunk.sspec | sspec test: skip: \"Shoes 3 only: Chipmunk physics integration not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: Chipmunk physics integration not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- shoes/chipmunk (Loa) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/simple-chipmunk.sspec",
     "sspec_niente": "no_result",
@@ -6837,7 +6837,7 @@
     "needs": [
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 spinner widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/spinner.sspec | sspec test: skip: \"Shoes 3 only: spinner widget not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: spinner widget not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined local variable or metho) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined loc)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 spinner widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/spinner.sspec | sspec test: skip: \"Shoes 3 only: spinner widget not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: spinner widget not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined local variable or metho) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined loc)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/spinner.sspec",
     "sspec_niente": "no_result",
@@ -6884,7 +6884,7 @@
       "timer/animation",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 switch widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/switch/switch.sspec | sspec test: skip: \"Shoes 3 only: switch widget not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: switch widget not in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'switch' for an ) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes3 switch widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/switch/switch.sspec | sspec test: skip: \"Shoes 3 only: switch widget not in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes 3 only: switch widget not in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'switch' for an ) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined met)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/switch/switch.sspec",
     "sspec_niente": "no_result",
@@ -6976,7 +6976,7 @@
       "stdin/readline",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes.terminal output console | sspec case: scarpe_examples/examples/legacy/shoes3_only/terminal/ed.sspec | sspec test: skip: \"Shoes.terminal with Readline is Shoes3-only - not available in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes.terminal with Readline is Shoes3-only - not available in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- readline (LoadError) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes.terminal output console | sspec case: scarpe_examples/examples/legacy/shoes3_only/terminal/ed.sspec | sspec test: skip: \"Shoes.terminal with Readline is Shoes3-only - not available in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes.terminal with Readline is Shoes3-only - not available in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- readline (LoadError) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/terminal/ed.sspec",
     "sspec_niente": "no_result",
@@ -6998,7 +6998,7 @@
       "stdin/readline",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes.terminal output console | sspec case: scarpe_examples/examples/legacy/shoes3_only/terminal/el.sspec | sspec test: skip: \"Shoes.terminal with Readline is Shoes3-only - not available in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes.terminal with Readline is Shoes3-only - not available in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- readline (LoadError) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Shoes.terminal output console | sspec case: scarpe_examples/examples/legacy/shoes3_only/terminal/el.sspec | sspec test: skip: \"Shoes.terminal with Readline is Shoes3-only - not available in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes.terminal with Readline is Shoes3-only - not available in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- readline (LoadError) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/terminal/el.sspec",
     "sspec_niente": "no_result",
@@ -7040,7 +7040,7 @@
       "gem:test/unit/ui/console/testrunner",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Uses Shoes.terminal | sspec case: scarpe_examples/examples/legacy/shoes3_only/tests_color.sspec | sspec test: skip: \"Shoes.terminal test harness is Shoes3-only - not available in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes.terminal test harness is Shoes3-only - not available in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- test/unit (LoadErro) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: Uses Shoes.terminal | sspec case: scarpe_examples/examples/legacy/shoes3_only/tests_color.sspec | sspec test: skip: \"Shoes.terminal test harness is Shoes3-only - not available in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Shoes.terminal test harness is Shoes3-only - not available in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- test/unit (LoadErro) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/tests_color.sspec",
     "sspec_niente": "no_result",
@@ -7103,7 +7103,7 @@
       "timer/animation",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: SVG widget (native SVG parsing) | sspec case: scarpe_examples/examples/legacy/shoes3_only/tests_svg.sspec | sspec test: skip: \"SVG widget and Shoes.terminal are Shoes3-only - not available in Scarpe\" | shoes-spec webview run 2026-02-19: skip (SVG widget and Shoes.terminal are Shoes3-only - not available in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- test/unit (LoadErro) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: SVG widget (native SVG parsing) | sspec case: scarpe_examples/examples/legacy/shoes3_only/tests_svg.sspec | sspec test: skip: \"SVG widget and Shoes.terminal are Shoes3-only - not available in Scarpe\" | shoes-spec webview run 2026-02-19: skip (SVG widget and Shoes.terminal are Shoes3-only - not available in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- test/unit (LoadErro) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/tests_svg.sspec",
     "sspec_niente": "no_result",
@@ -7168,7 +7168,7 @@
       "video",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: VLC video integration | sspec case: scarpe_examples/examples/legacy/shoes3_only/tests_video_vlc.sspec | sspec test: skip: \"Video widget (VLC) is Shoes3-only - not available in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Video widget (VLC) is Shoes3-only - not available in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- test/unit (LoadErro) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: VLC video integration | sspec case: scarpe_examples/examples/legacy/shoes3_only/tests_video_vlc.sspec | sspec test: skip: \"Video widget (VLC) is Shoes3-only - not available in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Video widget (VLC) is Shoes3-only - not available in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- test/unit (LoadErro) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/tests_video_vlc.sspec",
     "sspec_niente": "no_result",
@@ -7255,7 +7255,7 @@
       "video",
       "shoes3_only_widget"
     ],
-    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: VLC video player with knob widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/video-player.sspec | sspec test: skip: \"Video widget is Shoes3-only - not available in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Video widget is Shoes3-only - not available in Scarpe) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- shoes/videoffi (Loa) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "legacy/shoes3_only: 'features that exist only in Shoes3 and will NOT be implemented in Scarpe' (shoes3_only/README.md) | shoes3_only README: VLC video player with knob widget | sspec case: scarpe_examples/examples/legacy/shoes3_only/video-player.sspec | sspec test: skip: \"Video widget is Shoes3-only - not available in Scarpe\" | shoes-spec webview run 2026-02-19: skip (Video widget is Shoes3-only - not available in Scarpe) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- shoes/videoffi (Loa) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/shoes3_only/video-player.sspec",
     "sspec_niente": "no_result",
@@ -7470,7 +7470,7 @@
     "needs": [
       "asset:class-book.yaml"
     ],
-    "status_note": "legacy/working: 'the ones marked working have to at least boot up' (legacy/README.md); for_playtest/README says verified examples move here | sspec case: scarpe_examples/examples/legacy/working/shoes-contrib/basic/class-book.sspec | sspec test: skip: \"Requires class-book.yaml external file and Shoes URL routing\" | shoes-spec webview run 2026-02-19: skip (Requires class-book.yaml external file and Shoes URL routing) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: no_result (/Users/schwad/.local/share/mise/installs/ruby/4.0.1/lib/ruby/gems/4.0.0/gems/psych-5.3.1/lib/psych.rb:717:in 'File#initi)",
+    "status_note": "legacy/working: 'the ones marked working have to at least boot up' (legacy/README.md); for_playtest/README says verified examples move here | sspec case: scarpe_examples/examples/legacy/working/shoes-contrib/basic/class-book.sspec | sspec test: skip: \"Requires class-book.yaml external file and Shoes URL routing\" | shoes-spec webview run 2026-02-19: skip (Requires class-book.yaml external file and Shoes URL routing) | niente load 2026-09-27: loads | sspec under niente 2026-09-27: no_result (<rubies>/4.0.1/lib/ruby/gems/4.0.0/gems/psych-5.3.1/lib/psych.rb:717:in 'File#initi)",
     "niente_load": "loads",
     "sspec_case": "scarpe_examples/examples/legacy/working/shoes-contrib/basic/class-book.sspec",
     "sspec_niente": "no_result",
@@ -7603,7 +7603,7 @@
       "asset:simple-sqlite3.db",
       "gem:sqlite3"
     ],
-    "status_note": "legacy/working: 'the ones marked working have to at least boot up' (legacy/README.md); for_playtest/README says verified examples move here | sspec case: scarpe_examples/examples/legacy/working/shoes-contrib/simple/simple-sqlite3.sspec | sspec test: skip: \"Requires sqlite3 gem - external dependency\" | shoes-spec webview run 2026-02-19: skip (Requires sqlite3 gem - external dependency) | niente load 2026-09-27: fail (/Users/schwad/.local/share/mise/installs/ruby/4.0.1/lib/ruby/gems/4.0.0/gems/sqlite3-1.6.9/lib/sqlite3/database.rb:177:in 'SQLite3::Statemen) | sspec under niente 2026-09-27: skip (Requires sqlite3 gem - external dependency)",
+    "status_note": "legacy/working: 'the ones marked working have to at least boot up' (legacy/README.md); for_playtest/README says verified examples move here | sspec case: scarpe_examples/examples/legacy/working/shoes-contrib/simple/simple-sqlite3.sspec | sspec test: skip: \"Requires sqlite3 gem - external dependency\" | shoes-spec webview run 2026-02-19: skip (Requires sqlite3 gem - external dependency) | niente load 2026-09-27: fail (<rubies>/4.0.1/lib/ruby/gems/4.0.0/gems/sqlite3-1.6.9/lib/sqlite3/database.rb:177:in 'SQLite3::Statemen) | sspec under niente 2026-09-27: skip (Requires sqlite3 gem - external dependency)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/legacy/working/shoes-contrib/simple/simple-sqlite3.sspec",
     "sspec_niente": "skip",
@@ -9345,7 +9345,7 @@
       "style:height"
     ],
     "needs": [],
-    "status_note": "top-level examples/: run by test/test_examples.rb under wv_local+calzini with exit_immediately | sspec case: scarpe_examples/examples/ruby_racer.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"Shoes::Errors::MultipleDrawablesFoundError: Found more than one para matching []!\\n    /Users) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- benchmark (LoadErro) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "top-level examples/: run by test/test_examples.rb under wv_local+calzini with exit_immediately | sspec case: scarpe_examples/examples/ruby_racer.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: fail ({\"json_class\":\"Minitest::UnexpectedError\",\"m\":\"Shoes::Errors::MultipleDrawablesFoundError: Found more than one para matching []!\\n    /Users) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- benchmark (LoadErro) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/ruby_racer.sspec",
     "sspec_niente": "no_result",
@@ -9359,7 +9359,7 @@
       "Shoes.app"
     ],
     "needs": [],
-    "status_note": "top-level examples/: run by test/test_examples.rb under wv_local+calzini with exit_immediately | sspec case: scarpe_examples/examples/scarpe_ext.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: pass | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/app.rb:73:in 'Shoes::App#initialize': Shoes app needs features: [:html] (Shoes::Errors) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/app.rb:73:in 'Shoes::App#initialize': Shoes app needs features: [:)",
+    "status_note": "top-level examples/: run by test/test_examples.rb under wv_local+calzini with exit_immediately | sspec case: scarpe_examples/examples/scarpe_ext.sspec | sspec test: asserts | shoes-spec webview run 2026-02-19: pass | niente load 2026-09-27: fail (lacci/lib/shoes/app.rb:73:in 'Shoes::App#initialize': Shoes app needs features: [:html] (Shoes::Errors) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/app.rb:73:in 'Shoes::App#initialize': Shoes app needs features: [:)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/scarpe_ext.sspec",
     "sspec_niente": "no_result",
@@ -9682,7 +9682,7 @@
       "gem:bloops",
       "audio"
     ],
-    "status_note": "skip_ci: run by test/test_examples.rb locally but skipped when CI_RUN is set | sspec case: scarpe_examples/examples/skip_ci/guitar_fretboard.sspec | sspec test: skip: \"Requires bloops gem for audio synthesis\" | shoes-spec webview run 2026-02-19: skip (Requires bloops gem for audio synthesis) | niente load 2026-09-27: fail (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)) | sspec under niente 2026-09-27: no_result (/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
+    "status_note": "skip_ci: run by test/test_examples.rb locally but skipped when CI_RUN is set | sspec case: scarpe_examples/examples/skip_ci/guitar_fretboard.sspec | sspec test: skip: \"Requires bloops gem for audio synthesis\" | shoes-spec webview run 2026-02-19: skip (Requires bloops gem for audio synthesis) | niente load 2026-09-27: fail (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)) | sspec under niente 2026-09-27: no_result (lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file --)",
     "niente_load": "fail",
     "sspec_case": "scarpe_examples/examples/skip_ci/guitar_fretboard.sspec",
     "sspec_niente": "no_result",

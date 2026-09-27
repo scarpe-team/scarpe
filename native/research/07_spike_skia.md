@@ -2,7 +2,7 @@
 
 Verdict: **it works, first try, and it is fast.** The full Shoes-ish scene renders headless to a 1600x1200 PNG in **~1.9 ms per frame** (release, warm glyph cache, M5), opens a real Retina window that presents **~120-150 fps** for 3 s and exits cleanly with exit code 0, and the same `Scene` object answers synthetic clicks, link hits and typing with no window at all. Output is **bit-identical run to run** (md5 stable). The weak spots are all in text *appearance* vs CoreText: text is ~15% lighter than native, and the macOS system font renders with the wrong optical size (tight tracking). Both have measured fixes or workarounds, listed below.
 
-Everything lives in `/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/spikes/a` (call it `$A`).
+Everything lives in `<scratch>/spikes/a` (call it `$A`).
 
 ## 1. Artifacts
 
