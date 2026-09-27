@@ -145,3 +145,42 @@ fn a_shape_block_box_holds_its_art_from_its_left_top() {
     let shape = h.node(|n| n["id"] == 3);
     assert_eq!((shape["x"].clone(), shape["y"].clone(), shape["w"].clone(), shape["h"].clone()), (json!(100.0), json!(100.0), json!(60.0), json!(20.0)));
 }
+
+// ---- image(w, h) { ... } is a canvas (ledger E9, contract c) ----
+
+/// An image block's art arrives as children of the Image node, in image-local
+/// coordinates, and is clipped to the image's box.
+#[test]
+fn an_image_block_draws_its_art_inside_the_image() {
+    let red = json!({"fill": {"rgba": [255, 0, 0, 255]}, "stroke": {"rgba": [0, 0, 0, 0]}});
+    let mut h = Harness::new();
+    h.feed(&app(300, 300, &[
+        create(3, "Image", 2, json!({"url": "", "left": 100, "top": 100, "width": 100, "height": 100})),
+        art(4, "Oval", 3, json!({"left": 0, "top": 0, "width": 50, "height": 50, "draw_context": red.clone()})),
+        art(5, "Rect", 3, json!({"left": 80, "top": 80, "width": 50, "height": 50, "draw_context": red})),
+    ]));
+    assert_eq!(rgb(&mut h, 125.0, 125.0), RED, "the oval sits at the image's corner");
+    assert_eq!(rgb(&mut h, 25.0, 25.0), WHITE, "not at the window's");
+    assert_eq!(rgb(&mut h, 190.0, 190.0), RED, "the rect shows inside the image");
+    assert_eq!(rgb(&mut h, 220.0, 220.0), WHITE, "and is cut off at its edge");
+}
+
+/// shoes-contrib simple-sphere.rb nests images with only a position inside a sized one:
+/// they fill it. Text in a block lays out in the image like a flow.
+#[test]
+fn a_blank_image_inside_an_image_block_fills_it() {
+    let red = json!({"fill": {"rgba": [255, 0, 0, 255]}, "stroke": {"rgba": [0, 0, 0, 0]}});
+    let mut h = Harness::new();
+    h.feed(&app(300, 300, &[
+        create(3, "Image", 2, json!({"url": "", "left": 50, "top": 30, "width": 200, "height": 150})),
+        create(4, "Image", 3, json!({"url": "", "left": 0, "top": 100})),
+        art(5, "Rect", 4, json!({"left": 0, "top": 0, "width": 300, "height": 300, "draw_context": red})),
+        create(6, "Para", 3, json!({"text_items": ["inside"]})),
+    ]));
+    let inner = h.node(|n| n["id"] == 4);
+    assert_eq!((inner["x"].clone(), inner["y"].clone(), inner["w"].clone()), (json!(50.0), json!(130.0), json!(200.0)));
+    assert_eq!(rgb(&mut h, 60.0, 170.0), RED, "the nested image's art shows");
+    assert_eq!(rgb(&mut h, 60.0, 190.0), WHITE, "clipped by the outer image's bottom edge");
+    let para = h.node(|n| n["id"] == 6);
+    assert_eq!((para["x"].clone(), para["y"].clone()), (json!(50.0), json!(30.0)), "text starts at the image's corner");
+}

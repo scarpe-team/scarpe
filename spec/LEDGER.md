@@ -613,7 +613,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Examples:** 3 files (`simple-sphere.rb`, `shoes_manual/ovals_image.rb`, ...); `blur` in 1.
 - **Lacci today:** `image(w, h)` becomes a blank placeholder and the block is ignored (`image.rb:10-20`).
 - **Spec:** `image(100, 100) { oval 0, 0, 50 }` paints the oval inside the image's box.
-- **Native:** needs the image to act as an offscreen slot. Not in DESIGN yet.
+- **Native:** since M2 an Image with children lays them out inside its box, in image-local coordinates, clipped to it (DESIGN 12; Lacci runs the block with the Image as the current slot, contract c). Effects stay undrawn: the manual names blurred ovals and shadows in its introduction (manual 51-52) but documents no API for them.
 
 ### E10. `transform`, `translate`, `cap`, `rotate`, `scale`, `skew`
 

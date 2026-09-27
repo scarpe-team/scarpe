@@ -312,6 +312,8 @@ impl Engine<'_> {
                     wanted.min(full)
                 }
             }
+            // A blank image canvas with no size of its own fills its line.
+            Kind::Image if canvas_image(self.doc, node) && self.intrinsic(node).0 == 0.0 => fill,
             Kind::Image => {
                 let natural = self.intrinsic(node);
                 match node.props.dim("height") {
@@ -343,7 +345,8 @@ impl Engine<'_> {
             }
             Kind::Image => {
                 let natural = self.intrinsic(node);
-                explicit_h.unwrap_or_else(|| elements::image::height_for_width(natural, w))
+                let blank_canvas = natural.1 == 0.0 && canvas_image(self.doc, node);
+                explicit_h.unwrap_or_else(|| if blank_canvas { parent.1 } else { elements::image::height_for_width(natural, w) })
             }
             _ => {
                 let (_, ih) = self.intrinsic(node);
@@ -351,6 +354,9 @@ impl Engine<'_> {
             }
         };
         self.record(node, Rect::new(x, y, w, h), parent);
+        if canvas_image(self.doc, node) {
+            self.image_canvas(node, Rect::new(x, y, w, h));
+        }
         if let Some(label) = elements::label(node, w, h, self.text) {
             self.out.texts.insert(node.id, TextBox { shaped: label.shaped, x: x + label.dx, y: y + label.dy });
         }
@@ -418,6 +424,13 @@ impl Engine<'_> {
         let Some(rect) = bounds else { return };
         self.out.boxes.insert(node.id, LBox { rect, clip: None, origin: (content.x, content.y), parent_size: parent });
         self.displace(node);
+    }
+
+    /// `image(w, h) { ... }` is a canvas (manual 410-426, ledger E9): what the block draws
+    /// lays out inside the image's box, like a flow, and is clipped to it.
+    fn image_canvas(&mut self, node: &Node, frame: Rect) {
+        let (_, later) = self.children(node.id, true, frame, frame.h);
+        self.place_later(&later, frame, frame, frame.h);
     }
 
     /// An element with left/top/right/bottom, out of flow in `frame`.
@@ -502,6 +515,10 @@ impl Engine<'_> {
             }),
             _ => clip,
         };
+        let inner = match doc.get(id).filter(|n| canvas_image(doc, n)).and_then(|_| self.out.rect(id)) {
+            Some(canvas) => Some(inner.map_or(canvas, |c| c.intersect(&canvas).unwrap_or(Rect::new(canvas.x, canvas.y, 0.0, 0.0)))),
+            None => inner,
+        };
         for &child in doc.children(id) {
             let child_clip = if doc.get(child).is_some_and(|c| c.kind.is_decor()) { clip } else { inner };
             self.assign_clips(child, child_clip);
@@ -531,6 +548,11 @@ fn decor_box(node: &Node, slot: Rect) -> Rect {
         (None, None) => 0.0,
     };
     Rect::new(area.x + x, area.y + y, w, h)
+}
+
+/// An image with a drawing block: its children draw inside it.
+fn canvas_image(doc: &Doc, node: &Node) -> bool {
+    node.kind == Kind::Image && !doc.children(node.id).is_empty()
 }
 
 fn is_window(s: &str) -> bool {
