@@ -20,7 +20,15 @@ class ArtInputTest < Minitest::Test
   APP
 
   def setup
-    skip_without_real_binary
+    skip_without_real_binary unless name.start_with?("test_unit_")
+  end
+
+  # Rust loads a button's icon from the path it is given, so it has to be absolute.
+  def test_unit_a_button_icon_travels_as_an_absolute_path
+    Dir.chdir(Dir.tmpdir) do
+      assert_equal File.join(Dir.pwd, "icon-info.png"), Scarpe::Native::Normalize.prop("Button", "icon", "icon-info.png")
+    end
+    assert_nil Scarpe::Native::Normalize.prop("Button", "icon", nil)
   end
 
   # spec app.close failed with "is not visible": a click by id always went to the first window.

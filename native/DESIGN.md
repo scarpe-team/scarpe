@@ -464,6 +464,9 @@ change the code and this list together.
 - **Backgrounds and borders** fill their slot less the edges they name: `left`/`top`/`right`/`bottom`
   place them, a missing `width` or `height` runs to the far edge (`top: 50` covers from 50 down),
   and margins inset them.
+- **Button icons** (Shoes 3.3 `icon:`, ledger G7): a 16 px image beside the label, on the side
+  `icon_pos` names (`left`, the default, `right`, `top` or `bottom`); the button grows to hold both.
+  The shim sends `icon` as an absolute path.
 - **App `opacity`** (0.0 to 1.0) makes the whole window see-through: NSWindow's alphaValue on macOS
   (other platforms stay opaque), and snapshots and `pixel` keep that share of every pixel's alpha.
 - **Tooltips.** A drawable's `tooltip` text (Shoes 3.3; Lacci gives every drawable the style) shows
