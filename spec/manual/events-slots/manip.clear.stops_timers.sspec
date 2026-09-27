@@ -3,6 +3,9 @@ manual: manip.clear.stops_timers
 lines: [2327, 2329]
 testability: api
 display: native
+ledger: B7
+expect: fail
+reason: "Lacci keeps a slot's timers through clear since 27 Sep, as Shoes 3 does (s3_canvas.c:781) and ten examples need; the manual says clear stops them. Waiting on Q8 (ledger B7)"
 ----------- app code
 $ticks = 0
 Shoes.app do

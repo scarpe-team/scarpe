@@ -30,7 +30,7 @@ The default rule: **the manual wins, unless a large body of working examples dep
 | **ERRATA** | The manual text is wrong. The spec follows the verified behaviour, and nobody transcribes that manual snippet verbatim. | `core` |
 | **OOS** | Out of scope for the spec. | none |
 
-A ruling marked **ruled 27 Sep 2026 (Q3)** settled question 3 at the bottom of this page, where the evidence was balanced. The orchestrator ruled all seven on 27 Sep 2026. Nick may overrule any of them; his answer then replaces the ruling line, with its date.
+A ruling marked **ruled 27 Sep 2026 (Q3)** settled question 3 at the bottom of this page, where the evidence was balanced. The orchestrator ruled all seven on 27 Sep 2026. Nick may overrule any of them; his answer then replaces the ruling line, with its date. A row marked **open (Q8)** waits on question 8, raised after those rulings.
 
 ### The fields in each row
 
@@ -71,6 +71,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | B4 | `prepend`/`before`/`after` keep the written order | MANUAL | 10.3 | |
 | B5 | `slot.remove` removes children and fires `finish` | MANUAL | unsched. | |
 | B6 | Methods headed `» self` return `self` | MANUAL | unsched. | |
+| B7 | `clear` and the timers a slot started | open (Q8) | | |
 
 ### C. Layout and dimensions
 
@@ -359,6 +360,18 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 - **Spec:** one `__returns_self` case per method: `events.{click,hover,leave,motion,release,keypress,finish}__returns_self`, `manip.{append,prepend,clear,clear_with_block}__returns_self`, `slot.{hide,show,toggle}__returns_self`, `common.{hide,show,toggle}__returns_self`, `timers.{start,stop,toggle}__returns_self`, `art.{nofill,nostroke,rotate}__returns_self` (rotate also sits under E10). Each checks the result with `assert_same` against the receiver.
 - **Native:** nothing; the return values are Ruby-side.
+
+### B7. `clear` and the timers a slot started
+
+**Ruling: open (Q8).** New row, found at the 27 Sep 2026 merge of the build lanes: the manual and Shoes 3 disagree, and ten examples side with Shoes 3.
+
+- **Manual:** `clear()` "Empties the slot of any elements, timers and nested slots. This is effectively identical to looping through the contents of the slot and calling each element's `remove` method." (manual 2327-2329).
+- **Shoes 3:** `animate`, `every` and `timer` push their timer onto `app->extras`, not onto the slot's contents (`s3t_timerbase.c:132, 143, 154`). The `clear` method empties with `shoes_canvas_empty(canvas, FALSE)` (`s3_canvas.c:759-781`), which removes the contents and leaves the extras alone (`:273-279`). Only the full canvas reset passes TRUE, which removes the timers whose parent is that canvas (`s3_canvas.c:282-295`, `s3_ruby.c:581-593`). So a timer survives `clear`.
+- **Examples:** ten clear the app from inside its own `animate` and need the timer to keep ticking: `for_playtest/simple/arc.rb` and `follow.rb`, `working/simple/clock.rb`, `shoes-contrib/animation/rotating-star.rb`, `flowers.rb`, `happy-trails.rb`, `pink-bubbles.rb` and `mice-satellites.rb`, `shoes-contrib/good/good-arc.rb`, and `shoes-dep-samples/expert-game-of-life.rb`.
+- **Lacci today:** since 27 Sep (the Lacci lane, for H9) `clear` keeps the slot's SubscriptionItems, handlers and timers alike; `visit` still removes everything. Before that `clear` destroyed them, and `mice-satellites.rb` stopped after one frame.
+- **Spec:** `manip.clear.stops_timers` asserts the manual: a timer started inside a stack stops when the stack is cleared. It passed before the Lacci change and is `expect: fail` since the merge, until Q8 is ruled.
+- **Native:** the Ruby pump owns timers (DESIGN 5.4) and follows Lacci.
+- **Proposed:** ERRATA, following Shoes 3 and the examples; `manip.clear.stops_timers` would then assert that the timer keeps running. MANUAL would need Lacci to stop the timers a slot started when it is cleared, which stops every one of the ten examples above after its first frame.
 
 ## C. Layout and dimensions
 
@@ -1415,6 +1428,7 @@ The evidence was balanced on each of these, so v1 asked Nick. The orchestrator r
 - **Q7 (G5), lower priority.** Your commit `eda8975` makes `edit_line.text = "x"` fire `change`, on purpose. Should the spec pin that under `ext-scarpe`, or keep asserting neither?
 
   **Ruled:** pinned under `ext-scarpe` (G5, `edit_line.text=__fires_change`).
+- **Q8 (B7), open, found at the 27 Sep 2026 merge.** Does `clear` stop the timers started inside the slot, as the manual says (manual 2327-2329), or leave them running, as Shoes 3's source does and ten examples that clear the app from inside their own `animate` need? `manip.clear.stops_timers` is `expect: fail` until this is ruled.
 
 ## Citation check
 
