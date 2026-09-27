@@ -523,8 +523,7 @@ impl Runtime {
         let mods = self.views[&app].ui.modifiers;
         for (item, parent) in self.subscriptions(app, "motion") {
             if moved && Self::inside(&parent, x, y) {
-                let (px, py) = (x - parent.rect.x, y - parent.rect.y);
-                self.out.event("motion", Some(item), vec![json!(px.round() as i64), json!(py.round() as i64), json!(mods.ctrl), json!(mods.shift)]);
+                self.out.event("motion", Some(item), vec![json!(x.round() as i64), json!(y.round() as i64), json!(mods.ctrl), json!(mods.shift)]);
             }
         }
         for name in ["hover", "leave"] {
@@ -647,12 +646,11 @@ impl Runtime {
         if !consumed {
             let args = vec![json!(button), json!(x.round() as i64), json!(y.round() as i64)];
             if let Some(owner) = chain.iter().find(|id| self.doc.get(**id).is_some_and(|n| n.props.truthy("has_click"))) {
-                self.out.event("click", Some(*owner), args);
+                self.out.event("click", Some(*owner), args.clone());
             }
             for (item, parent) in self.subscriptions(app, "click") {
                 if Self::inside(&parent, x, y) {
-                    let (px, py) = (x - parent.rect.x, y - parent.rect.y);
-                    self.out.event("click", Some(item), vec![json!(button), json!(px.round() as i64), json!(py.round() as i64)]);
+                    self.out.event("click", Some(item), args.clone());
                 }
             }
         }
@@ -683,12 +681,11 @@ impl Runtime {
         if !press.as_ref().is_some_and(|p| p.consumed) {
             let args = vec![json!(button), json!(x.round() as i64), json!(y.round() as i64)];
             if let Some(owner) = chain.iter().find(|id| self.doc.get(**id).is_some_and(|n| n.props.truthy("has_release"))) {
-                self.out.event("release", Some(*owner), args);
+                self.out.event("release", Some(*owner), args.clone());
             }
             for (item, parent) in self.subscriptions(app, "release") {
                 if Self::inside(&parent, x, y) {
-                    let (px, py) = (x - parent.rect.x, y - parent.rect.y);
-                    self.out.event("release", Some(item), vec![json!(button), json!(px.round() as i64), json!(py.round() as i64)]);
+                    self.out.event("release", Some(item), args.clone());
                 }
             }
         }
