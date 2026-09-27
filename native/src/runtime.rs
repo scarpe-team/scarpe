@@ -404,7 +404,8 @@ impl Runtime {
         self.answer_what_waits_on(app, "app closed");
         let Some(view) = self.views.remove(&app) else { return };
         self.text.forget_layout(view.doc_root);
-        self.doc.remove_app(app);
+        let removed = self.doc.remove_app(app);
+        self.revisions.forget(&removed);
         self.effects.push(Effect::CloseWindow(app));
         if self.active_app == Some(app) {
             self.active_app = self.views.keys().next().copied();
