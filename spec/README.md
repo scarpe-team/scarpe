@@ -12,6 +12,7 @@ spec/
   manual/<group>/         cases written from the manual, one directory per group
   manual/_examples/       three worked cases to copy from
   shoes_spec/             cases imported from Noah's Shoes-Spec corpus (generated)
+  showcase/               a native check per app in examples/native/showcase
   harness/                self-tests for spec/run
   examples.yml            every example under examples/ and what we expect of it
   LEDGER.md               rulings where the manual, Shoes 3, Shoes 4 and Lacci disagree
