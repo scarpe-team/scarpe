@@ -24,5 +24,5 @@ wait_frames
 
 now = layout_of(pinned)
 words = layout_of(para("@words"))
-assert_in_delta words.x, now.x, 0.5, "back in the stack, it lines up with its neighbour"
+assert_in_delta words.x - 4, now.x, 0.5, "back in the stack, it lines up with its neighbour (whose text sits in a 4 px margin, ledger C9)"
 assert_operator now.y, :>=, words.y + words.h - 0.5, "and flows in below the paragraph"
