@@ -723,6 +723,11 @@ change the code and this list together.
   are plain files (a FIFO would block, /dev/zero never ends) within 256 MB, and images within
   16,384 px a side, whatever their extension says. `tests/fuzz.rs` feeds generated hostile
   sessions through the real entry point (SCARPE_NATIVE_FUZZ_RUNS, SCARPE_NATIVE_FUZZ_SEED).
+- **Text spans** (`strong`, `em`, `link` and the rest) have no parent: a para names them in its
+  `text_items`. Lacci makes a new span for every `strong(...)` and destroys none, and may name an
+  old one again, so Rust keeps a span while any text names it, and after that until more than
+  `limits::LOOSE_SPANS` (10,000) such loose spans pile up, when the oldest go. A clock that shows
+  `strong(Time.now)` every tick stays bounded, and `@p.replace(@bold)` still finds `@bold`.
 - **Para `cursor` and `marker`** count from the end when negative (`-1` sits after the last
   character, as Shoes 3 editors use it). The caret takes the text's colour, so it shows on dark
   backgrounds.

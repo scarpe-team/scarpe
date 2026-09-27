@@ -31,6 +31,10 @@ pub const MAX_IMAGE_BYTES: u64 = 256 * 1024 * 1024;
 /// The widest or tallest image that is decoded, in pixels.
 pub const MAX_IMAGE_SIDE: u32 = 16_384;
 
+/// Text spans no text names any more that are kept in case Lacci names one again (Doc's span
+/// names): a few megabytes at most.
+pub const LOOSE_SPANS: usize = 10_000;
+
 /// The largest font file `font` registers.
 pub const MAX_FONT_BYTES: u64 = 256 * 1024 * 1024;
 
