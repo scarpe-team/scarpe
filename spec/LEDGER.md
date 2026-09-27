@@ -126,7 +126,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
 | F1 | `ins()` is an underline fragment | MANUAL | 10.8 | |
-| F2 | Text blocks are distinct classes | MANUAL | unsched. | |
+| F2 | Text blocks are distinct classes | MANUAL | | |
 | F3 | Relative `:size` strings | MANUAL | | |
 | F4 | `:weight`, `:variant`, `:font` | MANUAL | | |
 | F5 | Text styles Lacci drops | MANUAL | | |
@@ -745,13 +745,13 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### F2. Text blocks are distinct classes
 
-**Ruling: MANUAL.** Subclasses, so a class-level `style()` targets one kind. **Lacci change, unscheduled.**
+**Ruling: MANUAL.** Subclasses, so a class-level `style()` targets one kind. **Lacci change, done 27 Sep 2026.**
 
 - **Manual:** `banner » Shoes::Banner`, `title » Shoes::Title`, and so on (manual 1921-2129); sizes 48, 34, 26, 18, 14, 12, 10 (manual 3378-3384).
 - **Shoes 4:** `Shoes.const_get(method.capitalize)` per block type (`s4_dsl_text.rb:50-56`).
-- **Lacci today:** all are `Para` with `size: :banner|:title|...` (`para.rb:258-316`): `title("T").class == Shoes::Para`. So `style(Shoes::Para, stroke: red)` restyles titles too, and `style(Shoes::Title, ...)` cannot be expressed. Sizes match the manual (`calzini.rb:24-33`).
+- **Lacci today:** all are `Para` with `size: :banner|:title|...` (`para.rb:258-316`): `title("T").class == Shoes::Para`. So `style(Shoes::Para, stroke: red)` restyles titles too, and `style(Shoes::Title, ...)` cannot be expressed. Sizes match the manual (`calzini.rb:24-33`). Since the wave-4 Lacci lane `Shoes::Banner`, `Title`, `Subtitle`, `Tagline`, `Caption` and `Inscription` are subclasses of `Para`, each defaulting to its own size, and `banner`, `title` and the rest make them. `style(Shoes::Title, ...)` styles titles alone and `style(Shoes::Para, ...)` no longer reaches them. Every kind tells the display `Para`, so nothing changes on the wire. They are still Paras, so the `paras` finder still includes them and the imported cases that expect otherwise stay `expect: fail`; Shoes 3 makes them siblings under a TextBlock class instead.
 - **Spec:** `title("T").class == Shoes::Title`; after `style(Shoes::Title, stroke: red)`, a new `para` keeps the default stroke.
-- **Native:** if Lacci switches to subclasses, `create` will carry `kind: "Title"` and friends; the Rust `Kind` enum (DESIGN 7) must treat them all as Para with a default size.
+- **Native:** nothing: `Para.display_class_name` is `"Para"` for every kind, so `create` still carries `kind: "Para"` with the size.
 
 ### F3. `:size` accepts relative strings
 

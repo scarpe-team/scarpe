@@ -29,6 +29,11 @@ class Shoes
 
     Shoes::Drawable.drawable_default_styles[Shoes::Para][:size] = :para
 
+    # Title, Banner and the other kinds below are Paras to a display.
+    def self.display_class_name
+      "Para"
+    end
+
     shoes_events # No Para-specific events yet
 
     # Initializes a new instance of the `Para` drawable. There are different
@@ -256,59 +261,12 @@ class Shoes
 end
 
 class Shoes
-  class Drawable
-    # Return a banner-sized para. This can use all the normal
-    # Para styles and arguments. See {Para#initialize} for
-    # details.
-    #
-    # @return [Shoes::Para] the new para drawable
-    def banner(*args, **kwargs)
-      para(*args, **{ size: :banner }.merge(kwargs))
-    end
-
-    # Return a title-sized para. This can use all the normal
-    # Para styles and arguments. See {Para#initialize} for
-    # details.
-    #
-    # @return [Shoes::Para] the new para drawable
-    def title(*args, **kwargs)
-      para(*args, **{ size: :title }.merge(kwargs))
-    end
-
-    # Return a subtitle-sized para. This can use all the normal
-    # Para styles and arguments. See {Para#initialize} for
-    # details.
-    #
-    # @return [Shoes::Para] the new para drawable
-    def subtitle(*args, **kwargs)
-      para(*args, **{ size: :subtitle }.merge(kwargs))
-    end
-
-    # Return a tagline-sized para. This can use all the normal
-    # Para styles and arguments. See {Para#initialize} for
-    # details.
-    #
-    # @return [Shoes::Para] the new para drawable
-    def tagline(*args, **kwargs)
-      para(*args, **{ size: :tagline }.merge(kwargs))
-    end
-
-    # Return a caption-sized para. This can use all the normal
-    # Para styles and arguments. See {Para#initialize} for
-    # details.
-    #
-    # @return [Shoes::Para] the new para drawable
-    def caption(*args, **kwargs)
-      para(*args, **{ size: :caption }.merge(kwargs))
-    end
-
-    # Return an inscription-sized para. This can use all the normal
-    # Para styles and arguments. See {Para#initialize} for
-    # details.
-    #
-    # @return [Shoes::Para] the new para drawable
-    def inscription(*args, **kwargs)
-      para(*args, **{ size: :inscription }.merge(kwargs))
-    end
+  # banner, title, subtitle, tagline, caption and inscription make text blocks of their
+  # own classes (manual 1921-2129, ledger F2), so style(Shoes::Title, ...) styles titles
+  # alone. Each is a Para at its own size (manual 3378-3384), and displays are told Para.
+  { Banner: :banner, Title: :title, Subtitle: :subtitle, Tagline: :tagline,
+    Caption: :caption, Inscription: :inscription }.each do |class_name, size|
+    text_block = const_set(class_name, Class.new(Para))
+    Shoes::Drawable.drawable_default_styles[text_block][:size] = size
   end
 end
