@@ -34,6 +34,7 @@ class Shoes::Widget < Shoes::Slot; end
 
 require_relative 'shoes/log'
 require_relative 'shoes/pattern'
+require_relative 'shoes/color'
 require_relative 'shoes/colors'
 
 require_relative 'shoes/font_file'

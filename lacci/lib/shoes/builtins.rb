@@ -34,8 +34,9 @@ module Shoes::Builtins
     shoes_builtin("alert", message)
   end
 
+  # @return [Shoes::Color, nil] the colour picked, or nil on Cancel (manual 643-655)
   def ask_color(title_bar)
-    shoes_builtin("ask_color", title_bar)
+    Shoes::Color.from(shoes_builtin("ask_color", title_bar))
   end
 
   def ask_open_file()
