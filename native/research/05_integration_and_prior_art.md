@@ -1,6 +1,6 @@
 # 05: CLI, display-service loading, packaging, prior art for non-webview backends
 
-Lane: integration. Repo: `/Users/schwad/Progrumms/scarpe-native` (the checked-out branch is **`main`**, not `master`; `origin/HEAD -> origin/main`, HEAD `fdcee7a`). All line numbers are from that checkout. The refs `gtk-scarpe`, `space_shoes` and `shoes-spec` are under `.../scratchpad/ref/`.
+Lane: integration. Repo: `<repo>` (the checked-out branch is **`main`**, not `master`; `origin/HEAD -> origin/main`, HEAD `fdcee7a`). All line numbers are from that checkout. The refs `gtk-scarpe`, `space_shoes` and `shoes-spec` are under `.../scratchpad/ref/`.
 
 Spike artifacts I produced live in `.../scratchpad/research/spike_relay/` (patched relay, captured datagrams, double-fire repro) and `.../scratchpad/research/pkg_out*` (packager output).
 

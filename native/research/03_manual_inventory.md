@@ -1,8 +1,8 @@
 # 03: Shoes manual feature inventory
 
-Lane 03 output. Source of truth: `/Users/schwad/Progrumms/scarpe-native/docs/static/manual.md` (3533 lines, read in full).
+Lane 03 output. Source of truth: `docs/static/manual.md` (3533 lines, read in full).
 
-Deliverables in `/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research`:
+Deliverables in `<scratch>/research`:
 
 - `manual_inventory.json`: 539 entries, keys exactly `id, section, signature, claim, example_lines, testability, version_note`.
 - `build_inventory.py`: the generator. The inventory lives there as data; section paths and code-fence ranges are computed from the manual file, and it validates every entry (unique ids, every `example_lines` pair is a real fence, every source range inside the manual). Rerun with `python3 build_inventory.py`.
