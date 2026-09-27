@@ -44,6 +44,19 @@ class PumpTest < Minitest::Test
     Signal.trap("INT", "DEFAULT")
   end
 
+  def test_a_handler_that_takes_no_signal_argument_is_chained_too
+    reached = []
+    original = Signal.trap("INT", -> { reached << :lacci })
+    child = Struct.new(:woken) { def wake! = self.woken += 1 }.new(0)
+    Scarpe::Native::Pump.new(Struct.new(:child).new(child)).send(:wake_on_interrupt)
+    ours = Signal.trap("INT", original)
+    ours.call("INT")
+    assert_equal [:lacci], reached
+    assert_equal 1, child.woken
+  ensure
+    Signal.trap("INT", "DEFAULT")
+  end
+
   private
 
   def with_fake_child(dir)

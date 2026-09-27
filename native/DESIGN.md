@@ -197,7 +197,7 @@ which is the only mode that supports `window()`:
 
 ```
 loop until no apps remain or the child exited:
-  timeout = time until the next timer deadline, capped at 50 ms
+  timeout = time until the next timer deadline, capped at 1 s (Automation#advance steps at 50 ms)
   IO.select([child_out], nil, nil, timeout) -> read and dispatch every complete message
   tick due timers: animate (frame starts at 0), every (count starts at 1), timer (one shot);
     honour `stopped` and destroyed items; timers can be created at any time
@@ -206,6 +206,11 @@ loop until no apps remain or the child exited:
 ```
 
 Handler exceptions are rescued per dispatch, logged with the app file/line, and the loop continues.
+
+An idle pump sleeps. Besides the child's output, the select watches a wake pipe that a post from
+another thread (a download) and Ctrl-C (the pump chains Lacci's INT trap) write to, so nothing
+waits on the timeout. Hello goes out without waiting for `ready`; the pump raises ChildTimeout if
+the child never answers (native/PERF.md).
 
 ## 6. Layout rules (canonical)
 
