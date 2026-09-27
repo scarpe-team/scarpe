@@ -90,7 +90,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | C11 | `attach: Window` | MANUAL | | |
 | C12 | Paint order: backgrounds are layered elements | MANUAL | | |
 | C13 | A fixed height clips the slot | MANUAL | | |
-| C14 | An explicit width or height includes the margins | open (Q9) | | DESIGN |
+| C14 | An explicit width or height includes the margins | open (Q9) | | |
 
 ### D. Colours and patterns
 
