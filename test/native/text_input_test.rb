@@ -36,6 +36,30 @@ class TextInputTest < Minitest::Test
     assert_spec_passed(run)
   end
 
+  # Keys Rust takes while Ruby is still in a slow change block leave Lacci's echoes trailing
+  # behind them: an old echo must neither move the caret nor bring old text back (review).
+  def test_typing_ahead_of_a_slow_change_block_keeps_every_key
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        $seen = []
+        @line = edit_line("helo") { |line| sleep 0.05; $seen << line.text }
+      end
+    APP
+      click_on edit_line
+      press_key :end
+      press_key :left
+      child = Scarpe::Native::DisplayService.instance.child
+      child.request(:type, text: "l") # both keys reach Rust before Ruby hears of either
+      child.request(:type, text: "X")
+      wait_frames # the slow block runs twice, and Lacci's two echoes follow the keys
+      type_text "Y"
+      assert_equal ["hello", "hellXo", "hellXYo"], $seen
+      assert_equal "hellXYo", edit_line.text
+      assert_equal "hellXYo", layout_tree.find { |node| node[:kind] == "EditLine" }[:text], "Y went in after the X"
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_a_secret_field_copies_nothing
     run = run_real(<<~APP, test_code: <<~TEST)
       Shoes.app do
