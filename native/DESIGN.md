@@ -530,6 +530,18 @@ change the code and this list together.
   node must never paint outside `paint::damage::paint_bounds`: code that makes a node draw further (a
   new transform, a bigger shadow) grows that function too, or `SCARPE_NATIVE_DAMAGE=check` will say so.
   A masked slot's layers cover only the repainted rect, so masks repaint in part like anything else.
+- **Untrusted input** (`src/limits.rs`, wave 4). Nothing on stdin can make Rust panic, hang or
+  allocate without bound: a bad line is logged (bytes that are not UTF-8 included) and the next
+  one is read. App and window sides are finite and at most 10,000 logical px (a NaN, zero or
+  negative one keeps the last size, and `resize` answers with an error); a headless picture is
+  at most 64 megapixels at a scale of 0.1 to 8, else `snapshot` says so; a `frames` request waits
+  for at most 1,000. A node is never attached inside itself, so the tree has no loops; layout
+  stops 128 slots deep and masks stop masking 4 deep, so no document overflows the stack or piles
+  up layers. Paths reaching more than a million device pixels out are not drawn (tiny-skia's
+  fixed point panicked on a stroke 2^31 px wide). Image and font files are read only when they
+  are plain files (a FIFO would block, /dev/zero never ends) within 256 MB, and images within
+  16,384 px a side, whatever their extension says. `tests/fuzz.rs` feeds generated hostile
+  sessions through the real entry point (SCARPE_NATIVE_FUZZ_RUNS, SCARPE_NATIVE_FUZZ_SEED).
 - **Para `cursor` and `marker`** count from the end when negative (`-1` sits after the last
   character, as Shoes 3 editors use it). The caret takes the text's colour, so it shows on dark
   backgrounds.

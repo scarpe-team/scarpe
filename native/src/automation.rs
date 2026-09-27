@@ -4,6 +4,7 @@
 use crate::doc::Kind;
 use crate::input::{self, KeyInput};
 use crate::layout::{Layout, Rect};
+use crate::limits;
 use crate::props::Id;
 use crate::protocol::{MouseAction, Op, Outgoing, Target};
 use crate::runtime::{Effect, Runtime};
@@ -51,7 +52,10 @@ impl Runtime {
             Op::Snapshot { path, app, scale } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;
                 let scale = scale.unwrap_or(self.views[&app].scale);
-                let pm = self.shown(app, scale).ok_or(("could not make a canvas".to_string(), Value::Null))?;
+                if !limits::SCALES.contains(&scale) {
+                    return Err((format!("scale {scale} is outside {:?}", limits::SCALES), Value::Null));
+                }
+                let pm = self.shown(app, scale).ok_or(("the canvas would be too large to make".to_string(), Value::Null))?;
                 if let Some(dir) = std::path::Path::new(&path).parent().filter(|d| !d.as_os_str().is_empty()) {
                     let _ = std::fs::create_dir_all(dir);
                 }
@@ -103,6 +107,9 @@ impl Runtime {
             }
             Op::Resize { app, w, h } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;
+                let (Some(w), Some(h)) = (limits::side(w), limits::side(h)) else {
+                    return Err((format!("{w}x{h} is not a window size"), Value::Null));
+                };
                 if !self.opts.headless {
                     self.effects.push(Effect::ResizeWindow(app, w, h));
                 }
@@ -122,6 +129,7 @@ impl Runtime {
             }
             Op::Frames { n, app } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;
+                let n = n.min(limits::MAX_FRAMES);
                 if self.opts.headless {
                     let scale = self.views[&app].scale;
                     for _ in 0..n.max(1) {

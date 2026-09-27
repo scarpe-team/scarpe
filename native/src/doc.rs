@@ -306,7 +306,7 @@ impl Doc {
     }
 
     pub fn reparent(&mut self, id: Id, parent: Option<Id>, index: Option<usize>) {
-        if !self.nodes.contains_key(&id) || parent == Some(id) {
+        if !self.nodes.contains_key(&id) || parent.is_some_and(|p| self.is_descendant_of(p, id)) {
             return;
         }
         self.detach(id);
@@ -318,7 +318,17 @@ impl Doc {
         }
     }
 
+    /// Puts `id` among `parent`'s children, unless `parent` is `id` itself or inside it: a
+    /// node cannot hold itself, so a loop leaves it detached instead. Only a node that already
+    /// has children can hold `parent`, so a fresh create costs no walk up the tree.
     fn attach(&mut self, id: Id, parent: Id, index: Option<usize>) {
+        let holds_children = self.nodes.get(&id).is_some_and(|n| !n.children.is_empty());
+        if parent == id || holds_children && self.is_descendant_of(parent, id) {
+            if let Some(node) = self.nodes.get_mut(&id) {
+                node.parent = None;
+            }
+            return;
+        }
         if let Some(p) = self.nodes.get_mut(&parent) {
             let at = index.unwrap_or(p.children.len()).min(p.children.len());
             p.children.insert(at, id);
@@ -351,22 +361,29 @@ impl Doc {
         None
     }
 
-    /// Ancestors from the node's parent up to the root.
+    /// Ancestors from the node's parent up to the root. `attach` never makes a loop; the walk
+    /// still stops after as many steps as there are nodes, so it always ends.
     pub fn ancestors(&self, id: Id) -> Vec<Id> {
         let mut out = Vec::new();
         let mut current = self.nodes.get(&id).and_then(|n| n.parent);
-        while let Some(p) = current {
-            if out.contains(&p) {
-                break;
-            }
+        while let Some(p) = current.filter(|_| out.len() < self.nodes.len()) {
             out.push(p);
             current = self.nodes.get(&p).and_then(|n| n.parent);
         }
         out
     }
 
+    /// Whether `id` is `ancestor` or sits somewhere inside it.
     pub fn is_descendant_of(&self, id: Id, ancestor: Id) -> bool {
-        id == ancestor || self.ancestors(id).contains(&ancestor)
+        let mut current = Some(id);
+        for _ in 0..=self.nodes.len() {
+            match current {
+                Some(c) if c == ancestor => return true,
+                Some(c) => current = self.nodes.get(&c).and_then(|n| n.parent),
+                None => return false,
+            }
+        }
+        false
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &Node> {
@@ -425,6 +442,22 @@ mod tests {
         assert!(doc.children(2).is_empty());
         assert!(doc.destroy(3).is_empty());
         assert!(!doc.set_props(4, json!({"text_items": []}).as_object().unwrap().clone()));
+    }
+
+    #[test]
+    fn a_node_never_ends_up_inside_itself() {
+        let mut doc = Doc::default();
+        doc.create(new(2, "DocumentRoot", None, None));
+        doc.create(new(3, "Stack", Some(2), None));
+        doc.create(new(4, "Stack", Some(3), None));
+        doc.reparent(3, Some(4), None);
+        assert_eq!((doc.children(2), doc.children(4)), (&[3][..], &[][..]), "a move under its own child is refused");
+        doc.create(new(3, "Stack", Some(4), None));
+        assert_eq!(doc.get(3).and_then(|n| n.parent), None, "so is a create under a node it already holds");
+        assert!(doc.children(4).is_empty());
+        doc.create(new(5, "Stack", Some(5), None));
+        assert!(doc.children(5).is_empty(), "or under itself");
+        assert_eq!(doc.ancestors(4), vec![3]);
     }
 
     #[test]

@@ -9,6 +9,7 @@ use crate::doc::{Doc, Kind, NewNode};
 use crate::elements::image::ImageCache;
 use crate::input::{Clipboard, CursorShape, ViewState};
 use crate::layout::{self, Inputs, Layout};
+use crate::limits;
 use crate::paint::damage::{FrameMemory, Revisions};
 use crate::paint::{self, Scene};
 use crate::props::Id;
@@ -474,9 +475,10 @@ impl Runtime {
     }
 
     /// A fresh offscreen picture of `app`. The window still repaints if it was due to.
+    /// None when the picture would be too large to make (limits::picture_size).
     pub fn picture(&mut self, app: Id, scale: f32) -> Option<Pixmap> {
-        let size = self.views.get(&app)?.size;
-        let mut pm = Pixmap::new((size.0 * scale).ceil().max(1.0) as u32, (size.1 * scale).ceil().max(1.0) as u32)?;
+        let (w, h) = limits::picture_size(self.views.get(&app)?.size, scale)?;
+        let mut pm = Pixmap::new(w, h)?;
         self.paint_into(app, &mut pm, scale);
         if self.opts.headless {
             self.stats.frame_shown();
@@ -487,8 +489,10 @@ impl Runtime {
         Some(pm)
     }
 
-    /// The window changed size (logical px).
+    /// The window changed size (logical px). A size that cannot be one (NaN, zero, negative:
+    /// a minimised window) keeps the last; a huge one is capped at limits::MAX_SIDE.
     pub fn resize_view(&mut self, app: Id, w: f32, h: f32, notify: bool) {
+        let (Some(w), Some(h)) = (limits::side(w), limits::side(h)) else { return };
         let Some(view) = self.views.get_mut(&app) else { return };
         if view.size == (w, h) {
             return;
@@ -569,7 +573,8 @@ fn is_input(op: &Op) -> bool {
     matches!(op, Op::Click { .. } | Op::Mouse { .. } | Op::Type { .. } | Op::Key { .. } | Op::Wheel { .. })
 }
 
+/// The App's `width` and `height`, each finite, positive and at most limits::MAX_SIDE.
 pub fn app_size(props: &Map<String, Value>) -> (f32, f32) {
-    let num = |k: &str, d: f32| props.get(k).and_then(Value::as_f64).map(|v| v as f32).filter(|v| *v > 0.0).unwrap_or(d);
+    let num = |k: &str, d: f32| props.get(k).and_then(Value::as_f64).and_then(|v| limits::side(v as f32)).unwrap_or(d);
     (num("width", DEFAULT_SIZE.0), num("height", DEFAULT_SIZE.1))
 }

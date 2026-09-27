@@ -99,6 +99,16 @@ fn required<T>(v: Option<T>, what: &str) -> Result<T, ParseError> {
     v.ok_or_else(|| ParseError::Message(format!("missing or invalid `{what}`")))
 }
 
+/// The next line of `input` without its newline, or None at the end or on a read error. Bytes
+/// that are not UTF-8 become U+FFFD, so one bad line is a parse error and not the end of input.
+pub fn read_line_lossy(input: &mut impl std::io::BufRead, buf: &mut Vec<u8>) -> Option<String> {
+    buf.clear();
+    match input.read_until(b'\n', buf) {
+        Ok(0) | Err(_) => None,
+        Ok(_) => Some(String::from_utf8_lossy(buf).into_owned()),
+    }
+}
+
 pub fn parse_line(line: &str) -> Result<Incoming, ParseError> {
     let value: Value = serde_json::from_str(line).map_err(|e| ParseError::Json(e.to_string()))?;
     let Value::Object(obj) = value else {
@@ -177,7 +187,7 @@ fn op_fields(obj: &Map<String, Value>) -> Result<Op, ParseError> {
         "wheel" => Op::Wheel { dy: required(f(obj, "dy"), "dy")?, x: f(obj, "x"), y: f(obj, "y"), app },
         "resize" => Op::Resize { app, w: required(f(obj, "w"), "w")?, h: required(f(obj, "h"), "h")? },
         "pixel" => Op::Pixel { x: required(f(obj, "x"), "x")?, y: required(f(obj, "y"), "y")?, app },
-        "frames" => Op::Frames { n: obj.get("n").and_then(Value::as_u64).unwrap_or(1) as u32, app },
+        "frames" => Op::Frames { n: obj.get("n").and_then(Value::as_u64).unwrap_or(1).min(u32::MAX as u64) as u32, app },
         "focused" => Op::Focused { app },
         "ping" => Op::Ping,
         other => Op::Invalid(format!("unknown op `{other}`")),

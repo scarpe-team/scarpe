@@ -8,6 +8,7 @@
 
 use crate::doc::{Doc, Kind, Node};
 use crate::elements::{self, image::ImageCache};
+use crate::limits;
 use crate::paint::shapes;
 use crate::props::{Edges, Id};
 use crate::style::Dim;
@@ -177,6 +178,7 @@ pub fn layout(inputs: Inputs, root: Id, size: (f32, f32)) -> Layout {
         out: Layout { size, root, ..Layout::default() },
         attached: Vec::new(),
         clips: HashMap::new(),
+        depth: 0,
     };
     engine.root(root, size);
     let out = engine.finish(root);
@@ -193,6 +195,8 @@ struct Engine<'a> {
     attached: Vec<(Id, Attach)>,
     /// Slots with a fixed height: they chop off what does not fit, scrolling or not.
     clips: HashMap<Id, Rect>,
+    /// How many slots (and shape blocks) deep the node being placed sits.
+    depth: usize,
 }
 
 #[derive(Clone, Copy)]
@@ -311,6 +315,17 @@ impl Engine<'_> {
     /// Lays out a slot's in-flow children in `content`. Returns the height they
     /// need and the children placed after the slot's size is known.
     fn children(&mut self, slot: Id, flow: bool, content: Rect, avail_h: f32) -> (f32, Vec<Id>) {
+        // Past limits::MAX_DEPTH a slot is laid out empty, so no input can overflow the stack.
+        if self.depth >= limits::MAX_DEPTH {
+            return (0.0, Vec::new());
+        }
+        self.depth += 1;
+        let placed = self.children_within_depth(slot, flow, content, avail_h);
+        self.depth -= 1;
+        placed
+    }
+
+    fn children_within_depth(&mut self, slot: Id, flow: bool, content: Rect, avail_h: f32) -> (f32, Vec<Id>) {
         let doc = self.doc;
         let mut cursor = Cursor::default();
         let mut later = Vec::new();
@@ -553,10 +568,11 @@ impl Engine<'_> {
         let doc = self.doc;
         let parent = (content.w, content.h);
         let mut bounds = shapes::art(node, (content.x, content.y), parent).map(|art| art.bounds);
-        if node.kind == Kind::Shape {
+        if node.kind == Kind::Shape && self.depth < limits::MAX_DEPTH {
             // Art drawn inside a shape block joins its path, measured from the shape's left/top (E7).
             let (x, y) = shapes::group_origin(node, (content.x, content.y), parent);
             let inner = Rect::new(x, y, content.w, content.h);
+            self.depth += 1;
             for &child in doc.children(node.id) {
                 if let Some(c) = doc.get(child).filter(|c| c.kind.is_art() && !hidden(c)) {
                     self.place_art(c, inner);
@@ -565,6 +581,7 @@ impl Engine<'_> {
                     }
                 }
             }
+            self.depth -= 1;
         }
         let Some(rect) = bounds else { return };
         self.out.boxes.insert(node.id, LBox { rect, clip: None, origin: (content.x, content.y), parent_size: parent });
@@ -669,7 +686,11 @@ impl Engine<'_> {
             Some(canvas) => Some(inner.map_or(canvas, |c| c.intersect(&canvas).unwrap_or(Rect::new(canvas.x, canvas.y, 0.0, 0.0)))),
             None => inner,
         };
+        // Only laid-out nodes need a clip, and only they have laid-out children.
         for &child in doc.children(id) {
+            if !self.out.boxes.contains_key(&child) {
+                continue;
+            }
             let child_clip = if doc.get(child).is_some_and(|c| c.kind.is_decor()) { clip } else { inner };
             self.assign_clips(child, child_clip);
         }

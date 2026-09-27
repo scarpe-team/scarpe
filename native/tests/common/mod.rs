@@ -103,3 +103,14 @@ pub fn app(w: u32, h: u32, body: &[Value]) -> String {
 pub fn create(id: i64, kind: &str, parent: i64, props: Value) -> Value {
     json!({"t":"create","id":id,"kind":kind,"parent":parent,"index":null,"widget":false,"props":props})
 }
+
+/// A scratch PNG path for snapshot requests, one per test process.
+pub fn snapshot_path() -> String {
+    std::env::temp_dir().join(format!("scarpe-native-test-{}.png", std::process::id())).display().to_string()
+}
+
+/// The display still answers after swallowing whatever came before.
+pub fn still_answers(h: &mut Harness) {
+    let (_, reply) = h.req(json!({"op": "ping"}));
+    assert_eq!(reply["value"], json!("pong"));
+}
