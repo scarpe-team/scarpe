@@ -387,3 +387,35 @@ fn app_opacity_makes_the_window_see_through() {
     h.feed("{\"t\":\"props\",\"id\":1,\"props\":{\"opacity\":1.0}}\n");
     assert_eq!(pixel(&mut h, 10.0, 10.0), [255, 0, 0, 255]);
 }
+
+// ---- Button icons (Shoes 3.3 `icon:`, `icon_pos:`; ledger G7) ----
+
+/// A solid 16x16 icon on disk.
+fn red_icon() -> String {
+    let path = std::env::temp_dir().join(format!("scarpe-art-input-icon-{}.png", std::process::id()));
+    image::RgbaImage::from_pixel(16, 16, image::Rgba([255, 0, 0, 255])).save(&path).expect("icon");
+    path.to_string_lossy().into_owned()
+}
+
+/// shoes3-tests/button/button.rb: the icon sits beside the label, on the side
+/// `icon_pos` names, and the button grows to hold both.
+#[test]
+fn a_button_draws_its_icon_beside_its_label() {
+    let icon = red_icon();
+    let mut h = Harness::new();
+    h.feed(&app(400, 200, &[
+        create(3, "Button", 2, json!({"text": "Info", "left": 10, "top": 10})),
+        create(4, "Button", 2, json!({"text": "Info", "left": 10, "top": 60, "icon": icon})),
+        create(5, "Button", 2, json!({"text": "Info", "left": 10, "top": 110, "icon": icon, "icon_pos": "right"})),
+    ]));
+    let plain = h.node(|n| n["id"] == 3)["w"].as_f64().unwrap();
+    let with_icon = h.node(|n| n["id"] == 4);
+    let (x, y, w, bh) = (with_icon["x"].as_f64().unwrap(), with_icon["y"].as_f64().unwrap(), with_icon["w"].as_f64().unwrap(), with_icon["h"].as_f64().unwrap());
+    assert_eq!(w, plain + 22.0, "room for a 16 px icon and a 6 px gap");
+    assert_eq!(rgb(&mut h, x + 14.0 + 8.0, y + bh / 2.0), RED, "the icon comes first by default");
+    assert_ne!(rgb(&mut h, x + w - 14.0 - 8.0, y + bh / 2.0), RED);
+    let right = h.node(|n| n["id"] == 5);
+    let (rx, ry, rw, rh) = (right["x"].as_f64().unwrap(), right["y"].as_f64().unwrap(), right["w"].as_f64().unwrap(), right["h"].as_f64().unwrap());
+    assert_eq!(rgb(&mut h, rx + rw - 14.0 - 8.0, ry + rh / 2.0), RED, "icon_pos: right puts it after the label");
+    let _ = std::fs::remove_file(icon);
+}

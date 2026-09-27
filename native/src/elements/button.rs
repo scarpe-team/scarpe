@@ -1,6 +1,9 @@
-//! button: a rounded push button with a soft gradient, border and shadow.
+//! button: a rounded push button with a soft gradient, border and shadow, and
+//! Shoes 3.3's optional `icon:` beside its label (`icon_pos:` left, right, top, bottom).
 
+use super::image::{self, ImageCache};
 use super::{focus_ring, text_on, Label, WidgetState, CONTROL_TEXT_SIZE};
+use std::path::Path;
 use crate::doc::Node;
 use crate::input::{Key, KeyInput, Named};
 use crate::layout::{LBox, Rect, TextBox};
@@ -13,6 +16,49 @@ use crate::text::{RichText, TextEngine};
 const PAD_X: f32 = 14.0;
 const MIN_HEIGHT: f32 = 28.0;
 const RADIUS: f32 = 6.0;
+const ICON: f32 = 16.0;
+const ICON_GAP: f32 = 6.0;
+
+#[derive(Clone, Copy, PartialEq)]
+enum IconPos {
+    Left,
+    Right,
+    Top,
+    Bottom,
+}
+
+fn icon_path(node: &Node) -> Option<&str> {
+    node.props.str("icon").filter(|p| !p.is_empty())
+}
+
+fn icon_pos(node: &Node) -> Option<IconPos> {
+    icon_path(node)?;
+    Some(match node.props.str("icon_pos").map(|p| p.trim_start_matches(':')) {
+        Some("right") => IconPos::Right,
+        Some("top") => IconPos::Top,
+        Some("bottom") => IconPos::Bottom,
+        _ => IconPos::Left,
+    })
+}
+
+/// Where the label goes inside a (w, h) button, and the icon's box, both from its corner.
+fn arrange(node: &Node, w: f32, h: f32, label: (f32, f32)) -> ((f32, f32), Option<Rect>) {
+    let centred = ((w - label.0) / 2.0, (h - label.1) / 2.0);
+    let Some(pos) = icon_pos(node) else { return (centred, None) };
+    let gap = if label.0 > 0.0 { ICON_GAP } else { 0.0 };
+    match pos {
+        IconPos::Left | IconPos::Right => {
+            let start = (w - (ICON + gap + label.0)) / 2.0;
+            let (icon_x, text_x) = if pos == IconPos::Left { (start, start + ICON + gap) } else { (start + label.0 + gap, start) };
+            ((text_x, centred.1), Some(Rect::new(icon_x, (h - ICON) / 2.0, ICON, ICON)))
+        }
+        IconPos::Top | IconPos::Bottom => {
+            let start = (h - (ICON + gap + label.1)) / 2.0;
+            let (icon_y, text_y) = if pos == IconPos::Top { (start, start + ICON + gap) } else { (start + label.1 + gap, start) };
+            ((centred.0, text_y), Some(Rect::new((w - ICON) / 2.0, icon_y, ICON, ICON)))
+        }
+    }
+}
 
 fn rich(node: &Node, engine: &TextEngine) -> RichText {
     let p = &node.props;
@@ -52,17 +98,22 @@ fn label_color(node: &Node) -> Color {
 
 pub fn size(node: &Node, engine: &mut TextEngine) -> (f32, f32) {
     let rich = rich(node, engine);
-    let shaped = engine.shape(&rich, None);
-    let w = (shaped.width + PAD_X * 2.0).ceil().max(MIN_HEIGHT);
-    let h = (rich.line_height + 12.0).ceil().max(MIN_HEIGHT);
+    let text_w = engine.shape(&rich, None).width;
+    let gap = if text_w > 0.0 { ICON_GAP } else { 0.0 };
+    let (content_w, content_h) = match icon_pos(node) {
+        None => (text_w, rich.line_height),
+        Some(IconPos::Left | IconPos::Right) => (text_w + gap + ICON, rich.line_height.max(ICON)),
+        Some(IconPos::Top | IconPos::Bottom) => (text_w.max(ICON), rich.line_height + ICON_GAP + ICON),
+    };
+    let w = (content_w + PAD_X * 2.0).ceil().max(MIN_HEIGHT);
+    let h = (content_h + 12.0).ceil().max(MIN_HEIGHT);
     (w, h)
 }
 
 pub fn label(node: &Node, w: f32, h: f32, engine: &mut TextEngine) -> Label {
     let rich = rich(node, engine);
     let shaped = engine.shape(&rich, None);
-    let dx = (w - shaped.width) / 2.0;
-    let dy = (h - shaped.height) / 2.0;
+    let ((dx, dy), _) = arrange(node, w, h, (shaped.width, shaped.height));
     Label { shaped, dx, dy }
 }
 
@@ -71,7 +122,15 @@ pub fn activates(key: &KeyInput) -> bool {
     !key.modified() && (key.key == Key::Named(Named::Enter) || key.key == Key::Char(" ".into()))
 }
 
-pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, label: Option<&TextBox>, state: WidgetState, engine: &mut TextEngine) {
+pub fn paint(
+    canvas: &mut Canvas,
+    node: &Node,
+    lbox: &LBox,
+    label: Option<&TextBox>,
+    state: WidgetState,
+    engine: &mut TextEngine,
+    images: &mut ImageCache,
+) {
     let r = lbox.rect;
     let clip = lbox.clip;
     if state.focused {
@@ -90,10 +149,14 @@ pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, label: Option<&TextB
     };
     canvas.fill_gradient(r, RADIUS, top, bottom, clip);
     canvas.stroke_rounded(r, RADIUS, Color::rgba(0, 0, 0, 38), 1.0, clip);
+    let inner = Rect::new(r.x + 2.0, r.y, r.w - 4.0, r.h);
+    let inner_clip = clip.and_then(|c| c.intersect(&inner)).or(Some(inner));
     if let Some(tb) = label {
-        let inner = Rect::new(r.x + 2.0, r.y, r.w - 4.0, r.h);
-        let text_clip = clip.and_then(|c| c.intersect(&inner)).or(Some(inner));
-        text::draw_shaped(canvas, engine, &tb.shaped, tb.x, tb.y, text_clip, None);
+        text::draw_shaped(canvas, engine, &tb.shaped, tb.x, tb.y, inner_clip, None);
+    }
+    let label_size = label.map_or((0.0, 0.0), |tb| (tb.shaped.width, tb.shaped.height));
+    if let (Some(icon), Some(img)) = (arrange(node, r.w, r.h, label_size).1, icon_path(node).and_then(|p| images.get(Path::new(p)))) {
+        image::draw_fitted(canvas, &img, icon.translate(r.x, r.y), inner_clip);
     }
 }
 

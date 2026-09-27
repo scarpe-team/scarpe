@@ -105,6 +105,18 @@ pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, images: &mut ImageCa
     canvas.pm.draw_pixmap(0, 0, img.as_ref().as_ref(), &paint, base.pre_concat(transform), None);
 }
 
+/// Draws `img` as large as fits in `r`, keeping its shape, centred (a button's icon).
+pub fn draw_fitted(canvas: &mut Canvas, img: &Pixmap, r: Rect, clip: Option<Rect>) {
+    let (iw, ih) = (img.width() as f32, img.height() as f32);
+    let s = (r.w / iw).min(r.h / ih);
+    let (w, h) = (iw * s, ih * s);
+    let at = Rect::new(r.x + (r.w - w) / 2.0, r.y + (r.h - h) / 2.0, w, h);
+    let shader = tiny_skia::Pattern::new(img.as_ref(), tiny_skia::SpreadMode::Pad, FilterQuality::Bicubic, 1.0, Transform::from_row(s, 0.0, 0.0, s, at.x, at.y));
+    if let Some(path) = crate::paint::shapes::rounded_rect(at, 0.0) {
+        canvas.fill_path(&path, shader, tiny_skia::FillRule::Winding, Transform::identity(), clip);
+    }
+}
+
 fn placeholder(canvas: &mut Canvas, r: Rect, clip: Option<Rect>) {
     canvas.fill_rounded(r, 4.0, Color::rgb(0xf2, 0xf2, 0xf7), clip);
     canvas.stroke_rounded(r, 4.0, Color::rgb(0xd1, 0xd1, 0xd6), 1.0, clip);

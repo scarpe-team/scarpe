@@ -97,7 +97,7 @@ pub fn paint(
 ) {
     let state = state_of(node, view);
     match node.kind {
-        Kind::Button => button::paint(canvas, node, lbox, label, state, text),
+        Kind::Button => button::paint(canvas, node, lbox, label, state, text, images),
         Kind::Check => check::paint(canvas, node, lbox, state),
         Kind::Radio => radio::paint(canvas, node, lbox, state),
         Kind::EditLine => edit_line::paint(canvas, node, lbox, state, view, text),

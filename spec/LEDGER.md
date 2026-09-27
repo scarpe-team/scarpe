@@ -802,7 +802,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### G7. Button styling
 
-**Ruling: EXT.** The Shoes 3.3 set (`font:`, `stroke:`, `icon:`, `icon_pos:`, `tooltip:`, from `for_playtest/shoes3-tests/button/button.rb`) is `ext-s33`. Scarpe-only `:color`, `:text_color`, `:font_size`, `:padding_*` (`button.rb:5`) are `ext-scarpe` behind `features: :scarpe`. The manual gives buttons no colour style. **Native:** honours the S3.3 set; Scarpe-only styles when the feature is on.
+**Ruling: EXT.** The Shoes 3.3 set (`font:`, `stroke:`, `icon:`, `icon_pos:`, `tooltip:`, from `for_playtest/shoes3-tests/button/button.rb`) is `ext-s33`. Scarpe-only `:color`, `:text_color`, `:font_size`, `:padding_*` (`button.rb:5`) are `ext-scarpe` behind `features: :scarpe`. The manual gives buttons no colour style. **Native:** honours the S3.3 set (since M2 that includes `icon:` with `icon_pos:` and `tooltip:`, DESIGN 12); Scarpe-only styles when the feature is on. Nobody has checked Shoes 3.3's default `icon_pos`; native puts the icon on the left, as GTK and AppKit do by default.
 
 ### G8. `check.checked`
 

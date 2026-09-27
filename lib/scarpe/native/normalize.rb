@@ -47,6 +47,7 @@ module Scarpe::Native::Normalize
     when *COLOR_KEYS then color(value)
     when "draw_context" then draw_context(value)
     when "url" then kind == "Image" ? image_path(value) : local_path(value)
+    when "icon" then image_path(value)
     when "attach" then attach(value)
     when "items" then value && Array(value).map(&:to_s)
     when "chosen" then value&.to_s
