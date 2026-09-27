@@ -30,7 +30,7 @@ module Bench
   Row = Struct.new(:bench, :measure, :value, :unit)
 
   class Runner
-    ALL = %w[ovals ovals_headless typing typing_headless startup idle clock rebuild memory].freeze
+    ALL = %w[ovals ovals_headless backdrop typing typing_headless startup idle clock rebuild memory].freeze
 
     def initialize(argv)
       @ruby = RbConfig.ruby
@@ -80,6 +80,13 @@ module Bench
       result = drive("ovals.rb", "paced", @seconds, headless: true)
       frame_rate("ovals headless", result)
       where_time_goes("ovals headless", result)
+    end
+
+    # One small ball over a busy, still window: what a frame costs when almost nothing changed.
+    def bench_backdrop
+      result = drive("backdrop.rb", "run", @seconds)
+      frame_rate("backdrop", result)
+      where_time_goes("backdrop", result)
     end
 
     def bench_typing

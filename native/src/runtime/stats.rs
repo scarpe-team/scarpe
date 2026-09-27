@@ -68,6 +68,7 @@ pub struct Stats {
     input_at: Option<Instant>,
     /// Input -> the frame that showed it, in ms.
     input_latency: Vec<f64>,
+    counters: std::collections::BTreeMap<&'static str, u64>,
 }
 
 impl Default for Stats {
@@ -90,6 +91,7 @@ impl Stats {
             frames: Vec::new(),
             input_at: None,
             input_latency: Vec::new(),
+            counters: Default::default(),
         }
     }
 
@@ -110,8 +112,13 @@ impl Stats {
         self.add(phase, from.elapsed());
     }
 
-    pub fn count(&self, phase: Phase) -> u64 {
-        self.tallies[phase as usize].count
+    /// Adds to a named counter (repaints in part and in full, pixels repainted...).
+    pub fn count(&mut self, name: &'static str, by: u64) {
+        *self.counters.entry(name).or_insert(0) += by;
+    }
+
+    pub fn counter(&self, name: &str) -> u64 {
+        self.counters.get(name).copied().unwrap_or(0)
     }
 
     /// Records a milestone the first time it happens.
@@ -120,10 +127,6 @@ impl Stats {
             let at = self.since_start(Instant::now());
             self.marks.push((name, at));
         }
-    }
-
-    pub fn marked(&self, name: &str) -> bool {
-        self.marks.iter().any(|(n, _)| *n == name)
     }
 
     /// Input arrived; the next frame shown is the one that answers it.
@@ -168,6 +171,7 @@ impl Stats {
             "frame_columns": ["at", "parse", "apply", "layout", "paint", "present", "req"],
             "frames": self.frames,
             "input_latency_ms": self.input_latency,
+            "counters": self.counters,
         })
     }
 

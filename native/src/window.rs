@@ -3,6 +3,7 @@
 //! loop waits (ControlFlow::Wait) and redraws only apps whose view is dirty.
 
 use crate::input::{CursorShape, Key, KeyInput, Modifiers, Named};
+use crate::paint::damage::FrameMemory;
 use crate::props::Id;
 use crate::protocol::Outbox;
 use crate::runtime::stats::{self, Phase};
@@ -39,7 +40,9 @@ struct Win {
     surface: softbuffer::Surface<Rc<Window>, Rc<Window>>,
     _context: softbuffer::Context<Rc<Window>>,
     surface_size: (u32, u32),
+    /// The last frame, kept so the next one repaints only what changed.
     pixmap: Option<Pixmap>,
+    memory: FrameMemory,
     modifiers: ModifiersState,
 }
 
@@ -153,7 +156,16 @@ impl Shell {
         let id = window.id();
         self.windows.insert(
             id,
-            Win { app, window, surface, _context: context, surface_size: (0, 0), pixmap: None, modifiers: ModifiersState::empty() },
+            Win {
+                app,
+                window,
+                surface,
+                _context: context,
+                surface_size: (0, 0),
+                pixmap: None,
+                memory: FrameMemory::default(),
+                modifiers: ModifiersState::empty(),
+            },
         );
     }
 
@@ -227,7 +239,7 @@ impl Shell {
         if let Some(view) = self.rt.views.get_mut(&win.app) {
             view.scale = scale;
         }
-        self.rt.render(win.app, pm, scale);
+        self.rt.repaint(win.app, pm, scale, &mut win.memory);
         let presenting = Instant::now();
         if win.surface_size != (w, h) {
             if win.surface.resize(NonZeroU32::new(w).expect("w"), NonZeroU32::new(h).expect("h")).is_err() {

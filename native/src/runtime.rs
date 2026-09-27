@@ -1,19 +1,22 @@
 //! The Runtime: the retained document, per-app view state and the protocol
 //! handler, shared by the window and the headless canvas.
 
+mod repaint;
 pub mod stats;
 
 use crate::doc::{Doc, Kind, NewNode};
 use crate::elements::image::ImageCache;
 use crate::input::{Clipboard, CursorShape, ViewState};
 use crate::layout::{self, Inputs, Layout};
+use crate::paint::damage::{FrameMemory, Revisions};
 use crate::paint::{self, Scene};
 use crate::props::Id;
 use crate::protocol::{self, Create, Incoming, Op, Outbox, Outgoing};
 use crate::text::{FontMode, TextEngine};
 use serde_json::{Map, Value};
 use stats::{Phase, Stats};
-use std::collections::BTreeMap;
+use repaint::DamageMode;
+use std::collections::{BTreeMap, HashMap};
 use std::time::Instant;
 use tiny_skia::Pixmap;
 
@@ -87,6 +90,13 @@ pub struct Runtime {
     pub mid_batch: bool,
     pending_frames: Vec<PendingFrames>,
     pub stats: Stats,
+    /// When each node last changed, for windows that repaint only what changed.
+    pub revisions: Revisions,
+    damage: DamageMode,
+    /// SCARPE_NATIVE_DAMAGE=check: the last full paint per app, and headless, a frame per
+    /// app repainted in part alongside every picture.
+    last_full: HashMap<Id, Pixmap>,
+    checked_frames: HashMap<Id, (Pixmap, FrameMemory)>,
 }
 
 impl Runtime {
@@ -109,6 +119,10 @@ impl Runtime {
             mid_batch: false,
             pending_frames: Vec::new(),
             stats,
+            revisions: Revisions::default(),
+            damage: DamageMode::from_env(),
+            last_full: HashMap::new(),
+            checked_frames: HashMap::new(),
         }
     }
 
@@ -155,6 +169,7 @@ impl Runtime {
             Incoming::Destroy { id } => self.destroy(id),
             Incoming::Reparent { id, parent, index } => {
                 self.doc.reparent(id, parent, index);
+                self.revisions.touch(id);
                 self.invalidate();
             }
             Incoming::Run { app } => self.run_app(app),
@@ -179,6 +194,7 @@ impl Runtime {
             }
             Incoming::Font { path } => {
                 self.text.fonts.register(std::path::Path::new(&path));
+                self.revisions.touch_everything();
                 self.invalidate();
             }
             Incoming::Flush => self.flush(),
@@ -213,6 +229,7 @@ impl Runtime {
             doc_root: c.doc_root,
             owner: c.owner,
         });
+        self.revisions.touch(c.id);
         if is_app {
             let scale = self.default_scale();
             self.views.insert(
@@ -231,6 +248,7 @@ impl Runtime {
         if !self.doc.set_props(id, props) {
             return;
         }
+        self.revisions.touch(id);
         let kind = self.doc.get(id).map(|n| n.kind.clone());
         match kind {
             Some(Kind::App) => {
@@ -269,6 +287,7 @@ impl Runtime {
         if removed.is_empty() {
             return;
         }
+        self.revisions.forget(&removed);
         for view in self.views.values_mut() {
             view.ui.forget(&removed);
         }
@@ -397,6 +416,9 @@ impl Runtime {
         self.paint_into(app, &mut pm, scale);
         if self.opts.headless {
             self.stats.frame_shown();
+            if self.damage == DamageMode::Check {
+                self.check_partial_repaint(app, &pm, scale);
+            }
         }
         Some(pm)
     }
