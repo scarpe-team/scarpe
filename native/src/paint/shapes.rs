@@ -59,12 +59,23 @@ fn hug_far_edges(node: &Node, origin: (f32, f32), parent: (f32, f32), frame: Rec
     Some((frame.translate(dx, dy), path.transform(Transform::from_translate(dx, dy))?))
 }
 
+/// A coordinate of an art element (`left`, `top`, a line's `x2` and `y2`), from its slot's
+/// content origin. A negative number is a plain coordinate, as in Shoes 3 (shoes_place_exact,
+/// s3_ruby.c:385-392; ruled 27 Sep 2026), so art moves off the left and top edges; elsewhere
+/// it means the slot less that much. A fraction or a percentage is of the slot.
+fn coordinate(p: &Props, key: &str, basis: f32) -> Option<f32> {
+    match p.get(key).and_then(crate::style::dim::parse_number) {
+        Some(n) if n < 0.0 => Some(n),
+        _ => p.dim(key).map(|d| d.resolve(basis)),
+    }
+}
+
 /// (box, path, fillable) of an untransformed art element.
 fn geometry(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> Option<(Rect, Path, bool)> {
     let p = &node.props;
     let dim = |key: &str, basis: f32| p.dim(key).map(|d| d.resolve(basis));
-    let left = origin.0 + dim("left", parent.0).unwrap_or(0.0);
-    let top = origin.1 + dim("top", parent.1).unwrap_or(0.0);
+    let left = origin.0 + coordinate(p, "left", parent.0).unwrap_or(0.0);
+    let top = origin.1 + coordinate(p, "top", parent.1).unwrap_or(0.0);
     // Art that names a near and a far edge and no size runs from one to the other.
     let (right, bottom) = far_edges(p, origin, parent);
     let span_w = right.filter(|_| p.has("left")).map(|r| (r - left).max(0.0));
@@ -93,8 +104,8 @@ fn geometry(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> Option<(Rect
             Some((r, ellipse(r)?, true))
         }
         Kind::Line => {
-            let x2 = origin.0 + dim("x2", parent.0).unwrap_or(0.0);
-            let y2 = origin.1 + dim("y2", parent.1).unwrap_or(0.0);
+            let x2 = origin.0 + coordinate(p, "x2", parent.0).unwrap_or(0.0);
+            let y2 = origin.1 + coordinate(p, "y2", parent.1).unwrap_or(0.0);
             let mut pb = PathBuilder::new();
             pb.move_to(left, top);
             pb.line_to(x2, y2);
@@ -397,8 +408,8 @@ pub fn in_shape(doc: &Doc, node: &Node) -> bool {
 
 /// Where the art inside a shape block is measured from: the shape's (left, top).
 pub fn group_origin(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> (f32, f32) {
-    let dim = |key: &str, basis: f32| node.props.dim(key).map(|d| d.resolve(basis)).unwrap_or(0.0);
-    (origin.0 + dim("left", parent.0), origin.1 + dim("top", parent.1))
+    let at = |key: &str, basis: f32| coordinate(&node.props, key, basis).unwrap_or(0.0);
+    (origin.0 + at("left", parent.0), origin.1 + at("top", parent.1))
 }
 
 /// A shape block's own path plus every sub-path drawn inside it, as one path to fill

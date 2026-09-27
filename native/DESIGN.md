@@ -309,7 +309,9 @@ moved there the same day, so apps normally send it.
   the parent less that fraction; any other Float is px, because Ruby code often computes widths like
   `w / 2.0`. String `"N%"` = percent (negative: 100% less N%); `"Npx"` or a numeric String = px.
   Shoes 3 treats every Float as a fraction, 1.5 included (ledger C1); native keeps the Floats
-  above 1 as pixels.
+  above 1 as pixels. On art (`rect`, `oval`, `line`, `star`, `arrow`, `arc`, `shape`) a negative
+  `left`, `top` or line end is a plain coordinate, as in Shoes 3 (`shoes_place_exact`,
+  s3_ruby.c:385-392; ruled 27 Sep 2026), so art can move off the left and top edges.
 - **DocumentRoot** is a flow filling the window. If content is taller than the window, the root
   scrolls vertically (wheel + a thin overlay scrollbar), and the window's own backgrounds scroll
   with it.
