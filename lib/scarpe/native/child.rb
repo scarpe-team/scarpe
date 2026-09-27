@@ -374,8 +374,10 @@ module Scarpe::Native
       @log.warn("Ignoring a line from scarpe-native that is not JSON: #{line[0, 200].inspect}")
     end
 
+    # One JSON::State per thread, kept: JSON.generate builds a new one per call, which halves its
+    # speed on Ruby 3.2's json (native/PERF.md). A state counts nesting as it goes, hence per thread.
     def encode(message)
-      JSON.generate(message)
+      (Thread.current[:scarpe_native_json] ||= JSON::State.new).generate(message)
     rescue JSON::GeneratorError => e
       @log.error("Could not encode #{message.inspect[0, 300]} for scarpe-native: #{e.message}")
       nil
