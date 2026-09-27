@@ -219,3 +219,19 @@ fn a_secret_ask_is_typed_as_bullets_under_its_title() {
     assert_eq!(rt.window_title(own), "Bank");
     assert_eq!(rt.window_title(1), "test", "an app's window keeps the app's title");
 }
+
+/// The pointer over a dialog's own window is none of the app's business: Ruby's `mouse` keeps
+/// reporting its app window, and the dialog leaves nothing behind when it goes.
+#[test]
+fn a_dialogs_own_window_keeps_to_itself() {
+    let mut rt = app_being_built();
+    send(&mut rt, json!({"t":"req","req":1,"op":"dialog","kind":"ask","message":"Name?","default":null}));
+    let own = rt.open_standalone(1, &dialog_effect(&rt, 1).unwrap());
+    rt.pointer_move(own, 30.0, 20.0);
+    rt.pointer_down(own, 1);
+    let msgs = rt.out.take_captured();
+    assert!(msgs.iter().all(|m| m["t"] != "mouse"), "{msgs:?}");
+    let views = rt.views.len();
+    rt.key_input(own, scarpe_native::input::KeyInput::named(scarpe_native::input::Named::Escape));
+    assert_eq!(rt.views.len(), views - 1);
+}
