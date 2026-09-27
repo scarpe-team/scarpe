@@ -222,6 +222,8 @@ impl Shell {
             view.scale = scale;
         }
         self.rt.render(win.app, pm, scale);
+        // A layout done for this frame has told Ruby where things are: say it before showing it.
+        self.rt.out.flush();
         if win.surface_size != (w, h) {
             if win.surface.resize(NonZeroU32::new(w).expect("w"), NonZeroU32::new(h).expect("h")).is_err() {
                 return;
