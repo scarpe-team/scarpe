@@ -10,7 +10,11 @@ score = para("@score_text")
 head_color = [126, 224, 160]
 near = ->(pixel, color) { pixel.first(3).zip(color).all? { |got, want| (got - want).abs <= 10 } }
 
+# Apples land on a random free cell; keep them off the snake's path unless the check puts one there.
+out_of_the_way = -> { game.instance_variable_set(:@apple, [19, 0]) }
+
 assert_equal [[6, 8], [5, 8], [4, 8]], cells.call
+out_of_the_way.call
 advance 1
 assert_equal [6, 8], cells.call.first, "it waits for the first key"
 
@@ -23,6 +27,7 @@ game.instance_variable_set(:@apple, [6, 11]) # an apple right in its way
 advance 0.14
 assert_equal "1", score.text, "eating scores"
 assert_equal 4, cells.call.size, "and grows the snake"
+out_of_the_way.call
 
 press_key "p"
 held = cells.call.dup
