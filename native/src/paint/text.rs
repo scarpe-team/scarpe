@@ -7,6 +7,7 @@ use crate::props::Id;
 use crate::style::Color;
 use crate::text::raster::blit;
 use crate::text::rich::{Underline, INK, LINK_HOVER};
+use crate::text::shape_cache::INDENT_META;
 use crate::text::{ShapedText, SpanMeta, TextEngine};
 use cosmic_text::{Buffer, Cursor, DecorationSpan, LayoutGlyph, LayoutRun};
 use tiny_skia::PathBuilder;
@@ -14,7 +15,17 @@ use tiny_skia::PathBuilder;
 pub const SELECTION: Color = Color::rgba(0x0a, 0x84, 0xff, 64);
 
 pub fn draw_shaped(canvas: &mut Canvas, text: &mut TextEngine, shaped: &ShapedText, x: f32, y: f32, clip: Option<Rect>, hover_link: Option<Id>) {
-    draw_buffer(canvas, text, &shaped.buffer, x, y, INK, clip, &shaped.metas, hover_link);
+    let style = RunStyle { default: INK, metas: &shaped.metas, hover_link, half_leading: -shaped.top };
+    draw_runs(canvas, text, &shaped.buffer, x, y, clip, &style);
+}
+
+/// How to colour and box the runs of one buffer.
+struct RunStyle<'a> {
+    default: Color,
+    metas: &'a [SpanMeta],
+    hover_link: Option<Id>,
+    /// Leading cosmic-text centred in each line, which highlights leave out.
+    half_leading: f32,
 }
 
 fn meta_of(metas: &[SpanMeta], metadata: usize) -> Option<&SpanMeta> {
@@ -38,6 +49,11 @@ pub fn draw_buffer(
     metas: &[SpanMeta],
     hover_link: Option<Id>,
 ) {
+    draw_runs(canvas, text, buffer, x, y, clip, &RunStyle { default, metas, hover_link, half_leading: 0.0 });
+}
+
+fn draw_runs(canvas: &mut Canvas, text: &mut TextEngine, buffer: &Buffer, x: f32, y: f32, clip: Option<Rect>, style: &RunStyle) {
+    let RunStyle { default, metas, hover_link, half_leading } = *style;
     let s = canvas.scale;
     let px_clip = canvas.px_clip(clip);
     let visible = clip.unwrap_or(Rect::new(0.0, 0.0, canvas.pm.width() as f32 / s, canvas.pm.height() as f32 / s));
@@ -45,8 +61,8 @@ pub fn draw_buffer(
         if y + run.line_top > visible.bottom() || y + run.line_top + run.line_height < visible.y {
             continue;
         }
-        draw_highlights(canvas, &run, x, y, metas, clip);
-        for glyph in run.glyphs {
+        draw_highlights(canvas, &run, x, y + half_leading, metas, clip, half_leading);
+        for glyph in run.glyphs.iter().filter(|g| g.metadata != INDENT_META) {
             let meta = meta_of(metas, glyph.metadata);
             let rise = meta.map(|m| m.rise).unwrap_or(0.0);
             let mut color = glyph.color_opt.map(from_cosmic).unwrap_or(default);
@@ -65,11 +81,12 @@ pub fn draw_buffer(
     }
 }
 
-fn draw_highlights(canvas: &mut Canvas, run: &LayoutRun, x: f32, y: f32, metas: &[SpanMeta], clip: Option<Rect>) {
+fn draw_highlights(canvas: &mut Canvas, run: &LayoutRun, x: f32, y: f32, metas: &[SpanMeta], clip: Option<Rect>, half_leading: f32) {
     let mut current: Option<(Color, f32, f32)> = None;
+    let height = (run.line_height - 2.0 * half_leading).max(0.0);
     let flush = |canvas: &mut Canvas, span: Option<(Color, f32, f32)>| {
         if let Some((color, x0, x1)) = span {
-            canvas.fill_rect(Rect::new(x + x0, y + run.line_top, x1 - x0, run.line_height), color, clip);
+            canvas.fill_rect(Rect::new(x + x0, y + run.line_top, x1 - x0, height), color, clip);
         }
     };
     for glyph in run.glyphs {
@@ -201,22 +218,6 @@ fn wavy(canvas: &mut Canvas, x0: f32, x1: f32, y: f32, size: f32, color: Color, 
     }
 }
 
-/// Char index into the buffer's text to a cosmic-text Cursor.
-pub fn cursor_at_char(buffer: &Buffer, index: usize) -> Cursor {
-    let mut remaining = index;
-    for (line_i, line) in buffer.lines.iter().enumerate() {
-        let text = line.text();
-        let chars = text.chars().count();
-        if remaining <= chars {
-            let byte = text.char_indices().nth(remaining).map(|(b, _)| b).unwrap_or(text.len());
-            return Cursor::new(line_i, byte);
-        }
-        remaining -= chars + 1;
-    }
-    let last = buffer.lines.len().saturating_sub(1);
-    Cursor::new(last, buffer.lines.get(last).map(|l| l.text().len()).unwrap_or(0))
-}
-
 /// Where a cursor sits: (x, line_top, line_height) in buffer coordinates.
 pub fn caret_position(buffer: &Buffer, cursor: Cursor) -> Option<(f32, f32, f32)> {
     let mut fallback = None;
@@ -248,22 +249,24 @@ pub fn selection_rects(buffer: &Buffer, start: Cursor, end: Cursor) -> Vec<Rect>
 /// from the end, so Shoes 3 editors' `cursor = -1` sits after the last character.
 pub fn draw_para_cursor(canvas: &mut Canvas, node: &Node, tb: &TextBox, clip: Option<Rect>) {
     let buffer = &tb.shaped.buffer;
+    let len = tb.shaped.text().chars().count() as i64;
     let char_index = |key: &str| {
         let index = node.props.get(key)?.as_i64()?;
-        let len = buffer.lines.iter().map(|l| l.text().chars().count() + 1).sum::<usize>().saturating_sub(1) as i64;
         Some(if index < 0 { (len + 1 + index).max(0) } else { index } as usize)
     };
     let Some(index) = char_index("text_cursor") else { return };
-    let cursor = cursor_at_char(buffer, index);
+    let cursor = tb.shaped.cursor_at(index);
     if let Some(marker) = char_index("text_marker") {
-        let other = cursor_at_char(buffer, marker);
+        let other = tb.shaped.cursor_at(marker);
         let (a, b) = if (other.line, other.index) < (cursor.line, cursor.index) { (other, cursor) } else { (cursor, other) };
         for r in selection_rects(buffer, a, b) {
-            canvas.fill_rect(r.translate(tb.x, tb.y), SELECTION, clip);
+            let (top, h) = tb.shaped.line_box(r.y, r.h);
+            canvas.fill_rect(Rect::new(tb.x + r.x, tb.y + top, r.w, h), SELECTION, clip);
         }
     }
     if let Some((cx, top, h)) = caret_position(buffer, cursor) {
         let s = canvas.scale;
+        let (top, h) = tb.shaped.line_box(top, h);
         let rect = Rect::new(((tb.x + cx) * s).round() / s, tb.y + top, 1.0_f32.max(1.0 / s), h);
         // In the text's own colour, so the caret shows on dark backgrounds too.
         let color = tb.shaped.metas.first().map_or(INK, |m| m.color);

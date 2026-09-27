@@ -96,7 +96,7 @@ class AppTest < Minitest::Test
     frames, counts = run.stdout.lines.map { |line| JSON.parse(line) }
     assert_equal (0...frames.size).to_a, frames, "animate counts frames from 0, one at a time"
     assert_operator frames.size, :>=, 5
-    assert_equal (1..counts.size).to_a, counts, "every counts from 1"
+    assert_equal (0...counts.size).to_a, counts, "every counts from 0"
     assert_operator counts.size, :>=, 3
   end
 

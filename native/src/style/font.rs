@@ -16,11 +16,14 @@ pub fn named_size(name: &str) -> Option<f32> {
     })
 }
 
+/// "x-small": 64% of the present size (manual 1393-1408), what sub and sup default to.
+pub const X_SMALL: f32 = 0.64;
+
 /// Relative size words from the manual, as a factor of the present size.
 fn relative_size(name: &str) -> Option<f32> {
     Some(match name {
         "xx-small" => 0.57,
-        "x-small" => 0.64,
+        "x-small" => X_SMALL,
         "small" => 0.83,
         "medium" => 1.0,
         "large" => 1.2,

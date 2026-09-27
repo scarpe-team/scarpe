@@ -1,5 +1,15 @@
 # frozen_string_literal: true
 
+# Lacci keeps the rects the display pushes back (cross-lane contract a) in a class-level Hash,
+# as it keeps para_hit_cache. A Lacci without that accessor gets this one.
+unless Shoes::DisplayService.respond_to?(:layout_cache)
+  class << Shoes::DisplayService
+    def layout_cache
+      @layout_cache ||= {}
+    end
+  end
+end
+
 module Scarpe::Native
   # Runs block on the first heartbeat, which the pump sends once apps are running.
   def self.on_first_heartbeat(&block)
@@ -99,6 +109,7 @@ module Scarpe::Native
       when "event" then dispatch_from_child(message["name"], message["target"], message["args"] || [])
       when "mouse" then Shoes::DisplayService.mouse_state = message["state"]
       when "para_hit" then Shoes::DisplayService.para_hit_cache[message["id"]] = message["value"]
+      when "layout" then laid_out(message["rects"])
       when "resize" then resized(message["app"], message["w"], message["h"])
       when "scroll" then lacci_drawable(message["id"])&.instance_variable_set(:@scroll_top, message["top"])
       when "closed" then closed(message["app"])
@@ -217,6 +228,14 @@ module Scarpe::Native
     def forget(id)
       timers.remove(id)
       @display_drawable_for.delete(id)
+      Shoes::DisplayService.layout_cache.delete(id)
+    end
+
+    # Where Rust laid things out, [x, y, w, h, scroll_height] in window pixels by id, for
+    # Lacci's left, top, width, height and scroll_height to read.
+    def laid_out(rects)
+      cache = Shoes::DisplayService.layout_cache
+      Array(rects).each { |id, *rect| cache[id] = rect }
     end
 
     def reparent(id, parent_id)

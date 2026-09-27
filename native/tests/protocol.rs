@@ -12,7 +12,8 @@ fn hello_world_lays_out_a_para() {
     assert_eq!(msgs[0]["t"], "ready");
     let para = h.node(|n| n["kind"] == "Para");
     assert_eq!(para["text"], "Hello, World!");
-    assert_eq!((para["x"].as_f64(), para["y"].as_f64(), para["h"].as_f64()), (Some(0.0), Some(0.0), Some(14.4)));
+    // Text blocks sit inside Shoes 3's 4 px margins (ledger C9).
+    assert_eq!((para["x"].as_f64(), para["y"].as_f64(), para["h"].as_f64()), (Some(4.0), Some(4.0), Some(14.4)));
     assert_eq!(para["visible"], true);
 }
 
@@ -281,7 +282,7 @@ fn mouse_state_is_reported() {
 fn para_hit_reports_the_character_under_the_pointer() {
     let mut h = Harness::new();
     h.feed(&app(300, 100, &[create(3, "Para", 2, json!({"text_items": ["Hello"]}))]));
-    let (msgs, _) = h.req(json!({"op": "mouse", "action": "move", "x": 1, "y": 5}));
+    let (msgs, _) = h.req(json!({"op": "mouse", "action": "move", "x": 5, "y": 9}));
     assert!(msgs.iter().any(|m| m["t"] == "para_hit" && m["id"] == 3 && m["value"] == 0), "{msgs:?}");
     let (msgs, _) = h.req(json!({"op": "mouse", "action": "move", "x": 250, "y": 80}));
     assert!(msgs.iter().any(|m| m["t"] == "para_hit" && m["id"] == 3 && m["value"].is_null()));
@@ -430,6 +431,90 @@ fn resize_relayouts_and_tells_ruby() {
     let (msgs, _) = h.req(json!({"op": "resize", "w": 300, "h": 150}));
     assert!(msgs.iter().any(|m| m["t"] == "resize" && m["w"] == 300 && m["h"] == 150));
     assert_eq!(h.node(|n| n["id"] == 3)["w"], json!(300.0));
+}
+
+#[test]
+fn an_app_without_a_size_opens_at_600_by_500() {
+    // Ledger A1 (Q1): Shoes 3 and Shoes 4 both default to 600x500.
+    let mut h = Harness::new();
+    let lines = [
+        json!({"t":"hello","v":1,"pid":1}),
+        json!({"t":"create","id":2,"kind":"DocumentRoot","parent":null,"props":{}}),
+        json!({"t":"create","id":1,"kind":"App","parent":null,"props":{},"doc_root":2}),
+        json!({"t":"run","app":1}),
+        json!({"t":"flush"}),
+    ];
+    h.feed(&lines.iter().map(|l| format!("{l}\n")).collect::<String>());
+    let root = h.node(|n| n["kind"] == "DocumentRoot");
+    assert_eq!((root["w"].clone(), root["h"].clone()), (json!(600.0), json!(500.0)));
+}
+
+#[test]
+fn a_para_fill_highlights_its_text_not_its_box() {
+    // Manual 1208-1210: text's fill is "painted in the background (as if marked with a
+    // highlighter pen)"; Shoes 3 makes it a Pango background over the text.
+    let mut h = Harness::new();
+    let yellow = json!({"rgba": [255, 255, 0, 255]});
+    h.feed(&app(300, 100, &[create(4, "Stack", 2, json!({})), create(3, "Para", 4, json!({"text_items": ["Hi"], "fill": yellow}))]));
+    let para = h.node(|n| n["id"] == 3);
+    let (x, y, w, ht) = (para["x"].as_f64().unwrap(), para["y"].as_f64().unwrap(), para["w"].as_f64().unwrap(), para["h"].as_f64().unwrap());
+    assert!(w > 250.0, "a para in a stack has a box as wide as the stack: {para}");
+    // Just inside the line's top, above the letters.
+    let at = |h: &mut Harness, px: f64| h.value(json!({"op": "pixel", "x": px, "y": y + 1.0}));
+    assert_eq!(at(&mut h, x + 2.0), json!([255, 255, 0, 255]), "behind the text is yellow");
+    assert_eq!(at(&mut h, x + w - 2.0), json!([255, 255, 255, 255]), "the rest of the box is not");
+    assert!(ht < 20.0, "{ht}");
+}
+
+/// The `layout` messages Rust pushed, as {id: [x, y, w, h, scroll_h]} per message.
+fn pushed(msgs: &[Value]) -> Vec<std::collections::BTreeMap<i64, Vec<f64>>> {
+    msgs.iter()
+        .filter(|m| m["t"] == "layout")
+        .map(|m| {
+            m["rects"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|r| {
+                    let r = r.as_array().unwrap();
+                    (r[0].as_i64().unwrap(), r[1..].iter().map(|v| v.as_f64().unwrap()).collect())
+                })
+                .collect()
+        })
+        .collect()
+}
+
+#[test]
+fn layout_pushes_every_rect_first_then_only_what_moved() {
+    // Cross-lane contract (a): Rust tells Ruby where things landed (ledger A4, C5).
+    let mut h = Harness::new();
+    let msgs = h.feed(&app(300, 200, &[
+        create(3, "Stack", 2, json!({"height": 50, "scroll": true})),
+        create(4, "Button", 3, json!({"text": "a", "width": 40, "height": 80})),
+        create(5, "Button", 2, json!({"text": "b", "width": 40, "height": 20})),
+    ]));
+    let first = pushed(&msgs);
+    assert_eq!(first.len(), 1, "one message for the first layout: {msgs:?}");
+    let first = &first[0];
+    assert_eq!(first.keys().copied().collect::<Vec<_>>(), vec![2, 3, 4, 5], "every laid-out node");
+    assert_eq!(first[&3], vec![0.0, 0.0, 300.0, 50.0, 80.0], "a slot's scroll height is its content's");
+    assert_eq!(first[&4], vec![0.0, 0.0, 40.0, 80.0, 80.0], "anything else reports its own height");
+    assert_eq!(msgs.iter().position(|m| m["t"] == "layout"), Some(1), "right after ready, before anything else");
+
+    let msgs = h.feed(&json!({"t":"props","id":5,"props":{"width":60}}).to_string());
+    assert!(pushed(&msgs).is_empty(), "nothing is pushed before the batch's flush");
+    let msgs = h.feed(&json!({"t":"flush"}).to_string());
+    let moved = pushed(&msgs);
+    assert_eq!(moved.len(), 1);
+    assert_eq!(moved[0].keys().copied().collect::<Vec<_>>(), vec![5], "only the node whose rect changed");
+    assert_eq!(moved[0][&5], vec![0.0, 50.0, 60.0, 20.0, 20.0]);
+
+    h.feed(&json!({"t":"destroy","id":5}).to_string());
+    let msgs = h.feed(&format!("{}\n{}", json!({"t":"create","id":6,"kind":"Button","parent":2,"index":null,"widget":false,"props":{"text":"c","width":10,"height":20}}), json!({"t":"flush"})));
+    let later = pushed(&msgs);
+    assert_eq!(later.len(), 1);
+    assert_eq!(later[0].keys().copied().collect::<Vec<_>>(), vec![6], "destroyed ids are not sent again");
+    assert!(pushed(&h.feed(&json!({"t":"flush"}).to_string())).is_empty(), "no layout, no message");
 }
 
 #[test]

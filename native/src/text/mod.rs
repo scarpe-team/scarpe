@@ -24,8 +24,13 @@ impl TextEngine {
     }
 
     pub fn shape(&mut self, rich: &RichText, width: Option<f32>) -> ShapedText {
+        self.shape_indented(rich, width, 0.0)
+    }
+
+    /// Shapes text whose first line starts `indent` px in, where it continues a line.
+    pub fn shape_indented(&mut self, rich: &RichText, width: Option<f32>, indent: f32) -> ShapedText {
         let tracking = self.fonts.sans == "System Font";
-        self.shapes.get(&mut self.fonts.system, rich, width, tracking)
+        self.shapes.get(&mut self.fonts.system, rich, width, indent, tracking)
     }
 
     /// The width text wants when nothing constrains it.

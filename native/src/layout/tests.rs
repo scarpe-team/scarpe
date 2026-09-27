@@ -51,6 +51,15 @@ fn r(l: &Layout, id: Id) -> Rect {
     l.rect(id).unwrap_or_else(|| panic!("{id} was not laid out"))
 }
 
+/// Rects equal to a hundredth of a pixel (text heights carry f32 rounding).
+fn assert_near(actual: Rect, expected: Rect) {
+    let close = |a: f32, b: f32| (a - b).abs() < 0.01;
+    assert!(
+        close(actual.x, expected.x) && close(actual.y, expected.y) && close(actual.w, expected.w) && close(actual.h, expected.h),
+        "{actual:?} is not {expected:?}"
+    );
+}
+
 #[test]
 fn stack_children_go_top_to_bottom_with_margins() {
     let mut s = Scene::new();
@@ -103,15 +112,21 @@ fn relative_widths_size_the_margin_box() {
 }
 
 #[test]
-fn stack_in_flow_fills_the_rest_of_the_line() {
+fn a_slot_without_a_width_takes_the_whole_line() {
+    // Ledger C8: a slot's default width is its parent's (Shoes 3 s3_canvas.c:468 with
+    // s3_ruby.c:505-532, Shoes 4 s4_slot.rb:48), so after anything on the line it starts a row.
     let mut s = Scene::new();
     let first = s.add("Stack", ROOT, json!({"width": 100, "height": 10}));
     let rest = s.add("Stack", ROOT, json!({"height": 10}));
+    let widget = s.add("Widget", ROOT, json!({"height": 10}));
+    let beside = s.add("Stack", ROOT, json!({"width": 100, "height": 10}));
     let flow = s.add("Flow", ROOT, json!({"height": 10}));
     let l = s.layout(480.0, 420.0);
     assert_eq!(r(&l, first).w, 100.0);
-    assert_eq!(r(&l, rest), Rect::new(100.0, 0.0, 380.0, 10.0));
-    assert_eq!(r(&l, flow), Rect::new(0.0, 10.0, 480.0, 10.0), "a full row pushes the flow down");
+    assert_eq!(r(&l, rest), Rect::new(0.0, 10.0, 480.0, 10.0));
+    assert_eq!(r(&l, widget), Rect::new(0.0, 20.0, 480.0, 10.0));
+    assert_eq!(r(&l, beside), Rect::new(0.0, 30.0, 100.0, 10.0));
+    assert_eq!(r(&l, flow), Rect::new(0.0, 40.0, 480.0, 10.0), "a full row pushes the flow down");
 }
 
 #[test]
@@ -170,13 +185,13 @@ fn text_in_a_stack_fills_and_in_a_flow_shrinks() {
     let two = s.add("Para", flow, json!({"text_items": ["there"]}));
     let long = s.add("Para", flow, json!({"text_items": ["A long para that will certainly not fit on the rest of this short row at all."]}));
     let l = s.layout(480.0, 420.0);
-    assert_eq!(r(&l, in_stack).w, 300.0);
+    assert_eq!(r(&l, in_stack).w, 292.0, "less the 4 px text margins");
     let (a, b, c) = (r(&l, one), r(&l, two), r(&l, long));
     assert!(a.w > 5.0 && a.w < 30.0, "{a:?}");
-    assert_eq!(b.x, a.w, "the second para sits beside the first");
-    assert_eq!(c.x, 0.0, "the long para starts a row of its own");
-    assert_eq!(c.w, 300.0);
-    assert!(c.h > 20.0, "and wraps there: {c:?}");
+    assert_eq!(b.x, a.right() + 4.0, "the second para sits beside the first, one margin apart");
+    assert_eq!((c.x, c.y), (a.x, a.y), "the long one carries on along the same line, from the left edge");
+    assert_eq!(c.w, 292.0);
+    assert!(c.h > 20.0, "and wraps: {c:?}");
     assert!((a.h - 14.4).abs() < 0.01, "line height is 1.2 x 12px: {a:?}");
 }
 
@@ -194,8 +209,9 @@ fn widgets_have_intrinsic_sizes() {
     let l = s.layout(480.0, 420.0);
     assert_eq!((r(&l, el).w, r(&l, el).h), (200.0, 28.0));
     assert_eq!((r(&l, eb).w, r(&l, eb).h), (200.0, 108.0));
-    assert_eq!((r(&l, lb).w, r(&l, lb).h), (160.0, 28.0));
-    assert_eq!((r(&l, pr).w, r(&l, pr).h), (160.0, 14.0));
+    // Ledger C4: the manual gives list_box and progress 200 px.
+    assert_eq!((r(&l, lb).w, r(&l, lb).h), (200.0, 28.0));
+    assert_eq!((r(&l, pr).w, r(&l, pr).h), (200.0, 14.0));
     assert_eq!((r(&l, ch).w, r(&l, ch).h), (18.0, 18.0));
     assert!(r(&l, bt).h >= 22.0 && r(&l, bt).w > 28.0);
     assert_eq!(r(&l, wide).w, 300.0);
@@ -296,4 +312,235 @@ fn art_inside_a_pathless_shape_is_still_laid_out() {
     assert!(l.rect(shape).is_some());
     assert_eq!(r(&l, line), Rect::new(-0.5, -0.5, 101.0, 101.0));
     assert!(l.order.contains(&line));
+}
+
+#[test]
+fn risen_text_makes_room_in_its_line() {
+    let mut s = Scene::new();
+    let stack = s.add("Stack", ROOT, json!({"width": 300}));
+    let plain = s.add("Para", stack, json!({"text_items": ["H2O"]}));
+    s.create(50, "Sub", None, json!({"text_items": ["2"]}));
+    let with_sub = s.add("Para", stack, json!({"text_items": ["H", 50, "O"]}));
+    let l = s.layout(480.0, 420.0);
+    let (plain_h, sub_h) = (r(&l, plain).h, r(&l, with_sub).h);
+    // A sub drops 10 px below a 12 px line whose descent is about 3 px.
+    assert!(sub_h >= plain_h + 2.0 * 7.0, "the line holding the sub grows: {plain_h} -> {sub_h}");
+}
+
+#[test]
+fn trimmed_text_ends_in_an_ellipsis_inside_its_box() {
+    let mut s = Scene::new();
+    let stack = s.add("Stack", ROOT, json!({"width": 100}));
+    let para = s.add("Para", stack, json!({"text_items": ["HHHHHHHHHHHHHHHHHHHHHHHHHHHHHH"], "wrap": "trim"}));
+    let l = s.layout(480.0, 420.0);
+    let (tb, b) = (&l.texts[&para], r(&l, para));
+    let runs: Vec<_> = tb.shaped.buffer.layout_runs().collect();
+    assert_eq!(runs.len(), 1, "trim keeps one line");
+    assert!(runs[0].line_w <= b.w + 0.5, "the line fits its box: {} > {}", runs[0].line_w, b.w);
+    let last = runs[0].glyphs.last().expect("glyphs");
+    assert_eq!(last.start, last.end, "the last glyph is the ellipsis, which stands for no text of its own");
+}
+
+#[test]
+fn leading_goes_between_lines_and_defaults_to_four() {
+    let mut s = Scene::new();
+    let stack = s.add("Stack", ROOT, json!({"width": 300}));
+    let tight = s.add("Para", stack, json!({"text_items": ["one\ntwo"], "leading": 0}));
+    let normal = s.add("Para", stack, json!({"text_items": ["one\ntwo"]}));
+    let wide = s.add("Para", stack, json!({"text_items": ["one\ntwo"], "leading": 20}));
+    let single = s.add("Para", stack, json!({"text_items": ["one"]}));
+    let l = s.layout(480.0, 420.0);
+    let h = |id| r(&l, id).h;
+    // Manual 1286: "Defaults to 4 pixels", spacing between lines, as Pango's.
+    assert!((h(normal) - h(tight) - 4.0).abs() < 0.01, "{} {}", h(normal), h(tight));
+    assert!((h(wide) - h(tight) - 20.0).abs() < 0.01, "{} {}", h(wide), h(tight));
+    assert!((h(single) - 14.4).abs() < 0.01, "one line has no leading: {}", h(single));
+    let (tb, b) = (&l.texts[&normal], r(&l, normal));
+    let first = tb.shaped.buffer.layout_runs().next().unwrap();
+    let tight_first = l.texts[&tight].shaped.buffer.layout_runs().next().unwrap();
+    let baseline = |tb: &TextBox, y: f32, box_y: f32| tb.y + y - box_y;
+    assert!(
+        (baseline(tb, first.line_y, b.y) - baseline(&l.texts[&tight], tight_first.line_y, r(&l, tight).y)).abs() < 0.01,
+        "the first line sits where it would without leading"
+    );
+}
+
+#[test]
+fn a_fixed_height_clips_without_scrolling() {
+    // Manual 345-352: a fixed height makes the slot a "nested window" that chops its end off.
+    let mut s = Scene::new();
+    let fixed = s.add("Stack", ROOT, json!({"width": 200, "height": 100}));
+    let tall = s.add("Stack", fixed, json!({"height": 300}));
+    let free = s.add("Stack", ROOT, json!({"width": 200}));
+    let inside = s.add("Stack", free, json!({"height": 300}));
+    let l = s.layout(480.0, 420.0);
+    assert_eq!(l.boxes[&tall].clip, Some(Rect::new(0.0, 0.0, 200.0, 100.0)));
+    assert_eq!(l.visible_rect(tall), Some(Rect::new(0.0, 0.0, 200.0, 100.0)));
+    assert!(!l.scrollers.contains_key(&fixed), "clipping is not scrolling");
+    assert_eq!(l.boxes[&inside].clip, None, "a slot that grows with its content clips nothing");
+}
+
+#[test]
+fn text_blocks_keep_shoes_3_margins() {
+    // Ledger C9 (Q3): 4 px all round, 12 px below unless margin or margin_bottom is given.
+    let mut s = Scene::new();
+    let stack = s.add("Stack", ROOT, json!({"width": 300}));
+    let first = s.add("Para", stack, json!({"text_items": ["one"]}));
+    let second = s.add("Para", stack, json!({"text_items": ["two"]}));
+    let flush = s.add("Para", stack, json!({"text_items": ["flush"], "margin": 0}));
+    let own_bottom = s.add("Para", stack, json!({"text_items": ["own"], "margin_bottom": 2}));
+    let after = s.add("Button", stack, json!({"text": "b", "width": 10, "height": 10}));
+    let l = s.layout(480.0, 420.0);
+    assert_near(r(&l, first), Rect::new(4.0, 4.0, 292.0, 14.4));
+    assert!((r(&l, second).y - (4.0 + 14.4 + 12.0 + 4.0)).abs() < 0.01, "{:?}", r(&l, second));
+    let f = r(&l, flush);
+    assert!((f.y - (r(&l, second).bottom() + 12.0)).abs() < 0.01 && f.x == 0.0 && f.w == 300.0, "margin: 0 is flush: {f:?}");
+    let o = r(&l, own_bottom);
+    assert!((o.y - (f.bottom() + 4.0)).abs() < 0.01, "{o:?}");
+    assert!((r(&l, after).y - (o.bottom() + 2.0)).abs() < 0.01, "margin_bottom: 2 replaces the 12");
+}
+
+const LONG: &str = "This second paragraph is long enough that it has to wrap onto more lines inside three hundred pixels.";
+
+/// The window x where each line of a text block starts, from its glyphs.
+fn line_starts(l: &Layout, id: Id) -> Vec<f32> {
+    let tb = &l.texts[&id];
+    tb.shaped
+        .buffer
+        .layout_runs()
+        .map(|run| tb.x + run.glyphs.iter().find(|g| g.metadata != crate::text::shape_cache::INDENT_META).map_or(0.0, |g| g.x))
+        .collect()
+}
+
+#[test]
+fn text_side_by_side_in_a_flow_reads_as_one_paragraph() {
+    // Ledger C7 (Q2): the second para's first line carries on from the first, and its later
+    // lines wrap back to the flow's left edge (manual 1610-1612, Shoes 3).
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"width": 300}));
+    let short = s.add("Para", flow, json!({"text_items": ["Short."]}));
+    let long = s.add("Para", flow, json!({"text_items": [LONG]}));
+    let l = s.layout(480.0, 420.0);
+    let (a, b) = (r(&l, short), r(&l, long));
+    assert_eq!((b.x, b.y), (a.x, a.y), "one row, one left edge: {a:?} {b:?}");
+    assert_eq!(b.w, 292.0, "the paragraph spans the flow, less its margins");
+    let starts = line_starts(&l, long);
+    assert!(starts.len() >= 2, "it wraps: {starts:?}");
+    assert!((starts[0] - (a.right() + 4.0)).abs() < 0.5, "its first line follows the first para's text: {starts:?} {a:?}");
+    assert!(starts[1..].iter().all(|x| (x - b.x).abs() < 0.5), "its later lines start at the left edge: {starts:?}");
+    let first_top = l.texts[&long].shaped.buffer.layout_runs().next().unwrap().line_top;
+    assert_eq!(first_top, l.texts[&short].shaped.buffer.layout_runs().next().unwrap().line_top, "the first lines share a baseline");
+}
+
+#[test]
+fn a_paragraph_indent_belongs_to_what_came_before() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"width": 300}));
+    let short = s.add("Para", flow, json!({"text_items": ["Short."]}));
+    let long = s.add("Para", flow, json!({"text_items": [LONG]}));
+    let l = s.layout(480.0, 420.0);
+    let (a, b) = (r(&l, short), r(&l, long));
+    let (x, y) = a.center();
+    assert_eq!(crate::input::hit_test(&s.doc, &l, x, y).map(|h| h.node), Some(short), "the first para's text is still the first para");
+    let below = (b.x + 5.0, b.bottom() - 5.0);
+    assert_eq!(crate::input::hit_test(&s.doc, &l, below.0, below.1).map(|h| h.node), Some(long));
+    let (cx, cy) = l.texts[&long].centre_within(b);
+    assert!(l.texts[&long].owns(cx, cy), "a click aimed at the paragraph lands on it");
+}
+
+#[test]
+fn what_follows_a_paragraph_carries_on_from_its_last_line() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"width": 300}));
+    let long = s.add("Para", flow, json!({"text_items": [format!("{LONG}\nend")]}));
+    let button = s.add("Button", flow, json!({"text": "b", "width": 40, "height": 10}));
+    let l = s.layout(480.0, 420.0);
+    let (p, b) = (r(&l, long), r(&l, button));
+    let tb = &l.texts[&long];
+    let last = tb.shaped.buffer.layout_runs().last().unwrap();
+    assert!((b.x - (p.x + last.line_w)).abs() < 0.5, "the button follows the last line's text: {b:?} {}", last.line_w);
+    assert!((b.y - (p.y + last.line_top - 4.0)).abs() < 0.5, "on the last line's row: {b:?} {p:?}");
+    assert!(r(&l, flow).h >= p.bottom() + 12.0 - 0.01, "the flow still holds the whole paragraph and its margin");
+}
+
+#[test]
+fn words_in_a_flow_sit_one_margin_apart() {
+    // examples/para/rainbow.rb: one para per word must read as a sentence.
+    let mut s = Scene::new();
+    let words: Vec<Id> = ["Paint", "the", "Whole"].iter().map(|w| s.add("Para", ROOT, json!({"text_items": [w]}))).collect();
+    let l = s.layout(480.0, 420.0);
+    let (a, b, c) = (r(&l, words[0]), r(&l, words[1]), r(&l, words[2]));
+    assert_eq!((a.x, a.y), (4.0, 4.0));
+    assert!((b.x - (a.right() + 4.0)).abs() < 0.01 && (c.x - (b.right() + 4.0)).abs() < 0.01, "{a:?} {b:?} {c:?}");
+    assert!(a.y == b.y && b.y == c.y);
+}
+
+#[test]
+fn text_that_cannot_share_the_line_starts_a_row() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"width": 300}));
+    let tall = s.add("Button", flow, json!({"text": "tall", "width": 40, "height": 60}));
+    let beside = s.add("Para", flow, json!({"text_items": ["fits beside"]}));
+    let wraps = s.add("Para", flow, json!({"text_items": [LONG]}));
+    let flow2 = s.add("Flow", ROOT, json!({"width": 300}));
+    let short = s.add("Para", flow2, json!({"text_items": ["Short words here and then"]}));
+    let word = s.add("Para", flow2, json!({"text_items": ["Pneumonoultramicroscopicsilicovolcanoconiosis goes on for a while after it"]}));
+    let l = s.layout(480.0, 420.0);
+    assert_eq!(r(&l, beside).y, 4.0, "a single line sits beside even a tall control");
+    let w = r(&l, wraps);
+    assert!(w.y >= r(&l, tall).bottom(), "a wrapping para does not run under it: {w:?}");
+    assert!(line_starts(&l, wraps)[0] - w.x < 0.5, "and starts its row without an indent");
+    let (a, b) = (r(&l, short), r(&l, word));
+    assert!(b.y > a.y, "a first word too long for the rest of the line takes the para to a new row: {a:?} {b:?}");
+    assert!(line_starts(&l, word)[0] - b.x < 0.5);
+}
+
+#[test]
+fn right_and_bottom_place_from_the_far_edges() {
+    // Ledger C10 and M19: `right: 50` puts the right edge 50 px in from the slot's (manual 1356-1364).
+    let mut s = Scene::new();
+    let column = s.add("Background", ROOT, json!({"fill": "#000", "width": 50, "right": 50}));
+    let slot = s.add("Stack", ROOT, json!({"width": 100, "height": 40, "right": 0, "bottom": 0}));
+    let text = s.add("Para", ROOT, json!({"text_items": ["right"], "right": 20, "top": 100}));
+    let l = s.layout(400.0, 300.0);
+    assert_eq!(r(&l, column), Rect::new(300.0, 0.0, 50.0, 300.0));
+    assert_eq!(r(&l, slot), Rect::new(300.0, 260.0, 100.0, 40.0));
+    let t = r(&l, text);
+    assert!((t.right() + 4.0 - 380.0).abs() < 0.01 && (t.y - 104.0).abs() < 0.01, "a text's margin box ends 20 px in: {t:?}");
+}
+
+#[test]
+fn word_wrap_never_breaks_a_word() {
+    // Manual 1552-1556: "word" breaks lines at word breaks; only "char" breaks words.
+    // Shoes 3 leaves Pango's PANGO_WRAP_WORD, which lets a word too long for the line overflow.
+    let mut s = Scene::new();
+    let narrow = s.add("Stack", ROOT, json!({"width": 100}));
+    let word = s.add("Para", narrow, json!({"text_items": ["Seven"], "size": 32}));
+    let chars = s.add("Para", narrow, json!({"text_items": ["Seven"], "size": 32, "wrap": "char"}));
+    let l = s.layout(480.0, 420.0);
+    assert_eq!(l.texts[&word].shaped.buffer.layout_runs().count(), 1, "one line, running past the box");
+    assert_eq!(l.texts[&chars].shaped.buffer.layout_runs().count(), 2, "wrap: char breaks the word");
+}
+
+#[test]
+fn an_indented_paragraph_counts_characters_from_its_own_text() {
+    // The indent's blank is layout, not text: the dump, Para#hit and the para cursor skip it.
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"width": 300}));
+    s.add("Para", flow, json!({"text_items": ["Short."]}));
+    let long = s.add("Para", flow, json!({"text_items": [LONG]}));
+    let l = s.layout(480.0, 420.0);
+    let tb = &l.texts[&long];
+    assert!(tb.shaped.indent > 0.0);
+    assert_eq!(tb.shaped.text(), LONG);
+    let start = tb.shaped.cursor_at(0);
+    assert_eq!(tb.shaped.char_index(start), 0);
+    let (caret_x, _, _) = crate::paint::text::caret_position(&tb.shaped.buffer, start).expect("a caret");
+    assert!((caret_x - tb.shaped.indent).abs() < 0.5, "character 0 sits after the indent: {caret_x}");
+    let run = tb.shaped.buffer.layout_runs().next().unwrap();
+    let first = run.glyphs.iter().find(|g| g.metadata != crate::text::shape_cache::INDENT_META).unwrap();
+    let hit = crate::input::char_at(tb, tb.x + first.x + 1.0, tb.y + run.line_y - 3.0);
+    assert_eq!(hit, Some(0), "Para#hit on the first letter is character 0");
+    let end = tb.shaped.cursor_at(LONG.chars().count());
+    assert_eq!(tb.shaped.char_index(end), LONG.chars().count());
 }

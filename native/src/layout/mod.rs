@@ -11,7 +11,7 @@ use crate::elements::{self, image::ImageCache};
 use crate::paint::shapes;
 use crate::props::{Edges, Id};
 use crate::style::Dim;
-use crate::text::{rich, ShapedText, TextEngine};
+use crate::text::{rich, RichText, ShapedText, TextEngine};
 use std::collections::HashMap;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -73,11 +73,41 @@ pub struct LBox {
     pub parent_size: (f32, f32),
 }
 
+/// Shaped text and where its buffer's origin sits, in window coordinates.
 #[derive(Clone)]
 pub struct TextBox {
     pub shaped: ShapedText,
     pub x: f32,
     pub y: f32,
+}
+
+impl TextBox {
+    /// The corner a first-line indent leaves at the top left of text that continues a line
+    /// in a flow. It belongs to what came before on that line, down to the second line.
+    pub fn indent_corner(&self) -> Option<Rect> {
+        if self.shaped.indent <= 0.0 {
+            return None;
+        }
+        let first = self.shaped.buffer.layout_runs().next()?;
+        Some(Rect::new(self.x, self.y - self.shaped.top, self.shaped.indent, first.line_height))
+    }
+
+    /// Whether (x, y) is this text's own ground rather than its indent corner.
+    pub fn owns(&self, x: f32, y: f32) -> bool {
+        !self.indent_corner().is_some_and(|corner| corner.contains(x, y))
+    }
+
+    /// A point on this text inside `visible`: its centre, or one clear of the indent corner.
+    pub fn centre_within(&self, visible: Rect) -> (f32, f32) {
+        let centre = visible.center();
+        let Some(corner) = self.indent_corner().filter(|c| c.contains(centre.0, centre.1)) else { return centre };
+        let below = Rect::new(visible.x, corner.bottom(), visible.w, visible.bottom() - corner.bottom());
+        if below.h > 1.0 {
+            below.center()
+        } else {
+            Rect::new(corner.right(), visible.y, visible.right() - corner.right(), visible.h).center()
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -102,6 +132,8 @@ pub struct Layout {
     pub order: Vec<Id>,
     pub texts: HashMap<Id, TextBox>,
     pub scrollers: HashMap<Id, Scroller>,
+    /// How tall each slot's content is, padding included: its scroll height.
+    pub content_heights: HashMap<Id, f32>,
     /// Live SubscriptionItems (their parent slot is laid out), in tree order.
     pub subscriptions: Vec<Id>,
 }
@@ -138,6 +170,7 @@ pub fn layout(inputs: Inputs, root: Id, size: (f32, f32)) -> Layout {
         scroll: inputs.scroll,
         out: Layout { size, root, ..Layout::default() },
         attached: Vec::new(),
+        clips: HashMap::new(),
     };
     engine.root(root, size);
     let out = engine.finish(root);
@@ -152,6 +185,8 @@ struct Engine<'a> {
     scroll: &'a HashMap<Id, f32>,
     out: Layout,
     attached: Vec<(Id, Attach)>,
+    /// Slots with a fixed height: they chop off what does not fit, scrolling or not.
+    clips: HashMap<Id, Rect>,
 }
 
 #[derive(Clone, Copy)]
@@ -160,11 +195,25 @@ enum Attach {
     Node(Id),
 }
 
+/// Where the next in-flow child goes, relative to the slot's content box.
 #[derive(Default)]
 struct Cursor {
     x: f32,
+    /// The top of the current row.
     y: f32,
+    /// The row's height, bottom margins included.
     row_h: f32,
+    /// How far down the row's own boxes reach, margins left out.
+    content_bottom: f32,
+}
+
+impl Cursor {
+    fn new_row(&mut self) {
+        self.y += self.row_h;
+        self.x = 0.0;
+        self.row_h = 0.0;
+        self.content_bottom = self.y;
+    }
 }
 
 /// How a slot child takes part in layout.
@@ -177,6 +226,25 @@ enum Role {
 
 fn hidden(node: &Node) -> bool {
     node.props.truthy("hidden")
+}
+
+fn is_text(node: &Node) -> bool {
+    matches!(node.kind, Kind::Para | Kind::TextDrawable)
+}
+
+/// Shoes 3's margins for text blocks (ledger C9): 4 px all round, and 12 px below when
+/// neither `margin` nor `margin_bottom` says otherwise (s3t_textblock.c:108-110).
+const TEXT_MARGIN: f32 = 4.0;
+const TEXT_MARGIN_BOTTOM: f32 = 12.0;
+
+/// An element's margins; text blocks keep Shoes 3's defaults for every side not given.
+fn margins_of(node: &Node, basis: f32) -> Edges {
+    if !is_text(node) {
+        return node.props.margins(basis);
+    }
+    let p = &node.props;
+    let bottom = if p.has("margin") || p.has("margin_bottom") { TEXT_MARGIN } else { TEXT_MARGIN_BOTTOM };
+    p.margins_or(basis, Edges { left: TEXT_MARGIN, top: TEXT_MARGIN, right: TEXT_MARGIN, bottom })
 }
 
 fn role(node: &Node) -> Role {
@@ -207,6 +275,7 @@ impl Engine<'_> {
         let doc_h = (content_h + padding.vertical()).max(size.1);
         let slot_box = Rect::new(0.0, 0.0, size.0, doc_h);
         self.out.boxes.insert(root, LBox { rect: viewport, clip: None, origin: (0.0, 0.0), parent_size: size });
+        self.out.content_heights.insert(root, content_h + padding.vertical());
         self.place_later(&later, slot_box, Rect::new(content.x, content.y, content.w, doc_h - padding.vertical()), size.1);
         // The window's own backgrounds cover the whole document, so they scroll with it.
         self.scroll_subtree(root, viewport, content_h + padding.vertical(), true, true);
@@ -255,17 +324,18 @@ impl Engine<'_> {
     }
 
     fn place_in_flow(&mut self, node: &Node, flow: bool, content: Rect, cursor: &mut Cursor, avail_h: f32) {
-        let m = node.props.margins(content.w);
+        if flow {
+            if let Some(rich) = self.flowing_text(node) {
+                return self.place_paragraph(node, &rich, content, cursor, avail_h);
+            }
+        }
+        let m = margins_of(node, content.w);
         let parent = (content.w, avail_h);
         let remaining = if flow { content.w - cursor.x } else { content.w };
         let mut width = self.width_for(node, flow, parent, remaining, &m);
         let overflows = cursor.x + m.horizontal() + width > content.w + 0.5;
-        // A slot filling its line would get no width at all after a full row.
-        let squeezed = width < 1.0 && node.kind.is_slot();
-        if flow && cursor.x > 0.0 && (overflows || squeezed) {
-            cursor.y += cursor.row_h;
-            cursor.x = 0.0;
-            cursor.row_h = 0.0;
+        if flow && cursor.x > 0.0 && overflows {
+            cursor.new_row();
             width = self.width_for(node, flow, parent, content.w, &m);
         }
         let x = content.x + cursor.x + m.left;
@@ -274,9 +344,76 @@ impl Engine<'_> {
         if flow {
             cursor.x += m.horizontal() + width;
             cursor.row_h = cursor.row_h.max(m.vertical() + h);
+            cursor.content_bottom = cursor.content_bottom.max(cursor.y + m.top + h);
         } else {
             cursor.y += m.vertical() + h;
         }
+    }
+
+    /// A text block that reads as part of a paragraph when it sits in a flow: left aligned,
+    /// wrapping, and sized by its text rather than by a width or height of its own.
+    fn flowing_text(&self, node: &Node) -> Option<RichText> {
+        if !is_text(node) || node.props.has("width") || node.props.has("height") {
+            return None;
+        }
+        let rich = rich::resolve_block(self.doc, &self.text.fonts, node.id)?;
+        (rich.align == rich::Align::Left && rich.wrap != rich::WrapMode::Trim).then_some(rich)
+    }
+
+    /// Text in a flow carries on from whatever came before it on the line, as one paragraph
+    /// (manual 1610-1612, ledger C7): its first line starts where the line stands, its later
+    /// lines wrap back to the flow's left edge, and what follows carries on from the end of
+    /// its last line (Shoes 3, s3t_textblock.c:134-165, 217-228).
+    fn place_paragraph(&mut self, node: &Node, rich: &RichText, content: Rect, cursor: &mut Cursor, avail_h: f32) {
+        let m = margins_of(node, content.w);
+        let parent = (content.w, avail_h);
+        let full = (content.w - m.horizontal()).max(0.0);
+        let wanted = self.text.max_content(rich);
+        loop {
+            if wanted <= full - cursor.x + 0.5 {
+                // One line beside what came before, as wide as its text.
+                let shaped = self.text.shape(rich, Some(wanted.max(1.0)));
+                let rect = Rect::new(content.x + cursor.x + m.left, content.y + cursor.y + m.top, wanted, shaped.height);
+                self.put_text(node, shaped, rect, parent);
+                cursor.row_h = cursor.row_h.max(m.vertical() + rect.h);
+                cursor.content_bottom = cursor.content_bottom.max(rect.bottom() - content.y);
+                cursor.x = carry_on(rect.right() - content.x, &m);
+                return;
+            }
+            let shaped = if cursor.x > 0.0 {
+                if overhangs(cursor, rich, &m) {
+                    cursor.new_row();
+                    continue;
+                }
+                let shaped = self.text.shape_indented(rich, Some(full.max(1.0)), cursor.x);
+                // Not even the first word fits on the rest of the line: Shoes 3 starts a row.
+                if !shaped.indent_holds() {
+                    cursor.new_row();
+                    continue;
+                }
+                shaped
+            } else {
+                self.text.shape(rich, Some(full.max(1.0)))
+            };
+            let last = shaped.buffer.layout_runs().last().map(|run| (run.line_top, run.line_w)).unwrap_or_default();
+            let rect = Rect::new(content.x + m.left, content.y + cursor.y + m.top, full, shaped.height);
+            self.put_text(node, shaped, rect, parent);
+            // The next child goes on the last line, as if the rows before it were done.
+            let row_bottom = (cursor.y + cursor.row_h).max(rect.bottom() - content.y + m.bottom);
+            cursor.y = rect.y - content.y + last.0 - m.top;
+            cursor.row_h = row_bottom - cursor.y;
+            cursor.content_bottom = rect.bottom() - content.y;
+            cursor.x = carry_on(m.left + last.1, &m);
+            return;
+        }
+    }
+
+    /// Records a text block's box and its shaped text.
+    fn put_text(&mut self, node: &Node, shaped: ShapedText, rect: Rect, parent: (f32, f32)) {
+        let y = rect.y + shaped.top;
+        self.out.texts.insert(node.id, TextBox { shaped, x: rect.x, y });
+        self.record(node, rect, parent);
+        self.displace(node);
     }
 
     /// The border-box width a node gets on a line with `remaining` px left.
@@ -287,8 +424,9 @@ impl Engine<'_> {
         }
         let fill = (remaining - m.horizontal()).max(0.0);
         match &node.kind {
-            Kind::Flow => (parent_w - m.horizontal()).max(0.0),
-            Kind::Stack | Kind::Widget => fill,
+            // A slot is as wide as its parent unless told otherwise, so after anything else on
+            // a line it starts a row (ledger C8: Shoes 3 s3_canvas.c:468, Shoes 4 s4_slot.rb:48).
+            Kind::Flow | Kind::Stack | Kind::Widget => (parent_w - m.horizontal()).max(0.0),
             Kind::Para | Kind::TextDrawable => {
                 let full = (parent_w - m.horizontal()).max(0.0);
                 if !parent_flow {
@@ -331,6 +469,7 @@ impl Engine<'_> {
                 let shaped = rich::resolve_block(doc, &self.text.fonts, node.id).map(|rich| self.text.shape(&rich, Some(w.max(1.0))));
                 let text_h = shaped.as_ref().map(|s| s.height).unwrap_or(0.0);
                 if let Some(shaped) = shaped {
+                    let y = y + shaped.top;
                     self.out.texts.insert(node.id, TextBox { shaped, x, y });
                 }
                 explicit_h.unwrap_or(text_h)
@@ -366,9 +505,14 @@ impl Engine<'_> {
         let h = explicit_h.unwrap_or(used + padding.vertical());
         let slot_box = Rect::new(frame.x, frame.y, frame.w, h);
         self.record(node, slot_box, parent);
+        self.out.content_heights.insert(node.id, used + padding.vertical());
         let content = Rect::new(content.x, content.y, content.w, (h - padding.vertical()).max(0.0));
         self.place_later(&later, slot_box, content, avail_h);
         let scrolls = node.props.truthy("scroll") && explicit_h.is_some();
+        if explicit_h.is_some() {
+            // Manual 345-352: a fixed height makes the slot a nested window, cut off at its edges.
+            self.clips.insert(node.id, slot_box);
+        }
         self.scroll_subtree(node.id, slot_box, used + padding.vertical(), scrolls, false);
         self.displace(node);
         h
@@ -416,7 +560,7 @@ impl Engine<'_> {
     /// An element with left/top/right/bottom, out of flow in `frame`.
     fn place_positioned(&mut self, node: &Node, frame: Rect, avail_h: f32) {
         let p = &node.props;
-        let m = p.margins(frame.w);
+        let m = margins_of(node, frame.w);
         let dim = |key: &str, basis: f32| p.dim(key).map(|d| d.resolve(basis));
         // Positioned text shrinks to fit what is left of the slot, like CSS absolute.
         let remaining = frame.w - dim("left", frame.w).unwrap_or(0.0);
@@ -478,28 +622,48 @@ impl Engine<'_> {
             if let Some(s) = self.out.scrollers.get_mut(&next) {
                 s.viewport = s.viewport.translate(dx, dy);
             }
+            if let Some(c) = self.clips.get_mut(&next) {
+                *c = c.translate(dx, dy);
+            }
             stack.extend(doc.children(next).iter().copied());
         }
     }
 
-    /// Scrolling slots clip their descendants (not their own decor).
+    /// Scrolling and fixed-height slots clip their descendants (not their own decor).
     fn assign_clips(&mut self, id: Id, clip: Option<Rect>) {
         let doc = self.doc;
         if let Some(b) = self.out.boxes.get_mut(&id) {
             b.clip = clip;
         }
-        let inner = match self.out.scrollers.get(&id) {
-            Some(s) if id != self.out.root => Some(match clip {
-                Some(c) => c.intersect(&s.viewport).unwrap_or(Rect::new(s.viewport.x, s.viewport.y, 0.0, 0.0)),
-                None => s.viewport,
-            }),
-            _ => clip,
+        let own = match self.out.scrollers.get(&id) {
+            Some(s) if id != self.out.root => Some(s.viewport),
+            _ => self.clips.get(&id).copied(),
+        };
+        let inner = match (own, clip) {
+            (Some(own), Some(c)) => Some(c.intersect(&own).unwrap_or(Rect::new(own.x, own.y, 0.0, 0.0))),
+            (Some(own), None) => Some(own),
+            (None, c) => c,
         };
         for &child in doc.children(id) {
             let child_clip = if doc.get(child).is_some_and(|c| c.kind.is_decor()) { clip } else { inner };
             self.assign_clips(child, child_clip);
         }
     }
+}
+
+/// Where a line goes on after text ending at `text_end`: its right margin counts only for
+/// what it adds to its left one, so two paras sit one margin apart, as in Shoes 3
+/// (s3t_textblock.c:217-228), and nothing that follows can start inside the text.
+fn carry_on(text_end: f32, m: &Edges) -> f32 {
+    text_end + (m.right - m.left).max(0.0)
+}
+
+/// Whether something earlier on the line reaches well below this text's first line (an
+/// image, a title, a tall control), so wrapped lines would run into it at the left edge.
+/// Shoes 3 wraps them anyway; here the text starts a new row instead.
+fn overhangs(cursor: &Cursor, rich: &RichText, m: &Edges) -> bool {
+    let first_line = rich.size * rich::LINE_HEIGHT;
+    cursor.content_bottom > cursor.y + m.top + first_line * 1.5
 }
 
 /// A background or border fills its slot, less any edges it names: `top: 50` runs from

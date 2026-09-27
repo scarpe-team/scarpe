@@ -10,10 +10,11 @@ use crate::props::Id;
 use crate::protocol::{self, Create, Incoming, Outbox, Outgoing};
 use crate::text::{FontMode, TextEngine};
 use serde_json::{Map, Value};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use tiny_skia::Pixmap;
 
-pub const DEFAULT_SIZE: (f32, f32) = (480.0, 420.0);
+/// An app that names no size opens at Shoes 3 and Shoes 4's 600x500 (ledger A1).
+pub const DEFAULT_SIZE: (f32, f32) = (600.0, 500.0);
 
 #[derive(Clone, Debug)]
 pub struct Options {
@@ -57,6 +58,8 @@ pub struct AppView {
     /// Needs a repaint.
     pub dirty: bool,
     pub frames: u64,
+    /// The rects Ruby was last told about, `[x, y, w, h, scroll_h]` by id.
+    pub told: HashMap<Id, [f64; 5]>,
 }
 
 struct PendingFrames {
@@ -191,7 +194,18 @@ impl Runtime {
             let scale = self.default_scale();
             self.views.insert(
                 c.id,
-                AppView { app: c.id, doc_root, size, scale, running: false, layout: None, ui: ViewState::default(), dirty: true, frames: 0 },
+                AppView {
+                    app: c.id,
+                    doc_root,
+                    size,
+                    scale,
+                    running: false,
+                    layout: None,
+                    ui: ViewState::default(),
+                    dirty: true,
+                    frames: 0,
+                    told: HashMap::new(),
+                },
             );
         }
         self.invalidate();
@@ -332,6 +346,31 @@ impl Runtime {
         }
         let inputs = Inputs { doc: &self.doc, text: &mut self.text, images: &mut self.images, scroll: &view.ui.scroll };
         view.layout = Some(layout::layout(inputs, view.doc_root, view.size));
+        self.push_layout(app);
+    }
+
+    /// Tells Ruby where nodes landed, so Lacci's left, top, width, height and scroll_height
+    /// can answer in pixels (contract a; ledger A4, C5): every rect after an app's first
+    /// layout, then only those that moved. Ids that left the layout are simply dropped.
+    fn push_layout(&mut self, app: Id) {
+        let Some(view) = self.views.get_mut(&app) else { return };
+        let Some(layout) = view.layout.as_ref() else { return };
+        let mut told = HashMap::with_capacity(layout.boxes.len());
+        let mut rects = Vec::new();
+        for (&id, b) in &layout.boxes {
+            let r = b.rect;
+            let scroll_h = layout.content_heights.get(&id).copied().unwrap_or(r.h);
+            let rect = [r.x, r.y, r.w, r.h, scroll_h].map(|v| (v as f64 * 100.0).round() / 100.0);
+            if view.told.get(&id) != Some(&rect) {
+                rects.push((id, rect[0], rect[1], rect[2], rect[3], rect[4]));
+            }
+            told.insert(id, rect);
+        }
+        view.told = told;
+        if !rects.is_empty() {
+            rects.sort_by_key(|r| r.0);
+            self.out.send(Outgoing::Layout { app, rects });
+        }
     }
 
     pub fn layout_of(&mut self, app: Id) -> Option<&Layout> {

@@ -32,10 +32,10 @@ class TimersTest < Minitest::Test
     assert_in_delta 0.1, @timers.next_due_at
   end
 
-  def test_every_counts_from_one
+  def test_every_counts_from_zero
     @timers.add(2, "every", [0.5], now: 0.0)
     advance_to(2.0)
-    assert_equal [[1], [2], [3], [4]], @fired.map(&:last)
+    assert_equal [[0], [1], [2], [3]], @fired.map(&:last)
   end
 
   def test_timer_fires_once
@@ -69,7 +69,7 @@ class TimersTest < Minitest::Test
     fire_until(10.5)
     assert_empty @fired
     fire_until(11.0)
-    assert_equal [["every", 1, [1]]], @fired
+    assert_equal [["every", 1, [0]]], @fired
   end
 
   def test_stop_mid_run_keeps_the_count

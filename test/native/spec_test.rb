@@ -94,7 +94,7 @@ class SpecTest < Minitest::Test
       assert_empty $frames, "nothing fires until the test moves the clock"
       advance(1.0)
       assert_equal (0..9).to_a, $frames
-      assert_equal [1, 2, 3, 4], $counts
+      assert_equal [0, 1, 2, 3], $counts
       assert_equal [5], $fired
 
       subscription_item("@anim").stop
@@ -116,7 +116,7 @@ class SpecTest < Minitest::Test
     APP
       click_on("start")
       advance(0.3)
-      assert_equal [1, 2, 3], $ticks
+      assert_equal [0, 1, 2], $ticks
     TEST
     assert_spec_passed(run)
   end

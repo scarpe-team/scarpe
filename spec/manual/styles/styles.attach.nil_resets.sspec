@@ -5,10 +5,9 @@ testability: visual
 display: native
 ledger: C11
 ----------- app code
-# margin: 0, so the para starts at the stack's left edge like the slot does (text margins, ledger C9).
 Shoes.app width: 400, height: 300 do
   stack margin: 40 do
-    @words = para "Above the pinned slot", margin: 0
+    @words = para "Above the pinned slot"
     @pinned = stack width: 60, height: 40, attach: Window do
       background red
     end
@@ -25,5 +24,5 @@ wait_frames
 
 now = layout_of(pinned)
 words = layout_of(para("@words"))
-assert_in_delta words.x, now.x, 0.5, "back in the stack, it lines up with its neighbour"
+assert_in_delta words.x - 4, now.x, 0.5, "back in the stack, it lines up with its neighbour (whose text sits in a 4 px margin, ledger C9)"
 assert_operator now.y, :>=, words.y + words.h - 0.5, "and flows in below the paragraph"
