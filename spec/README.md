@@ -237,7 +237,8 @@ side effects). `spec/run --examples` smoke-runs every non-skipped one:
   (default 3) or exits 0.
 - native: `scarpe peek EXAMPLE --wait 1.5 --shot spec/results/gallery/<slug>.png`, then no Ruby
   error, no Rust panic, and a snapshot that is not one flat colour. Add `steps:` to click or
-  type before the shot.
+  type before the shot (`click`, `click_at`, `type`, `key`, and `wait` to let a timer tick,
+  since the shot follows the last step at once).
 
 Every `--examples` run also writes `spec/results/gallery/index.html`: one card per example with
 its native snapshot, its path, and each display's status and error line, broken examples
