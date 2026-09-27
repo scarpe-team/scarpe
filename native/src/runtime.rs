@@ -13,7 +13,8 @@ use serde_json::{Map, Value};
 use std::collections::BTreeMap;
 use tiny_skia::Pixmap;
 
-pub const DEFAULT_SIZE: (f32, f32) = (480.0, 420.0);
+/// An app that names no size opens at Shoes 3 and Shoes 4's 600x500 (ledger A1).
+pub const DEFAULT_SIZE: (f32, f32) = (600.0, 500.0);
 
 #[derive(Clone, Debug)]
 pub struct Options {
