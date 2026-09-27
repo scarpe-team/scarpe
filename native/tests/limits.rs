@@ -93,8 +93,9 @@ fn a_line_that_is_not_utf8_does_not_end_the_input() {
     assert_eq!(replies.last().map(|r| r["value"].clone()), Some(json!("pong")), "the ping after the bad bytes is answered");
 }
 
-/// tiny-skia rasterises in fixed point and panicked inside its own code on a stroke 2^31 px
-/// wide (fuzz seed 1084). Art too big to draw is skipped; what is left of the app draws on.
+/// tiny-skia rasterises in fixed point and panicked inside its own code (AlphaRuns::break_run)
+/// on a shape block stroked 2^31 px wide round a star, painted at 2x: fuzz seed 1084, cut
+/// down. Art too big to draw is skipped; what is left of the app draws on.
 #[test]
 fn art_too_big_to_rasterise_is_skipped() {
     let dc = |extra: Value| {
@@ -104,14 +105,15 @@ fn art_too_big_to_rasterise_is_skipped() {
     };
     let mut h = Harness::new();
     h.feed(&app(200, 100, &[
-        create(3, "Shape", 2, json!({"shape_commands": [["move_to", 10, 10], ["line_to", 50, 50]], "strokewidth": 2147483648_i64, "draw_context": dc(json!({}))})),
-        create(4, "Rect", 2, json!({"left": 1e30, "top": -1e30, "width": 1e30, "height": 5, "draw_context": dc(json!({}))})),
-        create(5, "Oval", 2, json!({"left": 20, "top": 20, "width": 40, "height": 40, "draw_context": dc(json!({"scale": [1e20, 1e20]}))})),
-        create(6, "Line", 2, json!({"left": 0, "top": 0, "x2": 3e38, "y2": 50, "draw_context": dc(json!({"strokewidth": 3}))})),
-        create(7, "Background", 2, json!({"fill": {"rgba": [0, 255, 0, 255]}, "width": 1e30, "curve": 1e30})),
-        create(8, "Rect", 2, json!({"left": 150, "top": 60, "width": 20, "height": 20, "draw_context": dc(json!({}))})),
+        create(3, "Shape", 2, json!({"strokewidth": 2147483648_i64})),
+        create(4, "Star", 3, json!({})),
+        create(5, "Rect", 2, json!({"left": 1e30, "top": -1e30, "width": 1e30, "height": 5, "draw_context": dc(json!({}))})),
+        create(6, "Oval", 2, json!({"left": 20, "top": 20, "width": 40, "height": 40, "draw_context": dc(json!({"scale": [1e20, 1e20]}))})),
+        create(7, "Line", 2, json!({"left": 0, "top": 0, "x2": 3e38, "y2": 50, "draw_context": dc(json!({"strokewidth": 3}))})),
+        create(8, "Background", 2, json!({"fill": {"rgba": [0, 255, 0, 255]}, "width": 1e30, "curve": 1e30})),
+        create(9, "Rect", 2, json!({"left": 150, "top": 60, "width": 20, "height": 20, "draw_context": dc(json!({}))})),
     ]));
-    let pixel = h.value(json!({"op": "pixel", "x": 160, "y": 70}));
-    assert_eq!(pixel, json!([255, 0, 0, 255]), "the sane rect still draws on top");
+    h.value(json!({"op": "snapshot", "path": snapshot_path(), "scale": 2}));
+    assert_eq!(h.value(json!({"op": "pixel", "x": 160, "y": 70})), json!([255, 0, 0, 255]), "the sane rect still draws on top");
     still_answers(&mut h);
 }
