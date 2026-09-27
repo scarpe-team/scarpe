@@ -26,8 +26,13 @@ module Shoes::Builtins
     families
   end
 
-  def ask(message_string)
-    shoes_builtin("ask", message_string)
+  # @param options [Hash] secret: true asks the display to mask what is typed, and title:
+  #   names the dialog (manual 629-641, 1385-1391; ledger K1)
+  # @return [String] what was typed, "" on Cancel
+  def ask(message_string, **options)
+    return shoes_builtin("ask", message_string) if options.empty?
+
+    shoes_builtin("ask", message_string, options)
   end
 
   def alert(message)
