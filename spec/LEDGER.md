@@ -590,7 +590,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 - **Shoes 3:** `strokewidth` defaults to 1.0 (`s3t_shape.c:98`). Default fill and stroke colours: not re-checked here.
 - **Shoes 4:** `STYLES = { fill: black }` for Oval and Star (`s4_oval.rb:6`, `star.rb:6`).
-- **Lacci / WV today:** Rect and Line declare no `strokewidth` style (`drawables/rect.rb:5`, `drawables/line.rb:5`), so `rect(..., strokewidth: 4)` is dropped with a warning; only the draw context's `strokewidth` reaches them. Oval defaults `fill: "black"`, `stroke: "black"` (`oval.rb:15-16`); Calzini uses stroke width 2 for ovals, a hard-coded 2 for stars and 4 for lines, ignoring `strokewidth` (`art_drawables.rb:78, 83, 97, 185`).
+- **Lacci / WV today:** Rect and Line declare no `strokewidth` style (`drawables/rect.rb:5`, `drawables/line.rb:5`), so `rect(..., strokewidth: 4)` is dropped with a warning; only the draw context's `strokewidth` reaches them. Since the wave-4 Lacci lane rect, line, arc, arrow and star declare `strokewidth` as oval did, and the native display draws it (`styles.strokewidth`). Oval defaults `fill: "black"`, `stroke: "black"` (`oval.rb:15-16`); Calzini uses stroke width 2 for ovals, a hard-coded 2 for stars and 4 for lines, ignoring `strokewidth` (`art_drawables.rb:78, 83, 97, 185`).
 - **Spec:** a default `rect` over white has a black interior and a 1 px outline; `strokewidth 5; line ...` draws a line about 5 px thick.
 - **Native:** draws every shape with the draw context's fill, stroke and width, defaulting to black, black, 1.
 
@@ -624,7 +624,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 - **Manual:** `:center` means the coordinates are the centre (manual 1115-1121, 1745).
 - **Shoes 3:** shifts by `w/2`, `h/2` (`s3_ruby.c:401-404`).
-- **Lacci / WV today:** Oval stores it, but Calzini inverts it: `cx: center ? radius : 0` (`art_drawables.rb:114, 123`). Without `center`, WV shows a clipped quarter circle; with it, the oval sits where the manual's default would put it. Rect declares no `:center` style (`drawables/rect.rb:5`), so `rect(..., center: true)` is dropped with a warning (`styles.center__accepted`).
+- **Lacci / WV today:** Oval stores it, but Calzini inverts it: `cx: center ? radius : 0` (`art_drawables.rb:114, 123`). Without `center`, WV shows a clipped quarter circle; with it, the oval sits where the manual's default would put it. Rect declares no `:center` style (`drawables/rect.rb:5`), so `rect(..., center: true)` is dropped with a warning (`styles.center__accepted`). Since the wave-4 Lacci lane rect and arc declare `:center` too (the manual's For-list is arc, image, oval, rect, shape; image and shape still do not), and the native display centres them (`styles.center__rect`, `art.rect.styles__center`).
 - **Spec:** `oval 100, 100, 50, center: true` covers pixel (100, 100) and its box is (75, 75, 50, 50).
 - **Native:** centres on (left, top) when `center` is true.
 
