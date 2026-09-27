@@ -138,7 +138,7 @@ class Shoes
       return if @do_shutdown
 
       with_slot(@document_root, &@app_code_body)
-      render_index_if_defined_on_first_boot
+      show_root_route_on_first_boot
 
       # Fire any registered start callbacks after the app code has run
       fire_start_callbacks
@@ -655,10 +655,12 @@ class Shoes::App < Shoes::Drawable
 
   private
 
-  def render_index_if_defined_on_first_boot
+  # Apps start at "/" (ledger J1), whatever method it routes to: url.rb routes it to
+  # :setupscreen.
+  def show_root_route_on_first_boot
     return if @first_boot_finished
 
-    visit('/') if @routes['/'] == :index
+    visit("/") if @routes.any? { |route, _| route === "/" }
 
     @first_boot_finished = true
   end

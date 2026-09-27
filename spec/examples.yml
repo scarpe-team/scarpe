@@ -71,7 +71,7 @@
 "examples/legacy/for_playtest/expert/pong.rb": {category: "legacy/for_playtest/expert", needs: ["timer/animation","shell"], status: "loads"}
 "examples/legacy/for_playtest/expert/tankspank.rb": {category: "legacy/for_playtest/expert", needs: ["timer/animation"], status: "loads"}
 "examples/legacy/for_playtest/expert/tooltips.rb": {category: "legacy/for_playtest/expert", needs: ["asset:shoes-icon.png","asset:__dir__-relative"], status: "loads"}
-"examples/legacy/for_playtest/expert/url.rb": {category: "legacy/for_playtest/expert", needs: [], status: {niente: "loads", native: "fails"}, reason: "draws nothing at boot: Lacci shows \"/\" on its own only when it is routed to :index (ledger J1), and this app routes it to :setupscreen"}
+"examples/legacy/for_playtest/expert/url.rb": {category: "legacy/for_playtest/expert", needs: [], status: "loads"}
 "examples/legacy/for_playtest/good/console.rb": {category: "legacy/for_playtest/good", needs: ["stdin/readline","shoes3_only_widget"], status: "loads"}
 "examples/legacy/for_playtest/good/plots.rb": {category: "legacy/for_playtest/good", needs: ["asset:robots.txt(missing?)","shoes3_only_widget"], status: "loads"}
 "examples/legacy/for_playtest/good/svgview.rb": {category: "legacy/for_playtest/good", needs: ["asset:paris.svg(missing?)","asset:__dir__-relative","gem:nokogiri","dialog","file_write","shoes3_only_widget"], status: "loads"}
