@@ -5,12 +5,13 @@
 //! an arc sits in its (left, top, width, height) box like an oval.
 
 use super::{with_shader, Canvas};
-use crate::doc::{Kind, Node};
+use crate::doc::{Doc, Kind, Node};
 use crate::elements::image::ImageCache;
 use crate::layout::{LBox, Rect};
-use crate::props::Props;
+use crate::props::{Id, Props};
 use crate::style::{Color, Paint};
 use serde_json::Value;
+use std::collections::HashMap;
 use std::f32::consts::{FRAC_PI_2, PI, TAU};
 use tiny_skia::{FillRule, LineCap, LineJoin, Path, PathBuilder, Stroke, Transform};
 
@@ -321,15 +322,23 @@ fn line_cap(props: &Props) -> LineCap {
 }
 
 /// Fills then strokes an art element. Unset fill and stroke default to black,
-/// strokewidth to 1 (Shoes 3); `nofill`/`nostroke` arrive as alpha 0.
-pub fn paint_art(canvas: &mut Canvas, node: &Node, lbox: &LBox, images: &mut ImageCache) {
-    let Some(art) = art(node, lbox.origin, lbox.parent_size) else { return };
+/// strokewidth to 1 (Shoes 3); `nofill`/`nostroke` arrive as alpha 0. A shape
+/// block paints the art inside it as part of its own path.
+pub fn paint_art(canvas: &mut Canvas, doc: &Doc, boxes: &HashMap<Id, LBox>, node: &Node, lbox: &LBox, images: &mut ImageCache) {
+    let (path, frame, fillable) = if node.kind == Kind::Shape {
+        let Some((path, frame)) = group(doc, boxes, node, lbox) else { return };
+        (path, frame, true)
+    } else {
+        let Some(art) = art(node, lbox.origin, lbox.parent_size) else { return };
+        (art.path, art.frame, art.fillable)
+    };
     let props = &node.props;
-    if art.fillable {
+    let transform = art_transform(props, frame);
+    if fillable {
         let fill = props.art_paint("fill").unwrap_or(Paint::Solid(Color::BLACK));
         if fill.is_visible() {
-            with_shader(&fill, art.frame, images, |shader| {
-                canvas.fill_path(&art.path, shader, FillRule::Winding, art.transform, lbox.clip);
+            with_shader(&fill, frame, images, |shader| {
+                canvas.fill_path(&path, shader, FillRule::Winding, transform, lbox.clip);
             });
         }
     }
@@ -337,10 +346,48 @@ pub fn paint_art(canvas: &mut Canvas, node: &Node, lbox: &LBox, images: &mut Ima
     let width = props.art_f32("strokewidth").unwrap_or(1.0);
     if stroke.is_visible() && width > 0.0 {
         let style = Stroke { width, line_cap: line_cap(props), line_join: LineJoin::Round, ..Stroke::default() };
-        with_shader(&stroke, art.frame, images, |shader| {
-            canvas.stroke_path(&art.path, shader, &style, art.transform, lbox.clip);
+        with_shader(&stroke, frame, images, |shader| {
+            canvas.stroke_path(&path, shader, &style, transform, lbox.clip);
         });
     }
+}
+
+/// Art drawn inside a shape block is part of the shape (manual 1820-1824, ledger E7 and M21).
+pub fn in_shape(doc: &Doc, node: &Node) -> bool {
+    node.parent.and_then(|p| doc.get(p)).is_some_and(|p| p.kind == Kind::Shape)
+}
+
+/// Where the art inside a shape block is measured from: the shape's (left, top).
+pub fn group_origin(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> (f32, f32) {
+    let dim = |key: &str, basis: f32| node.props.dim(key).map(|d| d.resolve(basis)).unwrap_or(0.0);
+    (origin.0 + dim("left", parent.0), origin.1 + dim("top", parent.1))
+}
+
+/// A shape block's own path plus every sub-path drawn inside it, as one path to fill
+/// once (nonzero winding, like cairo's default) and stroke once. Members join
+/// untransformed: the shape's own rotate turns the whole group.
+fn group(doc: &Doc, boxes: &HashMap<Id, LBox>, node: &Node, lbox: &LBox) -> Option<(Path, Rect)> {
+    let mut pb = PathBuilder::new();
+    let mut frame: Option<Rect> = None;
+    let mut add = |path: &Path, r: Rect| {
+        pb.push_path(path);
+        frame = Some(frame.map_or(r, |f| f.union(&r)));
+    };
+    if let Some(own) = art(node, lbox.origin, lbox.parent_size) {
+        add(&own.path, own.frame);
+    }
+    for &child in doc.children(node.id) {
+        let (Some(member), Some(b)) = (doc.get(child), boxes.get(&child)) else { continue };
+        let sub = match member.kind {
+            Kind::Shape => group(doc, boxes, member, b),
+            ref k if k.is_art() => art(member, b.origin, b.parent_size).map(|a| (a.path, a.frame)),
+            _ => None,
+        };
+        if let Some((path, r)) = sub {
+            add(&path, r);
+        }
+    }
+    Some((pb.finish()?, frame?))
 }
 
 #[cfg(test)]

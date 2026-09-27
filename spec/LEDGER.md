@@ -591,7 +591,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Examples:** `for_playtest/expert/curve-control-point.rb:16` calls `move_to *xy[0]` outside any shape.
 - **Lacci today:** `Shape < Shoes::Slot` with `@incompatibility A Shoes3 Shape is *not* a slot; Scarpe does *not* do union shapes` (`shape.rb:11-12`). `shape_commands` is sent empty at create and mutated afterwards without a `prop_change` (`shape.rb:25-31`, X7). `move_to` and friends are ignored outside a Shape (`app.rb:509-568`).
 - **Spec:** a closed `shape` fills its interior with the current fill; an oval created inside a shape paints (is not dropped).
-- **Native:** builds one path from the complete `shape_commands`, offset by (left, top). Art children of the shape are unioned into the same path.
+- **Native:** builds one path from the complete `shape_commands`, offset by (left, top). Art children of the shape join the same path, measured from the shape's (left, top), and the whole group is filled once (nonzero) and stroked once with the shape's own draw context (DESIGN 12).
 
 ### E8. `click`, `release`, `hover` and `leave` on shapes, text blocks and images
 

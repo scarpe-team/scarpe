@@ -405,6 +405,9 @@ change the code and this list together.
   moves shapes before they turn. A shape's layout box is its transformed box, so hit-testing follows.
   `cap` is `"curve"` (round), `"rect"` (flat, the default) or `"project"` (square, half the stroke
   width longer). Unset fill and stroke are black, strokewidth 1.
+- **Shape blocks.** Art drawn inside a `shape` block joins the shape's path, measured from the
+  shape's left/top: the group is filled once (nonzero winding) and stroked once with the shape's own
+  fill and stroke, and turns as one (ledger E7, M21). The shape's layout box holds all of it.
 - **Gradients** follow Shoes 3: angle 0 runs top to bottom, 90 left to right, across the shape's
   box. A wire gradient without `angle` gets 0.
 - **Wheel.** `req wheel` takes `dy` in logical px with DOM sign: positive scrolls down (content

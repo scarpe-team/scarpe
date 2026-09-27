@@ -200,7 +200,9 @@ pub fn paint(scene: &mut Scene, pm: &mut Pixmap, scale: f32) {
         match &node.kind {
             Kind::Background => decor::background(&mut canvas, node, lbox, scene.images),
             Kind::Border => decor::border(&mut canvas, node, lbox, scene.images),
-            k if k.is_art() => shapes::paint_art(&mut canvas, node, lbox, scene.images),
+            // Art inside a shape block is painted with its shape, as one path.
+            k if k.is_art() && shapes::in_shape(doc, node) => {}
+            k if k.is_art() => shapes::paint_art(&mut canvas, doc, &layout.boxes, node, lbox, scene.images),
             Kind::Para | Kind::TextDrawable => {
                 if let Some(tb) = layout.texts.get(&id) {
                     if let Some(fill) = tb.shaped.fill {
