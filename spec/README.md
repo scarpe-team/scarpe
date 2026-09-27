@@ -188,7 +188,8 @@ backend follows the ruling).
    and are still recorded in `dialog_calls`. The runner fails any case that
    reaches `osascript`.
 6. **No network, no sleeping, no writing outside the working directory.** Each case runs in a
-   throwaway directory with its own `HOME`; `say`, `open`, `afplay` and `osascript` are trapped.
+   throwaway directory with its own `HOME`, `TMPDIR` and image cache; `say`, `open`, `afplay`
+   and `osascript` are trapped.
    `pbcopy`, `pbpaste` and `xclip` read and write the file `ENV["SPEC_CLIPBOARD_FILE"]` in the
    sandbox instead of the real clipboard: write that file to seed the clipboard, read it to
    see what the app copied.

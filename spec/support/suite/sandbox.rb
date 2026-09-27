@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 module SpecSuite
-  # A throwaway directory per case or example: its own HOME, LOCALAPPDATA and working
-  # directory, so apps that write to LIB_DIR, ~ or cwd never touch the real machine.
-  # Also builds the child environment from scratch (spawned with unsetenv_others).
+  # A throwaway directory per case or example: its own HOME, LOCALAPPDATA, working directory,
+  # temp dir and download cache, so apps that write to LIB_DIR, ~, cwd or TMPDIR never touch
+  # the real machine or the next case. Also builds the child environment from scratch (spawned
+  # with unsetenv_others).
   class Sandbox
     attr_reader :root
 
@@ -16,11 +17,14 @@ module SpecSuite
     def initialize(parent, name)
       @root = File.join(parent, name)
       FileUtils.mkdir_p([home, local_app_data, work])
+      FileUtils.mkdir_p(tmp, mode: 0o700)
     end
 
     def home = File.join(root, "home")
     def local_app_data = File.join(root, "localappdata")
     def work = File.join(root, "work")
+    def tmp = File.join(root, "tmp")
+    def download_cache = File.join(root, "cache")
     def trap_file = File.join(root, "trapped_commands.txt")
     def clipboard_file = File.join(root, "clipboard.txt")
     def log = File.join(root, "output.log")
@@ -58,7 +62,8 @@ module SpecSuite
         "PATH" => "#{FAKEBIN}:#{ENV.fetch("PATH", "/usr/bin:/bin")}",
         "HOME" => home,
         "LOCALAPPDATA" => local_app_data,
-        "TMPDIR" => Dir.tmpdir,
+        "TMPDIR" => tmp,
+        "SCARPE_NATIVE_CACHE" => download_cache,
         "LANG" => ENV.fetch("LANG", "en_US.UTF-8"),
         "BUNDLE_GEMFILE" => File.join(REPO, "Gemfile"),
         "RUBYOPT" => "-r#{BUILTIN_STUB}",
