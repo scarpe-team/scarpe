@@ -99,6 +99,22 @@ fn an_echo_keeps_the_history_and_text_the_app_sets_clears_it() {
     assert_eq!(h.node(|n| n["id"] == 3)["text"], json!("reset"));
 }
 
+/// Echoes trail the keys: a `type` request types a whole word before Ruby sees its first
+/// `change`, so "h", "he", "hel"... arrive after "hello". Each late echo is still our own
+/// edit: it keeps the caret where it is and the history whole.
+#[test]
+fn late_echoes_keep_the_caret_and_the_history() {
+    let mut h = field("EditLine", json!({"text": ""}));
+    typed(&mut h, "hello");
+    key(&mut h, "left");
+    for echo in ["h", "he", "hel", "hell", "hello"] {
+        h.feed(&format!("{}\n", json!({"t": "props", "id": 3, "props": {"text": echo}})));
+    }
+    assert_eq!(typed(&mut h, "X"), ["hellXo"], "the caret stayed before the o");
+    assert_eq!(key(&mut h, ":control_z"), ["hello"]);
+    assert_eq!(key(&mut h, ":control_z"), [""], "the history survived the echoes");
+}
+
 /// A readonly field keeps its text through Cmd-Z, even with edits from before it was locked.
 #[test]
 fn a_readonly_field_refuses_undo() {

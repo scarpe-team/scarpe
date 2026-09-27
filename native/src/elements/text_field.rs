@@ -8,11 +8,15 @@ use crate::paint::text::{caret_position, selection_rects};
 use crate::style::Color;
 use crate::text::FamilyName;
 use cosmic_text::{Action, Attrs, Buffer, Cursor, Edit, Editor, FontSystem, Metrics, Motion, Selection, Shaping, Wrap};
+use std::collections::VecDeque;
 
 pub const BULLET: char = '\u{2022}';
 
 /// Undo steps a field keeps.
 const MAX_UNDO: usize = 200;
+
+/// Changes a field remembers while it waits for Lacci's echoes of them.
+const MAX_UNECHOED: usize = 64;
 
 /// What an edit did, for undo: a run of typing, or of deleting, undoes as one step, as in a
 /// Mac or GTK text field. A paste, a cut or a caret move ends the run.
@@ -73,6 +77,10 @@ pub struct TextField {
     family: FamilyName,
     bullet_w: f32,
     history: History,
+    /// Texts sent in `change` events that Lacci has not echoed back yet. Echoes can trail
+    /// the keys (a `type` request types a whole word before Ruby sees its first change), so
+    /// an older one must not be mistaken for text the app set.
+    unechoed: VecDeque<String>,
 }
 
 /// What a key did to a field.
@@ -103,6 +111,7 @@ impl TextField {
             family,
             bullet_w,
             history: History::default(),
+            unechoed: VecDeque::new(),
         };
         field.move_to_end();
         field.editor.shape_as_needed(fs, false);
@@ -121,12 +130,28 @@ impl TextField {
         self.editor.with_buffer(|b| b.lines.iter().map(|l| l.text()).collect::<Vec<_>>().join("\n"))
     }
 
-    /// Applies text from Lacci. Its echo of our own edit is a no-op, so the caret and the undo
-    /// history stay; text the app sets itself starts a new history, as a browser's field does.
+    /// The text after an edit, remembered as sent in a `change` event, so its echo is known.
+    pub fn reported(&mut self) -> String {
+        let text = self.text();
+        if self.unechoed.len() == MAX_UNECHOED {
+            self.unechoed.pop_front();
+        }
+        self.unechoed.push_back(text.clone());
+        text
+    }
+
+    /// Applies text from Lacci. Its echo of our own edit, however late, is a no-op, so the caret
+    /// and the undo history stay; text the app sets itself starts a new history, as a
+    /// browser's field does.
     pub fn set_text(&mut self, fs: &mut FontSystem, text: &str) {
+        if let Some(echoed) = self.unechoed.iter().position(|sent| sent == text) {
+            self.unechoed.drain(..=echoed);
+            return;
+        }
         if self.text() == text {
             return;
         }
+        self.unechoed.clear();
         self.replace_text(text);
         self.editor.set_selection(Selection::None);
         self.move_to_end();
