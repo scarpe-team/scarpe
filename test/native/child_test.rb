@@ -103,14 +103,4 @@ class ChildTest < Minitest::Test
     File.utime(Time.now + 60, Time.now + 60, source)
     assert Scarpe::Native::Binary.stale?(binary: binary, crate: crate)
   end
-
-  private
-
-  def with_env(vars)
-    saved = vars.keys.to_h { |key| [key, ENV[key]] }
-    vars.each { |key, value| ENV[key] = value }
-    yield
-  ensure
-    saved.each { |key, value| ENV[key] = value }
-  end
 end

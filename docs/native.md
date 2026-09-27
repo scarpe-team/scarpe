@@ -224,7 +224,7 @@ and the numbers.
 | `SCARPE_NATIVE_BIN` | run this binary instead of building `native/target/release/scarpe-native` |
 | `SCARPE_NATIVE_TRACE=1` | print every message in both directions to stderr |
 | `SCARPE_NATIVE_LOG_LEVEL` | `debug`, `info`, `warn` (the default) or `error` |
-| `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept |
+| `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept; by default your own cache folder (`~/Library/Caches/scarpe-native` on a Mac), never the shared temp folder |
 | `SCARPE_NATIVE_SNAPSHOT_DIR` | where a spec's `snapshot("name")` writes its picture |
 | `SCARPE_NATIVE_STATS=DIR` | each process writes where its time went (`ruby.json`, `rust.json`) when it exits |
 | `SCARPE_NATIVE_DAMAGE` | `off` repaints every frame whole; `check` verifies every partial repaint pixel by pixel |

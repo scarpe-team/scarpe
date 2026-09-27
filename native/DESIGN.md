@@ -257,8 +257,15 @@ is the one bug we never want. Must never load `scarpe/wv` (set-once globals coll
 - The draw context: `fill` and `stroke` as colours, everything else (`translate`, `transform`, `cap`,
   `strokewidth`, `rotate`...) as plain values (contract b).
 - Paths (`url`, image backgrounds, `icon`, `font`) -> absolute (`File.expand_path` against `Dir.pwd`).
-  `http(s)` image and font URLs are downloaded once into a cache dir (`SCARPE_NATIVE_CACHE`) and sent
-  as local paths; net/http loads on the first download only. A non-Image `url` with a scheme stays as it is.
+  `http(s)` image and font URLs are downloaded once into the user's own cache and sent as local
+  paths; net/http loads on the first download only. A non-Image `url` with a scheme stays as it is.
+  The cache is `SCARPE_NATIVE_CACHE`, else `~/Library/Caches/scarpe-native` on macOS,
+  `scarpe-native` under `$XDG_CACHE_HOME` (default `~/.cache`) on Linux, or
+  `%LOCALAPPDATA%\scarpe-native\cache` on Windows, and never the shared temp dir: a directory
+  that is a link or someone else's is refused, and ours is kept 0700. An entry counts only as a
+  plain file of the user's that starts like an image or font, else it is fetched again; a
+  download goes to a new file and is renamed over the entry, so a link planted at either name is
+  never followed. An https download never follows a redirect to plain http.
 - Ruby objects: `owner` -> its linkable id; `attach: Shoes::App` (the Window constant) -> `"window"`;
   `attach: drawable` -> its id; Procs -> dropped (a dropped `click` sets `has_block: true`).
   ListBox `items` and `chosen` travel as Strings.
@@ -724,7 +731,7 @@ change the code and this list together.
 | `SCARPE_NATIVE_GHOST` | passes `--ghost` (scarpe-native honours it too): windows present real frames but are invisible, click-through and never in front (section 12). Every automated windowed run sets it; `0` turns it off |
 | `SCARPE_NATIVE_TRACE` | prints every NDJSON line both ways to stderr (Ruby side; the child's `--trace` does it from Rust) |
 | `SCARPE_NATIVE_LOG_LEVEL` | `debug`, `info`, `warn` (default; `debug` under `SCARPE_DEBUG`) or `error` |
-| `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept |
+| `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept (default: the user's cache directory, 5.3) |
 | `SCARPE_NATIVE_SNAPSHOT_DIR` | where relative `snapshot(name)` paths go (default `spec/results/snapshots`) |
 | `SCARPE_NATIVE_WINDOWED_TESTS` | lets `rake native_test` open real windows, as ghosts |
 | `SCARPE_NATIVE_STATS` | a directory: each process writes where its time went (`ruby.json`, `rust.json`) as it exits (native/PERF.md) |

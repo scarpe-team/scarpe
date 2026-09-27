@@ -4,8 +4,10 @@ require_relative "helper"
 require "socket"
 
 class NormalizeTest < Minitest::Test
+  include NativeTestHelpers
   include Shoes::Colors
   N = Scarpe::Native::Normalize
+  PICTURE = "\x89PNG\r\n\x1A\nPNGDATA".b
 
   def rgba(*channels)
     { "rgba" => channels }
@@ -131,11 +133,95 @@ class NormalizeTest < Minitest::Test
       with_cache_dir do |cache|
         path = N.prop("Image", "url", url)
         assert path.start_with?(cache), "#{path} should be in #{cache}"
-        assert_equal "PNGDATA", File.binread(path)
+        assert_equal PICTURE, File.binread(path)
         assert_equal({ "image" => path }, N.color(url))
         assert_equal 1, hits.size, "the second use reads the cache"
       end
     end
+  end
+
+  # The cache holds files fetched from anywhere and hands their paths to Rust, so nobody else
+  # may put anything in it (review: a shared /tmp cache let another user plant links and files).
+
+  def test_the_cache_is_a_private_directory_of_the_users_own_by_default
+    Dir.mktmpdir do |home|
+      with_env("SCARPE_NATIVE_CACHE" => nil, "HOME" => home, "XDG_CACHE_HOME" => nil) do
+        per_user = RUBY_PLATFORM.include?("darwin") ? %w[Library Caches scarpe-native] : %w[.cache scarpe-native]
+        assert_equal File.join(home, *per_user), N.cache_dir, "never under the shared temp dir"
+        assert_equal 0o700, File.stat(N.cache_dir).mode & 0o777
+      end
+    end
+  end
+
+  def test_a_cache_directory_others_could_write_to_is_made_private
+    with_cache_dir do |cache|
+      File.chmod(0o777, cache)
+      N.cache_dir
+      assert_equal 0o700, File.stat(cache).mode & 0o777
+    end
+  end
+
+  def test_a_cache_directory_that_is_a_link_is_refused
+    Dir.mktmpdir do |dir|
+      Dir.mkdir(File.join(dir, "real"))
+      File.symlink(File.join(dir, "real"), File.join(dir, "link"))
+      with_image_server do |url, hits|
+        with_env("SCARPE_NATIVE_CACHE" => File.join(dir, "link")) do
+          assert_nil N.download(url)
+          assert_empty hits, "nothing fetched into a directory we cannot vouch for"
+          assert_empty Dir.children(File.join(dir, "real"))
+        end
+      end
+    end
+  end
+
+  def test_a_link_planted_where_an_entry_goes_is_replaced_and_never_read
+    with_victim do |victim, original|
+      with_image_server do |url, hits|
+        with_cache_dir do
+          File.symlink(victim, N.cache_entry(url))
+          path = N.download(url)
+          refute File.symlink?(path), "the planted link is gone"
+          assert_equal PICTURE, File.binread(path), "the entry is what the server sent"
+          assert_equal 1, hits.size
+          assert_equal original, File.binread(victim)
+        end
+      end
+    end
+  end
+
+  def test_a_link_planted_where_the_download_is_written_is_never_written_through
+    with_victim do |victim, original|
+      with_image_server do |url, _hits|
+        with_cache_dir do
+          File.symlink(victim, "#{N.cache_entry(url)}.part")
+          assert_equal PICTURE, File.binread(N.download(url))
+          assert_equal original, File.binread(victim), "the victim's file is untouched"
+        end
+      end
+    end
+  end
+
+  def test_an_entry_that_is_not_an_image_or_a_font_is_fetched_again
+    with_image_server do |url, hits|
+      with_cache_dir do
+        File.write(N.cache_entry(url), "<html>502 Bad Gateway</html>")
+        assert_equal PICTURE, File.binread(N.download(url))
+        assert_equal 1, hits.size
+      end
+    end
+  end
+
+  def test_an_https_download_never_follows_a_redirect_to_http
+    require "minitest/mock"
+    require "net/http"
+    moved = Net::HTTPFound.new("1.1", "302", "Found")
+    moved["location"] = "http://127.0.0.1:9/cat.png"
+    asked = []
+    Net::HTTP.stub(:start, ->(host, *, **) { asked << host; moved }) do
+      with_cache_dir { assert_nil N.download("https://example.com/cat-#{rand(1 << 30)}.png") }
+    end
+    assert_equal ["example.com"], asked, "the plain http location was never fetched"
   end
 
   def test_a_failed_download_is_nil
@@ -227,6 +313,16 @@ class NormalizeTest < Minitest::Test
     end
   end
 
+  # A file of someone's that a planted link points at, and what it held.
+  def with_victim
+    Dir.mktmpdir do |dir|
+      victim = File.join(dir, "victim.png")
+      original = "\x89PNG the victim's own picture".b
+      File.binwrite(victim, original)
+      yield victim, original
+    end
+  end
+
   def with_image_server
     server = TCPServer.new("127.0.0.1", 0)
     hits = []
@@ -235,7 +331,8 @@ class NormalizeTest < Minitest::Test
         client = server.accept
         hits << client.gets
         while (header = client.gets) && header != "\r\n"; end
-        client.write("HTTP/1.1 200 OK\r\nContent-Type: image/png\r\nContent-Length: 7\r\nConnection: close\r\n\r\nPNGDATA")
+        client.write("HTTP/1.1 200 OK\r\nContent-Type: image/png\r\nContent-Length: #{PICTURE.bytesize}\r\nConnection: close\r\n\r\n")
+        client.write(PICTURE)
         client.close
       end
     rescue IOError
