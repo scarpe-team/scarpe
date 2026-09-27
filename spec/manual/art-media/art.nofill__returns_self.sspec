@@ -3,8 +3,6 @@ manual: art.nofill
 lines: [1701, 1701]
 testability: api
 display: any
-expect: fail
-reason: Lacci's nofill returns the transparent colour it stores, not self (no ledger row yet; see the lane report).
 ----------- app code
 Shoes.app do
   $app = self

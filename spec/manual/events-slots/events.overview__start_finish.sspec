@@ -4,8 +4,6 @@ lines: [2163, 2165]
 testability: api
 display: any
 ledger: H8
-expect: fail
-reason: Lacci slots have no start method (only the App does), per ledger H8
 ----------- app code
 Shoes.app do
   $slot = stack { para "listening" }

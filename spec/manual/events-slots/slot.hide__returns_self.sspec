@@ -3,8 +3,6 @@ manual: slot.hide
 lines: [2417, 2417]
 testability: api
 display: any
-expect: fail
-reason: Lacci's hide returns the new value of hidden (true), not the slot (ledger row requested)
 ----------- app code
 Shoes.app do
   $slot = stack { para "now you see me" }

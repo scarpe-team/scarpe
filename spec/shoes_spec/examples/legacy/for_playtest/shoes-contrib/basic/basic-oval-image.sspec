@@ -4,9 +4,6 @@
 source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-oval-image.sspec
 source_commit: 1e766c6
 display: any
-expect: fail
-reason: Lacci ignores shapes drawn inside an image(w, h) { } block; Shoes 3 paints
-  them onto the image
 ----------- app code
 Shoes.app do
   fill blue(0.1)

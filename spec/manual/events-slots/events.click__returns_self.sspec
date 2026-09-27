@@ -3,8 +3,6 @@ manual: events.click
 lines: [2187, 2187]
 testability: api
 display: any
-expect: fail
-reason: Lacci's slot click returns the SubscriptionItem it creates, not the slot (ledger row requested)
 ----------- app code
 Shoes.app do
   $slot = stack { para "click me" }

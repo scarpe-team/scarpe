@@ -4,8 +4,6 @@ lines: [1077, 1079]
 testability: visual
 display: native
 ledger: D6
-expect: fail
-reason: "Background declares no :angle style, so Lacci drops it before it reaches the display (see styles.angle__accepted)."
 ----------- app code
 Shoes.app width: 300, height: 300 do
   @swatch = stack width: 200, height: 200 do

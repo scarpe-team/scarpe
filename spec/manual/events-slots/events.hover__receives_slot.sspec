@@ -4,8 +4,6 @@ lines: [2200, 2203]
 testability: interactive
 display: native
 ledger: H5
-expect: fail
-reason: Lacci hands a slot's hover block the SubscriptionItem, not the slot (ledger H5)
 ----------- app code
 $hovered = []
 Shoes.app width: 400, height: 300 do

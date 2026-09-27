@@ -4,8 +4,6 @@ lines: [1678, 1679]
 testability: visual
 display: native
 ledger: E10
-expect: fail
-reason: Lacci's cap is a no-op stub, so the display never hears which cap to draw (E10).
 ----------- app code
 Shoes.app width: 300, height: 200 do
   stroke black
