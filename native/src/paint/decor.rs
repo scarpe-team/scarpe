@@ -1,6 +1,6 @@
 //! Backgrounds, borders and the overlay scrollbar.
 
-use super::{shapes, with_shader, Canvas};
+use super::{with_shader, Canvas};
 use crate::doc::Node;
 use crate::elements::image::ImageCache;
 use crate::layout::{LBox, Layout, Rect};
@@ -14,7 +14,7 @@ pub fn background(canvas: &mut Canvas, node: &Node, lbox: &LBox, images: &mut Im
         return;
     }
     let curve = node.props.f32("curve").unwrap_or(0.0);
-    let Some(path) = shapes::rounded_rect(lbox.rect, curve) else { return };
+    let Some(path) = canvas.rect_path(lbox.rect, curve, 0.0) else { return };
     with_shader(&paint, lbox.rect, images, |shader| {
         canvas.fill_path(&path, shader, FillRule::Winding, Transform::identity(), lbox.clip);
     });
@@ -31,7 +31,7 @@ pub fn border(canvas: &mut Canvas, node: &Node, lbox: &LBox, images: &mut ImageC
     let half = width / 2.0;
     let inner = Rect::new(r.x + half, r.y + half, (r.w - width).max(0.0), (r.h - width).max(0.0));
     let curve = (node.props.f32("curve").unwrap_or(0.0) - half).max(0.0);
-    let Some(path) = shapes::rounded_rect(inner, curve) else { return };
+    let Some(path) = canvas.rect_path(inner, curve, width) else { return };
     let stroke = Stroke { width, line_join: LineJoin::Round, ..Stroke::default() };
     with_shader(&paint, r, images, |shader| {
         canvas.stroke_path(&path, shader, &stroke, Transform::identity(), lbox.clip);
