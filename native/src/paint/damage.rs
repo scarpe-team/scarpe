@@ -111,8 +111,8 @@ impl Revisions {
         self.now
     }
 
-    fn changed_since(&self, id: Id, seen: u64) -> bool {
-        self.nodes.get(&id).is_some_and(|at| *at > seen)
+    fn changed_after(&self, seen: u64) -> impl Iterator<Item = Id> + '_ {
+        self.nodes.iter().filter(move |(_, at)| **at > seen).map(|(id, _)| *id)
     }
 }
 
@@ -155,7 +155,7 @@ pub fn repaint(scene: &mut Scene, frame: &mut Pixmap, scale: f32, memory: &mut F
     let hovered: HashSet<Id> = scene.view.hover_chain.iter().copied().collect();
     let mut now = look_at(scene.doc, scene.layout, scene.view, &hovered, (frame.width(), frame.height()), scale, revisions.now());
     let plan = match &memory.last {
-        Some(before) => plan(before, &now, revisions),
+        Some(before) => plan(before, &now, &changed_since(before, &now, scene.doc, revisions)),
         None => Repaint::Everything,
     };
     match &plan {
@@ -243,13 +243,54 @@ pub fn verify(scene: &mut Scene, plan: &Repaint, frame: &Pixmap, scale: f32, ful
     Ok(())
 }
 
-fn plan(before: &Frame, now: &Frame, revisions: &Revisions) -> Repaint {
+/// The painted nodes whose props changed since `before`. A change to a node painted in neither
+/// frame (a text span, art an image draws itself) can only show through a painted ancestor,
+/// so the nearest one counts as changed instead.
+fn changed_since(before: &Frame, now: &Frame, doc: &Doc, revisions: &Revisions) -> Changed {
+    if revisions.everything > before.revision {
+        return Changed::Everything;
+    }
+    let mut changed = HashSet::new();
+    for id in revisions.changed_after(before.revision) {
+        if now.nodes.contains_key(&id) || before.nodes.contains_key(&id) {
+            changed.insert(id);
+        } else if let Some(painted) = painted_ancestor(doc, now, id) {
+            changed.insert(painted);
+        }
+    }
+    Changed::Nodes(changed)
+}
+
+/// The nearest ancestor a change to `id` could show through: none when the node or anything
+/// above it is hidden, or for a SubscriptionItem, which draws nothing.
+fn painted_ancestor(doc: &Doc, now: &Frame, id: Id) -> Option<Id> {
+    let hidden = |id: Id| doc.get(id).is_none_or(|n| n.props.truthy("hidden"));
+    if hidden(id) || doc.get(id).is_some_and(|n| n.kind == Kind::SubscriptionItem) {
+        return None;
+    }
+    for ancestor in doc.ancestors(id) {
+        if now.nodes.contains_key(&ancestor) {
+            return Some(ancestor);
+        }
+        if hidden(ancestor) {
+            return None;
+        }
+    }
+    None
+}
+
+enum Changed {
+    Everything,
+    Nodes(HashSet<Id>),
+}
+
+fn plan(before: &Frame, now: &Frame, changed: &Changed) -> Repaint {
+    let Changed::Nodes(changed) = changed else { return Repaint::Everything };
     let whole = before.size != now.size
         || before.scale != now.scale
         || before.overlaid
         || now.overlaid
         || before.scrolling != now.scrolling
-        || revisions.everything > before.revision
         || !same_order(before, now);
     if whole {
         return Repaint::Everything;
@@ -259,10 +300,7 @@ fn plan(before: &Frame, now: &Frame, revisions: &Revisions) -> Repaint {
     for (id, look) in &now.nodes {
         let old = before.nodes.get(id);
         let unchanged = old.is_some_and(|old| {
-            old.fingerprint == look.fingerprint
-                && old.bounds == look.bounds
-                && same_text(&old.text, &look.text)
-                && !revisions.changed_since(*id, before.revision)
+            old.fingerprint == look.fingerprint && old.bounds == look.bounds && same_text(&old.text, &look.text) && !changed.contains(id)
         });
         if unchanged {
             continue;
@@ -510,15 +548,49 @@ mod tests {
         assert_eq!(to_pixels(Rect::new(200.0, 0.0, 10.0, 10.0), 1.0, (100, 100)), None);
     }
 
+    fn node(doc: &mut Doc, id: Id, class: &str, parent: Option<Id>, props: serde_json::Value) {
+        let props = props.as_object().cloned().unwrap_or_default();
+        doc.create(crate::doc::NewNode { id, class: class.into(), parent, index: None, widget: false, props, doc_root: None, owner: None });
+    }
+
+    fn frame_of(painted: &[Id]) -> Frame {
+        let look = || Look { bounds: Some(Rect::new(0.0, 0.0, 10.0, 10.0)), fingerprint: 0, text: None };
+        Frame { revision: 0, size: (10, 10), scale: 1.0, overlaid: false, scrolling: 0, order: painted.to_vec(), nodes: painted.iter().map(|id| (*id, look())).collect() }
+    }
+
+    #[test]
+    fn a_change_shows_through_the_nearest_painted_ancestor() {
+        let mut doc = Doc::default();
+        node(&mut doc, 2, "DocumentRoot", None, serde_json::json!({}));
+        node(&mut doc, 3, "Para", Some(2), serde_json::json!({}));
+        node(&mut doc, 4, "Strong", Some(3), serde_json::json!({}));
+        node(&mut doc, 5, "Stack", Some(2), serde_json::json!({"hidden": true}));
+        node(&mut doc, 6, "Para", Some(5), serde_json::json!({}));
+        node(&mut doc, 7, "SubscriptionItem", Some(2), serde_json::json!({}));
+        let (before, now) = (frame_of(&[2, 3]), frame_of(&[2, 3]));
+        let changed = |touched: &[Id]| {
+            let mut revisions = Revisions::default();
+            touched.iter().for_each(|id| revisions.touch(*id));
+            match changed_since(&before, &now, &doc, &revisions) {
+                Changed::Nodes(ids) => ids.into_iter().collect::<Vec<_>>(),
+                Changed::Everything => panic!("not everything"),
+            }
+        };
+        assert_eq!(changed(&[4]), vec![3], "a span shows through its para");
+        assert_eq!(changed(&[6]), Vec::<Id>::new(), "nothing inside a hidden stack shows");
+        assert_eq!(changed(&[7]), Vec::<Id>::new(), "a subscription item draws nothing");
+        assert_eq!(changed(&[3]), vec![3]);
+    }
+
     #[test]
     fn revisions_answer_what_changed_since_a_frame() {
         let mut revisions = Revisions::default();
         revisions.touch(4);
         let seen = revisions.now();
-        assert!(!revisions.changed_since(4, seen));
+        assert_eq!(revisions.changed_after(seen).count(), 0);
         revisions.touch(4);
-        assert!(revisions.changed_since(4, seen));
+        assert_eq!(revisions.changed_after(seen).collect::<Vec<_>>(), vec![4]);
         revisions.forget(&[4]);
-        assert!(!revisions.changed_since(4, seen));
+        assert_eq!(revisions.changed_after(seen).count(), 0);
     }
 }
