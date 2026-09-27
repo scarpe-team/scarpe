@@ -10,6 +10,17 @@ module Niente
       attr_accessor :instance
     end
 
+    # What a headless display answers when nothing stubbed the dialog.
+    HEADLESS_BUILTIN_ANSWERS = { "confirm" => false, "ask" => "" }.freeze
+
+    # Niente shows nothing, dialogs included. Answering every builtin keeps
+    # Lacci from falling back to an osascript dialog in the middle of a test.
+    def self.answer_builtins_headlessly
+      Shoes::DisplayService.subscribe_to_event("builtin", nil) do |cmd_name, _args|
+        Shoes::DisplayService.set_builtin_response(HEADLESS_BUILTIN_ANSWERS[cmd_name])
+      end
+    end
+
     def initialize
       if Niente::DisplayService.instance
         raise Shoes::SingletonError, "ERROR! This is meant to be a singleton!"
@@ -49,9 +60,16 @@ module Niente
 
       # Nil parent is okay for DocumentRoot and TextDrawables, so we have to specify it.
       parent = DisplayService.instance.query_display_drawable_for(parent_id, nil_ok: true)
-      display_drawable.set_parent(parent)
+      display_drawable.set_parent(parent, index: index_in_shoes_parent(drawable_id))
 
       return display_drawable
+    end
+
+    # The drawable is already in its Shoes parent's children when its display
+    # drawable is created, so this is the position a remote display is sent.
+    def index_in_shoes_parent(drawable_id)
+      drawable = Shoes::Drawable.drawable_by_id(drawable_id, none_ok: true)
+      drawable&.parent&.contents&.index(drawable)
     end
 
     # Destroy the display service and the app. Quit the process (eventually.)

@@ -9,7 +9,10 @@ class Shoes
 
     init_args # Empty by the time it reaches Drawable#initialize
     def initialize(*args, **kwargs, &block)
-      @block = block
+      # link("x", click: proc { ... }) is the same as link("x") { ... }.
+      # The proc stays in Ruby; only the has_block flag reaches the display.
+      click_proc = kwargs.delete(:click) if kwargs[:click].is_a?(Proc)
+      @block = block || click_proc
 
       # Check if click is an internal route (starts with /)
       click_value = kwargs[:click]
@@ -17,7 +20,7 @@ class Shoes
 
       # We can't send a block to the display drawable, but we can send a boolean
       # Also set has_block if we have an internal route (so display uses onclick, not href)
-      @has_block = !block.nil? || @internal_route
+      @has_block = !@block.nil? || @internal_route
 
       super
 
@@ -29,6 +32,17 @@ class Shoes
         # Pass self to block (Shoes3 passes the link element to click callbacks)
         @block&.call(self)
       end
+    end
+
+    # Set the click handler. A link keeps its own no-argument click event
+    # rather than the (button, left, top) one other drawables get.
+    #
+    # @yield the block to call with the link when it is clicked
+    # @return [Shoes::Link] self
+    def click(&block)
+      @block = block
+      self.has_block = true if block && !@has_block
+      self
     end
   end
 

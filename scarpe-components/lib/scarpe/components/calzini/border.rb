@@ -23,7 +23,7 @@ module Scarpe::Components::Calzini
     when Range
       { "border-image": "linear-gradient(45deg, #{bc.first}, #{bc.last})" }
     when Array
-      { "border-color": "rgba(#{bc.join(", ")})" }
+      { "border-color": rgba_css(bc) }
     else
       { "border-color": bc }
     end

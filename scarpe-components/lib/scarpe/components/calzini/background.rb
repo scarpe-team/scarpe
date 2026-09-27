@@ -32,7 +32,7 @@ module Scarpe::Components::Calzini
       { "background": "linear-gradient(#{fill.angle}deg, #{fill.first}, #{fill.last})" }
     when Array
       # RGBA array
-      { "background-color": "rgba(#{fill.join(", ")})" }
+      { "background-color": rgba_css(fill) }
     else
       # Simple color string
       { "background-color": fill }

@@ -28,7 +28,7 @@ class Shoes
       @draw_context = @app.current_draw_context
       create_display_drawable
 
-      @app.with_slot(self, &block) if block_given?
+      draw(&block) if block_given?
     end
 
     # The cmd should be an array of the form:
@@ -39,6 +39,23 @@ class Shoes
     # be JSON-serializable.
     def add_shape_command(cmd)
       @shape_commands << cmd
+      send_shape_commands unless @drawing
+    end
+
+    private
+
+    # The display was created with an empty command list, so the whole
+    # path goes out in one prop_change once the block has built it.
+    def draw(&block)
+      @drawing = true
+      @app.with_slot(self, &block)
+    ensure
+      @drawing = false
+      send_shape_commands
+    end
+
+    def send_shape_commands
+      self.shape_commands = @shape_commands.dup
     end
   end
 end

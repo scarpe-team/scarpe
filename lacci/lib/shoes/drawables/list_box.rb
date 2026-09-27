@@ -17,8 +17,9 @@ class Shoes
       # TODO: set [] as default value for items?
       @items = kwargs.delete(:items) || []
       @chosen = kwargs.delete(:choose) || @items&.first
+      @callback = block
 
-      super(**kwargs, &block)
+      super(**kwargs)
 
       bind_self_event("change") do |new_item|
         self.chosen = new_item
@@ -31,13 +32,14 @@ class Shoes
     # Select an item. `item` should be a text entry from `items`.
     #
     # @param item [String] the item to choose
-    # @return [void]
+    # @return [Shoes::ListBox] self
     def choose(item)
       unless self.items.include?(item)
         raise Shoes::Errors::NoSuchListItemError, "List items (#{self.items.inspect}) do not contain item #{item.inspect}!"
       end
 
-      @chosen = item
+      self.chosen = item
+      self
     end
 
     # The currently chosen text item or nil.

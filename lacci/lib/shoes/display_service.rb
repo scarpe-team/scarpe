@@ -60,6 +60,12 @@ class Shoes
         @has_builtin_response = true
       end
 
+      # Whether a handler answered the current builtin. A nil answer counts:
+      # a cancelled file dialog answers nil and must not open a second dialog.
+      def builtin_response?
+        @has_builtin_response ? true : false
+      end
+
       def consume_builtin_response
         if @has_builtin_response
           @has_builtin_response = false
