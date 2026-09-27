@@ -164,4 +164,34 @@ class TestDrawContext < NienteTest
       assert_equal [0, 100, 0, 255], ov.style["stroke"]
     SHOES_SPEC
   end
+
+  # Integration lane: `stroke "#BBB"; button "Expert"` sent the stroke to the Button and
+  # to every Para, so control-sizes.rb drew its controls in #dde and minesweeper greyed
+  # its buttons. Shoes 3 colours text from its own styles only (s3t_textblock.c:250-258)
+  # and its native controls ignore stroke.
+  def test_text_and_controls_keep_their_own_colours
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        stroke red
+        fill blue
+        strokewidth 5
+        @p = para "plain ", strong("bold")
+        @b = button "Push"
+        @e = edit_line
+        @eb = edit_box
+        @l = list_box items: ["a"]
+        @r = rect 0, 0, 10
+      end
+    SHOES_APP
+      %w[@p @b @e @eb @l].each do |name|
+        drawable = drawable(name)
+        assert_nil drawable.style[:stroke], "\#{name} keeps its own stroke"
+      end
+      assert_nil para("@p").style[:fill]
+      strong = para("@p").contents.last
+      assert_equal [nil, nil, nil], [strong.style[:stroke], strong.style[:fill], strong.style[:strokewidth]]
+      assert_equal [255, 0, 0, 255], rect("@r").style[:stroke], "shapes still draw with the slot's stroke"
+      assert_equal [0, 0, 255, 255], rect("@r").style[:fill]
+    SHOES_SPEC
+  end
 end
