@@ -25,6 +25,8 @@ For contributors and the curious.
 | [Event Loops](event_loops) | Understanding the event loop architecture |
 | [Timeouts & Handlers](timeouts_and_handlers) | Timing and callback patterns |
 | [Calzini Components](calzini_components_and_updates) | The HTML rendering component system |
+| [Native Display Service](native) | Ruby thinks, Rust draws: running, testing and packaging without a webview |
+| [Native Packaging](native_packaging) | Shipping a native app as a macOS `.app` and `.dmg` |
 
 ---
 
