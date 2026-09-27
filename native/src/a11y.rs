@@ -40,6 +40,9 @@ const FIELD: usize = 2;
 const CANCEL: usize = 3;
 const OK: usize = 4;
 const FIRST_SWATCH: usize = 5;
+/// A dialog's own window (dialogs::open_standalone) has a negative id, so its node is a part of
+/// it rather than something that could pass for a drawable.
+const WINDOW: usize = FIRST_SWATCH + SWATCHES.len();
 
 /// What a screen reader calls the ask_color swatches (dialogs::SWATCHES, in order).
 pub const SWATCH_NAMES: [&str; 12] = ["Red", "Orange", "Yellow", "Green", "Mint", "Blue", "Indigo", "Purple", "Pink", "Brown", "Grey", "Black"];
@@ -52,9 +55,11 @@ pub fn part(owner: Id, index: usize) -> NodeId {
     NodeId(PART | (((owner as u64) << PART_BITS) & !PART) | (index as u64 & PART_MASK))
 }
 
-/// The owner and number of a part; None for a drawable's own node.
+/// The owner and number of a part; None for a drawable's own node. The owner's bits are read
+/// as signed, so a dialog's own window (a negative id) gets its parts back.
 pub fn part_of(id: NodeId) -> Option<(Id, usize)> {
-    (id.0 & PART != 0).then_some((((id.0 & !PART) >> PART_BITS) as Id, (id.0 & PART_MASK) as usize))
+    let owner = ((id.0 << 1) as Id) >> (PART_BITS + 1);
+    (id.0 & PART != 0).then_some((owner, (id.0 & PART_MASK) as usize))
 }
 
 /// A drawable's node. Lacci never makes a negative id, and one that arrives anyway stays out
@@ -400,7 +405,7 @@ impl Builder<'_> {
         }
         let mut d = Node::new(Role::Dialog);
         d.set_modal();
-        d.set_label(modal.message.clone());
+        d.set_label(modal.title.clone().filter(|t| !t.is_empty()).unwrap_or_else(|| modal.message.clone()));
         d.set_bounds(bounds(g.panel));
         d.set_children(kids);
         self.add(part(app, DIALOG), d)
@@ -434,19 +439,19 @@ impl Runtime {
     /// Every node of `app`'s tree, for a screen reader that has just asked or for the Mirror to
     /// diff. Bounds are in logical px; `scale` says how many device pixels make one (AccessKit
     /// counts device pixels; automation passes 1, so bounds read like `layout`'s). An app with
-    /// nothing to show (closing, say) is a window alone.
+    /// nothing to show (closing, say) is a window alone; a dialog's own window holds its dialog.
     pub fn a11y_tree(&mut self, app: Id, scale: f32) -> TreeUpdate {
         self.ensure_layout(app);
-        let root = NodeId(app as u64);
-        let Runtime { doc, views, text, .. } = self;
+        let root = node_id(app).unwrap_or_else(|| part(app, WINDOW));
         let mut window = Node::new(Role::Window);
-        window.set_label(doc.get(app).and_then(|n| n.props.text("title")).unwrap_or_else(|| "Shoes".into()));
+        window.set_label(self.window_title(app));
         if scale != 1.0 {
             window.set_transform(Affine::scale(scale as f64));
         }
+        let Runtime { doc, views, text, .. } = self;
         let mut nodes = Vec::new();
         let mut focus = root;
-        if let Some((view, layout)) = views.get(&app).and_then(|v| Some((v, v.layout.as_ref()?))).filter(|_| app >= 0) {
+        if let Some((view, layout)) = views.get(&app).and_then(|v| Some((v, v.layout.as_ref()?))).filter(|(v, _)| app >= 0 || v.standalone) {
             let mut b = Builder { doc, layout, view: &view.ui, nodes: Vec::new(), seen: HashSet::from([root]) };
             let mut children: Vec<NodeId> = b.element(view.doc_root, None, None).into_iter().collect();
             if let Some(modal) = view.ui.modal.as_ref() {

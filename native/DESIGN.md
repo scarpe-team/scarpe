@@ -801,8 +801,10 @@ change the code and this list together.
   from 0 to 1, none when indeterminate. An image is named by its `alt:` (a Lacci style since 27
   Sep). A `tooltip` is every node's description. `state: "disabled"` dims a node and takes its
   actions away; `"readonly"` fields take no new value. Art, backgrounds, borders, masks, timers,
-  hidden and blank things stay out. The ask and ask_color dialogs are modal dialogs holding their
-  message, their field or twelve named swatches, and Cancel and OK. Focus is the focused control,
+  hidden and blank things stay out. The ask and ask_color dialogs are modal dialogs, named by
+  their `title` or else their message, holding the message, their field or twelve named swatches,
+  and Cancel and OK; a dialog's own window (an ask with no app window up) is named by that title
+  and holds the dialog alone. Focus is the focused control,
   the popup's highlighted item, or the dialog's field or swatch. Actions go through the paths a
   click or a key takes: `click` sends a control's `click` (a check still waits for Lacci's echo),
   opens or closes a list box's popup, or picks an item; `focus` moves keyboard focus with the ring

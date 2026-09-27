@@ -392,6 +392,33 @@ fn an_ask_color_dialog_offers_named_swatches() {
     assert_eq!((&answer["value"], &answer["cancelled"]), (&Value::Null, &json!(true)));
 }
 
+/// An `ask` before `run` gets a window of its own (dialogs::open_standalone): a view with no
+/// document and a negative id. A screen reader in that window must meet the dialog under its
+/// title and be able to answer it, since the app shows nothing until it has the answer.
+#[test]
+fn a_dialogs_own_window_reads_as_the_dialog_and_answers() {
+    let mut h = Harness::new();
+    let being_built: String = app(400, 300, &[]).lines().filter(|l| !l.contains(r#""t":"run""#)).map(|l| format!("{l}\n")).collect();
+    h.feed(&being_built);
+    let own = h.rt.open_standalone(9, &DialogRequest { title: Some("Bank".into()), ..asking("ask", "Your PIN?", Value::Null) });
+
+    let window = h.value(json!({"op": "a11y", "app": own}));
+    assert_eq!((window["role"].as_str(), window["name"].as_str()), (Some("window"), Some("Bank")));
+    let dialog = window["children"][0].clone();
+    assert_eq!((dialog["role"].as_str(), dialog["name"].as_str(), &dialog["modal"]), (Some("dialog"), Some("Bank"), &json!(true)));
+    assert_eq!(dialog["children"][0]["value"].as_str(), Some("Your PIN?"));
+    let field = &dialog["children"][1];
+    assert_eq!((field["role"].as_str(), &field["focused"]), (Some("text_input"), &json!(true)));
+
+    let (_, reply) = act(&mut h, &field["id"], "set_value", Some("1234"));
+    assert_eq!(reply["error"], Value::Null, "{reply}");
+    let (msgs, reply) = h.req(json!({"op": "a11y_action", "id": dialog["children"][3]["id"], "action": "click"}));
+    assert_eq!(reply["error"], Value::Null, "{reply}");
+    let answer = msgs.iter().find(|m| m["t"] == "reply" && m["req"] == json!(9)).expect("the dialog answered");
+    assert_eq!((answer["value"].as_str(), &answer["cancelled"]), (Some("1234"), &json!(false)));
+    assert!(!h.rt.is_standalone(own), "the dialog's view goes with its answer");
+}
+
 #[test]
 fn parts_never_collide_with_drawables() {
     let id = a11y::part(9, 3);
@@ -399,6 +426,7 @@ fn parts_never_collide_with_drawables() {
     assert_eq!(a11y::part_of(accesskit::NodeId(9)), None);
     assert_ne!(a11y::part(9, 3), a11y::part(9, 4));
     assert_ne!(a11y::part(9, 3), a11y::part(10, 3));
+    assert_eq!(a11y::part_of(a11y::part(-10, 2)), Some((-10, 2)), "a dialog's own window has a negative id");
 }
 
 struct Quiet;
