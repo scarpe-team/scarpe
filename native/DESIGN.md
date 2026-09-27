@@ -233,7 +233,8 @@ Units are logical pixels (f32). Window content size = App `width` x `height` (La
   shrink-to-fit (max-content width capped at the remaining row width, wrapping at that width).
   Line height = 1.2 x size (plus `leading` if given).
 - **Widgets** have intrinsic sizes (research 02 section 13): button = label + padding (min 22 high),
-  edit_line 200x28, edit_box 200x108, list_box 160x28, progress 160x14, check/radio 18x18.
+  edit_line 200x28, edit_box 200x108, list_box 200x28, progress 200x14 (manual 3183, 3245; ledger C4),
+  check/radio 18x18. Shadows stay inside a control's box.
   Explicit width/height override.
 - **Margins** add outside the box (`margin`, `margin_left/top/right/bottom`; arrays are
   [left, top, right, bottom]). `padding` (Scarpe extension) adds inside slots.

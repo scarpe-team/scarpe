@@ -77,7 +77,7 @@ Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Sho
 | C1 | A Float dimension is a fraction of the parent | MANUAL | unsched. | DESIGN |
 | C2 | `style[:width]` returns what was asked for | MANUAL | | |
 | C3 | Forms of `:margin` | MANUAL | unsched. | |
-| C4 | Default sizes of native controls | MANUAL | | DESIGN |
+| C4 | Default sizes of native controls | MANUAL | | |
 | C5 | Missing slot and element methods | MANUAL | unsched. | |
 | C6 | The window scrolls; `gutter` | MANUAL | | |
 | C7 | Text side by side in a flow reads as one paragraph | MANUAL (Q2) | | DESIGN |
@@ -344,8 +344,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Manual:** edit_box "200 pixels by 108 pixels" (manual 3006); edit_line "200 pixels wide and 28 pixels wide. Roughly." (manual 3063, see M6); list_box "about 200 pixels wide and 28 pixels high" (manual 3183); progress "200 pixels wide" (manual 3245).
 - **Lacci today:** no defaults; Calzini emits no width (`calzini/misc.rb:15-37, 65-86, 113-128`), so browser defaults apply.
 - **Spec:** unstyled edit_box 200x108, edit_line 200 wide, list_box 200 wide, progress 200 wide (±2 px). Heights other than edit_box: 28 ±6.
-- **Native:** DESIGN 6 gives edit_line 200x28 and edit_box 200x108.
-- **DESIGN conflict:** DESIGN 6 says `list_box 160x28` and `progress 160x14`. The manual says 200 wide for both.
+- **Native:** DESIGN 6 gives edit_line 200x28, edit_box 200x108 and, since M2, list_box 200x28 and progress 200x14. The DESIGN conflict is resolved.
 
 ### C5. Slot and element methods Lacci is missing
 
@@ -1202,7 +1201,7 @@ M1 to M37 carry the numbers of the contradictions in `native/research/03_manual_
 
 1. **Cmd on macOS (H1).** Resolved in M2: DESIGN 4.4 now names Cmd `alt_`, as Shoes 3's Cocoa backend did (`s3_cocoa.m:287-288, 296-297`).
 2. **`every`'s first count (I1).** DESIGN 5.4: "every (count starts at 1)". Shoes 3 (`s3t_timerbase.c:35, 43-44`) and Shoes 4 (`s4_animation.rb:20`) start at 0.
-3. **Control widths (C4).** DESIGN 6: `list_box 160x28`, `progress 160x14`. The manual: list_box "about 200 pixels wide" (manual 3183), progress "200 pixels wide" (manual 3245).
+3. **Control widths (C4).** Resolved in M2: DESIGN 6 now gives list_box and progress 200 px, as the manual does (manual 3183, 3245).
 4. **Text in a flow (C7, Q2).** DESIGN 6 makes each text block a shrink-to-fit box; the manual and Shoes 3 continue it as one paragraph. The rule is also ambiguous about whether the width cap comes before or after the "does it fit on this row" test.
 5. **Text-block margins (C9, Q3)** and **leading (F10).** DESIGN 6 gives text no default margin and adds `leading` only when given; Shoes 3 uses 4 px margins (12 px bottom) and the manual says leading defaults to 4 px.
 6. **Nested-slot event coordinates (H3, Q4).** Resolved in M2: DESIGN 4.3 now gives SubscriptionItems window coordinates, as Shoes 3 does.
