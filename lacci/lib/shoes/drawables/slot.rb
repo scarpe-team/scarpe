@@ -125,9 +125,11 @@ class Shoes::Slot < Shoes::Drawable
   # as finish blocks do.
   #
   # @yield [slot] this slot
+  # @return [self]
   def start(&block)
     (@start_callbacks ||= []) << block if block
     @waiting_to_start ||= bind_shoes_event(event_name: "heartbeat") { fire_start_callbacks }
+    self
   end
 
   # Run the block, handed this slot, when the slot is removed: by remove, by its
@@ -135,9 +137,11 @@ class Shoes::Slot < Shoes::Drawable
   # called after initialization; use start for that. Several may be registered.
   #
   # @yield [slot] this slot
+  # @return [self]
   def finish(&block)
     @finish_callbacks ||= []
     @finish_callbacks << block if block
+    self
   end
 
   # Fire all registered finish callbacks. Called when the slot is destroyed.
@@ -201,7 +205,7 @@ class Shoes::Slot < Shoes::Drawable
   # @incompatibility Shoes Classic calls the clear block with current self, while Scarpe uses the Shoes::App as self
   #
   # @yield The block to call to replace the contents of the drawable (optional)
-  # @return [void]
+  # @return [self]
   def clear(&block)
     contents.each { |child| child.destroy unless child.is_a?(Shoes::SubscriptionItem) }
     if block_given?
@@ -211,7 +215,7 @@ class Shoes::Slot < Shoes::Drawable
       # This is critical for animate { clear do ... end } patterns (Clock, Pong, etc.)
       send_shoes_event(event_name: "full_redraw_request")
     end
-    nil
+    self
   end
 
   # Call the block to append new children to a Slot.
@@ -229,12 +233,13 @@ class Shoes::Slot < Shoes::Drawable
   # fall back to the caller for unknown methods.
   #
   # @yield the block to call to append children to this Slot
-  # @return [void]
+  # @return [self]
   def append(&block)
     raise(Shoes::Errors::InvalidAttributeValueError, "append requires a block!") unless block_given?
     raise(Shoes::Errors::InvalidAttributeValueError, "Don't append to something that isn't a slot!") unless self.is_a?(Shoes::Slot)
 
     fill_with(block)
+    self
   end
 
   # Call the block to prepend new children to the beginning of a Slot.
@@ -244,12 +249,13 @@ class Shoes::Slot < Shoes::Drawable
   # in the order the block creates them.
   #
   # @yield the block to call to prepend children to this Slot
-  # @return [void]
+  # @return [self]
   def prepend(&block)
     raise(Shoes::Errors::InvalidAttributeValueError, "prepend requires a block!") unless block_given?
     raise(Shoes::Errors::InvalidAttributeValueError, "Don't prepend to something that isn't a slot!") unless self.is_a?(Shoes::Slot)
 
     insert_before(contents.first, block)
+    self
   end
 
   # Add the block's new children just before `drawable`, which must be a child of this slot.

@@ -57,13 +57,13 @@ class TestSlotEvents < NienteTest
   def test_visiting_a_page_drops_the_old_pages_handlers
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
-        page(:one) { $one = keypress { } }
+        keypress { }
         page(:two) { para "two" }
-        visit(:one)
       end
     SHOES_APP
+      handler = subscription_item.obj
       Shoes.APPS.first.visit(:two)
-      assert $one.destroyed
+      assert handler.destroyed
     SHOES_SPEC
   end
 

@@ -23,11 +23,11 @@ class TestSubscriptionItem < NienteTest
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
         @keys = []
-        @kp = keypress { |key| @keys << key }
+        keypress { |key| @keys << key }
       end
     SHOES_APP
       app = Shoes.APPS[0]
-      kp = app.instance_variable_get(:@kp)
+      kp = subscription_item
       Shoes::DisplayService.dispatch_event("keypress", kp.linkable_id, ":left")
       assert_equal [:left], app.instance_variable_get(:@keys)
     SHOES_SPEC
@@ -37,11 +37,11 @@ class TestSubscriptionItem < NienteTest
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
         @presses = []
-        @watcher = click { |button, left, top| @presses << [button, left, top] }
+        click { |button, left, top| @presses << [button, left, top] }
       end
     SHOES_APP
       app = Shoes.APPS[0]
-      watcher = app.instance_variable_get(:@watcher)
+      watcher = subscription_item
       Shoes::DisplayService.dispatch_event("click", watcher.linkable_id, 1, 5, 6)
       assert_equal [[1, 5, 6]], app.instance_variable_get(:@presses)
     SHOES_SPEC
