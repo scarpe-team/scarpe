@@ -10,5 +10,5 @@ Shoes.app do
 end
 ----------- test code
 r = layout_of(list_box)
-assert_in_delta 200, r.w, 2, "a list box is about 200 pixels wide (ledger C4; DESIGN 6 says 160)"
+assert_in_delta 200, r.w, 2, "a list box is about 200 pixels wide (ledger C4)"
 assert_in_delta 28, r.h, 6, "and about 28 pixels high"
