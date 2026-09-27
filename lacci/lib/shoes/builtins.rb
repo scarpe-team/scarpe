@@ -58,6 +58,16 @@ module Shoes::Builtins
     shoes_builtin("confirm", question)
   end
 
+  # The [width, height] stored in an image file, read without showing or caching the
+  # image (manual 2017-2023).
+  #
+  # @param path [String] a local image file
+  # @return [Array(Integer, Integer), nil] nil if the file is not a picture
+  def imagesize(path)
+    require "fastimage"
+    FastImage.size(path)
+  end
+
   # Shoes logging builtins — these output to the Shoes console/debug log.
   # In Scarpe, they simply print to stdout since there's no Shoes console.
   def debug(msg)

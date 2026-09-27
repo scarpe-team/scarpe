@@ -237,6 +237,27 @@ class TestLacci < NienteTest
     SHOES_SPEC
   end
 
+  # Ledger C5: path is the image's url and swaps it, full_width and full_height read the
+  # file, and imagesize reads a file without showing it (manual 2017-2023, 3143-3164).
+  def test_image_path_and_sizes_from_the_file
+    red = File.expand_path("../../spec/support/assets/red-40x30.png", __dir__)
+    checker = File.expand_path("../../spec/support/assets/checker-20x20.png", __dir__)
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $size = imagesize(#{checker.inspect})
+        @img = image #{red.inspect}, width: 80, height: 90
+      end
+    SHOES_APP
+      img = image()
+      assert_equal [40, 30], [img.full_width, img.full_height]
+      assert_equal #{red.inspect}, img.path
+      img.path = #{checker.inspect}
+      assert_equal #{checker.inspect}, img.url, "path= swaps the picture"
+      assert_equal [20, 20], $size
+      assert_equal 1, images.size, "imagesize showed nothing"
+    SHOES_SPEC
+  end
+
   def test_image_rotate
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do

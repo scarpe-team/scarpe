@@ -85,6 +85,32 @@ class Shoes
       self.url = url
     end
 
+    # The file name or URL of the picture (manual 3158-3160).
+    #
+    # @return [String]
+    def path
+      @url
+    end
+
+    # Swap in a different picture, from a file or URL (manual 3162-3164).
+    def path=(new_path)
+      self.url = new_path
+    end
+
+    # The width stored in the file, whatever size the image is shown at (manual 3153-3156).
+    #
+    # @return [Integer, nil] nil for a canvas or a file that is not a picture
+    def full_width
+      size.first
+    end
+
+    # The height stored in the file (manual 3143-3151). See #full_width.
+    #
+    # @return [Integer, nil]
+    def full_height
+      size.last
+    end
+
     # Rotate this image by the given angle (in degrees).
     # In Shoes, image.rotate(angle) sets a persistent rotation.
     def rotate(angle)

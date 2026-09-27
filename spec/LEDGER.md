@@ -81,7 +81,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | C2 | `style[:width]` returns what was asked for | MANUAL | | |
 | C3 | Forms of `:margin` | MANUAL | unsched. | |
 | C4 | Default sizes of native controls | MANUAL | | |
-| C5 | Missing slot and element methods | MANUAL | unsched. | |
+| C5 | Missing slot and element methods | MANUAL | | |
 | C6 | The window scrolls; `gutter` | MANUAL | | |
 | C7 | Text side by side in a flow reads as one paragraph | MANUAL, ruled (Q2) | | |
 | C8 | Default width of a slot | S3 | | |
@@ -416,12 +416,12 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### C5. Slot and element methods Lacci is missing
 
-**Ruling: MANUAL.** Alias Image `path` to `url`. **Lacci change, unscheduled.**
+**Ruling: MANUAL.** Alias Image `path` to `url`. **Lacci change, done 27 Sep 2026.**
 
 - **Manual:** `before(el) { }`, `after(el) { }` (manual 2315-2323); `scroll_height`, `scroll_max` (manual 2440-2453); `Image#path`, `path=`, `full_width`, `full_height` (manual 3143-3164); `location` (manual 980-982); `started?` (manual 1006-1010); `imagesize` (manual 2017-2023); `gutter` on slots (manual 2394-2410).
 - **Shoes 3:** `before`/`after` exist (`s3_canvas.c:731-743`); `started?` is `shoes_app_is_started` (`s3_ruby.c:791`).
 - **Examples:** `before` in 5 files, `after` 4, `scroll_max` 1, `location` 3.
-- **Lacci today:** none of `before`, `after`, `scroll_max`, `scroll_height`, `location`, `started?`, `imagesize` exist; Image uses a `url` style (`image.rb:5`); `gutter` is App-only and a constant 28 (`app.rb:551-553`). Since 27 Sep slots have `scroll_height`, `scroll_max` and a `gutter` of their own (`32ebbf3`), and apps `location` and `started?` (`8e5a4cf`); `before`, `after`, `imagesize` and Image `path` are still missing.
+- **Lacci today:** none of `before`, `after`, `scroll_max`, `scroll_height`, `location`, `started?`, `imagesize` exist; Image uses a `url` style (`image.rb:5`); `gutter` is App-only and a constant 28 (`app.rb:551-553`). Since 27 Sep slots have `scroll_height`, `scroll_max` and a `gutter` of their own (`32ebbf3`), and apps `location` and `started?` (`8e5a4cf`); `before` and `after` came with fix 10.3 (`e75b5a0`). Since the wave-4 Lacci lane Image has `path` (its `url`), `path=` (swaps the picture), `full_width` and `full_height` (read from the file with FastImage, as `Image#size` already was), and `imagesize(path)` is a built-in. FastImage is a gem, and `scarpe package --native` ships none, so those four raise `LoadError` in a packaged app.
 - **Spec:** each method exists and returns a plausible value (for example `scroll_max == scroll_height - height` on a scrolling stack with overflowing content).
 - **Native:** `scroll_height` and `scroll_max` need the content height from Rust. Wire contract (a) (see A4) carries it as each slot's `scroll_h`, which Rust pushes after every layout pass since 27 Sep (DESIGN 4.2) and the shim keeps in `Shoes::DisplayService.layout_cache`: Lacci reads `scroll_height = scroll_h` and `scroll_max = max(0, scroll_h - h)` from it.
 
