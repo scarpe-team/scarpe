@@ -159,22 +159,29 @@ class Shoes
         @@display_event_handlers[event_name] ||= {}
         @@display_event_handlers[event_name][event_target] ||= []
         @@display_event_handlers[event_name][event_target] << { handler:, unsub_id: id }
+        subscription_keys[id] = [event_name, event_target]
 
         id
       end
 
       # Unsubscribe from any event subscriptions matching the unsub ID.
+      # Each ID remembers where its handler lives, so this touches one short list
+      # instead of scanning every subscription, and drops lists it empties.
       #
       # @param unsub_id [Integer] the unsub ID returned when subscribing
       # @return [void]
       def unsub_from_events(unsub_id)
         raise "Must provide an unsubscribe ID!" if unsub_id.nil?
 
-        @@display_event_handlers.each do |_e_name, target_hash|
-          target_hash.each do |_target, h_list|
-            h_list.delete_if { |item| item[:unsub_id] == unsub_id }
-          end
-        end
+        event_name, event_target = subscription_keys.delete(unsub_id)
+        targets = @@display_event_handlers[event_name] or return
+        handlers = targets[event_target] or return
+
+        handlers.delete_if { |item| item[:unsub_id] == unsub_id }
+        return unless handlers.empty?
+
+        targets.delete(event_target)
+        @@display_event_handlers.delete(event_name) if targets.empty?
       end
 
       # Reset the display service, for instance between unit tests.
@@ -183,8 +190,18 @@ class Shoes
       # @return [void]
       def full_reset!
         @@display_event_handlers = {}
+        @@subscription_keys = {}
         @json_debug_serialize = nil
       end
+
+      private
+
+      # unsub_id => [event_name, event_target]
+      def subscription_keys
+        @@subscription_keys ||= {}
+      end
+
+      public
 
       # Set the Display Service class which will handle display service functions
       # for this process. This can only be set once. The display service can be
