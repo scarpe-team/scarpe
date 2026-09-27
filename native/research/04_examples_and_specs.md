@@ -1,6 +1,6 @@
 # 04. Examples and Shoes-Spec, as they exist today
 
-Lane: examples + Noah Gibbs' Shoes-Spec system. Scarpe clone: `/Users/schwad/Progrumms/scarpe-native` @ `fdcee7a` (master). Shoes-Spec clone: `.../scratchpad/ref/shoes-spec` @ `1e766c6` (2026-02-21). Ruby 4.0.1 (mise), Bundler 2.4.10.
+Lane: examples + Noah Gibbs' Shoes-Spec system. Scarpe clone: `<repo>` @ `fdcee7a` (master). Shoes-Spec clone: `.../scratchpad/ref/shoes-spec` @ `1e766c6` (2026-02-21). Ruby 4.0.1 (mise), Bundler 2.4.10.
 All paths below are relative to one of those two roots unless absolute; `SS/` = shoes-spec root, `SC/` = scarpe-native root.
 
 Artifacts written by this lane (all under `.../scratchpad/research/`):

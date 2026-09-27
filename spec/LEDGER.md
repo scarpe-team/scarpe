@@ -2,7 +2,7 @@
 
 Shoes-Spec was Noah Gibbs' idea: write down what Shoes *is* as tests that any display service can run. Wherever the sources disagree about what Shoes is, the argument happens on this page. Each row records one disagreement, the evidence on every side, the ruling, what `spec/` asserts, and what the native Rust backend does.
 
-Status: v1.1, 27 Sep 2026. The orchestrator ruled the seven open questions (Q1 to Q7) that day, and the rows the first build wave asked for joined it (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20). v1 was seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`. When the build lanes merged the same day, every row whose Lacci behaviour changed gained a "Since 27 Sep" sentence naming the Lacci lane commit, and rows whose Lacci change landed say so in their ruling line.
+Status: v1.2, 27 Sep 2026. The orchestrator ruled the seven open questions (Q1 to Q7) that day, then Q8 and Q9 as the later build waves raised them, with two new rows (C15, G15) from the fifth wave's rulings; and the rows the first build wave asked for joined it (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20). v1 was seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`. When the build lanes merged the same day, every row whose Lacci behaviour changed gained a "Since 27 Sep" sentence naming the Lacci lane commit, and rows whose Lacci change landed say so in their ruling line.
 
 ## How to read this
 
@@ -90,7 +90,8 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | C11 | `attach: Window` | MANUAL | | |
 | C12 | Paint order: backgrounds are layered elements | MANUAL | | |
 | C13 | A fixed height clips the slot | MANUAL | | |
-| C14 | An explicit width or height includes the margins | open (Q9) | | |
+| C14 | An explicit width or height includes the margins | S3, ruled (Q9) | | |
+| C15 | A negative `left` or `top` on art is a plain coordinate | S3 | | |
 
 ### D. Colours and patterns
 
@@ -157,6 +158,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | G12 | New inputs read `""`, new progress bars `0.0` | MANUAL | | |
 | G13 | Up and Down on a focused list box select | MANUAL | | |
 | G14 | A radio unmarked by its sibling: does its block run? | BOTH | | |
+| G15 | Scarpe draws its own controls | EXT | | |
 
 ### H. Events
 
@@ -477,7 +479,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Shoes 3:** `shoes_px2` computes `(parent - dr) - px` when the right/bottom key is present (`s3_ruby.c:327-337`); art shapes read `right`/`bottom` as absolute coordinates instead (`s3_ruby.c:396-399`, see E6).
 - **Lacci / WV today:** declared as styles (`drawable.rb:264`) and never rendered (report 02, 4.2).
 - **Spec:** `background black, width: 50, right: 50` paints a 50 px column whose right edge is 50 px in from the window's right edge (see M19).
-- **Native:** an element with `right` or `bottom` is out of flow and placed from the slot's right or bottom edge; backgrounds and borders too (DESIGN 6 and 12, 27 Sep). Art follows the same ruling since wave 4 (DESIGN 12): its far edge sits `right` px in from the slot's right edge, art that names both edges and no size runs between them, and `left`/`top` win when given; Shoes 3 instead read them on art as absolute far-edge coordinates that size the shape (`s3_ruby.c:396-399`), and no example uses either. **Lacci today** gives art no way to reach this: `rect` defaults `left` and `top` to 0 and every art class requires `left`, `top` and a size (`rect.rb:18-21`, `oval.rb`, `drawable.rb:343-349`), so `right`/`bottom` arrive only beside a `left` that wins. **Lacci change, unscheduled.**
+- **Native:** an element with `right` or `bottom` is out of flow and placed from the slot's right or bottom edge; backgrounds and borders too (DESIGN 6 and 12, 27 Sep). Art follows the same ruling since wave 4 (DESIGN 12): its far edge sits `right` px in from the slot's right edge, art that names both edges and no size runs between them, and `left`/`top` win when given; Shoes 3 instead read them on art as absolute far-edge coordinates that size the shape (`s3_ruby.c:396-399`), and no example uses either. **Lacci** gave art no way to reach this until wave 5: `rect` defaulted `left` and `top` to 0 and every art class required `left`, `top` and a size (`rect.rb:18-21`, `oval.rb`, `drawable.rb:343-349`), so `right`/`bottom` arrived only beside a `left` that won. Now `right` stands in for `left` and `bottom` for `top` on art, and naming both edges of an axis stands in for the size along it (`Shoes::Art.placed_by_edges`); an oval still defaults to a circle unless it spans both edges of an axis. **Lacci change, done 27 Sep 2026.** **Spec:** `styles.right__art` (native) places a rect, an oval and a star by their far edges and stretches a rect between both edges.
 
 ### C11. `attach: Window`
 
@@ -511,15 +513,26 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### C14. An explicit width or height includes the margins
 
-**Ruling: open (Q9).** New row, found by the wave 4 native lane looking at example snapshots.
+**Ruling: S3, ruled 27 Sep 2026 (Q9)** by the orchestrator; Nick may overrule. A px `width` or `height` is the margin box, margins inside it, as relative sizes already are. New row, found by the wave 4 native lane looking at example snapshots.
 
 - **Manual:** silent. `:margin` "space[s] an element out from its surroundings" (manual 1298-1309); `:width` says nothing of margins.
 - **Shoes 3:** a given `width` is the margin box: `place->w = PX(attr, width, ...)`, then the content is `place->iw = place->w - (lmargin + rmargin)` and likewise `ih` for `height` (`s3_ruby.c:506, 537, 540`). Slots are placed that way (`s3_canvas.c:468`), and text blocks too (`s3t_textblock.c:125-126`): `para "x", width: 200` wraps its text at 192, inside Shoes 3's 4 px text margins (C9).
 - **Examples:** `legacy/for_playtest/simple/menu1.rb` sets four panels of 170, 140, 140 and 140 px with `margin: 4` in a 600 px window; they fit on one row only if the margins are inside the widths (590 px against 622). `shoes-contrib/simple/simple-control-sizes.rb` is Shoes 3's own check that controls "size appropriately despite the platform": it stacks controls such as `button ..., margin: 2, height: 30` against a 30 px grid, and they keep to the grid only if each height holds its margins (here that button takes 34 px). 39 lines under `examples/` give an element both a px width and a margin; 17 manual cases do.
 - **Lacci / WV today:** Webview writes CSS `margin`, which always sits outside a CSS `width` (`calzini.rb:148-151`).
-- **Native:** DESIGN 12 (the M1 clarification) makes a px size the border box, with margins outside it; relative sizes already size the margin box, as Shoes 3 does for every size. So menu1's fourth panel wraps below the window.
-- **Spec:** nothing yet. Under S3, `stack width: 100, margin: 10` would be 100 wide in its parent's row with an 80 px content box.
-- **Proposal:** S3, since the manual is silent: a px width or height is the margin box, as relative ones already are. It moves every element that has both, text included, so it wants a ruling before the layout changes.
+- **Native:** DESIGN 12 (the M1 clarification) makes a px size the border box, with margins outside it; relative sizes already size the margin box, as Shoes 3 does for every size. So menu1's fourth panel wraps below the window. The layout change is the wave-5 Rust lane's; until it lands both cases below are `expect: fail` on native.
+- **Spec:** `styles.margin__inside_width`: `stack width: 100, margin: 10` takes 100 px of its flow's row, with an 80 px box inside its margins, and its `width` reads 100. `styles.height.pixels__margin_box`: `button "OK", height: 30, margin: 2` is 26 px tall and what follows starts 30 px down, the grid `simple-control-sizes.rb` checks.
+- **Lacci:** nothing to change: the getters already report a px size as given (A4), which is the margin box under this ruling.
+
+### C15. A negative `left` or `top` on art is a plain coordinate
+
+**Ruling: S3, ruled 27 Sep 2026** by the orchestrator; Nick may overrule. `oval -30, 50, 100` sits 30 px left of its slot, so art can be drawn, or animated, off the left or top edge. Negative sizes, and a negative `left` or `top` on anything that is not art, keep the dimension rule (DESIGN 6). New row, found by the wave 4 showcase lane.
+
+- **Manual:** silent on negative coordinates. `:left` "places the object's left edge ten pixels away from the left edge of the slot" (manual 1288-1294).
+- **Shoes 3:** `shoes_place_exact` reads art's `left` and `top` as they are: `place->x = ATTR2(int, attr, left, 0) + ox` (`s3_ruby.c:385-392`), with no far-edge reading for negatives.
+- **Examples:** the showcase's starfield wraps its stars with `%` to avoid the far-edge jump; any shape animated off the left or top edge jumped to the far side.
+- **Lacci today:** passes the number through. Oval, arc and arrow declare clamping validators for `left`, `top`, `width` and `height`, but none of them runs: `validate_as` takes the base Drawable's declaration of those names first, so `Shoes::Oval.validate_as(:left, -30)` is -30.
+- **Spec:** `styles.left__art_negative` (both displays): an oval, arc, arrow and rect keep a negative `left` and `top` as given. `styles.left__art_negative__drawn` (native): `oval -30, 50, 100` has its box at x = -30 and shows its right half at the window's left edge; `expect: fail` until the layout follows the ruling.
+- **Native:** today reads a negative art `left` as that far in from the slot's far edge, the dimension rule for every element (`#3 Oval 270,50` for the example above). The change is the wave-5 Rust lane's.
 
 ## D. Colours and patterns
 
@@ -529,7 +542,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 - **Manual:** `ask_color` returns a `Shoes::Color` (manual 643-655); `rgb` and `gray` return `Shoes::Color` (manual 790, 815).
 - **Shoes 3:** `Shoes::Color` with `red green blue alpha black? dark? light? white? opaque? transparent? invert to_s inspect to_pattern <=> ==` (`s3t_color.c:16-33`).
-- **Lacci today:** plain Arrays `[r, g, b, a]` (`colors.rb:152-176`). `black(0.1)` gives `[0, 0, 0, 0.1]`, integer channels with a float alpha. Since the wave-4 Lacci lane `rgb`, and so `gray` and every named colour, return a `Shoes::Color` (`color.rb`) with `red`, `green`, `blue` and `alpha`, and `ask_color` turns its answer into one. `Shoes::Color` subclasses Array, so destructuring, `==` against an Array, `to_a` and the displays' normalisers work unchanged; Shoes 3's `dark?`, `light?`, `invert` and friends are not there yet.
+- **Lacci today:** plain Arrays `[r, g, b, a]` (`colors.rb:152-176`). `black(0.1)` gives `[0, 0, 0, 0.1]`, integer channels with a float alpha. Since the wave-4 Lacci lane `rgb`, and so `gray` and every named colour, return a `Shoes::Color` (`color.rb`) with `red`, `green`, `blue` and `alpha`, and `ask_color` turns its answer into one. `Shoes::Color` subclasses Array, so destructuring, `==` against an Array, `to_a` and the displays' normalisers work unchanged; Shoes 3's `dark?`, `light?`, `invert` and friends are not there yet. The cost: `Array#flatten` still dissolves a colour into its numbers, so `expert/colours.rb` (`[n.first, n[1..-2].shuffle, n.last].flatten`) paints every square black. A Color that is not an Array would stop that, and would need every display's colour handling (Calzini's and the native normaliser's `when Array`) to learn the class; `examples.yml` holds colours.rb as failing on native, checked by two of its squares' `pixels:`.
 - **Spec:** `rgb(1, 2, 3).is_a?(Shoes::Color)`, `.red == 1`, `.alpha == 255`; `r, g, b, a = rgb(1, 2, 3).to_a` still works.
 - **Native:** nothing. The shim's normaliser accepts both Arrays and Color objects (DESIGN 5.3).
 
@@ -603,7 +616,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 - **Shoes 3:** `strokewidth` defaults to 1.0 (`s3t_shape.c:98`). Default fill and stroke colours: not re-checked here.
 - **Shoes 4:** `STYLES = { fill: black }` for Oval and Star (`s4_oval.rb:6`, `star.rb:6`).
-- **Lacci / WV today:** Rect and Line declare no `strokewidth` style (`drawables/rect.rb:5`, `drawables/line.rb:5`), so `rect(..., strokewidth: 4)` is dropped with a warning; only the draw context's `strokewidth` reaches them. Since the wave-4 Lacci lane rect, line, arc, arrow and star declare `strokewidth` as oval did, and the native display draws it (`styles.strokewidth`). Oval defaults `fill: "black"`, `stroke: "black"` (`oval.rb:15-16`); Calzini uses stroke width 2 for ovals, a hard-coded 2 for stars and 4 for lines, ignoring `strokewidth` (`art_drawables.rb:78, 83, 97, 185`).
+- **Lacci / WV today:** Rect and Line declare no `strokewidth` style (`drawables/rect.rb:5`, `drawables/line.rb:5`), so `rect(..., strokewidth: 4)` is dropped with a warning; only the draw context's `strokewidth` reaches them. Since the wave-4 Lacci lane rect, line, arc, arrow and star declare `strokewidth` as oval did, and the native display draws it (`styles.strokewidth`). Since wave 5 line, arc, arrow, star and `shape` also declare `stroke` and `fill`, and `shape` declares `strokewidth`, as the manual's lists name them (manual 1202-1210, 1453-1468; `styles.stroke__every_shape`). A shape keeps only the pens it is given as styles; the rest still come from the draw context sent after its block (E7). Oval defaults `fill: "black"`, `stroke: "black"` (`oval.rb:15-16`); Calzini uses stroke width 2 for ovals, a hard-coded 2 for stars and 4 for lines, ignoring `strokewidth` (`art_drawables.rb:78, 83, 97, 185`).
 - **Spec:** a default `rect` over white has a black interior and a 1 px outline; `strokewidth 5; line ...` draws a line about 5 px thick.
 - **Native:** draws every shape with the draw context's fill, stroke and width, defaulting to black, black, 1.
 
@@ -942,7 +955,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** button `focus`: "The button will be highlighted and, if the user hits Enter, the button will be clicked." (manual 2923-2926); radio `focus`, Enter toggles (manual 3356-3359).
 - **Lacci today:** Button has no `focus` (report 03 probe); ListBox, EditBox and EditLine do. Since 27 Sep (`c91ffd6`) Button, Check and Radio have `focus` too, shared with the other controls through `Shoes::Focusable`.
 - **Spec:** `button.focus`, then `press_key "\n"`, fires the click block once.
-- **Native:** accepts `focus` for buttons, checks and radios; Enter or Space on a focused button sends `click`. Enter on a focused check or radio sends nothing yet, so `check.focus` and `radio.focus` stay `expect: fail` on native (the manual's Enter toggles them, manual 3356-3359).
+- **Native:** accepts `focus` for buttons, checks and radios; Enter or Space on a focused button sends `click`. Enter on a focused check or radio sends nothing yet (`check.rs` `activates` takes Space only, and radios share it), so `check.focus` and `radio.focus` stay `expect: fail` on native (the manual's Enter toggles them, manual 3356-3359) until the wave-5 Rust lane adds Enter.
 
 ### G10. `click:` and `change:` styles are the handlers
 
@@ -991,6 +1004,16 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** only the clicked radio's block runs; a sibling it unmarks gets a `checked` echo and no call.
 - **Spec:** nothing. M27 covers what a click does to the clicked radio.
 - **Native:** nothing; Lacci owns the grouping (G6).
+
+### G15. Scarpe draws its own controls
+
+**Ruling: EXT** (`ext-scarpe`), Nick, 27 Sep 2026: "our buttons are OUR buttons". The manual's seven native controls are "drawn by the operating system" and "will match the look of the window theme" (manual 73-79, 2540-2544); Scarpe's native display draws all seven itself, the same on every platform. `alert`, `confirm` and the file and folder choosers stay the operating system's own dialogs. New row.
+
+- **Manual:** "each of these seven elements is drawn by the operating system. So, a Progress bar will look one way on Windows and another way on OS X" (manual 2540-2544); "Shoes will try to keep native controls all within the size you give them, only the look will vary" (manual 76-79).
+- **Shoes 3:** GTK and Cocoa widgets (`s3_gtk.c`, `s3_cocoa.m`).
+- **Lacci / WV today:** Webview uses HTML form controls, which the browser engine draws.
+- **Spec:** `elements.native_controls__drawn_by_scarpe` (native): in a headless run, where no OS widget exists, a button, edit line, edit box, list box, progress bar, check and radio each paint their own pixels. The manual's claim is not transcribed as an expectation. Sizes still follow C4.
+- **Native:** every control is drawn by the renderer (DESIGN 7, "Look and feel"). `alert`, `confirm` and the file and folder choosers are the platform's (rfd); `ask` and `ask_color` are drawn in the window (DESIGN 12, "Windowed dialogs").
 
 ## H. Events
 
@@ -1136,7 +1159,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** only `visit(url)` and `location()` (manual 980-982, 1012-1018); no `url` entry; "When you switch URLs, a new App object is created" (manual 848-849, see M29).
 - **Shoes 3 / Shoes 4:** class-level `url` on `class Foo < Shoes`. Shoes 4 anchors the page string as `/^page$/`, passes one capture, and makes a fresh instance of the class per visit (`s4_url.rb:4-43`); `visit` clears the app and sets `location` (`s4_dsl_interaction.rb:97-107`).
 - **Examples:** `examples/url_routing_example.rb` (instance-level), `examples/shoes_subclass_app.rb`, `examples/internal_link_navigation.rb` (pages plus `link(click: "/page2")`); 7 files use `url`, 9 use `visit`.
-- **Lacci today:** both class-level (`lacci/lib/shoes.rb:98-114`, copied onto the app through `pending_app_class`, `:152-190`) and instance-level `url` inside `Shoes.app` (`app.rb:401-409`); strings containing `(` become regexes; all captures are passed; an unknown URL prints `Error: URL '...' not found` (`app.rb:364-399`); `"/"` renders on first boot only when it is routed to `:index` (`app.rb:598-604`), so an app that routes `"/"` to another method shows nothing until it visits. Scarpe-only `page(:name) { }` with `visit(:name)` (`app.rb:355-362`, `docs/SCARPE_FEATURES.md:15-38`). No `location`. Since 27 Sep (`8e5a4cf`) `App#location` is the URL of the page on show, `"/"` until a visit.
+- **Lacci today:** both class-level (`lacci/lib/shoes.rb:98-114`, copied onto the app through `pending_app_class`, `:152-190`) and instance-level `url` inside `Shoes.app` (`app.rb:401-409`); strings containing `(` become regexes; all captures are passed; an unknown URL prints `Error: URL '...' not found` (`app.rb:364-399`); `"/"` renders on first boot only when it is routed to `:index` (`app.rb:598-604`), so an app that routes `"/"` to another method shows nothing until it visits. Scarpe-only `page(:name) { }` with `visit(:name)` (`app.rb:355-362`, `docs/SCARPE_FEATURES.md:15-38`). No `location`. Since 27 Sep (`8e5a4cf`) `App#location` is the URL of the page on show, `"/"` until a visit. Since wave 5 the app shows `"/"` at boot whatever method it routes to (`app.visit__root_route`), so `expert/url.rb` draws its setup screen.
 - **Spec:** after `visit "/about"`, the `/about` handler's content is shown and `location == "/about"`. Nothing about App identity across visits.
 - **Native:** nothing special: a visit is a `clear` plus new creates.
 
@@ -1210,7 +1233,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### L3. Constants
 
-**Ruling: MANUAL** for the names, values unspecified. The manual lists `Shoes::RELEASE_NAME`, `RELEASE_ID`, `REVISION` (a Subversion revision) and `FONTS` (manual 600-614). Lacci parses them from `CHANGELOG.md` (`changelog.rb:17-50`), sets `REVISION` to a git SHA, and adds `RELEASE_TYPE = "LOOSE_SHOES"`, `VERSION = "0.5.0"`, top-level `::VERSION`, `::ShoesGemJailBreak = true`, `DIR` and `LIB_DIR` (`constants.rb:6-76`). **Spec:** each manual constant is defined. `REVISION` is blank whenever the app's working directory is not a git checkout, because `changelog.rb` runs `git rev-parse` in the current directory (so it is blank in every spec sandbox). Since the wave-4 Lacci lane it asks the Scarpe checkout itself (`git -C`), so `builtins.const.REVISION` passes from any directory; outside a checkout (a packaged app) `REVISION` is nil. **Native:** nothing.
+**Ruling: MANUAL** for the names, values unspecified. The manual lists `Shoes::RELEASE_NAME`, `RELEASE_ID`, `REVISION` (a Subversion revision) and `FONTS` (manual 600-614). Lacci parses them from `CHANGELOG.md` (`changelog.rb:17-50`), sets `REVISION` to a git SHA, and adds `RELEASE_TYPE = "LOOSE_SHOES"`, `VERSION = "0.5.0"`, top-level `::VERSION`, `::ShoesGemJailBreak = true`, `DIR` and `LIB_DIR` (`constants.rb:6-76`). **Spec:** each manual constant is defined. `REVISION` is blank whenever the app's working directory is not a git checkout, because `changelog.rb` runs `git rev-parse` in the current directory (so it is blank in every spec sandbox). Since the wave-4 Lacci lane it asks the Scarpe checkout itself (`git -C`), so `builtins.const.REVISION` passes from any directory; outside a checkout (a packaged app) `REVISION` is nil. Since wave 5 it reads the checkout's `.git` files (HEAD, loose refs, `packed-refs`, worktrees) instead of running git, which cost 13 to 19 ms per launch. **Native:** nothing.
 
 ### L4. Shoes 3 only widgets
 
@@ -1458,7 +1481,9 @@ The evidence was balanced on each of these, so v1 asked Nick. The orchestrator r
 - **Q8 (B7), found at the 27 Sep 2026 merge.** Does `clear` stop the timers started inside the slot, as the manual says (manual 2327-2329), or leave them running, as Shoes 3's source does and ten examples that clear the app from inside their own `animate` need?
 
   **Ruled:** `clear` keeps the timers (S3); the manual's line is ERRATA (M40). `visit` still stops them (B7).
-- **Q9 (C14), open, found in wave 4.** Is an explicit `width` (or `height`) the element's **margin box**, margins inside it, as Shoes 3 does for slots and text blocks (`s3_ruby.c:506, 537`, `s3t_textblock.c:125-126`), or its **border box**, margins added outside, as DESIGN 12 and Webview do? The manual is silent. `menu1.rb`'s panels fit a row only under Shoes 3's rule; changing the rule moves every element that has both a px size and a margin.
+- **Q9 (C14), found in wave 4.** Is an explicit `width` (or `height`) the element's **margin box**, margins inside it, as Shoes 3 does for slots and text blocks (`s3_ruby.c:506, 537`, `s3t_textblock.c:125-126`), or its **border box**, margins added outside, as DESIGN 12 and Webview do? The manual is silent. `menu1.rb`'s panels fit a row only under Shoes 3's rule; changing the rule moves every element that has both a px size and a margin.
+
+  **Ruled:** the margin box (S3), so `menu1.rb` and `simple-control-sizes.rb` lay out as written (C14). The same day: a negative `left` or `top` on art is a plain coordinate (C15), and Scarpe's controls are its own (G15, Nick).
 
 ## Citation check
 

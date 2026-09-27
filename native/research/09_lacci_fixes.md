@@ -1,6 +1,6 @@
 # 09: Lacci fixes (DESIGN.md section 10, items 1 to 10)
 
-Lane: lacci-fixes. Repo `/Users/schwad/Progrumms/scarpe-native`, branch `native-rust`, based on `fdcee7a`.
+Lane: lacci-fixes. Repo `<repo>`, branch `native-rust`, based on `fdcee7a`.
 Line numbers below refer to the files after this change unless marked `(HEAD)`.
 
 Every fix has a focused test in `lacci/test/`. "Fails before" was checked by copying the new
@@ -277,7 +277,7 @@ Suite counts (exact commands in "Verification"):
 ## Verification
 
 ```sh
-cd /Users/schwad/Progrumms/scarpe-native
+cd <repo>
 NIENTE_LOG_LEVEL=warn bundle exec rake lacci_test      # 131 tests, 241 assertions, 0 failures
 bundle exec rake component_test                        # 125 tests, 267 assertions, 0 failures
 # In-process root tests only (no webview window, no dialog):

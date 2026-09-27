@@ -35,11 +35,17 @@ module Scarpe
       ].freeze
       # Shipped beside the sources: Lacci reads its release name from CHANGELOG.md.
       SOURCE_FILES = %w[CHANGELOG.md LICENSE.txt].freeze
+      # Pure-Ruby gems Lacci requires when an app asks for them, copied from the packager's own
+      # Ruby to Contents/Resources/scarpe/gems/NAME/lib: FastImage reads image sizes (Image#size,
+      # imagesize), and needs base64, which Ruby 3.4 moved out of the standard library. --minimal
+      # leaves them out along with OpenSSL, which FastImage requires too.
+      VENDORED_GEMS = %w[fastimage base64].freeze
       # strip_unnecessary_files deletes these libraries, and Ruby warns at every start if it looks.
       RUBY_FLAGS = %w[--disable-did_you_mean --disable-error_highlight --disable-syntax_suggest].freeze
-      # --minimal strips libraries the native shim loads at boot: net/http and resolv fetch images,
-      # digest names the image cache. They come back from the cached runtime (paths under the stdlib;
-      # %{platform} is the stdlib's native-extension directory). Without OpenSSL, https stays out.
+      # --minimal strips libraries the native shim needs for its first image download: net/http and
+      # resolv fetch images, digest names the image cache (normalize.rb requires them then, not at
+      # boot). They come back from the cached runtime (paths under the stdlib; %{platform} is the
+      # stdlib's native-extension directory). Without OpenSSL, https stays out.
       MINIMAL_KEEPS = %w[net resolv.rb %{platform}/digest.bundle %{platform}/digest].freeze
 
       def initialize(app_file, install_dir: INSTALL_DIR, bytecode: true, **options)
@@ -58,6 +64,7 @@ module Scarpe
         create_bundle_structure
         copy_ruby_runtime
         copy_scarpe_sources
+        copy_vendored_gems unless @minimal
         copy_native_binary
         copy_user_app
         write_boot_script
@@ -82,7 +89,7 @@ module Scarpe
           RUBY_ABI, "#{RUBY_ABI}/#{ruby_platform_dir}",
         ]
         {
-          "RUBYLIB" => (SOURCES.map { |dir| "#{res}/scarpe/#{dir}" } + stdlib.map { |dir| "#{ruby_lib}/#{dir}" }).join(":"),
+          "RUBYLIB" => (load_dirs.map { |dir| "#{res}/scarpe/#{dir}" } + stdlib.map { |dir| "#{ruby_lib}/#{dir}" }).join(":"),
           "GEM_HOME" => "#{res}/runtime/gems",
           "GEM_PATH" => "#{res}/runtime/gems",
           "SCARPE_DISPLAY_SERVICE" => "native",
@@ -96,6 +103,11 @@ module Scarpe
       end
 
       private
+
+      # Under Contents/Resources/scarpe/: the sources, then the vendored gems' lib directories.
+      def load_dirs
+        SOURCES + VENDORED_GEMS.map { |name| "gems/#{name}/lib" }
+      end
 
       def resources_path
         File.join(app_path, "Contents", "Resources")
@@ -116,6 +128,21 @@ module Scarpe
         SOURCE_FILES.each do |file|
           source = File.join(@scarpe_root, file)
           FileUtils.cp(source, dest) if File.exist?(source)
+        end
+      end
+
+      def copy_vendored_gems
+        log "💎 Copying #{VENDORED_GEMS.join(" and ")} from #{Gem.dir}..."
+        licenses = File.join(resources_path, "licenses")
+        FileUtils.mkdir_p(licenses)
+        VENDORED_GEMS.each do |name|
+          spec = Gem::Specification.find_by_name(name)
+          dest = File.join(resources_path, "scarpe", "gems", name)
+          FileUtils.mkdir_p(dest)
+          FileUtils.cp_r(File.join(spec.gem_dir, "lib"), dest)
+          Dir.glob(File.join(spec.gem_dir, "{MIT-LICENSE,LICENSE*,COPYING,BSDL}")).each do |license|
+            FileUtils.cp(license, File.join(licenses, "#{name}-#{File.basename(license)}"))
+          end
         end
       end
 

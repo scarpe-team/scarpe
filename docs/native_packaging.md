@@ -21,7 +21,7 @@ myapp.rb` does the same.
 | `--dmg` | also make a compressed disk image with an `/Applications` link |
 | `--install-dir DIR` | where the app will live once installed (default `/Applications`); its Ruby is precompiled for that place, see [Bytecode](#bytecode) |
 | `--no-bytecode` | skip precompiling |
-| `--minimal` | strip optional Ruby libraries: a 17.7 MB app instead of 32.4 MB; OpenSSL goes, so https image downloads cannot work |
+| `--minimal` | strip optional Ruby libraries: a 17.7 MB app instead of 32.4 MB; OpenSSL and FastImage go, so https image downloads and image sizes cannot work |
 | `--name`, `--icon`, `--output`, `--verbose` | as for any `scarpe package` build |
 
 A native package is always ad-hoc signed (Apple silicon runs nothing unsigned, and stripping the
@@ -42,14 +42,19 @@ MyApp.app/Contents/
   Resources/boot.rb               bytecode on, require "scarpe", YJIT later, run the app
   Resources/app/                  myapp.rb and its assets
   Resources/scarpe/               lib, lacci/lib, scarpe-components/lib, CHANGELOG   0.6 MB
+  Resources/scarpe/gems/          fastimage and base64 (pure Ruby), for image sizes
   Resources/bytecode/             150 precompiled files and a manifest               1.5 MB
   Resources/runtime/ruby/         Traveling Ruby 3.4.7, stripped                    23.4 MB
   Resources/licenses/             Inter and Fira Mono (OFL), compiled into the binary
 ```
 
 `lib/` goes in without the webview display service (`scarpe/wv*`, `scarpe/assets.rb`) and without
-the packager itself. No gems are copied at all: Lacci and the shim need only Ruby's standard
-library, and Shoes-Spec (minitest) stays out, so `Shoes::Spec` is off in a packaged app.
+the packager itself. No gems are installed: Lacci and the shim need only Ruby's standard library,
+and Shoes-Spec (minitest) stays out, so `Shoes::Spec` is off in a packaged app. Two pure-Ruby gems
+are copied as plain source onto `RUBYLIB`, from the packager's own Ruby: FastImage, which
+`Image#size`, `full_width`, `full_height` and `imagesize` read files with, and base64, which
+FastImage needs and Ruby 3.4 no longer ships. `--minimal` leaves both out, since FastImage also
+needs the OpenSSL that `--minimal` strips, so those four raise `LoadError` in a minimal app.
 
 Starting the app: LaunchServices runs `scarpe-launcher`, which sets `RUBYLIB`, `GEM_HOME` and
 `SCARPE_NATIVE_BIN` for the bundle and execs the bundled Ruby on `boot.rb`. Ruby loads Lacci and

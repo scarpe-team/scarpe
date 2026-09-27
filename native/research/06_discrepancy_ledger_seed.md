@@ -1,6 +1,6 @@
 # 06 — Discrepancy ledger seed (manual vs Shoes 3 vs Shoes 4 vs examples vs Lacci)
 
-Lane: DSL discrepancies. Repo under study: `/Users/schwad/Progrumms/scarpe-native` (branch `master`). All paths below are relative to that repo unless prefixed.
+Lane: DSL discrepancies. Repo under study: `<repo>` (branch `master`). All paths below are relative to that repo unless prefixed.
 
 ## 0. How to read this
 

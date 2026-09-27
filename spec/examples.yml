@@ -63,7 +63,7 @@
 "examples/image/image_with_position_and_size.rb": {category: "image", needs: ["network","remote_image"], status: "loads"}
 "examples/info.rb": {category: ".", needs: [], status: {niente: "loads", native: "fails"}, reason: "draws nothing: the app only logs a line with info"}
 "examples/internal_link_navigation.rb": {category: ".", needs: [], status: "loads"}
-"examples/legacy/for_playtest/expert/colours.rb": {category: "legacy/for_playtest/expert", needs: ["network","timer/animation"], status: "loads"}
+"examples/legacy/for_playtest/expert/colours.rb": {category: "legacy/for_playtest/expert", needs: ["network","timer/animation"], status: {niente: "loads", native: "fails"}, reason: "paints every square black: rgb() returns a Shoes::Color, which subclasses Array (ledger D1), so the app's [...].flatten turns each colour into bare numbers", pixels: [[26, 27, "#ac7672"], [26, 79, "#8f8c4a"]]}
 "examples/legacy/for_playtest/expert/curve-animation.rb": {category: "legacy/for_playtest/expert", needs: ["timer/animation"], status: "loads"}
 "examples/legacy/for_playtest/expert/curve-control-point.rb": {category: "legacy/for_playtest/expert", needs: ["timer/animation"], status: "loads"}
 "examples/legacy/for_playtest/expert/minesweeper.rb": {category: "legacy/for_playtest/expert", needs: ["dialog","timer/animation"], status: "loads"}
@@ -71,7 +71,7 @@
 "examples/legacy/for_playtest/expert/pong.rb": {category: "legacy/for_playtest/expert", needs: ["timer/animation","shell"], status: "loads"}
 "examples/legacy/for_playtest/expert/tankspank.rb": {category: "legacy/for_playtest/expert", needs: ["timer/animation"], status: "loads"}
 "examples/legacy/for_playtest/expert/tooltips.rb": {category: "legacy/for_playtest/expert", needs: ["asset:shoes-icon.png","asset:__dir__-relative"], status: "loads"}
-"examples/legacy/for_playtest/expert/url.rb": {category: "legacy/for_playtest/expert", needs: [], status: {niente: "loads", native: "fails"}, reason: "draws nothing at boot: Lacci shows \"/\" on its own only when it is routed to :index (ledger J1), and this app routes it to :setupscreen"}
+"examples/legacy/for_playtest/expert/url.rb": {category: "legacy/for_playtest/expert", needs: [], status: "loads"}
 "examples/legacy/for_playtest/good/console.rb": {category: "legacy/for_playtest/good", needs: ["stdin/readline","shoes3_only_widget"], status: "loads"}
 "examples/legacy/for_playtest/good/plots.rb": {category: "legacy/for_playtest/good", needs: ["asset:robots.txt(missing?)","shoes3_only_widget"], status: "loads"}
 "examples/legacy/for_playtest/good/svgview.rb": {category: "legacy/for_playtest/good", needs: ["asset:paris.svg(missing?)","asset:__dir__-relative","gem:nokogiri","dialog","file_write","shoes3_only_widget"], status: "loads"}
@@ -379,7 +379,7 @@
 "examples/native/showcase/for_noah.rb": {category: "native/showcase", needs: [], status: "loads"}
 "examples/native/showcase/notes.rb": {category: "native/showcase", needs: [], status: "loads", steps: [{click: "Sourdough, Saturday"}, {click_at: [700, 380]}, {type: " Take a loaf next door."}]}
 "examples/native/showcase/pomodoro.rb": {category: "native/showcase", needs: ["timer/animation"], status: "loads", steps: [{click: "Start"}, {wait: 2.2}]}
-"examples/native/showcase/sketchpad.rb": {category: "native/showcase", needs: [], status: "loads", steps: [{click_at: [190, 32]}, {click_at: [578, 32]}, {click_at: [300, 260]}, {click_at: [340, 280]}]}
+"examples/native/showcase/sketchpad.rb": {category: "native/showcase", needs: [], status: "loads", steps: [{click_at: [190, 32]}, {click_at: [578, 32]}, {drag: [[220, 300], [260, 250], [320, 230], [380, 260], [420, 320], [480, 340], [540, 300]]}, {click_at: [150, 32]}, {drag: [[240, 380], [300, 360], [360, 390], [420, 370]]}]}
 "examples/native/showcase/snake.rb": {category: "native/showcase", needs: ["timer/animation"], status: "loads", steps: [{key: "down"}, {wait: 0.6}]}
 "examples/native/showcase/starfield.rb": {category: "native/showcase", needs: ["timer/animation"], status: "loads", steps: [{wait: 1}]}
 "examples/oval-with-kwargs.rb": {category: ".", needs: [], status: "loads"}

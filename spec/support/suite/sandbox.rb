@@ -76,7 +76,7 @@ module SpecSuite
         { "SCARPE_DISPLAY_SERVICE" => "niente", "NIENTE_LOG_LEVEL" => "warn" }
       when "native"
         {
-          "SCARPE_DISPLAY_SERVICE" => "native", "SCARPE_NATIVE_HEADLESS" => "1", "SCARPE_NATIVE_FONTS" => "bundled",
+          "SCARPE_DISPLAY_SERVICE" => "native", "SCARPE_NATIVE_HEADLESS" => "1",
           # The shim hands SCARPE_NATIVE_ARGS to the binary; bundled fonts make layout identical everywhere.
           "SCARPE_NATIVE_ARGS" => [ENV["SCARPE_NATIVE_ARGS"], "--fonts bundled"].compact.join(" "),
         }.merge(NativeBinary.env)

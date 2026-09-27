@@ -1,6 +1,6 @@
 # 01: The Lacci <-> display service contract (protocol level)
 
-Repo: `/Users/schwad/Progrumms/scarpe-native` @ `fdcee7a` (master). Line numbers are from that tree.
+Repo: `<repo>` @ `fdcee7a` (master). Line numbers are from that tree.
 Everything marked **(probed)** was observed by running Lacci + Niente with an event logger.
 The probe scripts are in `research/probe/` (`probe_lib.rb`, `p1_lifecycle.rb`, `p2_events.rb`, `p3_classes.rb`, `p4_serialize.rb`, `p5_tree.rb`).
 To run one: `cd scarpe-native && NIENTE_LOG_LEVEL=warn bundle exec ruby <probe>`.

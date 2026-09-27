@@ -1,0 +1,22 @@
+---
+manual: styles.stroke
+lines: [1453, 1461]
+testability: api
+display: any
+----------- app code
+# The manual lists :stroke, :fill and :strokewidth for every shape (1202-1210, 1453-1468).
+Shoes.app do
+  $pens = { stroke: red, fill: blue, strokewidth: 6 }
+  $shapes = {
+    line: line(10, 10, 60, 60, **$pens),
+    arc: arc(10, 10, 50, 50, 0, 3, **$pens),
+    arrow: arrow(40, 40, 30, **$pens),
+    star: star(60, 60, **$pens),
+    shape: shape(**$pens) { move_to 0, 0; line_to 50, 50 },
+  }
+end
+----------- test code
+$shapes.each do |kind, drawn|
+  pens = $pens.keys.to_h { |pen| [pen, drawn.style[pen]] }
+  assert_equal $pens, pens, "a #{kind} keeps the pens it was given"
+end

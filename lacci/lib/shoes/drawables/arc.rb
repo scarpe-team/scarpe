@@ -6,7 +6,8 @@ class Shoes
 
     uses_draw_context
     shoes_style :draw_context
-    shoes_styles :strokewidth, :center # every shape's (ledger D8), arc's by the manual (E2)
+    shoes_styles :stroke, :fill, :strokewidth # every shape's own pens (manual 1202-1210, 1453-1468, ledger D8)
+    shoes_style :center # arc's by the manual (E2)
     shoes_events # No Arc-specific events yet
 
     [:left, :top, :width, :height].each do |prop|

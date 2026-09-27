@@ -12,6 +12,7 @@ spec/
   manual/<group>/         cases written from the manual, one directory per group
   manual/_examples/       three worked cases to copy from
   shoes_spec/             cases imported from Noah's Shoes-Spec corpus (generated)
+  showcase/               a native check per app in examples/native/showcase
   harness/                self-tests for spec/run
   examples.yml            every example under examples/ and what we expect of it
   LEDGER.md               rulings where the manual, Shoes 3, Shoes 4 and Lacci disagree
@@ -27,16 +28,16 @@ spec/
 From the repo root:
 
 ```sh
-spec/run spec/manual/button/button.click.sspec             # one case, on niente
-spec/run spec/manual/button                                # a whole directory
-spec/run --check spec/manual/button                        # front matter only, runs nothing
-spec/run --display native spec/manual/button               # on the Rust display
-spec/run --keep -v spec/manual/button/button.click.sspec   # keep the sandbox, show every message
+spec/run spec/manual/elements-common/element.button.block.sspec             # one case, on niente
+spec/run spec/manual/widgets-text                                           # a whole directory
+spec/run --check spec/manual/widgets-text                                   # front matter only, runs nothing
+spec/run --display native spec/manual/widgets-text                          # on the Rust display
+spec/run --keep -v spec/manual/elements-common/element.button.block.sspec   # keep the sandbox, show every message
 ```
 
-Paths may also be given relative to `spec/` (`spec/run manual/button`). With no paths it runs
-everything under `spec/`. The same runs through rake: `rake spec:run`, `rake spec:run[native]`,
-`PATHS="manual/button" rake spec:run`, `rake spec:check`, `rake spec:examples`.
+Paths may also be given relative to `spec/` (`spec/run manual/widgets-text`). With no paths it
+runs everything under `spec/`. The same runs through rake: `rake spec:run`, `rake spec:run[native]`,
+`PATHS="manual/widgets-text" rake spec:run`, `rake spec:check`, `rake spec:examples`.
 
 Your case is done when `spec/run --check` accepts it and `spec/run` reports it `pass`
 (or `not_applicable` on niente for a `display: native` case, then `pass` on native once
@@ -235,7 +236,7 @@ directories add up to one picture. `spec/results/examples-<display>.json` holds 
 
 ## Examples
 
-`spec/examples.yml` lists all 424 examples under `examples/` with a `status`: `loads`,
+`spec/examples.yml` lists all 430 examples under `examples/` with a `status`: `loads`,
 `fails` (known broken, with a `reason`) or `skip` (Shoes 3 only, missing gems, the network,
 side effects). `spec/run --examples` smoke-runs every non-skipped one:
 
@@ -247,6 +248,8 @@ side effects). `spec/run --examples` smoke-runs every non-skipped one:
   with the button down, and `wait` to let a timer tick, since the shot follows the last step at
   once). `dialogs:` answers the example's dialogs on both displays, the way a case's front
   matter does, so an app that asks before it draws (`if confirm(...)`) shows what it draws.
+  `pixels:` lists `[x, y, "#rrggbb"]` the snapshot must show, for an example that draws
+  something, just not the right thing (`expert/colours.rb`).
 
 Every `--examples` run also writes `spec/results/gallery/index.html`: one card per example with
 its native snapshot, its path, and each display's status and error line, broken examples

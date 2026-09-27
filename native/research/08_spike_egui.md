@@ -1,6 +1,6 @@
 # 08 · Spike B: egui / eframe / egui_kittest as a Shoes renderer
 
-Spike dir: `/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/spikes/b` (below: `$B`).
+Spike dir: `<scratch>/spikes/b` (below: `$B`).
 Final PNG: `$B/scene.png` (1120x1120, 560x560 logical at pixels_per_point 2.0).
 
 ## TL;DR
@@ -285,7 +285,7 @@ Art: Shoes `fill "image.png"` on any shape (manual L1685) = textured `Mesh` with
 ## 11. How to reproduce
 
 ```sh
-B=/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/spikes/b
+B=<scratch>/spikes/b
 source $B/env.sh && cd $B
 cargo build --release --bins
 ./target/release/render scene.png            # SF fonts
