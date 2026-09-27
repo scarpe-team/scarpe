@@ -4,8 +4,6 @@ lines: [2378, 2380]
 testability: api
 display: any
 ledger: C3
-expect: fail
-reason: Lacci's margin_parse copies margin into margin_left/top/right/bottom and then sets margin to nil, so the getter loses the value given (ledger C3; the row should gain this)
 ----------- app code
 Shoes.app do
   $slot = stack margin: 10 do
