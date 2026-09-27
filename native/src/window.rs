@@ -18,13 +18,14 @@ use tiny_skia::Pixmap;
 use winit::application::ApplicationHandler;
 use winit::dpi::LogicalSize;
 use winit::event::{ElementState, KeyEvent, MouseButton, MouseScrollDelta, WindowEvent};
-use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop};
+use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy};
 use winit::keyboard::{Key as WKey, ModifiersState, NamedKey};
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 use winit::window::{CursorIcon, Window, WindowId};
 
 pub enum UserEvent {
-    Line(String),
+    /// Every complete line stdin had ready, so a batch wakes the loop once.
+    Lines(Vec<String>),
     Eof,
 }
 
@@ -83,16 +84,7 @@ pub fn run(opts: Options, window_opts: WindowOptions) -> i32 {
     event_loop.set_control_flow(ControlFlow::Wait);
     let loop_built = std::time::Instant::now();
     let proxy = event_loop.create_proxy();
-    std::thread::spawn(move || {
-        let stdin = std::io::stdin();
-        for line in stdin.lock().lines() {
-            let Ok(line) = line else { break };
-            if proxy.send_event(UserEvent::Line(line)).is_err() {
-                return;
-            }
-        }
-        let _ = proxy.send_event(UserEvent::Eof);
-    });
+    std::thread::spawn(move || read_stdin(proxy));
     let mut shell = Shell {
         rt: match fonts {
             Some(loading) => Runtime::with_fonts_loading(opts, Outbox::stdout(trace), loading),
@@ -272,7 +264,11 @@ impl ApplicationHandler<UserEvent> for Shell {
 
     fn user_event(&mut self, el: &ActiveEventLoop, event: UserEvent) {
         match event {
-            UserEvent::Line(line) => self.rt.handle_line(&line),
+            UserEvent::Lines(lines) => {
+                for line in &lines {
+                    self.rt.handle_line(line);
+                }
+            }
             UserEvent::Eof => {
                 self.rt.out.flush();
                 el.exit();
@@ -371,6 +367,30 @@ impl ApplicationHandler<UserEvent> for Shell {
             None => ControlFlow::Wait,
         });
     }
+}
+
+/// Reads stdin on a thread of its own. Complete lines already in the buffer travel together:
+/// a frame of a thousand prop changes wakes the event loop once, not a thousand times.
+fn read_stdin(proxy: EventLoopProxy<UserEvent>) {
+    let mut reader = std::io::BufReader::with_capacity(1 << 16, std::io::stdin());
+    let mut batch = Vec::new();
+    loop {
+        let mut line = String::new();
+        match reader.read_line(&mut line) {
+            Ok(0) | Err(_) => break,
+            Ok(_) => batch.push(line),
+        }
+        if reader.buffer().contains(&b'\n') {
+            continue;
+        }
+        if proxy.send_event(UserEvent::Lines(std::mem::take(&mut batch))).is_err() {
+            return;
+        }
+    }
+    if !batch.is_empty() {
+        let _ = proxy.send_event(UserEvent::Lines(batch));
+    }
+    let _ = proxy.send_event(UserEvent::Eof);
 }
 
 /// softbuffer hands CoreAnimation DeviceRGB frames. A window in any other colour space makes
