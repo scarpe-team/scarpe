@@ -35,12 +35,30 @@ module ShoesSpecImport
   TITLE_FAMILY = "Lacci makes title, subtitle, banner and caption Para subclasses (element.title), so paras() " \
     "still includes them, and the finders go by size, so restyling the size loses the banner"
   NETWORK = "needs the network: the asserted text arrives from a download callback"
-  NO_FIRST_FRAME = "asserts on what an animate block draws, but test code runs before the first timer tick " \
-    "on every display (spec/README.md), so nothing has been drawn yet"
 
   # Test code for cases the corpus left skipping part way through, now that what they waited
   # for works. Each keeps the source's assertions and says why it replaces the skip.
   DRIVEN = {
+    clock: <<~RUBY,
+      # The clock draws everything from its animate block. The corpus asserted before the
+      # first tick, which test code always runs ahead of (spec/README.md); the case advances
+      # the frozen clock instead (spec/import_shoes_spec.rb, DRIVEN).
+      assert_empty paras, "nothing is drawn before the first tick"
+      advance(1.0 / 8)
+      assert_equal 1, paras.size, "a tick draws the date and time"
+      assert_includes para.text, ":", "hours and minutes"
+      assert_equal 7, lines.size, "four hour marks and three hands"
+      advance(1.0 / 8)
+      assert_equal [1, 7], [paras.size, lines.size], "the next tick clears the face before drawing it again"
+    RUBY
+    mouse_detection: <<~RUBY,
+      # animate reads self.mouse into the para. The corpus read the para before the first
+      # frame; the case moves the pointer and advances one (spec/import_shoes_spec.rb, DRIVEN).
+      assert_equal "", para.text, "nothing before the first frame"
+      move_mouse 30, 40
+      advance(1.0 / 10)
+      assert_equal "mouse: 0, 30, 40", para.text, "a frame shows where the pointer is, with no button down"
+    RUBY
     custom_list_box: <<~RUBY,
       # Custom list_box widget using the Observable pattern. The corpus stopped at
       # `skip "Requires Shoes::Widget and observer stdlib"`; both work, so the case drives it
@@ -106,8 +124,8 @@ module ShoesSpecImport
     "scarpe_examples/legacy/for_playtest/shoes3-tests/curl/m3.sspec" => { drop: NETWORK },
 
     "scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/mouse-detection.sspec" =>
-      { expect: "fail", reason: NO_FIRST_FRAME },
-    "scarpe_examples/legacy/working/simple/clock.sspec" => { expect: "fail", reason: NO_FIRST_FRAME },
+      { test: DRIVEN[:mouse_detection], display: "native" },
+    "scarpe_examples/legacy/working/simple/clock.sspec" => { test: DRIVEN[:clock], display: "native" },
     "scarpe_examples/examples/shoes_splorer.sspec" =>
       { expect: "fail", reason: "text fragments such as code() live in their para's text items, not the drawable tree, so codes() finds none" },
     "scarpe_examples/legacy/for_playtest/shoes3-tests/radio/multiple.sspec" =>
