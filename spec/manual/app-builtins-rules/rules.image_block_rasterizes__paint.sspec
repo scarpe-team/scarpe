@@ -4,8 +4,6 @@ lines: [410, 426]
 testability: visual
 display: native
 ledger: E9
-expect: fail
-reason: "Lacci turns image(w, h) { } into a blank placeholder and ignores the block (E9)"
 ----------- app code
 # nostroke leaves only the fills, so stacking is visible (the manual's version also strokes).
 Shoes.app do

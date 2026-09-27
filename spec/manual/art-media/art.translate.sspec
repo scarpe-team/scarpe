@@ -4,8 +4,6 @@ lines: [1862, 1868]
 testability: visual
 display: native
 ledger: E10
-expect: fail
-reason: Lacci's translate is a no-op stub, so the display never hears the offset (E10).
 ----------- app code
 Shoes.app width: 200, height: 200 do
   fill red
