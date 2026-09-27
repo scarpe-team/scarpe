@@ -132,6 +132,9 @@ pub struct Runtime {
     checked_frames: HashMap<Id, (Pixmap, FrameMemory)>,
     /// System fonts still loading on another thread; the first layout waits for them.
     fonts_loading: Option<FontsLoading>,
+    /// Something that could show a picture went away or changed: the next flush lets go of
+    /// pictures nothing shows any more.
+    pictures_to_check: bool,
 }
 
 impl Runtime {
@@ -159,6 +162,7 @@ impl Runtime {
             last_full: HashMap::new(),
             checked_frames: HashMap::new(),
             fonts_loading: None,
+            pictures_to_check: false,
         }
     }
 
@@ -281,6 +285,7 @@ impl Runtime {
         let restyled = ["font", "stroke", "secret"].iter().any(|k| props.contains_key(*k));
         let opacity = props.get("opacity").and_then(Value::as_f64).map(|o| o as f32);
         let recursor = props.contains_key("cursor");
+        self.pictures_to_check |= ["url", "icon", "fill", "stroke", "draw_context"].iter().any(|k| props.contains_key(*k));
         let looks_only = self.doc.get(id).is_some_and(|n| props.keys().all(|key| changes_only_looks(&n.kind, key)));
         if !self.doc.set_props(id, props) {
             return;
@@ -345,6 +350,7 @@ impl Runtime {
         if removed.is_empty() {
             return;
         }
+        self.pictures_to_check = true;
         self.revisions.forget(&removed);
         for view in self.views.values_mut() {
             view.ui.forget(&removed);
@@ -441,6 +447,11 @@ impl Runtime {
 
     /// End of a batch: lay out whatever changed.
     pub fn flush(&mut self) {
+        self.images.next_batch();
+        if std::mem::take(&mut self.pictures_to_check) && !self.images.is_empty() {
+            let shown: std::collections::HashSet<std::path::PathBuf> = self.doc.iter().flat_map(crate::elements::image::shown_by).collect();
+            self.images.retain(|path| shown.contains(path));
+        }
         let running: Vec<Id> = self.views.iter().filter(|(_, v)| v.running && v.layout.is_none()).map(|(id, _)| *id).collect();
         for app in running {
             self.ensure_layout(app);

@@ -614,6 +614,10 @@ change the code and this list together.
   out inside its own box, like a flow, in image-local coordinates, and clips them to it. A blank
   canvas with no size of its own (only `left`/`top`) fills the rest of its line and its parent's
   height. Effects (`blur`, `glow`, `shadow`) are not drawn: the manual never documents them.
+- **Image files** are decoded once and read again when the file changes (its modification time
+  or length, looked at once a batch), so an app that rewrites a picture and sets its path again
+  shows the new one, and a file that was not there yet shows once it is. Pictures no drawable
+  shows any more are let go at the next flush.
 - **Gradients** follow Shoes 3: angle 0 runs top to bottom, 90 left to right, across the shape's
   box. A wire gradient without `angle` gets 0. Radial gradients are not drawn (Lacci's `gradient()`
   cannot ask for one).

@@ -4,24 +4,81 @@
 use crate::doc::Node;
 use crate::layout::{LBox, Rect};
 use crate::paint::Canvas;
-use crate::style::Color;
+use crate::style::{Color, Paint};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
+use std::time::SystemTime;
 use tiny_skia::{FilterQuality, IntSize, Pixmap, PixmapPaint, Transform};
 
+/// Decoded pictures by path. Each is read again when its file changes (its modification time
+/// or its length), so an app that rewrites a picture and shows it again sees the new one, and
+/// a file that did not read (not there yet, not a picture) is tried again once it changes.
+/// A file is looked at once a batch at most (`next_batch`), not on every paint. Runtime::flush
+/// lets go of pictures nothing shows any more (`retain`).
 #[derive(Default)]
 pub struct ImageCache {
-    entries: HashMap<PathBuf, Option<Rc<Pixmap>>>,
+    entries: HashMap<PathBuf, Entry>,
+    batch: u64,
+}
+
+struct Entry {
+    /// The file as it was when read; None when there was none.
+    file: Option<FileStamp>,
+    image: Option<Rc<Pixmap>>,
+    /// The batch the file was last looked at in.
+    looked: u64,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct FileStamp {
+    modified: Option<SystemTime>,
+    len: u64,
+}
+
+impl FileStamp {
+    fn of(path: &Path) -> Option<FileStamp> {
+        let meta = std::fs::metadata(path).ok()?;
+        Some(FileStamp { modified: meta.modified().ok(), len: meta.len() })
+    }
 }
 
 impl ImageCache {
     pub fn get(&mut self, path: &Path) -> Option<Rc<Pixmap>> {
-        self.entries.entry(path.to_path_buf()).or_insert_with(|| decode(path).map(Rc::new)).clone()
+        let batch = self.batch;
+        if let Some(entry) = self.entries.get_mut(path).filter(|entry| entry.looked == batch) {
+            return entry.image.clone();
+        }
+        let file = FileStamp::of(path);
+        if let Some(entry) = self.entries.get_mut(path).filter(|entry| entry.file == file) {
+            entry.looked = batch;
+            return entry.image.clone();
+        }
+        let image = file.and_then(|_| decode(path)).map(Rc::new);
+        self.entries.insert(path.to_path_buf(), Entry { file, image: image.clone(), looked: batch });
+        image
+    }
+
+    /// A new batch of changes arrived: files are worth looking at again.
+    pub fn next_batch(&mut self) {
+        self.batch += 1;
     }
 
     pub fn forget(&mut self, path: &Path) {
         self.entries.remove(path);
+    }
+
+    /// Keeps only the pictures whose paths `shown` still wants.
+    pub fn retain(&mut self, shown: impl Fn(&Path) -> bool) {
+        self.entries.retain(|path, _| shown(path));
+    }
+
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
     }
 }
 
@@ -50,6 +107,17 @@ fn decode(path: &Path) -> Option<Pixmap> {
         }
     }
     Pixmap::from_vec(data, IntSize::from_wh(w, h)?)
+}
+
+/// Every picture file `node` shows: an image's own, a button's icon, and a picture it is
+/// filled or stroked with.
+pub fn shown_by(node: &Node) -> impl Iterator<Item = PathBuf> + '_ {
+    let icon = node.props.str("icon").filter(|p| !p.is_empty()).map(PathBuf::from);
+    let patterns = ["fill", "stroke"].into_iter().filter_map(|key| match node.props.art_paint(key) {
+        Some(Paint::Image(path)) => Some(path),
+        _ => None,
+    });
+    url(node).into_iter().chain(icon).chain(patterns)
 }
 
 fn url(node: &Node) -> Option<PathBuf> {
