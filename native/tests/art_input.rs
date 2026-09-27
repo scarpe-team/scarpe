@@ -454,3 +454,12 @@ fn list_boxes_and_progress_bars_are_200_wide() {
     assert_eq!(h.node(|n| n["id"] == 3)["w"], json!(200.0));
     assert_eq!(h.node(|n| n["id"] == 4)["w"], json!(200.0));
 }
+
+#[test]
+fn arrows_on_an_empty_list_box_do_nothing() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(3, "ListBox", 2, json!({"items": []}))]));
+    h.feed("{\"t\":\"focus\",\"id\":3}\n");
+    assert!(named(&key(&mut h, "down"), "change").is_empty());
+    assert!(named(&key(&mut h, "up"), "change").is_empty());
+}
