@@ -292,7 +292,8 @@ loop until no app is open or the child's stdout ended:
   dispatch every complete message
   tick due timers: animate (frame starts at 0), every (count starts at 0, ledger I1), timer (one shot);
     honour `stopped` and destroyed items; timers can be created at any time
-  dispatch "heartbeat" (nil target) at most every 50 ms (Shoes-Spec hooks run on the first one)
+  dispatch "heartbeat" (nil target) at most every 50 ms; Shoes-Spec tests and peek's steps start
+    once the first one's handlers are done, so the slot start blocks Lacci hangs on it have run
   flush
 ```
 
@@ -489,7 +490,7 @@ on top of the Niente-compatible finders and proxies (`button`, `para`, `edit_lin
 | `layout_tree` | array of hashes from `req layout`, Symbol keys |
 | `snapshot(name)` | writes `spec/results/snapshots/<name>.png` (or `SCARPE_NATIVE_SNAPSHOT_DIR`, or an absolute path), returns the path |
 | `pixel_at(x, y)` | `[r, g, b, a]` |
-| `wait_frames(n = 1)`, `advance(seconds)` | pump the loop. The clock is frozen in spec runs, so `advance` steps from one timer deadline to the next and fires exactly the timers due |
+| `wait_frames(n = 1)`, `advance(seconds)` | pump the loop. `wait_frames` beats the heart as the pump does, so a slot made since starts (ledger H8), and then waits for the frames. The clock is frozen in spec runs, so `advance` steps from one timer deadline to the next and fires exactly the timers due |
 | `resize_window(w, h)` | resize the window |
 | `focused_drawable` | proxy or nil |
 | `stub_dialog(kind, value)`, `dialogs_seen` | answer the next `kind` builtin with `value`; every `[kind, message]` asked for |
@@ -498,11 +499,12 @@ A handler that raises while test code is clicking or advancing fails the test in
 
 `scarpe peek APP.rb [--size WxH] [--scale 2] [--wait SECS] [--click TEXT | --click-at X,Y]
 [--drag X,Y,X,Y...] [--type TEXT] [--key NAME] [--wheel DY[,X,Y]] [--window N | --app ID]
-[--shot OUT.png] [--layout]` runs an app headless, performs the steps in order from the first
-heartbeat, prints one line per click, drag, wheel, window, shot and laid-out node, and exits (1
-when a step failed or no app started). With no `--shot` and no `--layout` it saves `peek.png` in
-the current directory. `--drag` presses at its first point and moves through the rest a frame
-apart, so an app that reads `mouse` in a timer sees the button down at each. It is the quick
+[--shot OUT.png] [--layout]` runs an app headless, performs the steps in order once the first
+heartbeat has started the slots, prints one line per click, drag, wheel, window, shot and
+laid-out node, and exits (1 when a step failed or no app started). With no `--shot` and no
+`--layout` it saves `peek.png` in the current directory. `--drag` presses at its first point and
+moves through the rest a frame apart, so an app that reads `mouse` in a timer sees the button
+down at each. It is the quick
 "look and click" tool for humans and agents. `--window N` (counting from 1 in `Shoes.APPS`) or
 `--app ID` sends every later step to that window.
 

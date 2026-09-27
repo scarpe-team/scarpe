@@ -38,7 +38,7 @@ module Scarpe::Native
         $stderr.puts("peek: #{@app_path} never started a Shoes app") if Shoes.APPS.empty?
         exit(1) if @failed || Shoes.APPS.empty?
       end
-      Scarpe::Native.on_first_heartbeat { perform }
+      Scarpe::Native.after_first_heartbeat { perform }
       Shoes.run_app(@app_path)
     end
 

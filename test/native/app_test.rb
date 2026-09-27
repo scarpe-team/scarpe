@@ -352,6 +352,14 @@ class AppTest < Minitest::Test
     assert_operator run.received.index(resize), :<, run.received.index(run.of_type("req").find { |req| req["op"] == "layout" })
   end
 
+  def test_peek_looks_once_the_slots_have_started
+    run = run_app(<<~RUBY, argv: ->(app) { ["peek", app, "--layout"] })
+      Shoes.app { stack { start { |slot| slot.append { para "started" } } } }
+    RUBY
+    assert_clean_exit(run)
+    assert_includes run.stdout, "\"started\"", "what the start block drew is in the layout"
+  end
+
   def test_peek_with_nothing_to_do_saves_peek_png_here
     run = run_app("Shoes.app { para 'hi' }", argv: ->(app) { ["peek", app, "--size", "300x200"] })
     assert_clean_exit(run)
