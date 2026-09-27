@@ -5,7 +5,7 @@ testability: interactive
 display: native
 ledger: G9
 expect: fail
-reason: "Lacci focuses the radio (G9), but the native display clicks only a focused button on Enter, not a radio."
+reason: "Lacci focuses the radio (G9), but native/src/elements/check.rs `activates` takes Space only, where button.rs also takes Enter; the wave-5 Rust lane adds Enter."
 ----------- app code
 Shoes.app do
   stack do
