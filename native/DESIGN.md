@@ -399,7 +399,8 @@ src/runtime.rs     Runtime: owns Doc + per-app view state (scroll, focus, hover,
 src/window.rs      winit 0.30 ApplicationHandler; one Window + softbuffer Surface per App; ControlFlow::Wait;
                    stdin reader thread -> EventLoopProxy<UserEvent>, one wake per batch of lines;
                    window/pacing.rs holds floods of frames to the display's refresh rate
-src/headless.rs    same Runtime with offscreen pixmaps; main thread reads stdin directly
+src/headless.rs    same Runtime with offscreen pixmaps; stdin read on its own thread too, so Rust
+                   blocked writing to a Ruby that is not reading yet never stops Ruby writing
 src/automation.rs  req ops that synthesise input (click, mouse, type, key, wheel), layout dump, snapshot, pixel
 src/dialogs.rs     rfd message/file dialogs; in-window modal for `ask` and `ask_color`
 ```

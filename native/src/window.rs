@@ -470,24 +470,9 @@ impl ApplicationHandler<UserEvent> for Shell {
     }
 }
 
-/// Reads stdin on a thread of its own. Complete lines already in the buffer travel together:
-/// a frame of a thousand prop changes wakes the event loop once, not a thousand times.
+/// Reads stdin on a thread of its own, so a batch of lines wakes the event loop once.
 fn read_stdin(proxy: EventLoopProxy<UserEvent>) {
-    let mut reader = std::io::BufReader::with_capacity(1 << 16, std::io::stdin());
-    let mut batch = Vec::new();
-    let mut bytes = Vec::new();
-    while let Some(line) = crate::protocol::read_line_lossy(&mut reader, &mut bytes) {
-        batch.push(line);
-        if reader.buffer().contains(&b'\n') {
-            continue;
-        }
-        if proxy.send_event(UserEvent::Lines(std::mem::take(&mut batch))).is_err() {
-            return;
-        }
-    }
-    if !batch.is_empty() {
-        let _ = proxy.send_event(UserEvent::Lines(batch));
-    }
+    crate::protocol::read_batches(std::io::stdin(), |lines| proxy.send_event(UserEvent::Lines(lines)).is_ok());
     let _ = proxy.send_event(UserEvent::Eof);
 }
 
