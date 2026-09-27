@@ -1,8 +1,8 @@
 # Scarpe Native: design
 
-Status: v1.1, 27 Sep 2026, after the third build wave merged and the orchestrator ruled Q1 to Q8
-(Q1 to Q7 under "Rulings on the questions" in `spec/LEDGER.md`, Q8 on `clear` and timers in 5.4;
-Nick may overrule any of them). This document is the contract every builder codes against. If the
+Status: v1.1, 27 Sep 2026, after the fourth build wave merged and the orchestrator ruled Q1 to Q8
+(under "Rulings on the questions" in `spec/LEDGER.md`, Q8 on `clear` and timers also in 5.4; Nick
+may overrule any of them). This document is the contract every builder codes against. If the
 code and this document disagree, fix one of them in the same change. The user guide is
 `docs/native.md`; performance lives in `native/PERF.md`.
 
