@@ -116,7 +116,7 @@ that last ran or had input, else the first running one.
 
 | op | fields | reply `value` |
 |---|---|---|
-| `dialog` | `kind` (alert confirm ask ask_color ask_open_file ask_save_file ask_open_folder ask_save_folder), `message`, `default` | alert: null; confirm: bool; ask: String, or null on Cancel in a window (headless: `""`); ask_color: [r,g,b,a] or null; file/folder: path or null. `cancelled` bool alongside. The shim hands Lacci `""` for a cancelled ask either way (ledger K1, Q6) |
+| `dialog` | `kind` (alert confirm ask ask_color ask_open_file ask_save_file ask_open_folder ask_save_folder), `message`, `default`; for `ask`, optional `title` (a heading, and the title of a window of its own) and `secret` (typed as bullets) | alert: null; confirm: bool; ask: String, or null on Cancel in a window (headless: `""`); ask_color: [r,g,b,a] or null; file/folder: path or null. `cancelled` bool alongside. The shim hands Lacci `""` for a cancelled ask either way (ledger K1, Q6) |
 | `layout` | `app` | array of `{id, kind, x, y, w, h, visible, text?}` in window coordinates, rounded to 1/100, paint order; text fragments follow their para |
 | `snapshot` | `path`, `app`, `scale` (default: the app's scale) | writes a PNG; value = `{path, w, h}` in pixels |
 | `click` | `target`: `{id}` or `{text}` or `{x,y}`, `button` (1 default), `app` | synthesises press+release at the target's centre through the real input path. value = `{hit: id or null, x, y}`. Error if the target is not visible or something else is on top (the value says what was hit). `{id}` goes to the drawable's own window whatever `app` says. `{text}` matches exact text first, then text that contains it, links included, and also picks an item of an open list_box popup |
@@ -402,7 +402,7 @@ src/window.rs      winit 0.30 ApplicationHandler; one Window + softbuffer Surfac
 src/headless.rs    same Runtime with offscreen pixmaps; stdin read on its own thread too, so Rust
                    blocked writing to a Ruby that is not reading yet never stops Ruby writing
 src/automation.rs  req ops that synthesise input (click, mouse, type, key, wheel), layout dump, snapshot, pixel
-src/dialogs.rs     rfd message/file dialogs; in-window modal for `ask` and `ask_color`
+src/dialogs.rs     rfd message/file dialogs; the modal for `ask` and `ask_color`, in an app's window or its own
 ```
 
 Stack: tiny-skia 0.12, cosmic-text 0.19, swash 0.2, winit 0.30.x (not the 0.31 beta), softbuffer 0.4,
@@ -625,9 +625,13 @@ change the code and this list together.
   slot's hidden part catches nothing.
 - **Headless dialogs** reply with `cancelled: true` for everything but `alert`.
 - **Windowed dialogs.** `alert`, `confirm` and the file/folder pickers are native (rfd); `ask` and
-  `ask_color` draw an in-window modal (a text field, or twelve swatches) and reply when the user
+  `ask_color` draw a modal (a text field, or twelve swatches) and reply when the user
   presses OK/Return (`cancelled: false`) or Cancel/Escape (`value: null, cancelled: true`; the shim
-  turns a null `ask` into `""`).
+  turns a null `ask` into `""`). The modal sits in a running app's window, the active one first.
+  Asked while no app window is up (inside `Shoes.app` or `start` before `run`, or before any app),
+  it gets a small window of its own, sized to it; closing that window is a Cancel, and Ruby never
+  hears of the window. `ask`'s `title` heads the modal and names that window; `secret` types bullets.
+  A ghost answers either kind the headless way.
 - **`layout`** lists every laid-out node in paint order; each text fragment (Link, Strong, Em...)
   follows its Para as its own entry, with the box of its first line of glyphs and its text, and
   `click {id}` on a fragment clicks there. Fragments are hit-tested like drawables: a press inside
