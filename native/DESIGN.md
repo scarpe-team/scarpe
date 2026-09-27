@@ -408,6 +408,10 @@ change the code and this list together.
 - **Shape blocks.** Art drawn inside a `shape` block joins the shape's path, measured from the
   shape's left/top: the group is filled once (nonzero winding) and stroked once with the shape's own
   fill and stroke, and turns as one (ledger E7, M21). The shape's layout box holds all of it.
+- **Image canvases.** An Image with children (`image(w, h) { ... }`, ledger E9) lays them out inside
+  its own box, like a flow, in image-local coordinates, and clips them to it. A blank canvas with no
+  size of its own (only `left`/`top`) fills the rest of its line and its parent's height. Effects
+  (`blur`, `glow`, `shadow`) are not drawn: the manual never documents them.
 - **Gradients** follow Shoes 3: angle 0 runs top to bottom, 90 left to right, across the shape's
   box. A wire gradient without `angle` gets 0.
 - **Wheel.** `req wheel` takes `dy` in logical px with DOM sign: positive scrolls down (content
