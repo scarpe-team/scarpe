@@ -182,6 +182,25 @@ fn hidden(node: &Node) -> bool {
     node.props.truthy("hidden")
 }
 
+fn is_text(node: &Node) -> bool {
+    matches!(node.kind, Kind::Para | Kind::TextDrawable)
+}
+
+/// Shoes 3's margins for text blocks (ledger C9): 4 px all round, and 12 px below when
+/// neither `margin` nor `margin_bottom` says otherwise (s3t_textblock.c:108-110).
+const TEXT_MARGIN: f32 = 4.0;
+const TEXT_MARGIN_BOTTOM: f32 = 12.0;
+
+/// An element's margins; text blocks keep Shoes 3's defaults for every side not given.
+fn margins_of(node: &Node, basis: f32) -> Edges {
+    if !is_text(node) {
+        return node.props.margins(basis);
+    }
+    let p = &node.props;
+    let bottom = if p.has("margin") || p.has("margin_bottom") { TEXT_MARGIN } else { TEXT_MARGIN_BOTTOM };
+    p.margins_or(basis, Edges { left: TEXT_MARGIN, top: TEXT_MARGIN, right: TEXT_MARGIN, bottom })
+}
+
 fn role(node: &Node) -> Role {
     match &node.kind {
         Kind::SubscriptionItem => Role::Subscription,
@@ -258,7 +277,7 @@ impl Engine<'_> {
     }
 
     fn place_in_flow(&mut self, node: &Node, flow: bool, content: Rect, cursor: &mut Cursor, avail_h: f32) {
-        let m = node.props.margins(content.w);
+        let m = margins_of(node, content.w);
         let parent = (content.w, avail_h);
         let remaining = if flow { content.w - cursor.x } else { content.w };
         let mut width = self.width_for(node, flow, parent, remaining, &m);
@@ -424,7 +443,7 @@ impl Engine<'_> {
     /// An element with left/top/right/bottom, out of flow in `frame`.
     fn place_positioned(&mut self, node: &Node, frame: Rect, avail_h: f32) {
         let p = &node.props;
-        let m = p.margins(frame.w);
+        let m = margins_of(node, frame.w);
         let dim = |key: &str, basis: f32| p.dim(key).map(|d| d.resolve(basis));
         // Positioned text shrinks to fit what is left of the slot, like CSS absolute.
         let remaining = frame.w - dim("left", frame.w).unwrap_or(0.0);

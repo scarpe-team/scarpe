@@ -12,7 +12,8 @@ fn hello_world_lays_out_a_para() {
     assert_eq!(msgs[0]["t"], "ready");
     let para = h.node(|n| n["kind"] == "Para");
     assert_eq!(para["text"], "Hello, World!");
-    assert_eq!((para["x"].as_f64(), para["y"].as_f64(), para["h"].as_f64()), (Some(0.0), Some(0.0), Some(14.4)));
+    // Text blocks sit inside Shoes 3's 4 px margins (ledger C9).
+    assert_eq!((para["x"].as_f64(), para["y"].as_f64(), para["h"].as_f64()), (Some(4.0), Some(4.0), Some(14.4)));
     assert_eq!(para["visible"], true);
 }
 
@@ -281,7 +282,7 @@ fn mouse_state_is_reported() {
 fn para_hit_reports_the_character_under_the_pointer() {
     let mut h = Harness::new();
     h.feed(&app(300, 100, &[create(3, "Para", 2, json!({"text_items": ["Hello"]}))]));
-    let (msgs, _) = h.req(json!({"op": "mouse", "action": "move", "x": 1, "y": 5}));
+    let (msgs, _) = h.req(json!({"op": "mouse", "action": "move", "x": 5, "y": 9}));
     assert!(msgs.iter().any(|m| m["t"] == "para_hit" && m["id"] == 3 && m["value"] == 0), "{msgs:?}");
     let (msgs, _) = h.req(json!({"op": "mouse", "action": "move", "x": 250, "y": 80}));
     assert!(msgs.iter().any(|m| m["t"] == "para_hit" && m["id"] == 3 && m["value"].is_null()));

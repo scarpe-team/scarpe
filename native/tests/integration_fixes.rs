@@ -48,7 +48,8 @@ fn plain_text_between_two_links_is_not_underlined() {
 #[test]
 fn a_para_selection_only_highlights_its_own_lines() {
     let mut h = Harness::new();
-    h.feed(&app(300, 100, &[create(3, "Para", 2, json!({"text_items": ["one\ntwo\nthree"], "text_marker": 4, "text_cursor": 6}))]));
+    // Flush with the window, lines one pitch apart, so a third of the height is a line.
+    h.feed(&app(300, 100, &[create(3, "Para", 2, json!({"text_items": ["one\ntwo\nthree"], "text_marker": 4, "text_cursor": 6, "margin": 0, "leading": 0}))]));
     let (_, _, _, height) = rect(&h.node(|n| n["id"] == 3));
     let line = height / 3.0;
     assert_eq!(pixel(&mut h, 1.0, 1.0), WHITE, "line one is not selected");
@@ -62,7 +63,7 @@ fn a_para_selection_only_highlights_its_own_lines() {
 fn trimmed_text_stops_at_its_own_box() {
     let mut h = Harness::new();
     let long = "The quick brown fox jumps over the lazy dog, again and again";
-    h.feed(&app(400, 60, &[create(3, "Para", 2, json!({"text_items": [long], "width": 150, "wrap": "trim"}))]));
+    h.feed(&app(400, 60, &[create(3, "Para", 2, json!({"text_items": [long], "width": 150, "wrap": "trim", "margin": 0}))]));
     let (x, y, w, height) = rect(&h.node(|n| n["id"] == 3));
     assert_eq!((x, w, height), (0.0, 150.0, 14.4), "one line, 150 wide");
     let mid = y + height / 2.0;
