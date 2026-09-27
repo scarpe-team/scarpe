@@ -112,8 +112,8 @@ impl Runtime {
     /// A full paint that leaves the view's frame count alone.
     fn full_picture(&mut self, app: Id, scale: f32) -> Option<Pixmap> {
         let view = self.views.get_mut(&app)?;
-        let size = (view.size.0 * scale).ceil().max(1.0) as u32;
-        let mut pm = Pixmap::new(size, (view.size.1 * scale).ceil().max(1.0) as u32)?;
+        let (w, h) = crate::limits::picture_size(view.size, scale)?;
+        let mut pm = Pixmap::new(w, h)?;
         let AppView { layout, ui, .. } = view;
         let mut scene = Scene { doc: &self.doc, layout: layout.as_ref()?, view: ui, text: &mut self.text, images: &mut self.images };
         paint::paint(&mut scene, &mut pm, scale);

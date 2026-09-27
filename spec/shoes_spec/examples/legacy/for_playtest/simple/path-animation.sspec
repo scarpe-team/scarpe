@@ -3,7 +3,7 @@
 # Change it through RULINGS or FIXES there: a re-import rewrites this file.
 source: cases/scarpe_examples/examples/legacy/for_playtest/simple/path-animation.sspec
 source_commit: 1e766c6
-display: any
+display: native
 duplicates:
 - cases/scarpe_examples/legacy/for_playtest/simple/path-animation.sspec
 ----------- app code
@@ -60,9 +60,13 @@ Shoes.app(title: "Drag the dot to make a path. Redrag to extend.") do
    end
 end
 ----------- test code
-# Path animation with mouse interaction and drawing
-# Uses click/release/motion handlers, animate, oval/rect drawing
-# Verify reset button exists
+# Dragging the dot records a path; released, a turned square walks along it. The corpus
+# stopped at `skip "Interactive animation with mouse tracking"`; native can drag, so the
+# case drives it (spec/import_shoes_spec.rb, DRIVEN).
 assert_equal "reset", button().text
-# Complex animation and mouse tracking - visual test recommended
-skip "Interactive animation with mouse tracking - requires visual verification"
+assert_empty stack("@stack").contents, "nothing is drawn before the first frame"
+drag [200, 200], [240, 220], [280, 240]
+advance(1.0 / 24)
+drawn = stack("@stack").contents
+assert_equal 3, drawn.count { |shape| shape.is_a?(Shoes::Oval) }, "the dot and the two points it was dragged through"
+assert_equal 1, drawn.count { |shape| shape.is_a?(Shoes::Rect) }, "and, released, the square that walks the path"

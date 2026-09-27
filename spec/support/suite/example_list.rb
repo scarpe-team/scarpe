@@ -9,8 +9,9 @@ module SpecSuite
   # `skip` (not run: side effects, missing gems, Shoes 3 only). Like a case's `expect:`, it can
   # be a Hash by display: {niente: loads, native: fails}. Optional `steps:` drive
   # `scarpe peek` under native, in order: [{click: "OK"}, {type: "hello"}, {key: "return"}].
+  # Optional `dialogs:` answer dialogs on both displays: {confirm: true, ask_color: "#f80"}.
   class ExampleList
-    Example = Struct.new(:path, :category, :needs, :status, :reason, :steps, :wait, keyword_init: true) do
+    Example = Struct.new(:path, :category, :needs, :status, :reason, :steps, :wait, :dialogs, keyword_init: true) do
       def status_on(display)
         status.is_a?(Hash) ? status.fetch(display, "loads") : status
       end
@@ -33,7 +34,7 @@ module SpecSuite
       @examples = rows.map do |path, fields|
         fields ||= {}
         Example.new(path:, category: fields["category"], needs: fields["needs"] || [], status: fields["status"] || "loads",
-          reason: fields["reason"], steps: fields["steps"] || [], wait: fields["wait"])
+          reason: fields["reason"], steps: fields["steps"] || [], wait: fields["wait"], dialogs: fields["dialogs"])
       end
     end
 

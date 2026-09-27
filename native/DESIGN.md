@@ -125,7 +125,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 | user action | event | target | args |
 |---|---|---|---|
 | click Button, Check, Radio, Image, Link | `click` | that id | `[]` (Check/Radio: Lacci toggles and echoes `checked`; Rust shows the echo, it does not toggle on its own) |
-| edit EditLine / EditBox | `change` | that id | `[new_text]` on every edit. Lacci echoes `props {text}`: apply idempotently, keep caret |
+| edit EditLine / EditBox | `change` | that id | `[new_text]` on every edit. Lacci echoes `props {text}`: apply idempotently, keep caret. Echoes can trail later edits, so any text the field reported and has not seen echoed yet counts as an echo |
 | pick in ListBox | `change` | that id | `[item_string]` |
 | pointer enters / leaves a drawable | `hover` / `leave` | that id | `[]`, on transitions only, for every drawable in the hovered chain |
 | press / release on a drawable that has `has_click` / `has_release` true | `click` / `release` | that id | `[button, x, y]` window coordinates |
@@ -147,7 +147,7 @@ Mouse buttons are 1 = left, 2 = middle, 3 = right (manual numbering).
 - On the wire a Symbol travels as a String starting with `":"` (`":left"`); Lacci's SubscriptionItem turns it back into a Symbol. Plain printable keys travel as themselves.
 - On macOS, Cmd is named `alt_`, as Shoes 3's Cocoa backend did (ledger H1, Q5 ruled 27 Sep 2026):
   Cmd-q arrives as `:alt_q`, which is what the example editors bind. In text fields Cmd still works
-  like Control (copy, paste, select all, line ends); Option moves by words. The default app menu
+  like Control (copy, paste, select all, line ends, undo and redo); Option moves by words. The default app menu
   still quits on Cmd-Q before the app sees the key; Rust then reports every open window `closed`.
   The `key` op accepts `command_` (or `cmd_`, `super_`) for Cmd.
 
@@ -243,7 +243,8 @@ neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1).
   Shoes 3 s3t_textblock.c:134-228): text that fits on the rest of the line sits there as a box
   as wide as its text; longer text starts its first line where the line stands (a first-line
   indent) and wraps its later lines back to the flow's left edge, its box spanning the flow.
-  The next element carries on from the end of the last line. After text the line goes on from
+  The next element carries on from the end of the last line; after text that ends in a newline,
+  from the start of the empty line below it, as Pango lays it out. After text the line goes on from
   the end of the text plus whatever its right margin adds to its left one, so two paras sit one
   margin apart. Text starts a new row instead when not even its first word fits on the rest of
   the line, or when something earlier on the line reaches more than half a line below its first
@@ -360,6 +361,7 @@ on top of the Niente-compatible finders and proxies (`button`, `para`, `edit_lin
 | `proxy.trigger_click` / `trigger_hover` / `trigger_leave` / `trigger_change(v)` | Shoes-Spec compat. `trigger_click` goes through Rust (`req click {id}`), so it proves layout and hit-testing |
 | `click_on(proxy_or_text)`, `click_at(x, y, button: 1)` | synthetic click through the real path |
 | `hover_at(x, y)`, `move_mouse(x, y)` | pointer motion |
+| `drag([x, y], [x, y], ...)` | press at the first point, move through the rest with the button down, release at the last |
 | `type_text(str)`, `press_key(name)` | keyboard into the focused widget / app |
 | `wheel(dy, x:, y:)` | scroll |
 | `layout_of(proxy)` | `Rect(x, y, w, h)` in window coordinates |
@@ -371,8 +373,10 @@ on top of the Niente-compatible finders and proxies (`button`, `para`, `edit_lin
 | `stub_dialog(kind, value)` | answer the next `kind` builtin with `value` |
 
 `scarpe peek APP.rb [--size WxH] [--scale 2] [--wait SECS] [--click TEXT | --click-at X,Y]
-[--type TEXT] [--key NAME] [--wheel DY[,X,Y]] [--window N | --app ID] [--shot OUT.png] [--layout]`
-runs an app headless, performs the steps in order, and exits. It is the quick "look and click" tool
+[--drag X,Y,X,Y...] [--type TEXT] [--key NAME] [--wheel DY[,X,Y]] [--window N | --app ID]
+[--shot OUT.png] [--layout]` runs an app headless, performs the steps in order, and exits.
+`--drag` presses at its first point and moves through the rest a frame apart, so an app that
+reads `mouse` in a timer sees the button down at each. It is the quick "look and click" tool
 for humans and agents. `--window N` (counting from 1 in `Shoes.APPS`) or `--app ID` sends every
 later step to that window.
 
@@ -468,10 +472,16 @@ change the code and this list together.
   moves shapes before they turn. A shape's layout box is its transformed box, so hit-testing follows.
   Turns add up: `rotate` in the draw context is Lacci's running total too (ledger E10).
   `cap` is `"curve"` (round), `"rect"` (flat, the default) or `"project"` (square, half the stroke
-  width longer). Unset fill and stroke are black, strokewidth 1.
+  width longer). Unset fill and stroke are black, strokewidth 1. `right:` and `bottom:` put art's
+  far edges that far in from the slot's far edges, as for every element (ledger C10): art with a
+  far edge and no near one sits against it, and a rect, oval or arc that names both edges and no
+  size runs from one to the other; `left` and `top` win over them, as elsewhere. (Shoes 3 read
+  them on art as absolute coordinates, `s3_ruby.c:396-399`; no example uses either.)
 - **Shape blocks.** Art drawn inside a `shape` block joins the shape's path, measured from the
   shape's left/top: the group is filled once (nonzero winding) and stroked once with the shape's own
-  fill and stroke, and turns as one (ledger E7, M21). The shape's layout box holds all of it.
+  fill and stroke, and turns as one (ledger E7, M21): about the group's corner, by the shape's own
+  draw context, whatever transforms its members carry. The layout boxes of the shape and of every
+  member are where that turn puts them, so hit-testing matches the picture.
 - **Image canvases.** An Image with children (`image(w, h) { ... }`, ledger E9) lays them out inside
   its own box, like a flow, in image-local coordinates, and clips them to it. A blank canvas with no
   size of its own (only `left`/`top`) fills the rest of its line and its parent's height. Effects
@@ -531,6 +541,28 @@ change the code and this list together.
   node must never paint outside `paint::damage::paint_bounds`: code that makes a node draw further (a
   new transform, a bigger shadow) grows that function too, or `SCARPE_NATIVE_DAMAGE=check` will say so.
   A masked slot's layers cover only the repainted rect, so masks repaint in part like anything else.
+- **Text fields** keep an undo history: Cmd-Z (`:alt_z` by Shoes' name, Q5) or Control-Z undoes,
+  Cmd-Shift-Z, Control-Shift-Z or Control-Y redoes. A run of typing, or of deleting, is one step,
+  as in a Mac or GTK field; a paste, a cut or a caret move ends it, and the caret and selection
+  come back with the text. Lacci's echo keeps the history; text the app sets itself starts a new
+  one. Readonly fields refuse both. Input methods are on while a field that takes text has focus,
+  with their candidates at its caret: a commit (a dead key's accent, a word of Japanese) is one
+  edit and one `change`, or keypresses when no field has focus; text still being composed shows
+  in the input method's own panel, not in the field. **Secret fields** never give their text away:
+  copy and cut do nothing (cut would throw it away), input methods stay off, and automation's
+  `layout` reads bullets, so `click {text}` cannot find one by its secret.
+- **Untrusted input** (`src/limits.rs`, wave 4). Nothing on stdin can make Rust panic, hang or
+  allocate without bound: a bad line is logged (bytes that are not UTF-8 included) and the next
+  one is read. App and window sides are finite and at most 10,000 logical px (a NaN, zero or
+  negative one keeps the last size, and `resize` answers with an error); a headless picture is
+  at most 64 megapixels at a scale of 0.1 to 8, else `snapshot` says so; a `frames` request waits
+  for at most 1,000. A node is never attached inside itself, so the tree has no loops; layout
+  stops 128 slots deep and masks stop masking 4 deep, so no document overflows the stack or piles
+  up layers. Paths reaching more than a million device pixels out are not drawn (tiny-skia's
+  fixed point panicked on a stroke 2^31 px wide). Image and font files are read only when they
+  are plain files (a FIFO would block, /dev/zero never ends) within 256 MB, and images within
+  16,384 px a side, whatever their extension says. `tests/fuzz.rs` feeds generated hostile
+  sessions through the real entry point (SCARPE_NATIVE_FUZZ_RUNS, SCARPE_NATIVE_FUZZ_SEED).
 - **Para `cursor` and `marker`** count from the end when negative (`-1` sits after the last
   character, as Shoes 3 editors use it). The caret takes the text's colour, so it shows on dark
   backgrounds.

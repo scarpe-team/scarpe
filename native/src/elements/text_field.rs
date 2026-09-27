@@ -1,6 +1,6 @@
 //! The editing core shared by edit_line and edit_box: a cosmic-text Editor
 //! plus the things it leaves to us (selection on shift, clipboard, secret
-//! masking, keeping the caret in view).
+//! masking, undo and redo, keeping the caret in view).
 
 use crate::input::{Clipboard, Key, KeyInput, Named};
 use crate::layout::Rect;
@@ -8,8 +8,61 @@ use crate::paint::text::{caret_position, selection_rects};
 use crate::style::Color;
 use crate::text::FamilyName;
 use cosmic_text::{Action, Attrs, Buffer, Cursor, Edit, Editor, FontSystem, Metrics, Motion, Selection, Shaping, Wrap};
+use std::collections::VecDeque;
 
 pub const BULLET: char = '\u{2022}';
+
+/// Undo steps a field keeps.
+const MAX_UNDO: usize = 200;
+
+/// Changes a field remembers while it waits for Lacci's echoes of them.
+const MAX_UNECHOED: usize = 64;
+
+/// What an edit did, for undo: a run of typing, or of deleting, undoes as one step, as in a
+/// Mac or GTK text field. A paste, a cut or a caret move ends the run.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum EditKind {
+    Typing,
+    Deleting,
+    Other,
+}
+
+/// A state a field can go back to.
+#[derive(Clone, Debug, PartialEq)]
+struct Snapshot {
+    text: String,
+    cursor: Cursor,
+    selection: Selection,
+}
+
+/// Undo and redo: Cmd-Z and Cmd-Shift-Z (`:alt_z` by Shoes' name, Q5), Control-Z,
+/// Control-Shift-Z and Control-Y elsewhere.
+#[derive(Default)]
+struct History {
+    undo: Vec<Snapshot>,
+    redo: Vec<Snapshot>,
+    /// The kind of the last edit while the next one of the same kind can still join it.
+    run: Option<EditKind>,
+}
+
+impl History {
+    /// `before` is the state an edit of `kind` just changed.
+    fn record(&mut self, before: Snapshot, kind: EditKind) {
+        self.redo.clear();
+        if kind != EditKind::Other && self.run == Some(kind) {
+            return;
+        }
+        if self.undo.len() == MAX_UNDO {
+            self.undo.remove(0);
+        }
+        self.undo.push(before);
+        self.run = Some(kind);
+    }
+
+    fn end_run(&mut self) {
+        self.run = None;
+    }
+}
 
 pub struct TextField {
     pub editor: Editor<'static>,
@@ -23,6 +76,11 @@ pub struct TextField {
     pub color: Color,
     family: FamilyName,
     bullet_w: f32,
+    history: History,
+    /// Texts sent in `change` events that Lacci has not echoed back yet. Echoes can trail
+    /// the keys (a `type` request types a whole word before Ruby sees its first change), so
+    /// an older one must not be mistaken for text the app set.
+    unechoed: VecDeque<String>,
 }
 
 /// What a key did to a field.
@@ -52,6 +110,8 @@ impl TextField {
             color,
             family,
             bullet_w,
+            history: History::default(),
+            unechoed: VecDeque::new(),
         };
         field.move_to_end();
         field.editor.shape_as_needed(fs, false);
@@ -70,17 +130,86 @@ impl TextField {
         self.editor.with_buffer(|b| b.lines.iter().map(|l| l.text()).collect::<Vec<_>>().join("\n"))
     }
 
-    /// Applies text from Lacci. Its echo of our own edit is a no-op, so the caret stays.
+    /// The text after an edit, remembered as sent in a `change` event, so its echo is known.
+    pub fn reported(&mut self) -> String {
+        let text = self.text();
+        if self.unechoed.len() == MAX_UNECHOED {
+            self.unechoed.pop_front();
+        }
+        self.unechoed.push_back(text.clone());
+        text
+    }
+
+    /// Applies text from Lacci. Its echo of our own edit, however late, is a no-op, so the caret
+    /// and the undo history stay; text the app sets itself starts a new history, as a
+    /// browser's field does.
     pub fn set_text(&mut self, fs: &mut FontSystem, text: &str) {
+        if let Some(echoed) = self.unechoed.iter().position(|sent| sent == text) {
+            self.unechoed.drain(..=echoed);
+            return;
+        }
         if self.text() == text {
             return;
         }
-        let attrs = Attrs::new().family(self.family.as_family()).color(self.color.to_cosmic());
-        self.editor.with_buffer_mut(|b| b.set_text(text, &attrs, Shaping::Advanced, None));
+        self.unechoed.clear();
+        self.replace_text(text);
         self.editor.set_selection(Selection::None);
         self.move_to_end();
         self.editor.shape_as_needed(fs, false);
         self.scroll_to_caret();
+        self.history = History::default();
+    }
+
+    fn replace_text(&mut self, text: &str) {
+        let attrs = Attrs::new().family(self.family.as_family()).color(self.color.to_cosmic());
+        self.editor.with_buffer_mut(|b| b.set_text(text, &attrs, Shaping::Advanced, None));
+    }
+
+    fn snapshot(&self) -> Snapshot {
+        Snapshot { text: self.text(), cursor: self.editor.cursor(), selection: self.editor.selection() }
+    }
+
+    fn restore(&mut self, fs: &mut FontSystem, state: Snapshot) {
+        self.replace_text(&state.text);
+        self.editor.set_cursor(state.cursor);
+        self.editor.set_selection(state.selection);
+        self.editor.shape_as_needed(fs, false);
+        self.scroll_to_caret();
+    }
+
+    /// Goes back one step. False when there is nothing to undo.
+    pub fn undo(&mut self, fs: &mut FontSystem) -> bool {
+        let Some(previous) = self.history.undo.pop() else { return false };
+        self.history.redo.push(self.snapshot());
+        self.history.end_run();
+        self.restore(fs, previous);
+        true
+    }
+
+    /// Goes forward again after an undo. False when there is nothing to redo.
+    pub fn redo(&mut self, fs: &mut FontSystem) -> bool {
+        let Some(next) = self.history.redo.pop() else { return false };
+        self.history.undo.push(self.snapshot());
+        self.history.end_run();
+        self.restore(fs, next);
+        true
+    }
+
+    /// Runs an edit of `kind`, and remembers the state before it when it changed the text.
+    fn edit(&mut self, kind: EditKind, change: impl FnOnce(&mut Self) -> bool) -> bool {
+        let before = self.snapshot();
+        let reported = change(self);
+        let changed = self.text() != before.text;
+        if changed {
+            self.history.record(before, kind);
+        }
+        reported && changed
+    }
+
+    /// Text typed or committed by an input method, over the selection, as one undo step
+    /// with the typing around it.
+    pub fn type_in(&mut self, fs: &mut FontSystem, text: &str) -> bool {
+        self.edit(EditKind::Typing, |field| field.insert(fs, text))
     }
 
     fn move_to_end(&mut self) {
@@ -119,6 +248,7 @@ impl TextField {
     /// A press in the field: click places the caret, a double click selects a
     /// word, a triple click the line, shift extends the selection.
     pub fn press(&mut self, fs: &mut FontSystem, x: f32, y: f32, clicks: u32, extend: bool) {
+        self.history.end_run();
         let (lx, ly) = self.local(x, y);
         if self.secret {
             let cursor = self.secret_cursor(lx);
@@ -184,14 +314,43 @@ impl TextField {
     }
 
     fn secret_cursor(&self, lx: f32) -> Cursor {
-        let text = self.text();
-        let chars = text.chars().count();
-        let index = ((lx / self.bullet_w).round().max(0.0) as usize).min(chars);
-        let byte = text.char_indices().nth(index).map(|(b, _)| b).unwrap_or(text.len());
-        Cursor::new(0, byte)
+        let chars = self.text().chars().count();
+        self.cursor_at_char(((lx / self.bullet_w).round().max(0.0) as usize).min(chars))
+    }
+
+    /// How many characters of `text()` come before `cursor`, the newlines between lines
+    /// included (a single-line field can still be given text with a newline in it).
+    fn chars_before(&self, cursor: Cursor) -> usize {
+        self.editor.with_buffer(|b| {
+            let earlier: usize = b.lines.iter().take(cursor.line).map(|l| l.text().chars().count() + 1).sum();
+            let line = b.lines.get(cursor.line).map(|l| l.text()).unwrap_or("");
+            let mut end = cursor.index.min(line.len());
+            while !line.is_char_boundary(end) {
+                end -= 1;
+            }
+            earlier + line[..end].chars().count()
+        })
+    }
+
+    /// The buffer position of the `index`th character of `text()`.
+    fn cursor_at_char(&self, index: usize) -> Cursor {
+        self.editor.with_buffer(|b| {
+            let mut remaining = index;
+            for (i, line) in b.lines.iter().enumerate() {
+                let text = line.text();
+                let chars = text.chars().count();
+                if remaining <= chars {
+                    return Cursor::new(i, text.char_indices().nth(remaining).map(|(byte, _)| byte).unwrap_or(text.len()));
+                }
+                remaining -= chars + 1;
+            }
+            let last = b.lines.len().saturating_sub(1);
+            Cursor::new(last, b.lines.get(last).map(|l| l.text().len()).unwrap_or(0))
+        })
     }
 
     pub fn select_all(&mut self) {
+        self.history.end_run();
         self.editor.set_selection(Selection::Normal(Cursor::new(0, 0)));
         let end = self.end_cursor();
         self.editor.set_cursor(end);
@@ -217,33 +376,21 @@ impl TextField {
         let result = match &key.key {
             Key::Named(named) => match named {
                 Named::Left | Named::Right | Named::Up | Named::Down | Named::Home | Named::End | Named::PageUp | Named::PageDown => {
+                    self.history.end_run();
                     self.motion(fs, *named, key);
                     done(false)
                 }
-                Named::Backspace | Named::Delete => {
-                    self.drop_empty_selection();
-                    if !self.has_selection() && key.alt {
-                        self.anchor_selection();
-                        let word = if *named == Named::Backspace { Motion::LeftWord } else { Motion::RightWord };
-                        self.editor.action(fs, Action::Motion(word));
-                    }
-                    let changed = if self.editor.delete_selection() {
-                        true
-                    } else {
-                        let before = self.text();
-                        self.editor.action(fs, if *named == Named::Backspace { Action::Backspace } else { Action::Delete });
-                        self.text() != before
-                    };
-                    self.editor.set_selection(Selection::None);
-                    done(changed)
-                }
-                Named::Enter if self.multiline => done(self.insert(fs, "\n")),
+                Named::Backspace | Named::Delete => done(self.edit(EditKind::Deleting, |field| field.delete(fs, *named, key.alt))),
+                Named::Enter if self.multiline => done(self.type_in(fs, "\n")),
                 Named::Escape => {
                     self.editor.set_selection(Selection::None);
                     done(false)
                 }
                 _ => Edited::default(),
             },
+            // Shift is folded into the character: Cmd-Shift-Z arrives as "Z".
+            Key::Char(c) if key.shortcut() && c == "z" => done(self.undo(fs)),
+            Key::Char(c) if key.shortcut() && c == "Z" || key.ctrl && c.eq_ignore_ascii_case("y") => done(self.redo(fs)),
             Key::Char(c) if key.shortcut() => match c.to_lowercase().as_str() {
                 "a" => {
                     self.select_all();
@@ -255,22 +402,25 @@ impl TextField {
                     }
                     done(false)
                 }
-                "x" => {
-                    if let Some(s) = self.copyable() {
+                // A secret field neither copies nor cuts, like a Mac's secure text field: a cut
+                // would throw the text away without putting it anywhere.
+                "x" => match self.copyable() {
+                    Some(s) => {
                         clipboard.set(s);
+                        done(self.edit(EditKind::Other, |field| field.editor.delete_selection()))
                     }
-                    done(self.has_selection() && self.editor.delete_selection())
-                }
+                    None => done(false),
+                },
                 "v" => {
                     let pasted = clipboard.get();
-                    done(self.insert(fs, &pasted))
+                    done(self.edit(EditKind::Other, |field| field.insert(fs, &pasted)))
                 }
                 _ => Edited::default(),
             },
             Key::Char(c) => {
                 let typed = key.text.clone().unwrap_or_else(|| c.clone());
                 if typed.chars().all(|ch| !ch.is_control()) && !typed.is_empty() {
-                    done(self.insert(fs, &typed))
+                    done(self.type_in(fs, &typed))
                 } else {
                     Edited::default()
                 }
@@ -279,6 +429,22 @@ impl TextField {
         self.editor.shape_as_needed(fs, false);
         self.scroll_to_caret();
         result
+    }
+
+    /// Backspace or Delete: the selection, else the character (or with Option, the word)
+    /// before or after the caret.
+    fn delete(&mut self, fs: &mut FontSystem, named: Named, by_word: bool) -> bool {
+        self.drop_empty_selection();
+        if !self.has_selection() && by_word {
+            self.anchor_selection();
+            let word = if named == Named::Backspace { Motion::LeftWord } else { Motion::RightWord };
+            self.editor.action(fs, Action::Motion(word));
+        }
+        if !self.editor.delete_selection() {
+            self.editor.action(fs, if named == Named::Backspace { Action::Backspace } else { Action::Delete });
+        }
+        self.editor.set_selection(Selection::None);
+        true
     }
 
     fn copyable(&self) -> Option<String> {
@@ -332,8 +498,7 @@ impl TextField {
     fn caret_local(&self) -> Option<(f32, f32, f32)> {
         let cursor = self.editor.cursor();
         if self.secret {
-            let chars = self.editor.with_buffer(|b| b.lines.first().map(|l| l.text()[..cursor.index.min(l.text().len())].chars().count()).unwrap_or(0));
-            return Some((chars as f32 * self.bullet_w, 0.0, self.line_height()));
+            return Some((self.chars_before(cursor) as f32 * self.bullet_w, 0.0, self.line_height()));
         }
         self.editor.with_buffer(|b| caret_position(b, cursor))
     }
@@ -349,9 +514,7 @@ impl TextField {
         let Some((start, end)) = self.editor.selection_bounds() else { return Vec::new() };
         let shift = |r: Rect| r.translate(self.inner.x - self.offset.0, self.inner.y - self.offset.1);
         if self.secret {
-            let text = self.text();
-            let chars_to = |c: Cursor| text[..c.index.min(text.len())].chars().count() as f32;
-            let (a, b) = (chars_to(start) * self.bullet_w, chars_to(end) * self.bullet_w);
+            let (a, b) = (self.chars_before(start) as f32 * self.bullet_w, self.chars_before(end) as f32 * self.bullet_w);
             return vec![shift(Rect::new(a, 0.0, b - a, self.line_height()))];
         }
         self.editor.with_buffer(|b| selection_rects(b, start, end)).into_iter().map(shift).collect()
@@ -416,7 +579,7 @@ impl TextField {
 pub fn edits(key: &KeyInput) -> bool {
     match &key.key {
         Key::Named(Named::Backspace) | Key::Named(Named::Delete) | Key::Named(Named::Enter) => true,
-        Key::Char(c) if key.shortcut() => matches!(c.to_lowercase().as_str(), "x" | "v"),
+        Key::Char(c) if key.shortcut() => matches!(c.to_lowercase().as_str(), "x" | "v" | "z" | "y"),
         Key::Char(_) => !key.alt,
         _ => false,
     }

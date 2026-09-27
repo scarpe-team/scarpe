@@ -25,8 +25,20 @@ impl ImageCache {
     }
 }
 
+/// Decodes an image file, whatever its extension says, within limits::MAX_IMAGE_SIDE and
+/// MAX_IMAGE_BYTES. None for anything else, including what is not a plain file: a FIFO
+/// would block the display on open and /dev/zero would never end.
 fn decode(path: &Path) -> Option<Pixmap> {
-    let rgba = image::open(path).ok()?.to_rgba8();
+    if !crate::limits::readable_file(path, crate::limits::MAX_IMAGE_BYTES) {
+        return None;
+    }
+    let mut reader = image::ImageReader::open(path).ok()?.with_guessed_format().ok()?;
+    let mut bounds = image::Limits::default();
+    bounds.max_image_width = Some(crate::limits::MAX_IMAGE_SIDE);
+    bounds.max_image_height = Some(crate::limits::MAX_IMAGE_SIDE);
+    bounds.max_alloc = Some(crate::limits::MAX_IMAGE_BYTES);
+    reader.limits(bounds);
+    let rgba = reader.decode().ok()?.to_rgba8();
     let (w, h) = rgba.dimensions();
     let mut data = rgba.into_raw();
     for px in data.chunks_exact_mut(4) {
@@ -102,7 +114,10 @@ pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, images: &mut ImageCa
         }
         return;
     }
-    canvas.pm.draw_pixmap(0, 0, img.as_ref().as_ref(), &paint, base.pre_concat(transform), None);
+    let whole = tiny_skia::Rect::from_xywh(0.0, 0.0, img.width() as f32, img.height() as f32);
+    if whole.is_some_and(|b| crate::paint::within_reach(b, base.pre_concat(transform), 0.0)) {
+        canvas.pm.draw_pixmap(0, 0, img.as_ref().as_ref(), &paint, base.pre_concat(transform), None);
+    }
 }
 
 /// Draws `img` as large as fits in `r`, keeping its shape, centred (a button's icon).

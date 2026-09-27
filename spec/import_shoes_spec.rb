@@ -38,9 +38,54 @@ module ShoesSpecImport
   NO_FIRST_FRAME = "asserts on what an animate block draws, but test code runs before the first timer tick " \
     "on every display (spec/README.md), so nothing has been drawn yet"
 
+  # Test code for cases the corpus left skipping part way through, now that what they waited
+  # for works. Each keeps the source's assertions and says why it replaces the skip.
+  DRIVEN = {
+    custom_list_box: <<~RUBY,
+      # Custom list_box widget using the Observable pattern. The corpus stopped at
+      # `skip "Requires Shoes::Widget and observer stdlib"`; both work, so the case drives it
+      # (spec/import_shoes_spec.rb, DRIVEN).
+      assert_equal "Any selection?", para().text
+      assert_equal ["first", "second"], list_box().items
+      list_box().trigger_change("second")
+      assert_equal "Selection is second.", para().text
+      edit_line().text = "third"
+      find_button("ok").trigger_click
+      assert_equal ["first", "second", "third"], list_box().items, "ok adds the edit line's text through the observer"
+      find_button("collect").trigger_click
+      assert_equal ["tsrif", "dnoces", "driht"], list_box().items, "collect reverses every item in place"
+    RUBY
+    path_animation: <<~RUBY,
+      # Dragging the dot records a path; released, a turned square walks along it. The corpus
+      # stopped at `skip "Interactive animation with mouse tracking"`; native can drag, so the
+      # case drives it (spec/import_shoes_spec.rb, DRIVEN).
+      assert_equal "reset", button().text
+      assert_empty stack("@stack").contents, "nothing is drawn before the first frame"
+      drag [200, 200], [240, 220], [280, 240]
+      advance(1.0 / 24)
+      drawn = stack("@stack").contents
+      assert_equal 3, drawn.count { |shape| shape.is_a?(Shoes::Oval) }, "the dot and the two points it was dragged through"
+      assert_equal 1, drawn.count { |shape| shape.is_a?(Shoes::Rect) }, "and, released, the square that walks the path"
+    RUBY
+    simple_downloader: <<~RUBY,
+      # download() with :save, :progress and :finish. The corpus skipped it for want of network
+      # access; a URL on a closed local port fails at once without leaving the machine, and
+      # what the button appends does not wait for the download (spec/import_shoes_spec.rb, DRIVEN).
+      assert_equal "Download", button().text
+      url = "http://127.0.0.1:9/nothing.bin"
+      edit_line().text = url
+      button().trigger_click
+      assert_includes paras.map(&:text), "\#{url} [cancel]", "the URL and its cancel link"
+      assert_equal "Beginning transfer.", inscription().text
+      assert_equal 0.0, progress().fraction, "a bar that has not moved yet"
+    RUBY
+  }.freeze
+
   # Rulings made after running the import under niente (see the manifest), by source path.
-  # drop:   the case is wrong or untestable as written, and the reason says why.
-  # expect: written into the case's front matter with the reason; a Hash limits it to one display.
+  # drop:    the case is wrong or untestable as written, and the reason says why.
+  # expect:  written into the case's front matter with the reason; a Hash limits it to one display.
+  # display: the case's display when it needs native input (drag, layout).
+  # test:    test code that replaces the source's (DRIVEN).
   RULINGS = {
     "scarpe_examples/examples/legacy/for_playtest/expert/tooltips.sspec" =>
       { drop: "finds a para by its text, which finders do not support" },
@@ -73,6 +118,13 @@ module ShoesSpecImport
     "scarpe_examples/legacy/for_playtest/shoes-contrib/elements/common-styles.sspec" => { expect: "fail", reason: TITLE_FAMILY },
     "scarpe_examples/legacy/for_playtest/shoes3-tests/opacity_test.sspec" => { expect: "fail", reason: TITLE_FAMILY },
     "scarpe_examples/legacy/working/philippe/guessing_game.sspec" => { expect: "fail", reason: TITLE_FAMILY },
+
+    "scarpe_examples/examples/legacy/needs_deps/custom-list-box.sspec" => { test: DRIVEN[:custom_list_box] },
+    "scarpe_examples/examples/legacy/for_playtest/simple/path-animation.sspec" =>
+      { test: DRIVEN[:path_animation], display: "native" },
+    "scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-downloader.sspec" =>
+      { test: DRIVEN[:simple_downloader], expect: "fail",
+        reason: "Lacci's download takes no :progress or :finish (ledger K5), so the Download button raises" },
   }.freeze
 
   # Mechanical rewrites of test code, applied to every imported case.
@@ -223,13 +275,14 @@ module ShoesSpecImport
     def write(source, duplicates)
       target = File.join(OUT, source.category, "#{source.name}.sspec")
       FileUtils.mkdir_p(File.dirname(target))
+      test_code = RULINGS.dig(source.relative, :test) || source.test_code
       File.write(target, front_matter(source, duplicates) + "----------- app code\n" + source.app_code.sub(/\n*\z/, "\n") +
-        "----------- test code\n" + source.test_code.sub(/\n*\z/, "\n"))
+        "----------- test code\n" + test_code.sub(/\n*\z/, "\n"))
       [source.relative, target.delete_prefix(OUT + "/")]
     end
 
     def front_matter(source, duplicates)
-      fields = { "source" => "cases/#{source.relative}", "source_commit" => @commit, "display" => "any" }
+      fields = { "source" => "cases/#{source.relative}", "source_commit" => @commit, "display" => RULINGS.dig(source.relative, :display) || "any" }
       fields["duplicates"] = duplicates.map { |path| "cases/#{path}" } if duplicates.any?
       if (ruling = RULINGS[source.relative]) && ruling[:expect]
         fields["expect"] = ruling[:expect]

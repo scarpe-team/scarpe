@@ -6,6 +6,9 @@ source_commit: 1e766c6
 display: any
 duplicates:
 - cases/scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-downloader.sspec
+expect: fail
+reason: Lacci's download takes no :progress or :finish (ledger K5), so the Download
+  button raises
 ----------- app code
 Shoes.app do
   background "#eee"
@@ -35,21 +38,13 @@ Shoes.app do
   end
 end
 ----------- test code
-# Tests download() functionality
-# URL input + Download button creates progress-tracked downloads
-# Shows progress bar and transfer stats
-#
-# Uses:
-# - edit_line for URL input
-# - download() with :save, :progress, :finish callbacks
-# - progress widget for visual feedback
-# - slot.append() for adding new downloads
-#
-# Requires network access for full test
-
-# Verify initial UI exists
+# download() with :save, :progress and :finish. The corpus skipped it for want of network
+# access; a URL on a closed local port fails at once without leaving the machine, and
+# what the button appends does not wait for the download (spec/import_shoes_spec.rb, DRIVEN).
 assert_equal "Download", button().text
-
-# Note: Triggering download would require network access
-# and would create files in working directory
-skip "Requires network access and file system mocking"
+url = "http://127.0.0.1:9/nothing.bin"
+edit_line().text = url
+button().trigger_click
+assert_includes paras.map(&:text), "#{url} [cancel]", "the URL and its cancel link"
+assert_equal "Beginning transfer.", inscription().text
+assert_equal 0.0, progress().fraction, "a bar that has not moved yet"
