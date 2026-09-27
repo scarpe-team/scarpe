@@ -32,8 +32,8 @@ module ShoesSpecImport
     "test_code/" => "Shoes-Spec harness self-tests; spec/harness/ covers spec/run itself",
   }.freeze
 
-  TITLE_FAMILY = "Lacci makes title, subtitle, banner and caption a Para with a :size, so paras() includes them " \
-    "and restyling the size loses the banner; the manual gives each its own class (element.title)"
+  TITLE_FAMILY = "Lacci makes title, subtitle, banner and caption Para subclasses (element.title), so paras() " \
+    "still includes them, and the finders go by size, so restyling the size loses the banner"
   NETWORK = "needs the network: the asserted text arrives from a download callback"
   NO_FIRST_FRAME = "asserts on what an animate block draws, but test code runs before the first timer tick " \
     "on every display (spec/README.md), so nothing has been drawn yet"

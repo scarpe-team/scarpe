@@ -7,9 +7,9 @@ display: any
 duplicates:
 - cases/scarpe_examples/examples/legacy/for_playtest/philippe/guessing_game.sspec
 expect: fail
-reason: Lacci makes title, subtitle, banner and caption a Para with a :size, so paras()
-  includes them and restyling the size loses the banner; the manual gives each its
-  own class (element.title)
+reason: Lacci makes title, subtitle, banner and caption Para subclasses (element.title),
+  so paras() still includes them, and the finders go by size, so restyling the size
+  loses the banner
 ----------- app code
 # Guessing Game — based on the Hackety Hack sample.
 # This was previously blocked because ask() didn't return values.
