@@ -12,6 +12,7 @@ class Shoes
   class Shape < Shoes::Slot
     uses_draw_context
     shoes_styles :left, :top, :shape_commands, :draw_context
+    shoes_styles :stroke, :fill, :strokewidth # the pens it is given (manual 1202-1210, 1453-1468)
     shoes_events # No Shape-specific events yet
 
     init_args # No positional args
@@ -26,6 +27,7 @@ class Shoes
       @shape_commands = []
 
       super(**kwargs)
+      keep_only_given_pens(kwargs.keys)
       @draw_context = @app.current_draw_context
       create_display_drawable
 
@@ -44,6 +46,12 @@ class Shoes
     end
 
     private
+
+    # A pen the shape was not given comes from the draw context sent once its block has
+    # run (see #draw), so `stroke red` inside the block still strokes it.
+    def keep_only_given_pens(given)
+      (%i[stroke fill strokewidth cap] - given).each { |pen| instance_variable_set("@#{pen}", nil) }
+    end
 
     # The display was created with an empty command list, so the whole path goes
     # out in one prop_change once the block has built it, with the pens the block

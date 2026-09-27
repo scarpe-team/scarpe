@@ -34,6 +34,19 @@ class ExampleRunTest < Minitest::Test
     assert_match(/NoMethodError/, run.send(:first_error, "app.rb:3:in 'block': undefined method 'x' for nil (NoMethodError)\n"))
   end
 
+  # colours.rb paints every square black but not one flat colour; pixels: is how its row can say so.
+  def test_pixels_the_snapshot_must_show
+    checker = File.join(SpecSuite::REPO, "spec", "support", "assets", "checker-20x20.png")
+    finished = Struct.new(:output, :timed_out, :exitstatus).new("", false, 0)
+    judge = ->(pixels) do
+      example = SpecSuite::ExampleList::Example.new(path: "examples/demo.rb", pixels:)
+      SpecSuite::ExampleRun.new(example, display: "native", tree: nil, sandboxes: nil).send(:judge_peek, finished, checker)
+    end
+
+    assert_equal "pass", judge.([[2, 2, "#000000"], [15, 5, "#FFFFFF"]]).first
+    assert_equal ["fail", "pixel 15,5 is #ffffff, not #000000"], judge.([[2, 2, "#000000"], [15, 5, "#000000"]])
+  end
+
   def test_an_unknown_step_names_the_example
     example = SpecSuite::ExampleList::Example.new(path: "examples/demo.rb", steps: [{ "hover" => [1, 2] }])
     run = SpecSuite::ExampleRun.new(example, display: "native", tree: nil, sandboxes: nil)

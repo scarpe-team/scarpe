@@ -541,7 +541,8 @@ default, and a `clear` that keeps the slot's handlers and timers (ledger H9, B7)
 
 `scarpe package --native` (or `SCARPE_DISPLAY_SERVICE=native scarpe package`) builds a macOS `.app`,
 and with `--dmg` a disk image (`lib/scarpe/package/native.rb`, docs/native_packaging.md): Traveling
-Ruby, `lib`, `lacci/lib` and `scarpe-components/lib` copied from source (no gems, no webview), the
+Ruby, `lib`, `lacci/lib` and `scarpe-components/lib` copied from source (no installed gems and no
+webview; FastImage and base64 go in as plain source for image sizes, except with `--minimal`), the
 release binary stripped into `Contents/MacOS` and signed explicitly, a boot script that never loads
 `scarpe/wv` and sets `SCARPE_DISPLAY_SERVICE=native`, and an ad-hoc signature on the whole bundle.
 A button app is 32.4 MB (13.4 MB as a `.dmg`), or 17.7 MB with `--minimal`. Linux, Windows and
@@ -551,10 +552,10 @@ Ruby speed in packaged apps (Nick's call, 27 Sep 2026). Two cheap wins, both mea
 
 1. **YJIT on by default, after the first frame.** It helps method-heavy per-frame code such as
    `animate` handlers, but switched on at process start (`--yjit`, `RUBY_YJIT_ENABLE=1`) it made the
-   first frame 22 to 57 ms later on a YJIT build of Ruby, while `RubyVM::YJIT.enable` at the first
-   heartbeat cost nothing measurable. So `boot.rb` does that (`lib/scarpe/package/yjit.rb`), and
-   `RUBY_YJIT_ENABLE=0` opts out. The bundled Traveling Ruby 3.4.7 is built without YJIT, so
-   packaged apps run without it until the runtime has it.
+   first frame 28 to 57 ms later on a YJIT build of Ruby (docs/native_packaging.md has the table),
+   while `RubyVM::YJIT.enable` at the first heartbeat cost nothing measurable. So `boot.rb` does
+   that (`lib/scarpe/package/yjit.rb`), and `RUBY_YJIT_ENABLE=0` opts out. The bundled Traveling
+   Ruby 3.4.7 is built without YJIT, so packaged apps run without it until the runtime has it.
 2. **Precompiled bytecode for startup.** At package time the bundled Ruby compiles Lacci, the shim,
    scarpe-components, the app and the standard library files `require "scarpe"` loads, and boot
    hands them to `require` through `RubyVM::InstructionSequence.load_iseq` (the bootsnap hook;

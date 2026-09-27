@@ -348,6 +348,7 @@ class Shoes
         if args.size == 0
           # It's fine to use keyword args instead, but we should make sure they're actually there
           needed_args = req_args.map(&:to_sym) - kwargs.keys
+          needed_args -= Shoes::Art.placed_by_edges(kwargs) if is_a?(Shoes::Art)
           unless needed_args.empty?
             raise Shoes::Errors::BadArgumentListError, "Keyword arguments for #{self.class}#initialize should also supply #{needed_args.inspect}! #{args.inspect}"
           end

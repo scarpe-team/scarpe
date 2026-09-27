@@ -1,0 +1,31 @@
+---
+manual: elements.native_controls
+lines: [2540, 2544]
+testability: visual
+display: native
+ledger: G15
+----------- app code
+# An ext-scarpe pin (ledger G15, Nick 27 Sep 2026: "our buttons are OUR buttons"): the manual
+# says the operating system draws these seven, and Scarpe draws them itself instead.
+Shoes.app width: 400, height: 460 do
+  stack margin: 10 do
+    $controls = {
+      button: button("Push"),
+      edit_line: edit_line("typed"),
+      edit_box: edit_box("boxed"),
+      list_box: list_box(items: ["one", "two"], choose: "one"),
+      progress: progress,
+      check: check(checked: true),
+      radio: radio(checked: true),
+    }
+    $controls[:progress].fraction = 0.5
+  end
+end
+----------- test code
+# spec/run is headless: there is no OS widget to draw anything, so every pixel is Scarpe's.
+$controls.each do |kind, control|
+  box = layout_of(control)
+  rows = [box.y + 1.5, box.y + box.h / 2]
+  inked = rows.sum { |y| (0...box.w.to_i).count { |dx| pixel_at(box.x + dx + 0.5, y).first(3) != [255, 255, 255] } }
+  assert_operator inked, :>, 4, "Scarpe paints the #{kind} itself (#{inked} pixels inked along its top and middle)"
+end

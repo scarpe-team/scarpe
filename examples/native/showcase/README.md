@@ -13,5 +13,5 @@ Six small apps in plain Shoes, each leaning on a different strength of the nativ
 
 Run one with `scarpe --native examples/native/showcase/pomodoro.rb`.
 
-`checks/` holds a Shoes-Spec case per app that drives it headless and looks at the pixels:
-`spec/run --display native examples/native/showcase/checks`.
+`spec/showcase/` holds a Shoes-Spec case per app that drives it headless and looks at the
+pixels. They run with the rest of the suite, or alone: `spec/run --display native spec/showcase`.

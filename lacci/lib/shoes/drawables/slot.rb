@@ -115,9 +115,7 @@ class Shoes::Slot < Shoes::Drawable
   end
 
   def respond_to_missing?(name, include_private = false)
-    return true if ::Shoes::Drawable.drawable_class_by_name(name.to_s)
-
-    false
+    ::Shoes::Drawable.drawable_class_by_name(name.to_s) ? true : super
   end
 
   # Run the block, handed this slot, the first time the slot is drawn (manual

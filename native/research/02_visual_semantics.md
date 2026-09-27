@@ -2,7 +2,7 @@
 
 Lane: how every drawable's properties become pixels in `lib/scarpe/wv/*` + `scarpe-components/lib/scarpe/components/calzini*`, so a native (Rust) renderer can reproduce them, and where it should *not* reproduce them.
 
-Repo: `/Users/schwad/Progrumms/scarpe-native` @ `fdcee7a` (master). All paths below are relative to it unless absolute.
+Repo: `<repo>` @ `fdcee7a` (master). All paths below are relative to it unless absolute.
 
 ## 0. How this was verified, and how to read it
 

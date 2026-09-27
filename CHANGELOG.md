@@ -9,7 +9,7 @@ straightforward as possible.
 - Added base64 gem dependency for Ruby 3.4+ compatibility
 - A native display service: `scarpe --native app.rb` draws with a Rust program (tiny-skia, cosmic-text, winit) instead of a webview, while Lacci and every block stay in Ruby. See docs/native.md and native/DESIGN.md. Dedicated to the late Noah Gibbs.
 - `scarpe peek APP.rb` runs an app headless on the native display, clicks, types, scrolls and saves pictures
-- `scarpe package --native` builds an ad-hoc signed macOS `.app` (and a `.dmg` with `--dmg`) with precompiled Ruby bytecode and no gems
+- `scarpe package --native` builds an ad-hoc signed macOS `.app` (and a `.dmg` with `--dmg`) with precompiled Ruby bytecode, no installed gems, and FastImage copied in for image sizes
 - The Shoes spec suite (`spec/run`): 983 cases from the manual and Noah Gibbs' Shoes-Spec corpus, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree
 - Lacci: `animate`, `every` and `timer` return `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer`; `Shoes.app`, `window` and `dialog` return the App; methods the manual marks "» self" return self
 - Lacci: `left`, `top`, `width` and `height` read laid-out pixels when the display reports them; slots gain `before`, `after`, `scroll_height`, `scroll_max` and `gutter`; `font(path)` returns the family names in the file
@@ -30,6 +30,10 @@ straightforward as possible.
 - `scarpe package` took scarpe-components for scarpe, and the webview packager set an environment variable nothing reads
 - Lacci: a `stroke` or `fill` set inside a `shape` block never reached that shape
 - Native: nothing on stdin (huge sizes, deep nesting, reparenting loops, lines that are not UTF-8) can crash the renderer or make it allocate without bound
+- Lacci: an app routed with `url "/", :anything` shows that page at boot; it had to be named `:index`
+- Lacci: art can be placed by `right:` and `bottom:` alone, and a rect or oval naming both edges runs between them
+- Lacci: `line`, `arc`, `arrow`, `star` and `shape` take `stroke:` and `fill:` (and `shape` `strokewidth:`) as the manual lists; a border's `strokewidth` reads back as a number; slots answer `respond_to?` for their style methods
+- Native packages read image sizes (`Image#size`, `imagesize`): FastImage is copied in; requiring Lacci no longer runs git
 
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")

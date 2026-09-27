@@ -3,10 +3,7 @@
 # Change it through RULINGS or FIXES there: a re-import rewrites this file.
 source: cases/scarpe_examples/legacy/working/simple/clock.sspec
 source_commit: 1e766c6
-display: any
-expect: fail
-reason: asserts on what an animate block draws, but test code runs before the first
-  timer tick on every display (spec/README.md), so nothing has been drawn yet
+display: native
 ----------- app code
 #
 # Shoes Clock by Thomas Bell
@@ -60,11 +57,13 @@ Shoes.app :height => 260, :width => 250 do
   end
 end
 ----------- test code
-# Tests animated clock display
-# Clock should show current date/time
-# Note: Clock uses clear() in animate(), para may be recreated each frame
-ps = paras()
-assert ps.length > 0, "Para should exist with time display"
-
-# Should contain time-like text (includes :)
-assert_includes ps.first.text, ":"
+# The clock draws everything from its animate block. The corpus asserted before the
+# first tick, which test code always runs ahead of (spec/README.md); the case advances
+# the frozen clock instead (spec/import_shoes_spec.rb, DRIVEN).
+assert_empty paras, "nothing is drawn before the first tick"
+advance(1.0 / 8)
+assert_equal 1, paras.size, "a tick draws the date and time"
+assert_includes para.text, ":", "hours and minutes"
+assert_equal 7, lines.size, "four hour marks and three hands"
+advance(1.0 / 8)
+assert_equal [1, 7], [paras.size, lines.size], "the next tick clears the face before drawing it again"

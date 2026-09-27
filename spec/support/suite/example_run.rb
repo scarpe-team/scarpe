@@ -6,7 +6,8 @@ module SpecSuite
   # niente: the example must load without a Ruby error and either keep running for `wait`
   #         seconds or exit 0 on its own. Niente draws nothing, so this proves Lacci only.
   # native: `scarpe peek EXAMPLE --wait W --shot gallery/<slug>.png` (DESIGN 8), then no Ruby
-  #         error, no Rust panic, and a snapshot that is not one flat colour.
+  #         error, no Rust panic, a snapshot that is not one flat colour, and the colours its
+  #         examples.yml `pixels:` name.
   class ExampleRun
     DEFAULT_WAIT = { "niente" => 3.0, "native" => 1.5 }.freeze
     PEEK_ALLOWANCE = 30
@@ -77,10 +78,23 @@ module SpecSuite
       return ["fail", "peek exited #{finished.exitstatus}#{last_line(output)}"] unless finished.exitstatus == 0
       return ["fail", "peek wrote no snapshot"] unless File.size?(shot)
 
-      flat = Png.read(shot).flat_color
-      flat ? ["fail", "blank snapshot: every pixel is #{flat}"] : ["pass", SpecSuite.relative(shot)]
+      png = Png.read(shot)
+      flat = png.flat_color
+      return ["fail", "blank snapshot: every pixel is #{flat}"] if flat
+
+      wrong = wrong_pixel(png)
+      wrong ? ["fail", wrong] : ["pass", SpecSuite.relative(shot)]
     rescue Png::Unsupported => e
       ["fail", "unreadable snapshot: #{e.message}"]
+    end
+
+    # The first of the example's `pixels:` the snapshot does not show, as a message, or nil.
+    def wrong_pixel(png)
+      @example.pixels.each do |x, y, want|
+        got = "#" + png.pixel(x, y).first(3).map { |channel| format("%02x", channel) }.join
+        return "pixel #{x},#{y} is #{got}, not #{want.downcase}" unless got == want.downcase
+      end
+      nil
     end
 
     def step_args

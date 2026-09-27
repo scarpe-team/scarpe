@@ -47,14 +47,52 @@ class Shoes
 
     private
 
-    # The checkout's commit, asked of the checkout itself rather than of wherever the
-    # app runs from (ledger L3), or nil outside a git checkout (a packaged app).
-    def git_revision(root_dir)
-      return nil unless File.exist?("#{root_dir}/.git")
+    COMMIT = /\A\h{40}(\h{24})?\z/
 
-      revision = IO.popen(["git", "-C", root_dir, "rev-parse", "HEAD"], err: File::NULL, &:read).chomp
-      revision.empty? ? nil : revision
+    # The checkout's commit, read from the checkout itself rather than from wherever the
+    # app runs (ledger L3), or nil outside a git checkout (a packaged app). It reads the
+    # .git files instead of running git, which would cost a process at every require.
+    def git_revision(root_dir)
+      git_dir = git_dir_in(root_dir) or return nil
+      head = File.read(File.join(git_dir, "HEAD")).strip
+      ref = head.delete_prefix("ref: ")
+      return head[COMMIT] if ref == head
+
+      common_dir = common_dir_of(git_dir)
+      loose_ref(git_dir, ref) || loose_ref(common_dir, ref) || packed_ref(common_dir, ref)
     rescue SystemCallError
+      nil
+    end
+
+    # A checkout's .git is a directory, or in a worktree a file saying "gitdir: <path>".
+    def git_dir_in(root_dir)
+      dot_git = File.join(root_dir, ".git")
+      return dot_git if File.directory?(dot_git)
+      return unless File.file?(dot_git)
+
+      pointer = File.read(dot_git)[/\Agitdir: (.+)$/, 1]
+      pointer && File.expand_path(pointer.strip, root_dir)
+    end
+
+    # Branches live in the main repository's git dir, which a worktree names in commondir.
+    def common_dir_of(git_dir)
+      pointer = File.join(git_dir, "commondir")
+      File.file?(pointer) ? File.expand_path(File.read(pointer).strip, git_dir) : git_dir
+    end
+
+    def loose_ref(dir, ref)
+      path = File.join(dir, ref)
+      File.file?(path) ? File.read(path).strip[COMMIT] : nil
+    end
+
+    def packed_ref(dir, ref)
+      path = File.join(dir, "packed-refs")
+      return unless File.file?(path)
+
+      File.foreach(path) do |line|
+        commit, name = line.split
+        return commit[COMMIT] if name == ref
+      end
       nil
     end
   end

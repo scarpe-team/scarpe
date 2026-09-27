@@ -49,7 +49,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/bloopsaphone/working/1901_by_Aanand_Prasad.rb:4:in '<top (required)>': uninitialized con",
+    "first_error": "<scratch>/research/sandbox/examples/bloopsaphone/working/1901_by_Aanand_Prasad.rb:4:in '<top (required)>': uninitialized con",
     "log_lines": 9,
     "secs": 0.7
   },
@@ -58,7 +58,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)",
     "log_lines": 9,
     "secs": 0.5
   },
@@ -67,7 +67,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)",
     "log_lines": 9,
     "secs": 0.5
   },
@@ -76,7 +76,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)",
     "log_lines": 9,
     "secs": 0.6
   },
@@ -85,7 +85,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/bloopsaphone/working/bloopsaphone_theme_song_by_why.rb:3:in '<top (required)>': uninitia",
+    "first_error": "<scratch>/research/sandbox/examples/bloopsaphone/working/bloopsaphone_theme_song_by_why.rb:3:in '<top (required)>': uninitia",
     "log_lines": 9,
     "secs": 0.6
   },
@@ -109,7 +109,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/bloopsaphone/working/le_dance_des_rubis.rb:3:in '<top (required)>': uninitialized consta",
+    "first_error": "<scratch>/research/sandbox/examples/bloopsaphone/working/le_dance_des_rubis.rb:3:in '<top (required)>': uninitialized consta",
     "log_lines": 9,
     "secs": 0.5
   },
@@ -127,7 +127,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/bloopsaphone/working/pixel_dreams_in_ruby.rb:3:in '<top (required)>': uninitialized cons",
+    "first_error": "<scratch>/research/sandbox/examples/bloopsaphone/working/pixel_dreams_in_ruby.rb:3:in '<top (required)>': uninitialized cons",
     "log_lines": 9,
     "secs": 0.6
   },
@@ -136,7 +136,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/bloopsaphone/working/simpsons_theme_song_by_why.rb:2:in '<top (required)>': uninitialize",
+    "first_error": "<scratch>/research/sandbox/examples/bloopsaphone/working/simpsons_theme_song_by_why.rb:2:in '<top (required)>': uninitialize",
     "log_lines": 9,
     "secs": 0.6
   },
@@ -145,7 +145,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)",
     "log_lines": 9,
     "secs": 0.7
   },
@@ -154,7 +154,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/bloopsaphone/working/type_rebellion.rb:3:in '<top (required)>': uninitialized constant B",
+    "first_error": "<scratch>/research/sandbox/examples/bloopsaphone/working/type_rebellion.rb:3:in '<top (required)>': uninitialized constant B",
     "log_lines": 9,
     "secs": 0.6
   },
@@ -1110,7 +1110,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/legacy/for_playtest/shoes-contrib/kernel/ask_save_file.rb:6:in 'IO.read': no implicit co",
+    "first_error": "<scratch>/research/sandbox/examples/legacy/for_playtest/shoes-contrib/kernel/ask_save_file.rb:6:in 'IO.read': no implicit co",
     "log_lines": 16,
     "secs": 0.9,
     "note": "re-run with osascript stubbed (first run popped a real macOS dialog via Lacci native_builtin_fallback)"
@@ -2176,7 +2176,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- hpricot (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- hpricot (LoadError)",
     "log_lines": 9,
     "secs": 0.5
   },
@@ -2185,7 +2185,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/legacy/needs_deps/expert-irb.rb:12:in 'MimickIRB#initialize': undefined method 'set_inpu",
+    "first_error": "<scratch>/research/sandbox/examples/legacy/needs_deps/expert-irb.rb:12:in 'MimickIRB#initialize': undefined method 'set_inpu",
     "log_lines": 10,
     "secs": 0.4
   },
@@ -2194,7 +2194,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/.local/share/mise/installs/ruby/4.0.1/lib/ruby/gems/4.0.0/gems/bundler-2.4.10/lib/bundler/rubygems_integration.rb:280:in 'block (2 levels) in Kernel#replace_gem': bluecloth =2.0.6 is not part of the bundle.",
+    "first_error": "<rubies>/4.0.1/lib/ruby/gems/4.0.0/gems/bundler-2.4.10/lib/bundler/rubygems_integration.rb:280:in 'block (2 levels) in Kernel#replace_gem': bluecloth =2.0.6 is not part of the bundle.",
     "log_lines": 10,
     "secs": 0.4
   },
@@ -2203,7 +2203,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/.local/share/mise/installs/ruby/4.0.1/lib/ruby/gems/4.0.0/gems/psych-5.3.1/lib/psych.rb:717:in 'File#initialize': No such file or directory @ rb_sysopen - /Users/schwad/Progrumms/scarpe-native/samples/good/",
+    "first_error": "<rubies>/4.0.1/lib/ruby/gems/4.0.0/gems/psych-5.3.1/lib/psych.rb:717:in 'File#initialize': No such file or directory @ rb_sysopen - samples/good/",
     "log_lines": 11,
     "secs": 0.4
   },
@@ -2212,7 +2212,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- shoes/data (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- shoes/data (LoadError)",
     "log_lines": 14,
     "secs": 0.5
   },
@@ -2221,7 +2221,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/builtins.rb:32:in 'Shoes::Builtins#ask_open_file': wrong number of arguments (given 1, expected 0) (ArgumentError)",
+    "first_error": "lacci/lib/shoes/builtins.rb:32:in 'Shoes::Builtins#ask_open_file': wrong number of arguments (given 1, expected 0) (ArgumentError)",
     "log_lines": 21,
     "secs": 0.4
   },
@@ -2230,7 +2230,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- typhoeus (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- typhoeus (LoadError)",
     "log_lines": 9,
     "secs": 0.5
   },
@@ -2257,7 +2257,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'shoesevent' for an instance of Shoes::App (NoMethodError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'shoesevent' for an instance of Shoes::App (NoMethodError)",
     "log_lines": 23,
     "secs": 0.9
   },
@@ -2266,7 +2266,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of arguments (given 0, expected 1+) (ArgumentError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of arguments (given 0, expected 1+) (ArgumentError)",
     "log_lines": 19,
     "secs": 0.6
   },
@@ -2293,7 +2293,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'svg' for an instance of Shoes::App (NoMethodError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'svg' for an instance of Shoes::App (NoMethodError)",
     "log_lines": 31,
     "secs": 0.5
   },
@@ -2302,7 +2302,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of arguments (given 0, expected 1+) (ArgumentError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of arguments (given 0, expected 1+) (ArgumentError)",
     "log_lines": 19,
     "secs": 0.5
   },
@@ -2311,7 +2311,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of arguments (given 0, expected 1+) (ArgumentError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of arguments (given 0, expected 1+) (ArgumentError)",
     "log_lines": 19,
     "secs": 0.5
   },
@@ -2329,7 +2329,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/legacy/shoes3_only/gapp/fullscreen.rb:4:in 'block (2 levels) in <top (required)>': undef",
+    "first_error": "<scratch>/research/sandbox/examples/legacy/shoes3_only/gapp/fullscreen.rb:4:in 'block (2 levels) in <top (required)>': undef",
     "log_lines": 23,
     "secs": 0.5
   },
@@ -2338,7 +2338,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/legacy/shoes3_only/gapp/icon.rb:4:in 'block (2 levels) in <top (required)>': undefined m",
+    "first_error": "<scratch>/research/sandbox/examples/legacy/shoes3_only/gapp/icon.rb:4:in 'block (2 levels) in <top (required)>': undefined m",
     "log_lines": 23,
     "secs": 0.4
   },
@@ -2347,7 +2347,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/legacy/shoes3_only/gapp/mon1.rb:4:in 'block (2 levels) in <top (required)>': undefined m",
+    "first_error": "<scratch>/research/sandbox/examples/legacy/shoes3_only/gapp/mon1.rb:4:in 'block (2 levels) in <top (required)>': undefined m",
     "log_lines": 23,
     "secs": 0.5
   },
@@ -2365,7 +2365,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/legacy/shoes3_only/gapp/title1.rb:4:in 'block (2 levels) in <top (required)>': undefined",
+    "first_error": "<scratch>/research/sandbox/examples/legacy/shoes3_only/gapp/title1.rb:4:in 'block (2 levels) in <top (required)>': undefined",
     "log_lines": 23,
     "secs": 0.5
   },
@@ -2383,7 +2383,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'id' for an instance of Shoes::App (NoMethodError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'id' for an instance of Shoes::App (NoMethodError)",
     "log_lines": 23,
     "secs": 0.5
   },
@@ -2392,7 +2392,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined local variable or method 'menubar' for an instance of Shoes::App (NameError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined local variable or method 'menubar' for an instance of Shoes::App (NameError)",
     "log_lines": 14,
     "secs": 0.5
   },
@@ -2419,7 +2419,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
     "log_lines": 39,
     "secs": 0.4
   },
@@ -2428,7 +2428,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
     "log_lines": 39,
     "secs": 0.5
   },
@@ -2437,7 +2437,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
     "log_lines": 39,
     "secs": 0.5
   },
@@ -2446,7 +2446,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
     "log_lines": 39,
     "secs": 0.6
   },
@@ -2455,7 +2455,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
     "log_lines": 39,
     "secs": 0.6
   },
@@ -2464,7 +2464,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
     "log_lines": 39,
     "secs": 0.5
   },
@@ -2473,7 +2473,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
     "log_lines": 39,
     "secs": 0.5
   },
@@ -2482,7 +2482,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
     "log_lines": 39,
     "secs": 0.4
   },
@@ -2491,7 +2491,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for #<Shoes::App:0x00000001044c5338> (NoMethodError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for #<Shoes::App:0x00000001044c5338> (NoMethodError)",
     "log_lines": 23,
     "secs": 0.5
   },
@@ -2500,7 +2500,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
     "log_lines": 39,
     "secs": 0.4
   },
@@ -2509,7 +2509,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- shoes/chipmunk (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- shoes/chipmunk (LoadError)",
     "log_lines": 9,
     "secs": 0.5
   },
@@ -2518,7 +2518,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined local variable or method 'spinner' for an instance of Shoes::App (NameError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined local variable or method 'spinner' for an instance of Shoes::App (NameError)",
     "log_lines": 23,
     "secs": 0.4
   },
@@ -2527,7 +2527,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/legacy/shoes3_only/svg.rb:3:in '<top (required)>': uninitialized constant Test (NameErro",
+    "first_error": "<scratch>/research/sandbox/examples/legacy/shoes3_only/svg.rb:3:in '<top (required)>': uninitialized constant Test (NameErro",
     "log_lines": 9,
     "secs": 0.4
   },
@@ -2536,7 +2536,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'switch' for an instance of Shoes::App (NoMethodError)",
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'switch' for an instance of Shoes::App (NoMethodError)",
     "log_lines": 23,
     "secs": 0.4
   },
@@ -2572,7 +2572,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- readline (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- readline (LoadError)",
     "log_lines": 10,
     "secs": 0.4
   },
@@ -2581,7 +2581,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- readline (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- readline (LoadError)",
     "log_lines": 10,
     "secs": 0.4
   },
@@ -2599,7 +2599,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- test/unit (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- test/unit (LoadError)",
     "log_lines": 9,
     "secs": 0.5
   },
@@ -2608,7 +2608,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- test/unit (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- test/unit (LoadError)",
     "log_lines": 9,
     "secs": 0.6
   },
@@ -2617,7 +2617,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- test/unit (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- test/unit (LoadError)",
     "log_lines": 9,
     "secs": 0.4
   },
@@ -2626,7 +2626,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- shoes/videoffi (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- shoes/videoffi (LoadError)",
     "log_lines": 9,
     "secs": 0.5
   },
@@ -2635,7 +2635,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/legacy/shoes3_only/video_vlc.rb:3:in '<top (required)>': uninitialized constant Test (Na",
+    "first_error": "<scratch>/research/sandbox/examples/legacy/shoes3_only/video_vlc.rb:3:in '<top (required)>': uninitialized constant Test (Na",
     "log_lines": 9,
     "secs": 0.4
   },
@@ -2653,7 +2653,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/legacy/working/info.rb:7:in 'block in <top (required)>': uninitialized constant Gem::Rub",
+    "first_error": "<scratch>/research/sandbox/examples/legacy/working/info.rb:7:in 'block in <top (required)>': uninitialized constant Gem::Rub",
     "log_lines": 15,
     "secs": 0.5
   },
@@ -2771,7 +2771,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/.local/share/mise/installs/ruby/4.0.1/lib/ruby/gems/4.0.0/gems/sqlite3-1.6.9/lib/sqlite3/database.rb:177:in 'SQLite3::Statement#initialize': table t1 already exists (SQLite3::SQLException)",
+    "first_error": "<rubies>/4.0.1/lib/ruby/gems/4.0.0/gems/sqlite3-1.6.9/lib/sqlite3/database.rb:177:in 'SQLite3::Statement#initialize': table t1 already exists (SQLite3::SQLException)",
     "log_lines": 15,
     "secs": 0.5
   },
@@ -2798,7 +2798,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/legacy/working/shoes-manual/builtins/ask_open_file.rb:4:in 'IO.read': no implicit conver",
+    "first_error": "<scratch>/research/sandbox/examples/legacy/working/shoes-manual/builtins/ask_open_file.rb:4:in 'IO.read': no implicit conver",
     "log_lines": 16,
     "secs": 0.4,
     "note": "re-run with osascript stubbed (first run popped a real macOS dialog via Lacci native_builtin_fallback)"
@@ -3123,7 +3123,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/legacy/working/simple/sqlite3.rb:18:in 'block in <top (required)>': uninitialized consta",
+    "first_error": "<scratch>/research/sandbox/examples/legacy/working/simple/sqlite3.rb:18:in 'block in <top (required)>': uninitialized consta",
     "log_lines": 19,
     "secs": 0.4
   },
@@ -3502,7 +3502,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- benchmark (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- benchmark (LoadError)",
     "log_lines": 9,
     "secs": 0.3
   },
@@ -3511,7 +3511,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/app.rb:73:in 'Shoes::App#initialize': Shoes app needs features: [:html] (Shoes::Errors::UnsupportedFeatureError)",
+    "first_error": "lacci/lib/shoes/app.rb:73:in 'Shoes::App#initialize': Shoes app needs features: [:html] (Shoes::Errors::UnsupportedFeatureError)",
     "log_lines": 11,
     "secs": 0.2
   },
@@ -3616,7 +3616,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/private/tmp/claude-501/-Users-schwad--claude-activations/4becea49-8738-4be2-883c-01e572cb8820/scratchpad/research/sandbox/examples/skip_ci/change_my_audio_source.rb:11:in 'Kernel#`': No such file or directory - SwitchAu",
+    "first_error": "<scratch>/research/sandbox/examples/skip_ci/change_my_audio_source.rb:11:in 'Kernel#`': No such file or directory - SwitchAu",
     "log_lines": 13,
     "secs": 0.3
   },
@@ -3625,7 +3625,7 @@
     "status": "fail",
     "exit": 1,
     "termsig": null,
-    "first_error": "/Users/schwad/Progrumms/scarpe-native/lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)",
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)",
     "log_lines": 9,
     "secs": 0.3
   },
