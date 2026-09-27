@@ -858,10 +858,8 @@ impl Runtime {
         if let Some((id, top, max)) = scroller {
             let new_top = (top + dy).clamp(0.0, max);
             if new_top != top {
-                view.ui.scroll.insert(id, new_top);
-                view.layout = None;
                 self.out.send(Outgoing::Scroll { id, top: new_top.round() as i64 });
-                self.request_redraw(app);
+                self.scroll_slot(app, id, new_top);
             }
         }
         for (item, parent) in self.subscriptions(app, "wheel") {
