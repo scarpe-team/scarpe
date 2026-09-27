@@ -112,15 +112,21 @@ fn relative_widths_size_the_margin_box() {
 }
 
 #[test]
-fn stack_in_flow_fills_the_rest_of_the_line() {
+fn a_slot_without_a_width_takes_the_whole_line() {
+    // Ledger C8: a slot's default width is its parent's (Shoes 3 s3_canvas.c:468 with
+    // s3_ruby.c:505-532, Shoes 4 s4_slot.rb:48), so after anything on the line it starts a row.
     let mut s = Scene::new();
     let first = s.add("Stack", ROOT, json!({"width": 100, "height": 10}));
     let rest = s.add("Stack", ROOT, json!({"height": 10}));
+    let widget = s.add("Widget", ROOT, json!({"height": 10}));
+    let beside = s.add("Stack", ROOT, json!({"width": 100, "height": 10}));
     let flow = s.add("Flow", ROOT, json!({"height": 10}));
     let l = s.layout(480.0, 420.0);
     assert_eq!(r(&l, first).w, 100.0);
-    assert_eq!(r(&l, rest), Rect::new(100.0, 0.0, 380.0, 10.0));
-    assert_eq!(r(&l, flow), Rect::new(0.0, 10.0, 480.0, 10.0), "a full row pushes the flow down");
+    assert_eq!(r(&l, rest), Rect::new(0.0, 10.0, 480.0, 10.0));
+    assert_eq!(r(&l, widget), Rect::new(0.0, 20.0, 480.0, 10.0));
+    assert_eq!(r(&l, beside), Rect::new(0.0, 30.0, 100.0, 10.0));
+    assert_eq!(r(&l, flow), Rect::new(0.0, 40.0, 480.0, 10.0), "a full row pushes the flow down");
 }
 
 #[test]

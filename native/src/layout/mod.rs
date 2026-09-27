@@ -331,9 +331,7 @@ impl Engine<'_> {
         let remaining = if flow { content.w - cursor.x } else { content.w };
         let mut width = self.width_for(node, flow, parent, remaining, &m);
         let overflows = cursor.x + m.horizontal() + width > content.w + 0.5;
-        // A slot filling its line would get no width at all after a full row.
-        let squeezed = width < 1.0 && node.kind.is_slot();
-        if flow && cursor.x > 0.0 && (overflows || squeezed) {
+        if flow && cursor.x > 0.0 && overflows {
             cursor.new_row();
             width = self.width_for(node, flow, parent, content.w, &m);
         }
@@ -423,8 +421,9 @@ impl Engine<'_> {
         }
         let fill = (remaining - m.horizontal()).max(0.0);
         match &node.kind {
-            Kind::Flow => (parent_w - m.horizontal()).max(0.0),
-            Kind::Stack | Kind::Widget => fill,
+            // A slot is as wide as its parent unless told otherwise, so after anything else on
+            // a line it starts a row (ledger C8: Shoes 3 s3_canvas.c:468, Shoes 4 s4_slot.rb:48).
+            Kind::Flow | Kind::Stack | Kind::Widget => (parent_w - m.horizontal()).max(0.0),
             Kind::Para | Kind::TextDrawable => {
                 let full = (parent_w - m.horizontal()).max(0.0);
                 if !parent_flow {
