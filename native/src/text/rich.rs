@@ -5,7 +5,7 @@ use super::fonts::{FamilyName, Fonts};
 use crate::doc::{Doc, Kind};
 use crate::props::{Id, Props, TextItem};
 use crate::style::color::Color;
-use crate::style::font::{named_size, parse_font, parse_size, parse_weight};
+use crate::style::font::{named_size, parse_font, parse_size, parse_weight, X_SMALL};
 use std::hash::{Hash, Hasher};
 
 pub const INK: Color = Color::rgb(0x1d, 0x1d, 0x1f);
@@ -13,6 +13,8 @@ pub const LINK: Color = Color::rgb(0x00, 0x66, 0xee);
 pub const LINK_HOVER: Color = Color::rgb(0x00, 0x33, 0x99);
 pub const DEFAULT_SIZE: f32 = 12.0;
 pub const LINE_HEIGHT: f32 = 1.2;
+/// How far sub and sup move their baseline, in pixels.
+pub const SCRIPT_RISE: f32 = 10.0;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Underline {
@@ -233,13 +235,14 @@ fn apply_span_kind(style: &mut TextStyle, kind: &Kind, id: Id, parent_size: f32)
         Kind::Code => style.family = FamilyName::Mono,
         Kind::Del => style.strike = true,
         Kind::Ins => style.underline = Underline::Single,
+        // Manual 2093-2105: "x-small", lowered or raised by 10 pixels.
         Kind::Sub => {
-            style.size = parent_size * 0.75;
-            style.rise = -0.25 * parent_size;
+            style.size = parent_size * X_SMALL;
+            style.rise = -SCRIPT_RISE;
         }
         Kind::Sup => {
-            style.size = parent_size * 0.75;
-            style.rise = 0.4 * parent_size;
+            style.size = parent_size * X_SMALL;
+            style.rise = SCRIPT_RISE;
         }
         Kind::Link => {
             style.color = LINK;
@@ -357,6 +360,21 @@ mod tests {
         assert_eq!(rich.runs[4].style.link, Some(7));
         assert_eq!(rich.runs[4].style.color, LINK);
         assert_eq!(rich.size, 12.0);
+    }
+
+    #[test]
+    fn sub_and_sup_are_x_small_and_move_ten_pixels() {
+        // Manual 2093-2105: x-small (64%), lowered or raised by 10 pixels.
+        let fonts = Fonts::new(FontMode::Bundled);
+        let mut doc = Doc::default();
+        node(&mut doc, 2, "DocumentRoot", None, json!({}));
+        node(&mut doc, 5, "Sub", None, json!({"text_items": ["2"]}));
+        node(&mut doc, 6, "Sup", None, json!({"text_items": ["3"]}));
+        node(&mut doc, 7, "Para", Some(2), json!({"text_items": ["x", 5, "y", 6], "size": 30}));
+        let rich = resolve_block(&doc, &fonts, 7).unwrap();
+        let (sub, sup) = (&rich.runs[1].style, &rich.runs[3].style);
+        assert!((sub.size - 19.2).abs() < 0.01 && (sup.size - 19.2).abs() < 0.01, "{} {}", sub.size, sup.size);
+        assert_eq!((sub.rise, sup.rise), (-10.0, 10.0));
     }
 
     #[test]

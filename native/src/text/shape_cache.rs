@@ -132,6 +132,24 @@ fn shape(fs: &mut FontSystem, rich: &RichText, width: Option<f32>, optical_track
     ShapedText { buffer: Rc::new(buffer), width: w, height: h, metas: Rc::new(metas), fill: rich.fill }
 }
 
+/// Every run names its line height: cosmic-text sizes a line by the runs that do, so a
+/// lone small `sub` would otherwise shrink its whole line. Text a `rise` moves out of its
+/// line makes room for itself, on both sides, since cosmic-text centres glyphs in a line.
+fn run_line_height(s: &super::rich::TextStyle, rich: &RichText) -> f32 {
+    let own = s.size * super::rich::LINE_HEIGHT + (rich.line_height - rich.size * super::rich::LINE_HEIGHT);
+    (own.max(rich.line_height) + 2.0 * rise_overhang(s.size, s.rise, rich.size)).max(1.0)
+}
+
+/// How far text of `size`, moved by `rise`, pokes out of a line of `line_size` text.
+/// Ascent and descent are taken as 0.9 and 0.25 em, near enough for Inter and San Francisco.
+fn rise_overhang(size: f32, rise: f32, line_size: f32) -> f32 {
+    if rise > 0.0 {
+        (rise + 0.9 * (size - line_size)).max(0.0)
+    } else {
+        (-rise + 0.25 * (size - line_size)).max(0.0)
+    }
+}
+
 /// Extra tracking (em) for San Francisco below 20px, approximating SF Text.
 fn optical_tracking_em(size: f32) -> f32 {
     ((20.0 - size) * 0.0035).clamp(0.0, 0.035)
@@ -145,9 +163,7 @@ fn attrs_for<'a>(run: &'a super::rich::Run, metadata: usize, rich: &RichText, op
         .style(if s.italic { Style::Italic } else { Style::Normal })
         .color(s.color.to_cosmic())
         .metadata(metadata);
-    if (s.size - rich.size).abs() > 0.01 {
-        attrs = attrs.metrics(Metrics::new(s.size.max(1.0), (s.size * super::rich::LINE_HEIGHT).max(1.0)));
-    }
+    attrs = attrs.metrics(Metrics::new(s.size.max(1.0), run_line_height(s, rich)));
     let tracking = if optical_tracking && s.family == super::fonts::FamilyName::Sans { optical_tracking_em(s.size) } else { 0.0 };
     if (s.letter_spacing != 0.0 || tracking != 0.0) && s.size > 0.0 {
         attrs = attrs.letter_spacing(s.letter_spacing / s.size + tracking);

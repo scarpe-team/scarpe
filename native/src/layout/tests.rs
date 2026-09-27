@@ -298,3 +298,16 @@ fn art_inside_a_pathless_shape_is_still_laid_out() {
     assert_eq!(r(&l, line), Rect::new(-0.5, -0.5, 101.0, 101.0));
     assert!(l.order.contains(&line));
 }
+
+#[test]
+fn risen_text_makes_room_in_its_line() {
+    let mut s = Scene::new();
+    let stack = s.add("Stack", ROOT, json!({"width": 300}));
+    let plain = s.add("Para", stack, json!({"text_items": ["H2O"]}));
+    s.create(50, "Sub", None, json!({"text_items": ["2"]}));
+    let with_sub = s.add("Para", stack, json!({"text_items": ["H", 50, "O"]}));
+    let l = s.layout(480.0, 420.0);
+    let (plain_h, sub_h) = (r(&l, plain).h, r(&l, with_sub).h);
+    // A sub drops 10 px below a 12 px line whose descent is about 3 px.
+    assert!(sub_h >= plain_h + 2.0 * 7.0, "the line holding the sub grows: {plain_h} -> {sub_h}");
+}
