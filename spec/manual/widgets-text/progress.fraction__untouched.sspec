@@ -4,8 +4,6 @@ lines: [3264, 3266]
 testability: api
 display: any
 ledger: G12
-expect: fail
-reason: "Lacci's Progress#fraction is nil until something sets it (G12)"
 ----------- app code
 Shoes.app do
   @bar = progress
