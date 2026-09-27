@@ -145,7 +145,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | G1 | Control callbacks receive the control | MANUAL | | |
 | G2 | The `list_box { }` block is the change handler | MANUAL | 10.4 | |
 | G3 | List box selection, `text`, `choose` | MANUAL | 10.4 | |
-| G4 | `:state` | MANUAL | unsched. | |
+| G4 | `:state` | MANUAL | | |
 | G5 | Programmatic `text=` and `change` | BOTH; EXT pin, ruled (Q7) | | |
 | G6 | Radio grouping | MANUAL | | |
 | G7 | Button styling | EXT | | |
@@ -887,11 +887,11 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### G4. `:state` (nil, `"readonly"`, `"disabled"`)
 
-**Ruling: MANUAL.** **Lacci change, unscheduled.** Button readonly is M33.
+**Ruling: MANUAL.** **Lacci change, done 27 Sep 2026.** Button readonly is M33.
 
 - **Manual:** for button, check, edit_box, edit_line, list_box, radio (manual 1410-1421).
 - **Shoes 3:** `shoes_control_check_styles` applies `state` to every native control (`s3t_native.c:155-158`).
-- **Lacci today:** no `:state` style; `button("dis", state: "disabled")` is accepted with a warning and ignored.
+- **Lacci today:** no `:state` style; `button("dis", state: "disabled")` is accepted with a warning and ignored. Since the wave-4 Lacci lane the six controls declare `:state` and send it; the native display already greys disabled controls and ignores their input, so the four `styles.state` cases pass there.
 - **Spec:** clicking a disabled button does not call its block; typing into a readonly edit_line does not change its `text`.
 - **Native:** draws disabled controls greyed and ignores their input; readonly inputs take focus and selection but no edits.
 
