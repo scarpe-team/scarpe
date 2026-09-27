@@ -13,4 +13,18 @@ class TestApp < NienteTest
       assert_equal "Shoes", app.style[:title]
     SHOES_SPEC
   end
+
+  # Ledger A3: Shoes.app, window and dialog return the new Shoes::App (manual 859,
+  # 1958-1961), where Shoes.app ended with nil.
+  def test_shoes_app_window_and_dialog_return_the_app
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      $main = Shoes.app do
+        $window = window(title: "second") { para "two" }
+        $dialog = dialog(title: "third") { para "three" }
+      end
+    SHOES_APP
+      assert_equal Shoes.APPS, [$main, $window, $dialog]
+      assert_same $main, $window.owner
+    SHOES_SPEC
+  end
 end

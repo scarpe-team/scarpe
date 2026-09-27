@@ -42,6 +42,12 @@ class Shoes
         n.gsub(/(.)([A-Z])/, '\1_\2').downcase
       end
 
+      # The kind a display is told to create, e.g. "Para". A subclass the display
+      # should treat as its parent class says so by overriding this.
+      def display_class_name
+        name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
+      end
+
       def drawable_class_by_name(name)
         name = name.to_s
         drawable_classes.detect { |k| k.dsl_name == name }
@@ -589,7 +595,7 @@ class Shoes
     private
 
     def create_display_drawable
-      klass_name = self.class.name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
+      klass_name = self.class.display_class_name
 
       is_widget = Shoes::Drawable.is_widget_class?(klass_name)
       parent_id = @parent&.linkable_id
