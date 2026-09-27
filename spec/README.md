@@ -247,6 +247,8 @@ side effects). `spec/run --examples` smoke-runs every non-skipped one:
   with the button down, and `wait` to let a timer tick, since the shot follows the last step at
   once). `dialogs:` answers the example's dialogs on both displays, the way a case's front
   matter does, so an app that asks before it draws (`if confirm(...)`) shows what it draws.
+  `pixels:` lists `[x, y, "#rrggbb"]` the snapshot must show, for an example that draws
+  something, just not the right thing (`expert/colours.rb`).
 
 Every `--examples` run also writes `spec/results/gallery/index.html`: one card per example with
 its native snapshot, its path, and each display's status and error line, broken examples

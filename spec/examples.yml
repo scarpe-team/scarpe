@@ -63,7 +63,7 @@
 "examples/image/image_with_position_and_size.rb": {category: "image", needs: ["network","remote_image"], status: "loads"}
 "examples/info.rb": {category: ".", needs: [], status: {niente: "loads", native: "fails"}, reason: "draws nothing: the app only logs a line with info"}
 "examples/internal_link_navigation.rb": {category: ".", needs: [], status: "loads"}
-"examples/legacy/for_playtest/expert/colours.rb": {category: "legacy/for_playtest/expert", needs: ["network","timer/animation"], status: "loads"}
+"examples/legacy/for_playtest/expert/colours.rb": {category: "legacy/for_playtest/expert", needs: ["network","timer/animation"], status: {niente: "loads", native: "fails"}, reason: "paints every square black: rgb() returns a Shoes::Color, which subclasses Array (ledger D1), so the app's [...].flatten turns each colour into bare numbers", pixels: [[26, 27, "#ac7672"], [26, 79, "#8f8c4a"]]}
 "examples/legacy/for_playtest/expert/curve-animation.rb": {category: "legacy/for_playtest/expert", needs: ["timer/animation"], status: "loads"}
 "examples/legacy/for_playtest/expert/curve-control-point.rb": {category: "legacy/for_playtest/expert", needs: ["timer/animation"], status: "loads"}
 "examples/legacy/for_playtest/expert/minesweeper.rb": {category: "legacy/for_playtest/expert", needs: ["dialog","timer/animation"], status: "loads"}
