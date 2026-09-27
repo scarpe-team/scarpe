@@ -194,4 +194,31 @@ class TestDrawContext < NienteTest
       assert_equal [0, 0, 255, 255], rect("@r").style[:fill]
     SHOES_SPEC
   end
+
+  # Wire contract (b), ledger E10: translate (cumulative), transform and cap travel in
+  # the draw context, where they used to be no-ops.
+  def test_translate_transform_and_cap_reach_the_shapes
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $returned = [translate(10, 20), cap(:curve)]
+        stack do
+          translate 5, 5
+          transform :center
+          @inner = rect 0, 0, 10
+        end
+        @outer = rect 0, 0, 10
+        @line = line 0, 0, 10, 10, cap: :project
+      end
+    SHOES_APP
+      inner = rect("@inner").style[:draw_context]
+      assert_equal [[15, 25], :center, :curve], inner.values_at("translate", "transform", "cap")
+
+      outer = rect("@outer").style[:draw_context]
+      assert_equal [[10, 20], nil, :curve], outer.values_at("translate", "transform", "cap"),
+        "a slot's translate and transform stay in that slot"
+
+      assert_equal :project, line("@line").style[:cap], "a shape's own cap is kept"
+      assert_equal [Shoes.APPS.first] * 2, $returned, "translate and cap return self"
+    SHOES_SPEC
+  end
 end

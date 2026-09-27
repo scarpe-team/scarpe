@@ -247,6 +247,7 @@ class Shoes
       # ignore stroke.
       def uses_draw_context
         @uses_draw_context = true
+        shoes_style :cap # a shape's own line ends, else the slot's (manual 1108-1113)
       end
 
       def uses_draw_context?
@@ -297,7 +298,7 @@ class Shoes
 
     # These styles can be set to a current per-slot value and inherited from parent slots.
     # Their value is set at drawable-create time.
-    DRAW_CONTEXT_STYLES = [:fill, :stroke, :strokewidth, :rotate, :transform, :translate]
+    DRAW_CONTEXT_STYLES = [:fill, :stroke, :strokewidth, :rotate, :transform, :translate, :cap]
 
     include MarginHelper
 

@@ -438,10 +438,18 @@ class Shoes::App < Shoes::Drawable
     current_slot.border(...)
   end
 
-  # Draw Context methods -- forward to the current slot
-  %i[fill nofill stroke strokewidth nostroke rotate scale skew].each do |dc_method|
+  # Draw Context methods -- forward to the current slot. fill and stroke return the
+  # pattern (manual: fill(pattern) » pattern); the rest return self.
+  %i[fill stroke].each do |dc_method|
     define_method(dc_method) do |*args|
       current_slot.send(dc_method, *args)
+    end
+  end
+
+  %i[nofill nostroke strokewidth rotate scale skew translate transform cap].each do |dc_method|
+    define_method(dc_method) do |*args|
+      current_slot.send(dc_method, *args)
+      self
     end
   end
 
@@ -565,24 +573,11 @@ class Shoes::App < Shoes::Drawable
     28
   end
 
-  # Canvas transform: translate the coordinate system.
-  # This is a draw-context operation that shifts drawing by (x, y).
-  def translate(x, y)
-    # Forward to current slot's draw context if available
-    # For now, this is a no-op stub that prevents errors.
-    # Full implementation requires display service support.
-  end
-
   # Arc_to draws an arc within a shape block.
   def arc_to(cx, cy, w, h, start_angle, end_angle)
     return unless current_slot.is_a?(::Shoes::Shape)
 
     current_slot.add_shape_command(['arc_to', cx, cy, w, h, start_angle, end_angle])
-  end
-
-  # Cap style for line drawing (e.g., :curve, :rect, :project)
-  def cap(style)
-    # Draw context cap style - no-op stub for compatibility
   end
 
   # Open a new app window. In classic Shoes, `window` is like `Shoes.app` but
