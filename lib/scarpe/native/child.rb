@@ -159,9 +159,11 @@ module Scarpe::Native
 
     attr_reader :pid
 
-    def self.start(headless: false)
+    # ghost: windows nobody can see or touch (SCARPE_NATIVE_GHOST, native/DESIGN.md 12).
+    def self.start(headless: false, ghost: false)
       args = []
       args << "--headless" if headless
+      args << "--ghost" if ghost
       args.concat(Shellwords.split(ENV["SCARPE_NATIVE_ARGS"].to_s))
       new([Binary.path, *args])
     end

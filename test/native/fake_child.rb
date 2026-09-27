@@ -5,6 +5,7 @@
 # section 4) well enough to test the Ruby shim end to end. Point SCARPE_NATIVE_BIN at it.
 #
 #   FAKE_CHILD_LOG=path     appends every message it receives, one JSON object per line
+#   FAKE_CHILD_ARGV=path    writes the arguments it was started with, as a JSON array
 #   FAKE_CHILD_SCRIPT=path  a JSON array of rules, each fired the first time its "on" matches:
 #     "on":    a message type ("run", "props", ...) or "req:<op>" ("req:click", "req:dialog")
 #     "match": fields the message must have, e.g. {"kind": "Button"}
@@ -41,6 +42,7 @@ class FakeChild
   Node = Struct.new(:id, :kind, :parent, :props, :children)
 
   def initialize
+    File.write(ENV["FAKE_CHILD_ARGV"], JSON.generate(ARGV)) if ENV["FAKE_CHILD_ARGV"]
     @log = ENV["FAKE_CHILD_LOG"] && File.open(ENV["FAKE_CHILD_LOG"], "a")
     @rules = ENV["FAKE_CHILD_SCRIPT"] ? JSON.parse(File.read(ENV["FAKE_CHILD_SCRIPT"])) : []
     @nodes = {}

@@ -508,6 +508,15 @@ change the code and this list together.
   within 3 seconds the process exits by itself. `--exit-after SECS` closes every window that way
   when the time is up, so a Ruby app quits cleanly (headless it is a hard stop). It and `--inactive`
   (or `SCARPE_NATIVE_INACTIVE=1`) open windows without activating the app or taking keyboard focus.
+- **Ghost windows** (`--ghost`, which the shim passes for `SCARPE_NATIVE_GHOST=1`; implies
+  `--inactive`) lay out, paint and present real frames, but nobody can see or touch them, for
+  automated windowed runs. On macOS a ghost is created hidden and only shown once it
+  reads back as alphaValue 0 and click-through (else the process exits 1); it has no shadow, stays
+  out of Mission Control, the window cycle and the Window menu, and the app is an accessory that
+  never activates (a packaged app checks in with LaunchServices as an LSUIElement, so its Dock
+  icon never shows). Elsewhere it opens far off-screen. App `opacity` leaves it clear, links stay
+  shut, and a `dialog` request gets the headless answer; the shim answers a ghost's builtins
+  quietly before they reach Rust. Snapshots and automation read our own pixmap, so they are unchanged.
 - **Backgrounds and borders** fill their slot less the edges they name: `left`/`top`/`right`/`bottom`
   place them, a missing `width` or `height` runs to the far edge (`top: 50` covers from 50 down),
   and margins inset them.
@@ -543,6 +552,7 @@ change the code and this list together.
 | `SCARPE_NATIVE_HEADLESS` | passes `--headless` (`scarpe peek` sets it) |
 | `SCARPE_NATIVE_ARGS` | extra child arguments, e.g. `--fonts bundled` or `--exit-after 3` |
 | `SCARPE_NATIVE_INACTIVE` | windows open without activating the app or taking keyboard focus |
+| `SCARPE_NATIVE_GHOST` | passes `--ghost` (scarpe-native honours it too): windows present real frames but are invisible, click-through and never in front (section 12); `0` turns it off |
 | `SCARPE_NATIVE_TRACE` | prints every NDJSON line both ways to stderr (Ruby side) |
 | `SCARPE_NATIVE_LOG_LEVEL` | `debug`, `info`, `warn` (default) or `error` |
 | `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept |
