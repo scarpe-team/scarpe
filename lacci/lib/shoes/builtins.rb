@@ -79,6 +79,16 @@ module Shoes::Builtins
     puts "[INFO] #{msg}"
   end
 
+  # Reports an error on the console (manual 732-739). An exception comes out as its
+  # class and message.
+  #
+  # @return [nil]
+  def error(message)
+    message = "#{message.class}: #{message.message}" if message.is_a?(Exception)
+    $stderr.puts "[ERROR] #{message}"
+    nil
+  end
+
   # rgb, gray and gradient are built-ins too, callable from any object (manual
   # 785-834, ledger D4). Drawables keep their own Shoes::Colors copies, and the named
   # colours (red, blue...) stay on drawables.

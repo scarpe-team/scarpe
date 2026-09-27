@@ -19,6 +19,18 @@ class TestBuiltinResponse < Minitest::Test
   def test_shoes_rgb_exists_for_ask_color
     assert_equal [10, 20, 30, 255], Shoes.rgb(10, 20, 30)
   end
+
+  # Ledger K3: error(message) reaches the console and returns nil; an exception comes
+  # out as its class and message (manual 732-739).
+  def test_error_reports_messages_and_exceptions
+    reporter = Object.new
+    out, err = capture_io do
+      assert_nil reporter.error("The sprockets are jammed")
+      reporter.error(ArgumentError.new("the flux capacitor jammed"))
+    end
+    assert_includes out + err, "The sprockets are jammed"
+    assert_includes out + err, "ArgumentError: the flux capacitor jammed"
+  end
 end
 
 class TestBuiltins < NienteTest
