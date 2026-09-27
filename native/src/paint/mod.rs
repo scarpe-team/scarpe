@@ -176,6 +176,15 @@ fn on_screen(art: bool, lbox: &crate::layout::LBox, window: Rect) -> bool {
     Rect::new(r.x - slack, r.y - slack, r.w + 2.0 * slack, r.h + 2.0 * slack).intersect(&area).is_some()
 }
 
+/// A picture of a see-through window: every pixel keeps `opacity` (0.0 to 1.0) of itself.
+pub fn fade(pm: &mut Pixmap, opacity: f32) {
+    let keep = opacity.clamp(0.0, 1.0);
+    if keep < 1.0 {
+        // Premultiplied, so every channel scales alike.
+        pm.data_mut().iter_mut().for_each(|c| *c = (*c as f32 * keep).round() as u8);
+    }
+}
+
 /// Everything painting needs besides the pixmap.
 pub struct Scene<'a> {
     pub doc: &'a Doc,

@@ -51,7 +51,7 @@ impl Runtime {
             Op::Snapshot { path, app, scale } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;
                 let scale = scale.unwrap_or(self.views[&app].scale);
-                let pm = self.picture(app, scale).ok_or(("could not make a canvas".to_string(), Value::Null))?;
+                let pm = self.shown(app, scale).ok_or(("could not make a canvas".to_string(), Value::Null))?;
                 if let Some(dir) = std::path::Path::new(&path).parent().filter(|d| !d.as_os_str().is_empty()) {
                     let _ = std::fs::create_dir_all(dir);
                 }
@@ -112,7 +112,7 @@ impl Runtime {
             Op::Pixel { x, y, app } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;
                 let scale = self.views[&app].scale;
-                let pm = self.picture(app, scale).ok_or(("could not make a canvas".to_string(), Value::Null))?;
+                let pm = self.shown(app, scale).ok_or(("could not make a canvas".to_string(), Value::Null))?;
                 let (px, py) = ((x * scale).floor() as i64, (y * scale).floor() as i64);
                 if px < 0 || py < 0 || px >= pm.width() as i64 || py >= pm.height() as i64 {
                     return Err(("point is outside the window".into(), Value::Null));
@@ -138,6 +138,16 @@ impl Runtime {
                 Ok(Some(self.views[&app].ui.focus.map(Value::from).unwrap_or(Value::Null)))
             }
         }
+    }
+
+    /// The app as a person would see it: a see-through window (App `opacity`) keeps only
+    /// that share of each pixel.
+    fn shown(&mut self, app: Id, scale: f32) -> Option<tiny_skia::Pixmap> {
+        let mut pm = self.picture(app, scale)?;
+        if let Some(opacity) = self.doc.get(app).and_then(|n| n.props.f32("opacity")) {
+            crate::paint::fade(&mut pm, opacity);
+        }
+        Some(pm)
     }
 
     /// `{id, kind, x, y, w, h, visible, text?}` for every laid-out node, in
