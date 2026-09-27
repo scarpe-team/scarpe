@@ -28,7 +28,8 @@ module Scarpe::Native
   end
 
   # animate, every and timer, ticked by the Ruby pump (DESIGN 5.4). Rust has no timer logic.
-  # animate(fps = 10) sends frame 0, 1, 2...; every(secs) sends count 1, 2, 3...; timer(secs = 1) fires once.
+  # animate(fps = 10) sends frame 0, 1, 2...; every(secs) sends count 0, 1, 2... (Shoes 3 and 4, ledger I1);
+  # timer(secs = 1) fires once.
   #
   # Deadlines are origin + slot * interval rather than a running sum, so ten 0.1 s frames land
   # on exactly one second instead of drifting past it.
@@ -114,7 +115,7 @@ module Scarpe::Native
     def schedule_for(api_name, arg)
       case api_name
       when "animate" then [1.0 / positive(arg, DEFAULT_FPS), 0]
-      when "every" then [[positive(arg, DEFAULT_SECONDS), SHORTEST_INTERVAL].max, 1]
+      when "every" then [[positive(arg, DEFAULT_SECONDS), SHORTEST_INTERVAL].max, 0]
       when "timer" then [[positive(arg, DEFAULT_SECONDS), SHORTEST_INTERVAL].max, nil]
       end
     end

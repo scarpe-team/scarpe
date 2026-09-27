@@ -199,7 +199,7 @@ which is the only mode that supports `window()`:
 loop until no apps remain or the child exited:
   timeout = time until the next timer deadline, capped at 50 ms
   IO.select([child_out], nil, nil, timeout) -> read and dispatch every complete message
-  tick due timers: animate (frame starts at 0), every (count starts at 1), timer (one shot);
+  tick due timers: animate (frame starts at 0), every (count starts at 0, ledger I1), timer (one shot);
     honour `stopped` and destroyed items; timers can be created at any time
   dispatch "heartbeat" (nil target) at most every 50 ms (Shoes-Spec hooks run on the first one)
   flush
