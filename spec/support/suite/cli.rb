@@ -91,8 +91,10 @@ module SpecSuite
       end
       results = ResultsFile.new("examples-#{display}", source_root: REPO)
       results.merge(rows, display:)
-      report(rows, "spec/run --examples: #{examples.size} examples on #{display}, #{@options[:jobs]} jobs, #{secs}s",
+      status = report(rows, "spec/run --examples: #{examples.size} examples on #{display}, #{@options[:jobs]} jobs, #{secs}s",
         results.path)
+      puts "Gallery: #{SpecSuite.relative(Gallery.new.write)}"
+      status
     end
 
     def run_case(file, dir)

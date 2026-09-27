@@ -17,7 +17,8 @@ spec/
   LEDGER.md               rulings where the manual, Shoes 3, Shoes 4 and Lacci disagree
   import_shoes_spec.rb    regenerates shoes_spec/
   generate_examples_yml.rb  refreshes examples.yml
-  support/                runner code, the dialog stub, test assets
+  support/                runner code, the dialog stub, test assets, fakebin (trapped commands,
+                          the sandboxed clipboard) and test/ (unit tests for the runner itself)
   results/                run output (git-ignored)
 ```
 
@@ -237,6 +238,11 @@ side effects). `spec/run --examples` smoke-runs every non-skipped one:
   error, no Rust panic, and a snapshot that is not one flat colour. Add `steps:` to click or
   type before the shot.
 
+Every `--examples` run also writes `spec/results/gallery/index.html`: one card per example with
+its native snapshot, its path, and each display's status and error line, broken examples
+first. It is built from both merged results files, so runs of separate subtrees and displays
+add up to one page. Open it in a browser.
+
 `spec/run --examples examples/legacy/working` runs a subtree. `--include-skipped` runs the
 skipped ones too. When an example's status changes, edit its line in `examples.yml`;
 `ruby spec/generate_examples_yml.rb` keeps your edits and picks up new or deleted examples.
@@ -258,3 +264,4 @@ through `RULINGS` or `FIXES` in `spec/import_shoes_spec.rb` and re-run
 - `--keep` leaves the sandbox (`app.rb`, `test.rb`, `output.log`, `result.json`) and prints
   where it is. Re-run that `app.rb` by hand with the env from `spec/support/suite/sandbox.rb`.
 - The runner never needs `bundle exec`; it builds each child's environment from scratch.
+- Changing the runner? `ruby spec/support/test/run.rb` (or `rake spec:selftest`) runs its unit tests.
