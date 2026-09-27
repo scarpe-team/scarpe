@@ -74,6 +74,11 @@ class ChildTest < Minitest::Test
     assert @child.dead?
   end
 
+  def test_a_pid_file_it_cannot_write_still_starts_the_child
+    with_env("SCARPE_NATIVE_PID_FILE" => File.join(@dir, "missing", "renderer.pid")) { start }
+    assert_equal "pong", @child.request(:ping)["value"]
+  end
+
   def test_a_missing_binary_is_reported
     assert_raises(Scarpe::Native::ChildNotFound) { Child.new([File.join(@dir, "nope")]) }
   end

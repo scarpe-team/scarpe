@@ -321,6 +321,9 @@ module Scarpe::Native
     def name_in_pid_file
       @pid_file = ENV["SCARPE_NATIVE_PID_FILE"].to_s
       File.write(@pid_file, "#{@pid}\n") unless @pid_file.empty?
+    rescue SystemCallError => e
+      @log.warn("Could not write SCARPE_NATIVE_PID_FILE #{@pid_file}: #{e.message}")
+      @pid_file = ""
     end
 
     def forget_pid_file
