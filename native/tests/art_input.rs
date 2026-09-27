@@ -182,7 +182,8 @@ fn a_blank_image_inside_an_image_block_fills_it() {
     assert_eq!(rgb(&mut h, 60.0, 170.0), RED, "the nested image's art shows");
     assert_eq!(rgb(&mut h, 60.0, 190.0), WHITE, "clipped by the outer image's bottom edge");
     let para = h.node(|n| n["id"] == 6);
-    assert_eq!((para["x"].clone(), para["y"].clone()), (json!(50.0), json!(30.0)), "text starts at the image's corner");
+    // Text blocks keep Shoes 3's 4 px margins (ledger C9).
+    assert_eq!((para["x"].clone(), para["y"].clone()), (json!(54.0), json!(34.0)), "text starts at the image's corner");
 }
 
 // ---- Keys (ledger H1, Q5) ----
@@ -301,7 +302,9 @@ fn a_mask_lays_out_like_a_flow() {
     let mask = h.node(|n| n["id"] == 4);
     let para = h.node(|n| n["id"] == 5);
     assert_eq!((mask["x"].clone(), mask["w"].clone()), (json!(0.0), json!(300.0)));
-    assert_eq!((para["x"].clone(), para["y"].clone()), (mask["x"].clone(), mask["y"].clone()));
+    // Its text sits in its corner, inside the text's 4 px margins (ledger C9).
+    let inset = |key: &str| json!(mask[key].as_f64().unwrap() + 4.0);
+    assert_eq!((para["x"].clone(), para["y"].clone()), (inset("x"), inset("y")));
     assert!(mask["y"].as_f64().unwrap() > 10.0, "after the para before it");
 }
 
