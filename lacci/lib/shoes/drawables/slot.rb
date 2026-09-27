@@ -64,12 +64,13 @@ class Shoes::Slot < Shoes::Drawable
     laid_out_at(:scroll_height) || height
   end
 
-  # How far the slot can scroll: scroll_height minus height, and never below zero
-  # (manual 2444-2451, Shoes 3 shoes_canvas_get_scroll_max).
+  # How far the slot can scroll: scroll_height minus the height it shows, and never
+  # below zero (manual 2444-2451, Shoes 3 shoes_canvas_get_scroll_max). The slot
+  # scrolls inside its margins.
   #
   # @return [Numeric] the largest scroll_top, in pixels
   def scroll_max
-    [scroll_height - height, 0].max
+    [scroll_height - (border_box_at(:height) || height), 0].max
   end
 
   # The width of the scrollbar area, one of the slot position methods (manual 2394-2399).

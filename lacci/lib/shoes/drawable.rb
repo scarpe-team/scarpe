@@ -676,6 +676,9 @@ class Shoes
     # is what the display laid out, or failing that, worked out here from the parent.
     # Slots without a width fill their parent.
     #
+    # Like every getter here, it measures the element with its margins, as Shoes 3
+    # reports its place (s3_ruby.h:376-413, ledger A4): a para's 4 px count.
+    #
     # @return [Numeric, nil] the width in pixels, or nil if not determinable
     def width
       size_in_pixels(@width, :width)
@@ -690,7 +693,8 @@ class Shoes
 
     # Where the drawable sits, in window pixels. A drawable the app placed with left:
     # (or move) gets that number back, so `el.left += 5` never drifts through a
-    # rounded layout; one its slot placed reports where the display put it.
+    # rounded layout; one its slot placed reports where the display put it, as if
+    # it were not displaced (manual 2623-2626).
     #
     # @return [Numeric, nil] the left edge, or nil if not determinable
     def left
@@ -704,17 +708,75 @@ class Shoes
       @top || laid_out_at(:top)
     end
 
+    # The margins the display gives this drawable, in pixels: [left, top, right, bottom].
+    # Its own margin styles win, the way the display reads them; the rest are the
+    # class's defaults.
+    #
+    # @return [Array<Numeric>] the four margins
+    def margins
+      given = @margin ? margin_parse(margin: @margin) : {}
+      width = @parent&.border_box_at(:width) || 0
+      default_margins.zip(%w[left top right bottom]).map do |default, side|
+        value = instance_variable_get("@margin_#{side}")
+        value = given[:"margin_#{side}"] if value.nil?
+        value.nil? ? default : margin_in_pixels(value, width)
+      end
+    rescue Shoes::Errors::InvalidAttributeValueError
+      default_margins
+    end
+
     protected
 
     LAYOUT_FIELDS = { left: 0, top: 1, width: 2, height: 3, scroll_height: 4 }.freeze
 
-    # A field of the rect the display last pushed for this drawable, rounded to whole
-    # pixels as Shoes 3 reports them, or nil when no display reports layout.
+    # The box the display laid out, margins included, rounded to whole pixels as
+    # Shoes 3 reports them, or nil when no display reports layout.
     def laid_out_at(field)
+      rect = Shoes::DisplayService.layout_cache[linkable_id] or return nil
+      x, y, w, h, scroll_h = rect
+      left, top, right, bottom = margins
+
+      case field
+      when :left then x - left - displacement(:left)
+      when :top then y - top - displacement(:top)
+      when :width then w + left + right
+      when :height then h + top + bottom
+      when :scroll_height then scroll_h
+      end.round
+    end
+
+    # The rect the display pushed, inside the margins: what a slot scrolls in.
+    def border_box_at(field)
       Shoes::DisplayService.layout_cache[linkable_id]&.fetch(LAYOUT_FIELDS.fetch(field))&.round
     end
 
+    # The display paints a displaced drawable, and everything in a displaced slot, where
+    # it was moved to, and reports that.
+    def displacement(side)
+      moved = instance_variable_get("@displace_#{side}")
+      (moved.is_a?(Numeric) ? moved : 0) + (@parent&.displacement(side) || 0)
+    end
+
+    # Text blocks override this with Shoes 3's text margins.
+    def default_margins
+      [0, 0, 0, 0]
+    end
+
     private
+
+    # One margin, read as the display reads dimensions (dim.rs), against the parent's width.
+    def margin_in_pixels(value, parent_width)
+      value = pixels_in(value) if value.is_a?(String) && !percentage(value)
+      return value if pixel_size?(value)
+
+      if (fraction = fraction_of_parent(value))
+        parent_width * fraction
+      elsif value.is_a?(Numeric) && value < 0
+        [parent_width + value, 0].max
+      else
+        0
+      end
+    end
 
     def size_in_pixels(given, dimension)
       return given if pixel_size?(given)
@@ -775,7 +837,7 @@ class Shoes
     # @return [Integer, nil] the parent's dimension in pixels
     def parent_dimension(dimension)
       if @parent
-        @parent.send(dimension)
+        @parent.border_box_at(dimension) || @parent.send(dimension)
       elsif @app
         # Document root uses App dimensions
         @app.send(dimension)

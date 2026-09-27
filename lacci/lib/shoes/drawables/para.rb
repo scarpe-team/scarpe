@@ -227,6 +227,14 @@ class Shoes
       Shoes::DisplayService.para_cursor_top_cache[linkable_id] || 0
     end
 
+    protected
+
+    # Shoes 3's text margins (ledger C9): 4 px on every side, and 12 below unless
+    # margin or margin_bottom is given (s3t_textblock.c:108-110).
+    def default_margins
+      [4, 4, 4, @margin.nil? && @margin_bottom.nil? ? 12 : 4]
+    end
+
     private
 
     # Text_children alternates strings and TextDrawables, so we can't just pass

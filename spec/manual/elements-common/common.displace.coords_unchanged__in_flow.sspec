@@ -4,8 +4,6 @@ lines: [2623, 2626]
 testability: api
 display: native
 ledger: M9
-expect: fail
-reason: "Lacci's left and top return the left and top styles, nil for an element its slot placed; the laid-out position never comes back from the display"
 ----------- app code
 Shoes.app do
   flow margin: 12 do
