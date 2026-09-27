@@ -111,6 +111,11 @@ impl Revisions {
         self.now
     }
 
+    /// How many nodes have a revision.
+    pub fn tracked(&self) -> usize {
+        self.nodes.len()
+    }
+
     fn changed_after(&self, seen: u64) -> impl Iterator<Item = Id> + '_ {
         self.nodes.iter().filter(move |(_, at)| **at > seen).map(|(id, _)| *id)
     }

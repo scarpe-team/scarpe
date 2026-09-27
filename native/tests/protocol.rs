@@ -671,3 +671,26 @@ fn fragments_appear_in_the_layout_and_take_clicks_by_id() {
     assert_eq!(named(&evs, "click")[0].1, json!(5));
     assert_eq!(named(&evs, "release")[0].1, json!(5));
 }
+
+/// A secondary window the user closed: Ruby hears `closed` and quits that app alone (`quit`
+/// with its id). Rust frees all of it, revisions included, and the other window carries on.
+#[test]
+fn quitting_one_of_two_apps_frees_it_and_keeps_the_other() {
+    let mut h = Harness::new();
+    h.feed(&app(200, 100, &[create(3, "Para", 2, json!({"text_items": ["first"]}))]));
+    let second: Vec<Value> = [
+        json!({"t": "create", "id": 11, "kind": "DocumentRoot", "parent": null, "props": {}}),
+        json!({"t": "create", "id": 10, "kind": "App", "parent": null, "props": {"width": 200, "height": 100}, "doc_root": 11}),
+    ]
+    .into_iter()
+    .chain((12..20).map(|id| create(id, "Para", 11, json!({"text_items": [format!("line {id}")]}))))
+    .chain([json!({"t": "run", "app": 10}), json!({"t": "flush"})])
+    .collect();
+    h.feed(&second.iter().map(|l| format!("{l}\n")).collect::<String>());
+    let tracked = h.rt.revisions.tracked();
+    h.feed(&format!("{}\n", json!({"t": "quit", "app": 10})));
+    assert!(!h.rt.views.contains_key(&10) && h.rt.doc.get(12).is_none() && h.rt.doc.get(11).is_none());
+    assert_eq!(h.rt.revisions.tracked(), tracked - 10, "the app, its root and its 8 paras are forgotten");
+    assert_eq!(h.rt.exit, None, "the first window is still open");
+    assert_eq!(h.node(|n| n["id"] == 3)["text"], json!("first"));
+}
