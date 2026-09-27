@@ -44,6 +44,9 @@ pub struct ShapedText {
     pub metas: Rc<Vec<SpanMeta>>,
     /// The first-line indent, in px, of text that continues a line in a flow; 0 otherwise.
     pub indent: f32,
+    /// How far left and right the glyphs' boxes reach, in buffer coordinates. Tight negative
+    /// `kerning` pulls glyphs left of 0 and past `width`.
+    pub ink: (f32, f32),
 }
 
 /// The metadata of the blank that makes a first-line indent. It maps to no SpanMeta, so the
@@ -223,15 +226,19 @@ fn shape(fs: &mut FontSystem, rich: &RichText, width: Option<f32>, indent: f32, 
     buffer.set_rich_text(spans, &defaults, Shaping::Advanced, Some(align));
     buffer.shape_until_scroll(fs, false);
     let (mut w, mut h) = (0.0f32, 0.0f32);
+    let mut ink = (0.0f32, 0.0f32);
     for run in buffer.layout_runs() {
         w = w.max(run.line_w);
         h = h.max(run.line_top + run.line_height);
+        for glyph in run.glyphs {
+            ink = (ink.0.min(glyph.x), ink.1.max(glyph.x + glyph.w));
+        }
     }
     if h == 0.0 {
         h = rich.line_height;
     }
     let height = (h - rich.leading).max(1.0);
-    ShapedText { buffer: Rc::new(buffer), width: w, height, top: -rich.leading / 2.0, metas: Rc::new(metas), indent }
+    ShapedText { buffer: Rc::new(buffer), width: w, height, top: -rich.leading / 2.0, metas: Rc::new(metas), indent, ink }
 }
 
 /// The blank that stands in for a first-line indent: the first run's face, so no font

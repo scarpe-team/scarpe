@@ -474,3 +474,28 @@ fn an_error_underline_repaints_in_part() {
         }
     }
 }
+
+/// A star whose inner radius is longer than its outer one reaches past its layout box (which,
+/// as in Shoes 3, is sized by `outer`). Recolouring and moving it must repaint all of it.
+#[test]
+fn a_star_with_long_inner_points_repaints_all_of_itself() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(3, "Star", 2, json!({"left": 150, "top": 100, "points": 5, "outer": 10, "inner": 80, "draw_context": {"fill": {"rgba": [255, 0, 0, 255]}}}))]));
+    let mut window = Window::open(&mut h, 1.0);
+    props(&mut h, 3, json!({"draw_context": {"fill": {"rgba": [0, 0, 255, 255]}}}));
+    window.repaint(&mut h);
+    props(&mut h, 3, json!({"left": 60}));
+    window.repaint(&mut h);
+}
+
+/// Negative kerning pulls glyphs left of where the text box starts.
+#[test]
+fn text_kerned_tight_repaints_all_of_itself() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(3, "Para", 2, json!({"text_items": ["hello world"], "kerning": -15, "margin_left": 100, "size": 20}))]));
+    let mut window = Window::open(&mut h, 1.0);
+    props(&mut h, 3, json!({"text_items": ["HELLO WORLD"]}));
+    window.repaint(&mut h);
+    props(&mut h, 3, json!({"stroke": {"rgba": [0, 0, 255, 255]}}));
+    window.repaint(&mut h);
+}
