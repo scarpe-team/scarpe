@@ -61,7 +61,7 @@ class StatsTest < Minitest::Test
     end
   end
 
-  # A real window (inactive, never taking focus), so only with SCARPE_NATIVE_WINDOWED_TESTS=1.
+  # A real window (a ghost through run_real), so only with SCARPE_NATIVE_WINDOWED_TESTS=1.
   def test_a_window_uses_its_frames_colour_space
     skip_without_real_binary
     skip "set SCARPE_NATIVE_WINDOWED_TESTS=1 to open real windows" unless ENV["SCARPE_NATIVE_WINDOWED_TESTS"]

@@ -8,8 +8,9 @@
 #
 # Packages a copy of APP.rb (the app itself is untouched) with a probe appended that waits for the
 # first painted frame, prints the time and quits. Then runs Contents/MacOS/scarpe-launcher RUNS
-# times per variant, headless unless --windowed (inactive windows, no focus taken), and prints the
-# median milliseconds from exec to the first frame:
+# times per variant, headless unless --windowed (ghost windows: real frames, but invisible,
+# click-through and never taking focus), and prints the median milliseconds from exec to the
+# first frame:
 #
 #   bytecode + YJIT       the default launch (YJIT comes on after the first frame, if the Ruby has it)
 #   no bytecode           SCARPE_BYTECODE=0
@@ -41,7 +42,7 @@ OptionParser.new do |o|
   o.banner = "usage: ruby scripts/native_cold_start.rb APP.rb [options]"
   o.on("--runs N", Integer) { |n| options[:runs] = n }
   o.on("--out DIR") { |dir| options[:out] = File.expand_path(dir) }
-  o.on("--windowed", "inactive windows instead of headless") { options[:windowed] = true }
+  o.on("--windowed", "ghost windows instead of headless") { options[:windowed] = true }
   o.on("--snapshot PNG", "save the first frame of the first run") { |png| options[:snapshot] = File.expand_path(png) }
   o.on("--dev-ruby RUBY", "also time the bundle's boot.rb run by this Ruby, YJIT late, early and off") { |ruby| options[:dev_ruby] = ruby }
 end.parse!
@@ -59,7 +60,7 @@ end
 
 # Milliseconds from exec to the probe's first frame, plus what the probe saw.
 def launch(command, env, windowed:)
-  env = { "HOME" => Dir.home, "PATH" => "/usr/bin:/bin", "SCARPE_NATIVE_INACTIVE" => "1" }.merge(env)
+  env = { "HOME" => Dir.home, "PATH" => "/usr/bin:/bin", "SCARPE_NATIVE_GHOST" => "1" }.merge(env)
   env["SCARPE_NATIVE_HEADLESS"] = "1" unless windowed
   reader, writer = IO.pipe
   started = Process.clock_gettime(Process::CLOCK_REALTIME)
@@ -99,7 +100,7 @@ end
 bundle = package(app, options[:out])
 launcher = [File.join(bundle, "Contents", "MacOS", "scarpe-launcher")]
 puts "#{File.basename(app)} packaged as #{bundle}"
-puts "#{options[:runs]} rounds, #{options[:windowed] ? "windowed (inactive)" : "headless"}, median ms from exec to first frame"
+puts "#{options[:runs]} rounds, #{options[:windowed] ? "windowed (ghost)" : "headless"}, median ms from exec to first frame"
 puts "load average #{`sysctl -n vm.loadavg`.strip} (a busy machine moves these numbers by tens of ms)"
 
 if options[:snapshot]

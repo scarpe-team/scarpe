@@ -82,8 +82,10 @@ module NativeTestHelpers
   end
 
   # The real Rust child with bundled fonts, so pixels and rects are the same on every machine.
+  # A window it opens (headless: false) is a ghost: real frames, but nobody sees it or can click
+  # it, so a test run never covers someone's screen. Pass "SCARPE_NATIVE_GHOST" => "0" to show it.
   def run_real(app_code, env: {}, **options, &block)
-    real_env = { "SCARPE_NATIVE_BIN" => NativeTestHelpers.real_binary, "SCARPE_NATIVE_ARGS" => "--fonts bundled" }
+    real_env = { "SCARPE_NATIVE_BIN" => NativeTestHelpers.real_binary, "SCARPE_NATIVE_ARGS" => "--fonts bundled", "SCARPE_NATIVE_GHOST" => "1" }
     run_app(app_code, env: real_env.merge(env), **options, &block)
   end
 
