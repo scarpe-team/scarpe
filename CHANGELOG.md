@@ -10,7 +10,7 @@ straightforward as possible.
 - A native display service: `scarpe --native app.rb` draws with a Rust program (tiny-skia, cosmic-text, winit) instead of a webview, while Lacci and every block stay in Ruby. See docs/native.md and native/DESIGN.md. Dedicated to the late Noah Gibbs.
 - `scarpe peek APP.rb` runs an app headless on the native display, clicks, types, scrolls and saves pictures
 - `scarpe package --native` builds an ad-hoc signed macOS `.app` (and a `.dmg` with `--dmg`) with precompiled Ruby bytecode, no installed gems, and FastImage copied in for image sizes
-- The Shoes spec suite (`spec/run`): 983 cases from the manual and Noah Gibbs' Shoes-Spec corpus, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree
+- The Shoes spec suite (`spec/run`): 1019 cases from the manual and Noah Gibbs' Shoes-Spec corpus, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree
 - Lacci: `animate`, `every` and `timer` return `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer`; `Shoes.app`, `window` and `dialog` return the App; methods the manual marks "» self" return self
 - Lacci: `left`, `top`, `width` and `height` read laid-out pixels when the display reports them; slots gain `before`, `after`, `scroll_height`, `scroll_max` and `gutter`; `font(path)` returns the family names in the file
 - Native text fields undo and redo (Cmd-Z or Control-Z, Cmd-Shift-Z or Control-Y) and take an input method's commit as one edit
@@ -37,6 +37,10 @@ straightforward as possible.
 - Native packages read image sizes (`Image#size`, `imagesize`): FastImage is copied in; requiring Lacci no longer runs git
 - Native: long Shoes-Spec `advance` runs no longer deadlock the headless pipes; `ask` while an app is still being built opens a small window of its own; closing a window answers the `ask` open in it; headless `--exit-after` closes cleanly; Enter clicks a focused check or radio; `variant: "smallcaps"` draws small capitals; error underlines keep inside their slot; rewritten image files show their new pixels
 - Native: text in several windows is no longer shaped again on every change, clipped rows paint without a mask per clip, and scrolling moves the layout instead of laying the window out again
+- Native: an app body that runs past 20 s no longer fails its start; a `window` whose block raises no longer counts as open; handlers that raise LoadError, SystemStackError or NotImplementedError no longer end the app; `ask` passes `secret:` and `title:` to the native dialog
+- Native: Ctrl-C still quits after a second window opens, and a second Ctrl-C ends a stuck renderer; TERM, or a Ruby that dies, takes the renderer's process group with it
+- Native: Shoes-Spec test code and `scarpe peek` steps start after the slots' `start` blocks, and `wait_frames` starts a slot made since
+- Native: an installed gem never runs cargo, and downloaded images are cached in a private per-user directory that refuses planted links, stale junk and https-to-http redirects
 
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
@@ -50,6 +54,9 @@ straightforward as possible.
 - The draw context's `fill`, `stroke` and `strokewidth` no longer reach text and controls
 - Native: a `width` or `height` the app gives includes the element's margins, as in Shoes 3 (`stack width: 100, margin: 10` is an 80 px box); before, margins went outside a px size
 - Native: a negative `left` or `top` on art is a plain coordinate, as in Shoes 3, so art moves off the left and top edges instead of jumping to the far side
+- `close` closes only its own window while another is open, as the manual says (it closed every window); the last window's `close` still ends the app
+- Native: downloaded images are cached in `~/Library/Caches/scarpe-native` (or `XDG_CACHE_HOME`, or `%LOCALAPPDATA%`), no longer under `$TMPDIR`
+- Native: in a checkout, a `scarpe-native` on PATH wins over the dev build; the order is `SCARPE_NATIVE_BIN`, the packaged binary, PATH, then the dev build
 
 ## [0.4.0] - 2024-05-06 - Strangers
 
