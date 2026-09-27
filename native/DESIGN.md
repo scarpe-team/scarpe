@@ -399,8 +399,12 @@ change the code and this list together.
   head 0.42 x width long. `arc` sits in its (left, top, width, height) box like `oval` (Shoes 3
   centred it on left/top; the manual's "mimic oval" and Shoes 4 say box), sweeps clockwise from
   3 o'clock, and fills as a chord (`wedge: true` fills a pie). `rotate`, `scale` and `skew` from the
-  draw context apply about the element's centre; positive `rotate` turns counter-clockwise.
-  Unset fill and stroke are black, strokewidth 1, cap `:rect` (butt).
+  draw context turn a shape about its top-left corner (manual 1857-1860, ledger E10), or about its
+  centre when the draw context says `transform: "center"` or the shape has `center: true`; positive
+  `rotate` turns counter-clockwise. The draw context's `translate: [x, y]` (Lacci's running total)
+  moves shapes before they turn. A shape's layout box is its transformed box, so hit-testing follows.
+  `cap` is `"curve"` (round), `"rect"` (flat, the default) or `"project"` (square, half the stroke
+  width longer). Unset fill and stroke are black, strokewidth 1.
 - **Gradients** follow Shoes 3: angle 0 runs top to bottom, 90 left to right, across the shape's
   box. A wire gradient without `angle` gets 0.
 - **Wheel.** `req wheel` takes `dy` in logical px with DOM sign: positive scrolls down (content
