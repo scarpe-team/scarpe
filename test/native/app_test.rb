@@ -230,6 +230,29 @@ class AppTest < Minitest::Test
     assert_equal [{ "t" => "quit", "app" => nil }], run.of_type("quit"), "one quit, at the very end"
   end
 
+  # A window whose block raises was created but never run. It must not count as open, or closing
+  # the one real window leaves the pump waiting on it forever (review).
+  def test_a_window_whose_block_raises_is_dropped_and_never_counted_as_open
+    run = run_app(<<~RUBY, timeout: 8, script: [
+      Shoes.app do
+        button("broken") { window(title: "broken") { para "about to fail"; raise "typo in the window block" } }
+        button("count") { puts Shoes.APPS.size }
+      end
+    RUBY
+      { "on" => "run", "emit" => [{ "t" => "event", "name" => "click", "target" => { "text" => "broken" }, "args" => [] }] },
+      { "on" => "create", "match" => { "kind" => "Para" }, "after" => 0.1, "emit" => [
+        { "t" => "event", "name" => "click", "target" => { "text" => "count" }, "args" => [] },
+        { "t" => "closed", "app" => 1 },
+      ] },
+    ])
+    assert_clean_exit(run)
+    assert_match(/RuntimeError: typo in the window block in the click handler/, run.stderr)
+    assert_equal "1\n", run.stdout, "the broken window left Shoes.APPS"
+    broken = run.creates("App").last["id"]
+    assert_includes run.of_type("quit"), { "t" => "quit", "app" => broken }, "and Rust was told to free it"
+    assert_equal [1], run.of_type("run").map { |message| message["app"] }
+  end
+
   def test_an_app_nested_in_another_apps_body_shows_both
     run = run_app(<<~RUBY, script: [{ "on" => "run", "match" => { "app" => 1 }, "emit" => [{ "t" => "closed", "app" => 3 }, { "t" => "closed", "app" => 1 }] }])
       Shoes.app do
