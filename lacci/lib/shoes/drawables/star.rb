@@ -2,6 +2,8 @@
 
 class Shoes
   class Star < Shoes::Drawable
+    include Shoes::Art
+
     uses_draw_context
     shoes_styles :left, :top, :draw_context
 

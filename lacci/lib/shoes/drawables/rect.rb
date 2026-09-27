@@ -2,6 +2,8 @@
 
 class Shoes
   class Rect < Shoes::Drawable
+    include Shoes::Art
+
     uses_draw_context
     shoes_styles :draw_context, :curve, :stroke, :fill
     shoes_events # No Rect-specific events

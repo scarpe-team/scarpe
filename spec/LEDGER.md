@@ -119,7 +119,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | E8 | Mouse events on art, text and images | MANUAL | 10.9 | |
 | E9 | `image(w, h) { }` is a canvas | MANUAL | | |
 | E10 | Transforms; turns add up | MANUAL; S3 for turns | | |
-| E11 | Art methods return `Shoes::Shape` | MANUAL | unsched. | |
+| E11 | Art methods return `Shoes::Shape` | MANUAL | | |
 
 ### F. Text
 
@@ -722,11 +722,11 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### E11. Art methods return `Shoes::Shape`
 
-**Ruling: MANUAL** (Shoes 3 agrees). Subclasses (`Shoes::Oval < Shoes::Shape`) satisfy it. **Lacci change, unscheduled.** New row, requested by the art writer.
+**Ruling: MANUAL** (Shoes 3 agrees). Subclasses (`Shoes::Oval < Shoes::Shape`) satisfy it. **Lacci change, done 27 Sep 2026** (without subclasses, see below). New row, requested by the art writer.
 
 - **Manual:** `arc`, `arrow`, `line`, `oval`, `rect`, `shape` and `star` are each headed `» Shoes::Shape` (manual 1665-1826), and "A shape is a path outline usually created by drawing methods like `oval` and `rect`" (manual 3363-3366).
 - **Shoes 3:** every art call makes a `cShape` (`s3t_shape.c:16, 195-198, 334`).
-- **Lacci today:** `Shoes::Oval`, `Shoes::Rect` and the rest inherit from `Shoes::Drawable`; `Shoes::Shape` exists only as the `shape { }` slot (`drawables/shape.rb`).
+- **Lacci today:** `Shoes::Oval`, `Shoes::Rect` and the rest inherit from `Shoes::Drawable`; `Shoes::Shape` exists only as the `shape { }` slot (`drawables/shape.rb`). Since the wave-4 Lacci lane the six art classes include `Shoes::Art` (`art.rb`) and answer `is_a?(Shoes::Shape)` and `kind_of?(Shoes::Shape)` with true, as `ActiveSupport::Duration` answers `is_a?`. They keep their classes, so the display is still told `Oval` or `Rect`, and `Shoes::Shape` stays the `shape { }` slot, so shape blocks work as before. `Shoes::Shape === oval` is still false, on purpose: the spec finders match with `===`, and the `shape` finder should keep meaning shape blocks. Making the art real subclasses would need `Shoes::Shape` to stop being a slot.
 - **Spec:** `shape.element`: every art method's result `is_a?(Shoes::Shape)` and answers the Common methods.
 - **Native:** nothing; the `kind` on the wire stays the concrete class name (DESIGN 4.1).
 
