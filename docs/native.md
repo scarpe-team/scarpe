@@ -62,6 +62,9 @@ The first run builds the Rust binary (`cargo build --release`, about a minute) a
 stderr. After that the shim rebuilds it only when something under `native/src`, or a Cargo file,
 changes. The installed `scarpe` command takes the same `--native` flag, and
 `SCARPE_DISPLAY_SERVICE=native` picks the native service the same way for anything that runs an app.
+Outside a git checkout nothing is built: the shim runs `SCARPE_NATIVE_BIN`, or a `scarpe-native`
+on your `PATH`. One on your `PATH` wins in a checkout too, so set `SCARPE_NATIVE_BIN` when you
+want a particular build.
 
 A window closes the way any Mac window does. When the last one goes, the app exits.
 

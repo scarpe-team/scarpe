@@ -88,7 +88,9 @@ module Scarpe::Native
     end
   end
 
-  # Finds the scarpe-native binary, building it first in a dev checkout when it is missing or stale.
+  # Finds the scarpe-native binary: SCARPE_NATIVE_BIN, a packaged app's own, one on PATH, or in a
+  # git checkout of Scarpe a dev build, built first when it is missing or stale. An installed gem
+  # ships the crate too, but a gem directory is no place to run cargo at an app's launch.
   module Binary
     extend self
 
@@ -98,9 +100,14 @@ module Scarpe::Native
     def path
       explicit = ENV["SCARPE_NATIVE_BIN"].to_s
       return explicit unless explicit.empty?
-      return dev_binary if File.exist?(File.join(CRATE, "Cargo.toml"))
 
-      packaged_binary || raise(ChildNotFound, "Can't find the scarpe-native binary. Set SCARPE_NATIVE_BIN to its path.")
+      packaged_binary || which("scarpe-native") || (dev_binary if checkout?) ||
+        raise(ChildNotFound, "Can't find the scarpe-native binary. Set SCARPE_NATIVE_BIN to its path.")
+    end
+
+    # A worktree's .git is a file, a clone's a directory; an installed gem has neither.
+    def checkout?(root: ROOT)
+      File.exist?(File.join(root, ".git")) && File.exist?(File.join(root, "native", "Cargo.toml"))
     end
 
     def dev_binary
@@ -137,7 +144,7 @@ module Scarpe::Native
     def packaged_binary
       beside_script = File.dirname(File.expand_path($PROGRAM_NAME))
       candidates = [beside_script, File.expand_path("../MacOS", beside_script)].map { |dir| File.join(dir, "scarpe-native") }
-      candidates.find { |candidate| File.executable?(candidate) } || which("scarpe-native")
+      candidates.find { |candidate| File.executable?(candidate) }
     end
 
     def which(name)
