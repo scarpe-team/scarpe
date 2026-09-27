@@ -349,3 +349,18 @@ fn leading_goes_between_lines_and_defaults_to_four() {
         "the first line sits where it would without leading"
     );
 }
+
+#[test]
+fn a_fixed_height_clips_without_scrolling() {
+    // Manual 345-352: a fixed height makes the slot a "nested window" that chops its end off.
+    let mut s = Scene::new();
+    let fixed = s.add("Stack", ROOT, json!({"width": 200, "height": 100}));
+    let tall = s.add("Stack", fixed, json!({"height": 300}));
+    let free = s.add("Stack", ROOT, json!({"width": 200}));
+    let inside = s.add("Stack", free, json!({"height": 300}));
+    let l = s.layout(480.0, 420.0);
+    assert_eq!(l.boxes[&tall].clip, Some(Rect::new(0.0, 0.0, 200.0, 100.0)));
+    assert_eq!(l.visible_rect(tall), Some(Rect::new(0.0, 0.0, 200.0, 100.0)));
+    assert!(!l.scrollers.contains_key(&fixed), "clipping is not scrolling");
+    assert_eq!(l.boxes[&inside].clip, None, "a slot that grows with its content clips nothing");
+}

@@ -223,7 +223,9 @@ neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1).
 - **Stack**: children top to bottom, each on its own row, left-aligned. Default width: the
   remaining width on the current line of its parent (Shoes 3; in a stack parent that is the full
   inner width).
-- Slot height = content height unless `height` given. `scroll: true` with a height clips and scrolls.
+- Slot height = content height unless `height` given. A slot with a fixed `height` clips what
+  does not fit, scrolling or not (manual 345-352: it becomes a "nested window"); `scroll: true`
+  with a height also scrolls.
 - **Text blocks** (para and family) with no width: in a stack, full inner width; in a flow,
   shrink-to-fit (max-content width capped at the remaining row width, wrapping at that width).
   Line height = 1.2 x size. `leading` (default 4 px, manual 1286, ledger F10) goes between lines

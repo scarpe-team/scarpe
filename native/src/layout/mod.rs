@@ -138,6 +138,7 @@ pub fn layout(inputs: Inputs, root: Id, size: (f32, f32)) -> Layout {
         scroll: inputs.scroll,
         out: Layout { size, root, ..Layout::default() },
         attached: Vec::new(),
+        clips: HashMap::new(),
     };
     engine.root(root, size);
     let out = engine.finish(root);
@@ -152,6 +153,8 @@ struct Engine<'a> {
     scroll: &'a HashMap<Id, f32>,
     out: Layout,
     attached: Vec<(Id, Attach)>,
+    /// Slots with a fixed height: they chop off what does not fit, scrolling or not.
+    clips: HashMap<Id, Rect>,
 }
 
 #[derive(Clone, Copy)]
@@ -370,6 +373,10 @@ impl Engine<'_> {
         let content = Rect::new(content.x, content.y, content.w, (h - padding.vertical()).max(0.0));
         self.place_later(&later, slot_box, content, avail_h);
         let scrolls = node.props.truthy("scroll") && explicit_h.is_some();
+        if explicit_h.is_some() {
+            // Manual 345-352: a fixed height makes the slot a nested window, cut off at its edges.
+            self.clips.insert(node.id, slot_box);
+        }
         self.scroll_subtree(node.id, slot_box, used + padding.vertical(), scrolls, false);
         self.displace(node);
         h
@@ -479,22 +486,27 @@ impl Engine<'_> {
             if let Some(s) = self.out.scrollers.get_mut(&next) {
                 s.viewport = s.viewport.translate(dx, dy);
             }
+            if let Some(c) = self.clips.get_mut(&next) {
+                *c = c.translate(dx, dy);
+            }
             stack.extend(doc.children(next).iter().copied());
         }
     }
 
-    /// Scrolling slots clip their descendants (not their own decor).
+    /// Scrolling and fixed-height slots clip their descendants (not their own decor).
     fn assign_clips(&mut self, id: Id, clip: Option<Rect>) {
         let doc = self.doc;
         if let Some(b) = self.out.boxes.get_mut(&id) {
             b.clip = clip;
         }
-        let inner = match self.out.scrollers.get(&id) {
-            Some(s) if id != self.out.root => Some(match clip {
-                Some(c) => c.intersect(&s.viewport).unwrap_or(Rect::new(s.viewport.x, s.viewport.y, 0.0, 0.0)),
-                None => s.viewport,
-            }),
-            _ => clip,
+        let own = match self.out.scrollers.get(&id) {
+            Some(s) if id != self.out.root => Some(s.viewport),
+            _ => self.clips.get(&id).copied(),
+        };
+        let inner = match (own, clip) {
+            (Some(own), Some(c)) => Some(c.intersect(&own).unwrap_or(Rect::new(own.x, own.y, 0.0, 0.0))),
+            (Some(own), None) => Some(own),
+            (None, c) => c,
         };
         for &child in doc.children(id) {
             let child_clip = if doc.get(child).is_some_and(|c| c.kind.is_decor()) { clip } else { inner };
