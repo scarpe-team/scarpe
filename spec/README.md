@@ -145,6 +145,7 @@ Everything above, plus the native API (DESIGN.md section 8):
 |---|---|
 | `click_on(proxy_or_text)`, `click_at(x, y, button: 1)` | a real click through layout and hit-testing |
 | `hover_at(x, y)`, `move_mouse(x, y)` | pointer motion |
+| `drag([x, y], [x, y], ...)` | press, move through the points with the button down, release at the last; no time passes |
 | `type_text(str)`, `press_key(name)` | keys into the focused input or the app (`"a"`, `:left`, `:control_a`, `"\n"`) |
 | `wheel(dy, x:, y:)` | scroll at window point (x, y); see below for the sign |
 | `layout_of(proxy)` | a Rect with `x`, `y`, `w`, `h` in window coordinates |
@@ -219,6 +220,10 @@ backend follows the ruling).
 | `unexpected_pass` | passed, but front matter says `expect: fail` | yes |
 | `not_applicable` | a `display: native` case on niente | |
 | `timeout` | no result before the timeout | yes |
+
+One case skips on purpose: `spec/harness/skipped.sspec` is the runner's own check that `skip`
+reports `skip`. The imported cases that used to stop at a `skip` now drive the app instead
+(`DRIVEN` in `spec/import_shoes_spec.rb`), or say in `expect: fail` what still stops them.
 
 Failure messages point at the case file and line, e.g.
 `Expected: "y" Actual: "x" (manual/para/element.para.sspec:14)`.

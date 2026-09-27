@@ -361,6 +361,7 @@ on top of the Niente-compatible finders and proxies (`button`, `para`, `edit_lin
 | `proxy.trigger_click` / `trigger_hover` / `trigger_leave` / `trigger_change(v)` | Shoes-Spec compat. `trigger_click` goes through Rust (`req click {id}`), so it proves layout and hit-testing |
 | `click_on(proxy_or_text)`, `click_at(x, y, button: 1)` | synthetic click through the real path |
 | `hover_at(x, y)`, `move_mouse(x, y)` | pointer motion |
+| `drag([x, y], [x, y], ...)` | press at the first point, move through the rest with the button down, release at the last |
 | `type_text(str)`, `press_key(name)` | keyboard into the focused widget / app |
 | `wheel(dy, x:, y:)` | scroll |
 | `layout_of(proxy)` | `Rect(x, y, w, h)` in window coordinates |

@@ -159,6 +159,17 @@ module Scarpe::Native
     end
     alias_method :move_mouse, :hover_at
 
+    # Presses at the first [x, y], moves through the rest with the button down and releases at
+    # the last: every click, motion and release handler runs. No time passes (advance for that).
+    def drag(*points, button: 1)
+      raise ArgumentError, "drag needs two or more [x, y] points" if points.size < 2
+
+      automation.mouse(:move, *points.first)
+      automation.mouse(:down, *points.first, button: button)
+      points.drop(1).each { |x, y| automation.mouse(:move, x, y) }
+      automation.mouse(:up, *points.last, button: button)
+    end
+
     def type_text(text)
       automation.type(text)
     end

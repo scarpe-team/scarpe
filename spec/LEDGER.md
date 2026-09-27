@@ -1163,7 +1163,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 - **Manual:** runs in the background and "fires `start`, `progress` and `finish` events" (manual 906-975); only `finish` is shown (M30).
 - **Lacci today:** `Shoes::App#download` (`download.rb:31-125`) calls `handle_failure` with one argument though it takes two, so every non-2xx response logs an `ArgumentError` instead; it requires `nokogiri` unconditionally; it runs the user's block on a background `Thread` (report 04, C4).
-- **Spec:** against a local HTTP server, `finish` fires once with the body and `start` fires before it.
+- **Spec:** against a local HTTP server, `finish` fires once with the body and `start` fires before it. The imported `simple-downloader` case (wave 4) clicks its Download button with a URL on a closed local port and checks the row it appends; it is held as `expect: fail` because `download(url, progress:, finish:)` raises `ArgumentError: unknown keywords` in Lacci today.
 - **Native:** display updates can arrive from that background thread; DESIGN 5.2 guards writes with a Mutex, which covers it.
 
 ### K6. `exit` stops the program at once
