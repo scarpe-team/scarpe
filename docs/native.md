@@ -66,7 +66,9 @@ Outside a git checkout nothing is built: the shim runs `SCARPE_NATIVE_BIN`, or a
 on your `PATH`. One on your `PATH` wins in a checkout too, so set `SCARPE_NATIVE_BIN` when you
 want a particular build.
 
-A window closes the way any Mac window does. When the last one goes, the app exits.
+A window closes the way any Mac window does. When the last one goes, the app exits. `close` in
+your code closes its own window the same way, and `exit` ends every window at once. Ctrl-C in
+the terminal quits the app; a second Ctrl-C ends it even if the renderer has stopped answering.
 
 ## Looking and clicking with `scarpe peek`
 
