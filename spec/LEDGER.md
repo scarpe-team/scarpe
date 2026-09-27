@@ -118,7 +118,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | E7 | `shape` is one path | MANUAL | 10.2 | |
 | E8 | Mouse events on art, text and images | MANUAL | 10.9 | |
 | E9 | `image(w, h) { }` is a canvas | MANUAL | | |
-| E10 | Transforms | MANUAL | | |
+| E10 | Transforms; turns add up | MANUAL; S3 for turns | | |
 | E11 | Art methods return `Shoes::Shape` | MANUAL | unsched. | |
 
 ### F. Text
@@ -704,12 +704,17 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### E10. `transform`, `translate`, `cap`, `rotate`, `scale`, `skew`
 
-**Ruling: MANUAL,** low priority.
+**Ruling: MANUAL,** low priority. **Turns add up: S3, ruled 27 Sep 2026** by the orchestrator (Nick may overrule): the manual is silent on whether a second `rotate` adds to the first, and Shoes 3 adds, so `rotate 45; rotate 45` turns later shapes 90 degrees and a slot's turn survives `clear`.
 
 - **Manual:** manual 1676-1680, 1783-1797, 1857-1868. `transform`: "Shoes defaults to `:corner`", the corner of the shape (1857-1860).
 - **Shoes 3:** `shoes_transform_new` starts every transform in `s_center` mode, and outside centre mode the matrix is applied about the canvas origin, not the shape's corner (`s3_canvas.c:31-41, 192-205`). The ruling keeps the manual's shape corner; nobody has checked what a real Shoes 3 draws.
+- **Shoes 3, turns add up:** the canvas's `rotate`, `scale` and `skew` multiply into the canvas matrix (`TRANS_COMMON(canvas, 0)` at `s3_ruby.c:645` expands to `cairo_matrix_rotate(&self_t->st->tf, -rad)` and friends, `s3_ruby.h:444-510`), and `clear` leaves that matrix alone (`s3_canvas.c:759-781`; only the full reset in `:282-303` clears it). So `rotate 1` inside `animate { clear { ... } }` spins what it draws.
+- **Shoes 4, turns:** `rotate` sets the app style outright (`s4_dsl_style.rb:42-55`), so turns do not add up.
+- **Manual, turns:** "Rotates the pen used for drawing by a certain number of degrees" (manual 1783-1786); silent on a second call.
+- **Examples, turns:** `shoes-contrib/animation/rotating-star.rb` (`rotate 1` every frame) and `for_playtest/simple/path-animation.rb` (`rotate -5` every frame) only move when turns add up. Scarpe's own `examples/rotate_shapes.rb` was written against Webview's set-outright turn, so its later shapes now land at the running total (90, 270, 330, 450...).
 - **Lacci today:** `translate` and `cap` are no-ops (`app.rb:555-573`); `transform` exists only on Image (`image.rb:74-83`); `rotate`/`scale`/`skew` go into the draw context (`slot.rb:166-193`), and WV applies them to some shapes only (report 02, 6.8). Wire contract (b) of 27 Sep 2026 has Lacci send `translate: [x, y]` (running total), `transform: "center"|"corner"` and `cap: "curve"|"rect"|"project"` in the draw context. Since 27 Sep (`5cd2ed1`) `translate` (a running total), `transform` and `cap` go into the draw context as contract (b) reads them, and shapes take a `cap:` style of their own; inside an `image(w, h) { }` block `rotate` and `transform` still turn the whole image.
-- **Spec:** `rotate 45; rect 100, 100, 50, 10` paints a pixel off the unrotated rect's box.
+- **Spec:** `rotate 45; rect 100, 100, 50, 10` paints a pixel off the unrotated rect's box. `art.rotate__adds_up`: `rotate 45; rotate 45` stands a bar on end, as `rotate 90` does.
+- **Lacci, turns:** since 27 Sep (this ledger's wave-4 Lacci lane) `rotate` adds to the slot's running total, which a child slot inherits and `clear` keeps; `rotate nil` drops the slot's own. `scale` and `skew` still set their value outright, where Shoes 3 multiplies them in too; no example found depends on either (under Shoes 3 `rotating-star.rb`'s random `scale` would wander rather than pulse).
 - **Native:** applies the draw context's transforms to every shape, rotating about the shape's top-left corner unless `transform: "center"` (or `center: true`); `translate` moves the shape and its layout box; caps are round, flat or square (DESIGN 12). **Wire contract (b), 27 Sep 2026:** Lacci sends `"translate": [x, y]` (cumulative), `"transform": "center" | "corner"` (the rotate and scale pivot, default corner) and `"cap": "curve" | "rect" | "project"` (round, butt, square) in the draw context, and Rust renders them.
 
 ### E11. Art methods return `Shoes::Shape`
