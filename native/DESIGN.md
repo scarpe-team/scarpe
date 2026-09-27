@@ -243,7 +243,9 @@ is the one bug we never want. Must never load `scarpe/wv` (set-once globals coll
 - Outgoing messages are buffered and written on `flush`; the pump flushes once per iteration, and a
   `req` writes the buffer ahead of itself. A Mutex guards writes (downloads call back on threads),
   and a post from another thread wakes the pump.
-- If the child has not answered `hello` within 20 s, the pump raises `ChildTimeout`.
+- If the child has not answered `hello` within 20 s of the pump's first step, the pump raises
+  `ChildTimeout`. The clock starts there and not at the spawn, because the app body runs in
+  between with the answer unread in the pipe, so a slow body is not a stuck child.
 
 ### 5.3 Normalisation (Ruby value -> wire value), in one place
 
