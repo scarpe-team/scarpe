@@ -799,18 +799,27 @@ class Shoes
     end
 
     # Hide the drawable.
+    #
+    # @return [self]
     def hide
       self.hidden = true
+      self
     end
 
     # Show the drawable.
+    #
+    # @return [self]
     def show
       self.hidden = false
+      self
     end
 
     # Hide the drawable if it is currently shown. Show it if it is currently hidden.
+    #
+    # @return [self]
     def toggle
       self.hidden = !self.hidden
+      self
     end
 
     # Set the hover handler. Not every drawable may do something useful with this.

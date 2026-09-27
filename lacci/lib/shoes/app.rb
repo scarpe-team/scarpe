@@ -431,14 +431,22 @@ class Shoes
   end
 end
 
-# Event handler DSLs get defined in both App and Slot - same code, slightly different results
-events = %i[motion hover leave click release keypress wheel animate every timer]
-events.each do |event|
-  Shoes::App.define_method(event) do |*args, &block|
-    subscription_item(args:, shoes_api_name: event.to_s, &block)
+# Event handler DSLs get defined in both App and Slot - same code, slightly different results.
+# Timers return the timer, so it can be stopped; event handlers return self (manual 2187-2284).
+%i[animate every timer].each do |timer|
+  [Shoes::App, Shoes::Slot].each do |owner|
+    owner.define_method(timer) do |*args, &block|
+      subscription_item(args:, shoes_api_name: timer.to_s, &block)
+    end
   end
-  Shoes::Slot.define_method(event) do |*args, &block|
-    subscription_item(args:, shoes_api_name: event.to_s, &block)
+end
+
+%i[motion hover leave click release keypress wheel].each do |event|
+  [Shoes::App, Shoes::Slot].each do |owner|
+    owner.define_method(event) do |*args, &block|
+      subscription_item(args:, shoes_api_name: event.to_s, &block)
+      self
+    end
   end
 end
 
@@ -472,8 +480,10 @@ class Shoes::App < Shoes::Drawable
   # Slot methods that should be accessible at App level.
   # In Shoes, the app block's self has direct access to these slot methods
   # because the app body evaluates as if it were inside the document_root slot.
+  # Like the slot's own, they return self.
   def clear(&block)
     current_slot.clear(&block)
+    self
   end
 
   def contents
@@ -482,18 +492,22 @@ class Shoes::App < Shoes::Drawable
 
   def append(&block)
     current_slot.append(&block)
+    self
   end
 
   def prepend(&block)
     current_slot.prepend(&block)
+    self
   end
 
   def before(drawable, &block)
     current_slot.before(drawable, &block)
+    self
   end
 
   def after(drawable, &block)
     current_slot.after(drawable, &block)
+    self
   end
 
   # Returns the current mouse state as [button, x, y].

@@ -94,18 +94,27 @@ class Shoes::SubscriptionItem < Shoes::Drawable
   # Stop the animation/timer. In Shoes3, `anim = animate(fps) { ... }; anim.stop`
   # stops the periodic callback from firing. Setting the :stopped style triggers
   # a prop_change event that propagates to the display service.
+  #
+  # @return [self]
   def stop
     self.stopped = true
+    self
   end
 
   # Restart a stopped animation/timer.
+  #
+  # @return [self]
   def start
     self.stopped = false
+    self
   end
 
   # Toggle between started and stopped.
+  #
+  # @return [self]
   def toggle
     self.stopped = !self.stopped
+    self
   end
 
   # Whether this subscription is currently stopped.
