@@ -300,6 +300,10 @@ class Shoes
     # Tooltip text shown on hover (HTML title attribute)
     shoes_style :tooltip
 
+    # The click handler is this style (manual 1144-1151, ledger G10): click: proc { }
+    # when the drawable is made, or whatever block click was last given.
+    shoes_style :click
+
     attr_reader :debug_id
 
     # These styles can be set to a current per-slot value and inherited from parent slots.
@@ -603,6 +607,7 @@ class Shoes
       # Should we send an event so this can be discovered from someplace other than
       # the DisplayService?
       ::Shoes::DisplayService.display_service.create_display_drawable_for(klass_name, self.linkable_id, shoes_style_values, parent_id:, is_widget:)
+      click(&@click) if @click.is_a?(Proc)
     end
 
     public
@@ -928,7 +933,7 @@ class Shoes
     # @yield [button, left, top] the mouse button number and where the press happened
     # @return [self]
     def click(&block)
-      @click_block = block
+      @click = block
       listen_for_pointer("click")
       self
     end
@@ -939,7 +944,7 @@ class Shoes
     # @yield [button, left, top] the mouse button number and where the release happened
     # @return [self]
     def release(&block)
-      @release_block = block
+      @release = block
       listen_for_pointer("release")
       self
     end
@@ -953,7 +958,7 @@ class Shoes
       return if @pointer_events[event_name]
 
       @pointer_events[event_name] = bind_self_event(event_name) do |button, left, top, **_kwargs|
-        instance_variable_get("@#{event_name}_block")&.call(button, left, top)
+        instance_variable_get("@#{event_name}")&.call(button, left, top)
       end
       send_shoes_event({ "has_#{event_name}" => true }, event_name: "prop_change", target: linkable_id)
     end

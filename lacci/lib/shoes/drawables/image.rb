@@ -25,7 +25,7 @@ class Shoes
 
       # Bind event handlers for click/hover/leave (like Button)
       bind_self_event("click") do
-        @click_handler&.call
+        @click&.call
       end
 
       bind_self_event("hover") do
@@ -37,7 +37,11 @@ class Shoes
       end
 
       # Shoes 3 takes a file image's block as its click (simple-bounce.rb, mask2.rb).
-      canvas ? @app.with_slot(self, &block) : click(&block)
+      if canvas
+        @app.with_slot(self, &block)
+      elsif block
+        click(&block)
+      end
     end
 
     # What was drawn on the image. Do not call add_child or remove_child directly,
@@ -65,7 +69,7 @@ class Shoes
 
     # Set the click handler. Returns self for method chaining (Shoes3 convention).
     def click(&block)
-      @click_handler = block
+      @click = block
       self
     end
 
