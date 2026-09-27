@@ -447,3 +447,30 @@ fn an_image_canvas_child_moving_repaints_in_part() {
         assert!(looks_like_a_full_paint(&mut h, &window), "the oval at {x},{y}");
     }
 }
+
+/// A damaged rect that cuts through an error underline repaints the very waves a full paint
+/// draws there: the waves are counted from the start of the span, not from the rect's edge.
+#[test]
+fn an_error_underline_repaints_in_part() {
+    for scale in [1.0, 2.0] {
+        let mut h = Harness::new();
+        h.feed(&app(420, 120, &[
+            create(3, "Para", 2, json!({"text_items": ["a long misspeled line of wurds to squiggle under"], "underline": "error", "size": 18})),
+            create(4, "Oval", 2, json!({"left": 100, "top": 16, "width": 10, "draw_context": {"fill": {"rgba": [0, 0, 255, 255]}}})),
+        ]));
+        let mut window = Window::open(&mut h, scale);
+        for x in [131, 163, 197, 229, 262] {
+            props(&mut h, 4, json!({"left": x}));
+            let plan = window.repaint(&mut h);
+            assert!(partial(&plan, &window, 0.5), "moving the dot repaints in part: {plan:?}");
+            // verify() compares a rect with itself painted unculled; this compares it with the
+            // whole picture, where a squiggle out of step shows as a run of wrong pixels.
+            let full = h.rt.picture(APP, scale).unwrap();
+            let off = window.frame.pixels().iter().zip(full.pixels()).filter(|(a, b)| {
+                let (a, b) = (a.demultiply(), b.demultiply());
+                [a.red().abs_diff(b.red()), a.green().abs_diff(b.green()), a.blue().abs_diff(b.blue())].into_iter().max().unwrap_or(0) > 40
+            });
+            assert_eq!(off.count(), 0, "at {scale}x with the dot at {x}");
+        }
+    }
+}
