@@ -2,6 +2,8 @@
 
 class Shoes
   class Button < Shoes::Drawable
+    include Shoes::Focusable
+
     shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size, :tooltip, :icon, :icon_pos, :font, :stroke
     shoes_events :click
 
@@ -38,10 +40,9 @@ class Shoes
 
       super
 
-      # Bind block to a handler named "click"
+      # The block is handed the button (manual 2918-2921, ledger G1)
       bind_self_event("click") do
-        @log.debug("Button clicked, calling handler") if @block
-        @block&.call if @block
+        @block&.call(self)
       end
 
       create_display_drawable
@@ -49,9 +50,11 @@ class Shoes
 
     # Set the click handler
     #
-    # @yield A block to be called when the button is clicked.
+    # @yield [button] A block to be called with the button when it is clicked.
+    # @return [self]
     def click(&block)
       @block = block
+      self
     end
   end
 end
