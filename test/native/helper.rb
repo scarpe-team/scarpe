@@ -53,6 +53,7 @@ module NativeTestHelpers
         "FAKE_CHILD_ARGV" => File.join(dir, "argv.json"),
         "FAKE_CHILD_SCRIPT" => File.join(dir, "script.json"),
         "SCARPE_NATIVE_HEADLESS" => headless ? "1" : nil,
+        "SCARPE_NATIVE_GHOST" => nil, # the fake child has no window; a test that means a ghost says so
         "SCARPE_NATIVE_SNAPSHOT_DIR" => File.join(dir, "snapshots"),
         "SCARPE_NATIVE_LOG_LEVEL" => "warn",
         "LOCALAPPDATA" => dir,
@@ -83,9 +84,12 @@ module NativeTestHelpers
 
   # The real Rust child with bundled fonts, so pixels and rects are the same on every machine.
   # A window it opens (headless: false) is a ghost: real frames, but nobody sees it or can click
-  # it, so a test run never covers someone's screen. Pass "SCARPE_NATIVE_GHOST" => "0" to show it.
+  # it, so a test run never covers someone's screen. SCARPE_NATIVE_GHOST=0 shows it.
   def run_real(app_code, env: {}, **options, &block)
-    real_env = { "SCARPE_NATIVE_BIN" => NativeTestHelpers.real_binary, "SCARPE_NATIVE_ARGS" => "--fonts bundled", "SCARPE_NATIVE_GHOST" => "1" }
+    real_env = {
+      "SCARPE_NATIVE_BIN" => NativeTestHelpers.real_binary, "SCARPE_NATIVE_ARGS" => "--fonts bundled",
+      "SCARPE_NATIVE_GHOST" => ENV.fetch("SCARPE_NATIVE_GHOST", "1"),
+    }
     run_app(app_code, env: real_env.merge(env), **options, &block)
   end
 
