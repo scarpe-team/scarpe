@@ -8,10 +8,10 @@
 //! size under a translated transform, which clips everything outside it for free.
 //!
 //! The whole frame is painted whenever that cannot be trusted: the first frame, a new size or
-//! scale, anything that scrolls, a popup or modal, nodes changing places in paint order, and
-//! art whose transform may take it outside its box. SCARPE_NATIVE_DAMAGE=off turns partial
-//! repaints off; SCARPE_NATIVE_DAMAGE=check paints every frame in full as well and reports
-//! any pixel the partial repaint got wrong.
+//! scale, anything that scrolls, a popup, modal or tooltip, nodes changing places in paint
+//! order, and art whose transform may take it outside its box. SCARPE_NATIVE_DAMAGE=off turns
+//! partial repaints off; SCARPE_NATIVE_DAMAGE=check paints every frame in full as well and
+//! reports any pixel the partial repaint got wrong.
 
 use super::{paint_nodes, Canvas, Scene};
 use crate::doc::{Doc, Kind, Node};
@@ -133,7 +133,7 @@ struct Frame {
     revision: u64,
     size: (u32, u32),
     scale: f32,
-    /// A popup or modal was up: they draw over everything.
+    /// A popup, modal or tooltip was up: they draw over everything.
     overlaid: bool,
     /// Scroll offsets and scrollbars.
     scrolling: u64,
@@ -361,7 +361,9 @@ fn look_at(doc: &Doc, layout: &Layout, view: &ViewState, hovered: &HashSet<Id>, 
         revision,
         size,
         scale,
-        overlaid: view.popup.is_some() || view.modal.is_some(),
+        // A tooltip counts from when the pointer rests on its owner, not only once it shows, so
+        // the frame that brings it up is painted whole.
+        overlaid: view.popup.is_some() || view.modal.is_some() || view.tooltip.as_ref().is_some_and(|t| !t.dismissed),
         scrolling: scrolling(layout),
         order: layout.order.clone(),
         nodes,

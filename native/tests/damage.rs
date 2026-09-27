@@ -348,3 +348,102 @@ fn a_random_walk_of_changes_never_leaves_a_stale_pixel() {
         }
     }
 }
+
+// ---- What the art-input lane draws, under partial repaints ----
+
+/// A tooltip draws below the pointer, outside every node's box, so the frame that shows it
+/// and the frame that hides it are painted whole.
+#[test]
+fn a_tooltip_shows_and_hides_without_stale_pixels() {
+    let mut h = Harness::new();
+    busy_scene(&mut h);
+    props(&mut h, 9, json!({"tooltip": "Presses the button"}));
+    let mut window = Window::open(&mut h, 2.0);
+    let button = h.node(|n| n["kind"] == "Button");
+    let (x, y) = (button["x"].as_f64().unwrap() as f32 + 10.0, button["y"].as_f64().unwrap() as f32 + 10.0);
+    mouse(&mut h, "move", x, y);
+    assert_eq!(window.repaint(&mut h), Repaint::Everything, "the bubble shows");
+    mouse(&mut h, "move", 5.0, 300.0);
+    assert_eq!(window.repaint(&mut h), Repaint::Everything, "and goes");
+    mouse(&mut h, "move", 5.0, 310.0);
+    assert_eq!(window.repaint(&mut h), Repaint::Nothing, "then nothing is left to paint");
+}
+
+/// Whether the frame looks like a full paint. `verify` checks a repainted rect against the
+/// same rect painted with no node skipped, so a rect that paints wrong both ways (a layer
+/// that forgets where the rect sits) needs this look at the whole picture as well. Edges a
+/// rect cuts through antialias a shade differently, hence the tolerance.
+fn looks_like_a_full_paint(h: &mut Harness, window: &Window) -> bool {
+    let full = h.rt.picture(APP, window.scale).unwrap();
+    let off = window.frame.data().chunks(4).zip(full.data().chunks(4)).filter(|(a, b)| a.iter().zip(b.iter()).any(|(x, y)| x.abs_diff(*y) > 24)).count();
+    off as u64 * 1000 <= window.pixels() * 2
+}
+
+/// A slot with a mask shows its other contents only where the mask draws. Moving what the
+/// mask draws repaints in part: the layers cover just the repainted rect.
+#[test]
+fn a_masked_slot_repaints_in_part() {
+    let mut h = Harness::new();
+    let black = json!({"fill": {"rgba": [0, 0, 0, 255]}});
+    let body = vec![
+        create(3, "Stack", 2, json!({"width": 400, "height": 300})),
+        create(4, "Background", 3, json!({"fill": {"gradient": [{"rgba": [250, 60, 60, 255]}, {"rgba": [60, 60, 250, 255]}], "angle": 90}})),
+        create(5, "Mask", 3, json!({})),
+        create(6, "Oval", 5, json!({"left": 40, "top": 40, "width": 120, "height": 120, "draw_context": black.clone()})),
+        create(7, "Rect", 5, json!({"left": 220, "top": 60, "width": 100, "height": 60, "draw_context": black})),
+        create(8, "Para", 2, json!({"text_items": ["Outside the masked stack"]})),
+    ];
+    h.feed(&app(480, 400, &body));
+    let mut window = Window::open(&mut h, 2.0);
+    for (x, y) in [(60, 50), (100, 120), (10, 10)] {
+        props(&mut h, 6, json!({"left": x, "top": y}));
+        let plan = window.repaint(&mut h);
+        assert!(partial(&plan, &window, 0.5), "{plan:?}");
+        assert!(looks_like_a_full_paint(&mut h, &window), "the masked stack at {x},{y}");
+    }
+    props(&mut h, 4, json!({"fill": {"rgba": [20, 160, 60, 255]}}));
+    window.repaint(&mut h);
+    assert!(looks_like_a_full_paint(&mut h, &window), "a new backdrop behind the mask");
+}
+
+/// Art in a shape block paints as the shape's one path, so a member that moves repaints
+/// through the shape and its box.
+#[test]
+fn a_shape_block_member_moving_repaints_the_shape() {
+    let mut h = Harness::new();
+    let grey = json!({"fill": {"rgba": [0, 0, 0, 128]}, "stroke": {"rgba": [0, 0, 0, 255]}, "strokewidth": 2});
+    let body = vec![
+        create(3, "Shape", 2, json!({"left": 40, "top": 40, "shape_commands": [], "draw_context": grey.clone()})),
+        create(4, "Oval", 3, json!({"left": 0, "top": 0, "width": 100, "height": 100, "draw_context": grey.clone()})),
+        create(5, "Rect", 3, json!({"left": 60, "top": 20, "width": 100, "height": 60, "draw_context": grey})),
+        create(6, "Para", 2, json!({"text_items": ["Beside the shape"]})),
+    ];
+    h.feed(&app(480, 320, &body));
+    let mut window = Window::open(&mut h, 2.0);
+    for (x, y) in [(70, 30), (20, 60), (60, 20)] {
+        props(&mut h, 5, json!({"left": x, "top": y}));
+        window.repaint(&mut h);
+        assert!(looks_like_a_full_paint(&mut h, &window), "the rect at {x},{y}");
+    }
+}
+
+/// What an image(w, h) { } block draws lays out inside the image and is clipped to it.
+#[test]
+fn an_image_canvas_child_moving_repaints_in_part() {
+    let mut h = Harness::new();
+    let red = json!({"fill": {"rgba": [255, 0, 0, 255]}, "stroke": {"rgba": [0, 0, 0, 255]}});
+    let body = vec![
+        create(3, "Image", 2, json!({"url": "", "left": 40, "top": 30, "width": 200, "height": 150})),
+        create(4, "Oval", 3, json!({"left": 20, "top": 20, "width": 60, "height": 60, "draw_context": red.clone()})),
+        create(5, "Rect", 3, json!({"left": 150, "top": 100, "width": 100, "height": 100, "draw_context": red})),
+        create(6, "Para", 3, json!({"text_items": ["inside"]})),
+    ];
+    h.feed(&app(480, 320, &body));
+    let mut window = Window::open(&mut h, 2.0);
+    for (x, y) in [(60, 40), (170, 120), (20, 20)] {
+        props(&mut h, 4, json!({"left": x, "top": y}));
+        let plan = window.repaint(&mut h);
+        assert!(partial(&plan, &window, 0.5), "{plan:?}");
+        assert!(looks_like_a_full_paint(&mut h, &window), "the oval at {x},{y}");
+    }
+}
