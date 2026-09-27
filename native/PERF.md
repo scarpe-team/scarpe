@@ -314,6 +314,27 @@ no longer happens: those frames mostly move more than half the window, which the
 stars twinkling over a 72-circle nebula (`bench.rs`, `stars_twinkling_over_a_nebula`) paints in
 0.93 ms in part and 58.3 ms whole, so the thresholds stay as they are.
 
+## Screen readers (27 Sep, wave 5)
+
+Every window carries an AccessKit adapter (DESIGN 12, "Screen readers"). It asks for nothing
+until a screen reader does, so an app nobody reads aloud builds no tree and sends nothing; each
+presented frame costs it one look at the adapter's state. While a screen reader listens, every
+presented frame builds the app's tree and sends only the nodes that changed.
+`a_screen_reader_listening_to_2000_paras` in `tests/bench.rs`, three runs at load 16 to 30:
+
+| measure | time |
+|---|---|
+| the whole tree, 2003 nodes (a screen reader starting, or starting again) | 0.64-0.65 ms |
+| a frame in which one check toggles | 0.50-0.55 ms, 1 node sent |
+
+That is about a fifth of the 2.9 ms a frame of "one ball over 2000 paras" costs, paid only while
+VoiceOver is on. Two runs at load 48 took 1.1 and 4.9 ms a frame.
+
+Creating each window's adapter costs nothing measurable. From `run` to the first frame on screen
+(SCARPE_NATIVE_STATS marks, hello world in a ghost window, six runs of each binary interleaved):
+29.3 to 34.2 ms with the adapter, median 30.0, and 29.4 to 50.3 ms at 98ad233 without it, median
+31.7. The release binary grew from 7.65 MB to 8.08 MB.
+
 ## Running the benchmarks
 
 ```

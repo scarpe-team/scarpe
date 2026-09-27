@@ -6,7 +6,7 @@ use crate::input::{self, KeyInput};
 use crate::layout::{Layout, Rect};
 use crate::limits;
 use crate::props::Id;
-use crate::protocol::{MouseAction, Op, Outgoing, Target};
+use crate::protocol::{A11yTarget, MouseAction, Op, Outgoing, Target};
 use crate::runtime::{Effect, Runtime};
 use serde_json::{json, Value};
 
@@ -145,7 +145,35 @@ impl Runtime {
                 let app = self.app_for(app).ok_or_else(no_app)?;
                 Ok(Some(self.views[&app].ui.focus.map(Value::from).unwrap_or(Value::Null)))
             }
+            Op::A11y { app, platform } => {
+                let app = self.app_for(app).ok_or_else(no_app)?;
+                if platform {
+                    return self.platform_a11y(req, app, None);
+                }
+                Ok(Some(self.a11y_dump(app)))
+            }
+            Op::A11yAction { target: A11yTarget::Titled(title), action, value, app } => {
+                let app = self.app_for(app).ok_or_else(no_app)?;
+                self.platform_a11y(req, app, Some(crate::a11y::PlatformAct { title, action, value }))
+            }
+            Op::A11yAction { target: A11yTarget::Id(id), action, value, app } => {
+                let request = crate::a11y::request(id, &action, value).map_err(|e| (e, Value::Null))?;
+                let app = self.a11y_owner(request.target_node).or_else(|| self.app_for(app)).ok_or_else(no_app)?;
+                self.active_app = Some(app);
+                self.a11y_action(app, &request).map_err(|e| (e, Value::Null))?;
+                Ok(Some(Value::Null))
+            }
         }
+    }
+
+    /// What AppKit hands VoiceOver, answered by the window, which has the view to ask. A headless
+    /// run has no window and so no platform tree.
+    fn platform_a11y(&mut self, req: u64, app: Id, act: Option<crate::a11y::PlatformAct>) -> Result<Option<Value>, (String, Value)> {
+        if self.opts.headless {
+            return Err(("a headless run has no window, so no platform tree (leave out `platform`)".into(), Value::Null));
+        }
+        self.effects.push(Effect::PlatformA11y { req, app, act });
+        Ok(None)
     }
 
     /// The app as a person would see it: a see-through window (App `opacity`) keeps only
@@ -268,7 +296,7 @@ impl Runtime {
 
     /// The open app a drawable is drawn in: up its parents, or for a text fragment
     /// (which has none), the app whose layout shows it.
-    fn owner_app(&mut self, id: Id) -> Option<Id> {
+    pub(crate) fn owner_app(&mut self, id: Id) -> Option<Id> {
         if let Some(app) = self.doc.app_of(id).filter(|a| self.views.contains_key(a)) {
             return Some(app);
         }

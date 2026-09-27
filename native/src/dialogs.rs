@@ -116,13 +116,13 @@ pub const SWATCHES: [Color; 12] = [
 
 const PANEL: Color = Color::rgb(0xf6, 0xf6, 0xf8);
 
-struct Geometry {
-    panel: Rect,
-    message: (f32, f32, f32),
-    field: Rect,
-    swatch: Vec<Rect>,
-    ok: Rect,
-    cancel: Rect,
+pub(crate) struct Geometry {
+    pub panel: Rect,
+    pub message: (f32, f32, f32),
+    pub field: Rect,
+    pub swatch: Vec<Rect>,
+    pub ok: Rect,
+    pub cancel: Rect,
 }
 
 /// The modal's words: its title as a heading, then its message.
@@ -148,7 +148,7 @@ fn panel_width(modal: &Modal, window_w: f32) -> f32 {
     }
 }
 
-fn geometry(modal: &Modal, size: (f32, f32), text: &mut TextEngine) -> (Geometry, crate::text::ShapedText) {
+pub(crate) fn geometry(modal: &Modal, size: (f32, f32), text: &mut TextEngine) -> (Geometry, crate::text::ShapedText) {
     let w = panel_width(modal, size.0);
     let shaped = text.shape(&words(modal), Some(w - 32.0));
     let body = body_height(&modal.kind);
@@ -290,7 +290,7 @@ impl Runtime {
         self.views.get(&app).is_some_and(|v| v.standalone)
     }
 
-    fn close_modal(&mut self, app: Id, ok: bool) {
+    pub(crate) fn close_modal(&mut self, app: Id, ok: bool) {
         let Some(modal) = self.views.get_mut(&app).and_then(|v| v.ui.modal.take()) else { return };
         let msg = match (&modal.kind, ok) {
             (ModalKind::Ask(field), true) => reply(modal.req, Value::String(field.text()), false),

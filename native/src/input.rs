@@ -772,7 +772,7 @@ impl Runtime {
     }
 
     /// A link with a URL and no block: the display opens it (never when headless).
-    fn follow_link(&mut self, id: Id) {
+    pub(crate) fn follow_link(&mut self, id: Id) {
         let Some(node) = self.doc.get(id).filter(|n| n.kind == Kind::Link) else { return };
         if node.props.truthy("has_block") {
             return;
@@ -811,7 +811,7 @@ impl Runtime {
         }
     }
 
-    fn open_popup(&mut self, app: Id, id: Id) {
+    pub(crate) fn open_popup(&mut self, app: Id, id: Id) {
         let (Some(node), Some(view)) = (self.doc.get(id), self.views.get_mut(&app)) else { return };
         let Some(anchor) = view.layout.as_ref().and_then(|l| l.rect(id)) else { return };
         if list_box::items(node).is_empty() {
@@ -830,7 +830,7 @@ impl Runtime {
         self.request_redraw(app);
     }
 
-    fn choose(&mut self, list_box: Id, item: &str) {
+    pub(crate) fn choose(&mut self, list_box: Id, item: &str) {
         self.out.event("change", Some(list_box), vec![Value::String(item.to_string())]);
     }
 

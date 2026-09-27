@@ -57,6 +57,9 @@ pub enum Effect {
     /// A native dialog, or an `ask` no app window can hold (dialogs::open_standalone).
     Dialog { req: u64, dialog: DialogRequest },
     OpenUrl(String),
+    /// Read the window's accessibility as AppKit hands it to VoiceOver, after acting on the
+    /// element with a title, and answer `req` (a11y ops with `platform`).
+    PlatformA11y { req: u64, app: Id, act: Option<crate::a11y::PlatformAct> },
 }
 
 pub struct AppView {
@@ -655,7 +658,7 @@ fn changes_only_looks(kind: &Kind, key: &str) -> bool {
 
 /// Requests that act like a person at the keyboard or mouse.
 fn is_input(op: &Op) -> bool {
-    matches!(op, Op::Click { .. } | Op::Mouse { .. } | Op::Type { .. } | Op::Key { .. } | Op::Wheel { .. })
+    matches!(op, Op::Click { .. } | Op::Mouse { .. } | Op::Type { .. } | Op::Key { .. } | Op::Wheel { .. } | Op::A11yAction { .. })
 }
 
 /// The App's `width` and `height`, each finite, positive and at most limits::MAX_SIDE.

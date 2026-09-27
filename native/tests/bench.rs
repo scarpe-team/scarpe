@@ -311,3 +311,34 @@ fn stars_twinkling_over_a_nebula() {
     }
     times.report("stars twinkling over a nebula", window.pixels());
 }
+
+/// What listening costs a window (src/a11y.rs): after each frame it builds the app's tree and
+/// sends the screen reader what changed. A window nobody reads aloud builds nothing.
+#[test]
+#[ignore]
+fn a_screen_reader_listening_to_2000_paras() {
+    use scarpe_native::a11y::Mirror;
+    let mut h = Harness::new();
+    let mut body: Vec<_> = (0..2000).map(|i| create(3 + i, "Para", 2, json!({"text_items": [format!("Paragraph {i} of a long document")]}))).collect();
+    body.push(create(2003, "Check", 2, json!({})));
+    h.feed(&app(600, 500, &body));
+    h.rt.ensure_layout(APP);
+    let mut mirror = Mirror::default();
+    let t = Instant::now();
+    let first = mirror.update(h.rt.a11y_tree(APP, SCALE));
+    let whole = t.elapsed();
+    let rounds = 20;
+    let (mut spent, mut sent) = (Duration::ZERO, 0);
+    for i in 0..rounds {
+        h.feed(&format!("{}\n{}\n", json!({"t": "props", "id": 2003, "props": {"checked": i % 2 == 0}}), json!({"t": "flush"})));
+        let t = Instant::now();
+        sent += mirror.update(h.rt.a11y_tree(APP, SCALE)).nodes.len();
+        spent += t.elapsed();
+    }
+    println!(
+        "a screen reader over 2000 paras: the whole tree ({} nodes) {whole:?}; a check toggling, per frame {:?}, {} node(s) sent",
+        first.nodes.len(),
+        spent / rounds,
+        sent / rounds as usize
+    );
+}

@@ -31,9 +31,10 @@ fn far_away(attrs: WindowAttributes) -> WindowAttributes {
     attrs.with_position(winit::dpi::PhysicalPosition::new(-30_000, -30_000))
 }
 
-/// Off macOS a ghost is out of sight from the moment it opens.
+/// Off macOS a ghost opens out of sight, far off every screen.
 #[cfg(not(target_os = "macos"))]
-pub fn show(_window: &winit::window::Window) -> bool {
+pub fn show(window: &winit::window::Window) -> bool {
+    window.set_visible(true);
     true
 }
 
