@@ -15,15 +15,29 @@ use std::f32::consts::{FRAC_PI_2, PI, TAU};
 use tiny_skia::{FillRule, LineCap, LineJoin, Path, PathBuilder, Stroke, Transform};
 
 pub struct Art {
+    /// The shape's own box before the draw context's transforms: gradients stretch
+    /// across it and rotate/scale turn about its corner (or centre).
+    pub frame: Rect,
+    /// Where it shows once transformed: its layout box, for hit-testing and culling.
     pub bounds: Rect,
     pub path: Path,
+    pub transform: Transform,
     /// Lines have no inside to fill.
     pub fillable: bool,
 }
 
 /// The geometry of an art element positioned against `origin`, its slot's
 /// content origin. `parent` is the slot's content size, for relative values.
+/// The draw context's `translate` moves it; `rotate`, `scale` and `skew` turn it.
 pub fn art(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> Option<Art> {
+    let (tx, ty) = translation(&node.props);
+    let (frame, path, fillable) = geometry(node, (origin.0 + tx, origin.1 + ty), parent)?;
+    let transform = art_transform(&node.props, frame);
+    Some(Art { bounds: transformed_box(frame, transform), frame, path, transform, fillable })
+}
+
+/// (box, path, fillable) of an untransformed art element.
+fn geometry(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> Option<(Rect, Path, bool)> {
     let p = &node.props;
     let dim = |key: &str, basis: f32| p.dim(key).map(|d| d.resolve(basis));
     let left = origin.0 + dim("left", parent.0).unwrap_or(0.0);
@@ -42,14 +56,14 @@ pub fn art(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> Option<Art> {
             let h = dim("height", parent.1).unwrap_or(w);
             let r = boxed(w, h);
             let curve = p.f32("curve").unwrap_or(0.0);
-            Some(Art { bounds: r, path: rounded_rect(r, curve)?, fillable: true })
+            Some((r, rounded_rect(r, curve)?, true))
         }
         Kind::Oval => {
             let radius = p.f32("radius").unwrap_or(0.0);
             let w = dim("width", parent.0).unwrap_or(radius * 2.0);
             let h = dim("height", parent.1).unwrap_or(w);
             let r = boxed(w, h);
-            Some(Art { bounds: r, path: ellipse(r)?, fillable: true })
+            Some((r, ellipse(r)?, true))
         }
         Kind::Line => {
             let x2 = origin.0 + dim("x2", parent.0).unwrap_or(0.0);
@@ -59,19 +73,19 @@ pub fn art(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> Option<Art> {
             pb.line_to(x2, y2);
             let pad = p.art_f32("strokewidth").unwrap_or(1.0).max(1.0) / 2.0;
             let bounds = Rect::new(left.min(x2) - pad, top.min(y2) - pad, (x2 - left).abs() + 2.0 * pad, (y2 - top).abs() + 2.0 * pad);
-            Some(Art { bounds, path: pb.finish()?, fillable: false })
+            Some((bounds, pb.finish()?, false))
         }
         Kind::Arrow => {
             let w = dim("width", parent.0).unwrap_or(0.0);
             let path = arrow(left, top, w)?;
-            Some(Art { bounds: Rect::new(left - w / 2.0, top - 0.4 * w, w, 0.8 * w), path, fillable: true })
+            Some((Rect::new(left - w / 2.0, top - 0.4 * w, w, 0.8 * w), path, true))
         }
         Kind::Star => {
             let points = p.f32("points").unwrap_or(10.0).clamp(2.0, 1000.0) as u32;
             let outer = p.f32("outer").unwrap_or(100.0);
             let inner = p.f32("inner").unwrap_or(50.0);
             let path = star(left, top, points, outer, inner)?;
-            Some(Art { bounds: Rect::new(left - outer, top - outer, outer * 2.0, outer * 2.0), path, fillable: true })
+            Some((Rect::new(left - outer, top - outer, outer * 2.0, outer * 2.0), path, true))
         }
         Kind::Arc => {
             let w = dim("width", parent.0).unwrap_or(0.0);
@@ -89,12 +103,12 @@ pub fn art(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> Option<Art> {
             } else {
                 append_arc(&mut pb, e, a1, a2, false);
             }
-            Some(Art { bounds: r, path: pb.finish()?, fillable: true })
+            Some((r, pb.finish()?, true))
         }
         Kind::Shape => {
             let path = shape(p.get("shape_commands"), left, top)?;
             let b = path.bounds();
-            Some(Art { bounds: Rect::new(b.x(), b.y(), b.width(), b.height()), path, fillable: true })
+            Some((Rect::new(b.x(), b.y(), b.width(), b.height()), path, true))
         }
         _ => None,
     }
@@ -241,10 +255,10 @@ pub fn shape(commands: Option<&Value>, dx: f32, dy: f32) -> Option<Path> {
     pb.finish()
 }
 
-/// rotate/scale/skew from the draw context, applied about the element's
-/// centre. Shoes rotates counter-clockwise for positive degrees.
-pub fn art_transform(props: &Props, bounds: Rect) -> Transform {
-    let (cx, cy) = bounds.center();
+/// rotate/scale/skew from the draw context. They turn the shape about its corner,
+/// or about its centre after `transform :center` or with `center: true` (manual
+/// 1857-1860, 1115-1121; ledger E10). Shoes turns counter-clockwise for positive degrees.
+pub fn art_transform(props: &Props, frame: Rect) -> Transform {
     let mut t = Transform::identity();
     let context = |key: &str| props.art(key).cloned();
     if let Some(deg) = context("rotate").and_then(|v| v.as_f64()) {
@@ -263,7 +277,39 @@ pub fn art_transform(props: &Props, bounds: Rect) -> Transform {
     if t.is_identity() {
         return t;
     }
-    Transform::from_translate(cx, cy).pre_concat(t).pre_concat(Transform::from_translate(-cx, -cy))
+    let (px, py) = if turns_about_centre(props) { frame.center() } else { (frame.x, frame.y) };
+    Transform::from_translate(px, py).pre_concat(t).pre_concat(Transform::from_translate(-px, -py))
+}
+
+fn turns_about_centre(props: &Props) -> bool {
+    props.truthy("center") || props.art("transform").and_then(Value::as_str).map(|s| s.trim_start_matches(':')) == Some("center")
+}
+
+/// `translate(left, top)` moves the pen for the rest of the slot (manual 1862-1868).
+/// Lacci sends the running total as `translate: [x, y]`.
+fn translation(props: &Props) -> (f32, f32) {
+    let Some(Value::Array(xy)) = props.art("translate") else { return (0.0, 0.0) };
+    let at = |i: usize| xy.get(i).and_then(Value::as_f64).unwrap_or(0.0) as f32;
+    (at(0), at(1))
+}
+
+/// The box around `r` once transformed.
+fn transformed_box(r: Rect, t: Transform) -> Rect {
+    if t.is_identity() {
+        return r;
+    }
+    let mut corners = [
+        tiny_skia::Point::from_xy(r.x, r.y),
+        tiny_skia::Point::from_xy(r.right(), r.y),
+        tiny_skia::Point::from_xy(r.x, r.bottom()),
+        tiny_skia::Point::from_xy(r.right(), r.bottom()),
+    ];
+    t.map_points(&mut corners);
+    let (mut x0, mut y0, mut x1, mut y1) = (f32::MAX, f32::MAX, f32::MIN, f32::MIN);
+    for c in corners {
+        (x0, y0, x1, y1) = (x0.min(c.x), y0.min(c.y), x1.max(c.x), y1.max(c.y));
+    }
+    Rect::new(x0, y0, x1 - x0, y1 - y0)
 }
 
 fn line_cap(props: &Props) -> LineCap {
@@ -277,15 +323,13 @@ fn line_cap(props: &Props) -> LineCap {
 /// Fills then strokes an art element. Unset fill and stroke default to black,
 /// strokewidth to 1 (Shoes 3); `nofill`/`nostroke` arrive as alpha 0.
 pub fn paint_art(canvas: &mut Canvas, node: &Node, lbox: &LBox, images: &mut ImageCache) {
-    let parent = lbox.parent_size;
-    let Some(art) = art(node, lbox.origin, parent) else { return };
+    let Some(art) = art(node, lbox.origin, lbox.parent_size) else { return };
     let props = &node.props;
-    let transform = art_transform(props, art.bounds);
     if art.fillable {
         let fill = props.art_paint("fill").unwrap_or(Paint::Solid(Color::BLACK));
         if fill.is_visible() {
-            with_shader(&fill, art.bounds, images, |shader| {
-                canvas.fill_path(&art.path, shader, FillRule::Winding, transform, lbox.clip);
+            with_shader(&fill, art.frame, images, |shader| {
+                canvas.fill_path(&art.path, shader, FillRule::Winding, art.transform, lbox.clip);
             });
         }
     }
@@ -293,8 +337,8 @@ pub fn paint_art(canvas: &mut Canvas, node: &Node, lbox: &LBox, images: &mut Ima
     let width = props.art_f32("strokewidth").unwrap_or(1.0);
     if stroke.is_visible() && width > 0.0 {
         let style = Stroke { width, line_cap: line_cap(props), line_join: LineJoin::Round, ..Stroke::default() };
-        with_shader(&stroke, art.bounds, images, |shader| {
-            canvas.stroke_path(&art.path, shader, &style, transform, lbox.clip);
+        with_shader(&stroke, art.frame, images, |shader| {
+            canvas.stroke_path(&art.path, shader, &style, art.transform, lbox.clip);
         });
     }
 }
@@ -356,6 +400,51 @@ mod tests {
         )
         .unwrap();
         assert!((a.bounds.x - 10.0).abs() < 0.01 && (a.bounds.y - 20.0).abs() < 0.01);
+    }
+
+    fn moved(t: Transform, x: f32, y: f32) -> (f32, f32) {
+        let mut p = [tiny_skia::Point::from_xy(x, y)];
+        t.map_points(&mut p);
+        ((p[0].x * 100.0).round() / 100.0, (p[0].y * 100.0).round() / 100.0)
+    }
+
+    /// manual 1783-1797: `rotate 45; rect 30, 30, 40, 40` turns about the rect's corner.
+    #[test]
+    fn rotate_turns_about_the_corner_by_default() {
+        let a = art(&node("Rect", json!({"left": 30, "top": 30, "width": 40, "height": 40, "draw_context": {"rotate": 45}})), (0.0, 0.0), (480.0, 420.0)).unwrap();
+        assert_eq!(a.frame, Rect::new(30.0, 30.0, 40.0, 40.0));
+        assert_eq!(moved(a.transform, 30.0, 30.0), (30.0, 30.0), "the corner stays put");
+        assert_eq!(moved(a.transform, 70.0, 70.0), (86.57, 30.0), "the far corner swings up, counter-clockwise");
+        assert!((a.bounds.y - 1.72).abs() < 0.01 && (a.bounds.right() - 86.57).abs() < 0.01, "the box follows: {:?}", a.bounds);
+    }
+
+    /// manual 1857-1860: `transform :center` turns about the middle instead.
+    #[test]
+    fn transform_center_turns_about_the_middle() {
+        let a = art(
+            &node("Rect", json!({"left": 100, "top": 100, "width": 60, "height": 20, "draw_context": {"rotate": 90, "transform": "center"}})),
+            (0.0, 0.0),
+            (300.0, 300.0),
+        )
+        .unwrap();
+        assert_eq!(moved(a.transform, 130.0, 110.0), (130.0, 110.0));
+        assert_eq!(a.bounds, Rect::new(120.0, 80.0, 20.0, 60.0));
+    }
+
+    /// manual 1115-1121: `center: true` places by the centre, and turns about it too.
+    #[test]
+    fn center_style_turns_about_the_middle() {
+        let a = art(&node("Rect", json!({"left": 50, "top": 50, "width": 20, "height": 10, "center": true, "draw_context": {"rotate": 90}})), (0.0, 0.0), (480.0, 420.0)).unwrap();
+        assert_eq!(moved(a.transform, 50.0, 50.0), (50.0, 50.0));
+    }
+
+    /// manual 1862-1868: after translate(10, 20) a shape drawn at (50, 60) lands at (60, 80).
+    #[test]
+    fn translate_moves_the_shape_and_its_box() {
+        let a = art(&node("Rect", json!({"left": 50, "top": 60, "width": 20, "height": 20, "draw_context": {"translate": [10, 20]}})), (5.0, 0.0), (200.0, 200.0)).unwrap();
+        assert_eq!(a.frame, Rect::new(65.0, 80.0, 20.0, 20.0));
+        assert_eq!(a.bounds, a.frame);
+        assert!(a.transform.is_identity());
     }
 
     #[test]
