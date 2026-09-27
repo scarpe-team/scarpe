@@ -71,6 +71,14 @@ Rake::TestTask.new(:native_test) do |t|
   t.test_files = FileList['test/native/**/*_test.rb']
 end
 
+# `scarpe package`, native path included (docs/native_packaging.md). The build test needs the
+# cached Traveling Ruby and skips without it.
+Rake::TestTask.new(:package_test) do |t|
+  t.libs << 'test/package'
+  t.libs << 'lib'
+  t.test_files = FileList['test/package/**/*_test.rb']
+end
+
 Rake::TestTask.new(:component_test) do |t|
   t.libs << 'scarpe-components/test'
   t.libs << 'scarpe-components/lib'
