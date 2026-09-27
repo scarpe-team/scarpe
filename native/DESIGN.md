@@ -693,6 +693,9 @@ change the code and this list together.
 - **Looks-only changes keep the layout.** A check's `checked`, a field's echoed `text`, a shape's
   `fill`, `stroke` or `cap`, a background's or border's `fill`, `stroke`, `strokewidth` or `curve`,
   a bar's `fraction` and a para's cursor and marker repaint without laying anything out again (`runtime.rs` `changes_only_looks`).
+  Any other prop change lays out again only the app the node is drawn in (every app for a text
+  span, which has no parent). The shaped-text cache keeps what each app's last layout used, so
+  one window laying out never throws away another's text.
 - **Text fields** keep an undo history: Cmd-Z (`:alt_z` by Shoes' name, Q5) or Control-Z undoes,
   Cmd-Shift-Z, Control-Shift-Z or Control-Y redoes. A run of typing, or of deleting, is one step,
   as in a Mac or GTK field; a paste, a cut or a caret move ends it, and the caret and selection

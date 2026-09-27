@@ -180,6 +180,7 @@ pub fn layout(inputs: Inputs, root: Id, size: (f32, f32)) -> Layout {
         clips: HashMap::new(),
         depth: 0,
     };
+    engine.text.begin_layout(root);
     engine.root(root, size);
     let out = engine.finish(root);
     inputs.text.end_layout();
