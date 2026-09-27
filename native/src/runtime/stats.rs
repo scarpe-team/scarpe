@@ -123,8 +123,13 @@ impl Stats {
 
     /// Records a milestone the first time it happens.
     pub fn mark(&mut self, name: &'static str) {
+        self.mark_at(name, Instant::now());
+    }
+
+    /// Records a milestone that happened at `at` (on another thread, say).
+    pub fn mark_at(&mut self, name: &'static str, at: Instant) {
         if !self.marks.iter().any(|(n, _)| *n == name) {
-            let at = self.since_start(Instant::now());
+            let at = self.since_start(at);
             self.marks.push((name, at));
         }
     }

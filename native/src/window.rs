@@ -7,7 +7,8 @@ use crate::paint::damage::FrameMemory;
 use crate::props::Id;
 use crate::protocol::Outbox;
 use crate::runtime::stats::{self, Phase};
-use crate::runtime::{Effect, Options, Runtime};
+use crate::runtime::{load_fonts, Effect, Options, Runtime};
+use crate::text::FontMode;
 use std::collections::HashMap;
 use std::io::BufRead;
 use std::num::NonZeroU32;
@@ -60,6 +61,8 @@ struct Shell {
 
 pub fn run(opts: Options, window_opts: WindowOptions) -> i32 {
     stats::process_started();
+    // The system fonts load while the event loop starts and the window opens (runtime::startup).
+    let fonts = (opts.fonts == FontMode::System).then(|| load_fonts(FontMode::System));
     let trace = opts.trace;
     let mut builder = EventLoop::<UserEvent>::with_user_event();
     #[cfg(target_os = "macos")]
@@ -78,6 +81,7 @@ pub fn run(opts: Options, window_opts: WindowOptions) -> i32 {
         }
     };
     event_loop.set_control_flow(ControlFlow::Wait);
+    let loop_built = std::time::Instant::now();
     let proxy = event_loop.create_proxy();
     std::thread::spawn(move || {
         let stdin = std::io::stdin();
@@ -90,13 +94,17 @@ pub fn run(opts: Options, window_opts: WindowOptions) -> i32 {
         let _ = proxy.send_event(UserEvent::Eof);
     });
     let mut shell = Shell {
-        rt: Runtime::new(opts, Outbox::stdout(trace)),
+        rt: match fonts {
+            Some(loading) => Runtime::with_fonts_loading(opts, Outbox::stdout(trace), loading),
+            None => Runtime::new(opts, Outbox::stdout(trace)),
+        },
         windows: HashMap::new(),
         deadline: window_opts.exit_after.map(|d| Instant::now() + d),
         inactive: window_opts.inactive,
         user_closed: false,
         orphaned_since: None,
     };
+    shell.rt.stats.mark_at("event_loop_built", loop_built);
     if let Err(e) = event_loop.run_app(&mut shell) {
         eprintln!("[scarpe-native] event loop failed: {e}");
         return 1;
@@ -130,6 +138,7 @@ impl Shell {
                 return;
             }
         };
+        self.rt.stats.mark("window_created");
         let context = match softbuffer::Context::new(window.clone()) {
             Ok(c) => c,
             Err(e) => {
