@@ -515,8 +515,9 @@ used, so any Scarpe display service can run them. `spec/README.md` is the writer
   with the ruling. Default rule: the manual wins, unless a large body of working examples depends on
   the other behaviour, then accept both.
 - `spec/run [--display native|niente] [--jobs N] [paths...]` runs cases in parallel, sandboxed
-  (HOME, LOCALAPPDATA, cwd in a temp dir, dialogs stubbed, clipboard kept in a file), writes
-  `spec/results/<display>.json` and prints a scoreboard. Exit code non-zero on failures.
+  (HOME, LOCALAPPDATA, cwd, TMPDIR and the download cache in a temp dir, dialogs stubbed, clipboard
+  kept in a file), writes `spec/results/<display>.json` and prints a scoreboard. Exit code
+  non-zero on failures.
 
 At the fourth build wave's merge (`5b0c9d2`, 27 Sep 2026) the suite holds 983 cases: native 958
 pass, 0 fail, 1 skip and 24 expected failures, each citing its ledger row; niente 534 pass and 16

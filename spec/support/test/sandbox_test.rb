@@ -17,4 +17,18 @@ class SandboxTest < Minitest::Test
     assert_equal name, SpecSuite::Sandbox.dir_name("manual/styles/styles.width.sspec"), "the same case gets the same name"
     assert_match(/\A[\w.-]+\z/, name, "and the name is safe as one path component")
   end
+
+  # A case's temp files and downloads must not outlive it or reach the next case: the image
+  # cache was shared through the real TMPDIR, and element.image.remote__cached could find an
+  # earlier run's entry for the same port.
+  def test_temp_files_and_downloads_stay_inside_the_sandbox
+    Dir.mktmpdir do |parent|
+      sandbox = SpecSuite::Sandbox.new(parent, "case")
+      env = sandbox.env("native")
+
+      assert_equal File.join(sandbox.root, "tmp"), env["TMPDIR"]
+      assert File.directory?(env["TMPDIR"]), "made up front, or Dir.tmpdir falls back to the shared one"
+      assert_equal File.join(sandbox.root, "cache"), env["SCARPE_NATIVE_CACHE"]
+    end
+  end
 end
