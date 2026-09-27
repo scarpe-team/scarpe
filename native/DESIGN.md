@@ -293,9 +293,9 @@ need. Removing or destroying the slot stops them with it.
 
 An idle pump sleeps. Besides the child's output, the select watches a wake pipe that a post from
 another thread (a download) and Ctrl-C (the pump chains Lacci's INT trap) write to, so nothing
-waits on the timeout. Hello goes out without waiting for `ready`. When the loop ends the shim sends
-`quit`, closes the child's stdin and gives it 2 s before TERM and KILL; if the child died while an
-app was still open, it raises `ChildDied` (native/PERF.md).
+waits on the timeout (native/PERF.md). Hello goes out without waiting for `ready`. When the loop
+ends the shim sends `quit`, closes the child's stdin and gives it 2 s before TERM and KILL; if the
+child died while an app was still open, it raises `ChildDied`.
 
 ## 6. Layout rules (canonical)
 
@@ -365,7 +365,7 @@ moved there the same day, so apps normally send it.
 
 ```
 src/main.rs        CLI: scarpe-native [--headless] [--scale F] [--fonts system|bundled] [--trace]
-                   [--exit-after SECS] [--inactive] [--version] [--help]
+                   [--exit-after SECS] [--inactive] [--ghost] [--version] [--help]
 src/lib.rs         pub mods below
 src/protocol.rs    serde types for 4.1/4.2; Outbox (buffered stdout writer, flush per message batch)
 src/doc.rs         Doc { nodes, apps }, Node { id, kind: Kind, class, props: Props, parent, children },
@@ -476,7 +476,7 @@ A handler that raises while test code is clicking or advancing fails the test in
 `scarpe peek APP.rb [--size WxH] [--scale 2] [--wait SECS] [--click TEXT | --click-at X,Y]
 [--type TEXT] [--key NAME] [--wheel DY[,X,Y]] [--window N | --app ID] [--shot OUT.png] [--layout]`
 runs an app headless, performs the steps in order from the first heartbeat, prints one line per
-click, wheel, shot and laid-out node, and exits (1 when a step failed or no app started). With no
+click, wheel, window, shot and laid-out node, and exits (1 when a step failed or no app started). With no
 `--shot` and no `--layout` it saves `peek.png` in the current directory. It is the quick "look and
 click" tool for humans and agents. `--window N` (counting from 1 in `Shoes.APPS`) or `--app ID`
 sends every later step to that window.
@@ -635,11 +635,15 @@ change the code and this list together.
   within 3 seconds the process exits by itself. `--exit-after SECS` closes every window that way
   when the time is up, so a Ruby app quits cleanly (headless it is a hard stop). It and `--inactive`
   (or `SCARPE_NATIVE_INACTIVE=1`) open windows without activating the app or taking keyboard focus.
-- **Ghost windows** (`--ghost`, or `SCARPE_NATIVE_GHOST=1`) are windows that are fully transparent
-  and let every click through to whatever is behind them. They run the real window path (winit,
-  softbuffer, pacing, partial repaints) where a person watching the screen sees nothing, so agents
-  and windowed tests can exercise it on a machine someone is using. The fourth build wave's ghost
-  lane adds the flag; `headless` stays the default for tests.
+- **Ghost windows** (`--ghost`; the shim passes it when `SCARPE_NATIVE_GHOST` is set, and the
+  child reads the variable too) are real windows that lay out, paint and present frames where
+  nobody can see or touch them, so windowed tests, benches and agents can run the real window path
+  on a machine someone is using. On macOS a ghost is fully transparent (alphaValue 0), lets every
+  mouse event through, has no shadow, stays out of Mission Control and the window cycle, and goes
+  on screen only once it reads back as invisible; the app never activates and has no Dock icon.
+  Elsewhere it opens off screen (Wayland ignores that). Snapshots and `pixel` read the app's own
+  pixmap, so they work the same. The fourth build wave's ghost lane adds the flag; headless stays
+  the default for tests.
 - **Backgrounds and borders** fill their slot less the edges they name: `left`/`top`/`right`/`bottom`
   place them, a missing `width` or `height` runs to the far edge (`top: 50` covers from 50 down),
   and margins inset them.
@@ -679,7 +683,7 @@ change the code and this list together.
 | `SCARPE_NATIVE_HEADLESS` | passes `--headless` unless empty, `0`, `false` or `no` (`scarpe peek` sets it) |
 | `SCARPE_NATIVE_ARGS` | extra child arguments, e.g. `--fonts bundled` or `--exit-after 3` |
 | `SCARPE_NATIVE_INACTIVE` | windows open without activating the app or taking keyboard focus |
-| `SCARPE_NATIVE_GHOST` | windows open fully transparent and click-through (section 12; the ghost lane's flag) |
+| `SCARPE_NATIVE_GHOST` | windows are ghosts: real, but invisible and click-through, and the app never activates (section 12) |
 | `SCARPE_NATIVE_TRACE` | prints every NDJSON line both ways to stderr (Ruby side; the child's `--trace` does it from Rust) |
 | `SCARPE_NATIVE_LOG_LEVEL` | `debug`, `info`, `warn` (default; `debug` under `SCARPE_DEBUG`) or `error` |
 | `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept |
