@@ -2,7 +2,7 @@
 
 Shoes-Spec was Noah Gibbs' idea: write down what Shoes *is* as tests that any display service can run. Wherever the sources disagree about what Shoes is, the argument happens on this page. Each row records one disagreement, the evidence on every side, the ruling, what `spec/` asserts, and what the native Rust backend does.
 
-Status: v1.1, 27 Sep 2026. The orchestrator ruled the seven open questions (Q1 to Q7) that day, and the rows the first build wave asked for joined it (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20). v1 was seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`. When the build lanes merged the same day, every row whose Lacci behaviour changed gained a "Since 27 Sep" sentence naming the Lacci lane commit, and rows whose Lacci change landed say so in their ruling line.
+Status: v1.2, 27 Sep 2026. The orchestrator ruled the seven open questions (Q1 to Q7) that day, then Q8 and Q9 as the later build waves raised them, with two new rows (C15, G15) from the fifth wave's rulings; and the rows the first build wave asked for joined it (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20). v1 was seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`. When the build lanes merged the same day, every row whose Lacci behaviour changed gained a "Since 27 Sep" sentence naming the Lacci lane commit, and rows whose Lacci change landed say so in their ruling line.
 
 ## How to read this
 
@@ -90,7 +90,8 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | C11 | `attach: Window` | MANUAL | | |
 | C12 | Paint order: backgrounds are layered elements | MANUAL | | |
 | C13 | A fixed height clips the slot | MANUAL | | |
-| C14 | An explicit width or height includes the margins | open (Q9) | | |
+| C14 | An explicit width or height includes the margins | S3, ruled (Q9) | | |
+| C15 | A negative `left` or `top` on art is a plain coordinate | S3 | | |
 
 ### D. Colours and patterns
 
@@ -157,6 +158,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | G12 | New inputs read `""`, new progress bars `0.0` | MANUAL | | |
 | G13 | Up and Down on a focused list box select | MANUAL | | |
 | G14 | A radio unmarked by its sibling: does its block run? | BOTH | | |
+| G15 | Scarpe draws its own controls | EXT | | |
 
 ### H. Events
 
@@ -511,15 +513,26 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### C14. An explicit width or height includes the margins
 
-**Ruling: open (Q9).** New row, found by the wave 4 native lane looking at example snapshots.
+**Ruling: S3, ruled 27 Sep 2026 (Q9)** by the orchestrator; Nick may overrule. A px `width` or `height` is the margin box, margins inside it, as relative sizes already are. New row, found by the wave 4 native lane looking at example snapshots.
 
 - **Manual:** silent. `:margin` "space[s] an element out from its surroundings" (manual 1298-1309); `:width` says nothing of margins.
 - **Shoes 3:** a given `width` is the margin box: `place->w = PX(attr, width, ...)`, then the content is `place->iw = place->w - (lmargin + rmargin)` and likewise `ih` for `height` (`s3_ruby.c:506, 537, 540`). Slots are placed that way (`s3_canvas.c:468`), and text blocks too (`s3t_textblock.c:125-126`): `para "x", width: 200` wraps its text at 192, inside Shoes 3's 4 px text margins (C9).
 - **Examples:** `legacy/for_playtest/simple/menu1.rb` sets four panels of 170, 140, 140 and 140 px with `margin: 4` in a 600 px window; they fit on one row only if the margins are inside the widths (590 px against 622). `shoes-contrib/simple/simple-control-sizes.rb` is Shoes 3's own check that controls "size appropriately despite the platform": it stacks controls such as `button ..., margin: 2, height: 30` against a 30 px grid, and they keep to the grid only if each height holds its margins (here that button takes 34 px). 39 lines under `examples/` give an element both a px width and a margin; 17 manual cases do.
 - **Lacci / WV today:** Webview writes CSS `margin`, which always sits outside a CSS `width` (`calzini.rb:148-151`).
-- **Native:** DESIGN 12 (the M1 clarification) makes a px size the border box, with margins outside it; relative sizes already size the margin box, as Shoes 3 does for every size. So menu1's fourth panel wraps below the window.
-- **Spec:** nothing yet. Under S3, `stack width: 100, margin: 10` would be 100 wide in its parent's row with an 80 px content box.
-- **Proposal:** S3, since the manual is silent: a px width or height is the margin box, as relative ones already are. It moves every element that has both, text included, so it wants a ruling before the layout changes.
+- **Native:** DESIGN 12 (the M1 clarification) makes a px size the border box, with margins outside it; relative sizes already size the margin box, as Shoes 3 does for every size. So menu1's fourth panel wraps below the window. The layout change is the wave-5 Rust lane's; until it lands both cases below are `expect: fail` on native.
+- **Spec:** `styles.margin__inside_width`: `stack width: 100, margin: 10` takes 100 px of its flow's row, with an 80 px box inside its margins, and its `width` reads 100. `styles.height.pixels__margin_box`: `button "OK", height: 30, margin: 2` is 26 px tall and what follows starts 30 px down, the grid `simple-control-sizes.rb` checks.
+- **Lacci:** nothing to change: the getters already report a px size as given (A4), which is the margin box under this ruling.
+
+### C15. A negative `left` or `top` on art is a plain coordinate
+
+**Ruling: S3, ruled 27 Sep 2026** by the orchestrator; Nick may overrule. `oval -30, 50, 100` sits 30 px left of its slot, so art can be drawn, or animated, off the left or top edge. Negative sizes, and a negative `left` or `top` on anything that is not art, keep the dimension rule (DESIGN 6). New row, found by the wave 4 showcase lane.
+
+- **Manual:** silent on negative coordinates. `:left` "places the object's left edge ten pixels away from the left edge of the slot" (manual 1288-1294).
+- **Shoes 3:** `shoes_place_exact` reads art's `left` and `top` as they are: `place->x = ATTR2(int, attr, left, 0) + ox` (`s3_ruby.c:385-392`), with no far-edge reading for negatives.
+- **Examples:** the showcase's starfield wraps its stars with `%` to avoid the far-edge jump; any shape animated off the left or top edge jumped to the far side.
+- **Lacci today:** passes the number through. Oval, arc and arrow declare clamping validators for `left`, `top`, `width` and `height`, but none of them runs: `validate_as` takes the base Drawable's declaration of those names first, so `Shoes::Oval.validate_as(:left, -30)` is -30.
+- **Spec:** `styles.left__art_negative` (both displays): an oval, arc, arrow and rect keep a negative `left` and `top` as given. `styles.left__art_negative__drawn` (native): `oval -30, 50, 100` has its box at x = -30 and shows its right half at the window's left edge; `expect: fail` until the layout follows the ruling.
+- **Native:** today reads a negative art `left` as that far in from the slot's far edge, the dimension rule for every element (`#3 Oval 270,50` for the example above). The change is the wave-5 Rust lane's.
 
 ## D. Colours and patterns
 
@@ -992,6 +1005,16 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Spec:** nothing. M27 covers what a click does to the clicked radio.
 - **Native:** nothing; Lacci owns the grouping (G6).
 
+### G15. Scarpe draws its own controls
+
+**Ruling: EXT** (`ext-scarpe`), Nick, 27 Sep 2026: "our buttons are OUR buttons". The manual's seven native controls are "drawn by the operating system" and "will match the look of the window theme" (manual 73-79, 2540-2544); Scarpe's native display draws all seven itself, the same on every platform. `alert`, `confirm` and the file and folder choosers stay the operating system's own dialogs. New row.
+
+- **Manual:** "each of these seven elements is drawn by the operating system. So, a Progress bar will look one way on Windows and another way on OS X" (manual 2540-2544); "Shoes will try to keep native controls all within the size you give them, only the look will vary" (manual 76-79).
+- **Shoes 3:** GTK and Cocoa widgets (`s3_gtk.c`, `s3_cocoa.m`).
+- **Lacci / WV today:** Webview uses HTML form controls, which the browser engine draws.
+- **Spec:** `elements.native_controls__drawn_by_scarpe` (native): in a headless run, where no OS widget exists, a button, edit line, edit box, list box, progress bar, check and radio each paint their own pixels. The manual's claim is not transcribed as an expectation. Sizes still follow C4.
+- **Native:** every control is drawn by the renderer (DESIGN 7, "Look and feel"). `alert`, `confirm` and the file and folder choosers are the platform's (rfd); `ask` and `ask_color` are drawn in the window (DESIGN 12, "Windowed dialogs").
+
 ## H. Events
 
 ### H1. `keypress` key values
@@ -1458,7 +1481,9 @@ The evidence was balanced on each of these, so v1 asked Nick. The orchestrator r
 - **Q8 (B7), found at the 27 Sep 2026 merge.** Does `clear` stop the timers started inside the slot, as the manual says (manual 2327-2329), or leave them running, as Shoes 3's source does and ten examples that clear the app from inside their own `animate` need?
 
   **Ruled:** `clear` keeps the timers (S3); the manual's line is ERRATA (M40). `visit` still stops them (B7).
-- **Q9 (C14), open, found in wave 4.** Is an explicit `width` (or `height`) the element's **margin box**, margins inside it, as Shoes 3 does for slots and text blocks (`s3_ruby.c:506, 537`, `s3t_textblock.c:125-126`), or its **border box**, margins added outside, as DESIGN 12 and Webview do? The manual is silent. `menu1.rb`'s panels fit a row only under Shoes 3's rule; changing the rule moves every element that has both a px size and a margin.
+- **Q9 (C14), found in wave 4.** Is an explicit `width` (or `height`) the element's **margin box**, margins inside it, as Shoes 3 does for slots and text blocks (`s3_ruby.c:506, 537`, `s3t_textblock.c:125-126`), or its **border box**, margins added outside, as DESIGN 12 and Webview do? The manual is silent. `menu1.rb`'s panels fit a row only under Shoes 3's rule; changing the rule moves every element that has both a px size and a margin.
+
+  **Ruled:** the margin box (S3), so `menu1.rb` and `simple-control-sizes.rb` lay out as written (C14). The same day: a negative `left` or `top` on art is a plain coordinate (C15), and Scarpe's controls are its own (G15, Nick).
 
 ## Citation check
 
