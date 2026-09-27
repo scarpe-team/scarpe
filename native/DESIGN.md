@@ -286,6 +286,8 @@ Hard-won API notes (from research 07, spike code in the session scratchpad `spik
 - On macOS create windows with `.with_active(false)` in automated runs and never steal focus in
   headless tests.
 - softbuffer on macOS copies the frame on present: redraw only when dirty.
+- softbuffer tags macOS frames DeviceRGB; the window is given the same colour space, or CoreAnimation
+  colour-matches every frame on the CPU (2.4 ms of a 2.7 ms present at 1200x1000, native/PERF.md).
 
 ### Look and feel (beautiful by default)
 
@@ -436,6 +438,12 @@ change the code and this list together.
   place them, a missing `width` or `height` runs to the far edge (`top: 50` covers from 50 down),
   and margins inset them.
 - **`wrap: "trim"`** keeps a para on one line and clips it at the para's own box (no ellipsis yet).
+- **Partial repaints.** A window keeps its last frame and repaints only the rects of nodes whose box,
+  props, text or widget state changed (`paint::damage`). Anything it cannot bound repaints the whole
+  frame: a new size or scale, scrolling, a popup or modal, a change of paint order, and art under
+  rotate, scale, skew or translate. Headless pictures and snapshots are always painted whole. A node
+  must never paint outside `paint::damage::paint_bounds`: code that makes a node draw further (a new
+  transform, a bigger shadow) grows that function too, or `SCARPE_NATIVE_DAMAGE=check` will say so.
 - **Para `cursor` and `marker`** count from the end when negative (`-1` sits after the last
   character, as Shoes 3 editors use it). The caret takes the text's colour, so it shows on dark
   backgrounds.
@@ -454,3 +462,5 @@ change the code and this list together.
 | `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept |
 | `SCARPE_NATIVE_SNAPSHOT_DIR` | where relative `snapshot(name)` paths go (default `spec/results/snapshots`) |
 | `SCARPE_NATIVE_WINDOWED_TESTS` | lets `rake native_test` open real, inactive windows |
+| `SCARPE_NATIVE_STATS` | a directory: each process writes where its time went (`ruby.json`, `rust.json`) as it exits (native/PERF.md) |
+| `SCARPE_NATIVE_DAMAGE` | `off` repaints every window frame whole; `check` also paints each one whole and reports any pixel a partial repaint got wrong (headless too) |

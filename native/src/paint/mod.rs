@@ -2,6 +2,7 @@
 //! drawn in logical coordinates under a scale transform; text is rasterised at
 //! the physical size so it stays crisp on HiDPI screens.
 
+pub mod damage;
 pub mod decor;
 pub mod shapes;
 pub mod text;
@@ -11,8 +12,9 @@ use crate::elements::{self, image::ImageCache};
 use crate::input::ViewState;
 use crate::layout::{Layout, Rect};
 use crate::style::{Color, Paint};
-use crate::text::raster::PxClip;
+use crate::text::raster::{self, PxClip};
 use crate::text::TextEngine;
+use cosmic_text::SwashImage;
 use std::collections::HashMap;
 use tiny_skia::{
     FillRule, FilterQuality, GradientStop, LinearGradient, Mask, Path, PathBuilder, Pattern, Pixmap, Point, Shader,
@@ -24,16 +26,43 @@ pub const BACKGROUND: Color = Color::WHITE;
 pub struct Canvas<'a> {
     pub pm: &'a mut Pixmap,
     pub scale: f32,
+    /// Where the pixmap's top-left sits in the window, in physical pixels: a repaint of one
+    /// damaged rect paints into a pixmap of that rect's size (paint::damage).
+    origin: (i32, i32),
     masks: HashMap<[u32; 4], Mask>,
 }
 
 impl<'a> Canvas<'a> {
     pub fn new(pm: &'a mut Pixmap, scale: f32) -> Self {
-        Canvas { pm, scale, masks: HashMap::new() }
+        Canvas::at(pm, scale, (0, 0))
     }
 
+    pub fn at(pm: &'a mut Pixmap, scale: f32, origin: (i32, i32)) -> Self {
+        Canvas { pm, scale, origin, masks: HashMap::new() }
+    }
+
+    /// Logical window coordinates to the pixmap's pixels.
     pub fn base(&self) -> Transform {
-        Transform::from_scale(self.scale, self.scale)
+        Transform::from_row(self.scale, 0.0, 0.0, self.scale, -self.origin.0 as f32, -self.origin.1 as f32)
+    }
+
+    /// The part of the window this pixmap covers, in logical px.
+    pub fn visible(&self) -> Rect {
+        let s = self.scale;
+        Rect::new(self.origin.0 as f32 / s, self.origin.1 as f32 / s, self.pm.width() as f32 / s, self.pm.height() as f32 / s)
+    }
+
+    /// Draws a glyph image whose origin is at (gx, gy) in window pixels.
+    pub fn blit(&mut self, img: &SwashImage, gx: i32, gy: i32, color: Color, clip: Option<PxClip>) {
+        let (ox, oy) = self.origin;
+        let clip = clip.map(|c| PxClip { x0: c.x0 - ox, y0: c.y0 - oy, x1: c.x1 - ox, y1: c.y1 - oy });
+        raster::blit(self.pm, img, gx - ox, gy - oy, color, clip);
+    }
+
+    /// Fills a rectangle given in window pixels, unantialiased.
+    pub fn fill_px(&mut self, rect: tiny_skia::Rect, paint: &tiny_skia::Paint) {
+        let to_pixmap = Transform::from_translate(-self.origin.0 as f32, -self.origin.1 as f32);
+        self.pm.fill_rect(rect, paint, to_pixmap, None);
     }
 
     fn mask_key(&mut self, clip: Option<Rect>) -> Option<[u32; 4]> {
@@ -187,14 +216,22 @@ pub struct Scene<'a> {
 /// Paints the whole app: nodes in tree order, then overlays (scrollbars,
 /// list_box popup, in-window dialog).
 pub fn paint(scene: &mut Scene, pm: &mut Pixmap, scale: f32) {
-    pm.fill(BACKGROUND.to_skia());
-    let mut canvas = Canvas::new(pm, scale);
+    paint_nodes(scene, Canvas::new(pm, scale), None);
+}
+
+/// Paints what `canvas` covers, from the background up. `only`: a damaged rect (logical px);
+/// nodes that cannot touch it are skipped, and the canvas clips the rest (paint::damage).
+pub fn paint_nodes(scene: &mut Scene, mut canvas: Canvas, only: Option<Rect>) {
+    canvas.pm.fill(BACKGROUND.to_skia());
     let layout = scene.layout;
     let doc = scene.doc;
     let window = Rect::new(0.0, 0.0, layout.size.0, layout.size.1);
     for &id in &layout.order {
         let (Some(node), Some(lbox)) = (doc.get(id), layout.boxes.get(&id)) else { continue };
         if !on_screen(node.kind.is_art(), lbox, window) {
+            continue;
+        }
+        if only.is_some_and(|region| !damage::may_touch(node, lbox, layout.texts.get(&id), region)) {
             continue;
         }
         match &node.kind {
