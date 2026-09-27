@@ -213,6 +213,8 @@ class TestLacci < NienteTest
       app.clipboard = "scarpe test"
       assert_equal "scarpe test", app.clipboard
     SHOES_SPEC
+
+    assert_equal "scarpe test", File.read(clipboard_file), "the copy lands in the stub, not the real clipboard"
   end
 
   def test_shoes_builtin_returns_response

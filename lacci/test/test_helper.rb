@@ -9,6 +9,8 @@ require "scarpe/components/unit_test_helpers"
 require "scarpe/components/minitest_result"
 
 require "minitest/autorun"
+require "tmpdir"
+require "fileutils"
 
 require "minitest/reporters"
 Minitest::Reporters.use! [Minitest::Reporters::SpecReporter.new]
@@ -21,6 +23,18 @@ class NienteTest < Minitest::Test
   include ::Scarpe::Test::Helpers
 
   SCARPE_EXE = File.expand_path("../../exe/scarpe", __dir__)
+
+  # Lacci's clipboard shells out to pbcopy, pbpaste or xclip, and its dialogs can fall back
+  # to osascript. Each test app runs with spec/support/fakebin first on PATH, as spec/run
+  # does (spec/README.md rule 6), so no test touches the real clipboard or opens a dialog.
+  FAKEBIN = File.expand_path("../../spec/support/fakebin", __dir__)
+  CLIPBOARDS = Dir.mktmpdir("lacci-test-clipboards")
+  Minitest.after_run { FileUtils.rm_rf(CLIPBOARDS) }
+
+  # The file this test's app reads and writes as the clipboard.
+  def clipboard_file
+    File.join(CLIPBOARDS, "#{self.class}-#{name}.txt")
+  end
 
   def run_test_niente_code(
     scarpe_app_code,
@@ -52,6 +66,8 @@ class NienteTest < Minitest::Test
     ]) do |shoes_spec_path,_|
       system(
         "LOCALAPPDATA=\"#{Dir.tmpdir}\" " +
+        "PATH=\"#{FAKEBIN}:#{ENV["PATH"]}\" " +
+        "SPEC_CLIPBOARD_FILE=\"#{clipboard_file}\" " +
         "NIENTE_LOG_LEVEL=#{log_level} " +
         "SHOES_SPEC_TEST=\"#{shoes_spec_path}\" " +
         "SCARPE_DISPLAY_SERVICE=\"#{display_service}\" " +
