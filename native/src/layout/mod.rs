@@ -564,28 +564,55 @@ impl Engine<'_> {
         }
     }
 
+    /// Art turns about its own corner (or centre) by its draw context's rotate, scale and skew,
+    /// and its box is where it then shows. A shape block turns as one, about the group's
+    /// corner, and its members' own transforms play no part (DESIGN 12, ledger E7), just as
+    /// paint::shapes draws it; so the member boxes turn with the group.
     fn place_art(&mut self, node: &Node, content: Rect) {
+        let Some(frame) = self.art_frame(node, content) else { return };
+        let transform = shapes::art_transform(&node.props, frame);
+        if !transform.is_identity() {
+            self.turn_art(node.id, transform);
+        }
+    }
+
+    /// Lays out an art element, and a shape block's members inside it, at their untransformed
+    /// frames. Returns the element's frame: for a shape block, the union of its own and its
+    /// members'.
+    fn art_frame(&mut self, node: &Node, content: Rect) -> Option<Rect> {
         let doc = self.doc;
         let parent = (content.w, content.h);
-        let mut bounds = shapes::art(node, (content.x, content.y), parent).map(|art| art.bounds);
+        let mut frame = shapes::art(node, (content.x, content.y), parent).map(|art| art.frame);
         if node.kind == Kind::Shape && self.depth < limits::MAX_DEPTH {
             // Art drawn inside a shape block joins its path, measured from the shape's left/top (E7).
             let (x, y) = shapes::group_origin(node, (content.x, content.y), parent);
             let inner = Rect::new(x, y, content.w, content.h);
             self.depth += 1;
             for &child in doc.children(node.id) {
-                if let Some(c) = doc.get(child).filter(|c| c.kind.is_art() && !hidden(c)) {
-                    self.place_art(c, inner);
-                    if let Some(r) = self.out.rect(child) {
-                        bounds = Some(bounds.map_or(r, |b| b.union(&r)));
+                if let Some(member) = doc.get(child).filter(|c| c.kind.is_art() && !hidden(c)) {
+                    if self.art_frame(member, inner).is_some() {
+                        let r = self.out.rect(child).unwrap_or_default();
+                        frame = Some(frame.map_or(r, |f| f.union(&r)));
                     }
                 }
             }
             self.depth -= 1;
         }
-        let Some(rect) = bounds else { return };
-        self.out.boxes.insert(node.id, LBox { rect, clip: None, origin: (content.x, content.y), parent_size: parent });
+        self.out.boxes.insert(node.id, LBox { rect: frame?, clip: None, origin: (content.x, content.y), parent_size: parent });
         self.displace(node);
+        self.out.rect(node.id)
+    }
+
+    /// Turns the laid-out boxes of an art element and every member inside it by `transform`.
+    fn turn_art(&mut self, id: Id, transform: tiny_skia::Transform) {
+        let doc = self.doc;
+        let mut stack = vec![id];
+        while let Some(next) = stack.pop() {
+            if let Some(b) = self.out.boxes.get_mut(&next) {
+                b.rect = shapes::transformed_box(b.rect, transform);
+                stack.extend(doc.children(next).iter().copied());
+            }
+        }
     }
 
     /// `image(w, h) { ... }` is a canvas (manual 410-426, ledger E9): what the block draws

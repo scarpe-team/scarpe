@@ -467,10 +467,16 @@ change the code and this list together.
   `rotate` turns counter-clockwise. The draw context's `translate: [x, y]` (Lacci's running total)
   moves shapes before they turn. A shape's layout box is its transformed box, so hit-testing follows.
   `cap` is `"curve"` (round), `"rect"` (flat, the default) or `"project"` (square, half the stroke
-  width longer). Unset fill and stroke are black, strokewidth 1.
+  width longer). Unset fill and stroke are black, strokewidth 1. `right:` and `bottom:` put art's
+  far edges that far in from the slot's far edges, as for every element (ledger C10): art with a
+  far edge and no near one sits against it, and a rect, oval or arc that names both edges and no
+  size runs from one to the other; `left` and `top` win over them, as elsewhere. (Shoes 3 read
+  them on art as absolute coordinates, `s3_ruby.c:396-399`; no example uses either.)
 - **Shape blocks.** Art drawn inside a `shape` block joins the shape's path, measured from the
   shape's left/top: the group is filled once (nonzero winding) and stroked once with the shape's own
-  fill and stroke, and turns as one (ledger E7, M21). The shape's layout box holds all of it.
+  fill and stroke, and turns as one (ledger E7, M21): about the group's corner, by the shape's own
+  draw context, whatever transforms its members carry. The layout boxes of the shape and of every
+  member are where that turn puts them, so hit-testing matches the picture.
 - **Image canvases.** An Image with children (`image(w, h) { ... }`, ledger E9) lays them out inside
   its own box, like a flow, in image-local coordinates, and clips them to it. A blank canvas with no
   size of its own (only `left`/`top`) fills the rest of its line and its parent's height. Effects
