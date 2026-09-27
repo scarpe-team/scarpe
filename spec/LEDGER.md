@@ -2,7 +2,7 @@
 
 Shoes-Spec was Noah Gibbs' idea: write down what Shoes *is* as tests that any display service can run. Wherever the sources disagree about what Shoes is, the argument happens on this page. Each row records one disagreement, the evidence on every side, the ruling, what `spec/` asserts, and what the native Rust backend does.
 
-Status: v1.1, 27 Sep 2026. The orchestrator ruled the seven open questions (Q1 to Q7) that day, and the rows the first build wave asked for joined it (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20). v1 was seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`.
+Status: v1.1, 27 Sep 2026. The orchestrator ruled the seven open questions (Q1 to Q7) that day, and the rows the first build wave asked for joined it (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20). v1 was seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`. When the build lanes merged the same day, every row whose Lacci behaviour changed gained a "Since 27 Sep" sentence naming the Lacci lane commit, and rows whose Lacci change landed say so in their ruling line.
 
 ## How to read this
 
@@ -51,15 +51,15 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
-| A1 | Default window size and title | S3, ruled (Q1) | unsched. | |
+| A1 | Default window size and title | S3, ruled (Q1) | | |
 | A2 | When the `Shoes.app` block runs | S3 | | |
 | A3 | `window`, `dialog`, `owner` | MANUAL | | |
-| A4 | Live positions and sizes of apps, slots and elements | MANUAL | unsched. | |
+| A4 | Live positions and sizes of apps, slots and elements | MANUAL | | |
 | A5 | Built-in dialogs with no app open | MANUAL | 10.6 | |
 | A6 | `Shoes.app("/start/url")` | EXT | | |
 | A7 | Shoes 3.3 app styles | OOS | | |
 | A8 | `close` closes one window | MANUAL | unsched. | |
-| A9 | `Shoes.app`, `window` and `dialog` return the App | MANUAL | unsched. | |
+| A9 | `Shoes.app`, `window` and `dialog` return the App | MANUAL | | |
 
 ### B. Blocks, `self` and slot manipulation
 
@@ -69,15 +69,15 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | B2 | `app { }` changes `self`; the manual's fix fails | ERRATA | | |
 | B3 | Elements created in handlers land in the app's top slot | MANUAL | | |
 | B4 | `prepend`/`before`/`after` keep the written order | MANUAL | 10.3 | |
-| B5 | `slot.remove` removes children and fires `finish` | MANUAL | unsched. | |
-| B6 | Methods headed `» self` return `self` | MANUAL | unsched. | |
+| B5 | `slot.remove` removes children and fires `finish` | MANUAL | | |
+| B6 | Methods headed `» self` return `self` | MANUAL | | |
 | B7 | `clear` and the timers a slot started | open (Q8) | | |
 
 ### C. Layout and dimensions
 
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
-| C1 | A Float dimension is a fraction of the parent | MANUAL | unsched. | DESIGN |
+| C1 | A Float dimension is a fraction of the parent | MANUAL | | DESIGN |
 | C2 | `style[:width]` returns what was asked for | MANUAL | | |
 | C3 | Forms of `:margin` | MANUAL | unsched. | |
 | C4 | Default sizes of native controls | MANUAL | | |
@@ -98,9 +98,9 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | D1 | Colours are `Shoes::Color` objects | MANUAL | unsched. | |
 | D2 | `rgb()` types each component | MANUAL | 10.7 | |
 | D3 | Alpha is opacity; named colours take one | MANUAL | | |
-| D4 | `rgb`/`gray`/`gradient` are built-ins; `Shoes.rgb` | MANUAL | unsched. | |
+| D4 | `rgb`/`gray`/`gradient` are built-ins; `Shoes.rgb` | MANUAL | | |
 | D5 | Three-digit hex times 17 | S3 | 10.7 | |
-| D6 | Gradient direction, `:angle`, Ranges | MANUAL | unsched. | |
+| D6 | Gradient direction, `:angle`, Ranges | MANUAL | | |
 | D7 | `nofill`/`nostroke` mean none | MANUAL | | |
 | D8 | Default fill, stroke and stroke width | S3 | | |
 | D9 | `Shoes::Pattern`: `gradient`, backgrounds, borders, `to_pattern` | MANUAL | unsched. | |
@@ -117,7 +117,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | E6 | `line` end points are absolute | MANUAL | | |
 | E7 | `shape` is one path | MANUAL | 10.2 | |
 | E8 | Mouse events on art, text and images | MANUAL | 10.9 | |
-| E9 | `image(w, h) { }` is a canvas | MANUAL | unsched. | |
+| E9 | `image(w, h) { }` is a canvas | MANUAL | | |
 | E10 | Transforms | MANUAL | | |
 | E11 | Art methods return `Shoes::Shape` | MANUAL | unsched. | |
 
@@ -142,18 +142,18 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
-| G1 | Control callbacks receive the control | MANUAL | unsched. | |
+| G1 | Control callbacks receive the control | MANUAL | | |
 | G2 | The `list_box { }` block is the change handler | MANUAL | 10.4 | |
-| G3 | List box selection, `text`, `choose` | MANUAL | 10.4, unsched. | |
+| G3 | List box selection, `text`, `choose` | MANUAL | 10.4 | |
 | G4 | `:state` | MANUAL | unsched. | |
 | G5 | Programmatic `text=` and `change` | BOTH; EXT pin, ruled (Q7) | | |
 | G6 | Radio grouping | MANUAL | | |
 | G7 | Button styling | EXT | | |
 | G8 | `check.checked` | MANUAL | | |
-| G9 | `focus` on buttons; Enter clicks | MANUAL | unsched. | |
+| G9 | `focus` on buttons; Enter clicks | MANUAL | | |
 | G10 | `click:` and `change:` styles are the handlers | MANUAL | unsched. | |
 | G11 | Fonts on edit lines and edit boxes | EXT | | |
-| G12 | New inputs read `""`, new progress bars `0.0` | MANUAL | unsched. | |
+| G12 | New inputs read `""`, new progress bars `0.0` | MANUAL | | |
 | G13 | Up and Down on a focused list box select | MANUAL | | |
 | G14 | A radio unmarked by its sibling: does its block run? | BOTH | | |
 
@@ -165,11 +165,11 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | H2 | Mouse button numbers | S3 | | |
 | H3 | Coordinate frame of mouse events | S3, ruled (Q4) | | |
 | H4 | The extra `mods` argument | MANUAL | | |
-| H5 | `hover`/`leave` get the slot | MANUAL | unsched. | |
+| H5 | `hover`/`leave` get the slot | MANUAL | | |
 | H6 | Registering an event twice | BOTH | | |
 | H7 | `wheel` | EXT | | |
-| H8 | `start` and `finish` | MANUAL | unsched. | |
-| H9 | Slot event handlers survive `clear` | MANUAL | unsched. | |
+| H8 | `start` and `finish` | MANUAL | | |
+| H9 | Slot event handlers survive `clear` | MANUAL | | |
 | H10 | Hotkeys the manual reserves for the console | OOS | | |
 
 ### I to L. Timers, navigation, built-ins, loader
@@ -177,13 +177,13 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
 | I1 | Timer rate and counting | MANUAL | 10.1 | |
-| I2 | `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer` | MANUAL | unsched. | |
-| J1 | `url`, `visit`, pages, `location` | BOTH | unsched. | |
+| I2 | `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer` | MANUAL | | |
+| J1 | `url`, `visit`, pages, `location` | BOTH | | |
 | J2 | `link(click: "/path")` visits | MANUAL | | |
 | K1 | `ask` on Cancel; its options | MANUAL, ruled (Q6) | 10.6 | DESIGN |
 | K2 | Option hashes on dialogs | EXT | unsched. | |
 | K3 | `debug`, `info`, `warn`, `error` | MANUAL | unsched. | |
-| K4 | `font(path)` returns family names | MANUAL | unsched. | |
+| K4 | `font(path)` returns family names | MANUAL | | |
 | K5 | `download` and its events | MANUAL | unsched. | |
 | K6 | `exit` stops the program at once | MANUAL | unsched. | |
 | L1 | App code runs at top level | S3 | | |
@@ -200,13 +200,13 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### A1. Default window size and title
 
-**Ruling: S3, ruled 27 Sep 2026 (Q1)** by the orchestrator; Nick may overrule. 600x500 and the title "Shoes". Shoes 3 and Shoes 4 agree; the manual is silent. **Lacci change, unscheduled.**
+**Ruling: S3, ruled 27 Sep 2026 (Q1)** by the orchestrator; Nick may overrule. 600x500 and the title "Shoes". Shoes 3 and Shoes 4 agree; the manual is silent. **Lacci change, done 27 Sep 2026.**
 
 - **Manual:** silent. Examples that care pass `width:`/`height:`.
 - **Shoes 3:** `#define SHOES_APP_WIDTH 600`, `SHOES_APP_HEIGHT 500` (`s3_app.h:20-21`), applied at `s3_app.c:62-63, 176`. Title comes from `ATTR(attr, title)`, or the settings app name when built with `MTITLE` (`s3_app.c:144-154`).
 - **Shoes 4:** `DEFAULT_OPTIONS = { width: 600, height: 500, title: "Shoes 4", resizable: true, border: true }` (`internal_app.rb:19-25`).
 - **Examples:** 95 of the 350 examples in the target set pass a size (report 04, B3). The rest take the default; Scarpe's own examples were tuned at 480x420.
-- **Lacci today:** `title: 'Shoes!', width: 480, height: 420` (`app.rb:42-49`).
+- **Lacci today:** `title: 'Shoes!', width: 480, height: 420` (`app.rb:42-49`). Since 27 Sep (`44dfc51`) the default lives once, on `Shoes::App`: 600x500, titled "Shoes".
 - **Spec:** `app.style.width_height__default` asserts that an app with no size reports 600x500, and `app.style.title__default` that its title is "Shoes". Both pass since the Lacci lane moved its default (27 Sep). Cases about something else pin their own window size so they hold on either side of that change (`rules.negative_width` now opens at an explicit 600x500).
 - **Native:** takes the App's `width`/`height` props, so it follows whatever Lacci defaults to; an App that sends none opens at 600x500 titled "Shoes" (`runtime.rs` `DEFAULT_SIZE`, DESIGN 6, 27 Sep).
 
@@ -227,18 +227,18 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Manual:** `window(styles) { }` opens a new app whose `owner` is the launcher; a plain `Shoes.app` has `owner == nil`; `dialog` is the same with dialog chrome (manual 1000-1004, 1958-1961, 2135-2154). Their blocks change `self` (manual 231-244).
 - **Shoes 3:** `shoes_app_window(argc, argv, self, owner)` (`s3_app.c:123-143`).
 - **Examples:** `legacy/for_playtest/shoes_manual/window_owner.rb`, `trigger_window.rb`.
-- **Lacci today:** `App#window`/`#dialog` call `Shoes.app(**opts.merge(owner: self))` (`app.rb:577-585`). Top-level `Kernel#window` is `Shoes.app` without an owner (`builtins.rb:114-122`). Webview cannot open a second window at all (X6).
+- **Lacci today:** `App#window`/`#dialog` call `Shoes.app(**opts.merge(owner: self))` (`app.rb:577-585`). Top-level `Kernel#window` is `Shoes.app` without an owner (`builtins.rb:114-122`). Webview cannot open a second window at all (X6). Since 27 Sep `Shoes.app` returns the new App, so `window` and `dialog` return it too (`41a9811`, A9).
 - **Spec:** `window { }` from a handler creates a second app; `Shoes.APPS.size == 2`; its `owner` is the first app; the first app's `owner` is nil.
 - **Native:** declares `:multi_app` (DESIGN 5.1) and opens one OS window (or headless canvas) per App.
 
 ### A4. Live positions and sizes of apps, slots and elements
 
-**Ruling: MANUAL.** Live pixels after layout and after the user resizes: `width` and `height` of apps, slots and elements, and `left` and `top` of slots and elements (extended to `left`/`top` on 27 Sep 2026, at the events and elements writers' request). **Lacci change, unscheduled** (the getters), fed by wire contract (a) below.
+**Ruling: MANUAL.** Live pixels after layout and after the user resizes: `width` and `height` of apps, slots and elements, and `left` and `top` of slots and elements (extended to `left`/`top` on 27 Sep 2026, at the events and elements writers' request). **Lacci change, done 27 Sep 2026** (the getters), fed by wire contract (a) below.
 
 - **Manual:** `width()` "returns an exact pixel size" (manual 2511-2513, 2723-2732); `left()` is "The left pixel location of the slot" and `top()` likewise (manual 2421-2423, 2507-2509; for elements 2644-2646, 2719-2721); `rect 10, 10, self.width - 20, self.height - 20` fills the box (manual 1757-1768).
 - **Shoes 3:** `shoes_app_get_width` returns the live `app->width` (`s3_app.c:199-209`), updated on GTK `size-allocate` (`s3_gtk.c:736-750`).
 - **Shoes 3, positions:** slots answer `left`/`top` from their placed canvas (`s3_ruby.c:748-749`).
-- **Lacci today:** App `width`/`height` are static styles (`app.rb:19`); nothing feeds a resize back. Slot `width` falls back to the parent's style (`drawable.rb:649-716`): `stack(width: -100).width == 380` in a 480 app, `stack(width: "50%").width == 240`. `left` and `top` return the `left`/`top` styles: nil for an element its slot placed, 0 for a slot.
+- **Lacci today:** App `width`/`height` are static styles (`app.rb:19`); nothing feeds a resize back. Slot `width` falls back to the parent's style (`drawable.rb:649-716`): `stack(width: -100).width == 380` in a 480 app, `stack(width: "50%").width == 240`. `left` and `top` return the `left`/`top` styles: nil for an element its slot placed, 0 for a slot. Since 27 Sep (`32ebbf3`) the four getters read the rect the display pushed (contract a), rounded to whole pixels, unless the app gave a pixel number, which stays the answer so `el.left += 5` cannot drift through a stale layout; with no layout (Niente, Webview) sizes resolve the way `dim.rs` reads them.
 - **Spec:** after `resize` to 300x200, `app.width == 300` and `app.height == 200`. A laid-out `stack(width: 0.5)` reports half its parent's inner width in pixels (see C1). `common.left` and `common.top` read the laid-out position of an element its slot placed; `slot.left`, `slot.top` and `slot.height__content` do the same for slots.
 - **Native:** reports resizes with the `resize` message; the shim sets `@width`/`@height` without a `prop_change` echo (DESIGN 4.2). **Wire contract (a), 27 Sep 2026:** after every layout pass, and before presenting, Rust sends `{"t":"layout","app":N,"rects":[[id,x,y,w,h,scroll_h],...]}` for the nodes whose rect changed (every node on an app's first layout), in window logical px as Floats; `scroll_h` is a slot's content height, else `h`. Destroyed ids are not sent again. The shim keeps `Shoes::DisplayService.layout_cache[id] = [x, y, w, h, scroll_h]` (Integer keys, a class-level Hash like `para_hit_cache`) and deletes ids on destroy. Lacci's `left`/`top`/`width`/`height` return the laid-out values when present and fall back to today's behaviour otherwise. App size still comes from `resize`. Built 27 Sep by the layout lane (Rust's push, rounded to 1/100 px, and the shim's `layout_cache`; DESIGN 4.2) and the Lacci lane (the getters).
 
@@ -276,11 +276,11 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### A9. `Shoes.app`, `window` and `dialog` return the App
 
-**Ruling: MANUAL.** **Lacci change, unscheduled.** New row, requested by the elements and app writers.
+**Ruling: MANUAL.** **Lacci change, done 27 Sep 2026.** New row, requested by the elements and app writers.
 
 - **Manual:** `Shoes.app(styles) { ... } » Shoes::App` (manual 859); `window` and `dialog` return a `Shoes::App` too (manual 1958, 2135).
 - **Shoes 3:** `shoes_app_window` ends `return app;` (`s3_app.c:186`); `Shoes.app` returns it (`:189-191`), and so do `window` and `dialog` (`s3_canvas.c:1387-1394`).
-- **Lacci today:** `Shoes.app` ends `app.init; app.run; nil` (`lacci/lib/shoes.rb:192-194`), and `App#window`/`#dialog` return what `Shoes.app` returns (`app.rb:585-593`), so all three give nil.
+- **Lacci today:** `Shoes.app` ends `app.init; app.run; nil` (`lacci/lib/shoes.rb:192-194`), and `App#window`/`#dialog` return what `Shoes.app` returns (`app.rb:585-593`), so all three give nil. Since 27 Sep (`41a9811`) `Shoes.app` returns the App it made, and `window` and `dialog` with it.
 - **Spec:** `app.shoes_app`, `element.window__returns_app`, `element.dialog__returns_app`: each returns a `Shoes::App`, the very one in `Shoes.APPS`.
 - **Native:** nothing; the return value is Ruby-side.
 
@@ -329,17 +329,17 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### B5. `slot.remove` removes the children and fires `finish`
 
-**Ruling: MANUAL.** **Lacci change, unscheduled.** New row.
+**Ruling: MANUAL.** **Lacci change, done 27 Sep 2026.** New row.
 
 - **Manual:** slot `remove`: "It will no longer be displayed and will not be listed in its parent's contents. It's gone." (manual 2430-2433); `finish` fires "When a slot is removed" and is handed `self` (manual 2195-2198).
 - **Shoes 3:** `finish` receives the slot (`s3_canvas.c:1030-1036`).
-- **Lacci today:** `alias_method :remove, :destroy` sits on `Drawable` (`drawable.rb:615`), so `slot.remove` binds `Drawable#destroy` and skips `Slot#destroy` (`slot.rb:231-235`), which is the method that cascades to children and fires `finish`. Only the slot's own `destroy` is sent (report 01, 2b, probed).
+- **Lacci today:** `alias_method :remove, :destroy` sits on `Drawable` (`drawable.rb:615`), so `slot.remove` binds `Drawable#destroy` and skips `Slot#destroy` (`slot.rb:231-235`), which is the method that cascades to children and fires `finish`. Only the slot's own `destroy` is sent (report 01, 2b, probed). Since 27 Sep (`64e1ca6`) `remove` calls `destroy` by name, so a removed slot clears its children, fires `finish` and returns self (X15).
 - **Spec:** `slot.remove` fires the slot's `finish` block with the slot, and none of its children can be found afterwards.
-- **Native:** `destroy` removes the whole subtree already (DESIGN 4.1), so the pixels are right today; the Lacci-side children leak and `finish` is lost.
+- **Native:** `destroy` removes the whole subtree already (DESIGN 4.1), so the pixels were right before Lacci's fix; until 27 Sep the Lacci-side children leaked and `finish` was lost.
 
 ### B6. Methods headed `» self` return `self`
 
-**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, unscheduled.** New row, requested by the events, elements and art writers; it covers the `hide`/`show`/`toggle` request too.
+**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, done 27 Sep 2026.** New row, requested by the events, elements and art writers; it covers the `hide`/`show`/`toggle` request too.
 
 - **Manual:** every heading below ends `» self` (manual 1676-1862, 2187-2360, 2417-2503, 2639-2715, 3419-3430).
 - **Shoes 3:** `append`, `prepend`, `before`, `after` (`s3_canvas.c:731-757`), `toggle` (`:924-932`) and every slot event method (`EVENT_HANDLER`, `:934-944`) end `return self`; so do `hide`/`show` (`s3t_native.c:232-248`) and the timers' `start`/`stop`/`toggle` (`s3t_timerbase.c:93-121`). The draw-context methods are generated by a macro whose bodies are not in the fetched files.
@@ -357,6 +357,8 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
   | `nofill`, `nostroke`, `strokewidth`, `rotate` | the value stored in the draw context | `drawables/slot.rb:135-172` |
   | `cap`, `translate` | nil (no-op stubs) | `app.rb:565-582` |
   | `move`, `displace`, `remove`, `before`, `after` | self (already right) | |
+
+  Since 27 Sep (`bedd0e6`, `5cd2ed1`) every method in the table returns self, `cap` and `translate` included; `animate`, `every` and `timer` still return the timer, so it can be stopped.
 
 - **Spec:** one `__returns_self` case per method: `events.{click,hover,leave,motion,release,keypress,finish}__returns_self`, `manip.{append,prepend,clear,clear_with_block}__returns_self`, `slot.{hide,show,toggle}__returns_self`, `common.{hide,show,toggle}__returns_self`, `timers.{start,stop,toggle}__returns_self`, `art.{nofill,nostroke,rotate}__returns_self` (rotate also sits under E10). Each checks the result with `assert_same` against the receiver.
 - **Native:** nothing; the return values are Ruby-side.
@@ -377,11 +379,11 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### C1. A Float dimension is a fraction of the parent
 
-**Ruling: MANUAL.** **Lacci change, unscheduled** (getter only).
+**Ruling: MANUAL.** **Lacci change, done 27 Sep 2026** (getter only).
 
 - **Manual:** a decimal width or height is a percentage, "0.0 being 0% and 1.0 being 100%" (manual 1239-1245, 1539-1545); `button "All of it", width: 1.0, height: 1.0` (manual 2702).
 - **Shoes 3:** `shoes_px`: any Float is `parent * f`, a String ending in `%` is a fraction, other Strings go through `to_i` (so `"10px"` is 10), a negative Integer is `parent - |n|` (`s3_ruby.c:298-319`). Floats of 1.0 and above are fractions too.
-- **Lacci today:** `compute_dimension` handles `"N%"` and negatives but returns Floats unchanged (`drawable.rb:681-700`): `stack(width: 0.5).width == 0.5`. Calzini turns a Float into `"50.0%"` (`calzini.rb:102-115`), so only the Ruby getter is wrong.
+- **Lacci today:** `compute_dimension` handles `"N%"` and negatives but returns Floats unchanged (`drawable.rb:681-700`): `stack(width: 0.5).width == 0.5`. Calzini turns a Float into `"50.0%"` (`calzini.rb:102-115`), so only the Ruby getter is wrong. Since 27 Sep (`32ebbf3`) the getter reads the laid-out size when the display pushes one, and otherwise treats a Float in (0, 1] as a fraction of the parent, as `dim.rs` does.
 - **Spec:** a laid-out `stack(width: 0.5)` reports half its parent's inner width in pixels; `button width: 1.0` spans its slot.
 - **Native:** DESIGN 6.
 - **DESIGN conflict (small):** DESIGN 6 says "Float between 0 and 1 exclusive = fraction ... (1.0 = 100%)", which contradicts itself. Shoes 3 treats every Float as a fraction, including 1.0 and 1.5.
@@ -417,7 +419,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Manual:** `before(el) { }`, `after(el) { }` (manual 2315-2323); `scroll_height`, `scroll_max` (manual 2440-2453); `Image#path`, `path=`, `full_width`, `full_height` (manual 3143-3164); `location` (manual 980-982); `started?` (manual 1006-1010); `imagesize` (manual 2017-2023); `gutter` on slots (manual 2394-2410).
 - **Shoes 3:** `before`/`after` exist (`s3_canvas.c:731-743`); `started?` is `shoes_app_is_started` (`s3_ruby.c:791`).
 - **Examples:** `before` in 5 files, `after` 4, `scroll_max` 1, `location` 3.
-- **Lacci today:** none of `before`, `after`, `scroll_max`, `scroll_height`, `location`, `started?`, `imagesize` exist; Image uses a `url` style (`image.rb:5`); `gutter` is App-only and a constant 28 (`app.rb:551-553`).
+- **Lacci today:** none of `before`, `after`, `scroll_max`, `scroll_height`, `location`, `started?`, `imagesize` exist; Image uses a `url` style (`image.rb:5`); `gutter` is App-only and a constant 28 (`app.rb:551-553`). Since 27 Sep slots have `scroll_height`, `scroll_max` and a `gutter` of their own (`32ebbf3`), and apps `location` and `started?` (`8e5a4cf`); `before`, `after`, `imagesize` and Image `path` are still missing.
 - **Spec:** each method exists and returns a plausible value (for example `scroll_max == scroll_height - height` on a scrolling stack with overflowing content).
 - **Native:** `scroll_height` and `scroll_max` need the content height from Rust. Wire contract (a) (see A4) carries it as each slot's `scroll_h`, which Rust pushes after every layout pass since 27 Sep (DESIGN 4.2) and the shim keeps in `Shoes::DisplayService.layout_cache`: Lacci reads `scroll_height = scroll_h` and `scroll_max = max(0, scroll_h - h)` from it.
 
@@ -540,11 +542,11 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### D4. `rgb`, `gray` and `gradient` are Kernel built-ins, and `Shoes.rgb` works
 
-**Ruling: MANUAL.** **Lacci change, unscheduled.**
+**Ruling: MANUAL.** **Lacci change, done 27 Sep 2026.**
 
 - **Manual:** built-ins that "may also be called as `Shoes.rgb`" (manual 785-834).
 - **Shoes 3:** defined on `rb_mKernel` and as `Shoes::Color` singletons (`s3t_color.c:11-15, 38-40`).
-- **Lacci today:** only through `include Shoes::Colors` on Drawables (`drawable.rb:15`). `Shoes.respond_to?(:rgb) == false`, and top-level `rgb(1, 2, 3)` raises `NoMethodError` (X5).
+- **Lacci today:** only through `include Shoes::Colors` on Drawables (`drawable.rb:15`). `Shoes.respond_to?(:rgb) == false`, and top-level `rgb(1, 2, 3)` raises `NoMethodError` (X5). Since 27 Sep (`95b1970`) `rgb`, `gray` and `gradient` are built-ins callable from any object, so a top-level `rgb(1, 2, 3)` and `Shoes.rgb(1, 2, 3)` both return a colour; the named colours stay on drawables.
 - **Spec:** `Shoes.rgb(1, 2, 3)` and a top-level `rgb(1, 2, 3)` outside any app both return a colour.
 - **Native:** nothing.
 
@@ -561,14 +563,14 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### D6. Gradient direction, `:angle`, Ranges and radial
 
-**Ruling: MANUAL** (Shoes 3 agrees). Radial is **EXT**. **Lacci change, unscheduled** (default angle, `Background` angle, alpha).
+**Ruling: MANUAL** (Shoes 3 agrees). Radial is **EXT**. **Lacci change, done 27 Sep 2026** (default angle, `Background` angle, alpha).
 
 - **Manual:** "Normally, gradient colors range from top to bottom. If the `:angle` is set to 90, the gradient will rotate 90 degrees counter-clockwise and the gradient will go from left to right." (manual 1073-1079). `:fill`/`:stroke` accept "a range of either" (manual 1202, 1453).
 - **Shoes 3:** angle defaults to 0; the direction vector is `(sin a, cos a)`, so 0 runs top to bottom and 90 runs left to right (`s3t_pattern.c:53-72`); a Range becomes a gradient (`:86-89`); `:radius` makes it radial (`:65-69`), though the radius parse checks the wrong variable and always uses 0.001.
 - **Examples:** 15 files use `"#x".."#y"` Ranges; `for_playtest/shoes-contrib/styles/gradient-angle.rb` uses `gradient purple, red, :angle => 45`.
-- **Lacci / WV today:** `Gradient` defaults to 45 (`colors.rb:198`); Ranges render as `linear-gradient(45deg, ...)`; the Shoes angle goes to CSS unchanged although CSS 0 runs bottom to top. `Background` has no `:angle` style, so `background r..b, angle: 30` is dropped with a warning (`background.rb:12`, `drawable.rb:385-388`). `gradient()` throws away each colour's alpha (`colors.rb:185-186`). No radial.
+- **Lacci / WV today:** `Gradient` defaults to 45 (`colors.rb:198`); Ranges render as `linear-gradient(45deg, ...)`; the Shoes angle goes to CSS unchanged although CSS 0 runs bottom to top. `Background` has no `:angle` style, so `background r..b, angle: 30` is dropped with a warning (`background.rb:12`, `drawable.rb:385-388`). `gradient()` throws away each colour's alpha (`colors.rb:185-186`). No radial. Since 27 Sep (`95b1970`) `Gradient` defaults to angle 0 and keeps each end's alpha, `background` takes `angle:` and folds it into its gradient, and Calzini writes `180 - angle` for CSS.
 - **Spec:** `background red..blue` is red at the top row and blue at the bottom row; with `angle: 90` it is red on the left and blue on the right.
-- **Native:** DESIGN 5.3 sends `{"gradient":[c1,c2],"angle":deg}`; angle 0 is top to bottom. A CSS-style renderer maps `css_deg = 180 - shoes_deg`. Until Lacci's default changes, the native backend receives 45 for a plain `gradient(a, b)`.
+- **Native:** DESIGN 5.3 sends `{"gradient":[c1,c2],"angle":deg}`; angle 0 is top to bottom. A CSS-style renderer maps `css_deg = 180 - shoes_deg`. Since Lacci's default moved to 0 on 27 Sep, a plain `gradient(a, b)` reaches the native backend as 0, top to bottom.
 
 ### D7. `nofill` and `nostroke` mean "none"
 
@@ -690,12 +692,12 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### E9. `image(w, h) { drawing }` is a canvas
 
-**Ruling: MANUAL** for the canvas; effects (`blur`, `glow`, `shadow`) are **EXT**. **Lacci change, unscheduled.**
+**Ruling: MANUAL** for the canvas; effects (`blur`, `glow`, `shadow`) are **EXT**. **Lacci change, done 27 Sep 2026.**
 
 - **Manual:** `image 300, 300 do ... end` renders the shapes into one image (manual 410-426); the block form is not documented under `image` itself (M23).
 - **Shoes 3:** shapes inside an image draw into its surface (`s3t_shape.c:318-323`); effects live in `shoes/types/effect.c` (not fetched).
 - **Examples:** 3 files (`simple-sphere.rb`, `shoes_manual/ovals_image.rb`, ...); `blur` in 1.
-- **Lacci today:** `image(w, h)` becomes a blank placeholder and the block is ignored (`image.rb:10-20`).
+- **Lacci today:** `image(w, h)` becomes a blank placeholder and the block is ignored (`image.rb:10-20`). Since 27 Sep (`64e1ca6`) the block runs with the Image as the current slot (contract c), so its shapes and text are the Image's children, and `image(styles) { }` is a canvas too; `blur`, `glow` and `shadow` are accepted and ignored. A file image's block is its click handler, as in Shoes 3.
 - **Spec:** `image(100, 100) { oval 0, 0, 50 }` paints the oval inside the image's box.
 - **Native:** **wire contract (c), 27 Sep 2026:** the `image(w, h) { }` block runs with the Image as the current slot, so the art and text inside arrive as children of the Image node, and Rust paints them clipped to the image's box in image-local coordinates. Built 27 Sep: an Image with children lays them out inside its box like a flow, clipped to it (DESIGN 12). Effects stay undrawn: the manual names blurred ovals and shadows in its introduction (manual 51-52) but documents no API for them.
 
@@ -705,7 +707,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 - **Manual:** manual 1676-1680, 1783-1797, 1857-1868. `transform`: "Shoes defaults to `:corner`", the corner of the shape (1857-1860).
 - **Shoes 3:** `shoes_transform_new` starts every transform in `s_center` mode, and outside centre mode the matrix is applied about the canvas origin, not the shape's corner (`s3_canvas.c:31-41, 192-205`). The ruling keeps the manual's shape corner; nobody has checked what a real Shoes 3 draws.
-- **Lacci today:** `translate` and `cap` are no-ops (`app.rb:555-573`); `transform` exists only on Image (`image.rb:74-83`); `rotate`/`scale`/`skew` go into the draw context (`slot.rb:166-193`), and WV applies them to some shapes only (report 02, 6.8). Wire contract (b) of 27 Sep 2026 has Lacci send `translate: [x, y]` (running total), `transform: "center"|"corner"` and `cap: "curve"|"rect"|"project"` in the draw context.
+- **Lacci today:** `translate` and `cap` are no-ops (`app.rb:555-573`); `transform` exists only on Image (`image.rb:74-83`); `rotate`/`scale`/`skew` go into the draw context (`slot.rb:166-193`), and WV applies them to some shapes only (report 02, 6.8). Wire contract (b) of 27 Sep 2026 has Lacci send `translate: [x, y]` (running total), `transform: "center"|"corner"` and `cap: "curve"|"rect"|"project"` in the draw context. Since 27 Sep (`5cd2ed1`) `translate` (a running total), `transform` and `cap` go into the draw context as contract (b) reads them, and shapes take a `cap:` style of their own; inside an `image(w, h) { }` block `rotate` and `transform` still turn the whole image.
 - **Spec:** `rotate 45; rect 100, 100, 50, 10` paints a pixel off the unrotated rect's box.
 - **Native:** applies the draw context's transforms to every shape, rotating about the shape's top-left corner unless `transform: "center"` (or `center: true`); `translate` moves the shape and its layout box; caps are round, flat or square (DESIGN 12). **Wire contract (b), 27 Sep 2026:** Lacci sends `"translate": [x, y]` (cumulative), `"transform": "center" | "corner"` (the rotate and scale pivot, default corner) and `"cap": "curve" | "rect" | "project"` (round, butt, square) in the draw context, and Rust renders them.
 
@@ -776,7 +778,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 - **Manual:** strings (manual 1443-1451, 1496-1509).
 - **Shoes 4:** booleans (`s4_dsl_text.rb:110-112`).
-- **Lacci today:** the validators accept only nil or the manual's strings; `true` raises `InvalidAttributeValueError` (`para.rb:15-29`, `text_drawable.rb:17-31`).
+- **Lacci today:** the validators accept only nil or the manual's strings; `true` raises `InvalidAttributeValueError` (`para.rb:15-29`, `text_drawable.rb:17-31`). Since 27 Sep (`a24066f`) `true` becomes `"single"`, and `false` or nil set by a style becomes `"none"`, for Para and the text fragments alike.
 - **Spec:** `underline: "single"` and `underline: true` both underline.
 - **Native:** receives the string form.
 
@@ -787,7 +789,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Manual:** a link has a single underline and a `#06E` stroke; LinkHover has a single underline and a `#039` stroke (manual 2034-2039).
 - **Shoes 4:** `STYLES = { underline: true, stroke: blue, fill: nil }` (`s4_link.rb:13`).
 - **Examples:** `style(Shoes::Link, :underline => nil)` plus `style(Shoes::LinkHover, ...)` in `for_playtest/simple/menu.rb:25-26`, `menu1.rb:14-15`, `philippe_checked/accordion.rb:46-47`, `shoes-contrib/simple/simple-accordion.rb:39`.
-- **Lacci today:** Link styles are nil; LinkHover class defaults are stored by `style()` but "The functionality isn't present in Lacci yet" (`link.rb:35-41`).
+- **Lacci today:** Link styles are nil; LinkHover class defaults are stored by `style()` but "The functionality isn't present in Lacci yet" (`link.rb:35-41`). Since 27 Sep (`a24066f`) a style that sets `underline` or `strikethrough` to nil or false sends `"none"` (contract d), so `style(Shoes::Link, underline: nil)` takes the underline off; LinkHover defaults still do nothing.
 - **Spec:** an unstyled link's glyph pixels read close to `#0066EE` and it is underlined; after `style(Shoes::Link, underline: nil)` it is not.
 - **Native:** DESIGN 7 uses `#0066ee` with an underline, which is `#06E`. On hover it should switch to `#039` (`#003399`) unless the app styled LinkHover; DESIGN only says "darker on hover". **Wire contract (d), 27 Sep 2026:** when a style sets `underline` (or `strikethrough`) to nil or false, Lacci sends `"none"`, and Rust draws no decoration for `"none"`. That is how `style(Shoes::Link, underline: nil)` reaches the display, since create props drop nils.
 
@@ -843,13 +845,13 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### G1. Control callbacks receive the control
 
-**Ruling: MANUAL.** **Lacci change, unscheduled.**
+**Ruling: MANUAL.** **Lacci change, done 27 Sep 2026.**
 
 - **Manual:** button `click { |self| }` (manual 2918-2921); check and radio `click { |self| }` (manual 2988-2993, 3349-3354); edit_box, edit_line and list_box `change { |self| }` (manual 3038-3042, 3086-3090, 3211-3215).
 - **Shoes 3:** every control event calls its block with `rb_ary_new3(1, self)` (`s3t_native.c:189-193`).
 - **Shoes 4:** `listener.call(self)` (`s4_common_changeable.rb:25-31`).
 - **Examples:** `for_playtest/shoes-contrib/elements/edit_line-character-count.rb:2-3` does `edit_line do |e| @counter.text = e.text.size end`, which breaks on a String.
-- **Lacci today:** Button calls its block with no arguments (`button.rb:42-45`); **EditLine passes the new String** (`edit_line.rb:15-20`); EditBox, ListBox, Check and Radio pass `self`.
+- **Lacci today:** Button calls its block with no arguments (`button.rb:42-45`); **EditLine passes the new String** (`edit_line.rb:15-20`); EditBox, ListBox, Check and Radio pass `self`. Since 27 Sep (`c91ffd6`) every control calls its block with itself, Button and EditLine included, and handler setters return the control.
 - **Spec:** the button's click block receives the Button; the edit_line's change block receives the EditLine, whose `text` is the new value.
 - **Native:** nothing; the argument is Ruby-side.
 
@@ -867,10 +869,10 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### G3. List box initial selection, `text`, and `choose`
 
-**Ruling: MANUAL.** **Needs fix 10.4** (`choose` echo); the default selection is a **Lacci change, unscheduled.**
+**Ruling: MANUAL.** **Needs fix 10.4** (`choose` echo); the default selection was a **Lacci change, done 27 Sep 2026.**
 
 - **Manual:** `text` is nil when nothing is selected (manual 3234-3237); `:choose` pre-selects (manual 1137-1142).
-- **Lacci / WV today:** `@chosen = kwargs.delete(:choose) || @items&.first` (`list_box.rb:19`), so `text == "a"` with nothing chosen. Calzini selects by `props["choose"]` while Lacci sends `chosen` (`calzini/misc.rb:74-77` against `list_box.rb:10`). `#choose` sets `@chosen` without a `prop_change` (`list_box.rb:35-41`, X11).
+- **Lacci / WV today:** `@chosen = kwargs.delete(:choose) || @items&.first` (`list_box.rb:19`), so `text == "a"` with nothing chosen. Calzini selects by `props["choose"]` while Lacci sends `chosen` (`calzini/misc.rb:74-77` against `list_box.rb:10`). `#choose` sets `@chosen` without a `prop_change` (`list_box.rb:35-41`, X11). Since 27 Sep (`c91ffd6`) a list box with no `choose:` selects nothing, so `text` is nil; the `choose` echo (fix 10.4) is unchanged.
 - **Spec:** `list_box(items: %w[a b]).text` is nil; `choose: "b"` gives `"b"`; after `lb.choose("a")` the display shows "a" (layout text or snapshot).
 - **Native:** reads `chosen`; shows an empty selection when it is null.
 
@@ -890,7 +892,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 - **Manual:** silent (M32).
 - **Shoes 3:** platform-dependent: GTK emits "changed" from `gtk_entry_set_text`, Cocoa does not.
-- **Lacci today:** fires, on purpose: commit `eda8975` ("a deliberate deviation from Shoes3 behavior for better UX"), `edit_line.rb:30-40`, `edit_box.rb:30-40`.
+- **Lacci today:** fires, on purpose: commit `eda8975` ("a deliberate deviation from Shoes3 behavior for better UX"), `edit_line.rb:30-40`, `edit_box.rb:30-40`. Since 27 Sep (`c91ffd6`) it still fires, and hands the control to the block, as G1 has every control do.
 - **Spec:** `core` nothing either way; `edit_line.text=__fires_change` pins the extension: setting `text` from code calls the change block once.
 - **Native:** sends `change` only for user edits; the programmatic path is Lacci's, so the pin holds on every display.
 
@@ -913,10 +915,10 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### G9. `focus` on buttons, and Enter clicks the focused button
 
-**Ruling: MANUAL.** **Lacci change, unscheduled.** New row.
+**Ruling: MANUAL.** **Lacci change, done 27 Sep 2026.** New row.
 
 - **Manual:** button `focus`: "The button will be highlighted and, if the user hits Enter, the button will be clicked." (manual 2923-2926); radio `focus`, Enter toggles (manual 3356-3359).
-- **Lacci today:** Button has no `focus` (report 03 probe); ListBox, EditBox and EditLine do.
+- **Lacci today:** Button has no `focus` (report 03 probe); ListBox, EditBox and EditLine do. Since 27 Sep (`c91ffd6`) Button, Check and Radio have `focus` too, shared with the other controls through `Shoes::Focusable`.
 - **Spec:** `button.focus`, then `press_key "\n"`, fires the click block once.
 - **Native:** accepts `focus` for buttons, checks and radios; Enter or Space on a focused button sends `click`.
 
@@ -941,11 +943,11 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### G12. New inputs read `""`, new progress bars `0.0`
 
-**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, unscheduled.** New row, requested by the widgets and elements writers; see M5.
+**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, done 27 Sep 2026.** New row, requested by the widgets and elements writers; see M5.
 
 - **Manual:** `text` on an edit line or edit box returns "a string of characters" (manual 3051, 3099); `fraction` returns "a decimal number from 0.0 to 1.0" (manual 3264-3266).
 - **Shoes 3:** `text` reads the native widget (`s3t_edit_line.c:23-27`), which is a String even when empty. The progress getter is not in the fetched files.
-- **Lacci today:** `edit_line.text`, `edit_box.text` and `progress.fraction` are nil until something sets them (`drawables/edit_line.rb:5-9`, `drawables/progress.rb:5`).
+- **Lacci today:** `edit_line.text`, `edit_box.text` and `progress.fraction` are nil until something sets them (`drawables/edit_line.rb:5-9`, `drawables/progress.rb:5`). Since 27 Sep (`c91ffd6`) `text` starts as `""` and `fraction` as 0.0, as in Shoes 3.
 - **Spec:** `element.edit_line__no_text` and `element.edit_box__no_text` read `""`; `progress.fraction__untouched` reads `0.0`.
 - **Native:** shows an empty field and an empty bar either way.
 
@@ -1018,12 +1020,12 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### H5. `hover` and `leave` hand the block the slot
 
-**Ruling: MANUAL.** **Lacci change, unscheduled.**
+**Ruling: MANUAL.** **Lacci change, done 27 Sep 2026.**
 
 - **Manual:** the block "gets `self`, meaning the object which was hovered over" (manual 2200-2205, 2251-2257).
 - **Shoes 3:** `CHECK_HOVER` calls the proc with `self`, the canvas (`s3_ruby.h:167-176`).
 - **Examples:** `for_playtest/simple/menu1.rb:18` and `shoes-contrib/simple/simple-menu1.rb:18` (`hover do |box| if box.width < 170`).
-- **Lacci today:** slot-level `hover { }` passes the SubscriptionItem, not the slot (`subscription_item.rb:37-46`), then a kwargs Hash on the double fire (X1); element-level `el.hover { }` passes nothing (`drawable.rb:416-422`).
+- **Lacci today:** slot-level `hover { }` passes the SubscriptionItem, not the slot (`subscription_item.rb:37-46`), then a kwargs Hash on the double fire (X1); element-level `el.hover { }` passes nothing (`drawable.rb:416-422`). Since 27 Sep (`8d4e3ef`) `hover` and `leave` hand over the slot or the element.
 - **Spec:** inside `stack { hover { |s| $s = s } }`, hovering sets `$s` to the stack.
 - **Native:** sends `hover`/`leave` on transitions (DESIGN 4.3).
 
@@ -1049,22 +1051,22 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### H8. `start` and `finish`
 
-**Ruling: MANUAL** for `start` and `finish` on slots, each handed the slot. `keydown`, `keyup`, `keyrelease` and `resize` are **EXT**. **Lacci change, unscheduled.**
+**Ruling: MANUAL** for `start` and `finish` on slots, each handed the slot. `keydown`, `keyup`, `keyrelease` and `resize` are **EXT**. **Lacci change, done 27 Sep 2026.**
 
 - **Manual:** `start { |self| }` fires "The first time the slot is drawn"; `finish { |self| }` fires on removal (manual 2195-2198, 2286-2289). See M26 for App `start` against `started?`.
 - **Shoes 3:** `start` is a slot method (`s3_canvas.c:974-988`), sent after the first paint (`:180`, `:990-1016`); `finish` receives the slot (`:1030-1036`); `keydown`/`keyup` exist (`:950-952`).
 - **Shoes 4:** adds `keyrelease` and `resize` (`s4_dsl_interaction.rb:32-35, 78-81`).
-- **Lacci today:** `start` exists only on App and runs after the body with no argument (`app.rb:146-159`); `finish` on Slot fires on destroy with no argument (`slot.rb:209-219`, commit `1ce13b0`). No `keydown`, `keyup`, `keyrelease`, `resize`. Worse than a missing argument: `finish { }` written inside a slot's block runs against the App (B1) and raises `NoMethodError` at load time (the events writer's report).
+- **Lacci today:** `start` exists only on App and runs after the body with no argument (`app.rb:146-159`); `finish` on Slot fires on destroy with no argument (`slot.rb:209-219`, commit `1ce13b0`). No `keydown`, `keyup`, `keyrelease`, `resize`. Worse than a missing argument: `finish { }` written inside a slot's block runs against the App (B1) and raises `NoMethodError` at load time (the events writer's report). Since 27 Sep (`8d4e3ef`) slots have `start { |slot| }`, run once on the first heartbeat after it is registered (the display draws before that), and `finish` hands over the slot; written inside a slot's block, both belong to that slot. App-level `start` keeps its old timing.
 - **Spec:** `stack { start { |s| $started = s } }` sets `$started` to the stack after the first frame; `finish { |s| }` gets the slot on `clear`.
 - **Native:** the pump dispatches the first `heartbeat` after the first frame; `start` should hang off that point (DESIGN 5.4).
 
 ### H9. Slot event handlers survive `clear`
 
-**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, unscheduled.** New row, requested by the events writer.
+**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, done 27 Sep 2026.** New row, requested by the events writer.
 
 - **Manual:** the hover/leave example clears its own stack in both handlers, and the background turns blue on hover and red again on leave (manual 2167-2185). That only works if `clear` leaves the handlers in place.
 - **Shoes 3:** a slot's handlers live in its style hash (`EVENT_HANDLER`, `s3_canvas.c:934-944`), and `clear` walks only `contents` (`:759-775`).
-- **Lacci today:** slot event methods make a SubscriptionItem child of the slot (`app.rb:414-422`), and `clear` destroys every child (`drawables/slot.rb:263-265`), so the first hover's `clear` removes the leave handler and the stack stays blue.
+- **Lacci today:** slot event methods make a SubscriptionItem child of the slot (`app.rb:414-422`), and `clear` destroys every child (`drawables/slot.rb:263-265`), so the first hover's `clear` removes the leave handler and the stack stays blue. Since 27 Sep (`8d4e3ef`) `clear` keeps the slot's SubscriptionItems, so its handlers survive, and so do its timers (B7); `visit` still starts from nothing.
 - **Spec:** `events.hover_leave_example__back_to_red`: hover, then leave, and the stack is red again.
 - **Native:** SubscriptionItems are doc nodes under the slot; once Lacci stops destroying them, the shim sends no `destroy` and Rust keeps routing to them.
 
@@ -1094,12 +1096,12 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### I2. `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer`
 
-**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, unscheduled.** New row, requested by the events and elements writers.
+**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, done 27 Sep 2026.** New row, requested by the events and elements writers.
 
 - **Manual:** "Shoes contains three timer classes: the Animation class, the Every class and the Timer class" (manual 3411-3413); `animate » Shoes::Animation`, `every » Shoes::Every`, `timer » Shoes::Timer` (manual 1877, 1989, 2111).
 - **Shoes 3:** `Animation`, `Every` and `Timer` subclass `TimerBase` (`s3t_timerbase.c:11-22`), and `animate`, `every` and `timer` make one each (`:131-153`).
 - **Shoes 4:** `Shoes::Animation` and `Shoes::Timer`; `every` is an Animation (`s4_dsl_animate.rb:21-45`).
-- **Lacci today:** all three return a `Shoes::SubscriptionItem` (`app.rb:414-422`, `drawables/subscription_item.rb:17`); none of the three classes exists.
+- **Lacci today:** all three return a `Shoes::SubscriptionItem` (`app.rb:414-422`, `drawables/subscription_item.rb:17`); none of the three classes exists. Since 27 Sep (`41a9811`) all three exist as SubscriptionItem subclasses, which `animate`, `every` and `timer` return; each announces itself to the display as `"SubscriptionItem"` (contract e).
 - **Spec:** `timers.classes`, `element.animate__returns_animation`, `element.every__returns_every`, `element.timer__returns_timer`.
 - **Native:** **wire contract (e), 27 Sep 2026:** if Lacci adds `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer` as SubscriptionItem subclasses, they still announce themselves to the display as `"SubscriptionItem"`, so neither Rust nor the shim changes.
 
@@ -1107,12 +1109,12 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### J1. `url`, `visit` and pages
 
-**Ruling: BOTH** for class-level and instance-level `url`. `page(:name)` is **EXT**. Add `location` (**MANUAL**, **Lacci change, unscheduled**).
+**Ruling: BOTH** for class-level and instance-level `url`. `page(:name)` is **EXT**. Add `location` (**MANUAL**, **Lacci change, done 27 Sep 2026**).
 
 - **Manual:** only `visit(url)` and `location()` (manual 980-982, 1012-1018); no `url` entry; "When you switch URLs, a new App object is created" (manual 848-849, see M29).
 - **Shoes 3 / Shoes 4:** class-level `url` on `class Foo < Shoes`. Shoes 4 anchors the page string as `/^page$/`, passes one capture, and makes a fresh instance of the class per visit (`s4_url.rb:4-43`); `visit` clears the app and sets `location` (`s4_dsl_interaction.rb:97-107`).
 - **Examples:** `examples/url_routing_example.rb` (instance-level), `examples/shoes_subclass_app.rb`, `examples/internal_link_navigation.rb` (pages plus `link(click: "/page2")`); 7 files use `url`, 9 use `visit`.
-- **Lacci today:** both class-level (`lacci/lib/shoes.rb:98-114`, copied onto the app through `pending_app_class`, `:152-190`) and instance-level `url` inside `Shoes.app` (`app.rb:401-409`); strings containing `(` become regexes; all captures are passed; an unknown URL prints `Error: URL '...' not found` (`app.rb:364-399`); `"/"` renders on first boot only when it is routed to `:index` (`app.rb:598-604`), so an app that routes `"/"` to another method shows nothing until it visits. Scarpe-only `page(:name) { }` with `visit(:name)` (`app.rb:355-362`, `docs/SCARPE_FEATURES.md:15-38`). No `location`.
+- **Lacci today:** both class-level (`lacci/lib/shoes.rb:98-114`, copied onto the app through `pending_app_class`, `:152-190`) and instance-level `url` inside `Shoes.app` (`app.rb:401-409`); strings containing `(` become regexes; all captures are passed; an unknown URL prints `Error: URL '...' not found` (`app.rb:364-399`); `"/"` renders on first boot only when it is routed to `:index` (`app.rb:598-604`), so an app that routes `"/"` to another method shows nothing until it visits. Scarpe-only `page(:name) { }` with `visit(:name)` (`app.rb:355-362`, `docs/SCARPE_FEATURES.md:15-38`). No `location`. Since 27 Sep (`8e5a4cf`) `App#location` is the URL of the page on show, `"/"` until a visit.
 - **Spec:** after `visit "/about"`, the `/about` handler's content is shown and `location == "/about"`. Nothing about App identity across visits.
 - **Native:** nothing special: a visit is a `clear` plus new creates.
 
@@ -1148,10 +1150,10 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### K4. `font(path)` returns the family names
 
-**Ruling: MANUAL.** **Lacci change, unscheduled.** New row.
+**Ruling: MANUAL.** **Lacci change, done 27 Sep 2026.** New row.
 
 - **Manual:** "If the font is properly loaded, you'll get back an array of font names found in the file. Otherwise, `nil` is returned if no fonts were found in the file." (manual 766-767).
-- **Lacci today:** sends the `font` builtin, then returns `Shoes::FONTS << File.basename(path, ".*")` whatever happened (`builtins.rb:13-18`): `font("/nonexistent.ttf")` returns an array ending in `"nonexistent"`.
+- **Lacci today:** sends the `font` builtin, then returns `Shoes::FONTS << File.basename(path, ".*")` whatever happened (`builtins.rb:13-18`): `font("/nonexistent.ttf")` returns an array ending in `"nonexistent"`. Since 27 Sep (`8e5a4cf`) `Shoes::FontFile` reads the family names from the file's name table; `font` returns them and adds them to `Shoes::FONTS` before asking the display to register the file, and a missing file or a non-font returns nil and is not sent. A URL still answers with its file name, since the file cannot be read before the display fetches it.
 - **Spec:** `font("missing.ttf")` returns nil; loading a bundled Inter file returns an array that includes `"Inter"`.
 - **Native:** registers the file (DESIGN 4.1 `font`) but sends no answer. To satisfy the ruling, the `font` builtin needs a reply with the family names the file contains.
 
@@ -1221,12 +1223,12 @@ These are bugs, not disagreements about Shoes. A new display service inherits ev
 | X12 | `link(text, click: proc)` never calls the proc (`@block` is nil, `has_block` false). | `drawables/link.rb:11-31` | Only the block form of a link works. | F9 | 10.5 |
 | X13 | `#rgb` expands each nibble times 16; `rgb()` picks int or float mode from `r` alone. | `colors.rb:229-234`, `:168-176` | `#DFA` is `[208, 240, 160]`; `rgb(0, 0.4, 0)` keeps a raw 0.4. | D2, D5 | 10.7 |
 | X14 | Oval's third positional is stored as a radius and doubled. | `drawables/oval.rb:18-19, 33, 42` | Every three-argument oval is twice the size; four-argument ovals are 2w x h. | E1, M2 | 10.10 |
-| X15 | `alias_method :remove, :destroy` on Drawable binds the base `destroy`, so `slot.remove` skips the cascade and `finish`. | `drawable.rb:615`, `drawables/slot.rb:231-235` | Removed slots leak their children in Lacci; `finish` never fires on `remove`. | B5 | unscheduled |
+| X15 | `alias_method :remove, :destroy` on Drawable binds the base `destroy`, so `slot.remove` skips the cascade and `finish`. | `drawable.rb:615`, `drawables/slot.rb:231-235` | Removed slots leak their children in Lacci; `finish` never fires on `remove`. | B5 | fixed 27 Sep (`64e1ca6`) |
 | X16 | `App#destroy` (and its alias `close`) sends a nil-target `destroy`, which every App obeys. | `app.rb:109-113, 280-287` | Closing one window closes all of them. | A8 | unscheduled |
 | X17 | `all_drawables` seeds its queue with `[@document_root, @document_root.children]`, so the children Array itself lands in the result. | `app.rb:289-299` | Class-filtered finders hide it; `drawables()` with no filter returns an Array among the drawables. Matters to the spec finders. | spec API | unscheduled |
-| X18 | `download`'s failure path calls `handle_failure(code)` against `def handle_failure(code, logger)`, requires `nokogiri` unconditionally, and runs blocks on a background Thread. | `download.rb:31-125` | Every non-2xx response logs an ArgumentError instead of failing cleanly. | K5 | unscheduled |
+| X18 | `download`'s failure path calls `handle_failure(code)` against `def handle_failure(code, logger)`, requires `nokogiri` unconditionally, and runs blocks on a background Thread. | `download.rb:31-125` | Every non-2xx response logs an ArgumentError instead of failing cleanly. | K5 | failure path fixed 27 Sep (`3dcf19a`); the rest unscheduled |
 | X19 | Webview subscribes to `full_redraw_request`, `focus` and `scroll_top` with the wrong target (nil against id, or the reverse). | `drawables/slot.rb:243, 267` against `wv/slot.rb:14`; `edit_line.rb:45` against `wv/edit_line.rb:19`; `drawables/stack.rb:29` against `wv/stack.rb:8` | `slot.clear { }` never redraws in Webview; `focus` and `scroll_top` never arrive. The native shim subscribes by id and ignores `full_redraw_request` (DESIGN 5.2). | C5, G9 | WV only |
-| X20 | The draw context's `fill`, `stroke`, `strokewidth`, `rotate`, `transform` and `translate` are copied onto every drawable that declares the style, text blocks and controls included, unless the call supplied it. | `drawable.rb:288, 353-361` | `stroke "#BBB"; button "Expert"` sends `stroke: [187, 187, 187]` on the Button and on later paras (confirmed on the wire): `simple/control-sizes.rb` draws every control in #dde, and minesweeper's buttons turn grey after a redraw. The manual's `stroke` and `fill` colour "any subsequent shape" (manual 1682-1687, 1833-1836). | D8, E10 | unscheduled |
+| X20 | The draw context's `fill`, `stroke`, `strokewidth`, `rotate`, `transform` and `translate` are copied onto every drawable that declares the style, text blocks and controls included, unless the call supplied it. | `drawable.rb:288, 353-361` | `stroke "#BBB"; button "Expert"` sends `stroke: [187, 187, 187]` on the Button and on later paras (confirmed on the wire): `simple/control-sizes.rb` draws every control in #dde, and minesweeper's buttons turn grey after a redraw. The manual's `stroke` and `fill` colour "any subsequent shape" (manual 1682-1687, 1833-1836). | D8, E10 | fixed 27 Sep (`668cbf0`) |
 
 ## M. Manual errata and vague spots
 
@@ -1250,7 +1252,7 @@ M1 to M37 carry the numbers of the contradictions in `native/research/03_manual_
 
 ### M5. `EditBox#text` and `EditLine#text` return a String
 
-**Ruling: ERRATA.** The headings say `text() » self` (manual 3049, 3097); the prose says "Return a string of characters" (manual 3051, 3099). **Spec:** `edit_line(text: "hi").text == "hi"`.
+**Ruling: ERRATA.** The headings say `text() » self` (manual 3049, 3097); the prose says "Return a string of characters" (manual 3051, 3099). **Spec:** `edit_line(text: "hi").text == "hi"`. Since 27 Sep Lacci's `text` is a String from the start, `""` until something sets it (`c91ffd6`, G12).
 
 ### M6. EditLine default height
 
@@ -1334,7 +1336,7 @@ M1 to M37 carry the numbers of the contradictions in `native/research/03_manual_
 
 ### M26. The `start` event against `App#started?`
 
-**Ruling: MANUAL.** Slot `start` fires the first time the slot is drawn (manual 2288); `App#started?` refers to "the start event which fires once the window is open" (manual 1008-1010). **Spec:** `started?` is false inside the app body and true inside a handler dispatched after the first frame. See H8.
+**Ruling: MANUAL.** Slot `start` fires the first time the slot is drawn (manual 2288); `App#started?` refers to "the start event which fires once the window is open" (manual 1008-1010). **Spec:** `started?` is false inside the app body and true inside a handler dispatched after the first frame. See H8. Since 27 Sep (`8e5a4cf`) Lacci's `started?` is false while the app block builds the window and true once it is open.
 
 ### M27. Can a click unmark a radio?
 
