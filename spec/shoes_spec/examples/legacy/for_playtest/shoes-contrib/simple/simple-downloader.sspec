@@ -6,9 +6,6 @@ source_commit: 1e766c6
 display: any
 duplicates:
 - cases/scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-downloader.sspec
-expect: fail
-reason: Lacci's download takes no :progress or :finish (ledger K5), so the Download
-  button raises
 ----------- app code
 Shoes.app do
   background "#eee"

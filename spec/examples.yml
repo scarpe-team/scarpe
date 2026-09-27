@@ -64,7 +64,7 @@
 "examples/info.rb": {category: ".", needs: [], status: {niente: "loads", native: "fails"}, reason: "draws nothing: the app only logs a line with info"}
 "examples/internal_link_navigation.rb": {category: ".", needs: [], status: "loads"}
 "examples/legacy/for_playtest/expert/colours.rb": {category: "legacy/for_playtest/expert", needs: ["network","timer/animation"], status: "loads"}
-"examples/legacy/for_playtest/expert/curve-animation.rb": {category: "legacy/for_playtest/expert", needs: ["timer/animation"], status: {niente: "loads", native: "fails"}, reason: "draws its waves black: `stroke color` inside a shape block never reaches the display, since Lacci takes the shape's draw context before its block runs, and each stroke is a third of the window wide"}
+"examples/legacy/for_playtest/expert/curve-animation.rb": {category: "legacy/for_playtest/expert", needs: ["timer/animation"], status: "loads"}
 "examples/legacy/for_playtest/expert/curve-control-point.rb": {category: "legacy/for_playtest/expert", needs: ["timer/animation"], status: "loads"}
 "examples/legacy/for_playtest/expert/minesweeper.rb": {category: "legacy/for_playtest/expert", needs: ["dialog","timer/animation"], status: "loads"}
 "examples/legacy/for_playtest/expert/othello.rb": {category: "legacy/for_playtest/expert", needs: ["dialog"], status: "loads"}
