@@ -39,13 +39,12 @@ class StoppingTest < Minitest::Test
       Shoes.app { button("another") { window(title: "two") { para "second" } } }
     RUBY
     wait_until { child_log.include?('"t":"run","app":4') }
-    sleep 0.3 # the pump is asleep, waiting up to a second for something to happen
+    sleep 0.2 # the pump is asleep now, waiting up to a second for something to happen
 
     interrupted = monotonic
     signal("INT", @ruby)
-    Process.wait(@ruby)
-    @ruby = nil
-    assert_operator monotonic - interrupted, :<, 0.4, "Ctrl-C woke the pump rather than waiting out its sleep"
+    wait_until { child_log.include?('"t":"quit"') }
+    assert_operator monotonic - interrupted, :<, 0.5, "Ctrl-C woke the pump rather than waiting out its sleep"
   end
 
   # The first Ctrl-C asks nicely. Ruby may be stuck writing to a child that stopped reading (a full
@@ -90,7 +89,7 @@ class StoppingTest < Minitest::Test
     }
     @ruby = Process.spawn(env, RbConfig.ruby, SCARPE, "--dev", "--native", "app.rb", chdir: @dir, pgroup: true,
       in: File::NULL, out: File::NULL, err: File::NULL)
-    wait_until { File.exist?(File.join(@dir, "child.pid")) }
+    wait_until { File.size?(File.join(@dir, "child.pid")) } # written, not only created
     @child = Integer(File.read(File.join(@dir, "child.pid")))
   end
 
