@@ -2,6 +2,8 @@
 
 class Shoes
   class Arc < Shoes::Drawable
+    include Shoes::Art
+
     uses_draw_context
     shoes_style :draw_context
     shoes_events # No Arc-specific events yet

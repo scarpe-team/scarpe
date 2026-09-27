@@ -54,6 +54,25 @@ class TestShape < NienteTest
     SHOES_SPEC
   end
 
+  # Ledger E11: the manual heads arc, arrow, line, oval, rect and star "» Shoes::Shape"
+  # (manual 1665-1826). They answer is_a?(Shoes::Shape), and still tell the display
+  # their own kind; Shoes::Shape === is left meaning the shape { } block.
+  def test_art_is_a_shape_and_keeps_its_own_kind
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $made = [oval(0, 0, 5), rect(0, 0, 5), star(5, 5), line(0, 0, 5, 5), arrow(5, 5, 5), arc(0, 0, 5, 5, 0, 1)]
+        shape { move_to 0, 0; line_to 5, 5 }
+      end
+    SHOES_APP
+      $made.each do |art|
+        assert art.is_a?(Shoes::Shape), "\#{art.class} is a Shoes::Shape"
+        assert art.kind_of?(Shoes::Shape)
+      end
+      assert_equal %w[Oval Rect Star Line Arrow Arc], $made.map { |art| art.class.display_class_name }
+      assert_equal 1, shapes.size, "the shape finder still means shape blocks"
+    SHOES_SPEC
+  end
+
   def test_commands_added_after_the_block_are_sent
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
