@@ -20,9 +20,8 @@ class Shoes
     init_args
     opt_init_args :group
     def initialize(*args, **kwargs, &block)
-      @block = block
-
       super
+      @click = block if block
 
       self.class.groups[effective_group] << self
 
@@ -34,13 +33,13 @@ class Shoes
         end
         # Radio buttons always check on click (never toggle)
         self.checked = true
-        @block&.call(self)
+        @click&.call(self)
       end
       create_display_drawable
     end
 
     def click(&block)
-      @block = block
+      @click = block
       self
     end
 

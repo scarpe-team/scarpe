@@ -151,7 +151,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | G7 | Button styling | EXT | | |
 | G8 | `check.checked` | MANUAL | | |
 | G9 | `focus` on buttons; Enter clicks | MANUAL | | |
-| G10 | `click:` and `change:` styles are the handlers | MANUAL | unsched. | |
+| G10 | `click:` and `change:` styles are the handlers | MANUAL | | |
 | G11 | Fonts on edit lines and edit boxes | EXT | | |
 | G12 | New inputs read `""`, new progress bars `0.0` | MANUAL | | |
 | G13 | Up and Down on a focused list box select | MANUAL | | |
@@ -933,11 +933,11 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### G10. `click:` and `change:` styles are the handlers
 
-**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, unscheduled.** New row, requested by the styles writer and the lacci lane.
+**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, done 27 Sep 2026.** New row, requested by the styles writer and the lacci lane.
 
 - **Manual:** "The `click` event handler is stored in this style" for everything in the `:click` For-list (manual 1144-1151); "The `change` event handler is stored in this style" for edit_box, edit_line and list_box (manual 1123-1128).
 - **Shoes 3:** handlers live in the element's style hash: `ATTRSET(attr, change, ...)` for edit lines, edit boxes and list boxes (`s3t_edit_line.c:100`, `s3t_edit_box.c:102`, `s3t_list_box.c:107`), and slot events the same way (`s3_canvas.c:934-944`).
-- **Lacci today:** Button and EditLine declare no `:click`/`:change` style (`drawables/button.rb:5-6`, `drawables/edit_line.rb:5-6`), so `button "Go", click: proc { }` and `edit_line change: proc { }` are dropped with an "Unexpected non-style keyword" warning; blocks live in `@block`, so `style[:click]` is nil. Links accept `click:` (F9); art and paras drop it (E8).
+- **Lacci today:** Button and EditLine declare no `:click`/`:change` style (`drawables/button.rb:5-6`, `drawables/edit_line.rb:5-6`), so `button "Go", click: proc { }` and `edit_line change: proc { }` are dropped with an "Unexpected non-style keyword" warning; blocks live in `@block`, so `style[:click]` is nil. Links accept `click:` (F9); art and paras drop it (E8). Since the wave-4 Lacci lane every drawable has a `:click` style and edit lines, edit boxes and list boxes a `:change` style, and each is the handler itself: a proc given as the style runs on the event, and a block given to `click` or `change` (or when the drawable is made) reads back through `style`. On art, text and slots a `click:` proc binds the same way the `click` method does (a slot gets its `click` subscription). Links keep their own `click:` (a route, a URL or a proc, F9).
 - **Spec:** `styles.click` and `styles.change` fire a proc passed as the style; `styles.click__readback` and `styles.change__readback` read the handler back from `style`.
 - **Native:** nothing; handlers stay in Ruby. A `click:` style on art or text must still turn on `has_click` (DESIGN section 10, fix 9).
 
