@@ -372,10 +372,15 @@ Ruby speed in packaged apps (Nick's call, 27 Sep 2026). Two cheap wins, both mea
 
 1. **YJIT on by default.** The packaged launcher starts Ruby with `--yjit` (or `RUBY_YJIT_ENABLE=1`).
    It ships inside CRuby; it helps method-heavy per-frame code such as `animate` handlers.
-2. **Precompiled bytecode for startup.** At package time, compile Lacci, the shim and the app with
-   `RubyVM::InstructionSequence.compile_file(...).to_binary` and load them with `load_from_binary`
-   at boot (the bootsnap trick), falling back to source on any version mismatch. The target is cold
-   start to first frame, which is the speed people feel.
+2. **Precompiled bytecode for startup.** At package time the bundled Ruby compiles Lacci, the shim,
+   scarpe-components, the app and the standard library files `require "scarpe"` loads, and boot
+   hands them to `require` through `RubyVM::InstructionSequence.load_iseq` (the bootsnap hook;
+   `lib/scarpe/package/bytecode.rb`). An instruction sequence keeps the path it was compiled for
+   (`__FILE__`, `__dir__`, `require_relative`, backtraces), so each file is compiled for where the
+   app will be installed (`/Applications/Name.app` unless `--install-dir`). Run from anywhere else,
+   by another Ruby (`RUBY_REVISION`), or after a source changed (size, mtime), the app loads source.
+   The target is cold start to first frame, which is the speed people feel: bytecode took
+   `require "scarpe"` from 57 to 37 ms (docs/native_packaging.md).
 
 Transpiling Ruby to Rust is out of scope: the DSL depends on `instance_eval`, `method_missing` and
 open classes. The hot paths (layout, text, paint, hit-testing, input) are already Rust.
