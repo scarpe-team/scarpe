@@ -11,6 +11,7 @@ pub mod elements;
 pub mod headless;
 pub mod input;
 pub mod layout;
+pub mod limits;
 pub mod paint;
 pub mod props;
 pub mod protocol;

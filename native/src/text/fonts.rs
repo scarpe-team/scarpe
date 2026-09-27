@@ -83,6 +83,9 @@ impl Fonts {
 
     /// Registers a font file (the `font` builtin). Returns the new family names.
     pub fn register(&mut self, path: &Path) -> Vec<String> {
+        if !crate::limits::readable_file(path, crate::limits::MAX_FONT_BYTES) {
+            return Vec::new();
+        }
         let before: HashSet<fontdb::ID> = self.system.db().faces().map(|f| f.id).collect();
         if self.system.db_mut().load_font_file(path).is_err() {
             return Vec::new();

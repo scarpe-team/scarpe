@@ -13,7 +13,6 @@ use crate::runtime::{load_fonts, Effect, Options, Runtime};
 use crate::text::FontMode;
 use pacing::Pacing;
 use std::collections::HashMap;
-use std::io::BufRead;
 use std::num::NonZeroU32;
 use std::rc::Rc;
 use std::time::{Duration, Instant};
@@ -421,12 +420,9 @@ impl ApplicationHandler<UserEvent> for Shell {
 fn read_stdin(proxy: EventLoopProxy<UserEvent>) {
     let mut reader = std::io::BufReader::with_capacity(1 << 16, std::io::stdin());
     let mut batch = Vec::new();
-    loop {
-        let mut line = String::new();
-        match reader.read_line(&mut line) {
-            Ok(0) | Err(_) => break,
-            Ok(_) => batch.push(line),
-        }
+    let mut bytes = Vec::new();
+    while let Some(line) = crate::protocol::read_line_lossy(&mut reader, &mut bytes) {
+        batch.push(line);
         if reader.buffer().contains(&b'\n') {
             continue;
         }

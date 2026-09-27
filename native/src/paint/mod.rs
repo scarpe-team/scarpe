@@ -24,6 +24,26 @@ use tiny_skia::{
 
 pub const BACKGROUND: Color = Color::WHITE;
 
+/// How far from the canvas, in device pixels, a path may reach and still be drawn. tiny-skia
+/// rasterises in fixed point and panics past its range (a stroke 2^31 px wide did); nothing
+/// that reaches a million pixels out is a drawing anyone can see in a 10,000 px window.
+const MAX_DEVICE_REACH: f32 = 1_048_576.0;
+
+/// Whether a path with these bounds, drawn under `transform` with a stroke `stroke_width`
+/// wide (0 for a fill), stays inside MAX_DEVICE_REACH. False for NaN or infinite geometry.
+pub(crate) fn within_reach(bounds: tiny_skia::Rect, transform: Transform, stroke_width: f32) -> bool {
+    let mut corners = [
+        Point::from_xy(bounds.left(), bounds.top()),
+        Point::from_xy(bounds.right(), bounds.top()),
+        Point::from_xy(bounds.left(), bounds.bottom()),
+        Point::from_xy(bounds.right(), bounds.bottom()),
+    ];
+    transform.map_points(&mut corners);
+    let stretch = (transform.sx.abs() + transform.kx.abs()).max(transform.ky.abs() + transform.sy.abs());
+    let pad = stroke_width.max(0.0) * stretch;
+    pad.is_finite() && corners.iter().all(|c| c.x.abs() + pad <= MAX_DEVICE_REACH && c.y.abs() + pad <= MAX_DEVICE_REACH)
+}
+
 pub struct Canvas<'a> {
     pub pm: &'a mut Pixmap,
     pub scale: f32,
@@ -63,11 +83,14 @@ impl<'a> Canvas<'a> {
     /// Fills a rectangle given in window pixels, unantialiased.
     pub fn fill_px(&mut self, rect: tiny_skia::Rect, paint: &tiny_skia::Paint) {
         let to_pixmap = Transform::from_translate(-self.origin.0 as f32, -self.origin.1 as f32);
-        self.pm.fill_rect(rect, paint, to_pixmap, None);
+        if within_reach(rect, to_pixmap, 0.0) {
+            self.pm.fill_rect(rect, paint, to_pixmap, None);
+        }
     }
 
     fn mask_key(&mut self, clip: Option<Rect>) -> Option<[u32; 4]> {
-        let clip = clip?;
+        // Only the part of the clip on this canvas matters, and a huge one would not rasterise.
+        let clip = clip?.intersect(&self.visible()).unwrap_or_default();
         let key = [clip.x.to_bits(), clip.y.to_bits(), clip.w.to_bits(), clip.h.to_bits()];
         if !self.masks.contains_key(&key) {
             let mut mask = Mask::new(self.pm.width(), self.pm.height())?;
@@ -80,17 +103,23 @@ impl<'a> Canvas<'a> {
     }
 
     pub fn fill_path(&mut self, path: &Path, shader: Shader, rule: FillRule, local: Transform, clip: Option<Rect>) {
+        let transform = self.base().pre_concat(local);
+        if !within_reach(path.bounds(), transform, 0.0) {
+            return;
+        }
         let key = self.mask_key(clip);
         let paint = tiny_skia::Paint { shader, anti_alias: true, ..tiny_skia::Paint::default() };
-        let transform = self.base().pre_concat(local);
         let mask = key.and_then(|k| self.masks.get(&k));
         self.pm.fill_path(path, &paint, rule, transform, mask);
     }
 
     pub fn stroke_path(&mut self, path: &Path, shader: Shader, stroke: &Stroke, local: Transform, clip: Option<Rect>) {
+        let transform = self.base().pre_concat(local);
+        if !within_reach(path.bounds(), transform, stroke.width) {
+            return;
+        }
         let key = self.mask_key(clip);
         let paint = tiny_skia::Paint { shader, anti_alias: true, ..tiny_skia::Paint::default() };
-        let transform = self.base().pre_concat(local);
         let mask = key.and_then(|k| self.masks.get(&k));
         self.pm.stroke_path(path, &paint, stroke, transform, mask);
     }
@@ -234,7 +263,7 @@ pub fn paint(scene: &mut Scene, pm: &mut Pixmap, scale: f32) {
 pub fn paint_nodes(scene: &mut Scene, mut canvas: Canvas, only: Option<Rect>) {
     canvas.pm.fill(BACKGROUND.to_skia());
     let layout = scene.layout;
-    paint_run(scene, &mut canvas, &layout.order, only);
+    paint_run(scene, &mut canvas, &layout.order, only, 0);
     decor::scrollbars(&mut canvas, layout);
     elements::list_box::paint_popup(&mut canvas, scene.view, scene.text);
     if scene.view.popup.is_none() {
@@ -244,17 +273,18 @@ pub fn paint_nodes(scene: &mut Scene, mut canvas: Canvas, only: Option<Rect>) {
 }
 
 /// Paints a run of the paint order. A slot holding a mask paints the rest of its
-/// contents through the mask's alpha, as Shoes 3 does (s3_canvas.c:531-613).
-fn paint_run(scene: &mut Scene, canvas: &mut Canvas, ids: &[Id], only: Option<Rect>) {
+/// contents through the mask's alpha, as Shoes 3 does (s3_canvas.c:531-613). Masks nested
+/// deeper than limits::MAX_MASK_DEPTH paint unmasked: each level holds two frame-sized layers.
+fn paint_run(scene: &mut Scene, canvas: &mut Canvas, ids: &[Id], only: Option<Rect>, mask_depth: usize) {
     let mut i = 0;
     while i < ids.len() {
-        let masks = masks_in(scene, ids[i]);
+        let masks = if mask_depth < crate::limits::MAX_MASK_DEPTH { masks_in(scene, ids[i]) } else { Vec::new() };
         if masks.is_empty() {
             paint_node(scene, canvas, ids[i], only);
             i += 1;
         } else {
             let end = subtree_end(scene.doc, ids, i);
-            paint_masked(scene, canvas, &ids[i + 1..end], &masks, only);
+            paint_masked(scene, canvas, &ids[i + 1..end], &masks, only, mask_depth + 1);
             i = end;
         }
     }
@@ -283,13 +313,13 @@ fn subtree_end(doc: &Doc, ids: &[Id], start: usize) -> usize {
 /// Draws a masked slot's contents into one layer and its masks into another, then
 /// shows the contents only where the masks drew something. The layers cover what the
 /// canvas covers, so a partial repaint (paint::damage) masks just its own rect.
-fn paint_masked(scene: &mut Scene, canvas: &mut Canvas, contents: &[Id], masks: &[Id], only: Option<Rect>) {
+fn paint_masked(scene: &mut Scene, canvas: &mut Canvas, contents: &[Id], masks: &[Id], only: Option<Rect>, mask_depth: usize) {
     let doc = scene.doc;
     let (mask_ids, content_ids): (Vec<Id>, Vec<Id>) = contents.iter().partition(|id| masks.iter().any(|m| doc.is_descendant_of(**id, *m)));
     let (w, h) = (canvas.pm.width(), canvas.pm.height());
     let (Some(mut content), Some(mut alpha)) = (Pixmap::new(w, h), Pixmap::new(w, h)) else { return };
-    paint_run(scene, &mut Canvas::at(&mut content, canvas.scale, canvas.origin), &content_ids, only);
-    paint_run(scene, &mut Canvas::at(&mut alpha, canvas.scale, canvas.origin), &mask_ids, only);
+    paint_run(scene, &mut Canvas::at(&mut content, canvas.scale, canvas.origin), &content_ids, only, mask_depth);
+    paint_run(scene, &mut Canvas::at(&mut alpha, canvas.scale, canvas.origin), &mask_ids, only, mask_depth);
     let mask = Mask::from_pixmap(alpha.as_ref(), MaskType::Alpha);
     canvas.pm.draw_pixmap(0, 0, content.as_ref(), &PixmapPaint::default(), Transform::identity(), Some(&mask));
 }
