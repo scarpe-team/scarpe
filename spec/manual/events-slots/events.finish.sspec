@@ -4,8 +4,6 @@ lines: [2195, 2198]
 testability: api
 display: any
 ledger: H8
-expect: fail
-reason: Lacci has no finish inside a slot block (self is the App there), and Slot#finish runs its blocks with the App instead of the slot, per ledger H8
 ----------- app code
 $finished = []
 Shoes.app do

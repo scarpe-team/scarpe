@@ -1,28 +1,25 @@
 # frozen_string_literal: true
 
 class Shoes
+  # An image from a file or URL, or a canvas: image(w, h) { ... } runs its block with
+  # the image as the current slot, so the shapes and text drawn there are the image's
+  # children and are painted inside its box (manual 410-426, ledger E9).
   class Image < Shoes::Drawable
+    include Shoes::DrawContext
+
     shoes_styles :url, :width, :height, :top, :left, :click, :rotate_angle, :transform_origin
     shoes_events :click, :hover, :leave
 
     init_args :url
-    def initialize(*args, **kwargs)
-      # In Shoes, image can be called with positional width/height:
-      # image(width, height) { ... } — block-based image with dimensions
-      # image(url, width: w, height: h) — normal image
-      # When first arg is numeric, treat as image(width, height, &block)
+    def initialize(*args, **kwargs, &block)
+      # image(width, height) { ... } and image(styles) { ... } are canvases with no file.
       if args.length >= 2 && args[0].is_a?(Numeric) && args[1].is_a?(Numeric)
-        kwargs[:width] = args[0]
-        kwargs[:height] = args[1]
-        args = args[2..] || []
-        # If no URL, set a blank/placeholder
-        args = [""] if args.empty?
+        kwargs[:width], kwargs[:height], *args = args
       end
+      canvas = block && !args.first.is_a?(String)
+      args = [""] if args.empty?
 
       super(*args, **kwargs)
-
-      # Get the image dimensions
-      # @width, @height = size
 
       create_display_drawable
 
@@ -32,12 +29,38 @@ class Shoes
       end
 
       bind_self_event("hover") do
-        @hover_handler&.call
+        @hover_handler&.call(self)
       end
 
       bind_self_event("leave") do
-        @leave_handler&.call
+        @leave_handler&.call(self)
       end
+
+      # Shoes 3 takes a file image's block as its click (simple-bounce.rb, mask2.rb).
+      canvas ? @app.with_slot(self, &block) : click(&block)
+    end
+
+    # What was drawn on the image. Do not call add_child or remove_child directly,
+    # use set_parent.
+    def children
+      @children ||= []
+    end
+
+    def contents
+      children.dup
+    end
+
+    def add_child(child)
+      children << child
+    end
+
+    def remove_child(child)
+      children.delete(child)
+    end
+
+    def destroy
+      children.dup.each(&:destroy)
+      super
     end
 
     # Set the click handler. Returns self for method chaining (Shoes3 convention).

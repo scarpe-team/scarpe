@@ -4,8 +4,6 @@ lines: [2394, 2399]
 testability: api
 display: any
 ledger: C5
-expect: fail
-reason: gutter is an App method in Lacci; slots do not have it (ledger C5)
 ----------- app code
 Shoes.app do
   $app_gutter = gutter

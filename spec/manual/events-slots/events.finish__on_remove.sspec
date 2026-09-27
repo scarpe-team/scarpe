@@ -4,8 +4,6 @@ lines: [2195, 2198]
 testability: api
 display: any
 ledger: B5
-expect: fail
-reason: slot.remove binds Drawable#destroy and skips Slot#destroy, which fires finish (ledger B5, X15)
 ----------- app code
 $finished = []
 Shoes.app do

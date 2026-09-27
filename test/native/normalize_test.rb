@@ -89,7 +89,7 @@ class NormalizeTest < Minitest::Test
   # Gradients
 
   def test_gradient_objects_keep_their_angle
-    assert_equal({ "gradient" => [rgba(255, 0, 0, 255), rgba(0, 0, 255, 255)], "angle" => 45 }, N.color(gradient(red, blue)))
+    assert_equal({ "gradient" => [rgba(255, 0, 0, 255), rgba(0, 0, 255, 255)], "angle" => 0 }, N.color(gradient(red, blue)))
     assert_equal 90, N.color(gradient("#f00", "#00f", angle: 90))["angle"]
   end
 

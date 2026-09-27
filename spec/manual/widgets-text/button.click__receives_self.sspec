@@ -4,8 +4,6 @@ lines: [2918, 2921]
 testability: interactive
 display: any
 ledger: G1
-expect: fail
-reason: Lacci's Button calls its click block with no arguments (button.rb:42-45); G1 is an unscheduled Lacci change.
 ----------- app code
 Shoes.app do
   $handed = {}

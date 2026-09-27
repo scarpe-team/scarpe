@@ -3,8 +3,6 @@ manual: element.window
 lines: [2135, 2135]
 testability: api
 display: any
-expect: fail
-reason: "Shoes.app ends with nil (lacci/lib/shoes.rb), and window and dialog return what it returns"
 ----------- app code
 Shoes.app title: "The Owner" do
   button "Pop up?" do

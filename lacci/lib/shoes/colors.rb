@@ -174,23 +174,19 @@ class Shoes
     # Returns a Gradient object that display services can render as CSS gradients.
     # Supports :angle option for gradient direction (in degrees).
     def gradient(color1, color2, **opts)
-      c1 = to_rgb(color1) rescue color1
-      c2 = to_rgb(color2) rescue color2
-
-      c1_str = c1.is_a?(Array) ? "rgb(#{c1[0]},#{c1[1]},#{c1[2]})" : c1.to_s
-      c2_str = c2.is_a?(Array) ? "rgb(#{c2[0]},#{c2[1]},#{c2[2]})" : c2.to_s
-
-      Gradient.new(c1_str, c2_str, opts[:angle])
+      Gradient.new(css_color(color1), css_color(color2), opts[:angle])
     end
 
     # Simple gradient class to hold colors and angle for rendering.
     class Gradient
       attr_reader :color1, :color2, :angle
 
+      # Angle 0 runs top to bottom and 90 left to right (manual 1073-1079,
+      # ledger D6), as in Shoes 3.
       def initialize(color1, color2, angle = nil)
         @color1 = color1
         @color2 = color2
-        @angle = angle || 45  # Default to 45 degrees like current behavior
+        @angle = angle || 0
       end
 
       # For backwards compatibility with simple string handling
@@ -249,6 +245,15 @@ class Shoes
     end
 
     private
+
+    # A colour as a CSS rgba() string, alpha included, which every display reads.
+    # A string that is no colour (an image path, say) passes through.
+    def css_color(color)
+      r, g, b, a = rgb(*to_rgb(color))
+      "rgba(#{r},#{g},#{b},#{(a / 255.0).round(3)})"
+    rescue StandardError
+      color.to_s
+    end
 
     def color_byte(component)
       case component

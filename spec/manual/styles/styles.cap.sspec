@@ -4,8 +4,6 @@ lines: [1108, 1113]
 testability: visual
 display: native
 ledger: E10
-expect: fail
-reason: "Line declares no :cap style and the cap() DSL method is a no-op, so Lacci never sends the cap (see styles.cap__accepted)."
 ----------- app code
 Shoes.app width: 300, height: 200 do
   strokewidth 20

@@ -3,8 +3,6 @@ manual: timers.stop
 lines: [3425, 3425]
 testability: api
 display: any
-expect: fail
-reason: Lacci's stop returns the new value of its stopped style (true), not the timer (ledger row requested)
 ----------- app code
 Shoes.app do
   $animation = animate(10) { }

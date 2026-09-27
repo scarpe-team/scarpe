@@ -19,6 +19,7 @@ require "shoes/drawables/star"
 require "shoes/drawables/oval"
 require "shoes/drawables/arrow"
 
+require "shoes/drawables/focusable"
 require "shoes/drawables/button"
 require "shoes/drawables/check"
 require "shoes/drawables/edit_box"

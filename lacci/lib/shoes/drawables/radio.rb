@@ -5,6 +5,8 @@ class Shoes
   # group. If no group is specified, or the group is nil, default to all
   # radio buttons in the same slot being treated as being in the same group.
   class Radio < Shoes::Drawable
+    include Shoes::Focusable
+
     shoes_styles :group, :checked
     shoes_events :click
 

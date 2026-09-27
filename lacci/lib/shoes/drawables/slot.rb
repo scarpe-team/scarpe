@@ -12,28 +12,8 @@ class Shoes::Slot < Shoes::Drawable
   # - another_drawable — position relative to that element
   shoes_styles :attach
 
-  # This only shows this specific slot's settings, not its parent's.
-  # Use current_draw_context to allow inheritance.
-  attr_reader :draw_context
-
-
-  def initialize(...)
-    # The draw context tracks current settings like fill and stroke,
-    # plus potentially other current state that changes from drawable
-    # to drawable and slot to slot.
-    @draw_context = {
-      "fill" => nil,
-      "stroke" => nil,
-      "strokewidth" => nil,
-      "rotate" => nil,
-      "scale" => nil,
-      "skew" => nil,
-      # "transform" => nil, # "corner",
-      # "translate" => nil, # [0, 0],
-    }
-
-    super
-  end
+  # fill, stroke, rotate, translate... for the shapes drawn in this slot
+  include Shoes::DrawContext
 
   # Do not call directly, use set_parent
   def remove_child(child)
@@ -74,6 +54,27 @@ class Shoes::Slot < Shoes::Drawable
   # Many Shoes widgets expect numeric positions.
   def top
     super || 0
+  end
+
+  # The height of everything in the slot, including what is scrolled out of view
+  # (manual 2440-2442). Without a display reporting layout, that is the slot's height.
+  #
+  # @return [Numeric] the content height in pixels
+  def scroll_height
+    laid_out_at(:scroll_height) || height
+  end
+
+  # How far the slot can scroll: scroll_height minus height, and never below zero
+  # (manual 2444-2451, Shoes 3 shoes_canvas_get_scroll_max).
+  #
+  # @return [Numeric] the largest scroll_top, in pixels
+  def scroll_max
+    [scroll_height - height, 0].max
+  end
+
+  # The width of the scrollbar area, one of the slot position methods (manual 2394-2399).
+  def gutter
+    @app.gutter
   end
 
   # We use method_missing for drawable-creating methods like "button".
@@ -118,108 +119,36 @@ class Shoes::Slot < Shoes::Drawable
     false
   end
 
-  # Draw context methods
-
-  # Set the default fill color in this slot and child slots.
-  # Pass nil for "no setting", so that it can inherit defaults.
+  # Run the block, handed this slot, the first time the slot is drawn (manual
+  # 2286-2289, ledger H8). The display draws before its first heartbeat, so the
+  # first heartbeat after this call is the moment. Blocks run with the App as self,
+  # as finish blocks do.
   #
-  # @param color [Nil,Color] a Shoes color for the fill color or nil to use parent setting
-  # @return [void]
-  def fill(color)
-    @draw_context["fill"] = color
+  # @yield [slot] this slot
+  # @return [self]
+  def start(&block)
+    (@start_callbacks ||= []) << block if block
+    @waiting_to_start ||= bind_shoes_event(event_name: "heartbeat") { fire_start_callbacks }
+    self
   end
 
-  # Set the default fill in this slot and child slots to transparent.
+  # Run the block, handed this slot, when the slot is removed: by remove, by its
+  # parent's clear, or when its app goes (manual 2195-2198, ledger H8). It is not
+  # called after initialization; use start for that. Several may be registered.
   #
-  # @return [void]
-  def nofill
-    @draw_context["fill"] = rgb(0, 0, 0, 0)
-  end
-
-  # Set the default stroke color in this slot and child slots.
-  # Pass nil for "no setting" so it can inherit defaults.
-  #
-  # @param color [Nil,Color] a Shoes color for the stroke color or nil to use parent setting
-  # @return [void]
-  def stroke(color)
-    @draw_context["stroke"] = color
-  end
-
-  # Set the default strokewidth in this slot and child slots.
-  # Pass nil for "no setting".
-  #
-  # @param width [Numeric,Nil] the new width, or nil to use parent setting
-  # @return [void]
-  def strokewidth(width)
-    @draw_context["strokewidth"] = width
-  end
-
-  # Set the default stroke in this slot and child slots
-  # to transparent.
-  #
-  # @return [void]
-  def nostroke
-    @draw_context["stroke"] = rgb(0, 0, 0, 0)
-  end
-
-  # Set the current rotation in this slot and any child slots.
-  # Pass nil to reset the angle to default.
-  #
-  # @param angle [Numeric,Nil] the new default rotation for shapes or nil to use parent setting
-  # @return [void]
-  def rotate(angle)
-    @draw_context["rotate"] = angle
-  end
-
-  # Set the current scale factor in this slot and any child slots.
-  # Pass nil to reset scale to default.
-  #
-  # @param x [Numeric,Range,Nil] the x scale factor (or uniform scale), or a Range to pick a random value
-  # @param y [Numeric,Nil] the y scale factor (optional, defaults to x)
-  # @return [void]
-  def scale(x, y = nil)
-    # Handle Range (Shoes3 allows scale((0.8..1.2).rand) or scale(0.8..1.2))
-    x = x.rand if x.is_a?(Range)
-    y = y.rand if y.is_a?(Range)
-    y ||= x
-    @draw_context["scale"] = [x, y]
-  end
-
-  # Set the current skew transform in this slot and any child slots.
-  # Pass nil to reset skew to default.
-  #
-  # @param x [Numeric,Nil] the x skew angle (in degrees or radians depending on Shoes3 behavior)
-  # @param y [Numeric,Nil] the y skew angle (optional, defaults to 0)
-  # @return [void]
-  def skew(x, y = nil)
-    y ||= 0
-    @draw_context["skew"] = [x, y]
-  end
-
-  # Get the current draw context styles, based on this slot and its parent slots.
-  #
-  # @return [Hash] a hash of Shoes styles for the context
-  def current_draw_context
-    s = @parent ? @parent.current_draw_context : {}
-    @draw_context.each { |k, v| s[k] = v unless v.nil? }
-
-    s
-  end
-
-  # Register a callback to be called when this slot is removed/destroyed.
-  # In Shoes3, slot.finish { ... } is called when the slot is removed,
-  # NOT after initialization. Use App#start for post-init callbacks.
-  # Multiple finish handlers can be registered.
+  # @yield [slot] this slot
+  # @return [self]
   def finish(&block)
     @finish_callbacks ||= []
     @finish_callbacks << block if block
+    self
   end
 
   # Fire all registered finish callbacks. Called when the slot is destroyed.
   def fire_finish_callbacks
     return unless @finish_callbacks
 
-    @finish_callbacks.each { |cb| @app.instance_eval(&cb) }
+    @finish_callbacks.each { |cb| @app.instance_exec(self, &cb) }
   end
 
   # Override destroy to fire finish callbacks before actual destruction.
@@ -238,6 +167,18 @@ class Shoes::Slot < Shoes::Drawable
     super
   end
 
+  private
+
+  # A dispatch already under way can call this once more after it unsubscribed.
+  def fire_start_callbacks
+    unsub_shoes_event(@waiting_to_start) if @waiting_to_start
+    @waiting_to_start = nil
+    callbacks, @start_callbacks = @start_callbacks, []
+    callbacks&.each { |cb| @app.instance_exec(self, &cb) }
+  end
+
+  public
+
   # Force a redraw of this slot and its contents.
   # In Shoes3, this is used after modifying styles that don't automatically
   # trigger a repaint, like gradients on backgrounds.
@@ -253,16 +194,20 @@ class Shoes::Slot < Shoes::Drawable
   # is given, call the block to replace the children with
   # new contents from that block.
   #
+  # The slot's own event handlers and timers (hover, click, animate...) stay: they
+  # belong to the slot, not to its contents. Shoes 3's clear empties the contents
+  # only (s3_canvas.c:759-781), and the manual's hover/leave example (2167-2185)
+  # clears the slot from inside those handlers.
+  #
   # Should only be called on Slots, which can
   # have children.
   #
   # @incompatibility Shoes Classic calls the clear block with current self, while Scarpe uses the Shoes::App as self
   #
   # @yield The block to call to replace the contents of the drawable (optional)
-  # @return [void]
+  # @return [self]
   def clear(&block)
-    @children ||= []
-    @children.dup.each(&:destroy)
+    contents.each { |child| child.destroy unless child.is_a?(Shoes::SubscriptionItem) }
     if block_given?
       append(&block)
       # After clear+rebuild, signal a full redraw to collapse all the individual
@@ -270,7 +215,7 @@ class Shoes::Slot < Shoes::Drawable
       # This is critical for animate { clear do ... end } patterns (Clock, Pong, etc.)
       send_shoes_event(event_name: "full_redraw_request")
     end
-    nil
+    self
   end
 
   # Call the block to append new children to a Slot.
@@ -288,12 +233,13 @@ class Shoes::Slot < Shoes::Drawable
   # fall back to the caller for unknown methods.
   #
   # @yield the block to call to append children to this Slot
-  # @return [void]
+  # @return [self]
   def append(&block)
     raise(Shoes::Errors::InvalidAttributeValueError, "append requires a block!") unless block_given?
     raise(Shoes::Errors::InvalidAttributeValueError, "Don't append to something that isn't a slot!") unless self.is_a?(Shoes::Slot)
 
     fill_with(block)
+    self
   end
 
   # Call the block to prepend new children to the beginning of a Slot.
@@ -303,12 +249,13 @@ class Shoes::Slot < Shoes::Drawable
   # in the order the block creates them.
   #
   # @yield the block to call to prepend children to this Slot
-  # @return [void]
+  # @return [self]
   def prepend(&block)
     raise(Shoes::Errors::InvalidAttributeValueError, "prepend requires a block!") unless block_given?
     raise(Shoes::Errors::InvalidAttributeValueError, "Don't prepend to something that isn't a slot!") unless self.is_a?(Shoes::Slot)
 
     insert_before(contents.first, block)
+    self
   end
 
   # Add the block's new children just before `drawable`, which must be a child of this slot.

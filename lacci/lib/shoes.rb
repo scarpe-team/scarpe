@@ -35,11 +35,13 @@ class Shoes::Widget < Shoes::Slot; end
 require_relative 'shoes/log'
 require_relative 'shoes/colors'
 
+require_relative 'shoes/font_file'
 require_relative 'shoes/builtins'
 
 require_relative 'shoes/background'
 
 require_relative 'shoes/drawable'
+require_relative 'shoes/draw_context'
 require_relative 'shoes/app'
 require_relative 'shoes/drawables'
 # Turtle graphics is loaded on-demand via `require 'scarpe/turtle'`
@@ -133,12 +135,12 @@ class Shoes
     # @param height [Integer] The new app window height
     # @param resizable [Boolean] Whether the app window should be resizeable
     # @param features [Symbol,Array<Symbol>] Additional Shoes extensions requested by the app
-    # @return [void]
+    # @return [Shoes::App] the new app (manual 859, ledger A3)
     # @see Shoes::App#new
     def app(
-      title: 'Shoes!',
-      width: 480,
-      height: 420,
+      title: Shoes::App::DEFAULT_TITLE,
+      width: Shoes::App::DEFAULT_WIDTH,
+      height: Shoes::App::DEFAULT_HEIGHT,
       resizable: true,
       features: [],
       margin: nil,
@@ -191,7 +193,7 @@ class Shoes
 
       app.init
       app.run
-      nil
+      app
     end
 
     # Load a Shoes app from a file. By default, this will load old-style Shoes apps

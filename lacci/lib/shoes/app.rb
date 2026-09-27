@@ -38,11 +38,16 @@ class Shoes
       attr_accessor :set_test_code
     end
 
+    # Shoes 3 and Shoes 4 both open a 600x500 window titled "Shoes" (ledger A1, Q1).
+    DEFAULT_TITLE = "Shoes"
+    DEFAULT_WIDTH = 600
+    DEFAULT_HEIGHT = 500
+
     init_args
     def initialize(
-      title: 'Shoes!',
-      width: 480,
-      height: 420,
+      title: DEFAULT_TITLE,
+      width: DEFAULT_WIDTH,
+      height: DEFAULT_HEIGHT,
       resizable: true,
       features: [],
       owner: nil,
@@ -141,11 +146,19 @@ class Shoes
 
     # Register a callback to run after the app finishes initializing.
     # In Shoes3, this is used to do things that need to happen after the UI is ready.
+    # Inside a slot's block, start belongs to that slot (ledger H8).
     #
     # @yield the block to call when the app starts
     def start(&block)
+      return current_slot.start(&block) unless current_slot.equal?(@document_root)
+
       @start_callbacks ||= []
       @start_callbacks << block
+    end
+
+    # finish inside a slot's block belongs to that slot (ledger H8).
+    def finish(&block)
+      current_slot.finish(&block)
     end
 
     private
@@ -257,6 +270,9 @@ class Shoes
         return
       end
 
+      # The app block has built the window; from here the window is open.
+      @started = true
+
       # The display lib can send us an event to customise the event loop handling.
       # But it must do so before the "run" event returns.
       send_shoes_event(event_name: 'run')
@@ -275,6 +291,17 @@ class Shoes
         raise Shoes::Errors::InvalidAttributeValueError,
               "Internal error! Incorrect event loop type: #{@event_loop_type.inspect}!"
       end
+    end
+
+    # Whether the window is open: false while the app block is still building it
+    # (manual 1006-1010, ledger M26).
+    def started?
+      @started ? true : false
+    end
+
+    # The URL of the page on show (manual 980-982, ledger J1). Apps start at "/".
+    def location
+      @location || "/"
     end
 
     def destroy(send_event: true)
@@ -362,9 +389,11 @@ class Shoes
     end
 
     def visit(name_or_path)
+      @location = name_or_path.is_a?(Symbol) ? "/#{name_or_path}" : name_or_path.to_s
+
       # First, check for exact page match (symbol)
       if @pages && @pages[name_or_path]
-        @document_root.clear do
+        show_page do
           instance_eval(&@pages[name_or_path])
         end
         return
@@ -373,7 +402,7 @@ class Shoes
       # Second, check URL routes
       route, method_name = @routes.find { |r, _| r === name_or_path }
       if route
-        @document_root.clear do
+        show_page do
           if route.is_a?(Regexp)
             match_data = route.match(name_or_path)
             send(method_name, *match_data.captures)
@@ -388,7 +417,7 @@ class Shoes
       if name_or_path.is_a?(String) && name_or_path.start_with?("/")
         page_name = name_or_path[1..-1].to_sym  # "/page2" -> :page2
         if @pages && @pages[page_name]
-          @document_root.clear do
+          show_page do
             instance_eval(&@pages[page_name])
           end
           return
@@ -397,6 +426,14 @@ class Shoes
 
       puts "Error: URL '#{name_or_path}' not found"
     end
+
+    # A new page starts from nothing. Unlike clear, the old page's timers and event
+    # handlers go too, as Shoes 3 resets the whole canvas on visit (s3_canvas.c:282-303).
+    def show_page(&block)
+      @document_root.contents.each(&:destroy)
+      @document_root.clear(&block)
+    end
+    private :show_page
 
     def url(path, method_name)
       if path.is_a?(String) && path.include?('(')
@@ -410,14 +447,22 @@ class Shoes
   end
 end
 
-# Event handler DSLs get defined in both App and Slot - same code, slightly different results
-events = %i[motion hover leave click release keypress wheel animate every timer]
-events.each do |event|
-  Shoes::App.define_method(event) do |*args, &block|
-    subscription_item(args:, shoes_api_name: event.to_s, &block)
+# Event handler DSLs get defined in both App and Slot - same code, slightly different results.
+# Timers return the timer, so it can be stopped; event handlers return self (manual 2187-2284).
+%i[animate every timer].each do |timer|
+  [Shoes::App, Shoes::Slot].each do |owner|
+    owner.define_method(timer) do |*args, &block|
+      subscription_item(args:, shoes_api_name: timer.to_s, &block)
+    end
   end
-  Shoes::Slot.define_method(event) do |*args, &block|
-    subscription_item(args:, shoes_api_name: event.to_s, &block)
+end
+
+%i[motion hover leave click release keypress wheel].each do |event|
+  [Shoes::App, Shoes::Slot].each do |owner|
+    owner.define_method(event) do |*args, &block|
+      subscription_item(args:, shoes_api_name: event.to_s, &block)
+      self
+    end
   end
 end
 
@@ -433,18 +478,28 @@ class Shoes::App < Shoes::Drawable
     current_slot.border(...)
   end
 
-  # Draw Context methods -- forward to the current slot
-  %i[fill nofill stroke strokewidth nostroke rotate scale skew].each do |dc_method|
+  # Draw Context methods -- forward to the current slot. fill and stroke return the
+  # pattern (manual: fill(pattern) » pattern); the rest return self.
+  %i[fill stroke].each do |dc_method|
     define_method(dc_method) do |*args|
       current_slot.send(dc_method, *args)
+    end
+  end
+
+  %i[nofill nostroke strokewidth rotate scale skew translate transform cap].each do |dc_method|
+    define_method(dc_method) do |*args|
+      current_slot.send(dc_method, *args)
+      self
     end
   end
 
   # Slot methods that should be accessible at App level.
   # In Shoes, the app block's self has direct access to these slot methods
   # because the app body evaluates as if it were inside the document_root slot.
+  # Like the slot's own, they return self.
   def clear(&block)
     current_slot.clear(&block)
+    self
   end
 
   def contents
@@ -453,18 +508,22 @@ class Shoes::App < Shoes::Drawable
 
   def append(&block)
     current_slot.append(&block)
+    self
   end
 
   def prepend(&block)
     current_slot.prepend(&block)
+    self
   end
 
   def before(drawable, &block)
     current_slot.before(drawable, &block)
+    self
   end
 
   def after(drawable, &block)
     current_slot.after(drawable, &block)
+    self
   end
 
   # Returns the current mouse state as [button, x, y].
@@ -554,18 +613,16 @@ class Shoes::App < Shoes::Drawable
   alias info puts
   alias debug puts
 
+  # Image effects (Shoes 3's blur, glow and shadow on image(w, h) { } canvases) are an
+  # extension no display draws yet (ledger E9); they must not stop the app.
+  %i[blur glow shadow].each do |effect|
+    define_method(effect) { |*_args, **_opts| self }
+  end
+
   # Returns the app's scrollbar gutter width (the width of the scrollbar).
   # In classic Shoes this is typically 28 pixels.
   def gutter
     28
-  end
-
-  # Canvas transform: translate the coordinate system.
-  # This is a draw-context operation that shifts drawing by (x, y).
-  def translate(x, y)
-    # Forward to current slot's draw context if available
-    # For now, this is a no-op stub that prevents errors.
-    # Full implementation requires display service support.
   end
 
   # Arc_to draws an arc within a shape block.
@@ -573,11 +630,6 @@ class Shoes::App < Shoes::Drawable
     return unless current_slot.is_a?(::Shoes::Shape)
 
     current_slot.add_shape_command(['arc_to', cx, cy, w, h, start_angle, end_angle])
-  end
-
-  # Cap style for line drawing (e.g., :curve, :rect, :project)
-  def cap(style)
-    # Draw context cap style - no-op stub for compatibility
   end
 
   # Open a new app window. In classic Shoes, `window` is like `Shoes.app` but

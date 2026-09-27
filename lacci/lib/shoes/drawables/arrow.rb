@@ -2,6 +2,7 @@
 
 class Shoes
   class Arrow < Shoes::Drawable
+    uses_draw_context
     shoes_style :draw_context
     shoes_events # No Arrow-specific events yet
 

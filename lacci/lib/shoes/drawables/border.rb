@@ -2,6 +2,7 @@
 
 class Shoes
   class Border < Shoes::Drawable
+    uses_draw_context
     # Shoes style with verification or value mapping:
     # shoes_style(:left) { |val| convert_to_integer(val, "left") }
 

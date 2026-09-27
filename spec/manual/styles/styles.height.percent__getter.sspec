@@ -4,8 +4,6 @@ lines: [1239, 1245]
 testability: api
 display: any
 ledger: C1
-expect: fail
-reason: "Lacci's height getter returns a Float style unchanged (0.5), not pixels (C1, Lacci change unscheduled)."
 ----------- app code
 Shoes.app width: 400, height: 400 do
   @outer = stack width: 300, height: 200 do

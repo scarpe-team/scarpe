@@ -4,8 +4,6 @@ lines: [2923, 2926]
 testability: visual
 display: native
 ledger: G9
-expect: fail
-reason: Lacci's Button has no focus method (G9, an unscheduled Lacci change).
 ----------- app code
 Shoes.app do
   @first = button "First"
