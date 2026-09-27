@@ -9,4 +9,4 @@ Shoes.app do
   @bar = progress
 end
 ----------- test code
-assert_in_delta 200, layout_of(progress).w, 2, "a simple progress bar is 200 pixels wide (ledger C4; DESIGN 6 says 160)"
+assert_in_delta 200, layout_of(progress).w, 2, "a simple progress bar is 200 pixels wide (ledger C4)"
