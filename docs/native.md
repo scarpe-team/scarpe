@@ -154,13 +154,15 @@ the case says why in its `reason:`. When someone fixes it, the case reports `xpa
 until the mark comes off, so a fix can never go unnoticed. `n/a` is a case that needs layout or real
 input, run on Niente, which has neither. `spec/README.md` explains how to write a case.
 
-On 27 Sep 2026 the suite had 978 cases. On the native display 887 pass and 87 are expected
-failures, each pointing at its ledger row; none fail. On Niente 488 pass.
+On 27 Sep 2026, when the fourth build wave merged, the suite had 983 cases. On the native display
+958 pass and 24 are expected failures, each pointing at its ledger row; none fail. On Niente 534
+pass.
 
 `spec/run --examples --display native` smoke-runs every example under `examples/`: it loads, it
-draws something that is not one flat colour, and neither side crashes. 305 pass and 23 fail, all
-of them known before this round: dialog-only scripts, apps that draw nothing until a timer fires,
-the network, and scripts that never open an app.
+draws something that is not one flat colour, and neither side crashes. 317 pass and none fail
+unexpectedly; 90 are skipped (the network, mostly) and 23 are marked as failing on native, each
+with its reason in `spec/examples.yml`: dialog-only scripts, scripts that never open an app, and
+apps that only log or paint one flat colour.
 Each run also writes `spec/results/gallery/index.html`, a page of every example's picture.
 
 ### Reading the ledger
