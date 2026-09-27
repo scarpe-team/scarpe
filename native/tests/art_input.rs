@@ -304,3 +304,42 @@ fn a_mask_lays_out_like_a_flow() {
     assert_eq!((para["x"].clone(), para["y"].clone()), (mask["x"].clone(), mask["y"].clone()));
     assert!(mask["y"].as_f64().unwrap() > 10.0, "after the para before it");
 }
+
+// ---- Tooltips ----
+
+/// A snapshot of the app as an image, to look at a region without one request per pixel.
+fn picture(h: &mut Harness) -> image::RgbaImage {
+    let path = std::env::temp_dir().join(format!("scarpe-art-input-{}-{}.png", std::process::id(), h.rt.views[&1].frames));
+    h.value(json!({"op": "snapshot", "path": path.to_string_lossy(), "scale": 1}));
+    let img = image::open(&path).expect("snapshot").to_rgba8();
+    let _ = std::fs::remove_file(&path);
+    img
+}
+
+/// Dark pixels (text ink) inside a region.
+fn ink(img: &image::RgbaImage, x0: u32, y0: u32, x1: u32, y1: u32) -> usize {
+    (y0..y1).flat_map(|y| (x0..x1).map(move |x| (x, y))).filter(|&(x, y)| img.get_pixel(x, y).0[0] < 110).count()
+}
+
+/// Shoes 3.3's `tooltip:` (shoes3-tests/tooltips.rb): resting on a control shows its text
+/// in a bubble below the pointer; a press hides it.
+#[test]
+fn a_tooltip_shows_under_the_pointer_and_a_press_hides_it() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(3, "Button", 2, json!({"text": "Quit", "tooltip": "kill Shoes"}))]));
+    let quiet = picture(&mut h);
+    assert_eq!(ink(&quiet, 20, 40, 120, 70), 0, "nothing below the button yet");
+
+    h.value(json!({"op": "mouse", "action": "move", "x": 20, "y": 14}));
+    let hovering = picture(&mut h);
+    assert!(ink(&hovering, 20, 40, 120, 70) > 20, "the bubble's text shows below the pointer");
+    let tip = h.rt.views[&1].ui.tooltip.clone().expect("a tooltip");
+    assert_eq!((tip.owner, tip.text.as_str()), (3, "kill Shoes"));
+
+    h.value(json!({"op": "mouse", "action": "down", "x": 20, "y": 14}));
+    h.value(json!({"op": "mouse", "action": "up", "x": 20, "y": 14}));
+    assert_eq!(ink(&picture(&mut h), 20, 40, 120, 70), 0, "gone after a press");
+
+    h.value(json!({"op": "mouse", "action": "move", "x": 250, "y": 150}));
+    assert!(h.rt.views[&1].ui.tooltip.is_none(), "and forgotten once the pointer leaves");
+}

@@ -12,6 +12,7 @@ pub mod progress;
 pub mod radio;
 pub mod slider;
 pub mod text_field;
+pub mod tooltip;
 pub mod video;
 
 use crate::doc::{Kind, Node};

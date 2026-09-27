@@ -194,6 +194,9 @@ pub fn paint(scene: &mut Scene, pm: &mut Pixmap, scale: f32) {
     paint_nodes(scene, &mut canvas, &layout.order);
     decor::scrollbars(&mut canvas, layout);
     elements::list_box::paint_popup(&mut canvas, scene.view, scene.text);
+    if scene.view.popup.is_none() {
+        elements::tooltip::paint(&mut canvas, scene.view.tooltip.as_mut(), scene.text, layout.size);
+    }
     crate::dialogs::paint_modal(&mut canvas, scene.view, scene.text, layout.size);
 }
 

@@ -7,6 +7,7 @@
 use crate::doc::{Doc, Kind};
 use crate::elements::list_box::{self, Popup, PopupKey};
 use crate::elements::text_field::{self, TextField};
+use crate::elements::tooltip::{self, Tooltip};
 use crate::elements::{button, check};
 use crate::layout::{Layout, TextBox};
 use crate::props::Id;
@@ -308,6 +309,7 @@ pub struct ViewState {
     pub focus_visible: bool,
     pub fields: HashMap<Id, TextField>,
     pub popup: Option<Popup>,
+    pub tooltip: Option<Tooltip>,
     pub modal: Option<crate::dialogs::Modal>,
     pub scroll: HashMap<Id, f32>,
     pub cursor: CursorShape,
@@ -334,6 +336,9 @@ impl ViewState {
         }
         if self.popup.as_ref().is_some_and(|p| gone(&p.list_box)) {
             self.popup = None;
+        }
+        if self.tooltip.as_ref().is_some_and(|t| gone(&t.owner)) {
+            self.tooltip = None;
         }
         self.fields.retain(|id, _| !gone(id));
         self.scroll.retain(|id, _| !gone(id));
@@ -545,6 +550,9 @@ impl Runtime {
             }
         }
         self.update_para_hit(app, hit.as_ref(), x, y);
+        if self.update_tooltip(app, &new_chain, x, y) {
+            self.request_redraw(app);
+        }
         let cursor = self.cursor_for(hit.as_ref());
         let view = self.views.get_mut(&app).expect("view");
         if view.ui.cursor != cursor {
@@ -554,6 +562,40 @@ impl Runtime {
         if changed {
             self.request_redraw(app);
         }
+    }
+
+    /// The tooltip follows the innermost hovered drawable that has one; it keeps its place
+    /// while the pointer stays on the same owner. Returns whether it changed.
+    fn update_tooltip(&mut self, app: Id, chain: &[Id], x: f32, y: f32) -> bool {
+        let wanted = tooltip::owner(&self.doc, chain);
+        let delay = self.tooltip_delay();
+        let ui = &mut self.views.get_mut(&app).expect("view").ui;
+        match (&mut ui.tooltip, wanted) {
+            (Some(tip), Some((owner, text))) if tip.owner == owner => {
+                let changed = tip.text != text;
+                tip.text = text;
+                changed
+            }
+            (slot, Some((owner, text))) => {
+                *slot = Some(Tooltip::new(owner, text, (x, y), Instant::now() + delay));
+                true
+            }
+            (slot, None) => slot.take().is_some(),
+        }
+    }
+
+    /// Headless there is nobody to rest a pointer, so snapshots show the bubble at once.
+    fn tooltip_delay(&self) -> Duration {
+        if self.opts.headless {
+            Duration::ZERO
+        } else {
+            tooltip::DELAY
+        }
+    }
+
+    /// The next tooltip a window has to wake up and draw.
+    pub fn tooltip_due(&self) -> Option<(Id, Instant)> {
+        self.views.iter().filter_map(|(app, v)| Some((*app, v.ui.tooltip.as_ref()?.pending()?))).min_by_key(|(_, due)| *due)
     }
 
     fn cursor_for(&self, hit: Option<&Hit>) -> CursorShape {
@@ -614,6 +656,9 @@ impl Runtime {
             Some(n) => n.kind.clone(),
             None => Kind::Unknown(String::new()),
         };
+        if let Some(tip) = self.views.get_mut(&app).expect("view").ui.tooltip.as_mut() {
+            tip.dismissed = true;
+        }
         let shift = self.views[&app].ui.modifiers.shift;
         let clicks = self.views.get_mut(&app).expect("view").ui.click_count(x, y);
         let target = hit.link.unwrap_or(hit.node);
