@@ -39,6 +39,8 @@ pub enum Effect {
     SetTitle(Id, String),
     ResizeWindow(Id, f32, f32),
     Cursor(Id, CursorShape),
+    /// App `opacity`, 0.0 (clear) to 1.0.
+    Opacity(Id, f32),
     Dialog { req: u64, kind: String, message: String, default: Value },
     OpenUrl(String),
 }
@@ -216,6 +218,8 @@ impl Runtime {
         let title = props.get("title").map(crate::props::value_text);
         let resized = props.contains_key("width") || props.contains_key("height");
         let restyled = ["font", "stroke", "secret"].iter().any(|k| props.contains_key(*k));
+        let opacity = props.get("opacity").and_then(Value::as_f64).map(|o| o as f32);
+        let recursor = props.contains_key("cursor");
         if !self.doc.set_props(id, props) {
             return;
         }
@@ -224,6 +228,9 @@ impl Runtime {
             Some(Kind::App) => {
                 if let Some(title) = title {
                     self.effects.push(Effect::SetTitle(id, title));
+                }
+                if let Some(opacity) = opacity {
+                    self.effects.push(Effect::Opacity(id, opacity));
                 }
                 if resized {
                     let size = self.doc.get(id).map(|n| app_size(&n.props.0)).unwrap_or(DEFAULT_SIZE);
@@ -244,6 +251,11 @@ impl Runtime {
                 }
             }
             _ => {}
+        }
+        if recursor {
+            for app in self.views.keys().copied().collect::<Vec<_>>() {
+                self.refresh_cursor(app);
+            }
         }
         self.invalidate();
     }

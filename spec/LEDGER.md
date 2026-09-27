@@ -161,9 +161,9 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
-| H1 | `keypress` values; Cmd on macOS | MANUAL, ruled (Q5) | | DESIGN |
+| H1 | `keypress` values; Cmd on macOS | MANUAL, ruled (Q5) | | |
 | H2 | Mouse button numbers | S3 | | |
-| H3 | Coordinate frame of mouse events | S3, ruled (Q4) | | DESIGN |
+| H3 | Coordinate frame of mouse events | S3, ruled (Q4) | | |
 | H4 | The extra `mods` argument | MANUAL | | |
 | H5 | `hover`/`leave` get the slot | MANUAL | unsched. | |
 | H6 | Registering an event twice | BOTH | | |
@@ -675,7 +675,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Examples:** `for_playtest/expert/curve-control-point.rb:16` calls `move_to *xy[0]` outside any shape.
 - **Lacci today:** `Shape < Shoes::Slot` with `@incompatibility A Shoes3 Shape is *not* a slot; Scarpe does *not* do union shapes` (`shape.rb:11-12`). `shape_commands` is sent empty at create and mutated afterwards without a `prop_change` (`shape.rb:25-31`, X7). `move_to` and friends are ignored outside a Shape (`app.rb:509-568`).
 - **Spec:** a closed `shape` fills its interior with the current fill; an oval created inside a shape paints (is not dropped).
-- **Native:** builds one path from the complete `shape_commands`, offset by (left, top). Art children of the shape are unioned into the same path.
+- **Native:** builds one path from the complete `shape_commands`, offset by (left, top). Art children of the shape join the same path, measured from the shape's (left, top), and the whole group is filled once (nonzero) and stroked once with the shape's own draw context (DESIGN 12).
 
 ### E8. `click`, `release`, `hover` and `leave` on shapes, text blocks and images
 
@@ -697,16 +697,17 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Examples:** 3 files (`simple-sphere.rb`, `shoes_manual/ovals_image.rb`, ...); `blur` in 1.
 - **Lacci today:** `image(w, h)` becomes a blank placeholder and the block is ignored (`image.rb:10-20`).
 - **Spec:** `image(100, 100) { oval 0, 0, 50 }` paints the oval inside the image's box.
-- **Native:** **wire contract (c), 27 Sep 2026:** the `image(w, h) { }` block runs with the Image as the current slot, so the art and text inside arrive as children of the Image node, and Rust paints them clipped to the image's box in image-local coordinates.
+- **Native:** **wire contract (c), 27 Sep 2026:** the `image(w, h) { }` block runs with the Image as the current slot, so the art and text inside arrive as children of the Image node, and Rust paints them clipped to the image's box in image-local coordinates. Built 27 Sep: an Image with children lays them out inside its box like a flow, clipped to it (DESIGN 12). Effects stay undrawn: the manual names blurred ovals and shadows in its introduction (manual 51-52) but documents no API for them.
 
 ### E10. `transform`, `translate`, `cap`, `rotate`, `scale`, `skew`
 
 **Ruling: MANUAL,** low priority.
 
-- **Manual:** manual 1676-1680, 1783-1797, 1857-1868.
-- **Lacci today:** `translate` and `cap` are no-ops (`app.rb:555-573`); `transform` exists only on Image (`image.rb:74-83`); `rotate`/`scale`/`skew` go into the draw context (`slot.rb:166-193`), and WV applies them to some shapes only (report 02, 6.8).
+- **Manual:** manual 1676-1680, 1783-1797, 1857-1868. `transform`: "Shoes defaults to `:corner`", the corner of the shape (1857-1860).
+- **Shoes 3:** `shoes_transform_new` starts every transform in `s_center` mode, and outside centre mode the matrix is applied about the canvas origin, not the shape's corner (`s3_canvas.c:31-41, 192-205`). The ruling keeps the manual's shape corner; nobody has checked what a real Shoes 3 draws.
+- **Lacci today:** `translate` and `cap` are no-ops (`app.rb:555-573`); `transform` exists only on Image (`image.rb:74-83`); `rotate`/`scale`/`skew` go into the draw context (`slot.rb:166-193`), and WV applies them to some shapes only (report 02, 6.8). Wire contract (b) of 27 Sep 2026 has Lacci send `translate: [x, y]` (running total), `transform: "center"|"corner"` and `cap: "curve"|"rect"|"project"` in the draw context.
 - **Spec:** `rotate 45; rect 100, 100, 50, 10` paints a pixel off the unrotated rect's box.
-- **Native:** applies the draw context's transforms to every shape, rotating about the corner unless `transform :center`. **Wire contract (b), 27 Sep 2026:** Lacci sends `"translate": [x, y]` (cumulative), `"transform": "center" | "corner"` (the rotate and scale pivot, default corner) and `"cap": "curve" | "rect" | "project"` (round, butt, square) in the draw context, and Rust renders them. DESIGN 12 still pivots on the centre; the contract supersedes it.
+- **Native:** applies the draw context's transforms to every shape, rotating about the shape's top-left corner unless `transform: "center"` (or `center: true`); `translate` moves the shape and its layout box; caps are round, flat or square (DESIGN 12). **Wire contract (b), 27 Sep 2026:** Lacci sends `"translate": [x, y]` (cumulative), `"transform": "center" | "corner"` (the rotate and scale pivot, default corner) and `"cap": "curve" | "rect" | "project"` (round, butt, square) in the draw context, and Rust renders them.
 
 ### E11. Art methods return `Shoes::Shape`
 
@@ -904,7 +905,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### G7. Button styling
 
-**Ruling: EXT.** The Shoes 3.3 set (`font:`, `stroke:`, `icon:`, `icon_pos:`, `tooltip:`, from `for_playtest/shoes3-tests/button/button.rb`) is `ext-s33`. Scarpe-only `:color`, `:text_color`, `:font_size`, `:padding_*` (`button.rb:5`) are `ext-scarpe` behind `features: :scarpe`. The manual gives buttons no colour style. **Native:** honours the S3.3 set; Scarpe-only styles when the feature is on.
+**Ruling: EXT.** The Shoes 3.3 set (`font:`, `stroke:`, `icon:`, `icon_pos:`, `tooltip:`, from `for_playtest/shoes3-tests/button/button.rb`) is `ext-s33`. Scarpe-only `:color`, `:text_color`, `:font_size`, `:padding_*` (`button.rb:5`) are `ext-scarpe` behind `features: :scarpe`. The manual gives buttons no colour style. **Native:** honours the S3.3 set (since 27 Sep that includes `icon:` with `icon_pos:` and `tooltip:`, DESIGN 12); Scarpe-only styles when the feature is on. Nobody has checked Shoes 3.3's default `icon_pos`; native puts the icon on the left, as GTK and AppKit do by default.
 
 ### G8. `check.checked`
 
@@ -979,9 +980,8 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Shoes 4:** CR is `"\n"`; prefixes `control_`, `shift_` (special keys only), `alt_`, `super_` for Cmd (`s4swt_key_listener.rb:27, 85-91`); any modified key becomes a Symbol (`:143-145`).
 - **Examples:** `for_playtest/shoes-contrib/simple/simple-editor.rb:19-23` and `philippe_checked/editor.rb:19-23` bind `:alt_q` (quit), `:alt_c` (copy), `:alt_v` (paste), which are Cmd-Q, Cmd-C and Cmd-V on a Mac under Shoes 3. `philippe/minimal_editor.rb:119` accepts `:control_a, :alt_a`. `needs_deps/expert-irb.rb:80` waits for `"\n"`.
 - **Lacci / WV today:** WV maps Enter to `:return` (`wv/subscription_item.rb:127`); prefixes are `alt_`, then `control_`, then `shift_` (`:147-158`); Cmd (Meta) is ignored; a modified special key loses its `:` and arrives as the String `"alt_left"` (`:158`); a modified character arrives as the String `"alt_q"` because Lacci only symbolises values that start with `:` (`subscription_item.rb:67-77`). Plus the double fire (X1).
-- **Spec:** `press_key "a"` gives `"a"`; Shift-a gives `"A"`; F1 gives `:f1`; Return gives `"\n"`; Control-Return gives `:control_enter`; Control-Shift-Alt-PageUp gives `:control_shift_alt_page_up`; Alt-q gives `:alt_q`. `press_key` takes Shoes key names, so no case can press Cmd; the Cmd mapping is checked in the native backend's own tests.
-- **Native:** DESIGN 4.4, except for Cmd.
-- **DESIGN conflict:** DESIGN 4.4 says "On macOS, Cmd maps to `control_` as well (Shoes 3 did this)". The Shoes 3 Cocoa source maps Cmd to `alt_`, the examples' Cmd shortcuts are written as `:alt_q`/`:alt_c`/`:alt_v`, and Q5 was ruled that way.
+- **Spec:** `press_key "a"` gives `"a"`; Shift-a gives `"A"`; F1 gives `:f1`; Return gives `"\n"`; Control-Return gives `:control_enter`; Control-Shift-Alt-PageUp gives `:control_shift_alt_page_up`; Alt-q gives `:alt_q`. `press_key` takes Shoes key names, so no case can press Cmd; the Cmd mapping (Cmd-q gives `:alt_q`) is checked in the native backend's own tests (`window.rs`, `command_is_named_alt`).
+- **Native:** DESIGN 4.4. Since 27 Sep Cmd is named `alt_` (and still edits like Control in text fields), and Shift folds into characters with a US map, so `:shift_7` is `"&"` and `:shift_alt_7` is `:alt_&`. DESIGN 4.4 said Cmd maps to `control_` until then.
 
 ### H2. Mouse button numbers
 
@@ -1003,9 +1003,8 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Shoes 3:** the slot's click block gets the `x, y` it was called with (`s3_canvas.c:1056-1061`), and nested slots are called with the same coordinates unless the child canvas has its own origin (`:1045-1051, 1065-1068`). That flag is set only for a child slot drawn on its own native surface (`DC(c->slot) != DC(pc->slot)`, `:445-450, 586-590`), which Shoes 3 gives to scrolling slots; not traced further. Inside such a slot, coordinates are slot-relative. Motion is the same (`:1181-1193`). The app's top slot adds its scroll offset (`:1053-1054`).
 - **Examples:** almost every coordinate reader binds at app level (`minesweeper.rb:256`, `tankspank.rb:362`, `othello.rb:304`, `curve-control-point.rb:33`, `mice-satellites.rb:24`). The one nested reader found, `examples/para_cursor_demo.rb:69-79`, passes x and y to `Para#hit`, which ignores them (`para.rb:232-234`).
 - **Lacci / WV today:** WV computes coordinates relative to `e.currentTarget.getBoundingClientRect()`, that is slot-relative (`wv/subscription_item.rb:66-100`).
-- **Spec:** app-level `click` reports window coordinates (every model agrees; every existing coordinate case sits at the window origin). `events.click__nested_window_coords`: a click at window (150, 40) on a stack placed at (100, 0) reports (150, 40). `expect: fail` on native until wire contract (g) lands.
-- **Native:** DESIGN 4.3 gives drawable clicks window coordinates, and SubscriptionItem `click`/`release`/`motion` "x/y relative to the item's parent slot". **Wire contract (g), 27 Sep 2026:** SubscriptionItem `click`/`release`/`motion` coordinates are window coordinates.
-- **DESIGN conflict:** DESIGN 4.3's SubscriptionItem rule is WV's frame; the ruling and contract (g) replace it.
+- **Spec:** app-level `click` reports window coordinates (every model agrees; every existing coordinate case sits at the window origin). `events.click__nested_window_coords`: a click at window (150, 40) on a stack placed at (100, 0) reports (150, 40).
+- **Native:** since 27 Sep drawable clicks and SubscriptionItem `click`/`release`/`motion` all carry window coordinates (DESIGN 4.3), as **wire contract (g), 27 Sep 2026** says. Shoes 3's own motion adds the top slot's scroll offset while its click takes it away (`s3_canvas.c:1053-1061, 1181-1193`); native uses the window's coordinates for both. DESIGN 4.3 made SubscriptionItem coordinates parent-relative, WV's frame, until then.
 
 ### H4. The extra `mods` argument
 
@@ -1393,15 +1392,15 @@ M1 to M37 carry the numbers of the contradictions in `native/research/03_manual_
 
 `native/DESIGN.md` says "If the code and this document disagree, fix one of them in the same change." These are the places where DESIGN and a ruling above disagreed. Items marked Resolved were fixed in DESIGN on 27 Sep 2026 and stay listed for the record; item 9 lists the wire contracts DESIGN does not carry yet.
 
-1. **Cmd on macOS (H1).** DESIGN 4.4: "On macOS, Cmd maps to `control_` as well (Shoes 3 did this)". Shoes 3's Cocoa backend maps Cmd to `alt_` (`s3_cocoa.m:287-288, 296-297`), and the examples' Cmd shortcuts are `:alt_q`, `:alt_c`, `:alt_v`.
+1. **Cmd on macOS (H1, ruled with Q5).** Resolved 27 Sep: DESIGN 4.4 names Cmd `alt_`, as Shoes 3's Cocoa backend did (`s3_cocoa.m:287-288, 296-297`) and as the examples' `:alt_q`, `:alt_c`, `:alt_v` expect.
 2. **`every`'s first count (I1).** Resolved 27 Sep: DESIGN 5.4 and the pump now count from 0, as Shoes 3 (`s3t_timerbase.c:35, 43-44`) and Shoes 4 (`s4_animation.rb:20`) do.
 3. **Control widths (C4).** Resolved 27 Sep: DESIGN 6 and Rust give list_box and progress the manual's 200 px (manual 3183, 3245).
 4. **Text in a flow (C7, ruled with Q2).** Resolved 27 Sep: DESIGN 6 and the layout continue text as one paragraph, as the ruling, the manual and Shoes 3 do.
 5. **Text-block margins (C9, ruled with Q3)** and **leading (F10).** Resolved 27 Sep: DESIGN 6 and the layout give text Shoes 3's 4 px margins (12 px below) and 4 px of leading between lines.
-6. **Nested-slot event coordinates (H3, ruled with Q4).** DESIGN 4.3 makes SubscriptionItem coordinates parent-relative; the ruling and contract (g) use window coordinates.
+6. **Nested-slot event coordinates (H3, ruled with Q4).** Resolved 27 Sep: DESIGN 4.3 gives SubscriptionItem `click`, `release` and `motion` window coordinates, as the ruling and contract (g) say.
 7. **Default window (A1, ruled with Q1).** Resolved 27 Sep: DESIGN 6 and Rust fall back to 600x500, as Shoes 3 and Shoes 4 do, and Lacci's own default moved there the same day.
 8. **Smaller points.** DESIGN 6's Float rule says "between 0 and 1 exclusive" and "1.0 = 100%" in the same breath; Shoes 3 treats every Float as a fraction (C1). DESIGN 6 describes `right`/`bottom` (C10) and a fixed height clipping (C13) since 27 Sep. DESIGN 4.1's `ask` reply is `null` on Cancel; the shim must hand Lacci `""` (K1).
-9. **Wire contracts from 27 Sep 2026.** (a) the `layout` push (A4, C5); (b) `translate`, `transform` and `cap` in the draw context (E10); (c) the `image(w, h) { }` canvas (E9); (d) `underline`/`strikethrough` `"none"` (F7); (e) timer classes announced as `SubscriptionItem` (I2); (f) `every` from 0 and `animate` from frame 0 (I1); (g) window coordinates for SubscriptionItem mouse events (H3). (a) is in DESIGN 4.2 and (f) in DESIGN 5.4 since 27 Sep; DESIGN sections 4 to 6 and 12 should gain the rest.
+9. **Wire contracts from 27 Sep 2026.** (a) the `layout` push (A4, C5); (b) `translate`, `transform` and `cap` in the draw context (E10); (c) the `image(w, h) { }` canvas (E9); (d) `underline`/`strikethrough` `"none"` (F7); (e) timer classes announced as `SubscriptionItem` (I2); (f) `every` from 0 and `animate` from frame 0 (I1); (g) window coordinates for SubscriptionItem mouse events (H3). Since 27 Sep DESIGN carries (a) in 4.2, (g) in 4.3, (f) in 5.4, and (b) and (c) in 12. (d) and (e) need no Rust change and DESIGN does not mention them yet.
 
 ## Rulings on the questions (27 Sep 2026)
 

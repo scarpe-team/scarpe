@@ -51,7 +51,7 @@ impl Runtime {
             Op::Snapshot { path, app, scale } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;
                 let scale = scale.unwrap_or(self.views[&app].scale);
-                let pm = self.picture(app, scale).ok_or(("could not make a canvas".to_string(), Value::Null))?;
+                let pm = self.shown(app, scale).ok_or(("could not make a canvas".to_string(), Value::Null))?;
                 if let Some(dir) = std::path::Path::new(&path).parent().filter(|d| !d.as_os_str().is_empty()) {
                     let _ = std::fs::create_dir_all(dir);
                 }
@@ -59,7 +59,11 @@ impl Runtime {
                 Ok(Some(json!({"path": path, "w": pm.width(), "h": pm.height()})))
             }
             Op::Click { target, button, app } => {
-                let app = self.app_for(app).ok_or_else(no_app)?;
+                let owner = match &target {
+                    Target::Id(id) => self.owner_app(*id),
+                    _ => None,
+                };
+                let app = owner.or_else(|| self.app_for(app)).ok_or_else(no_app)?;
                 self.active_app = Some(app);
                 self.click(app, target, button).map(Some)
             }
@@ -108,7 +112,7 @@ impl Runtime {
             Op::Pixel { x, y, app } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;
                 let scale = self.views[&app].scale;
-                let pm = self.picture(app, scale).ok_or(("could not make a canvas".to_string(), Value::Null))?;
+                let pm = self.shown(app, scale).ok_or(("could not make a canvas".to_string(), Value::Null))?;
                 let (px, py) = ((x * scale).floor() as i64, (y * scale).floor() as i64);
                 if px < 0 || py < 0 || px >= pm.width() as i64 || py >= pm.height() as i64 {
                     return Err(("point is outside the window".into(), Value::Null));
@@ -134,6 +138,16 @@ impl Runtime {
                 Ok(Some(self.views[&app].ui.focus.map(Value::from).unwrap_or(Value::Null)))
             }
         }
+    }
+
+    /// The app as a person would see it: a see-through window (App `opacity`) keeps only
+    /// that share of each pixel.
+    fn shown(&mut self, app: Id, scale: f32) -> Option<tiny_skia::Pixmap> {
+        let mut pm = self.picture(app, scale)?;
+        if let Some(opacity) = self.doc.get(app).and_then(|n| n.props.f32("opacity")) {
+            crate::paint::fade(&mut pm, opacity);
+        }
+        Some(pm)
     }
 
     /// `{id, kind, x, y, w, h, visible, text?}` for every laid-out node, in
@@ -240,6 +254,16 @@ impl Runtime {
         self.pointer_down(app, button);
         self.pointer_up(app, button);
         Ok(json!({"hit": hit_id, "x": round(x), "y": round(y)}))
+    }
+
+    /// The open app a drawable is drawn in: up its parents, or for a text fragment
+    /// (which has none), the app whose layout shows it.
+    fn owner_app(&mut self, id: Id) -> Option<Id> {
+        if let Some(app) = self.doc.app_of(id).filter(|a| self.views.contains_key(a)) {
+            return Some(app);
+        }
+        let apps: Vec<Id> = self.views.keys().copied().collect();
+        apps.into_iter().find(|&app| self.layout_of(app).is_some_and(|l| para_of(l, id).is_some()))
     }
 
     /// Clicking an item of an open list_box popup by its text.

@@ -129,8 +129,8 @@ Rust processes `req`s after an implicit flush of everything received before them
 | pick in ListBox | `change` | that id | `[item_string]` |
 | pointer enters / leaves a drawable | `hover` / `leave` | that id | `[]`, on transitions only, for every drawable in the hovered chain |
 | press / release on a drawable that has `has_click` / `has_release` true | `click` / `release` | that id | `[button, x, y]` window coordinates |
-| SubscriptionItem `click`/`release` | same | item id | `[button, x, y]`, x/y relative to the item's parent slot. Fires for presses inside the parent slot unless an input widget or link consumed the press |
-| SubscriptionItem `motion` | `motion` | item id | `[x, y, ctrl, shift]` (booleans), parent-relative, on pointer move inside the parent slot |
+| SubscriptionItem `click`/`release` | same | item id | `[button, x, y]` in window coordinates, like drawable clicks (ledger H3, Q4 ruled 27 Sep 2026). Fires for presses inside the parent slot unless an input widget or link consumed the press |
+| SubscriptionItem `motion` | `motion` | item id | `[x, y, ctrl, shift]` (booleans) in window coordinates, on pointer move inside the parent slot |
 | SubscriptionItem `hover`/`leave` | same | item id | `[]` on entering/leaving the parent slot box |
 | SubscriptionItem `keypress` | `keypress` | item id | `[key]`, see 4.4. Not sent while a text input has focus, except escape and modified keys |
 | SubscriptionItem `wheel` | `wheel` | item id | `[delta, x, y]`, delta > 0 = up |
@@ -142,8 +142,14 @@ Mouse buttons are 1 = left, 2 = middle, 3 = right (manual numbering).
 - Printable characters: the String itself (`"a"`, `"A"`, `" "`, `"&"`).
 - Return: `"\n"`. Tab `:tab`, Backspace `:backspace`, Delete `:delete`, arrows `:left :right :up :down`, `:home :end :page_up :page_down :escape :insert :f1`..`:f12`.
 - Modifiers prefix in the order `control_`, `shift_`, `alt_` (shift only for non-printables). A modified printable key is a Symbol: `:control_a`, `:alt_q`. Modified return: `:control_enter`.
+- Shift folds into characters the way a US keyboard types them (manual 2223-2227): Shift-7 is `"&"`,
+  Shift-Alt-7 is `:alt_&`, Control-Shift-a is `:control_A`. Automation's `key` op folds `shift_7` the same way.
 - On the wire a Symbol travels as a String starting with `":"` (`":left"`); Lacci's SubscriptionItem turns it back into a Symbol. Plain printable keys travel as themselves.
-- On macOS, Cmd maps to `control_` as well (Shoes 3 did this), so `:control_q` works with Cmd-Q.
+- On macOS, Cmd is named `alt_`, as Shoes 3's Cocoa backend did (ledger H1, Q5 ruled 27 Sep 2026):
+  Cmd-q arrives as `:alt_q`, which is what the example editors bind. In text fields Cmd still works
+  like Control (copy, paste, select all, line ends); Option moves by words. The default app menu
+  still quits on Cmd-Q before the app sees the key; Rust then reports every open window `closed`.
+  The `key` op accepts `command_` (or `cmd_`, `super_`) for Cmd.
 
 ## 5. The Ruby shim
 
@@ -245,7 +251,7 @@ neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1).
   only, as Pango's spacing does: one line is 1.2 x size tall, two are 2.4 x size + 4.
 - **Widgets** have intrinsic sizes (research 02 section 13): button = label + padding (min 22 high),
   edit_line 200x28, edit_box 200x108, list_box 200x28, progress 200x14 (manual sizes, ledger C4),
-  check/radio 18x18.
+  check/radio 18x18. Shadows stay inside a control's box.
   Explicit width/height override.
 - **Margins** add outside the box (`margin`, `margin_left/top/right/bottom`; arrays are
   [left, top, right, bottom], and a short array keeps the default for the sides it leaves out,
@@ -281,10 +287,12 @@ src/text/          fonts.rs (FontSystem: system or bundled; set sans/serif/mono 
                    rich.rs (resolve Para text_items tree -> spans with Attrs + metadata id per span),
                    shape_cache.rs (cache Buffers keyed by content hash + width), raster.rs (own glyph rasteriser
                    with slight embolden, HiDPI via glyph.physical)
-src/paint/         mod.rs (walk layout, clip, transforms), shapes.rs (rect oval line arrow star arc shape),
+src/paint/         mod.rs (walk layout, clip, mask layers), shapes.rs (rect oval line arrow star arc shape,
+                   shape groups, transforms),
                    decor.rs (background, border), text.rs (draw shaped text, decorations, selection, caret)
 src/elements/      one file per widget: button.rs check.rs radio.rs edit_line.rs edit_box.rs list_box.rs progress.rs
-                   slider.rs image.rs video.rs. Each exposes: intrinsic size, paint, pointer handling, key handling
+                   slider.rs image.rs video.rs. Each exposes: intrinsic size, paint, pointer handling, key handling.
+                   tooltip.rs draws the tooltip bubble over any drawable
 src/input.rs       hit-test (topmost in reverse paint order), hover chain diffing, press/release routing,
                    focus + tab order, keyboard -> Shoes key names, text editing via cosmic-text Editor
 src/runtime.rs     Runtime: owns Doc + per-app view state (scroll, focus, hover, editors, popups); apply(msg);
@@ -317,7 +325,10 @@ Default background white, text #1d1d1f, system sans (San Francisco on macOS) at 
 (banner 48, title 34, subtitle 26, tagline 18, caption 14, para 12, inscription 10). Buttons: rounded
 6 px, subtle vertical gradient, 1 px border, soft shadow, pressed and hover states. Inputs: white,
 1 px #c7c7cc border, 6 px radius, blue focus ring. Check/radio: drawn, accent blue when on.
-Links: #0066ee, underline, darker on hover, pointer cursor. Everything antialiased. Spike A
+Links: #0066ee, underline, darker on hover, pointer cursor. Buttons, checks, radios and list boxes
+also show the pointing hand and text fields an I-beam; a drawable's own `cursor` style
+(`:hand_cursor`, `:text_cursor`, `:watch_cursor`, `:arrow_cursor`) wins, and the App's `cursor`
+covers the rest. Everything antialiased. Spike A
 (`native/research/07_spike_skia.md`, scene PNG) is the reference look.
 
 ## 8. Testing
@@ -353,8 +364,13 @@ on top of the Niente-compatible finders and proxies (`button`, `para`, `edit_lin
 | `stub_dialog(kind, value)` | answer the next `kind` builtin with `value` |
 
 `scarpe peek APP.rb [--size WxH] [--scale 2] [--wait SECS] [--click TEXT | --click-at X,Y]
-[--type TEXT] [--key NAME] [--shot OUT.png] [--layout]` runs an app headless, performs the steps in
-order, and exits. It is the quick "look and click" tool for humans and agents.
+[--type TEXT] [--key NAME] [--wheel DY[,X,Y]] [--window N | --app ID] [--shot OUT.png] [--layout]`
+runs an app headless, performs the steps in order, and exits. It is the quick "look and click" tool
+for humans and agents. `--window N` (counting from 1 in `Shoes.APPS`) or `--app ID` sends every
+later step to that window.
+
+Automation aimed at one drawable (`trigger_click`, `layout_of`, `trigger_hover`) goes to the window
+that drawable is in; Rust also routes `click {id}` to the drawable's own app, whatever `app` says.
 
 ## 9. The spec suite (`spec/`)
 
@@ -419,14 +435,27 @@ change the code and this list together.
   shows. Positioned text (`left`/`top`) shrinks to fit the same way. `right:` and `bottom:`
   place from the far edges.
 - **Widget** (a `Shoes::Widget` subclass) lays its children out as a flow; its default width is
-  its parent's, like any slot. **Mask** is not drawn yet.
+  its parent's, like any slot. **Mask** is a slot in the flow, laid out like a flow; the slot
+  holding it paints all its other contents (backgrounds included) through the alpha of what the
+  mask draws, and the window shows through everywhere else (Shoes 3, `s3_canvas.c:531-613`).
 - **Art geometry.** `star` follows Shoes 3 exactly (centred on left/top, first point straight
   down, radii outer/inner). `arrow` is centred on left/top, points right, is 0.8 x width tall with a
   head 0.42 x width long. `arc` sits in its (left, top, width, height) box like `oval` (Shoes 3
   centred it on left/top; the manual's "mimic oval" and Shoes 4 say box), sweeps clockwise from
   3 o'clock, and fills as a chord (`wedge: true` fills a pie). `rotate`, `scale` and `skew` from the
-  draw context apply about the element's centre; positive `rotate` turns counter-clockwise.
-  Unset fill and stroke are black, strokewidth 1, cap `:rect` (butt).
+  draw context turn a shape about its top-left corner (manual 1857-1860, ledger E10), or about its
+  centre when the draw context says `transform: "center"` or the shape has `center: true`; positive
+  `rotate` turns counter-clockwise. The draw context's `translate: [x, y]` (Lacci's running total)
+  moves shapes before they turn. A shape's layout box is its transformed box, so hit-testing follows.
+  `cap` is `"curve"` (round), `"rect"` (flat, the default) or `"project"` (square, half the stroke
+  width longer). Unset fill and stroke are black, strokewidth 1.
+- **Shape blocks.** Art drawn inside a `shape` block joins the shape's path, measured from the
+  shape's left/top: the group is filled once (nonzero winding) and stroked once with the shape's own
+  fill and stroke, and turns as one (ledger E7, M21). The shape's layout box holds all of it.
+- **Image canvases.** An Image with children (`image(w, h) { ... }`, ledger E9) lays them out inside
+  its own box, like a flow, in image-local coordinates, and clips them to it. A blank canvas with no
+  size of its own (only `left`/`top`) fills the rest of its line and its parent's height. Effects
+  (`blur`, `glow`, `shadow`) are not drawn: the manual never documents them.
 - **Gradients** follow Shoes 3: angle 0 runs top to bottom, 90 left to right, across the shape's
   box. A wire gradient without `angle` gets 0.
 - **Wheel.** `req wheel` takes `dy` in logical px with DOM sign: positive scrolls down (content
@@ -447,7 +476,9 @@ change the code and this list together.
 - **`para_hit {id, value}`** is sent while the pointer moves over a para (the character index), and
   with `value: null` when it leaves.
 - **Focus.** Text fields show a focus ring whenever focused; buttons, checks, radios and list boxes
-  only when focus came from the keyboard (tab or a `focus` message).
+  only when focus came from the keyboard (tab or a `focus` message). On a focused list box Up and
+  Down choose the previous and next item without opening the popup (manual 3221-3224); Return and
+  Space open it.
 - **`state: "disabled"`** greys a control out and it ignores the pointer, keys and tab;
   **`"readonly"`** fields can be focused, selected and copied but not edited.
 - **Bundled fonts** (`--fonts bundled`) are Inter (sans, and the serif fallback) and Fira Mono
@@ -465,6 +496,14 @@ change the code and this list together.
   its line runs past it, as under Shoes 3's PANGO_WRAP_WORD; `"char"` breaks anywhere;
   `"trim"` keeps a para on one line and cuts it off with an ellipsis at the para's own box
   (manual 1552-1556). The ellipsis takes the style of the para's first run.
+- **Button icons** (Shoes 3.3 `icon:`, ledger G7): a 16 px image beside the label, on the side
+  `icon_pos` names (`left`, the default, `right`, `top` or `bottom`); the button grows to hold both.
+  The shim sends `icon` as an absolute path.
+- **App `opacity`** (0.0 to 1.0) makes the whole window see-through: NSWindow's alphaValue on macOS
+  (other platforms stay opaque), and snapshots and `pixel` keep that share of every pixel's alpha.
+- **Tooltips.** A drawable's `tooltip` text (Shoes 3.3; Lacci gives every drawable the style) shows
+  in a bubble below the pointer once it rests on that drawable: at once headless, so snapshots are
+  deterministic, and after 600 ms in a window. A press hides it until the pointer moves on.
 - **Para `cursor` and `marker`** count from the end when negative (`-1` sits after the last
   character, as Shoes 3 editors use it). The caret takes the text's colour, so it shows on dark
   backgrounds.

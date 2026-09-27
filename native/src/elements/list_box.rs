@@ -17,6 +17,7 @@ use tiny_skia::{LineCap, LineJoin, PathBuilder, Shader, Stroke, Transform};
 const RADIUS: f32 = 6.0;
 const PAD_X: f32 = 10.0;
 const BADGE: f32 = 16.0;
+const SHADOW: f32 = 1.0;
 pub const ITEM_H: f32 = 22.0;
 
 pub fn items(node: &Node) -> Vec<String> {
@@ -38,17 +39,18 @@ fn style(node: &Node) -> TextStyle {
 pub fn label(node: &Node, _w: f32, h: f32, engine: &mut TextEngine) -> Option<Label> {
     let text = chosen(node)?;
     let shaped = engine.shape(&RichText::plain(&text, style(node)), None);
-    let dy = (h - shaped.height) / 2.0;
+    let dy = (h - SHADOW - shaped.height) / 2.0;
     Some(Label { shaped, dx: PAD_X, dy })
 }
 
 pub fn paint(canvas: &mut Canvas, _node: &Node, lbox: &LBox, label: Option<&TextBox>, state: WidgetState, engine: &mut TextEngine) {
-    let r = lbox.rect;
+    // The face sits above a one-pixel shadow, both inside the box.
+    let r = Rect::new(lbox.rect.x, lbox.rect.y, lbox.rect.w, lbox.rect.h - SHADOW);
     let clip = lbox.clip;
     if state.focused {
         focus_ring(canvas, r, RADIUS, clip);
     }
-    canvas.fill_rounded(Rect::new(r.x, r.y + 1.0, r.w, r.h), RADIUS, Color::rgba(0, 0, 0, 20), clip);
+    canvas.fill_rounded(Rect::new(r.x, r.y + SHADOW, r.w, r.h), RADIUS, Color::rgba(0, 0, 0, 20), clip);
     let (top, bottom) = if state.pressed {
         (Color::rgb(0xe6, 0xe6, 0xeb), Color::rgb(0xdc, 0xdc, 0xe2))
     } else {
@@ -134,6 +136,33 @@ impl Popup {
     pub fn scroll_by(&mut self, dy: f32) {
         self.scroll = (self.scroll + dy).clamp(0.0, self.max_scroll());
     }
+}
+
+/// Up and Down on a focused list box pick the item before or after the chosen one,
+/// without opening the popup (manual 3221-3224). None when the key is not an arrow
+/// or the choice would not move.
+pub fn stepped(node: &Node, key: &KeyInput) -> Option<String> {
+    let step: isize = match key.key {
+        Key::Named(Named::Up) if !key.modified() => -1,
+        Key::Named(Named::Down) if !key.modified() => 1,
+        _ => return None,
+    };
+    let items = items(node);
+    if items.is_empty() {
+        return None;
+    }
+    let current = chosen(node).and_then(|c| items.iter().position(|i| *i == c));
+    let next = match current {
+        Some(i) => (i as isize + step).clamp(0, items.len() as isize - 1) as usize,
+        None if step > 0 => 0,
+        None => items.len().checked_sub(1)?,
+    };
+    (Some(next) != current).then(|| items[next].clone())
+}
+
+/// Return and Space open the popup of a focused list box.
+pub fn opens(key: &KeyInput) -> bool {
+    !key.modified() && (key.key == Key::Named(Named::Enter) || key.key == Key::Char(" ".into()))
 }
 
 pub enum PopupKey {

@@ -7,6 +7,7 @@
 use crate::doc::{Doc, Kind};
 use crate::elements::list_box::{self, Popup, PopupKey};
 use crate::elements::text_field::{self, TextField};
+use crate::elements::tooltip::{self, Tooltip};
 use crate::elements::{button, check};
 use crate::layout::{Layout, TextBox};
 use crate::props::Id;
@@ -85,14 +86,17 @@ impl Named {
 }
 
 /// A key press, independent of winit so automation can make them too.
-/// `ctrl` is Control, or Command on macOS (Shoes names both `control_`).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct KeyInput {
     pub key: Key,
     pub text: Option<String>,
     pub ctrl: bool,
     pub alt: bool,
+    /// Only for named keys: on characters Shift is already folded in ("&", not shift_7).
     pub shift: bool,
+    /// Command on macOS. Key names spell it `alt_`, as Shoes 3 did (Q5); editing
+    /// shortcuts treat it like Control.
+    pub command: bool,
 }
 
 impl KeyInput {
@@ -100,16 +104,31 @@ impl KeyInput {
         match c {
             '\n' | '\r' => KeyInput::named(Named::Enter),
             '\t' => KeyInput::named(Named::Tab),
-            c => KeyInput { key: Key::Char(c.to_string()), text: Some(c.to_string()), ctrl: false, alt: false, shift: false },
+            c => KeyInput { text: Some(c.to_string()), ..KeyInput::plain(Key::Char(c.to_string())) },
         }
     }
 
     pub fn named(named: Named) -> KeyInput {
-        KeyInput { key: Key::Named(named), text: None, ctrl: false, alt: false, shift: false }
+        KeyInput::plain(Key::Named(named))
+    }
+
+    /// The key alone: no text, no modifiers.
+    pub fn plain(key: Key) -> KeyInput {
+        KeyInput { key, text: None, ctrl: false, alt: false, shift: false, command: false }
+    }
+
+    /// Control, or Command on macOS: the modifier of copy, paste and select-all.
+    pub fn shortcut(&self) -> bool {
+        self.ctrl || self.command
+    }
+
+    /// Any modifier that turns a character into a Symbol.
+    pub fn modified(&self) -> bool {
+        self.ctrl || self.alt || self.command
     }
 
     /// The value a `keypress` handler receives (DESIGN 4.4). Symbols travel as
-    /// Strings starting with ":".
+    /// Strings starting with ":". Modifiers come in the order control, shift, alt.
     pub fn shoes_name(&self) -> Option<String> {
         let mods = |shift: bool| {
             let mut m = String::new();
@@ -119,36 +138,35 @@ impl KeyInput {
             if shift {
                 m.push_str("shift_");
             }
-            if self.alt {
+            if self.alt || self.command {
                 m.push_str("alt_");
             }
             m
         };
         match &self.key {
-            Key::Named(Named::Enter) if !(self.ctrl || self.alt || self.shift) => Some("\n".into()),
+            Key::Named(Named::Enter) if !(self.modified() || self.shift) => Some("\n".into()),
             Key::Named(named) => Some(format!(":{}{}", mods(self.shift), named.shoes())),
-            Key::Char(c) if self.ctrl || self.alt => Some(format!(":{}{}", mods(false), c.to_lowercase())),
+            Key::Char(c) if self.modified() => Some(format!(":{}{}", mods(false), c)),
             Key::Char(c) => Some(self.text.clone().filter(|t| !t.is_empty()).unwrap_or_else(|| c.clone())),
         }
     }
 
-    /// A Shoes key name ("left", ":control_a", "a", "\n") as a key press.
+    /// A Shoes key name ("left", ":control_a", "a", "\n", ":shift_alt_7") as a key press.
     pub fn parse(name: &str) -> Option<KeyInput> {
         if name == "\n" || name == " " {
             return Some(KeyInput::char(name.chars().next()?));
         }
         let mut rest = name.strip_prefix(':').unwrap_or(name);
-        let (mut ctrl, mut shift, mut alt) = (false, false, false);
+        let (mut ctrl, mut shift, mut alt, mut command) = (false, false, false, false);
         loop {
-            if let Some(r) = rest.strip_prefix("control_").or_else(|| rest.strip_prefix("ctrl_")).or_else(|| rest.strip_prefix("super_")) {
-                ctrl = true;
-                rest = r;
+            if let Some(r) = rest.strip_prefix("control_").or_else(|| rest.strip_prefix("ctrl_")) {
+                (ctrl, rest) = (true, r);
             } else if let Some(r) = rest.strip_prefix("shift_") {
-                shift = true;
-                rest = r;
-            } else if let Some(r) = rest.strip_prefix("alt_") {
-                alt = true;
-                rest = r;
+                (shift, rest) = (true, r);
+            } else if let Some(r) = rest.strip_prefix("alt_").or_else(|| rest.strip_prefix("option_")) {
+                (alt, rest) = (true, r);
+            } else if let Some(r) = rest.strip_prefix("command_").or_else(|| rest.strip_prefix("cmd_")).or_else(|| rest.strip_prefix("super_")) {
+                (command, rest) = (true, r);
             } else {
                 break;
             }
@@ -159,15 +177,49 @@ impl KeyInput {
         let key = match Named::from_shoes(rest) {
             Some(named) => Key::Named(named),
             None if rest == "space" => Key::Char(" ".into()),
+            None if rest.chars().count() == 1 && shift => Key::Char(us_shifted(rest)),
             None if rest.chars().count() == 1 => Key::Char(rest.into()),
             None => return None,
         };
-        let text = match &key {
-            Key::Char(c) if !ctrl && !alt => Some(if shift { c.to_uppercase() } else { c.clone() }),
-            _ => None,
-        };
-        Some(KeyInput { key, text, ctrl, alt, shift })
+        let shift = shift && matches!(key, Key::Named(_));
+        let mut k = KeyInput { ctrl, alt, shift, command, ..KeyInput::plain(key) };
+        if let Key::Char(c) = &k.key {
+            k.text = (!k.modified()).then(|| c.clone());
+        }
+        Some(k)
     }
+}
+
+/// The character Shift makes of a key on a US keyboard: "On US keyboards, `Shift-7`
+/// is an ampersand" (manual 2223-2227).
+pub fn us_shifted(key: &str) -> String {
+    let mut chars = key.chars();
+    let (Some(c), None) = (chars.next(), chars.next()) else { return key.to_string() };
+    let shifted = match c {
+        '1' => '!',
+        '2' => '@',
+        '3' => '#',
+        '4' => '$',
+        '5' => '%',
+        '6' => '^',
+        '7' => '&',
+        '8' => '*',
+        '9' => '(',
+        '0' => ')',
+        '-' => '_',
+        '=' => '+',
+        '[' => '{',
+        ']' => '}',
+        '\\' => '|',
+        ';' => ':',
+        '\'' => '"',
+        ',' => '<',
+        '.' => '>',
+        '/' => '?',
+        '`' => '~',
+        c => return c.to_uppercase().collect(),
+    };
+    shifted.to_string()
 }
 
 /// Clipboard: the system one in a window, a private one when headless so a
@@ -228,6 +280,21 @@ pub enum CursorShape {
     Arrow,
     Hand,
     Text,
+    Wait,
+}
+
+impl CursorShape {
+    /// A `cursor` style: Shoes 3's `:arrow_cursor`, `:hand_cursor`, `:text_cursor` and
+    /// `:watch_cursor`, or the plain and CSS names.
+    pub fn parse(name: &str) -> Option<CursorShape> {
+        match name.trim_start_matches(':').trim_end_matches("_cursor") {
+            "arrow" | "default" => Some(CursorShape::Arrow),
+            "hand" | "pointer" | "link" => Some(CursorShape::Hand),
+            "text" | "ibeam" => Some(CursorShape::Text),
+            "watch" | "wait" | "busy" => Some(CursorShape::Wait),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -235,6 +302,8 @@ pub struct Modifiers {
     pub ctrl: bool,
     pub shift: bool,
     pub alt: bool,
+    /// Command on macOS.
+    pub command: bool,
 }
 
 /// Per-app interaction state.
@@ -255,6 +324,7 @@ pub struct ViewState {
     pub focus_visible: bool,
     pub fields: HashMap<Id, TextField>,
     pub popup: Option<Popup>,
+    pub tooltip: Option<Tooltip>,
     pub modal: Option<crate::dialogs::Modal>,
     pub scroll: HashMap<Id, f32>,
     pub cursor: CursorShape,
@@ -281,6 +351,9 @@ impl ViewState {
         }
         if self.popup.as_ref().is_some_and(|p| gone(&p.list_box)) {
             self.popup = None;
+        }
+        if self.tooltip.as_ref().is_some_and(|t| gone(&t.owner)) {
+            self.tooltip = None;
         }
         self.fields.retain(|id, _| !gone(id));
         self.scroll.retain(|id, _| !gone(id));
@@ -367,6 +440,20 @@ pub fn chain(doc: &Doc, hit: &Hit) -> Vec<Id> {
     chain.push(hit.node);
     chain.extend(doc.ancestors(hit.node));
     chain
+}
+
+/// The pointer a drawable asks for, if it has a say.
+fn cursor_of(node: &crate::doc::Node) -> Option<CursorShape> {
+    if let Some(own) = node.props.str("cursor").and_then(CursorShape::parse) {
+        return Some(own);
+    }
+    match node.kind {
+        Kind::Link => Some(CursorShape::Hand),
+        _ if crate::elements::disabled(node) => None,
+        Kind::Button | Kind::Check | Kind::Radio | Kind::ListBox => Some(CursorShape::Hand),
+        Kind::EditLine | Kind::EditBox => Some(CursorShape::Text),
+        _ => None,
+    }
 }
 
 fn api(doc: &Doc, item: Id) -> Option<&str> {
@@ -467,8 +554,7 @@ impl Runtime {
         let mods = self.views[&app].ui.modifiers;
         for (item, parent) in self.subscriptions(app, "motion") {
             if moved && Self::inside(&parent, x, y) {
-                let (px, py) = (x - parent.rect.x, y - parent.rect.y);
-                self.out.event("motion", Some(item), vec![json!(px.round() as i64), json!(py.round() as i64), json!(mods.ctrl), json!(mods.shift)]);
+                self.out.event("motion", Some(item), vec![json!(x.round() as i64), json!(y.round() as i64), json!(mods.ctrl), json!(mods.shift)]);
             }
         }
         for name in ["hover", "leave"] {
@@ -490,22 +576,62 @@ impl Runtime {
             }
         }
         self.update_para_hit(app, hit.as_ref(), x, y);
-        let cursor = self.cursor_for(hit.as_ref());
-        let view = self.views.get_mut(&app).expect("view");
-        if view.ui.cursor != cursor {
-            view.ui.cursor = cursor;
-            self.effects.push(Effect::Cursor(app, cursor));
+        if self.update_tooltip(app, &new_chain, x, y) {
+            self.request_redraw(app);
         }
+        self.refresh_cursor(app);
         if changed {
             self.request_redraw(app);
         }
     }
 
-    fn cursor_for(&self, hit: Option<&Hit>) -> CursorShape {
-        match hit {
-            Some(h) if h.link.is_some() => CursorShape::Hand,
-            Some(h) if self.doc.get(h.node).is_some_and(|n| n.kind.is_text_input()) => CursorShape::Text,
-            _ => CursorShape::Arrow,
+    /// The tooltip follows the innermost hovered drawable that has one; it keeps its place
+    /// while the pointer stays on the same owner. Returns whether it changed.
+    fn update_tooltip(&mut self, app: Id, chain: &[Id], x: f32, y: f32) -> bool {
+        let wanted = tooltip::owner(&self.doc, chain);
+        let delay = self.tooltip_delay();
+        let ui = &mut self.views.get_mut(&app).expect("view").ui;
+        match (&mut ui.tooltip, wanted) {
+            (Some(tip), Some((owner, text))) if tip.owner == owner => {
+                let changed = tip.text != text;
+                tip.text = text;
+                changed
+            }
+            (slot, Some((owner, text))) => {
+                *slot = Some(Tooltip::new(owner, text, (x, y), Instant::now() + delay));
+                true
+            }
+            (slot, None) => slot.take().is_some(),
+        }
+    }
+
+    /// Headless there is nobody to rest a pointer, so snapshots show the bubble at once.
+    fn tooltip_delay(&self) -> Duration {
+        if self.opts.headless {
+            Duration::ZERO
+        } else {
+            tooltip::DELAY
+        }
+    }
+
+    /// The next tooltip a window has to wake up and draw.
+    pub fn tooltip_due(&self) -> Option<(Id, Instant)> {
+        self.views.iter().filter_map(|(app, v)| Some((*app, v.ui.tooltip.as_ref()?.pending()?))).min_by_key(|(_, due)| *due)
+    }
+
+    /// Sets the window's pointer for what it is over now: a drawable's own `cursor` style,
+    /// else a hand on links and clickable controls and an I-beam on text fields, else the
+    /// App's `cursor` (Shoes 3's `app.cursor = :watch_cursor`), else the arrow.
+    pub fn refresh_cursor(&mut self, app: Id) {
+        let Some(view) = self.views.get(&app) else { return };
+        let over = view.ui.hover_chain.iter().find_map(|id| self.doc.get(*id).and_then(cursor_of));
+        let cursor = over
+            .or_else(|| self.doc.get(app).and_then(|n| n.props.str("cursor")).and_then(CursorShape::parse))
+            .unwrap_or_default();
+        let view = self.views.get_mut(&app).expect("view");
+        if view.ui.cursor != cursor {
+            view.ui.cursor = cursor;
+            self.effects.push(Effect::Cursor(app, cursor));
         }
     }
 
@@ -559,6 +685,9 @@ impl Runtime {
             Some(n) => n.kind.clone(),
             None => Kind::Unknown(String::new()),
         };
+        if let Some(tip) = self.views.get_mut(&app).expect("view").ui.tooltip.as_mut() {
+            tip.dismissed = true;
+        }
         let shift = self.views[&app].ui.modifiers.shift;
         let clicks = self.views.get_mut(&app).expect("view").ui.click_count(x, y);
         let target = hit.link.unwrap_or(hit.node);
@@ -591,12 +720,11 @@ impl Runtime {
         if !consumed {
             let args = vec![json!(button), json!(x.round() as i64), json!(y.round() as i64)];
             if let Some(owner) = chain.iter().find(|id| self.doc.get(**id).is_some_and(|n| n.props.truthy("has_click"))) {
-                self.out.event("click", Some(*owner), args);
+                self.out.event("click", Some(*owner), args.clone());
             }
             for (item, parent) in self.subscriptions(app, "click") {
                 if Self::inside(&parent, x, y) {
-                    let (px, py) = (x - parent.rect.x, y - parent.rect.y);
-                    self.out.event("click", Some(item), vec![json!(button), json!(px.round() as i64), json!(py.round() as i64)]);
+                    self.out.event("click", Some(item), args.clone());
                 }
             }
         }
@@ -627,12 +755,11 @@ impl Runtime {
         if !press.as_ref().is_some_and(|p| p.consumed) {
             let args = vec![json!(button), json!(x.round() as i64), json!(y.round() as i64)];
             if let Some(owner) = chain.iter().find(|id| self.doc.get(**id).is_some_and(|n| n.props.truthy("has_release"))) {
-                self.out.event("release", Some(*owner), args);
+                self.out.event("release", Some(*owner), args.clone());
             }
             for (item, parent) in self.subscriptions(app, "release") {
                 if Self::inside(&parent, x, y) {
-                    let (px, py) = (x - parent.rect.x, y - parent.rect.y);
-                    self.out.event("release", Some(item), vec![json!(button), json!(px.round() as i64), json!(py.round() as i64)]);
+                    self.out.event("release", Some(item), args.clone());
                 }
             }
         }
@@ -764,7 +891,7 @@ impl Runtime {
         }
         let focus = self.views[&app].ui.focus.filter(|id| self.doc.get(*id).is_some_and(|n| !crate::elements::disabled(n)));
         let focus_kind = focus.and_then(|id| self.doc.get(id)).map(|n| n.kind.clone());
-        let tab = key.key == Key::Named(Named::Tab) && !key.ctrl && !key.alt;
+        let tab = key.key == Key::Named(Named::Tab) && !key.modified();
         let mut send_keypress = true;
         match (focus, focus_kind) {
             (Some(id), Some(Kind::EditLine)) | (Some(id), Some(Kind::EditBox)) => {
@@ -788,7 +915,7 @@ impl Runtime {
                     self.out.event("change", Some(id), vec![Value::String(edited.1)]);
                 }
                 self.request_redraw(app);
-                send_keypress = key.key == Key::Named(Named::Escape) || key.ctrl || key.alt;
+                send_keypress = key.key == Key::Named(Named::Escape) || key.modified();
             }
             (Some(id), Some(Kind::Button)) if button::activates(&key) => {
                 self.out.event("click", Some(id), vec![]);
@@ -798,9 +925,13 @@ impl Runtime {
                 self.out.event("click", Some(id), vec![]);
                 send_keypress = false;
             }
-            (Some(id), Some(Kind::ListBox))
-                if matches!(key.key, Key::Named(Named::Enter) | Key::Named(Named::Up) | Key::Named(Named::Down)) || key.key == Key::Char(" ".into()) =>
-            {
+            (Some(id), Some(Kind::ListBox)) if matches!(key.key, Key::Named(Named::Up) | Key::Named(Named::Down)) && !key.modified() => {
+                if let Some(item) = self.doc.get(id).and_then(|n| list_box::stepped(n, &key)) {
+                    self.choose(id, &item);
+                }
+                send_keypress = false;
+            }
+            (Some(id), Some(Kind::ListBox)) if list_box::opens(&key) => {
                 self.open_popup(app, id);
                 send_keypress = false;
             }
@@ -889,6 +1020,29 @@ mod tests {
         let mut k = KeyInput::char('&');
         k.shift = true;
         assert_eq!(k.shoes_name().as_deref(), Some("&"));
+    }
+
+    /// manual 2223-2227 (spec events.keypress.shift_absorbed*): on a US keyboard Shift-7 is
+    /// "&" and Shift-Alt-7 is :alt_&. Shift only shows on the special keys.
+    #[test]
+    fn shift_folds_into_the_character() {
+        let name = |k: &str| KeyInput::parse(k).and_then(|k| k.shoes_name());
+        assert_eq!(name(":shift_7").as_deref(), Some("&"));
+        assert_eq!(name(":shift_alt_7").as_deref(), Some(":alt_&"));
+        assert_eq!(name(":shift_a").as_deref(), Some("A"));
+        assert_eq!(name(":control_shift_a").as_deref(), Some(":control_A"));
+        assert_eq!(name(":shift_control_alt_page_up").as_deref(), Some(":control_shift_alt_page_up"));
+        assert_eq!(name(":shift_f1").as_deref(), Some(":shift_f1"));
+        assert_eq!(us_shifted("/"), "?");
+    }
+
+    /// Q5 (27 Sep 2026): Command is named alt_, as in Shoes 3 on macOS, and edits like Control.
+    #[test]
+    fn command_is_alt_by_name_and_control_in_fields() {
+        let k = KeyInput::parse(":command_q").unwrap();
+        assert_eq!(k.shoes_name().as_deref(), Some(":alt_q"));
+        assert!(k.shortcut());
+        assert!(!KeyInput::parse(":alt_q").unwrap().shortcut());
     }
 
     #[test]
