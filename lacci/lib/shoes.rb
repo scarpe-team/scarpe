@@ -136,9 +136,9 @@ class Shoes
     # @return [void]
     # @see Shoes::App#new
     def app(
-      title: 'Shoes!',
-      width: 480,
-      height: 420,
+      title: Shoes::App::DEFAULT_TITLE,
+      width: Shoes::App::DEFAULT_WIDTH,
+      height: Shoes::App::DEFAULT_HEIGHT,
       resizable: true,
       features: [],
       margin: nil,

@@ -204,7 +204,7 @@ class SpecTest < Minitest::Test
       assert_includes $keys, "a"
       wheel(-3, x: 10, y: 12)
       wheel(1)
-      assert_equal [[-3, 10, 12], [1, 240.0, 210.0]], $wheels
+      assert_equal [[-3, 10, 12], [1, 300.0, 250.0]], $wheels
       click_at(50, 30)
       assert $clicked
     TEST
