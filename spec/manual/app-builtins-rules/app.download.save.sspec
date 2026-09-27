@@ -4,8 +4,6 @@ lines: [935, 955]
 testability: api
 display: any
 ledger: K5
-expect: fail
-reason: "Lacci calls a save: download's block with no argument, so there is no response to read (K5)"
 ----------- app code
 Shoes.app do
   $finished = Queue.new
