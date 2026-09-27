@@ -7,7 +7,7 @@ use crate::style::Color;
 use cosmic_text::{
     Attrs, Buffer, Cursor, Ellipsize, EllipsizeHeightLimit, Family, FontSystem, Metrics, Shaping, Style, UnderlineStyle, Weight, Wrap,
 };
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
 /// What paint and hit-testing need to know about one styled run, found
@@ -113,6 +113,13 @@ impl ShapedText {
 pub struct ShapeCache {
     entries: HashMap<u64, (ShapedText, u64)>,
     generation: u64,
+    /// The layout in progress: whose it is (an app's document root) and the text it asked for.
+    layout: Option<(Id, HashSet<u64>)>,
+    /// The text each app's last layout used. It stays while that layout does, however many
+    /// other apps lay out in between.
+    in_use: HashMap<Id, HashSet<u64>>,
+    /// How many texts have been shaped, cache misses all.
+    shaped: u64,
 }
 
 impl ShapeCache {
@@ -121,25 +128,49 @@ impl ShapeCache {
     /// tracking its text optical size would have had.
     pub fn get(&mut self, fs: &mut FontSystem, rich: &RichText, width: Option<f32>, indent: f32, optical_tracking: bool) -> ShapedText {
         let key = rich.cache_key(width) ^ indent.to_bits().rotate_left(17) as u64;
+        if let Some((_, used)) = self.layout.as_mut() {
+            used.insert(key);
+        }
         let generation = self.generation;
         if let Some((shaped, used)) = self.entries.get_mut(&key) {
             *used = generation;
             return shaped.clone();
         }
         let shaped = shape(fs, rich, width, indent, optical_tracking);
+        self.shaped += 1;
         self.entries.insert(key, (shaped.clone(), generation));
         shaped
     }
 
-    /// Drops text nobody asked for in the last two layouts.
+    /// A layout of the app whose document root is `owner` begins.
+    pub fn begin_layout(&mut self, owner: Id) {
+        self.layout = Some((owner, HashSet::new()));
+    }
+
+    /// A layout ended: what it used is kept for as long as its app's layout stands. Text no
+    /// app's layout uses, and nobody asked for in the last two layouts (paint shapes some of
+    /// its own), goes.
     pub fn sweep(&mut self) {
+        if let Some((owner, used)) = self.layout.take() {
+            self.in_use.insert(owner, used);
+        }
         let keep_from = self.generation.saturating_sub(1);
-        self.entries.retain(|_, (_, used)| *used >= keep_from);
+        let in_use = &self.in_use;
+        self.entries.retain(|key, (_, used)| *used >= keep_from || in_use.values().any(|keys| keys.contains(key)));
         self.generation += 1;
+    }
+
+    /// An app closed: its text no longer has to stay.
+    pub fn forget_layout(&mut self, owner: Id) {
+        self.in_use.remove(&owner);
     }
 
     pub fn len(&self) -> usize {
         self.entries.len()
+    }
+
+    pub fn shaped(&self) -> u64 {
+        self.shaped
     }
 
     pub fn is_empty(&self) -> bool {

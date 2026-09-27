@@ -38,12 +38,27 @@ impl TextEngine {
         self.shape(rich, None).width.ceil()
     }
 
+    /// A layout of the app whose document root is `owner` begins; end_layout ends it.
+    pub fn begin_layout(&mut self, owner: crate::props::Id) {
+        self.shapes.begin_layout(owner);
+    }
+
     pub fn end_layout(&mut self) {
         self.shapes.sweep();
         self.raster.trim();
     }
 
+    /// The app whose document root is `owner` closed.
+    pub fn forget_layout(&mut self, owner: crate::props::Id) {
+        self.shapes.forget_layout(owner);
+    }
+
     pub fn cached_shapes(&self) -> usize {
         self.shapes.len()
+    }
+
+    /// How many texts have been shaped so far: what the cache could not answer.
+    pub fn texts_shaped(&self) -> u64 {
+        self.shapes.shaped()
     }
 }

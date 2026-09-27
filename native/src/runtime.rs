@@ -320,11 +320,19 @@ impl Runtime {
                 self.refresh_cursor(app);
             }
         }
-        if looks_only {
-            // Paint reads these straight from the props: the layout stands and the node repaints.
-            self.views.values_mut().for_each(|view| view.dirty = true);
-        } else {
-            self.invalidate();
+        // Only the app the node is drawn in can change. A node no app holds (a text span, which
+        // its paras list without being its parent) might show in any.
+        let changed: Vec<Id> = match self.doc.app_of(id).filter(|app| self.views.contains_key(app)) {
+            Some(app) => vec![app],
+            None => self.views.keys().copied().collect(),
+        };
+        for app in changed {
+            let Some(view) = self.views.get_mut(&app) else { continue };
+            view.dirty = true;
+            if !looks_only {
+                // Else paint reads these straight from the props: the layout stands and the node repaints.
+                view.layout = None;
+            }
         }
     }
 
@@ -394,9 +402,8 @@ impl Runtime {
 
     fn close_view(&mut self, app: Id) {
         self.answer_what_waits_on(app, "app closed");
-        if self.views.remove(&app).is_none() {
-            return;
-        }
+        let Some(view) = self.views.remove(&app) else { return };
+        self.text.forget_layout(view.doc_root);
         self.doc.remove_app(app);
         self.effects.push(Effect::CloseWindow(app));
         if self.active_app == Some(app) {
