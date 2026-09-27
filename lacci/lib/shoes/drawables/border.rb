@@ -6,8 +6,6 @@ class Shoes
 
     uses_draw_context
     shoes_style(:stroke) { |paint| Shoes::Pattern.paint(paint) } # another pattern strokes this one too
-    shoes_style :strokewidth
-
     shoes_style(:strokewidth) { |val| convert_to_integer(val, "strokewidth") }
     shoes_style(:curve) { |val| convert_to_integer(val, "curve") }
 
