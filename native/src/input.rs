@@ -906,7 +906,7 @@ impl Runtime {
         let view = self.views.get_mut(&app).expect("view");
         let field = text_field::ensure(&mut view.ui.fields, node, &mut self.text.fonts);
         if field.type_in(&mut self.text.fonts.system, text) {
-            let text = field.text();
+            let text = field.reported();
             self.out.event("change", Some(id), vec![Value::String(text)]);
         }
         self.request_redraw(app);
@@ -955,7 +955,8 @@ impl Runtime {
                     } else {
                         field.key(&mut self.text.fonts.system, &key, &mut self.clipboard)
                     };
-                    (edited, field.text())
+                    let text = if edited.changed { field.reported() } else { String::new() };
+                    (edited, text)
                 };
                 if edited.0.changed {
                     self.out.event("change", Some(id), vec![Value::String(edited.1)]);

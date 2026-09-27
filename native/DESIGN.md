@@ -125,7 +125,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 | user action | event | target | args |
 |---|---|---|---|
 | click Button, Check, Radio, Image, Link | `click` | that id | `[]` (Check/Radio: Lacci toggles and echoes `checked`; Rust shows the echo, it does not toggle on its own) |
-| edit EditLine / EditBox | `change` | that id | `[new_text]` on every edit. Lacci echoes `props {text}`: apply idempotently, keep caret |
+| edit EditLine / EditBox | `change` | that id | `[new_text]` on every edit. Lacci echoes `props {text}`: apply idempotently, keep caret. Echoes can trail later edits, so any text the field reported and has not seen echoed yet counts as an echo |
 | pick in ListBox | `change` | that id | `[item_string]` |
 | pointer enters / leaves a drawable | `hover` / `leave` | that id | `[]`, on transitions only, for every drawable in the hovered chain |
 | press / release on a drawable that has `has_click` / `has_release` true | `click` / `release` | that id | `[button, x, y]` window coordinates |
