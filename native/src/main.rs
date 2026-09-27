@@ -40,13 +40,7 @@ fn main() {
         }
     }
     let code = if opts.headless {
-        if let Some(after) = exit_after {
-            std::thread::spawn(move || {
-                std::thread::sleep(after);
-                std::process::exit(0);
-            });
-        }
-        scarpe_native::headless::run(opts)
+        scarpe_native::headless::run(opts, exit_after)
     } else {
         // A debug run that exits by itself must not steal focus either.
         let window_opts = scarpe_native::window::WindowOptions { exit_after, inactive: inactive || exit_after.is_some(), ghost };

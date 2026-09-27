@@ -26,6 +26,9 @@ use tiny_skia::Pixmap;
 /// An app that names no size opens at Shoes 3 and Shoes 4's 600x500 (ledger A1).
 pub const DEFAULT_SIZE: (f32, f32) = (600.0, 500.0);
 
+/// How long Rust waits for Ruby's `quit` after telling it every window closed, then leaves.
+pub const QUIT_GRACE: std::time::Duration = std::time::Duration::from_secs(3);
+
 #[derive(Clone, Debug)]
 pub struct Options {
     pub headless: bool,

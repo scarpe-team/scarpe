@@ -87,7 +87,7 @@ fn a_line_that_is_not_utf8_does_not_end_the_input() {
     input.extend_from_slice(b"\xc3\x28 not json either\n");
     input.extend_from_slice(b"{\"t\":\"req\",\"req\":77,\"op\":\"ping\"}\n");
     let mut rt = scarpe_native::Runtime::headless_for_tests();
-    let code = scarpe_native::headless::serve(&mut rt, std::io::Cursor::new(input));
+    let code = scarpe_native::headless::serve(&mut rt, std::io::Cursor::new(input), None);
     assert_eq!(code, 0);
     let replies: Vec<Value> = rt.out.take_captured().into_iter().filter(|m| m["t"] == "reply").collect();
     assert_eq!(replies.last().map(|r| r["value"].clone()), Some(json!("pong")), "the ping after the bad bytes is answered");
