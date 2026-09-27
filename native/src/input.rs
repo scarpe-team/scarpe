@@ -507,6 +507,9 @@ impl Runtime {
             return;
         }
         self.ensure_layout(app);
+        // A press or release through automation moves the pointer first; where it is already
+        // there, that is no motion (a window only reports the pointer when it moves).
+        let moved = self.views.get(&app).is_some_and(|v| v.ui.pointer != Some((x, y)));
         if let Some(view) = self.views.get_mut(&app) {
             view.ui.pointer = Some((x, y));
         }
@@ -531,7 +534,7 @@ impl Runtime {
             }
         }
         let hit = self.hit(app, x, y);
-        self.update_hover(app, hit, x, y, true);
+        self.update_hover(app, hit, x, y, moved);
     }
 
     /// Hover transitions for drawables and slot items. `moved`: the pointer
