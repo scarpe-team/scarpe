@@ -2,7 +2,7 @@
 //! stdin is read on a thread and fed to the event loop through a proxy; the
 //! loop waits (ControlFlow::Wait) and redraws only apps whose view is dirty.
 
-use crate::input::{CursorShape, Key, KeyInput, Modifiers, Named};
+use crate::input::{us_shifted, CursorShape, Key, KeyInput, Modifiers, Named};
 use crate::props::Id;
 use crate::protocol::Outbox;
 use crate::runtime::{Effect, Options, Runtime};
@@ -143,6 +143,9 @@ impl Shell {
             view.scale = window.scale_factor() as f32;
             view.dirty = true;
         }
+        if let Some(opacity) = props.f32("opacity") {
+            set_opacity(&window, opacity);
+        }
         window.request_redraw();
         let id = window.id();
         self.windows.insert(
@@ -172,7 +175,13 @@ impl Shell {
                             CursorShape::Arrow => CursorIcon::Default,
                             CursorShape::Hand => CursorIcon::Pointer,
                             CursorShape::Text => CursorIcon::Text,
+                            CursorShape::Wait => CursorIcon::Wait,
                         });
+                    }
+                }
+                Effect::Opacity(app, opacity) => {
+                    if let Some(win) = self.window_for(app) {
+                        set_opacity(&win.window, opacity);
                     }
                 }
                 Effect::Dialog { req, kind, message, default } => {
@@ -319,6 +328,15 @@ impl ApplicationHandler<UserEvent> for Shell {
         self.settle(el);
     }
 
+    /// The app menu's Quit (Cmd-Q on macOS, Q5) ends the process as soon as this returns,
+    /// so every window still open tells Ruby it closed, the way a click on its close box does.
+    fn exiting(&mut self, _el: &ActiveEventLoop) {
+        for (_, win) in std::mem::take(&mut self.windows) {
+            self.rt.window_closed(win.app);
+        }
+        self.rt.out.flush();
+    }
+
     fn about_to_wait(&mut self, el: &ActiveEventLoop) {
         let now = Instant::now();
         if self.deadline.is_some_and(|d| now >= d) && !self.windows.is_empty() {
@@ -336,7 +354,16 @@ impl ApplicationHandler<UserEvent> for Shell {
             el.exit();
             return;
         }
-        let wake = [self.deadline, self.orphaned_since.map(|t| t + Duration::from_secs(3))].into_iter().flatten().min();
+        // A tooltip whose time has come needs a frame; one still to come needs a wake-up.
+        let tooltip = self.rt.tooltip_due();
+        if let Some((app, _)) = tooltip.filter(|(_, due)| now >= *due) {
+            self.rt.request_redraw(app);
+            if let Some(win) = self.window_for(app) {
+                win.window.request_redraw();
+            }
+        }
+        let tooltip_wake = tooltip.map(|(_, due)| due).filter(|due| *due > now);
+        let wake = [self.deadline, self.orphaned_since.map(|t| t + Duration::from_secs(3)), tooltip_wake].into_iter().flatten().min();
         el.set_control_flow(match wake {
             Some(at) => ControlFlow::WaitUntil(at),
             None => ControlFlow::Wait,
@@ -344,14 +371,21 @@ impl ApplicationHandler<UserEvent> for Shell {
     }
 }
 
+/// On macOS, Command is Shoes 3's `alt_` in key names (Q5) and Control in text fields.
 fn modifiers(state: ModifiersState) -> Modifiers {
     let command = cfg!(target_os = "macos") && state.super_key();
-    Modifiers { ctrl: state.control_key() || command, shift: state.shift_key(), alt: state.alt_key() }
+    Modifiers { ctrl: state.control_key(), shift: state.shift_key(), alt: state.alt_key(), command }
 }
 
 fn key_input(event: &KeyEvent, state: ModifiersState) -> Option<KeyInput> {
-    let m = modifiers(state);
-    let key = match &event.logical_key {
+    key_from(&event.logical_key, &event.key_without_modifiers(), event.text.as_deref(), modifiers(state))
+}
+
+/// A winit key press as Shoes sees it. With Control, Alt or Command held a character
+/// is the bare key with Shift folded in the US way, so Shift-Alt-7 is `:alt_&` (manual
+/// 2223-2227), whatever the platform's Option layer would type.
+fn key_from(logical: &WKey, bare: &WKey, text: Option<&str>, m: Modifiers) -> Option<KeyInput> {
+    let key = match logical {
         WKey::Named(named) => match named {
             NamedKey::Enter => Key::Named(Named::Enter),
             NamedKey::Tab => Key::Named(Named::Tab),
@@ -382,21 +416,46 @@ fn key_input(event: &KeyEvent, state: ModifiersState) -> Option<KeyInput> {
             NamedKey::F12 => Key::Named(Named::F(12)),
             _ => return None,
         },
-        WKey::Character(s) => {
-            if m.ctrl || m.alt {
-                match event.key_without_modifiers() {
-                    WKey::Character(base) => Key::Char(base.to_string()),
-                    _ => Key::Char(s.to_string()),
-                }
-            } else {
-                Key::Char(s.to_string())
-            }
-        }
+        WKey::Character(typed) => match bare {
+            WKey::Character(bare) if m.ctrl || m.alt || m.command => Key::Char(if m.shift { us_shifted(bare) } else { bare.to_string() }),
+            _ => Key::Char(typed.to_string()),
+        },
         _ => return None,
     };
-    let text = if m.ctrl || m.alt { None } else { event.text.as_ref().map(|t| t.to_string()) };
-    Some(KeyInput { key, text, ctrl: m.ctrl, alt: m.alt, shift: m.shift })
+    let modified = m.ctrl || m.alt || m.command;
+    let shift = m.shift && matches!(key, Key::Named(_));
+    let text = if modified { None } else { text.map(str::to_string) };
+    Some(KeyInput { key, text, ctrl: m.ctrl, alt: m.alt, shift, command: m.command })
 }
+
+/// App `opacity` (Shoes 3.3): the whole window turns see-through. On macOS that is
+/// NSWindow's alphaValue, sent through the Objective-C runtime that winit already links;
+/// elsewhere winit has no such knob and the window stays opaque.
+#[cfg(target_os = "macos")]
+fn set_opacity(window: &Window, opacity: f32) {
+    use std::ffi::{c_char, c_void};
+    use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+    extern "C" {
+        fn sel_registerName(name: *const c_char) -> *mut c_void;
+        fn objc_msgSend();
+    }
+    let Ok(handle) = window.window_handle() else { return };
+    let RawWindowHandle::AppKit(appkit) = handle.as_raw() else { return };
+    // SAFETY: ns_view is the live NSView winit made for this window, and each call site
+    // gives objc_msgSend the exact signature of the method it sends (-window, -setAlphaValue:).
+    unsafe {
+        let send = objc_msgSend as unsafe extern "C" fn();
+        let get: unsafe extern "C" fn(*mut c_void, *mut c_void) -> *mut c_void = std::mem::transmute(send);
+        let set: unsafe extern "C" fn(*mut c_void, *mut c_void, f64) = std::mem::transmute(send);
+        let ns_window = get(appkit.ns_view.as_ptr(), sel_registerName(c"window".as_ptr()));
+        if !ns_window.is_null() {
+            set(ns_window, sel_registerName(c"setAlphaValue:".as_ptr()), opacity.clamp(0.0, 1.0) as f64);
+        }
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn set_opacity(_window: &Window, _opacity: f32) {}
 
 fn open_url(url: &str) {
     let cmd = if cfg!(target_os = "macos") {
@@ -408,5 +467,39 @@ fn open_url(url: &str) {
     };
     if let Err(e) = cmd {
         eprintln!("[scarpe-native] could not open {url}: {e}");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use winit::keyboard::SmolStr;
+
+    fn chr(s: &str) -> WKey {
+        WKey::Character(SmolStr::new(s))
+    }
+
+    fn name(logical: WKey, bare: WKey, text: Option<&str>, m: Modifiers) -> Option<String> {
+        key_from(&logical, &bare, text, m).and_then(|k| k.shoes_name())
+    }
+
+    /// Q5: on macOS Cmd-q arrives as :alt_q, like Shoes 3's Cocoa backend.
+    #[test]
+    fn command_is_named_alt() {
+        let cmd = Modifiers { command: true, ..Modifiers::default() };
+        assert_eq!(name(chr("q"), chr("q"), None, cmd).as_deref(), Some(":alt_q"));
+        assert!(key_from(&chr("c"), &chr("c"), None, cmd).unwrap().shortcut(), "and copies in a text field");
+    }
+
+    /// manual 2223-2227: Shift folds into the character, even under Option's own layer.
+    #[test]
+    fn shift_folds_into_characters() {
+        let shift = Modifiers { shift: true, ..Modifiers::default() };
+        assert_eq!(name(chr("&"), chr("7"), Some("&"), shift).as_deref(), Some("&"));
+        let shift_alt = Modifiers { shift: true, alt: true, ..Modifiers::default() };
+        assert_eq!(name(chr("‡"), chr("7"), Some("‡"), shift_alt).as_deref(), Some(":alt_&"));
+        let shift_ctrl = Modifiers { shift: true, ctrl: true, ..Modifiers::default() };
+        assert_eq!(name(chr("A"), chr("a"), None, shift_ctrl).as_deref(), Some(":control_A"));
+        assert_eq!(name(WKey::Named(NamedKey::F1), WKey::Named(NamedKey::F1), None, shift).as_deref(), Some(":shift_f1"));
     }
 }

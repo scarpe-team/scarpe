@@ -8,8 +8,10 @@ module Scarpe::Native
   class Peek
     BANNER = <<~USAGE
       Usage: scarpe peek APP.rb [--size WxH] [--scale 2] [--wait SECS] [--click TEXT | --click-at X,Y]
-                                [--type TEXT] [--key NAME] [--shot OUT.png] [--layout]
-      Steps run in the order given. With no --shot and no --layout, it saves peek.png here.
+                                [--type TEXT] [--key NAME] [--wheel DY[,X,Y]] [--window N | --app ID]
+                                [--shot OUT.png] [--layout]
+      Steps run in the order given. --window N (counting from 1) or --app ID sends the steps after
+      it to that window. With no --shot and no --layout, it saves peek.png here.
     USAGE
 
     def self.run(argv)
@@ -46,6 +48,9 @@ module Scarpe::Native
         opts.on("--click-at X,Y", Array) { |xy| @steps << [:click_at, xy.map { |n| Float(n) }] }
         opts.on("--type TEXT") { |text| @steps << [:type, text] }
         opts.on("--key NAME") { |name| @steps << [:key, name] }
+        opts.on("--wheel DY[,X,Y]", Array) { |values| @steps << [:wheel, values.map { |n| Float(n) }] }
+        opts.on("--window N", Integer) { |n| @steps << [:window, n] }
+        opts.on("--app ID", Integer) { |id| @steps << [:app, id] }
         opts.on("--shot OUT.png") { |path| @steps << [:shot, File.expand_path(path, @origin)] }
         opts.on("--layout") { @steps << [:layout, nil] }
         opts.on("-h", "--help") { quit_with(BANNER, 0) }
@@ -91,6 +96,30 @@ module Scarpe::Native
 
     def do_key(name)
       automation.key(name)
+    end
+
+    def do_wheel((dy, x, y))
+      automation.wheel(dy, x: x, y: y)
+      puts "wheel #{number(dy)}#{" at #{number(x)},#{number(y)}" if x}"
+    end
+
+    def do_window(n)
+      app = Shoes.APPS[n - 1] if n.positive?
+      raise Scarpe::Error, "no window #{n} (#{Shoes.APPS.size} open)" unless app
+
+      aim_at(app)
+    end
+
+    def do_app(id)
+      app = Shoes.APPS.find { |candidate| candidate.linkable_id == id }
+      raise Scarpe::Error, "no app ##{id} (apps: #{Shoes.APPS.map(&:linkable_id).join(", ")})" unless app
+
+      aim_at(app)
+    end
+
+    def aim_at(app)
+      automation.app = app.linkable_id
+      puts "window ##{app.linkable_id} #{app.style[:title].to_s.inspect}"
     end
 
     def do_shot(path)

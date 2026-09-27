@@ -185,9 +185,9 @@ fn slot_clicks_carry_button_and_coordinates() {
     let (evs, _) = h.req(json!({"op": "click", "target": {"x": 100, "y": 70}}));
     let evs = events(&evs);
     let clicks = named(&evs, "click");
-    // has_click on the stack: window coordinates. The slot's click item: slot-relative.
+    // has_click on the stack and the slot's click item: both in window coordinates (Q4).
     assert!(clicks.iter().any(|e| e.1 == json!(3) && e.2 == json!([1, 100, 70])), "{clicks:?}");
-    assert!(clicks.iter().any(|e| e.1 == json!(6) && e.2 == json!([1, 80, 50])), "{clicks:?}");
+    assert!(clicks.iter().any(|e| e.1 == json!(6) && e.2 == json!([1, 100, 70])), "{clicks:?}");
     let (evs, _) = h.req(json!({"op": "click", "target": {"x": 300, "y": 180}, "button": 3}));
     assert!(named(&events(&evs), "click").iter().all(|e| e.1 != json!(3) && e.1 != json!(6)), "outside the slot");
 }
@@ -261,7 +261,7 @@ fn slot_hover_leave_and_motion_items() {
     let (evs, _) = h.req(json!({"op": "mouse", "action": "move", "x": 60, "y": 70}));
     let evs = events(&evs);
     assert!(named(&evs, "hover").iter().any(|e| e.1 == json!(4)));
-    assert_eq!(named(&evs, "motion")[0].2, json!([10, 20, false, false]));
+    assert_eq!(named(&evs, "motion")[0].2, json!([60, 70, false, false]), "window coordinates (Q4)");
     let (evs, _) = h.req(json!({"op": "mouse", "action": "move", "x": 250, "y": 190}));
     let evs = events(&evs);
     assert!(named(&evs, "leave").iter().any(|e| e.1 == json!(5)));

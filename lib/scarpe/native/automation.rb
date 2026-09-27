@@ -14,10 +14,14 @@ module Scarpe::Native
 
   # Look-and-click requests (DESIGN 4.1 req ops) shared by Shoes-Spec and `scarpe peek`.
   # Each request dispatches the events it caused before returning, so Ruby handlers have run
-  # by the time a test checks the result.
+  # by the time a test checks the result. A request about one drawable goes to its window.
   class Automation
     REQUEST_TIMEOUT = 30.0
     OUTSIDE = -1
+
+    # The window every request goes to (peek --window). Unset, the first open app answers
+    # the looking and Rust's active window takes the typing.
+    attr_accessor :app
 
     def initialize(service)
       @service = service
@@ -32,44 +36,45 @@ module Scarpe::Native
     end
 
     def click(target, button: 1)
-      request(:click, target: target, button: button, app: app_id)
+      request(:click, target: target, button: button, app: app_for(target))
     end
 
-    def mouse(action, x, y, button: 1)
-      request(:mouse, action: action.to_s, x: x, y: y, button: button)
+    def mouse(action, x, y, button: 1, app: @app)
+      request(:mouse, action: action.to_s, x: x, y: y, button: button, app: app)
     end
 
     # Hover events fire on transitions, so the pointer leaves first and then arrives.
     def hover(id)
       x, y = rect_of!(id).center
-      mouse(:move, OUTSIDE, OUTSIDE)
-      mouse(:move, x, y)
+      mouse(:move, OUTSIDE, OUTSIDE, app: app_of(id))
+      mouse(:move, x, y, app: app_of(id))
     end
 
     def leave(id)
       x, y = rect_of!(id).center
-      mouse(:move, x, y)
-      mouse(:move, OUTSIDE, OUTSIDE)
+      mouse(:move, x, y, app: app_of(id))
+      mouse(:move, OUTSIDE, OUTSIDE, app: app_of(id))
     end
 
     def type(text)
-      request(:type, text: text.to_s)
+      request(:type, text: text.to_s, app: @app)
     end
 
     def key(name)
-      request(:key, key: name.to_s)
+      request(:key, key: name.to_s, app: @app)
     end
 
-    def wheel(dy, x:, y:)
-      request(:wheel, dy: dy, x: x, y: y)
+    # dy in logical pixels, positive scrolls down; at (x, y), or where the pointer is.
+    def wheel(dy, x: nil, y: nil)
+      request(:wheel, dy: dy, x: x, y: y, app: @app)
     end
 
-    def layout
-      Array(request(:layout, app: app_id)).map { |node| node.transform_keys(&:to_sym) }
+    def layout(app: app_id)
+      Array(request(:layout, app: app)).map { |node| node.transform_keys(&:to_sym) }
     end
 
     def rect_of(id)
-      node = layout.find { |entry| entry[:id] == id }
+      node = layout(app: app_of(id)).find { |entry| entry[:id] == id }
       node && Rect.new(node[:x], node[:y], node[:w], node[:h])
     end
 
@@ -126,7 +131,16 @@ module Scarpe::Native
     private
 
     def app_id
-      @service.current_app_id
+      @app || @service.current_app_id
+    end
+
+    def app_of(id)
+      @service.app_id_of(id) || app_id
+    end
+
+    def app_for(target)
+      id = target.is_a?(Hash) ? (target[:id] || target["id"]) : nil
+      id ? app_of(id) : app_id
     end
 
     # Handlers run now, and one that raises fails the caller (a test, a peek step).

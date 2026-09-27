@@ -16,7 +16,7 @@ pub fn box_rect(r: Rect) -> Rect {
 }
 
 pub fn activates(key: &KeyInput) -> bool {
-    !key.ctrl && !key.alt && key.key == Key::Char(" ".into())
+    !key.modified() && key.key == Key::Char(" ".into())
 }
 
 pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, state: WidgetState) {
@@ -28,10 +28,12 @@ pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, state: WidgetState) 
     if node.props.truthy("checked") {
         let fill = if state.pressed { Color::rgb(0x00, 0x6a, 0xd6) } else { ACCENT };
         canvas.fill_rounded(b, 4.0, fill, clip);
+        // The tick's long arm passes below and right of the middle, so the box's
+        // centre shows the accent (DESIGN look and feel: accent blue when on).
         let mut pb = PathBuilder::new();
-        pb.move_to(b.x + 4.0, b.y + 8.3);
-        pb.line_to(b.x + 7.0, b.y + 11.2);
-        pb.line_to(b.x + 12.2, b.y + 5.0);
+        pb.move_to(b.x + 4.4, b.y + 8.9);
+        pb.line_to(b.x + 7.3, b.y + 11.9);
+        pb.line_to(b.x + 12.6, b.y + 5.9);
         if let Some(tick) = pb.finish() {
             let stroke = Stroke { width: 2.0, line_cap: LineCap::Round, line_join: LineJoin::Round, ..Stroke::default() };
             canvas.stroke_path(&tick, Shader::SolidColor(Color::WHITE.to_skia()), &stroke, Transform::identity(), clip);

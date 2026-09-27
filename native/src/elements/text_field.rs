@@ -244,7 +244,7 @@ impl TextField {
                 }
                 _ => Edited::default(),
             },
-            Key::Char(c) if key.ctrl => match c.to_lowercase().as_str() {
+            Key::Char(c) if key.shortcut() => match c.to_lowercase().as_str() {
                 "a" => {
                     self.select_all();
                     done(false)
@@ -290,21 +290,21 @@ impl TextField {
 
     fn motion(&mut self, fs: &mut FontSystem, named: Named, key: &KeyInput) {
         let motion = match named {
-            Named::Left if key.ctrl => Motion::Home,
+            Named::Left if key.shortcut() => Motion::Home,
             Named::Left if key.alt => Motion::LeftWord,
             Named::Left => Motion::Left,
-            Named::Right if key.ctrl => Motion::End,
+            Named::Right if key.shortcut() => Motion::End,
             Named::Right if key.alt => Motion::RightWord,
             Named::Right => Motion::Right,
             Named::Up if !self.multiline => Motion::Home,
-            Named::Up if key.ctrl => Motion::BufferStart,
+            Named::Up if key.shortcut() => Motion::BufferStart,
             Named::Up => Motion::Up,
             Named::Down if !self.multiline => Motion::End,
-            Named::Down if key.ctrl => Motion::BufferEnd,
+            Named::Down if key.shortcut() => Motion::BufferEnd,
             Named::Down => Motion::Down,
-            Named::Home if key.ctrl => Motion::BufferStart,
+            Named::Home if key.shortcut() => Motion::BufferStart,
             Named::Home => Motion::Home,
-            Named::End if key.ctrl => Motion::BufferEnd,
+            Named::End if key.shortcut() => Motion::BufferEnd,
             Named::End => Motion::End,
             Named::PageUp if self.multiline => Motion::PageUp,
             Named::PageUp => Motion::Home,
@@ -416,7 +416,7 @@ impl TextField {
 pub fn edits(key: &KeyInput) -> bool {
     match &key.key {
         Key::Named(Named::Backspace) | Key::Named(Named::Delete) | Key::Named(Named::Enter) => true,
-        Key::Char(c) if key.ctrl => matches!(c.to_lowercase().as_str(), "x" | "v"),
+        Key::Char(c) if key.shortcut() => matches!(c.to_lowercase().as_str(), "x" | "v"),
         Key::Char(_) => !key.alt,
         _ => false,
     }

@@ -58,6 +58,12 @@ impl Rect {
     pub fn inset(&self, e: &Edges) -> Rect {
         Rect::new(self.x + e.left, self.y + e.top, (self.w - e.horizontal()).max(0.0), (self.h - e.vertical()).max(0.0))
     }
+
+    /// The smallest box holding both.
+    pub fn union(&self, other: &Rect) -> Rect {
+        let (x0, y0) = (self.x.min(other.x), self.y.min(other.y));
+        Rect::new(x0, y0, self.right().max(other.right()) - x0, self.bottom().max(other.bottom()) - y0)
+    }
 }
 
 /// Where a laid-out node ended up.
@@ -251,7 +257,7 @@ fn role(node: &Node) -> Role {
     match &node.kind {
         Kind::SubscriptionItem => Role::Subscription,
         k if k.is_span() => Role::Skip,
-        Kind::App | Kind::DocumentRoot | Kind::Mask | Kind::Unknown(_) => Role::Skip,
+        Kind::App | Kind::DocumentRoot | Kind::Unknown(_) => Role::Skip,
         k if k.is_art() || k.is_decor() => Role::OutOfFlow,
         _ => {
             let p = &node.props;
@@ -426,7 +432,8 @@ impl Engine<'_> {
         match &node.kind {
             // A slot is as wide as its parent unless told otherwise, so after anything else on
             // a line it starts a row (ledger C8: Shoes 3 s3_canvas.c:468, Shoes 4 s4_slot.rb:48).
-            Kind::Flow | Kind::Stack | Kind::Widget => (parent_w - m.horizontal()).max(0.0),
+            // A mask lays out like a flow (Shoes 3 draws it as a canvas, s3_canvas.c:531-613).
+            Kind::Flow | Kind::Stack | Kind::Widget | Kind::Mask => (parent_w - m.horizontal()).max(0.0),
             Kind::Para | Kind::TextDrawable => {
                 let full = (parent_w - m.horizontal()).max(0.0);
                 if !parent_flow {
@@ -444,6 +451,8 @@ impl Engine<'_> {
                     wanted.min(full)
                 }
             }
+            // A blank image canvas with no size of its own fills its line.
+            Kind::Image if canvas_image(self.doc, node) && self.intrinsic(node).0 == 0.0 => fill,
             Kind::Image => {
                 let natural = self.intrinsic(node);
                 match node.props.dim("height") {
@@ -476,7 +485,8 @@ impl Engine<'_> {
             }
             Kind::Image => {
                 let natural = self.intrinsic(node);
-                explicit_h.unwrap_or_else(|| elements::image::height_for_width(natural, w))
+                let blank_canvas = natural.1 == 0.0 && canvas_image(self.doc, node);
+                explicit_h.unwrap_or_else(|| if blank_canvas { parent.1 } else { elements::image::height_for_width(natural, w) })
             }
             _ => {
                 let (_, ih) = self.intrinsic(node);
@@ -484,6 +494,9 @@ impl Engine<'_> {
             }
         };
         self.record(node, Rect::new(x, y, w, h), parent);
+        if canvas_image(self.doc, node) {
+            self.image_canvas(node, Rect::new(x, y, w, h));
+        }
         if let Some(label) = elements::label(node, w, h, self.text) {
             self.out.texts.insert(node.id, TextBox { shaped: label.shaped, x: x + label.dx, y: y + label.dy });
         }
@@ -500,7 +513,7 @@ impl Engine<'_> {
         let padding = node.props.padding(frame.w);
         let content = Rect::new(frame.x + padding.left, frame.y + padding.top, (frame.w - padding.horizontal()).max(0.0), 0.0);
         let avail_h = explicit_h.map(|h| (h - padding.vertical()).max(0.0)).unwrap_or(parent.1);
-        let flow = matches!(node.kind, Kind::Flow | Kind::DocumentRoot | Kind::Widget);
+        let flow = matches!(node.kind, Kind::Flow | Kind::DocumentRoot | Kind::Widget | Kind::Mask);
         let (used, later) = self.children(node.id, flow, content, avail_h);
         let h = explicit_h.unwrap_or(used + padding.vertical());
         let slot_box = Rect::new(frame.x, frame.y, frame.w, h);
@@ -539,22 +552,30 @@ impl Engine<'_> {
     fn place_art(&mut self, node: &Node, content: Rect) {
         let doc = self.doc;
         let parent = (content.w, content.h);
-        let bounds = match shapes::art(node, (content.x, content.y), parent) {
-            Some(art) => art.bounds,
-            // A shape block holding only other art has no path of its own.
-            None if node.kind == Kind::Shape => Rect::new(content.x, content.y, 0.0, 0.0),
-            None => return,
-        };
-        self.out.boxes.insert(node.id, LBox { rect: bounds, clip: None, origin: (content.x, content.y), parent_size: parent });
+        let mut bounds = shapes::art(node, (content.x, content.y), parent).map(|art| art.bounds);
         if node.kind == Kind::Shape {
-            // Art drawn inside a shape block is positioned like its siblings.
+            // Art drawn inside a shape block joins its path, measured from the shape's left/top (E7).
+            let (x, y) = shapes::group_origin(node, (content.x, content.y), parent);
+            let inner = Rect::new(x, y, content.w, content.h);
             for &child in doc.children(node.id) {
                 if let Some(c) = doc.get(child).filter(|c| c.kind.is_art() && !hidden(c)) {
-                    self.place_art(c, content);
+                    self.place_art(c, inner);
+                    if let Some(r) = self.out.rect(child) {
+                        bounds = Some(bounds.map_or(r, |b| b.union(&r)));
+                    }
                 }
             }
         }
+        let Some(rect) = bounds else { return };
+        self.out.boxes.insert(node.id, LBox { rect, clip: None, origin: (content.x, content.y), parent_size: parent });
         self.displace(node);
+    }
+
+    /// `image(w, h) { ... }` is a canvas (manual 410-426, ledger E9): what the block draws
+    /// lays out inside the image's box, like a flow, and is clipped to it.
+    fn image_canvas(&mut self, node: &Node, frame: Rect) {
+        let (_, later) = self.children(node.id, true, frame, frame.h);
+        self.place_later(&later, frame, frame, frame.h);
     }
 
     /// An element with left/top/right/bottom, out of flow in `frame`.
@@ -644,6 +665,10 @@ impl Engine<'_> {
             (Some(own), None) => Some(own),
             (None, c) => c,
         };
+        let inner = match doc.get(id).filter(|n| canvas_image(doc, n)).and_then(|_| self.out.rect(id)) {
+            Some(canvas) => Some(inner.map_or(canvas, |c| c.intersect(&canvas).unwrap_or(Rect::new(canvas.x, canvas.y, 0.0, 0.0)))),
+            None => inner,
+        };
         for &child in doc.children(id) {
             let child_clip = if doc.get(child).is_some_and(|c| c.kind.is_decor()) { clip } else { inner };
             self.assign_clips(child, child_clip);
@@ -688,6 +713,11 @@ fn decor_box(node: &Node, slot: Rect) -> Rect {
         (None, None) => 0.0,
     };
     Rect::new(area.x + x, area.y + y, w, h)
+}
+
+/// An image with a drawing block: its children draw inside it.
+fn canvas_image(doc: &Doc, node: &Node) -> bool {
+    node.kind == Kind::Image && !doc.children(node.id).is_empty()
 }
 
 fn is_window(s: &str) -> bool {
