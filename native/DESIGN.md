@@ -116,7 +116,7 @@ that last ran or had input, else the first running one.
 
 | op | fields | reply `value` |
 |---|---|---|
-| `dialog` | `kind` (alert confirm ask ask_color ask_open_file ask_save_file ask_open_folder ask_save_folder), `message`, `default` | alert: null; confirm: bool; ask: String, or null on Cancel in a window (headless: `""`); ask_color: [r,g,b,a] or null; file/folder: path or null. `cancelled` bool alongside. The shim hands Lacci `""` for a cancelled ask either way (ledger K1, Q6) |
+| `dialog` | `kind` (alert confirm ask ask_color ask_open_file ask_save_file ask_open_folder ask_save_folder), `message`, `default`; for ask, `secret` (mask the typing) and `title` (heads the modal) when the app gave them (ledger K1) | alert: null; confirm: bool; ask: String, or null on Cancel in a window (headless: `""`); ask_color: [r,g,b,a] or null; file/folder: path or null. `cancelled` bool alongside. The shim hands Lacci `""` for a cancelled ask either way (ledger K1, Q6) |
 | `layout` | `app` | array of `{id, kind, x, y, w, h, visible, text?}` in window coordinates, rounded to 1/100, paint order; text fragments follow their para |
 | `snapshot` | `path`, `app`, `scale` (default: the app's scale) | writes a PNG; value = `{path, w, h}` in pixels |
 | `click` | `target`: `{id}` or `{text}` or `{x,y}`, `button` (1 default), `app` | synthesises press+release at the target's centre through the real input path. value = `{hit: id or null, x, y}`. Error if the target is not visible or something else is on top (the value says what was hit). `{id}` goes to the drawable's own window whatever `app` says. `{text}` matches exact text first, then text that contains it, links included, and also picks an item of an open list_box popup |
@@ -651,7 +651,8 @@ change the code and this list together.
   slot's hidden part catches nothing.
 - **Headless dialogs** reply with `cancelled: true` for everything but `alert`.
 - **Windowed dialogs.** `alert`, `confirm` and the file/folder pickers are native (rfd); `ask` and
-  `ask_color` draw an in-window modal (a text field, or twelve swatches) and reply when the user
+  `ask_color` draw an in-window modal (a text field, or twelve swatches; a `secret` ask's field
+  shows bullets, and its `title` is the panel's bold first line) and reply when the user
   presses OK/Return (`cancelled: false`) or Cancel/Escape (`value: null, cancelled: true`; the shim
   turns a null `ask` into `""`).
 - **`layout`** lists every laid-out node in paint order; each text fragment (Link, Strong, Em...)

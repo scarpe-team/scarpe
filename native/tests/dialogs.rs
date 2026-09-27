@@ -97,3 +97,33 @@ fn native_dialogs_are_left_to_the_window_layer() {
     rt.dialog_answered(1, Value::Null, false);
     assert_eq!(reply(&rt.out.take_captured(), 1).unwrap()["cancelled"], json!(false));
 }
+
+/// The modal after typing `text` into an `ask` with these extra fields, and the answer Return gives.
+fn asked(extra: Value, text: &str) -> (Vec<u8>, Value) {
+    let mut rt = windowed_runtime();
+    let mut dialog = json!({"t":"req","req":1,"op":"dialog","kind":"ask","message":"Password?","default":null});
+    dialog.as_object_mut().unwrap().extend(extra.as_object().unwrap().clone());
+    send(&mut rt, dialog);
+    send(&mut rt, json!({"t":"req","req":2,"op":"type","text":text}));
+    let picture = rt.picture(1, 1.0).unwrap().data().to_vec();
+    let msgs = send(&mut rt, json!({"t":"req","req":3,"op":"key","key":"\n"}));
+    (picture, reply(&msgs, 1).expect("answered")["value"].clone())
+}
+
+// Ledger K1: `ask(msg, secret: true)` masks what is typed (manual 1385-1391), as a secret
+// edit_line does, and the app still gets the text.
+#[test]
+fn a_secret_ask_shows_bullets_and_answers_the_text() {
+    let (hunter, answer) = asked(json!({"secret": true}), "hunter2");
+    let (other, _) = asked(json!({"secret": true}), "iiiiiii");
+    assert_eq!(answer, json!("hunter2"));
+    assert!(hunter == other, "any seven letters look alike: seven bullets");
+    assert!(asked(json!({}), "hunter2").0 != asked(json!({}), "iiiiiii").0, "a plain ask shows them");
+}
+
+// Shoes 3's ask put its title on the dialog window; the in-window modal has no title bar, so
+// the title heads the panel.
+#[test]
+fn an_ask_title_heads_the_modal() {
+    assert!(asked(json!({"title": "Log in"}), "x").0 != asked(json!({}), "x").0, "the title is drawn");
+}

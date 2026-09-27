@@ -30,7 +30,7 @@ impl Runtime {
         match op {
             Op::Ping => Ok(Some(json!("pong"))),
             Op::Invalid(e) => Err((e, Value::Null)),
-            Op::Dialog { kind, message, default } => {
+            Op::Dialog { kind, message, default, ask } => {
                 if self.opts.headless {
                     let (value, cancelled) = crate::dialogs::headless_answer(&kind);
                     self.out.send(crate::dialogs::reply(req, value, cancelled));
@@ -38,7 +38,7 @@ impl Runtime {
                 }
                 match kind.as_str() {
                     "ask" | "ask_color" => match self.app_for(None) {
-                        Some(app) => self.open_modal(app, req, &kind, &message, &default),
+                        Some(app) => self.open_modal(app, req, &kind, &message, &default, &ask),
                         None => self.out.send(crate::dialogs::reply(req, Value::Null, true)),
                     },
                     _ => self.effects.push(Effect::Dialog { req, kind, message, default }),
