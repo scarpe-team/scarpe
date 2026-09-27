@@ -179,7 +179,7 @@ Must never load `scarpe/wv` (set-once globals collide).
   events meanwhile, dispatch them after), then `set_builtin_response(value)`. It must never leave
   a builtin unanswered (Lacci would pop an osascript dialog). `font` registers the absolute path.
   In headless mode dialogs never open: alert returns nil, confirm false, ask "" and file dialogs nil,
-  unless a test stubbed them.
+  unless a test stubbed them. A cancelled `ask` in a window answers `""` too (ledger K1, Q6).
 - Outgoing messages are buffered and written on `flush`; the pump flushes once per iteration and
   before every `req`. A Mutex guards writes (downloads call back on threads).
 
