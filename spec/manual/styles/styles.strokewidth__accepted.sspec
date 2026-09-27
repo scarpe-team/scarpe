@@ -4,8 +4,6 @@ lines: [1463, 1468]
 testability: api
 display: any
 ledger: D8
-expect: fail
-reason: "Rect and Line declare no :strokewidth style (only the draw context and Oval carry it), so Lacci drops it (D8 rules strokewidth is honoured on every shape)."
 ----------- app code
 Shoes.app do
   @box = rect 50, 50, 100, 80, strokewidth: 6

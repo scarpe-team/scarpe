@@ -250,4 +250,20 @@ class TestDrawContext < NienteTest
       assert_nil turn.("@reset"), "rotate nil drops the slot's own turn"
     SHOES_SPEC
   end
+
+  # Ledger D8: strokewidth is honoured on every shape, not only through the draw
+  # context; ledger E2: rect and arc take center: as oval does (manual 1115-1121).
+  def test_every_shape_keeps_its_own_strokewidth
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $shapes = [rect(0, 0, 5, strokewidth: 6), line(0, 0, 5, 5, strokewidth: 6),
+          arc(0, 0, 5, 5, 0, 1, strokewidth: 6), arrow(5, 5, 5, strokewidth: 6),
+          star(5, 5, strokewidth: 6), oval(0, 0, 5, strokewidth: 6)]
+        $centred = [rect(50, 50, 20, 10, center: true), arc(50, 50, 20, 10, 0, 1, center: true)]
+      end
+    SHOES_APP
+      assert_equal [6] * 6, $shapes.map { |shape| shape.style[:strokewidth] }
+      assert_equal [true, true], $centred.map { |shape| shape.style[:center] }
+    SHOES_SPEC
+  end
 end

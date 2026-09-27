@@ -4,8 +4,6 @@ lines: [1779, 1779]
 testability: visual
 display: native
 ledger: E2
-expect: fail
-reason: Lacci's Rect declares no center style, so center true is dropped with a warning and never reaches the display (E2 covers center for ovals only).
 ----------- app code
 Shoes.app width: 200, height: 200 do
   fill red
