@@ -3,8 +3,9 @@ manual: events.hover
 lines: [2200, 2200]
 testability: api
 display: any
+ledger: B6
 expect: fail
-reason: Lacci's slot hover returns the SubscriptionItem it creates, not the slot (ledger row requested)
+reason: Lacci's slot hover returns the SubscriptionItem it creates, not the slot (B6)
 ----------- app code
 Shoes.app do
   $slot = stack { para "hover me" }

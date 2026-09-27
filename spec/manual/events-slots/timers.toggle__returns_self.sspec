@@ -3,8 +3,9 @@ manual: timers.toggle
 lines: [3430, 3430]
 testability: api
 display: any
+ledger: B6
 expect: fail
-reason: Lacci's toggle returns the new value of its stopped style, not the timer (ledger row requested)
+reason: Lacci's toggle returns the new value of its stopped style, not the timer (B6)
 ----------- app code
 Shoes.app do
   $animation = animate(10) { }

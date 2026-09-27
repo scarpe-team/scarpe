@@ -3,6 +3,7 @@ manual: element.timer
 lines: [2111, 2114]
 testability: api
 display: any
+ledger: I2
 expect: fail
 reason: "Lacci's animate, every and timer return a Shoes::SubscriptionItem; Shoes::Animation, Shoes::Every and Shoes::Timer do not exist"
 ----------- app code

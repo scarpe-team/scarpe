@@ -3,8 +3,9 @@ manual: background.is_pattern
 lines: [2754, 2755]
 testability: api
 display: any
+ledger: D9
 expect: fail
-reason: Lacci has no Shoes::Pattern; Background and Border inherit straight from Shoes::Drawable (no ledger row yet; see the lane report).
+reason: Lacci has no Shoes::Pattern; Background and Border inherit straight from Shoes::Drawable (D9).
 ----------- app code
 Shoes.app do
   $background = background red

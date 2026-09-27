@@ -3,8 +3,9 @@ manual: styles.click
 lines: [1144, 1151]
 testability: interactive
 display: any
+ledger: G10
 expect: fail
-reason: "Lacci's Button does not declare a :click style, so the proc is dropped with an 'Unexpected non-style keyword' warning (no ledger row yet; requested)."
+reason: "Lacci's Button does not declare a :click style, so the proc is dropped with an 'Unexpected non-style keyword' warning (G10)."
 ----------- app code
 Shoes.app do
   @count = para "0"

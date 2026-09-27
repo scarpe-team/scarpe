@@ -3,8 +3,9 @@ manual: styles.click
 lines: [1144, 1151]
 testability: api
 display: any
+ledger: G10
 expect: fail
-reason: "Lacci keeps the click block in @block, not in the style hash (no ledger row yet; requested)."
+reason: "Lacci keeps the click block in @block, not in the style hash (G10)."
 ----------- app code
 Shoes.app do
   @go = button "Go"

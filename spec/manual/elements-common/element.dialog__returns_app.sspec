@@ -3,6 +3,7 @@ manual: element.dialog
 lines: [1958, 1958]
 testability: api
 display: any
+ledger: A9
 expect: fail
 reason: "Shoes.app ends with nil (lacci/lib/shoes.rb), and window and dialog return what it returns"
 ----------- app code
