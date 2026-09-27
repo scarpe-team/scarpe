@@ -148,6 +148,9 @@ pub fn stepped(node: &Node, key: &KeyInput) -> Option<String> {
         _ => return None,
     };
     let items = items(node);
+    if items.is_empty() {
+        return None;
+    }
     let current = chosen(node).and_then(|c| items.iter().position(|i| *i == c));
     let next = match current {
         Some(i) => (i as isize + step).clamp(0, items.len() as isize - 1) as usize,
