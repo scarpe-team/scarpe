@@ -4,7 +4,9 @@
 use super::rich::{Align, RichText, Underline, WrapMode};
 use crate::props::Id;
 use crate::style::Color;
-use cosmic_text::{Attrs, Buffer, Ellipsize, EllipsizeHeightLimit, Family, FontSystem, Metrics, Shaping, Style, UnderlineStyle, Weight, Wrap};
+use cosmic_text::{
+    Attrs, Buffer, Cursor, Ellipsize, EllipsizeHeightLimit, Family, FontSystem, Metrics, Shaping, Style, UnderlineStyle, Weight, Wrap,
+};
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -41,11 +43,64 @@ pub struct ShapedText {
     pub top: f32,
     pub metas: Rc<Vec<SpanMeta>>,
     pub fill: Option<Color>,
+    /// The first-line indent, in px, of text that continues a line in a flow; 0 otherwise.
+    pub indent: f32,
 }
+
+/// The metadata of the blank that makes a first-line indent. It maps to no SpanMeta, so the
+/// indent carries no colour, decoration or link, and paint skips it.
+pub const INDENT_META: usize = usize::MAX;
+
+/// cosmic-text has no first-line indent, so an indented buffer starts with one blank this
+/// small whose letter spacing makes it exactly as wide as the indent. At this size it adds
+/// nothing to the line's ascent, and the line may still break after it.
+const INDENT_SIZE: f32 = 0.001;
 
 impl ShapedText {
     pub fn meta(&self, metadata: usize) -> Option<&SpanMeta> {
         metadata.checked_sub(1).and_then(|i| self.metas.get(i))
+    }
+
+    /// Characters the buffer holds before the text itself: the indent's blank.
+    fn lead(&self) -> usize {
+        usize::from(self.indent > 0.0)
+    }
+
+    /// Whether the first line kept its indent. cosmic-text drops the blank when not even the
+    /// first word fits after it, and then the text cannot continue the line it started on.
+    pub fn indent_holds(&self) -> bool {
+        self.buffer.layout_runs().next().and_then(|run| run.glyphs.first()).is_some_and(|g| g.metadata == INDENT_META)
+    }
+
+    /// The text as the app gave it, lines joined by newlines.
+    pub fn text(&self) -> String {
+        let text = self.buffer.lines.iter().map(|l| l.text()).collect::<Vec<_>>().join("\n");
+        text.chars().skip(self.lead()).collect()
+    }
+
+    /// A buffer position as an index into `text()`, in characters.
+    pub fn char_index(&self, cursor: Cursor) -> usize {
+        let lines = &self.buffer.lines;
+        let before: usize = lines.iter().take(cursor.line).map(|l| l.text().chars().count() + 1).sum();
+        let text = lines.get(cursor.line).map(|l| l.text()).unwrap_or("");
+        let within = text[..cursor.index.min(text.len())].chars().count();
+        (before + within).saturating_sub(self.lead())
+    }
+
+    /// The buffer position of a character index into `text()`; past the end is the end.
+    pub fn cursor_at(&self, index: usize) -> Cursor {
+        let mut remaining = index + self.lead();
+        for (line_i, line) in self.buffer.lines.iter().enumerate() {
+            let text = line.text();
+            let chars = text.chars().count();
+            if remaining <= chars {
+                let byte = text.char_indices().nth(remaining).map(|(b, _)| b).unwrap_or(text.len());
+                return Cursor::new(line_i, byte);
+            }
+            remaining -= chars + 1;
+        }
+        let last = self.buffer.lines.len().saturating_sub(1);
+        Cursor::new(last, self.buffer.lines.get(last).map(|l| l.text().len()).unwrap_or(0))
     }
 
     /// The part of a line its text fills, `(top, height)` in buffer coordinates: the line
@@ -65,14 +120,14 @@ impl ShapeCache {
     /// `optical_tracking`: the sans face is San Francisco, which cosmic-text
     /// always renders at its display optical size; small text gets the extra
     /// tracking its text optical size would have had.
-    pub fn get(&mut self, fs: &mut FontSystem, rich: &RichText, width: Option<f32>, optical_tracking: bool) -> ShapedText {
-        let key = rich.cache_key(width);
+    pub fn get(&mut self, fs: &mut FontSystem, rich: &RichText, width: Option<f32>, indent: f32, optical_tracking: bool) -> ShapedText {
+        let key = rich.cache_key(width) ^ indent.to_bits().rotate_left(17) as u64;
         let generation = self.generation;
         if let Some((shaped, used)) = self.entries.get_mut(&key) {
             *used = generation;
             return shaped.clone();
         }
-        let shaped = shape(fs, rich, width, optical_tracking);
+        let shaped = shape(fs, rich, width, indent, optical_tracking);
         self.entries.insert(key, (shaped.clone(), generation));
         shaped
     }
@@ -93,7 +148,8 @@ impl ShapeCache {
     }
 }
 
-fn shape(fs: &mut FontSystem, rich: &RichText, width: Option<f32>, optical_tracking: bool) -> ShapedText {
+fn shape(fs: &mut FontSystem, rich: &RichText, width: Option<f32>, indent: f32, optical_tracking: bool) -> ShapedText {
+    let indent = if rich.runs.is_empty() { 0.0 } else { indent.max(0.0) };
     let mut buffer = Buffer::new(fs, Metrics::new(rich.size.max(1.0), rich.line_height));
     buffer.set_wrap(match rich.wrap {
         WrapMode::Word => Wrap::WordOrGlyph,
@@ -126,12 +182,11 @@ fn shape(fs: &mut FontSystem, rich: &RichText, width: Option<f32>, optical_track
             color: run.style.color,
         })
         .collect();
-    let spans: Vec<(&str, Attrs)> = rich
-        .runs
-        .iter()
-        .enumerate()
-        .map(|(i, run)| (run.text.as_str(), attrs_for(run, i + 1, rich, optical_tracking)))
-        .collect();
+    let mut spans: Vec<(&str, Attrs)> = Vec::with_capacity(rich.runs.len() + 1);
+    if indent > 0.0 {
+        spans.push((" ", indent_attrs(&rich.runs[0], indent, rich)));
+    }
+    spans.extend(rich.runs.iter().enumerate().map(|(i, run)| (run.text.as_str(), attrs_for(run, i + 1, rich, optical_tracking))));
     let defaults = Attrs::new().family(Family::SansSerif);
     buffer.set_rich_text(spans, &defaults, Shaping::Advanced, Some(align));
     buffer.shape_until_scroll(fs, false);
@@ -144,7 +199,20 @@ fn shape(fs: &mut FontSystem, rich: &RichText, width: Option<f32>, optical_track
         h = rich.line_height;
     }
     let height = (h - rich.leading).max(1.0);
-    ShapedText { buffer: Rc::new(buffer), width: w, height, top: -rich.leading / 2.0, metas: Rc::new(metas), fill: rich.fill }
+    ShapedText { buffer: Rc::new(buffer), width: w, height, top: -rich.leading / 2.0, metas: Rc::new(metas), fill: rich.fill, indent }
+}
+
+/// The blank that stands in for a first-line indent: the first run's face, so no font
+/// fallback, the text's own line height, and letter spacing (in em) for the width.
+fn indent_attrs<'a>(first: &'a super::rich::Run, indent: f32, rich: &RichText) -> Attrs<'a> {
+    let s = &first.style;
+    Attrs::new()
+        .family(s.family.as_family())
+        .weight(Weight(s.weight))
+        .style(if s.italic { Style::Italic } else { Style::Normal })
+        .metrics(Metrics::new(INDENT_SIZE, rich.line_height))
+        .letter_spacing(indent / INDENT_SIZE)
+        .metadata(INDENT_META)
 }
 
 /// Every run names its line height: cosmic-text sizes a line by the runs that do, so a

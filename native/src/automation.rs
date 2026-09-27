@@ -175,9 +175,7 @@ impl Runtime {
         let node = self.doc.get(id)?;
         let layout = self.views.get(&app)?.layout.as_ref()?;
         match node.kind {
-            Kind::Para | Kind::TextDrawable => layout.texts.get(&id).map(|tb| {
-                tb.shaped.buffer.lines.iter().map(|l| l.text().to_string()).collect::<Vec<_>>().join("\n")
-            }),
+            Kind::Para | Kind::TextDrawable => layout.texts.get(&id).map(|tb| tb.shaped.text()),
             Kind::Button => node.props.text("text"),
             Kind::EditLine | Kind::EditBox => {
                 self.views.get(&app).and_then(|v| v.ui.fields.get(&id)).map(|f| f.text()).or_else(|| node.props.text("text"))
@@ -263,7 +261,8 @@ impl Runtime {
             layout.visible_rect(para_of(layout, id)?)?;
             return Some(r.center());
         }
-        layout.visible_rect(id).map(|r| r.center())
+        let visible = layout.visible_rect(id)?;
+        Some(layout.texts.get(&id).map_or(visible.center(), |tb| tb.centre_within(visible)))
     }
 }
 

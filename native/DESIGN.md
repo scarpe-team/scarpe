@@ -226,8 +226,19 @@ neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1).
 - Slot height = content height unless `height` given. A slot with a fixed `height` clips what
   does not fit, scrolling or not (manual 345-352: it becomes a "nested window"); `scroll: true`
   with a height also scrolls.
-- **Text blocks** (para and family) with no width: in a stack, full inner width; in a flow,
-  shrink-to-fit (max-content width capped at the remaining row width, wrapping at that width).
+- **Text blocks** (para and family) with no width: in a stack, full inner width. In a flow they
+  read as one paragraph with what came before them on the line (manual 1610-1612, ledger C7,
+  Shoes 3 s3t_textblock.c:134-228): text that fits on the rest of the line sits there as a box
+  as wide as its text; longer text starts its first line where the line stands (a first-line
+  indent) and wraps its later lines back to the flow's left edge, its box spanning the flow.
+  The next element carries on from the end of the last line. After text the line goes on from
+  the end of the text plus whatever its right margin adds to its left one, so two paras sit one
+  margin apart. Text starts a new row instead when not even its first word fits on the rest of
+  the line, or when something earlier on the line reaches more than half a line below its first
+  line (a picture, a title), where Shoes 3 would wrap lines under it. The indent is a blank
+  wide as the indent at the head of the cosmic-text buffer; hit-testing and a para's `fill`
+  leave its corner to what came before. Centred, right-aligned, justified, trimmed and sized
+  text keeps the box rule of section 12.
   Line height = 1.2 x size. `leading` (default 4 px, manual 1286, ledger F10) goes between lines
   only, as Pango's spacing does: one line is 1.2 x size tall, two are 2.4 x size + 4.
 - **Widgets** have intrinsic sizes (research 02 section 13): button = label + padding (min 22 high),
@@ -396,10 +407,12 @@ change the code and this list together.
 - **Margins and relative sizes.** A relative width or height (a fraction, `"N%"`, a negative number,
   or a slot's default fill) sizes the margin box, so two `width: 0.5, margin: 10` flows share a row.
   A px size is the box itself, and margins add outside it.
-- **Text in a flow** is as wide as its longest line (max-content). If that does not fit in the rest
-  of the row and the row is not empty, it starts a new row and wraps at the full width there.
-  Text with `align: center/right` fills the rest of the row so the alignment shows. Positioned
-  text (`left`/`top`) shrinks to fit the same way. `right:` and `bottom:` place from the far edges.
+- **Text in a flow** flows as a paragraph (section 6). Text that does not (centred, right-aligned,
+  justified, trimmed, or given a width or height) is a box: as wide as its longest line
+  (max-content) if that fits in the rest of the row, else it starts a new row and wraps at the
+  full width there. Text with `align: center/right` fills the rest of the row so the alignment
+  shows. Positioned text (`left`/`top`) shrinks to fit the same way. `right:` and `bottom:`
+  place from the far edges.
 - **Widget** (a `Shoes::Widget` subclass) lays its children out as a flow; its default width
   fills the rest of the line, like a stack. **Mask** is not drawn yet.
 - **Art geometry.** `star` follows Shoes 3 exactly (centred on left/top, first point straight

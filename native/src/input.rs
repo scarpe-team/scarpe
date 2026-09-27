@@ -322,6 +322,10 @@ pub fn hit_test(doc: &Doc, layout: &Layout, x: f32, y: f32) -> Option<Hit> {
         if !b.rect.contains(x, y) || b.clip.is_some_and(|c| !c.contains(x, y)) {
             continue;
         }
+        // A paragraph's first-line indent belongs to what came before it on the line.
+        if layout.texts.get(&id).is_some_and(|tb| !tb.owns(x, y)) {
+            continue;
+        }
         let fragment = layout.texts.get(&id).filter(|_| matches!(node.kind, Kind::Para | Kind::TextDrawable)).and_then(|tb| span_at(tb, x, y));
         let (link, spans) = fragment.map(|m| (m.link, m.spans.clone())).unwrap_or_default();
         return Some(Hit { node: id, link, spans });
@@ -352,14 +356,7 @@ pub fn char_at(tb: &TextBox, x: f32, y: f32) -> Option<i64> {
         return None;
     }
     let cursor = tb.shaped.buffer.hit(lx, ly)?;
-    let lines = &tb.shaped.buffer.lines;
-    let mut index = 0usize;
-    for line in lines.iter().take(cursor.line) {
-        index += line.text().chars().count() + 1;
-    }
-    let text = lines.get(cursor.line)?.text();
-    index += text[..cursor.index.min(text.len())].chars().count();
-    Some(index as i64)
+    Some(tb.shaped.char_index(cursor) as i64)
 }
 
 pub fn chain(doc: &Doc, hit: &Hit) -> Vec<Id> {
