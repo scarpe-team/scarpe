@@ -426,12 +426,13 @@ class Shoes
       # define a SubscriptionItem#hover that raises an
       # exception instead.
 
+      # hover and leave hand over the drawable (manual 2200-2205, ledger H5)
       bind_self_event("hover") do
-        @hover&.call
+        @hover&.call(self)
       end
 
       bind_self_event("leave") do
-        @leave&.call
+        @leave&.call(self)
       end
 
       bind_self_event("motion") do |x, y|

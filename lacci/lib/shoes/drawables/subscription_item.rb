@@ -35,14 +35,14 @@ class Shoes::SubscriptionItem < Shoes::Drawable
         @callback.call
       end
     when "hover"
-      # Hover passes the Shoes drawable as the block param
+      # Hover hands over the slot it watches (manual 2200-2205, ledger H5)
       @unsub_id = bind_self_event("hover") do
-        @callback&.call(self)
+        @callback&.call(parent)
       end
     when "leave"
-      # Leave passes the Shoes drawable as the block param
+      # Leave hands over the slot it watches (manual 2251-2257, ledger H5)
       @unsub_id = bind_self_event("leave") do
-        @callback&.call(self)
+        @callback&.call(parent)
       end
     when "motion"
       # Shoes sends back x, y, mods as the args.

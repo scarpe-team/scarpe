@@ -146,11 +146,19 @@ class Shoes
 
     # Register a callback to run after the app finishes initializing.
     # In Shoes3, this is used to do things that need to happen after the UI is ready.
+    # Inside a slot's block, start belongs to that slot (ledger H8).
     #
     # @yield the block to call when the app starts
     def start(&block)
+      return current_slot.start(&block) unless current_slot.equal?(@document_root)
+
       @start_callbacks ||= []
       @start_callbacks << block
+    end
+
+    # finish inside a slot's block belongs to that slot (ledger H8).
+    def finish(&block)
+      current_slot.finish(&block)
     end
 
     private
@@ -369,7 +377,7 @@ class Shoes
     def visit(name_or_path)
       # First, check for exact page match (symbol)
       if @pages && @pages[name_or_path]
-        @document_root.clear do
+        show_page do
           instance_eval(&@pages[name_or_path])
         end
         return
@@ -378,7 +386,7 @@ class Shoes
       # Second, check URL routes
       route, method_name = @routes.find { |r, _| r === name_or_path }
       if route
-        @document_root.clear do
+        show_page do
           if route.is_a?(Regexp)
             match_data = route.match(name_or_path)
             send(method_name, *match_data.captures)
@@ -393,7 +401,7 @@ class Shoes
       if name_or_path.is_a?(String) && name_or_path.start_with?("/")
         page_name = name_or_path[1..-1].to_sym  # "/page2" -> :page2
         if @pages && @pages[page_name]
-          @document_root.clear do
+          show_page do
             instance_eval(&@pages[page_name])
           end
           return
@@ -402,6 +410,14 @@ class Shoes
 
       puts "Error: URL '#{name_or_path}' not found"
     end
+
+    # A new page starts from nothing. Unlike clear, the old page's timers and event
+    # handlers go too, as Shoes 3 resets the whole canvas on visit (s3_canvas.c:282-303).
+    def show_page(&block)
+      @document_root.contents.each(&:destroy)
+      @document_root.clear(&block)
+    end
+    private :show_page
 
     def url(path, method_name)
       if path.is_a?(String) && path.include?('(')

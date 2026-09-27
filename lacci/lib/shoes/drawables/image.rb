@@ -29,11 +29,11 @@ class Shoes
       end
 
       bind_self_event("hover") do
-        @hover_handler&.call
+        @hover_handler&.call(self)
       end
 
       bind_self_event("leave") do
-        @leave_handler&.call
+        @leave_handler&.call(self)
       end
 
       # Shoes 3 takes a file image's block as its click (simple-bounce.rb, mask2.rb).
