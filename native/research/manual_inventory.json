@@ -1,0 +1,5708 @@
+[
+ {
+  "id": "intro.hello_one_liner",
+  "section": "Hello! [L12-21]",
+  "signature": "Shoes.app { button(\"Click me!\") { alert(\"Good job.\") } }",
+  "claim": "A one-line program opens a window holding one button labelled \"Click me!\"; clicking it pops up an alert saying \"Good job.\".",
+  "example_lines": [
+   [
+    14,
+    17
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "intro.manual_is_shoes_program",
+  "section": "Hello! [L31]",
+  "signature": "(prose)",
+  "claim": "The manual is itself a Shoes program.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": "True of the Shoes 2/3 built-in manual; Scarpe's copy is a Jekyll Markdown page (front matter at lines 1-4)."
+ },
+ {
+  "id": "intro.cross_platform",
+  "section": "Hello! [L28-29]",
+  "signature": "(prose)",
+  "claim": "Shoes programs run on Windows, Mac OS X, Linux and other major platforms.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": ""
+ },
+ {
+  "id": "intro.platform_screenshots",
+  "section": "Hello! > Introducing Shoes > Mac OS X [L42-71]",
+  "signature": "(prose)",
+  "claim": "Screenshots of simple-sphere.rb, simple-clock.rb and simple-downloader.rb samples on Tiger, Vista and Ubuntu.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": "Platform-era claims: OS X Tiger/Leopard incl. PowerPC (no video on PowerPC), Windows 2000/XP/Vista/7."
+ },
+ {
+  "id": "intro.draw_animate_effects",
+  "section": "Hello! > Introducing Shoes > Mac OS X [L51-52]",
+  "signature": "(prose)",
+  "claim": "Shapes can be drawn, animated and given effects such as blur and shadow (simple-sphere uses blurred ovals and shadows).",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": "Effects (blur/shadow) are never documented as an API anywhere in this manual."
+ },
+ {
+  "id": "intro.text_styling_fonts_from_file",
+  "section": "Hello! > Introducing Shoes > Windows [L64-66]",
+  "signature": "(prose)",
+  "claim": "Text can be laid out in any color with bold, italics and underline, and fonts can be loaded from a file.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "intro.consistent_look_native_controls",
+  "section": "Hello! > Introducing Shoes > Linux [L73-79]",
+  "signature": "(prose)",
+  "claim": "Shapes, text, images and video look the same on every platform; native controls (buttons, edit lines, edit boxes, progress bars) take the OS theme's look but stay within the size you give them.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "intro.no_tabs_or_toolbars",
+  "section": "Hello! > Installing Shoes > What Can You Make With Shoes? [L137-144]",
+  "signature": "(prose)",
+  "claim": "Shoes has no tabbed controls or toolbars; such widgets are meant to be simulated with images.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": ""
+ },
+ {
+  "id": "intro.cairo_engine",
+  "section": "Hello! > Installing Shoes > What Can You Make With Shoes? [L146-148]",
+  "signature": "(prose)",
+  "claim": "Drawing is done with the Cairo art engine, in the spirit of NodeBox and Processing.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": "Implementation detail of Shoes 2/3 (Cairo/Pango); not a behavioural requirement."
+ },
+ {
+  "id": "install.no_ruby_needed",
+  "section": "Hello! > Installing Shoes [L83-90]",
+  "signature": "(prose)",
+  "claim": "Installing Shoes needs no separate Ruby, unzip tool or typed commands; everything is built in.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": "Packaging claim: a Shoes install bundles its own Ruby."
+ },
+ {
+  "id": "install.installers",
+  "section": "Hello! > Installing Shoes > Step 1: Installing Shoes [L92-102]",
+  "signature": "(prose)",
+  "claim": "Mac users drag Shoes from a .dmg into Applications; Windows users run a .exe installer; Linux users compile Shoes.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": "Platform packaging of the Shoes 2/3 era."
+ },
+ {
+  "id": "install.program_is_rb_file",
+  "section": "Hello! > Installing Shoes > Step 2: Start a New Text File [L104-106]",
+  "signature": "(prose)",
+  "claim": "A Shoes program is a plain-text file ending in .rb.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "install.welcome_example",
+  "section": "Hello! > Installing Shoes > Step 2: Start a New Text File [L114-123]",
+  "signature": "Shoes.app do\n  background \"#DFA\"\n  para \"Welcome to Shoes\"\nend",
+  "claim": "The welcome program paints the window background \"#DFA\" (3-digit hex) and shows the paragraph \"Welcome to Shoes\".",
+  "example_lines": [
+   [
+    116,
+    121
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "install.run_by_drop_or_file_picker",
+  "section": "Hello! > Installing Shoes > Step 3: Run It! Go Shoes! [L125-133]",
+  "signature": "(prose)",
+  "claim": "A program runs by dropping the .rb onto the Shoes dock icon (Mac) or by launching Shoes, which shows a file selector to choose the .rb (Windows, Linux).",
+  "example_lines": [],
+  "testability": "dialog",
+  "version_note": "Packaging/launcher behaviour of Shoes 2/3."
+ },
+ {
+  "id": "rules.blocks.normal_ruby_semantics",
+  "section": "Hello! > The Rules of Shoes > Shoes Tricky Blocks [L175-183]",
+  "signature": "(prose)",
+  "claim": "Most Shoes blocks behave like ordinary Ruby blocks: block-local variables go out of scope when the block ends and self is unchanged.",
+  "example_lines": [
+   [
+    168,
+    173
+   ],
+   [
+    185,
+    193
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "rules.blocks.app_block_changes_self",
+  "section": "Hello! > The Rules of Shoes > Shoes Tricky Blocks [L195-215]",
+  "signature": "Shoes.app do ... end",
+  "claim": "The block given to Shoes.app is instance_eval'd on the App, so self is the App and bare calls such as stack and para are sent to it.",
+  "example_lines": [
+   [
+    185,
+    193
+   ],
+   [
+    203,
+    211
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "rules.blocks.stack_block_keeps_self",
+  "section": "Hello! > The Rules of Shoes > Shoes Tricky Blocks [L198]",
+  "signature": "stack do ... end",
+  "claim": "The block given to stack does NOT change self; self inside it is still the App.",
+  "example_lines": [
+   [
+    185,
+    193
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "rules.blocks.ivars_live_on_app",
+  "section": "Hello! > The Rules of Shoes > Shoes Tricky Blocks [L217-229]",
+  "signature": "@s = stack do\n  @p1 = para \"First\"\nend",
+  "claim": "Instance variables assigned anywhere in the app block, including inside nested slot blocks, are stored on the App object.",
+  "example_lines": [
+   [
+    219,
+    227
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "rules.blocks.window_changes_self",
+  "section": "Hello! > The Rules of Shoes > Shoes Tricky Blocks [L231-244]",
+  "signature": "window title: \"CHILD\" do\n  para self\nend",
+  "claim": "Blocks given to window and dialog also change self, to the NEW App; para self in a child window shows the child App.",
+  "example_lines": [
+   [
+    235,
+    244
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "rules.redirection.slot_editing_stack",
+  "section": "Hello! > The Rules of Shoes > Block Redirection [L248-267]",
+  "signature": "stack do ... end",
+  "claim": "Giving a slot a block pushes that slot onto the App's editing stack; element calls sent to the App while the block runs are placed in that slot, and the slot is popped when the block ends.",
+  "example_lines": [
+   [
+    259,
+    267
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "rules.redirection.outside_app_fails",
+  "section": "Hello! > The Rules of Shoes > Block Redirection [L271-295]",
+  "signature": "@stack.append do\n  para msg\nend",
+  "claim": "Calling @stack.append { para msg } from a plain Ruby object outside the app block fails: para is not found because self is not the App.",
+  "example_lines": [
+   [
+    277,
+    288
+   ]
+  ],
+  "testability": "api",
+  "version_note": "Documented failure mode; an implementation that makes this work is more permissive than the manual."
+ },
+ {
+  "id": "rules.redirection.element_app_method",
+  "section": "Hello! > The Rules of Shoes > Block Redirection [L297-315]",
+  "signature": "@stack.app do\n  @stack.append do\n    para msg\n  end\nend",
+  "claim": "Every Shoes object has an app method; obj.app { ... } runs the block with self set to the App so DSL calls work again.",
+  "example_lines": [
+   [
+    300,
+    313
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "rules.summary.app_methods_change_self",
+  "section": "Hello! > The Rules of Shoes > Block Redirection [L319-321]",
+  "signature": "(rule 1)",
+  "claim": "Methods named app or that create new windows (Shoes.app, Slot#app, window, dialog) change self to the App.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "rules.summary.slot_blocks_push_slot",
+  "section": "Hello! > The Rules of Shoes > Block Redirection [L322-324]",
+  "signature": "(rule 2)",
+  "claim": "Blocks attached to stacks, flows or any manipulation method (append etc.) do not change self; they push the slot onto the app's editing stack.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "rules.fixed_width_columns",
+  "section": "Hello! > The Rules of Shoes > Careful With Fixed Heights [L328-343]",
+  "signature": "stack width: 200 do ... end",
+  "claim": "Fixed widths on slots inside a flow split the window into side-by-side columns.",
+  "example_lines": [
+   [
+    330,
+    343
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "rules.negative_width",
+  "section": "Hello! > The Rules of Shoes > Careful With Fixed Heights [L337-339]",
+  "signature": "stack width: -200 do ... end",
+  "claim": "A negative width means 100% of the parent minus that many pixels (width: -200 is 100% minus 200px).",
+  "example_lines": [
+   [
+    330,
+    343
+   ]
+  ],
+  "testability": "visual",
+  "version_note": "Not listed under :width in the Styles Master List."
+ },
+ {
+  "id": "rules.fixed_height_clips",
+  "section": "Hello! > The Rules of Shoes > Careful With Fixed Heights [L345-352]",
+  "signature": "stack height: 200",
+  "claim": "A slot with a fixed height becomes a clipped 'nested window': content past its height is chopped off.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "rules.fixed_height_scrollbar",
+  "section": "Hello! > The Rules of Shoes > Careful With Fixed Heights [L354-366]",
+  "signature": "stack width: 200, height: 200, scroll: true do ... end",
+  "claim": "Only nested-window (fixed-height) slots can have scrollbars; a 200x200 scroll: true stack holding 100 paragraphs shows a scrollbar.",
+  "example_lines": [
+   [
+    357,
+    366
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "rules.fixed_height_cost",
+  "section": "Hello! > The Rules of Shoes > Careful With Fixed Heights [L368-370]",
+  "signature": "(prose)",
+  "claim": "Nested-window slots cost more memory; hundreds of fixed-height slots may be slow.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": ""
+ },
+ {
+  "id": "rules.shapes_are_objects",
+  "section": "Hello! > The Rules of Shoes > Image and Shape Blocks [L377-389]",
+  "signature": "100.times { |i| oval i, i, i * 2 }",
+  "claim": "Every shape call creates its own object: drawing 100 ovals creates 100 Oval objects.",
+  "example_lines": [
+   [
+    380,
+    387
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "rules.fill_with_alpha_color",
+  "section": "Hello! > The Rules of Shoes > Image and Shape Blocks [L382]",
+  "signature": "fill black(0.1)",
+  "claim": "A named color called with a decimal argument, black(0.1), gives that color at 10% alpha, usable as a fill.",
+  "example_lines": [
+   [
+    380,
+    387
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "rules.shape_block_combines_unfilled",
+  "section": "Hello! > The Rules of Shoes > Image and Shape Blocks [L392-408]",
+  "signature": "shape do\n  100.times { |i| oval i, i, i * 2 }\nend",
+  "claim": "Shapes drawn inside a shape block are merged into one shape, and the merged shape is NOT filled (outline only).",
+  "example_lines": [
+   [
+    392,
+    401
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "rules.image_block_rasterizes",
+  "section": "Hello! > The Rules of Shoes > Image and Shape Blocks [L410-426]",
+  "signature": "image 300, 300 do\n  100.times { |i| oval i, i, i * 2 }\nend",
+  "claim": "image(width, height) { ... } draws the block's shapes into a single width x height image, and those shapes ARE filled.",
+  "example_lines": [
+   [
+    412,
+    421
+   ]
+  ],
+  "testability": "visual",
+  "version_note": "This image(w, h) { } form is not documented under Element Creation's image(path)."
+ },
+ {
+  "id": "rules.group_shapes_perf",
+  "section": "Hello! > The Rules of Shoes > Image and Shape Blocks [L428-430]",
+  "signature": "(prose)",
+  "claim": "Grouping shapes into image or shape blocks saves memory and speed.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": ""
+ },
+ {
+  "id": "rules.utf8_everywhere",
+  "section": "Hello! > The Rules of Shoes > UTF-8 Everywhere [L434-444]",
+  "signature": "(prose)",
+  "claim": "Shoes expects every string to be UTF-8 and can display any UTF-8 language.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "'Ruby itself isn't Unicode aware' is a Ruby 1.8-era statement; Ruby 1.9+ strings carry encodings."
+ },
+ {
+  "id": "rules.utf8_edit_box_roundtrip",
+  "section": "Hello! > The Rules of Shoes > UTF-8 Everywhere [L446-464]",
+  "signature": "@edit = edit_box width: 1.0 do\n  @para.text = @edit.text\nend\n@para = para \"\"",
+  "claim": "An edit_box change block with no block parameter can copy @edit.text into a para declared AFTER the edit box; the edit box returns UTF-8 and the para displays it.",
+  "example_lines": [
+   [
+    448,
+    457
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "rules.utf8_font_fallback",
+  "section": "Hello! > The Rules of Shoes > UTF-8 Everywhere [L466-480]",
+  "signature": "para \"てすと (te-su-to)\", font: \"AppleGothic, Arial\"",
+  "claim": "If UTF-8 glyphs are missing, setting the para's font: style to a comma-separated list (e.g. \"AppleGothic, Arial\") fixes display.",
+  "example_lines": [
+   [
+    472,
+    480
+   ]
+  ],
+  "testability": "visual",
+  "version_note": "Platform fonts named: AppleGothic (OS X), MS UI Gothic (Windows)."
+ },
+ {
+  "id": "rules.utf8_bad_chars_error",
+  "section": "Hello! > The Rules of Shoes > UTF-8 Everywhere [L482-485]",
+  "signature": "(prose)",
+  "claim": "Edit boxes, edit lines, list boxes, window titles and text blocks all take UTF-8; a string with bad characters shows an error in the console.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "rules.main_app_anonymous_class",
+  "section": "Hello! > The Rules of Shoes > The Main App and Its Requires [L493-506]",
+  "signature": "main = self\nShoes.app do\n  para main.to_s\nend",
+  "claim": "Each app runs inside an anonymous class '(shoes)' that includes the Shoes module, so both Para and Shoes::Para name the paragraph class.",
+  "example_lines": [
+   [
+    497,
+    502
+   ]
+  ],
+  "testability": "api",
+  "version_note": "Raisins-era rule (manual line 489 says it is for Raisins; Policeman uses TOPLEVEL_BINDING instead). Under Policeman, main is Ruby's top-level object and Shoes::Para is needed outside Shoes.app."
+ },
+ {
+  "id": "rules.main_app_isolation",
+  "section": "Hello! > The Rules of Shoes > The Main App and Its Requires [L508-515]",
+  "signature": "(prose)",
+  "claim": "Apps cannot share local variables; classes created in the main app file are temporary; the Shoes module is mixed into the anonymous class, not the top level; apps are garbage-collected when done.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": "Raisins-era rule (manual line 489 says it is for Raisins; Policeman uses TOPLEVEL_BINDING instead)."
+ },
+ {
+  "id": "rules.temporary_vs_required_classes",
+  "section": "Hello! > The Rules of Shoes > The Main App and Its Requires [L517-533]",
+  "signature": "class Storage; end\nShoes.app do\n  para Storage.new\nend",
+  "claim": "Classes defined in the app file vanish when the app completes and are invisible to other apps and to required files; code loaded with require persists at top level.",
+  "example_lines": [
+   [
+    517,
+    523
+   ]
+  ],
+  "testability": "api",
+  "version_note": "Raisins-era rule (manual line 489 says it is for Raisins; Policeman uses TOPLEVEL_BINDING instead)."
+ },
+ {
+  "id": "shoes.reference_navigation",
+  "section": "Shoes [L537-569]",
+  "signature": "(prose)",
+  "claim": "The reference is organised as Built-in methods, the App, Styles, Classes and Colors, then Slots and Elements; a Search page exists.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": "[[Search]] refers to the built-in manual app's search page."
+ },
+ {
+  "id": "builtins.no_receiver",
+  "section": "Shoes > Built-in Methods [L571-598]",
+  "signature": "(prose)",
+  "claim": "Built-in (Kernel) methods are called without a receiver anywhere in a Shoes program, even outside Shoes.app.",
+  "example_lines": [
+   [
+    581,
+    584
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.const.RELEASE_NAME",
+  "section": "Shoes > Built-in Methods > Built-in Constants [L605-606]",
+  "signature": "Shoes::RELEASE_NAME",
+  "claim": "A String naming the Shoes release; releases are named, starting with Curious.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.const.RELEASE_ID",
+  "section": "Shoes > Built-in Methods > Built-in Constants [L608-609]",
+  "signature": "Shoes::RELEASE_ID",
+  "claim": "A number identifying the release; Curious is 1.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.const.REVISION",
+  "section": "Shoes > Built-in Methods > Built-in Constants [L611]",
+  "signature": "Shoes::REVISION",
+  "claim": "The build's revision number.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "Manual says 'Subversion revision', a pre-git wording."
+ },
+ {
+  "id": "builtins.const.FONTS",
+  "section": "Shoes > Built-in Methods > Built-in Constants [L613-614]",
+  "signature": "Shoes::FONTS",
+  "claim": "An Array of every font available to the app, including fonts loaded with font().",
+  "example_lines": [
+   [
+    773,
+    779
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.alert",
+  "section": "Shoes > Built-in Methods > alert [L616-627]",
+  "signature": "alert(message: a string) » nil",
+  "claim": "alert(message) pops up a window showing a short message and returns nil.",
+  "example_lines": [
+   [
+    620,
+    623
+   ]
+  ],
+  "testability": "dialog",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.alert.top_level",
+  "section": "Shoes > Built-in Methods [L579-584]",
+  "signature": "alert \"No dots in sight\"",
+  "claim": "alert works at the top level of a script, with no Shoes.app open.",
+  "example_lines": [
+   [
+    581,
+    584
+   ]
+  ],
+  "testability": "dialog",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.ask",
+  "section": "Shoes > Built-in Methods > ask [L629-641]",
+  "signature": "ask(message: a string) » a string",
+  "claim": "ask(message) pops up a window with a blank text box and returns the String the user typed.",
+  "example_lines": [
+   [
+    634,
+    637
+   ]
+  ],
+  "testability": "dialog",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.ask.secret",
+  "section": "Shoes > The Styles Master List > :secret [L1385-1391]",
+  "signature": "ask(message, secret: true)",
+  "claim": "With the :secret style, ask masks typed characters with a replacement character.",
+  "example_lines": [],
+  "testability": "dialog",
+  "version_note": "The Styles Master List lists :secret For: ask, edit_line; the ask() entry itself never mentions it."
+ },
+ {
+  "id": "builtins.ask_color",
+  "section": "Shoes > Built-in Methods > ask_color [L643-655]",
+  "signature": "ask_color(title: a string) » Shoes::Color",
+  "claim": "ask_color(title) shows a colour picker, blocks until a colour is picked, and returns a Shoes::Color usable as e.g. a background.",
+  "example_lines": [
+   [
+    649,
+    655
+   ]
+  ],
+  "testability": "dialog",
+  "version_note": "The example calls ask_color BEFORE Shoes.app exists."
+ },
+ {
+  "id": "builtins.ask_open_file",
+  "section": "Shoes > Built-in Methods > ask_open_file [L657-669]",
+  "signature": "ask_open_file() » a string",
+  "claim": "ask_open_file shows the standard Open File window and returns the chosen file's name as a String.",
+  "example_lines": [
+   [
+    663,
+    669
+   ]
+  ],
+  "testability": "dialog",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.ask_save_file",
+  "section": "Shoes > Built-in Methods > ask_save_file [L671-679]",
+  "signature": "ask_save_file() » a string",
+  "claim": "ask_save_file shows the standard Save File window and returns the chosen file name.",
+  "example_lines": [
+   [
+    676,
+    679
+   ]
+  ],
+  "testability": "dialog",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.ask_open_folder",
+  "section": "Shoes > Built-in Methods > ask_open_folder [L681-693]",
+  "signature": "ask_open_folder() » a string",
+  "claim": "ask_open_folder shows the standard Open Folder window and returns the chosen folder's name.",
+  "example_lines": [
+   [
+    687,
+    693
+   ]
+  ],
+  "testability": "dialog",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.ask_save_folder",
+  "section": "Shoes > Built-in Methods > ask_save_folder [L695-704]",
+  "signature": "ask_save_folder() » a string",
+  "claim": "ask_save_folder shows a Save Folder window and returns the chosen folder name.",
+  "example_lines": [
+   [
+    701,
+    704
+   ]
+  ],
+  "testability": "dialog",
+  "version_note": "On OS X it behaves as an alias of ask_open_folder."
+ },
+ {
+  "id": "builtins.confirm",
+  "section": "Shoes > Built-in Methods > confirm [L707-717]",
+  "signature": "confirm(question: a string) » true or false",
+  "claim": "confirm(question) asks a yes/no question and returns true if the user clicks yes, false otherwise.",
+  "example_lines": [
+   [
+    712,
+    717
+   ]
+  ],
+  "testability": "dialog",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.debug",
+  "section": "Shoes > Built-in Methods > debug [L719-730]",
+  "signature": "debug(message: a string) » nil",
+  "claim": "debug(message) sends a debug message to the Shoes console and returns nil.",
+  "example_lines": [
+   [
+    724,
+    727
+   ]
+  ],
+  "testability": "api",
+  "version_note": "Shoes 2/3 built-in console (Alt-/ or Cmd-/); the manual names no console for other implementations."
+ },
+ {
+  "id": "builtins.console_hotkey",
+  "section": "Shoes > Built-in Methods > debug [L721-722]",
+  "signature": "Alt-/ (Cmd-/ on OS X)",
+  "claim": "Pressing Alt-/ (Cmd-/ on OS X) in any Shoes window opens the Shoes console.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": "Shoes 2/3 built-in console (Alt-/ or Cmd-/); the manual names no console for other implementations."
+ },
+ {
+  "id": "builtins.error",
+  "section": "Shoes > Built-in Methods > error [L732-736]",
+  "signature": "error(message: a string) » nil",
+  "claim": "error(message) logs an error message to the Shoes console and returns nil.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "Shoes 2/3 built-in console (Alt-/ or Cmd-/); the manual names no console for other implementations."
+ },
+ {
+  "id": "builtins.error.exceptions",
+  "section": "Shoes > Built-in Methods > error [L738-739]",
+  "signature": "error(exception)",
+  "claim": "error also accepts an Exception object and formats it appropriately.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.exit",
+  "section": "Shoes > Built-in Methods > exit [L741-746]",
+  "signature": "exit()",
+  "claim": "exit stops the whole program immediately; Ruby's own exit is reachable as Kernel.exit.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.font",
+  "section": "Shoes > Built-in Methods > font [L748-767]",
+  "signature": "font(message: a string) » an array of font family names",
+  "claim": "font(path) loads a font file and returns an Array of the font family names found in it, or nil if none were found.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "The parameter is labelled 'message' but is a font file path."
+ },
+ {
+  "id": "builtins.font.formats",
+  "section": "Shoes > Built-in Methods > font [L754-764]",
+  "signature": "(table)",
+  "claim": "Font format support by platform: TTF/TTC/OTF everywhere; .bdf/.pcf/.snf Linux; .fon/.mmm Windows; .fnt/.pfb/.pfm Linux and Windows.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": "Platform-specific."
+ },
+ {
+  "id": "builtins.font.load_before_use",
+  "section": "Shoes > Built-in Methods > font [L781-783]",
+  "signature": "(prose)",
+  "claim": "Fonts must be loaded before first use; on OS X the font cache may ignore fonts loaded after use.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": "OS X-specific caveat."
+ },
+ {
+  "id": "builtins.gradient",
+  "section": "Shoes > Built-in Methods > gradient [L785-788]",
+  "signature": "gradient(color1, color2) » Shoes::Pattern",
+  "claim": "gradient(color1, color2) builds a linear gradient Pattern; each color may be a Shoes::Color or a color string.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.gray",
+  "section": "Shoes > Built-in Methods > gray [L790-798]",
+  "signature": "gray(the numbers: darkness, alpha) » Shoes::Color",
+  "claim": "gray(level, alpha = optional) returns a grayscale Shoes::Color; gray(0.0) is black and gray(1.0) is white.",
+  "example_lines": [
+   [
+    795,
+    798
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.info",
+  "section": "Shoes > Built-in Methods > info [L800-810]",
+  "signature": "info(message: a string) » nil",
+  "claim": "info(message) logs an informational message for the user to the Shoes console and returns nil.",
+  "example_lines": [
+   [
+    806,
+    810
+   ]
+  ],
+  "testability": "api",
+  "version_note": "Shoes 2/3 built-in console (Alt-/ or Cmd-/); the manual names no console for other implementations."
+ },
+ {
+  "id": "builtins.info.shy_loading",
+  "section": "Shoes > Built-in Methods > info [L812-813]",
+  "signature": "(prose)",
+  "claim": "When a Shy file loads, Shoes logs an info message with the Shy's author and version.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": "Shy is the Shoes 2/3 packaging format."
+ },
+ {
+  "id": "builtins.rgb.integers",
+  "section": "Shoes > Built-in Methods > rgb [L815-825]",
+  "signature": "rgb(a series of numbers: red, green, blue, alpha) » Shoes::Color",
+  "claim": "rgb(r, g, b) with whole numbers takes 0-255 components and returns a Shoes::Color.",
+  "example_lines": [
+   [
+    822,
+    825
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.rgb.floats",
+  "section": "Shoes > Built-in Methods > rgb [L827-832]",
+  "signature": "rgb(0.54, 0.17, 0.89)",
+  "claim": "rgb with decimal numbers takes 0.0-1.0 components.",
+  "example_lines": [
+   [
+    829,
+    832
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.rgb.alpha",
+  "section": "Shoes > Built-in Methods > rgb [L817-818]",
+  "signature": "rgb(r, g, b, alpha)",
+  "claim": "rgb accepts an optional fourth alpha (transparency) component.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.rgb.module_function",
+  "section": "Shoes > Built-in Methods > rgb [L834]",
+  "signature": "Shoes.rgb(...)",
+  "claim": "rgb can also be called as Shoes.rgb.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "builtins.warn",
+  "section": "Shoes > Built-in Methods > warn [L836-844]",
+  "signature": "warn(message: a string) » nil",
+  "claim": "warn(message) logs a non-fatal warning to the Shoes console and returns nil.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "Shoes 2/3 built-in console (Alt-/ or Cmd-/); the manual names no console for other implementations."
+ },
+ {
+  "id": "app.window_at_url",
+  "section": "Shoes > The App Object [L848-850]",
+  "signature": "(prose)",
+  "claim": "An App is one window running code at a URL; switching URLs creates a new App object filled with new elements.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "URL routing (url declarations in App subclasses) is never documented in this manual."
+ },
+ {
+  "id": "app.closable_clearable",
+  "section": "Shoes > The App Object [L852-853]",
+  "signature": "(prose)",
+  "claim": "The App is the window itself; it can be closed, or cleared and refilled with new elements.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "app.top_level_is_flow",
+  "section": "Shoes > The App Object [L855-857]",
+  "signature": "(prose)",
+  "claim": "The App is itself a flow: elements placed directly at the top level flow left to right and wrap.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "app.shoes_app",
+  "section": "Shoes > The App Object > Shoes.app [L859-865]",
+  "signature": "Shoes.app(styles) { ... } » Shoes::App",
+  "claim": "Shoes.app(styles) { ... } opens an app window, fills it by running the block, and returns the Shoes::App.",
+  "example_lines": [
+   [
+    867,
+    875
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "app.style.title",
+  "section": "Shoes > The App Object > Shoes.app [L863-870]",
+  "signature": "Shoes.app(title: \"White Circle\")",
+  "claim": "The :title style sets the window's title.",
+  "example_lines": [
+   [
+    867,
+    875
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "app.style.width_height",
+  "section": "Shoes > The App Object > Shoes.app [L869-877]",
+  "signature": "Shoes.app(width: 200, height: 200)",
+  "claim": ":width and :height set the window's size in pixels (200 x 200 in the example).",
+  "example_lines": [
+   [
+    867,
+    875
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "app.style.resizable",
+  "section": "Shoes > The App Object > Shoes.app [L869-878]",
+  "signature": "Shoes.app(resizable: false)",
+  "claim": "resizable: false makes the window non-resizable.",
+  "example_lines": [
+   [
+    867,
+    875
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "app.white_circle_example",
+  "section": "Shoes > The App Object > Shoes.app [L867-879]",
+  "signature": "Shoes.app(styles) { ... } » Shoes::App",
+  "claim": "The example shows a black background with a white circle drawn by oval top: 20, left: 20, radius: 160 inside a 200x200 window.",
+  "example_lines": [
+   [
+    867,
+    875
+   ]
+  ],
+  "testability": "visual",
+  "version_note": "radius: 160 in a 200px window only fits if radius is read as a diameter; see contradictions."
+ },
+ {
+  "id": "app.added_to_APPS",
+  "section": "Shoes > The App Object > Shoes.app [L881-883]",
+  "signature": "(prose)",
+  "claim": "Every created app is added to the Shoes.APPS list.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "app.Shoes.APPS",
+  "section": "Shoes > The App Object > Shoes.APPS [L885-889]",
+  "signature": "Shoes.APPS() » An array of Shoes::App objects",
+  "claim": "Shoes.APPS returns every open app; a closed app is removed from the list; many apps may run at once.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "app.clipboard",
+  "section": "Shoes > The App Object > clipboard [L891-895]",
+  "signature": "clipboard() » a string",
+  "claim": "clipboard returns the text on the system-wide clipboard.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "app.clipboard=",
+  "section": "Shoes > The App Object > clipboard= [L897-899]",
+  "signature": "clipboard = a string",
+  "claim": "clipboard = string stores the text on the system clipboard.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "app.close",
+  "section": "Shoes > The App Object > close [L901-904]",
+  "signature": "close()",
+  "claim": "close closes this app window; exit closes the whole application.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "app.download",
+  "section": "Shoes > The App Object > download [L906-914]",
+  "signature": "download(url: a string, styles)",
+  "claim": "download(url, styles) starts a background download thread and returns immediately; an attached block is the finish handler.",
+  "example_lines": [
+   [
+    916,
+    929
+   ]
+  ],
+  "testability": "api",
+  "version_note": "Needs network, or a local HTTP server stub."
+ },
+ {
+  "id": "app.download.events",
+  "section": "Shoes > The App Object > download [L909-912]",
+  "signature": "(prose)",
+  "claim": "Each download fires start, progress and finish events; the result can go to a file or come back as a String in finish.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "Only the finish block is shown; how to attach start/progress handlers is undocumented."
+ },
+ {
+  "id": "app.download.response_headers",
+  "section": "Shoes > The App Object > download [L916-929]",
+  "signature": "download url do |goog|\n  goog.response.headers\nend",
+  "claim": "The finish block receives the download object; .response.headers holds the HTTP headers.",
+  "example_lines": [
+   [
+    916,
+    929
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "app.download.response_body",
+  "section": "Shoes > The App Object > download [L931-933]",
+  "signature": "goog.response.body",
+  "claim": ".response.body holds the downloaded data in memory.",
+  "example_lines": [
+   [
+    916,
+    929
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "app.download.save",
+  "section": "Shoes > The App Object > download [L935-955]",
+  "signature": "download url, save: \"nasa50th.gif\" do ... end",
+  "claim": "save: path writes the data to that file; response.body is then nil but headers are still available.",
+  "example_lines": [
+   [
+    938,
+    951
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "app.download.method_headers_body",
+  "section": "Shoes > The App Object > download [L957-978]",
+  "signature": "download url, method: \"GET\" do |dump| ... end",
+  "claim": ":method, :headers and :body styles customise the HTTP request.",
+  "example_lines": [
+   [
+    962,
+    975
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "app.location",
+  "section": "Shoes > The App Object > location [L980-982]",
+  "signature": "location() » a string",
+  "claim": "location returns the current app's URL as a String.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "app.mouse",
+  "section": "Shoes > The App Object > mouse [L984-998]",
+  "signature": "mouse() » an array of numbers: button, left, top",
+  "claim": "mouse returns [button, left, top]: the pressed mouse button and the cursor coordinates.",
+  "example_lines": [
+   [
+    989,
+    998
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "app.owner",
+  "section": "Shoes > The App Object > owner [L1000-1004]",
+  "signature": "owner() » Shoes::App",
+  "claim": "owner returns the app that launched this one: nil for Shoes.app, the calling app for window.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "app.started?",
+  "section": "Shoes > The App Object > started? [L1006-1010]",
+  "signature": "started?() » true or false",
+  "claim": "started? returns true once the window has been fully constructed and displayed.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "app.visit",
+  "section": "Shoes > The App Object > visit [L1012-1018]",
+  "signature": "visit(url: a string)",
+  "claim": "visit(url) changes the location to another Shoes URL; absolute http URLs must serve a Shoes app, not HTML.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "styles.at_creation",
+  "section": "Shoes > The Styles Master List [L1022-1035]",
+  "signature": "para \"Red with an underline\", stroke: red, underline: \"single\"",
+  "claim": "Styles are a hash passed when an element is created; an app accepts a :title style.",
+  "example_lines": [
+   [
+    1028,
+    1032
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "styles.class_wide",
+  "section": "Shoes > The Styles Master List [L1023-1024]",
+  "signature": "(prose)",
+  "claim": "In some cases you can style an entire class of elements, such as giving every paragraph a font.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "No API for this is documented anywhere in the manual."
+ },
+ {
+  "id": "styles.style_method",
+  "section": "Shoes > The Styles Master List [L1037-1045]",
+  "signature": "@text.style(stroke: red, underline: \"single\")",
+  "claim": "element.style(hash) changes styles on any element or slot after creation.",
+  "example_lines": [
+   [
+    1040,
+    1045
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "styles.setter_methods",
+  "section": "Shoes > The Styles Master List [L1047-1056]",
+  "signature": "@text.stroke = red\n@text.underline = \"single\"",
+  "claim": "Most styles can also be set by calling a same-named setter method.",
+  "example_lines": [
+   [
+    1050,
+    1056
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "styles.readback",
+  "section": "Slots > Position of a Slot > style [L2470-2477]",
+  "signature": "style[:name]",
+  "claim": "A style given at creation is read back unchanged via style[:name], even when the rendered size differs.",
+  "example_lines": [
+   [
+    2479,
+    2485
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "styles.align",
+  "section": "Shoes > The Styles Master List > :align [L1062-1071]",
+  "signature": ":align » a string  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":align sets text alignment to \"left\", \"center\" or \"right\".",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.align.left",
+  "section": "Shoes > The Styles Master List > :align [L1069-1071]",
+  "signature": "align: \"left\"",
+  "claim": "align: \"left\" means: Align the text to the left.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.align.center",
+  "section": "Shoes > The Styles Master List > :align [L1069-1071]",
+  "signature": "align: \"center\"",
+  "claim": "align: \"center\" means: Align the text in the center.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.align.right",
+  "section": "Shoes > The Styles Master List > :align [L1069-1071]",
+  "signature": "align: \"right\"",
+  "claim": "align: \"right\" means: Align the text to the right.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.angle",
+  "section": "Shoes > The Styles Master List > :angle [L1073-1079]",
+  "signature": ":angle » a number  (For: background, border, gradient)",
+  "claim": ":angle rotates a gradient counter-clockwise; with no angle the gradient runs top to bottom.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.angle.90",
+  "section": "Shoes > The Styles Master List > :angle [L1077-1079]",
+  "signature": "angle: 90",
+  "claim": "angle: 90 makes the gradient run left to right.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.attach",
+  "section": "Shoes > The Styles Master List > :attach [L1081-1085]",
+  "signature": ":attach » a slot or element  (For: flow, stack)",
+  "claim": ":attach pins a slot relative to another slot or element.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.attach.window",
+  "section": "Shoes > The Styles Master List > :attach [L1085-1087]",
+  "signature": "top: 10, left: 10, attach: Window",
+  "claim": "attach: Window positions the slot in window coordinates; with top: 10, left: 10 it sits at (10, 10) of the window.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.attach.follows_target",
+  "section": "Shoes > The Styles Master List > :attach [L1089]",
+  "signature": "attach: element",
+  "claim": "A slot attached to an element moves when that element moves.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.attach.nil_resets",
+  "section": "Shoes > The Styles Master List > :attach [L1089-1091]",
+  "signature": "attach: nil",
+  "claim": "Resetting :attach to nil returns the slot to the normal flow.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.autoplay",
+  "section": "Shoes > The Styles Master List > :autoplay [L1093-1098]",
+  "signature": ":autoplay » true or false  (For: video)",
+  "claim": "autoplay: true starts the video playing as soon as it appears.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "styles.bottom",
+  "section": "Shoes > The Styles Master List > :bottom [L1100-1106]",
+  "signature": ":bottom » a number  (For: all slots and elements)",
+  "claim": ":bottom places the element's lower edge relative to its container's lower edge; bottom: 0 makes the edges touch.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.cap",
+  "section": "Shoes > The Styles Master List > :cap [L1108-1113]",
+  "signature": ":cap » :curve or :rect or :project  (For: arc, arrow, border, flow, image, mask, rect, star, shape, stack)",
+  "claim": ":cap sets the line-endpoint shape (:curve, :rect or :project); see Art cap.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.center",
+  "section": "Shoes > The Styles Master List > :center [L1115-1121]",
+  "signature": ":center » true or false  (For: arc, image, oval, rect, shape)",
+  "claim": "center: true makes :top and :left refer to the shape's centre, like transform :center.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.change",
+  "section": "Shoes > The Styles Master List > :change [L1123-1128]",
+  "signature": ":change » a proc  (For: edit_box, edit_line, list_box)",
+  "claim": "The change event handler is stored in the :change style.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "styles.checked",
+  "section": "Shoes > The Styles Master List > :checked [L1130-1135]",
+  "signature": ":checked » true or false  (For: check, radio)",
+  "claim": "checked: true creates the check box or radio already checked.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "styles.choose",
+  "section": "Shoes > The Styles Master List > :choose [L1137-1142]",
+  "signature": ":choose » a string  (For: list_box)",
+  "claim": ":choose sets the list box's currently chosen item.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "styles.click",
+  "section": "Shoes > The Styles Master List > :click [L1144-1151]",
+  "signature": ":click » a proc  (For: arc, arrow, banner, button, caption, check, flow, image, inscription, line, link, mask, oval, para, radio, rect, shape, stack, star, subtitle, tagline, title)",
+  "claim": "The click event handler is stored in the :click style.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "styles.curve",
+  "section": "Shoes > The Styles Master List > :curve [L1153-1159]",
+  "signature": ":curve » a number  (For: background, border, rect)",
+  "claim": ":curve is the corner radius of rectangular elements; curve: 6 gives 6-pixel rounded corners.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.displace_left",
+  "section": "Shoes > The Styles Master List > :displace_left [L1161-1169]",
+  "signature": ":displace_left » a number  (For: all slots and elements)",
+  "claim": ":displace_left shifts the drawn object right (positive) or left (negative) without changing the page layout.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.displace_top",
+  "section": "Shoes > The Styles Master List > :displace_top [L1171-1179]",
+  "signature": ":displace_top » a number  (For: all slots and elements)",
+  "claim": ":displace_top shifts the drawn object down (positive) or up (negative) without changing layout or its true coordinates.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.emphasis",
+  "section": "Shoes > The Styles Master List > :emphasis [L1181-1192]",
+  "signature": ":emphasis » a string  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":emphasis styles text as \"normal\", \"oblique\" or \"italic\".",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.emphasis.normal",
+  "section": "Shoes > The Styles Master List > :emphasis [L1190-1192]",
+  "signature": "emphasis: \"normal\"",
+  "claim": "emphasis: \"normal\" means the font is upright.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.emphasis.oblique",
+  "section": "Shoes > The Styles Master List > :emphasis [L1190-1192]",
+  "signature": "emphasis: \"oblique\"",
+  "claim": "emphasis: \"oblique\" means the font is slanted, but in a roman style.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.emphasis.italic",
+  "section": "Shoes > The Styles Master List > :emphasis [L1190-1192]",
+  "signature": "emphasis: \"italic\"",
+  "claim": "emphasis: \"italic\" means the font is slanted in an italic style.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.family",
+  "section": "Shoes > The Styles Master List > :family [L1194-1200]",
+  "signature": ":family » a string  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":family sets the font family, as one name or a comma-separated list.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.fill",
+  "section": "Shoes > The Styles Master List > :fill [L1202-1210]",
+  "signature": ":fill » a hex code, a Shoes::Color or a range of either  (For: arc, arrow, background, banner, caption, code, del, em, flow, image, ins, inscription, line, link, mask, oval, para, rect, shape, span, stack, star, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":fill is the background pen colour; for shapes it paints the inside.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.fill.text_highlight",
+  "section": "Shoes > The Styles Master List > :fill [L1208-1210]",
+  "signature": "para \"x\", fill: yellow",
+  "claim": "On text, :fill paints behind the letters like a highlighter pen.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.fill.value_types",
+  "section": "Shoes > The Styles Master List > :fill [L1202]",
+  "signature": ":fill » a hex code, a Shoes::Color or a range of either",
+  "claim": ":fill accepts a hex code string, a Shoes::Color, or a Range of either.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "What a Range of colours means (presumably a gradient) is never explained."
+ },
+ {
+  "id": "styles.font",
+  "section": "Shoes > The Styles Master List > :font [L1212-1224]",
+  "signature": ":font » a string  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":font takes a description string \"[FAMILY-LIST] [STYLE-OPTIONS] [SIZE]\"; SIZE is points, or pixels with a \"px\" suffix; any part may be absent.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.font.default_family",
+  "section": "Shoes > The Styles Master List > :font [L1223-1224]",
+  "signature": "font: \"12px\"",
+  "claim": "If the family list is absent from :font, the default family Arial is used.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.group",
+  "section": "Shoes > The Styles Master List > :group [L1226-1237]",
+  "signature": ":group » a string  (For: radio)",
+  "claim": ":group names the radio's group; radios sharing a group name are mutually exclusive wherever they sit on screen.",
+  "example_lines": [
+   [
+    3315,
+    3334
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "styles.group.default_is_slot",
+  "section": "Shoes > The Styles Master List > :group [L1230-1231]",
+  "signature": "radio (no group)",
+  "claim": "Without :group, a radio is grouped with the other radios in its immediate slot.",
+  "example_lines": [
+   [
+    3283,
+    3291
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "styles.height.pixels",
+  "section": "Shoes > The Styles Master List > :height [L1239-1243]",
+  "signature": ":height » a number  (For: all slots and elements)",
+  "claim": "An integer :height sets the object's height in pixels.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.height.percent",
+  "section": "Shoes > The Styles Master List > :height [L1243-1245]",
+  "signature": "height: 0.5",
+  "claim": "A decimal :height is a fraction of the parent's height (0.0 = 0%, 1.0 = 100%).",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.hidden",
+  "section": "Shoes > The Styles Master List > :hidden [L1247-1252]",
+  "signature": ":hidden » true or false  (For: all slots and elements)",
+  "claim": "hidden: true hides the object and all of its children.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.inner",
+  "section": "Shoes > The Styles Master List > :inner [L1254-1259]",
+  "signature": ":inner » a number  (For: star)",
+  "claim": ":inner is the star's inner radius in pixels: the solid circle where the points begin.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.items",
+  "section": "Shoes > The Styles Master List > :items [L1261-1266]",
+  "signature": ":items » an array  (For: list_box)",
+  "claim": ":items is the Array of choices in a list box.",
+  "example_lines": [
+   [
+    2047,
+    2055
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "styles.justify",
+  "section": "Shoes > The Styles Master List > :justify [L1268-1273]",
+  "signature": ":justify » true or false  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": "justify: true spaces text evenly across the line.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.kerning",
+  "section": "Shoes > The Styles Master List > :kerning [L1275-1280]",
+  "signature": ":kerning » a number  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":kerning adds that many pixels to the natural spacing between letters.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.leading",
+  "section": "Shoes > The Styles Master List > :leading [L1282-1286]",
+  "signature": ":leading » a number  (For: banner, caption, inscription, para, subtitle, tagline, title)",
+  "claim": ":leading sets the spacing between lines of a text block; the default is 4 pixels.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.left",
+  "section": "Shoes > The Styles Master List > :left [L1288-1294]",
+  "signature": ":left » a number  (For: all slots and elements)",
+  "claim": "left: 10 places the object's left edge 10 pixels from its containing slot's left edge.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.left.nil_flows",
+  "section": "Shoes > The Styles Master List > :left [L1292-1296]",
+  "signature": "left: nil",
+  "claim": "With :left unset or nil the object flows with its neighbours; the manual advises giving :top as well.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.margin",
+  "section": "Shoes > The Styles Master List > :margin [L1298-1306]",
+  "signature": ":margin » a number or an array of four numbers  (For: all slots and elements)",
+  "claim": "A single-number :margin sets all four margins to that many pixels (margin: 8).",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.margin.array",
+  "section": "Shoes > The Styles Master List > :margin [L1308-1309]",
+  "signature": "margin: [left, top, right, bottom]",
+  "claim": "An Array of four numbers sets the margins in the order [left, top, right, bottom].",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.margin_bottom",
+  "section": "Shoes > The Styles Master List > :margin_bottom [L1311-1315]",
+  "signature": ":margin_bottom » a number  (For: all slots and elements)",
+  "claim": ":margin_bottom sets only the bottom margin, in pixels.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.margin_left",
+  "section": "Shoes > The Styles Master List > :margin_left [L1317-1321]",
+  "signature": ":margin_left » a number  (For: all slots and elements)",
+  "claim": ":margin_left sets only the left margin, in pixels.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.margin_right",
+  "section": "Shoes > The Styles Master List > :margin_right [L1323-1327]",
+  "signature": ":margin_right » a number  (For: all slots and elements)",
+  "claim": ":margin_right sets only the right margin, in pixels.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.margin_top",
+  "section": "Shoes > The Styles Master List > :margin_top [L1329-1333]",
+  "signature": ":margin_top » a number  (For: all slots and elements)",
+  "claim": ":margin_top sets only the top margin, in pixels.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.outer",
+  "section": "Shoes > The Styles Master List > :outer [L1335-1339]",
+  "signature": ":outer » a number  (For: star)",
+  "claim": ":outer is the star's outer radius (half its total width) in pixels.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.points",
+  "section": "Shoes > The Styles Master List > :points [L1341-1346]",
+  "signature": ":points » a number  (For: star)",
+  "claim": ":points is the number of star points; points: 5 makes a five-pointed star.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.radius",
+  "section": "Shoes > The Styles Master List > :radius [L1348-1354]",
+  "signature": ":radius » a number  (For: arc, arrow, background, border, gradient, oval, rect, shape)",
+  "claim": ":radius is half the diameter; setting it equals setting :width and :height to twice the number.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": "Contradicted by oval() at lines 1718-1719 and 1742 and by the examples at 869-873 and 1639-1645."
+ },
+ {
+  "id": "styles.right",
+  "section": "Shoes > The Styles Master List > :right [L1356-1362]",
+  "signature": ":right » a number  (For: all slots and elements)",
+  "claim": "right: 0 aligns the element's right edge with its slot's right edge.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.right.offset",
+  "section": "Shoes > The Styles Master List > :right [L1363-1364]",
+  "signature": "right: 20",
+  "claim": "right: 20 puts the element's right edge 20 pixels in from the slot's right edge.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.rise",
+  "section": "Shoes > The Styles Master List > :rise [L1366-1373]",
+  "signature": ":rise » a number  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":rise lifts (positive) or lowers (negative) the text baseline in pixels; sup uses +10 and sub uses -10.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.scroll",
+  "section": "Shoes > The Styles Master List > :scroll [L1375-1381]",
+  "signature": ":scroll » true or false  (For: flow, stack)",
+  "claim": "scroll: true shows a scrollbar whenever content passes the slot's height; it appears and disappears as needed.",
+  "example_lines": [
+   [
+    357,
+    366
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.scroll.width_constant",
+  "section": "Shoes > The Styles Master List > :scroll [L1381-1383]",
+  "signature": "scroll: true",
+  "claim": "The scrollbar sits inside the slot's width, so the slot's width never changes when it appears.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.secret",
+  "section": "Shoes > The Styles Master List > :secret [L1385-1391]",
+  "signature": ":secret » true or false  (For: ask, edit_line)",
+  "claim": "secret: true shows a replacement character (such as *) for each typed character.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.size",
+  "section": "Shoes > The Styles Master List > :size [L1393-1398]",
+  "signature": ":size » a number  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": "A numeric :size sets the font size in pixels.",
+  "example_lines": [
+   [
+    916,
+    929
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.size.xx-small",
+  "section": "Shoes > The Styles Master List > :size [L1400-1408]",
+  "signature": "size: \"xx-small\"",
+  "claim": "size: \"xx-small\" scales the font to 57% of its present size.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.size.x-small",
+  "section": "Shoes > The Styles Master List > :size [L1400-1408]",
+  "signature": "size: \"x-small\"",
+  "claim": "size: \"x-small\" scales the font to 64% of its present size.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.size.small",
+  "section": "Shoes > The Styles Master List > :size [L1400-1408]",
+  "signature": "size: \"small\"",
+  "claim": "size: \"small\" scales the font to 83% of its present size.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.size.medium",
+  "section": "Shoes > The Styles Master List > :size [L1400-1408]",
+  "signature": "size: \"medium\"",
+  "claim": "size: \"medium\" scales the font to 100% (no change) of its present size.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.size.large",
+  "section": "Shoes > The Styles Master List > :size [L1400-1408]",
+  "signature": "size: \"large\"",
+  "claim": "size: \"large\" scales the font to 120% of its present size.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.size.x-large",
+  "section": "Shoes > The Styles Master List > :size [L1400-1408]",
+  "signature": "size: \"x-large\"",
+  "claim": "size: \"x-large\" scales the font to 143% of its present size.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.size.xx-large",
+  "section": "Shoes > The Styles Master List > :size [L1400-1408]",
+  "signature": "size: \"xx-large\"",
+  "claim": "size: \"xx-large\" scales the font to 173% of its present size.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.state",
+  "section": "Shoes > The Styles Master List > :state [L1410-1415]",
+  "signature": ":state » a string  (For: button, check, edit_box, edit_line, list_box, radio)",
+  "claim": ":state disables or locks controls: nil, \"readonly\" or \"disabled\".",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "styles.state.nil",
+  "section": "Shoes > The Styles Master List > :state [L1419]",
+  "signature": "state: nil",
+  "claim": "state: nil leaves the control active and editable.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "styles.state.readonly",
+  "section": "Shoes > The Styles Master List > :state [L1420]",
+  "signature": "state: \"readonly\"",
+  "claim": "state: \"readonly\" leaves the control active but not editable.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "styles.state.disabled",
+  "section": "Shoes > The Styles Master List > :state [L1421]",
+  "signature": "state: \"disabled\"",
+  "claim": "state: \"disabled\" greys the control out; it is inactive and cannot be edited.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "styles.stretch",
+  "section": "Shoes > The Styles Master List > :stretch [L1423-1434]",
+  "signature": ":stretch » a string  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":stretch sets the font's width: \"condensed\", \"normal\" or \"expanded\".",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.stretch.condensed",
+  "section": "Shoes > The Styles Master List > :stretch [L1432-1434]",
+  "signature": "stretch: \"condensed\"",
+  "claim": "stretch: \"condensed\" gives a smaller width of letters.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.stretch.normal",
+  "section": "Shoes > The Styles Master List > :stretch [L1432-1434]",
+  "signature": "stretch: \"normal\"",
+  "claim": "stretch: \"normal\" gives the standard width of letters.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.stretch.expanded",
+  "section": "Shoes > The Styles Master List > :stretch [L1432-1434]",
+  "signature": "stretch: \"expanded\"",
+  "claim": "stretch: \"expanded\" gives a larger width of letters.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.strikecolor",
+  "section": "Shoes > The Styles Master List > :strikecolor [L1436-1441]",
+  "signature": ":strikecolor » a Shoes::Color  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":strikecolor is the colour of strikethrough lines.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.strikethrough",
+  "section": "Shoes > The Styles Master List > :strikethrough [L1443-1451]",
+  "signature": ":strikethrough » a string  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":strikethrough is \"none\" or \"single\".",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.strikethrough.none",
+  "section": "Shoes > The Styles Master List > :strikethrough [L1450]",
+  "signature": "strikethrough: \"none\"",
+  "claim": "strikethrough: \"none\" draws no strikethrough.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.strikethrough.single",
+  "section": "Shoes > The Styles Master List > :strikethrough [L1451]",
+  "signature": "strikethrough: \"single\"",
+  "claim": "strikethrough: \"single\" draws one line through the text.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.stroke",
+  "section": "Shoes > The Styles Master List > :stroke [L1453-1461]",
+  "signature": ":stroke » a hex code, a Shoes::Color or a range of either  (For: arc, arrow, banner, border, caption, code, del, em, flow, image, ins, inscription, line, link, mask, oval, para, rect, shape, span, stack, star, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":stroke is the foreground pen colour: the line colour for shapes.",
+  "example_lines": [
+   [
+    1028,
+    1032
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.stroke.text_color",
+  "section": "Shoes > The Styles Master List > :stroke [L1459-1461]",
+  "signature": "para \"x\", stroke: red",
+  "claim": "On text, :stroke is the colour the letters are printed in.",
+  "example_lines": [
+   [
+    1028,
+    1032
+   ],
+   [
+    2822,
+    2830
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.strokewidth",
+  "section": "Shoes > The Styles Master List > :strokewidth [L1463-1468]",
+  "signature": ":strokewidth » a number  (For: arc, arrow, border, flow, image, line, mask, oval, rect, shape, star, stack)",
+  "claim": ":strokewidth is the outline thickness in pixels.",
+  "example_lines": [
+   [
+    2822,
+    2830
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.text",
+  "section": "Shoes > The Styles Master List > :text [L1470-1475]",
+  "signature": ":text » a string  (For: button, edit_box, edit_line)",
+  "claim": ":text sets a button's label or the contents of an edit_box or edit_line.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "styles.top",
+  "section": "Shoes > The Styles Master List > :top [L1477-1485]",
+  "signature": ":top » a number  (For: all slots and elements)",
+  "claim": "top: 40 places the object's top edge 40 pixels below its parent slot's top edge.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.top.nil_flows",
+  "section": "Shoes > The Styles Master List > :top [L1483-1487]",
+  "signature": "top: nil",
+  "claim": "With no :top the object is placed in its slot's natural flow; the manual advises giving :left as well.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.undercolor",
+  "section": "Shoes > The Styles Master List > :undercolor [L1489-1494]",
+  "signature": ":undercolor » a Shoes::Color  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":undercolor is the colour used to underline text.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.underline",
+  "section": "Shoes > The Styles Master List > :underline [L1496-1509]",
+  "signature": ":underline » a string  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":underline is \"none\", \"single\", \"double\", \"low\" or \"error\".",
+  "example_lines": [
+   [
+    1028,
+    1032
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.underline.none",
+  "section": "Shoes > The Styles Master List > :underline [L1505-1509]",
+  "signature": "underline: \"none\"",
+  "claim": "underline: \"none\" draws no underline.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.underline.single",
+  "section": "Shoes > The Styles Master List > :underline [L1505-1509]",
+  "signature": "underline: \"single\"",
+  "claim": "underline: \"single\" draws one continuous underline.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.underline.double",
+  "section": "Shoes > The Styles Master List > :underline [L1505-1509]",
+  "signature": "underline: \"double\"",
+  "claim": "underline: \"double\" draws two parallel continuous underlines.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.underline.low",
+  "section": "Shoes > The Styles Master List > :underline [L1505-1509]",
+  "signature": "underline: \"low\"",
+  "claim": "underline: \"low\" draws an underline below the font baseline (meant for single characters such as keyboard accelerators).",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.underline.error",
+  "section": "Shoes > The Styles Master List > :underline [L1505-1509]",
+  "signature": "underline: \"error\"",
+  "claim": "underline: \"error\" draws a wavy underline, as used for misspellings.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.variant",
+  "section": "Shoes > The Styles Master List > :variant [L1511-1519]",
+  "signature": ":variant » a string  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":variant is \"normal\" or \"smallcaps\".",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.variant.normal",
+  "section": "Shoes > The Styles Master List > :variant [L1518]",
+  "signature": "variant: \"normal\"",
+  "claim": "variant: \"normal\" uses the standard font.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.variant.smallcaps",
+  "section": "Shoes > The Styles Master List > :variant [L1519]",
+  "signature": "variant: \"smallcaps\"",
+  "claim": "variant: \"smallcaps\" replaces lower-case letters with small capitals.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.weight",
+  "section": "Shoes > The Styles Master List > :weight [L1521-1537]",
+  "signature": ":weight » a string  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":weight sets boldness by name (ultralight to heavy) or by a numeric weight.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.weight.ultralight",
+  "section": "Shoes > The Styles Master List > :weight [L1529-1535]",
+  "signature": "weight: \"ultralight\"",
+  "claim": "weight: \"ultralight\" equals numeric weight 200.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.weight.light",
+  "section": "Shoes > The Styles Master List > :weight [L1529-1535]",
+  "signature": "weight: \"light\"",
+  "claim": "weight: \"light\" equals numeric weight 300.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.weight.normal",
+  "section": "Shoes > The Styles Master List > :weight [L1529-1535]",
+  "signature": "weight: \"normal\"",
+  "claim": "weight: \"normal\" equals numeric weight 400.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.weight.semibold",
+  "section": "Shoes > The Styles Master List > :weight [L1529-1535]",
+  "signature": "weight: \"semibold\"",
+  "claim": "weight: \"semibold\" equals numeric weight 600.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.weight.bold",
+  "section": "Shoes > The Styles Master List > :weight [L1529-1535]",
+  "signature": "weight: \"bold\"",
+  "claim": "weight: \"bold\" equals numeric weight 700.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.weight.ultrabold",
+  "section": "Shoes > The Styles Master List > :weight [L1529-1535]",
+  "signature": "weight: \"ultrabold\"",
+  "claim": "weight: \"ultrabold\" equals numeric weight 800.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.weight.heavy",
+  "section": "Shoes > The Styles Master List > :weight [L1529-1535]",
+  "signature": "weight: \"heavy\"",
+  "claim": "weight: \"heavy\" equals numeric weight 900.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.weight.numeric",
+  "section": "Shoes > The Styles Master List > :weight [L1537]",
+  "signature": "weight: 600",
+  "claim": "A numeric weight may be passed directly.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.width.pixels",
+  "section": "Shoes > The Styles Master List > :width [L1539-1543]",
+  "signature": ":width » a number  (For: all slots and elements)",
+  "claim": "An integer :width sets the element's width in pixels.",
+  "example_lines": [
+   [
+    2371,
+    2376
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.width.percent",
+  "section": "Shoes > The Styles Master List > :width [L1543-1545]",
+  "signature": "width: 0.5",
+  "claim": "A decimal :width is a fraction of the parent's width; 1.0 (100%) fills the parent slot.",
+  "example_lines": [
+   [
+    3248,
+    3259
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.width.percent_string",
+  "section": "Slots > Position of a Slot > style [L2479-2487]",
+  "signature": "width: \"100%\"",
+  "claim": "A string percentage such as \"100%\" is accepted as a width (used by the style and width examples).",
+  "example_lines": [
+   [
+    2479,
+    2485
+   ],
+   [
+    2734,
+    2744
+   ]
+  ],
+  "testability": "visual",
+  "version_note": "Not listed under :width, which says 'a number'."
+ },
+ {
+  "id": "styles.wrap",
+  "section": "Shoes > The Styles Master List > :wrap [L1547-1556]",
+  "signature": ":wrap » a string  (For: banner, caption, code, del, em, ins, inscription, link, para, span, strong, sub, sup, subtitle, tagline, title)",
+  "claim": ":wrap is \"word\", \"char\" or \"trim\".",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.wrap.word",
+  "section": "Shoes > The Styles Master List > :wrap [L1554]",
+  "signature": "wrap: \"word\"",
+  "claim": "wrap: \"word\" breaks lines at word breaks.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.wrap.char",
+  "section": "Shoes > The Styles Master List > :wrap [L1555]",
+  "signature": "wrap: \"char\"",
+  "claim": "wrap: \"char\" breaks lines between characters, splitting words.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "styles.wrap.trim",
+  "section": "Shoes > The Styles Master List > :wrap [L1556]",
+  "signature": "wrap: \"trim\"",
+  "claim": "wrap: \"trim\" cuts an overlong line off with an ellipsis.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "classes.hierarchy",
+  "section": "Shoes > Classes List [L1558-1564]",
+  "signature": "{INDEX}",
+  "claim": "A chart of every Shoes class, subclasses indented beneath parents.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": "The manual has only an unrendered {INDEX} placeholder here; the tree is absent."
+ },
+ {
+  "id": "colors.named_methods",
+  "section": "Shoes > Colors List [L1566-1576]",
+  "signature": "tomato  # => a Shoes::Color",
+  "claim": "Every built-in colour (X11/HTML palette) is a method callable from any slot that returns that Color (e.g. tomato is reddish).",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "The list itself is an unrendered {COLORS} placeholder; Lacci ships 139 names in lacci/lib/shoes/colors.rb."
+ },
+ {
+  "id": "colors.usage",
+  "section": "Shoes > Colors List [L1568-1570]",
+  "signature": "(prose)",
+  "claim": "Named colours work as background, border, stroke and fill colours.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "colors.named_with_alpha",
+  "section": "Hello! > The Rules of Shoes > Image and Shape Blocks [L382]",
+  "signature": "black(0.1)  red(0.2)",
+  "claim": "A named-colour method takes an optional alpha argument (black(0.1), red(0.2)).",
+  "example_lines": [
+   [
+    380,
+    387
+   ],
+   [
+    1806,
+    1818
+   ]
+  ],
+  "testability": "api",
+  "version_note": "Only shown in examples (lines 382, 1809); never documented."
+ },
+ {
+  "id": "colors.hex_strings",
+  "section": "Hello! > Installing Shoes > Step 2: Start a New Text File [L118]",
+  "signature": "\"#DFA\"  \"#333\"",
+  "claim": "Hex strings with 3 or 6 digits (\"#DFA\", \"#333\") are accepted wherever a colour is.",
+  "example_lines": [
+   [
+    116,
+    121
+   ],
+   [
+    1790,
+    1797
+   ]
+  ],
+  "testability": "api",
+  "version_note": ":fill/:stroke say 'a hex code'; 3-digit expansion (#DFA -> #DDFFAA) is implied, never stated."
+ },
+ {
+  "id": "slots.boxes",
+  "section": "Slots [L1580-1582]",
+  "signature": "(prose)",
+  "claim": "Slots are boxes (also called boxes or canvases) that lay out images, text and so on; stacks and flows are the two common slots.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "slots.width_fixed_height_grows",
+  "section": "Slots [L1584-1595]",
+  "signature": "(prose)",
+  "claim": "As on the web, width is generally fixed while height grows with content; vertical scrolling is the only overflow that matters.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slots.stack.vertical",
+  "section": "Slots > Stacks [L1599-1600]",
+  "signature": "stack { ... }",
+  "claim": "Each element in a stack is placed directly beneath the one before it.",
+  "example_lines": [
+   [
+    185,
+    193
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slots.stack.is_a_box",
+  "section": "Slots > Stacks [L1602-1603]",
+  "signature": "stack width: 250",
+  "claim": "A stack is itself a box: a stack given width 250 is a 250-pixel-wide element.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slots.stack.nesting",
+  "section": "Slots > Stacks [L1605-1606]",
+  "signature": "stack { stack { }; flow { } }",
+  "claim": "Stacks can contain other stacks and flows.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "slots.flow.packs_and_wraps",
+  "section": "Slots > Flows [L1610-1611]",
+  "signature": "flow { ... }",
+  "claim": "A flow packs elements as tightly as it can, filling the width and then wrapping beneath.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slots.flow.adjacent_text_one_paragraph",
+  "section": "Slots > Flows [L1611-1612]",
+  "signature": "flow { para \"a\"; para \"b\" }",
+  "claim": "Text elements placed next to each other in a flow appear as a single paragraph.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slots.flow.widgets_run_together",
+  "section": "Slots > Flows [L1612]",
+  "signature": "flow { button \"a\"; image \"b.png\" }",
+  "claim": "Images and widgets in a flow run together as a series.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slots.stack_flow_same_box",
+  "section": "Slots > Flows [L1614-1616]",
+  "signature": "(prose)",
+  "claim": "Stacks and flows are identical as boxes and nest freely; they differ only in how they lay out children.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slots.flow.nesting",
+  "section": "Slots > Flows [L1618-1619]",
+  "signature": "flow { flow { }; stack { } }",
+  "claim": "Flows may contain other flows and stacks.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "slots.window_is_flow",
+  "section": "Slots > Flows [L1621]",
+  "signature": "(prose)",
+  "claim": "The Shoes window itself is a flow.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.slot_is_canvas",
+  "section": "Slots > Art for Slots [L1625-1629]",
+  "signature": "(prose)",
+  "claim": "Every slot is a canvas that can be covered with coloured shapes or gradients.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.stroke_fill_oval_example",
+  "section": "Slots > Art for Slots [L1631-1645]",
+  "signature": "stroke red\nfill blue\noval top: 10, left: 10, radius: 100",
+  "claim": "stroke sets the line colour and fill the inside colour; the example draws a blue circle with a red outline, 'one hundred pixels wide', near the top-left corner.",
+  "example_lines": [
+   [
+    1634,
+    1642
+   ]
+  ],
+  "testability": "visual",
+  "version_note": "Reads radius: 100 as a 100px-wide circle; contradicts :radius (line 1352)."
+ },
+ {
+  "id": "art.color_methods_return_colors",
+  "section": "Slots > Art for Slots [L1647-1648]",
+  "signature": "blue, red",
+  "claim": "Colour methods such as blue and red return Color objects.",
+  "example_lines": [
+   [
+    1634,
+    1642
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "art.patterns_images_gradients",
+  "section": "Slots > Art for Slots > Inspiration from Processing and NodeBox [L1657-1660]",
+  "signature": "(prose)",
+  "claim": "Images and gradients (not only colours) can be used to draw lines and fill shapes.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.arc",
+  "section": "Slots > Art for Slots > arc [L1665-1670]",
+  "signature": "arc(left, top, width, height, angle1, angle2) » Shoes::Shape",
+  "claim": "arc(left, top, width, height, angle1, angle2) draws a section of an oval at (left, top), from angle1 to angle2 (radians).",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": "The prose calls angle1/angle2 'styles', but they are absent from the Styles Master List."
+ },
+ {
+  "id": "art.arc.full_oval",
+  "section": "Slots > Art for Slots > arc [L1669-1670]",
+  "signature": "arc(l, t, w, h, 0, Shoes::TWO_PI)",
+  "claim": "angle1 = 0 and angle2 = Shoes::TWO_PI draws a complete oval.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.arrow",
+  "section": "Slots > Art for Slots > arrow [L1672-1674]",
+  "signature": "arrow(left, top, width) » Shoes::Shape",
+  "claim": "arrow(left, top, width) draws an arrow at (left, top), width pixels wide.",
+  "example_lines": [
+   [
+    1841,
+    1847
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.cap",
+  "section": "Slots > Art for Slots > cap [L1676-1680]",
+  "signature": "cap(:curve or :rect or :project) » self",
+  "claim": "cap sets the line cap for subsequent lines and returns self.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "art.cap.curve",
+  "section": "Slots > Art for Slots > cap [L1679]",
+  "signature": "cap :curve",
+  "claim": "cap :curve gives rounded line ends.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.cap.rect_default",
+  "section": "Slots > Art for Slots > cap [L1679-1680]",
+  "signature": "cap :rect",
+  "claim": "cap :rect, the default, ends lines abruptly flat.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.cap.project",
+  "section": "Slots > Art for Slots > cap [L1680]",
+  "signature": "cap :project",
+  "claim": "cap :project is flat but extends a little past the endpoint.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.fill",
+  "section": "Slots > Art for Slots > fill [L1682-1686]",
+  "signature": "fill(pattern) » pattern",
+  "claim": "fill(pattern) sets the fill for shapes drawn afterwards in the slot and returns the pattern; a pattern may be a colour, gradient or image.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.fill.subsequent_shapes",
+  "section": "Slots > Art for Slots > fill [L1684-1686]",
+  "signature": "fill red; oval 0, 0, 10",
+  "claim": "Shapes created after fill carry that fill; earlier shapes keep theirs.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "art.fill.image_path",
+  "section": "Slots > Art for Slots > fill [L1688-1696]",
+  "signature": "fill \"static/avatar.png\"\nstar 200, 200, 5",
+  "claim": "Passing an image path string to fill paints subsequent shapes with that image.",
+  "example_lines": [
+   [
+    1690,
+    1696
+   ]
+  ],
+  "testability": "visual",
+  "version_note": "How an image-path string is told apart from a colour string is unspecified."
+ },
+ {
+  "id": "art.nofill",
+  "section": "Slots > Art for Slots > nofill [L1701-1704]",
+  "signature": "nofill() » self",
+  "claim": "nofill clears the fill so later shapes are outline only (transparent middle); returns self.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.nostroke",
+  "section": "Slots > Art for Slots > nostroke [L1706-1709]",
+  "signature": "nostroke() » self",
+  "claim": "nostroke clears the line colour so later shapes have no outline; with nofill too, shapes are invisible.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.line",
+  "section": "Slots > Art for Slots > line [L1711-1714]",
+  "signature": "line(left, top, x2, y2) » Shoes::Shape",
+  "claim": "line(left, top, x2, y2) draws a line in the current stroke colour from (left, top) to (x2, y2).",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.oval.positional",
+  "section": "Slots > Art for Slots > oval [L1716-1722]",
+  "signature": "oval(left, top, radius) » Shoes::Shape",
+  "claim": "oval(left, top, radius) draws a circle 'with a width and height of radius pixels' using stroke and fill; coordinates are its top-left corner by default.",
+  "example_lines": [
+   [
+    1724,
+    1732
+   ]
+  ],
+  "testability": "visual",
+  "version_note": "Contradicts :radius (line 1352), which makes the width twice the radius."
+ },
+ {
+  "id": "art.oval.four_args",
+  "section": "Slots > Art for Slots > oval [L1734]",
+  "signature": "oval(left, top, width, height)",
+  "claim": "oval(left, top, width, height) draws an oval of arbitrary proportions.",
+  "example_lines": [
+   [
+    2264,
+    2275
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.oval.styles",
+  "section": "Slots > Art for Slots > oval [L1736-1747]",
+  "signature": "oval(styles) » Shoes::Shape",
+  "claim": "oval(styles) accepts top, left, radius, width, height and center.",
+  "example_lines": [
+   [
+    1634,
+    1642
+   ],
+   [
+    867,
+    875
+   ],
+   [
+    712,
+    717
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.oval.style_method",
+  "section": "Slots > Art for Slots > oval [L1747]",
+  "signature": "shape.style(...)",
+  "claim": "An oval's styles can be changed later through the Shape's style method.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "art.oval.center",
+  "section": "Slots > Art for Slots > oval [L1745]",
+  "signature": "oval(center: true, ...)",
+  "claim": "center: true makes top/left the oval's centre.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.rect.positional",
+  "section": "Slots > Art for Slots > rect [L1749-1755]",
+  "signature": "rect(top, left, width, height, corners = 0) » Shoes::Shape",
+  "claim": "rect draws a width x height rectangle in the current stroke and fill; the heading orders the first two arguments (top, left).",
+  "example_lines": [
+   [
+    1757,
+    1764
+   ]
+  ],
+  "testability": "visual",
+  "version_note": "Every other shape, rect(styles) and Lacci take (left, top); see contradictions."
+ },
+ {
+  "id": "art.rect.corners",
+  "section": "Slots > Art for Slots > rect [L1752-1753]",
+  "signature": "rect(l, t, w, h, corners)",
+  "claim": "A fifth argument gives the rectangle rounded corners of that radius in pixels.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.rect.fill_parent_minus_margin",
+  "section": "Slots > Art for Slots > rect [L1757-1768]",
+  "signature": "rect 10, 10, self.width - 20, self.height - 20",
+  "claim": "Inside the app block self.width and self.height are the app's size; the example rectangle fills the window with a 10px margin.",
+  "example_lines": [
+   [
+    1757,
+    1764
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.rect.styles",
+  "section": "Slots > Art for Slots > rect [L1770-1781]",
+  "signature": "rect(styles) » Shoes::Shape",
+  "claim": "rect(styles) accepts top, left, curve, width, height and center; styles can be changed later via style.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.rotate",
+  "section": "Slots > Art for Slots > rotate [L1783-1797]",
+  "signature": "rotate(degrees: a number) » self",
+  "claim": "rotate(degrees) rotates the drawing pen so later shapes are drawn at that angle; returns self.",
+  "example_lines": [
+   [
+    1790,
+    1797
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.shape",
+  "section": "Slots > Art for Slots > shape [L1799-1804]",
+  "signature": "shape(left, top) { ... } » Shoes::Shape",
+  "claim": "shape(left, top) { ... } draws an arbitrary path starting at (left, top), built by move_to, line_to, curve_to and arc_to calls in the block.",
+  "example_lines": [
+   [
+    1806,
+    1818
+   ]
+  ],
+  "testability": "visual",
+  "version_note": "The example calls shape with no arguments."
+ },
+ {
+  "id": "art.shape.move_to",
+  "section": "Slots > Art for Slots > shape [L1802]",
+  "signature": "move_to(x, y)",
+  "claim": "move_to(x, y) moves the path pen without drawing.",
+  "example_lines": [
+   [
+    1806,
+    1818
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.shape.line_to",
+  "section": "Slots > Art for Slots > shape [L1802]",
+  "signature": "line_to(x, y)",
+  "claim": "line_to(x, y) draws a straight segment to (x, y).",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": "Arguments are undocumented."
+ },
+ {
+  "id": "art.shape.curve_to",
+  "section": "Slots > Art for Slots > shape [L1802]",
+  "signature": "curve_to(...)",
+  "claim": "curve_to draws a curved segment.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": "Arguments are undocumented; Lacci uses curve_to(cx1, cy1, cx2, cy2, x, y)."
+ },
+ {
+  "id": "art.shape.arc_to",
+  "section": "Slots > Art for Slots > shape [L1802-1818]",
+  "signature": "arc_to(50, 55, 50, 50, 0, PI/2)",
+  "claim": "arc_to(left, top, width, height, angle1, angle2) adds an arc segment; four arc_to calls draw a spiral in the example.",
+  "example_lines": [
+   [
+    1806,
+    1818
+   ]
+  ],
+  "testability": "visual",
+  "version_note": "Arguments are only shown by example."
+ },
+ {
+  "id": "art.shape.nested_shapes",
+  "section": "Slots > Art for Slots > shape [L1820-1824]",
+  "signature": "shape { oval ...; rect ... }",
+  "claim": "Art methods called inside a shape block are grouped and drawn as one, but are not part of the path.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.star",
+  "section": "Slots > Art for Slots > star [L1826-1831]",
+  "signature": "star(left, top, points = 10, outer = 100.0, inner = 50.0) » Shoes::Shape",
+  "claim": "star(left, top, points, outer, inner) draws a star centred on (left, top) in the stroke and fill colours.",
+  "example_lines": [
+   [
+    1690,
+    1696
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.star.defaults",
+  "section": "Slots > Art for Slots > star [L1826]",
+  "signature": "star(left, top)",
+  "claim": "star's defaults are points = 10, outer = 100.0, inner = 50.0.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "art.stroke",
+  "section": "Slots > Art for Slots > stroke [L1833-1849]",
+  "signature": "stroke(pattern) » pattern",
+  "claim": "stroke(pattern) sets the line colour (a colour, gradient or image) for shapes drawn afterwards and returns the pattern.",
+  "example_lines": [
+   [
+    1841,
+    1847
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.strokewidth",
+  "section": "Slots > Art for Slots > strokewidth [L1851-1855]",
+  "signature": "strokewidth(a number) » self",
+  "claim": "strokewidth(n) sets the line width for later drawing in the slot; strokewidth(4) draws 4-pixel lines.",
+  "example_lines": [
+   [
+    1724,
+    1732
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.transform",
+  "section": "Slots > Art for Slots > transform [L1857-1860]",
+  "signature": "transform(:center or :corner) » self",
+  "claim": "transform(:center | :corner) chooses whether rotate (and skew) pivot on the shape's centre or corner; the default is :corner.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": "skew is mentioned here and documented nowhere else."
+ },
+ {
+  "id": "art.translate",
+  "section": "Slots > Art for Slots > translate [L1862-1868]",
+  "signature": "translate(left, top) » self",
+  "claim": "translate(left, top) moves the pen's origin; after translate(10, 20), a shape drawn at (50, 60) lands at (60, 80).",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "art.constants.PI_TWO_PI",
+  "section": "Slots > Art for Slots > arc [L1669-1815]",
+  "signature": "PI, TWO_PI, Shoes::TWO_PI",
+  "claim": "PI and TWO_PI are available as constants inside apps (and as Shoes::TWO_PI).",
+  "example_lines": [
+   [
+    1806,
+    1818
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.animate",
+  "section": "Slots > Element Creation > animate [L1877-1894]",
+  "signature": "animate(fps) { |frame| ... } » Shoes::Animation",
+  "claim": "animate(fps) { |frame| } calls the block fps times per second alongside the app, passing a frame count that starts at 0; returns a Shoes::Animation.",
+  "example_lines": [
+   [
+    1886,
+    1894
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.animate.default_fps",
+  "section": "Slots > Element Creation > animate [L1896-1897]",
+  "signature": "animate { |frame| }",
+  "claim": "With no fps argument, animate runs at 10 frames per second.",
+  "example_lines": [
+   [
+    2601,
+    2616
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.background",
+  "section": "Slots > Element Creation > background [L1899-1903]",
+  "signature": "background(pattern) » Shoes::Background",
+  "claim": "background(pattern) draws a Background element; colours and images tile across it and gradients stretch to fill it.",
+  "example_lines": [
+   [
+    2766,
+    2771
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.background.is_element",
+  "section": "Slots > Element Creation > background [L1905-1907]",
+  "signature": "@back = background green",
+  "claim": "background returns a Background element (not a style), so a box can have several.",
+  "example_lines": [
+   [
+    2568,
+    2583
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.background.layers",
+  "section": "Slots > Element Creation > background [L1905-1919]",
+  "signature": "background black\nbackground white, width: 50",
+  "claim": "Backgrounds layer: the example paints the whole app black, then a 50-pixel white stripe down the left side.",
+  "example_lines": [
+   [
+    1909,
+    1915
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.border",
+  "section": "Slots > Element Creation > border [L1925-1934]",
+  "signature": "border(text, strokewidth: a number) » Shoes::Border",
+  "claim": "border(pattern, strokewidth: n) draws a Border element; colours and images tile, gradients stretch; borders layer like any element.",
+  "example_lines": [
+   [
+    2822,
+    2830
+   ]
+  ],
+  "testability": "visual",
+  "version_note": "The heading names the first argument 'text' but it is a pattern."
+ },
+ {
+  "id": "element.button",
+  "section": "Slots > Element Creation > button [L1936-1939]",
+  "signature": "button(text) { ... } » Shoes::Button",
+  "claim": "button(text) adds a push button with that label and returns a Shoes::Button.",
+  "example_lines": [
+   [
+    2866,
+    2872
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.button.block",
+  "section": "Slots > Element Creation > button [L1938-1939]",
+  "signature": "button \"OK!\" do ... end",
+  "claim": "An optional block on button runs when the button is pressed.",
+  "example_lines": [
+   [
+    2877,
+    2887
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "element.check",
+  "section": "Slots > Element Creation > check [L1945-1947]",
+  "signature": "check() » Shoes::Check",
+  "claim": "check adds a check box and returns a Shoes::Check.",
+  "example_lines": [
+   [
+    2936,
+    2945
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.dialog",
+  "section": "Slots > Element Creation > dialog [L1958-1961]",
+  "signature": "dialog(styles) { ... } » Shoes::App",
+  "claim": "dialog(styles) { } opens a new app window like window does, with a dialog-box look, and returns a Shoes::App.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.edit_box",
+  "section": "Slots > Element Creation > edit_box [L1963-1967]",
+  "signature": "edit_box(text) » Shoes::EditBox",
+  "claim": "edit_box(text) adds a multi-line text area, optionally pre-filled with text; returns a Shoes::EditBox.",
+  "example_lines": [
+   [
+    1969,
+    1976
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.edit_box.block",
+  "section": "Slots > Element Creation > edit_box [L1966-1967]",
+  "signature": "edit_box do |e| ... end",
+  "claim": "An optional block on edit_box runs whenever the user changes the text.",
+  "example_lines": [
+   [
+    3021,
+    3030
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "element.edit_line",
+  "section": "Slots > Element Creation > edit_line [L1978-1982]",
+  "signature": "edit_line(text) » Shoes::EditLine",
+  "claim": "edit_line(text) adds a single-line text box, optionally pre-filled; returns a Shoes::EditLine.",
+  "example_lines": [
+   [
+    3066,
+    3074
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.edit_line.block",
+  "section": "Slots > Element Creation > edit_line [L1981-1982]",
+  "signature": "edit_line do |e| ... end",
+  "claim": "An optional block on edit_line runs whenever the user changes the text.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "element.every",
+  "section": "Slots > Element Creation > every [L1989-1994]",
+  "signature": "every(seconds) { |count| ... } » Shoes::Every",
+  "claim": "every(seconds) { |count| } runs the block repeatedly, once every N seconds; returns a Shoes::Every.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "Where count starts is not stated (animate's frame starts at 0)."
+ },
+ {
+  "id": "element.flow",
+  "section": "Slots > Element Creation > flow [L1996-2004]",
+  "signature": "flow(styles) { ... } » Shoes::Flow",
+  "claim": "flow(styles) { } creates an invisible box that lays children end-to-end and starts a new line at the edge; returns a Shoes::Flow.",
+  "example_lines": [
+   [
+    330,
+    343
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.image",
+  "section": "Slots > Element Creation > image [L2006-2009]",
+  "signature": "image(path) » Shoes::Image",
+  "claim": "image(path) creates an Image element showing a PNG, JPEG or GIF; returns a Shoes::Image.",
+  "example_lines": [
+   [
+    3113,
+    3119
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.image.remote",
+  "section": "Slots > Element Creation > image [L2011-2015]",
+  "signature": "image \"http://...\"",
+  "claim": "image's path may be a URL; remote images load in the background and appear once loaded; all images are cached in memory, remote ones on disk too.",
+  "example_lines": [
+   [
+    3127,
+    3132
+   ]
+  ],
+  "testability": "api",
+  "version_note": "Needs network."
+ },
+ {
+  "id": "element.imagesize",
+  "section": "Slots > Element Creation > imagesize [L2017-2023]",
+  "signature": "imagesize(path) » [width, height]",
+  "claim": "imagesize(path) returns [width, height] of a local image without caching or displaying it; it does not work for remote images.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.link",
+  "section": "Slots > Element Creation > link [L2034-2037]",
+  "signature": "link(text, click: proc or string) » Shoes::Link",
+  "claim": "link(text, click: proc_or_string) creates a Link text fragment styled with a single underline and a #06E (blue) stroke.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.link.click_proc",
+  "section": "Slots > Element Creation > link [L2034]",
+  "signature": "link(\"x\", click: proc { })",
+  "claim": "A link's click: proc runs when the link is clicked.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "element.link.click_string",
+  "section": "Slots > Element Creation > link [L2034]",
+  "signature": "link(\"x\", click: \"/url\")",
+  "claim": "A link's click: string is a URL the app visits when clicked.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": "String semantics are implied by the signature only."
+ },
+ {
+  "id": "element.link.hover_style",
+  "section": "Slots > Element Creation > link [L2039]",
+  "signature": "LinkHover",
+  "claim": "A hovered link uses the LinkHover style: single underline with a #039 (dark blue) stroke.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "element.list_box",
+  "section": "Slots > Element Creation > list_box [L2041-2058]",
+  "signature": "list_box(items: [strings, ...]) » Shoes::ListBox",
+  "claim": "list_box(items: [...]) adds a drop-down with one entry per item; ListBox#text returns the selection; returns a Shoes::ListBox.",
+  "example_lines": [
+   [
+    2047,
+    2055
+   ]
+  ],
+  "testability": "api",
+  "version_note": "Points to a 'ListBox section under Native controls' that does not exist."
+ },
+ {
+  "id": "element.list_box.block",
+  "section": "Slots > Element Creation > list_box [L2043-2045]",
+  "signature": "list_box items: [...] do |list| ... end",
+  "claim": "An optional block on list_box runs when the user selects an item.",
+  "example_lines": [
+   [
+    3186,
+    3197
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "element.progress",
+  "section": "Slots > Element Creation > progress [L2060-2062]",
+  "signature": "progress() » Shoes::Progress",
+  "claim": "progress adds a progress bar and returns a Shoes::Progress.",
+  "example_lines": [
+   [
+    3248,
+    3259
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.radio",
+  "section": "Slots > Element Creation > radio [L2069-2074]",
+  "signature": "radio(group name: a string or symbol) » Shoes::Radio",
+  "claim": "radio(group) adds a radio button; radios sharing a group allow only one checked; with no group they group by slot.",
+  "example_lines": [
+   [
+    3283,
+    3291
+   ],
+   [
+    3315,
+    3334
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.stack",
+  "section": "Slots > Element Creation > stack [L2080-2087]",
+  "signature": "stack(styles) { ... } » Shoes::Stack",
+  "claim": "stack(styles) { } creates an invisible box whose children pile up vertically; returns a Shoes::Stack.",
+  "example_lines": [
+   [
+    185,
+    193
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.timer",
+  "section": "Slots > Element Creation > timer [L2111-2125]",
+  "signature": "timer(seconds) { ... } » Shoes::Timer",
+  "claim": "timer(seconds) { } runs the block once, after the given number of seconds; returns a Shoes::Timer.",
+  "example_lines": [
+   [
+    2118,
+    2125
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.video",
+  "section": "Slots > Element Creation > video [L2131-2133]",
+  "signature": "video(path or url) » Shoes::Video",
+  "claim": "video(path_or_url) embeds a movie in the slot and returns a Shoes::Video.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "element.window",
+  "section": "Slots > Element Creation > window [L2135-2154]",
+  "signature": "window(styles) { ... } » Shoes::App",
+  "claim": "window(styles) { } opens a new app window almost like Shoes.app, but sets its owner to the launching App; returns a Shoes::App.",
+  "example_lines": [
+   [
+    2145,
+    2154
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.banner",
+  "section": "Slots > Element Creation > banner [L1921-1924]",
+  "signature": "banner(text) » Shoes::Banner",
+  "claim": "banner(text) creates a Banner text block holding the text and returns a Shoes::Banner.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.banner.size",
+  "section": "Slots > Element Creation > banner [L1921-1924]",
+  "signature": "banner \"text\"",
+  "claim": "A banner is styled 48 pixels high by default.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.title",
+  "section": "Slots > Element Creation > title [L2127-2130]",
+  "signature": "title(text) » Shoes::Title",
+  "claim": "title(text) creates a Title text block holding the text and returns a Shoes::Title.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.title.size",
+  "section": "Slots > Element Creation > title [L2127-2130]",
+  "signature": "title \"text\"",
+  "claim": "A title is styled 34 pixels high by default.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.subtitle",
+  "section": "Slots > Element Creation > subtitle [L2098-2101]",
+  "signature": "subtitle(text) » Shoes::Subtitle",
+  "claim": "subtitle(text) creates a Subtitle text block holding the text and returns a Shoes::Subtitle.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.subtitle.size",
+  "section": "Slots > Element Creation > subtitle [L2098-2101]",
+  "signature": "subtitle \"text\"",
+  "claim": "A subtitle is styled 26 pixels high by default.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.tagline",
+  "section": "Slots > Element Creation > tagline [L2107-2110]",
+  "signature": "tagline(text) » Shoes::Tagline",
+  "claim": "tagline(text) creates a Tagline text block holding the text and returns a Shoes::Tagline.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.tagline.size",
+  "section": "Slots > Element Creation > tagline [L2107-2110]",
+  "signature": "tagline \"text\"",
+  "claim": "A tagline is styled 18 pixels high by default.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.caption",
+  "section": "Slots > Element Creation > caption [L1941-1944]",
+  "signature": "caption(text) » Shoes::Caption",
+  "claim": "caption(text) creates a Caption text block holding the text and returns a Shoes::Caption.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.caption.size",
+  "section": "Slots > Element Creation > caption [L1941-1944]",
+  "signature": "caption \"text\"",
+  "claim": "A caption is styled 14 pixels high by default.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.para",
+  "section": "Slots > Element Creation > para [L2064-2067]",
+  "signature": "para(text) » Shoes::Para",
+  "claim": "para(text) creates a Para text block holding the text and returns a Shoes::Para.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.para.size",
+  "section": "Slots > Element Creation > para [L2064-2067]",
+  "signature": "para \"text\"",
+  "claim": "A para is styled 12 pixels high by default.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.inscription",
+  "section": "Slots > Element Creation > inscription [L2030-2033]",
+  "signature": "inscription(text) » Shoes::Inscription",
+  "claim": "inscription(text) creates an Inscription text block holding the text and returns a Shoes::Inscription.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.inscription.size",
+  "section": "Slots > Element Creation > inscription [L2030-2033]",
+  "signature": "inscription \"text\"",
+  "claim": "An inscription is styled 10 pixels high by default.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.para.multiple_args",
+  "section": "Elements > EditBox [L3027-3028]",
+  "signature": "para strong(\"The Taste of Tea\"), \" by Katsuhito Ishii\\n\"",
+  "claim": "para (and any text block) accepts several arguments mixing Strings and text fragments, joined in order.",
+  "example_lines": [
+   [
+    3021,
+    3030
+   ],
+   [
+    3283,
+    3291
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.para.no_args",
+  "section": "Shoes > The App Object > mouse [L992]",
+  "signature": "@p = para",
+  "claim": "para can be called with no arguments, creating an empty text block to fill later.",
+  "example_lines": [
+   [
+    989,
+    998
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.para.non_string_args",
+  "section": "Hello! > The Rules of Shoes > Shoes Tricky Blocks [L237-691]",
+  "signature": "para self / para Storage.new / para Dir.entries(folder)",
+  "claim": "Examples pass an App, arbitrary objects and an Array to para; each is displayed in text form.",
+  "example_lines": [
+   [
+    235,
+    244
+   ],
+   [
+    517,
+    523
+   ],
+   [
+    687,
+    693
+   ]
+  ],
+  "testability": "api",
+  "version_note": "How non-Strings (especially Arrays) are converted is never specified."
+ },
+ {
+  "id": "element.textblock.size_override",
+  "section": "Shoes > The App Object > download [L920]",
+  "signature": "title \"Searching Google\", size: 16",
+  "claim": "A :size style on a text block overrides its default size.",
+  "example_lines": [
+   [
+    916,
+    929
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.code",
+  "section": "Slots > Element Creation > code [L1949-1952]",
+  "signature": "code(text) » Shoes::Code",
+  "claim": "code(text) creates a Code text fragment and returns a Shoes::Code.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.code.default_style",
+  "section": "Slots > Element Creation > code [L1949-1952]",
+  "signature": "para code(\"text\")",
+  "claim": "A code fragment is styled with a monospaced font by default.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.del",
+  "section": "Slots > Element Creation > del [L1953-1956]",
+  "signature": "del(text) » Shoes::Del",
+  "claim": "del(text) creates a Del text fragment and returns a Shoes::Del.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.del.default_style",
+  "section": "Slots > Element Creation > del [L1953-1956]",
+  "signature": "para del(\"text\")",
+  "claim": "A del fragment is styled with a single strikethrough by default.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.em",
+  "section": "Slots > Element Creation > em [L1984-1987]",
+  "signature": "em(text) » Shoes::Em",
+  "claim": "em(text) creates an Em text fragment and returns a Shoes::Em.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.em.default_style",
+  "section": "Slots > Element Creation > em [L1984-1987]",
+  "signature": "para em(\"text\")",
+  "claim": "An em fragment is styled with italics by default.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.ins",
+  "section": "Slots > Element Creation > ins [L2025-2028]",
+  "signature": "ins(text) » Shoes::Ins",
+  "claim": "ins(text) creates an Ins text fragment and returns a Shoes::Ins.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.ins.default_style",
+  "section": "Slots > Element Creation > ins [L2025-2028]",
+  "signature": "para ins(\"text\")",
+  "claim": "An ins fragment is styled with a single underline by default.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.span",
+  "section": "Slots > Element Creation > span [L2076-2079]",
+  "signature": "span(text) » Shoes::Span",
+  "claim": "span(text) creates a Span text fragment and returns a Shoes::Span.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.span.default_style",
+  "section": "Slots > Element Creation > span [L2076-2079]",
+  "signature": "para span(\"text\")",
+  "claim": "A span fragment is styled with no styling at all by default.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.strong",
+  "section": "Slots > Element Creation > strong [L2089-2092]",
+  "signature": "strong(text) » Shoes::Strong",
+  "claim": "strong(text) creates a Strong text fragment and returns a Shoes::Strong.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.strong.default_style",
+  "section": "Slots > Element Creation > strong [L2089-2092]",
+  "signature": "para strong(\"text\")",
+  "claim": "A strong fragment is styled with bold by default.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.sub",
+  "section": "Slots > Element Creation > sub [L2093-2096]",
+  "signature": "sub(text) » Shoes::Sub",
+  "claim": "sub(text) creates a Sub text fragment and returns a Shoes::Sub.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.sub.default_style",
+  "section": "Slots > Element Creation > sub [L2093-2096]",
+  "signature": "para sub(\"text\")",
+  "claim": "A sub fragment is styled with text lowered 10 pixels in an x-small font by default.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.sup",
+  "section": "Slots > Element Creation > sup [L2102-2105]",
+  "signature": "sup(text) » Shoes::Sup",
+  "claim": "sup(text) creates a Sup text fragment and returns a Shoes::Sup.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.sup.default_style",
+  "section": "Slots > Element Creation > sup [L2102-2105]",
+  "signature": "para sup(\"text\")",
+  "claim": "A sup fragment is styled with text raised 10 pixels in an x-small font by default.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "element.fragment.standalone_then_placed",
+  "section": "Elements > EditBox [L3027-3028]",
+  "signature": "@counter = strong(\"0\")\npara @counter, \" characters\"",
+  "claim": "A fragment can be created on its own, stored, and passed into a para later.",
+  "example_lines": [
+   [
+    3021,
+    3030
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "element.fragment.text_setter_non_string",
+  "section": "Elements > EditBox [L3025]",
+  "signature": "@counter.text = e.text.size",
+  "claim": "A fragment's text= accepts a non-String (an Integer in the example), and the containing para updates.",
+  "example_lines": [
+   [
+    3021,
+    3030
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "events.overview",
+  "section": "Slots > Events [L2158-2165]",
+  "signature": "(prose)",
+  "claim": "Slots receive motion, click, hover and leave (mouse), keypress (keyboard), and start and finish (slot created or discarded) events via attached blocks.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.hover_leave_example",
+  "section": "Slots > Events [L2167-2185]",
+  "signature": "hover { s.clear { background blue } }\nleave { s.clear { background red } }",
+  "claim": "hover and leave on a 200x200 stack swap its background between red and blue as the mouse enters and exits.",
+  "example_lines": [
+   [
+    2172,
+    2185
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.click",
+  "section": "Slots > Events > click [L2187-2193]",
+  "signature": "click { |button, left, top| ... } » self",
+  "claim": "click { |button, left, top| } runs when a mouse button is pressed; it receives the button number and the click coordinates; returns self.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.finish",
+  "section": "Slots > Events > finish [L2195-2198]",
+  "signature": "finish { |self| ... } » self",
+  "claim": "finish { |slot| } runs when the slot is removed and receives the removed slot.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "events.hover",
+  "section": "Slots > Events > hover [L2200-2205]",
+  "signature": "hover { |self| ... } » self",
+  "claim": "hover { |obj| } runs when the mouse enters the slot and receives the hovered object.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress",
+  "section": "Slots > Events > keypress [L2207-2237]",
+  "signature": "keypress { |key| ... } » self",
+  "claim": "keypress { |key| } runs on every key or key combination: character keys arrive as Strings, special keys and combinations as Symbols.",
+  "example_lines": [
+   [
+    2229,
+    2237
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.shift_letter",
+  "section": "Slots > Events > keypress [L2214]",
+  "signature": "\"A\"",
+  "claim": "Shift-a delivers the String \"A\".",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.function_key",
+  "section": "Slots > Events > keypress [L2216]",
+  "signature": ":f1",
+  "claim": "The F1 key delivers the Symbol :f1.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.shift_special",
+  "section": "Slots > Events > keypress [L2217]",
+  "signature": ":shift_f1",
+  "claim": "Shift-F1 delivers :shift_f1.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.modifier_order",
+  "section": "Slots > Events > keypress [L2219-2221]",
+  "signature": ":control_shift_alt_page_up",
+  "claim": "Modifier prefixes are control, shift, alt in that order: Shift-Control-Alt-PgUp delivers :control_shift_alt_page_up.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.shift_absorbed",
+  "section": "Slots > Events > keypress [L2223-2227]",
+  "signature": "\"&\"  :alt_&",
+  "claim": "Shift is folded into printable keys: Shift-7 on a US keyboard delivers \"&\"; Shift-Alt-7 delivers :alt_&. Shift appears only on special keys.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.reserved_hotkeys",
+  "section": "Slots > Events > keypress [L2239-2240]",
+  "signature": ":alt_.  :alt_?  :alt_/",
+  "claim": "Alt-Period, Alt-Question and Alt-Slash are reserved for Shoes itself.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": "Shoes 2/3 built-in console (Alt-/ or Cmd-/); the manual names no console for other implementations."
+ },
+ {
+  "id": "events.keypress.special.escape",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":escape",
+  "claim": "The escape special key delivers the Symbol :escape.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.delete",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":delete",
+  "claim": "The delete special key delivers the Symbol :delete.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.backspace",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":backspace",
+  "claim": "The backspace special key delivers the Symbol :backspace.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.tab",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":tab",
+  "claim": "The tab special key delivers the Symbol :tab.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.page_up",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":page_up",
+  "claim": "The page_up special key delivers the Symbol :page_up.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.page_down",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":page_down",
+  "claim": "The page_down special key delivers the Symbol :page_down.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.home",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":home",
+  "claim": "The home special key delivers the Symbol :home.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.end",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":end",
+  "claim": "The end special key delivers the Symbol :end.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.left",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":left",
+  "claim": "The left special key delivers the Symbol :left.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.up",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":up",
+  "claim": "The up special key delivers the Symbol :up.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.right",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":right",
+  "claim": "The right special key delivers the Symbol :right.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.down",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":down",
+  "claim": "The down special key delivers the Symbol :down.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.f1",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":f1",
+  "claim": "The f1 special key delivers the Symbol :f1.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.f2",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":f2",
+  "claim": "The f2 special key delivers the Symbol :f2.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.f3",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":f3",
+  "claim": "The f3 special key delivers the Symbol :f3.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.f4",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":f4",
+  "claim": "The f4 special key delivers the Symbol :f4.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.f5",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":f5",
+  "claim": "The f5 special key delivers the Symbol :f5.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.f6",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":f6",
+  "claim": "The f6 special key delivers the Symbol :f6.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.f7",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":f7",
+  "claim": "The f7 special key delivers the Symbol :f7.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.f8",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":f8",
+  "claim": "The f8 special key delivers the Symbol :f8.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.f9",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":f9",
+  "claim": "The f9 special key delivers the Symbol :f9.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.f10",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":f10",
+  "claim": "The f10 special key delivers the Symbol :f10.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.f11",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":f11",
+  "claim": "The f11 special key delivers the Symbol :f11.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.special.f12",
+  "section": "Slots > Events > keypress [L2242-2245]",
+  "signature": ":f12",
+  "claim": "The f12 special key delivers the Symbol :f12.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.return",
+  "section": "Slots > Events > keypress [L2247-2248]",
+  "signature": "\"\\n\"",
+  "claim": "Return delivers the String \"\\n\".",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.keypress.return_with_modifiers",
+  "section": "Slots > Events > keypress [L2248-2249]",
+  "signature": ":control_enter  :control_alt_enter  :shift_alt_enter",
+  "claim": "Return with modifiers delivers :control_enter, :control_alt_enter, :shift_alt_enter and similar.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.leave",
+  "section": "Slots > Events > leave [L2251-2257]",
+  "signature": "leave { |self| ... } » self",
+  "claim": "leave { |slot| } runs when the cursor leaves the slot's edges and receives the slot being left.",
+  "example_lines": [
+   [
+    2172,
+    2185
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.motion",
+  "section": "Slots > Events > motion [L2259-2275]",
+  "signature": "motion { |left, top| ... } » self",
+  "claim": "motion { |left, top| } runs on every mouse move inside the slot, with the cursor coordinates.",
+  "example_lines": [
+   [
+    2264,
+    2275
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.release",
+  "section": "Slots > Events > release [L2277-2284]",
+  "signature": "release { |button, left, top| ... } » self",
+  "claim": "release { |button, left, top| } runs on mouse-up with the released button and the cursor coordinates.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "events.start",
+  "section": "Slots > Events > start [L2286-2289]",
+  "signature": "start { |self| ... } » self",
+  "claim": "start { |slot| } runs the first time the slot is drawn and receives the slot.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "manip.append",
+  "section": "Slots > Manipulation Blocks > append [L2296-2313]",
+  "signature": "append() { ... } » self",
+  "claim": "slot.append { } adds the block's elements to the end of the slot, even when called later from a timer.",
+  "example_lines": [
+   [
+    2300,
+    2311
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "manip.after",
+  "section": "Slots > Manipulation Blocks > after [L2315-2318]",
+  "signature": "after(element) { ... } » self",
+  "claim": "slot.after(element) { } inserts the block's elements just after that child of the slot.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "manip.before",
+  "section": "Slots > Manipulation Blocks > before [L2320-2323]",
+  "signature": "before(element) { ... } » self",
+  "claim": "slot.before(element) { } inserts the block's elements just before that child of the slot.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "manip.clear",
+  "section": "Slots > Manipulation Blocks > clear [L2325-2329]",
+  "signature": "clear() » self",
+  "claim": "slot.clear empties the slot of elements, timers and nested slots, like calling remove on each child.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "manip.clear.stops_timers",
+  "section": "Slots > Manipulation Blocks > clear [L2327-2329]",
+  "signature": "slot.clear",
+  "claim": "Timers created inside a slot stop when the slot is cleared.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "manip.clear_with_block",
+  "section": "Slots > Manipulation Blocks > clear [L2331-2347]",
+  "signature": "clear() { ... } » self",
+  "claim": "slot.clear { } replaces the slot's contents with the block's elements.",
+  "example_lines": [
+   [
+    2336,
+    2344
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "manip.prepend",
+  "section": "Slots > Manipulation Blocks > prepend [L2349-2363]",
+  "signature": "prepend() { ... } » self",
+  "claim": "slot.prepend { } adds the block's elements to the start of the slot.",
+  "example_lines": [
+   [
+    2353,
+    2361
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "manip.direct_add_in_handler",
+  "section": "Elements > Button [L2906-2913]",
+  "signature": "@b1.click { para \"Well okay then.\" }",
+  "claim": "Inside a click handler, calling para directly adds to the slot without append; this does not hold for prepend, before or after.",
+  "example_lines": [
+   [
+    2896,
+    2904
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "slot.style_at_creation",
+  "section": "Slots > Position of a Slot [L2367-2376]",
+  "signature": "stack(width: 150) { ... }",
+  "claim": "Slots take styles at creation; stack(width: 150) is 150 pixels wide.",
+  "example_lines": [
+   [
+    2371,
+    2376
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slot.style_getter_methods",
+  "section": "Slots > Position of a Slot [L2378-2380]",
+  "signature": "slot.width",
+  "claim": "Every style has a same-named getter method; width returns the slot's width in pixels.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "slot.displace",
+  "section": "Slots > Position of a Slot > displace [L2382-2392]",
+  "signature": "displace(left: a number, top: a number) » self",
+  "claim": "displace(left, top) sets :displace_left/:displace_top, offsetting the slot from its own top-left without changing layout; meant for temporary animation.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slot.displace.not_reported",
+  "section": "Slots > Position of a Slot > displace [L2385-2387]",
+  "signature": "slot.left / slot.top",
+  "claim": "The top and left methods do not report displacement.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "slot.gutter",
+  "section": "Slots > Position of a Slot > gutter [L2394-2410]",
+  "signature": "gutter() » a number",
+  "claim": "gutter returns the scrollbar's width in pixels, e.g. for margin_right: 20 + gutter.",
+  "example_lines": [
+   [
+    2403,
+    2410
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "slot.height",
+  "section": "Slots > Position of a Slot > height [L2412-2415]",
+  "signature": "height() » a number",
+  "claim": "height returns the slot's visible height in pixels; a scrolling slot's full height is scroll_height.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slot.hide",
+  "section": "Slots > Position of a Slot > hide [L2417-2419]",
+  "signature": "hide() » self",
+  "claim": "hide makes the slot invisible and returns self.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "slot.left",
+  "section": "Slots > Position of a Slot > left [L2421-2423]",
+  "signature": "left() » a number",
+  "claim": "left returns the slot's x coordinate in pixels.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slot.move",
+  "section": "Slots > Position of a Slot > move [L2425-2428]",
+  "signature": "move(left, top) » self",
+  "claim": "move(left, top) moves the slot so its upper-left corner is at those coordinates.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slot.remove",
+  "section": "Slots > Position of a Slot > remove [L2430-2433]",
+  "signature": "remove() » self",
+  "claim": "remove deletes the slot: it is no longer displayed or listed in its parent's contents.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "slot.scroll",
+  "section": "Slots > Position of a Slot > scroll [L2435-2438]",
+  "signature": "scroll() » true or false",
+  "claim": "scroll returns whether the slot may show a scrollbar; one appears only if the slot's height is also fixed.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "slot.scroll_height",
+  "section": "Slots > Position of a Slot > scroll_height [L2440-2442]",
+  "signature": "scroll_height() » a number",
+  "claim": "scroll_height returns the slot's full height, including content hidden by scrolling.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slot.scroll_max",
+  "section": "Slots > Position of a Slot > scroll_max [L2444-2453]",
+  "signature": "scroll_max() » a number",
+  "claim": "scroll_max returns scroll_height - height, the furthest point the slot can scroll to; scroll_top = scroll_max scrolls to the bottom.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slot.scroll_top",
+  "section": "Slots > Position of a Slot > scroll_top [L2455-2458]",
+  "signature": "scroll_top() » a number",
+  "claim": "scroll_top returns how far the slot is scrolled down (20 after scrolling 20 pixels).",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slot.scroll_top=",
+  "section": "Slots > Position of a Slot > scroll_top= [L2460-2463]",
+  "signature": "scroll_top = a number",
+  "claim": "scroll_top = n scrolls the slot to n, which must be between 0 and scroll_max.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slot.show",
+  "section": "Slots > Position of a Slot > show [L2465-2468]",
+  "signature": "show() » self",
+  "claim": "show reveals a hidden slot and returns self.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "slot.style_get",
+  "section": "Slots > Position of a Slot > style [L2470-2487]",
+  "signature": "style() » styles",
+  "claim": "style returns the slot's style Hash; style[:width] gives the requested value (\"100%\"), while width gives real pixels.",
+  "example_lines": [
+   [
+    2479,
+    2485
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "slot.style_set",
+  "section": "Slots > Position of a Slot > style [L2489-2501]",
+  "signature": "style(styles) » styles",
+  "claim": "style(hash) changes the slot; any method in this section can be used as a style key.",
+  "example_lines": [
+   [
+    2495,
+    2501
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "slot.toggle",
+  "section": "Slots > Position of a Slot > toggle [L2503-2505]",
+  "signature": "toggle() » self",
+  "claim": "toggle hides a shown slot or shows a hidden one.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "slot.top",
+  "section": "Slots > Position of a Slot > top [L2507-2509]",
+  "signature": "top() » a number",
+  "claim": "top returns the slot's y coordinate in pixels.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "slot.width",
+  "section": "Slots > Position of a Slot > width [L2511-2513]",
+  "signature": "width() » a number",
+  "claim": "width returns the slot's width in pixels.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "traverse.contents",
+  "section": "Slots > Traversing the Page [L2521-2528]",
+  "signature": "contents() » an array of elements",
+  "claim": "slot.contents returns an Array of every element in the slot.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "traverse.parent",
+  "section": "Slots > Traversing the Page [L2521-2532]",
+  "signature": "parent() » a Shoes::Stack or Shoes::Flow",
+  "claim": "element.parent returns the slot that contains the element.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "traverse.textblock_contents",
+  "section": "Slots > Traversing the Page [L2523-2524]",
+  "signature": "para.contents",
+  "claim": "Some elements, such as text blocks, also have a contents method listing their children.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "elements.native_controls",
+  "section": "Elements [L2540-2544]",
+  "signature": "(prose)",
+  "claim": "Seven native controls (Button, EditLine, EditBox, ListBox, Progress, Check, Radio) are drawn by the OS and look different per platform.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "elements.other_types",
+  "section": "Elements [L2546-2548]",
+  "signature": "(prose)",
+  "claim": "Seven other element types (Background, Border, Image, Shape, TextBlock, Timer, Video) look and act the same on every OS.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "elements.creation_returns_object",
+  "section": "Elements [L2550-2557]",
+  "signature": "@img = image(\"x.png\")",
+  "claim": "Creation methods return the element object so it can later be moved, hidden, restyled or removed.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "common.style_example",
+  "section": "Elements > Common Methods [L2565-2583]",
+  "signature": "@text.style size: 12, stroke: red, margin: 10",
+  "claim": "Backgrounds, text and buttons are all elements, and all can be restyled with style.",
+  "example_lines": [
+   [
+    2568,
+    2583
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "common.displace",
+  "section": "Elements > Common Methods > displace [L2589-2616]",
+  "signature": "displace(left: a number, top: a number) » self",
+  "claim": "displace(left, top) offsets an element from where it was laid out without moving its neighbours; displacing (20, 40) by (2, 6) draws it at (22, 46).",
+  "example_lines": [
+   [
+    2601,
+    2616
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "common.displace.coords_unchanged",
+  "section": "Elements > Common Methods > displace [L2623-2626]",
+  "signature": "@two.left / @two.top",
+  "claim": "left and top on a displaced element return its un-displaced coordinates.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "common.height",
+  "section": "Elements > Common Methods > height [L2628-2637]",
+  "signature": "height() » a number",
+  "claim": "height returns the element's on-screen height in pixels (for an image, as shown, not the file's size).",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "common.hide",
+  "section": "Elements > Common Methods > hide [L2639-2642]",
+  "signature": "hide() » self",
+  "claim": "hide makes the element invisible and returns self.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "common.left",
+  "section": "Elements > Common Methods > left [L2644-2646]",
+  "signature": "left() » a number",
+  "claim": "left returns the pixel position of the element's left edge.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "common.move",
+  "section": "Elements > Common Methods > move [L2648-2674]",
+  "signature": "move(left: a number, top: a number) » self",
+  "claim": "move(left, top) takes the element out of the stack/flow and positions it absolutely within its slot; siblings close up the gap.",
+  "example_lines": [
+   [
+    2655,
+    2670
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "common.parent",
+  "section": "Elements > Common Methods > parent [L2676-2679]",
+  "signature": "parent() » a Shoes::Stack or Shoes::Flow",
+  "claim": "parent returns the element's container slot.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "common.remove",
+  "section": "Elements > Common Methods > remove [L2681-2684]",
+  "signature": "remove() » self",
+  "claim": "remove takes the element out of its slot so it is no longer displayed.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "common.show",
+  "section": "Elements > Common Methods > show [L2686-2689]",
+  "signature": "show() » self",
+  "claim": "show reveals a hidden element.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "common.style_get",
+  "section": "Elements > Common Methods > style [L2691-2707]",
+  "signature": "style() » styles",
+  "claim": "style returns the element's full style Hash with original settings (\"100%\" widths, \"10px\" tops).",
+  "example_lines": [
+   [
+    2698,
+    2707
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "common.full_page_button",
+  "section": "Elements > Common Methods > style [L2701-2702]",
+  "signature": "button \"All of it\", width: 1.0, height: 1.0",
+  "claim": "A button styled width: 1.0, height: 1.0 fills the whole page.",
+  "example_lines": [
+   [
+    2698,
+    2707
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "common.style_set",
+  "section": "Elements > Common Methods > style [L2709-2713]",
+  "signature": "style(styles) » styles",
+  "claim": "style(hash) changes an element's styles: width, height, font size, stroke, fill and so on.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "common.toggle",
+  "section": "Elements > Common Methods > toggle [L2715-2717]",
+  "signature": "toggle() » self",
+  "claim": "toggle hides a shown element or shows a hidden one.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "common.top",
+  "section": "Elements > Common Methods > top [L2719-2721]",
+  "signature": "top() » a number",
+  "claim": "top returns the pixel position of the element's top edge.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "common.width",
+  "section": "Elements > Common Methods > width [L2723-2744]",
+  "signature": "width() » a number",
+  "claim": "width returns the element's exact width in pixels: a 100% button inside a 120px stack reports 120 while style[:width] is \"100%\".",
+  "example_lines": [
+   [
+    2734,
+    2744
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "common.width.set_via_style",
+  "section": "Elements > Common Methods > width [L2746-2747]",
+  "signature": "@b.style(width: 150)",
+  "claim": "Width is changed through style, e.g. @b.style(width: 150).",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "common.width.nil_resets",
+  "section": "Elements > Common Methods > width [L2749-2750]",
+  "signature": "@b.style(width: nil)",
+  "claim": "style(width: nil) clears the setting so Shoes picks the width.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "background.is_pattern",
+  "section": "Elements > Background [L2754-2755]",
+  "signature": "Shoes::Background",
+  "claim": "A background (colour, gradient or image) paints an entire slot; backgrounds and borders are kinds of Shoes::Pattern.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "background.paints_over_earlier",
+  "section": "Elements > Background [L2758-2761]",
+  "signature": "rect ...; background black",
+  "claim": "A background created after other drawing (a rect or oval) paints over it.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "background.fills_slot",
+  "section": "Elements > Background [L2763-2774]",
+  "signature": "background black",
+  "claim": "A plain background paints its whole containing slot (the whole window at top level).",
+  "example_lines": [
+   [
+    2766,
+    2771
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "background.height_band",
+  "section": "Elements > Background [L2776-2785]",
+  "signature": "background black, height: 50",
+  "claim": "background black, height: 50 paints only the top 50 pixels.",
+  "example_lines": [
+   [
+    2780,
+    2785
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "background.right_column",
+  "section": "Elements > Background [L2787-2794]",
+  "signature": "background black, width: 50, right: 50",
+  "claim": "The manual says this paints a 50-pixel column on the right side of the window.",
+  "example_lines": [
+   [
+    2789,
+    2794
+   ]
+  ],
+  "testability": "visual",
+  "version_note": "right: 50 should put the column 50px in from the right edge (see :right); the prose ignores that."
+ },
+ {
+  "id": "background.common_methods",
+  "section": "Elements > Background [L2796-2797]",
+  "signature": "(prose)",
+  "claim": "Backgrounds are ordinary elements and support all the common element methods.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "background.to_pattern",
+  "section": "Elements > Background > to_pattern [L2799-2803]",
+  "signature": "to_pattern() » a Shoes::Pattern",
+  "claim": "to_pattern returns the background's colour, gradient or image as a Shoes::Pattern reusable in other backgrounds and borders.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "border.is_pattern",
+  "section": "Elements > Border [L2807-2809]",
+  "signature": "Shoes::Border",
+  "claim": "A border is a colour, gradient or image drawn as a line around a slot's edge; it is a kind of Shoes::Pattern.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "border.inside_edge",
+  "section": "Elements > Border [L2811-2830]",
+  "signature": "border black, strokewidth: 5",
+  "claim": "Borders are painted inside the slot's edge: a 50px-wide slot with a 5px border leaves a 40px-wide inner area.",
+  "example_lines": [
+   [
+    2822,
+    2830
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "border.over_background",
+  "section": "Elements > Border [L2817-2818]",
+  "signature": "background ...; border ...",
+  "claim": "A border painted after a background covers the background's edges.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "border.outside_via_wrapper",
+  "section": "Elements > Border [L2832-2845]",
+  "signature": "stack width: 60 do\n  border black, strokewidth: 5\n  stack width: 50 do ... end\nend",
+  "claim": "To border the outside of a slot, wrap it in a larger slot and put the border on the outer one.",
+  "example_lines": [
+   [
+    2835,
+    2845
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "border.box_size_constant",
+  "section": "Elements > Border [L2847-2850]",
+  "signature": "(prose)",
+  "claim": "A box declared 50 pixels wide stays 50 pixels wide whatever its borders or margins.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "border.to_pattern",
+  "section": "Elements > Border > to_pattern [L2854-2858]",
+  "signature": "to_pattern() » a Shoes::Pattern",
+  "claim": "to_pattern returns the border's colour, gradient or image as a Pattern reusable in new borders and backgrounds.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "button.without_block",
+  "section": "Elements > Button [L2866-2875]",
+  "signature": "button \"OK!\"",
+  "claim": "Buttons created without a block do nothing when clicked.",
+  "example_lines": [
+   [
+    2866,
+    2872
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "button.block_appends",
+  "section": "Elements > Button [L2877-2890]",
+  "signature": "button \"OK!\" do\n  append { para \"Well okay then.\" }\nend",
+  "claim": "A button block that appends a para adds one more paragraph per click.",
+  "example_lines": [
+   [
+    2877,
+    2887
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "button.click_later",
+  "section": "Elements > Button [L2894-2908]",
+  "signature": "@b1 = button \"OK!\"\n@b1.click { para \"Well okay then.\" }",
+  "claim": "button.click { } attaches the handler after creation, with the same effect as a block on button.",
+  "example_lines": [
+   [
+    2896,
+    2904
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "button.common_methods",
+  "section": "Elements > Button [L2915-2916]",
+  "signature": "(prose)",
+  "claim": "Buttons support all the common element methods.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "button.click",
+  "section": "Elements > Button > click [L2918-2921]",
+  "signature": "click() { |self| ... } » self",
+  "claim": "click { |button| } runs when the button is clicked and receives the button.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "button.focus",
+  "section": "Elements > Button > focus [L2923-2926]",
+  "signature": "focus() » self",
+  "claim": "focus highlights the button; pressing Enter then clicks it.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "check.checklist_example",
+  "section": "Elements > Check [L2930-2945]",
+  "signature": "flow { check; para \"Frances Johnson\" }",
+  "claim": "Checks paired with paras in flows make a checklist.",
+  "example_lines": [
+   [
+    2936,
+    2945
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "check.block_or_query",
+  "section": "Elements > Check [L2947-2949]",
+  "signature": "(prose)",
+  "claim": "A check is used either with a block called on click, or by asking checked? later.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "check.query_example",
+  "section": "Elements > Check [L2951-2974]",
+  "signature": "selected = @list.map { |c, name| name if c.checked? }.compact",
+  "claim": "A button can read every check's checked? and alert the names that are checked.",
+  "example_lines": [
+   [
+    2953,
+    2971
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "check.checked?",
+  "section": "Elements > Check > checked? [L2979-2981]",
+  "signature": "checked?() » true or false",
+  "claim": "checked? returns true when the box is checked.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "check.checked=",
+  "section": "Elements > Check > checked= [L2983-2986]",
+  "signature": "checked = true or false",
+  "claim": "checked = true/false marks or unmarks the box.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "check.click",
+  "section": "Elements > Check > click [L2988-2993]",
+  "signature": "click() { |self| ... } » self",
+  "claim": "click { |check| } runs when the check is clicked, both when checking and unchecking, and receives the check.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "check.focus",
+  "section": "Elements > Check > focus [L2995-2998]",
+  "signature": "focus() » self",
+  "claim": "focus highlights the check; pressing Enter then toggles it.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "edit_box.default_size",
+  "section": "Elements > EditBox [L3006-3007]",
+  "signature": "edit_box",
+  "claim": "An unstyled edit box is 200 x 108 pixels.",
+  "example_lines": [
+   [
+    3009,
+    3015
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "edit_box.size_styles",
+  "section": "Elements > EditBox [L3006-3015]",
+  "signature": "edit_box width: 100, height: 100",
+  "claim": ":width and :height give an edit box a specific size.",
+  "example_lines": [
+   [
+    3009,
+    3015
+   ],
+   [
+    1969,
+    1976
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "edit_box.change_on_type_and_delete",
+  "section": "Elements > EditBox [L3017-3019]",
+  "signature": "edit_box do |e| ... end",
+  "claim": "The change block runs every time someone types into or deletes from the box.",
+  "example_lines": [
+   [
+    3021,
+    3030
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "edit_box.change_counter_example",
+  "section": "Elements > EditBox [L3021-3033]",
+  "signature": "@counter.text = e.text.size",
+  "claim": "A change block receives the edit box and can keep a character count in a strong fragment up to date.",
+  "example_lines": [
+   [
+    3021,
+    3030
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "edit_box.change",
+  "section": "Elements > EditBox > change [L3038-3042]",
+  "signature": "change() { |self| ... } » self",
+  "claim": "change { |edit_box| } runs on each added or removed character and receives the edit box.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "edit_box.focus",
+  "section": "Elements > EditBox > focus [L3044-3047]",
+  "signature": "focus() » self",
+  "claim": "focus highlights the edit box and lets the user type into it.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "edit_box.text",
+  "section": "Elements > EditBox > text [L3049-3051]",
+  "signature": "text() » self",
+  "claim": "text returns a String of everything typed into the box.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "The heading says '» self'; the prose says it returns a string."
+ },
+ {
+  "id": "edit_box.text=",
+  "section": "Elements > EditBox > text= [L3053-3055]",
+  "signature": "text = a string",
+  "claim": "text = string fills the edit box with that string.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "edit_line.default_size",
+  "section": "Elements > EditLine [L3063-3064]",
+  "signature": "edit_line",
+  "claim": "An unstyled edit line is about 200 pixels wide and 28 pixels high; height varies by platform.",
+  "example_lines": [
+   [
+    3066,
+    3074
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "edit_line.width_style",
+  "section": "Elements > EditLine [L3071-3079]",
+  "signature": "edit_line width: 400",
+  "claim": ":width resizes an edit line; height normally sizes itself to the font.",
+  "example_lines": [
+   [
+    3066,
+    3074
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "edit_line.font_fixed",
+  "section": "Elements > EditLine [L3078-3079]",
+  "signature": "(prose)",
+  "claim": "The font of edit lines and edit boxes cannot be changed.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": "The manual says 'in current versions of Shoes', so this is version-specific."
+ },
+ {
+  "id": "edit_line.block_is_change",
+  "section": "Elements > EditLine [L3081-3084]",
+  "signature": "edit_line do |e| ... end",
+  "claim": "A block given to edit_line receives change events; edit lines have the same methods as edit boxes.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "edit_line.change",
+  "section": "Elements > EditLine > change [L3086-3090]",
+  "signature": "change() { |self| ... } » self",
+  "claim": "change { |edit_line| } runs on each added or removed character and receives the edit line.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "edit_line.focus",
+  "section": "Elements > EditLine > focus [L3092-3095]",
+  "signature": "focus() » self",
+  "claim": "focus highlights the edit line and lets the user type into it.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "edit_line.text",
+  "section": "Elements > EditLine > text [L3097-3099]",
+  "signature": "text() » self",
+  "claim": "text returns a String of what has been typed.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "The heading says '» self'; the prose says it returns a string."
+ },
+ {
+  "id": "edit_line.text=",
+  "section": "Elements > EditLine > text= [L3101-3103]",
+  "signature": "text = a string",
+  "claim": "text = string fills the edit line with that string.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "image.formats_and_sources",
+  "section": "Elements > Image [L3107-3109]",
+  "signature": "(prose)",
+  "claim": "An image is a PNG, JPEG or GIF picture from a file or the web; Shoes can resize it or flow it with text.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "image.local_file",
+  "section": "Elements > Image [L3111-3119]",
+  "signature": "image \"static/shoes-manual-apps.gif\"",
+  "claim": "image with a relative file path displays that image in the slot.",
+  "example_lines": [
+   [
+    3113,
+    3119
+   ]
+  ],
+  "testability": "visual",
+  "version_note": "What the relative path resolves against is unstated."
+ },
+ {
+  "id": "image.memory_cache",
+  "section": "Elements > Image [L3121-3123]",
+  "signature": "(prose)",
+  "claim": "Loaded images are cached in memory, so many elements from one file load it once.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": ""
+ },
+ {
+  "id": "image.web_url",
+  "section": "Elements > Image [L3125-3132]",
+  "signature": "image \"http://hacketyhack.heroku.com/images/logo.png\"",
+  "claim": "image accepts web URLs directly.",
+  "example_lines": [
+   [
+    3127,
+    3132
+   ]
+  ],
+  "testability": "visual",
+  "version_note": "The example host is long dead."
+ },
+ {
+  "id": "image.disk_cache",
+  "section": "Elements > Image [L3134-3137]",
+  "signature": "(prose)",
+  "claim": "Web images are also cached on disk, using modification times and ETags like a browser.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": ""
+ },
+ {
+  "id": "image.background_loading",
+  "section": "Elements > Image [L3139-3141]",
+  "signature": "(prose)",
+  "claim": "Remote images load on system threads without blocking Ruby or animation.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": ""
+ },
+ {
+  "id": "image.full_height",
+  "section": "Elements > Image > full_height [L3143-3151]",
+  "signature": "full_height() » a number",
+  "claim": "full_height returns the image's height as stored in the file, ignoring any resizing (height gives the scaled size).",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "image.full_width",
+  "section": "Elements > Image > full_width [L3153-3156]",
+  "signature": "full_width() » a number",
+  "claim": "full_width returns the image's width as stored in the file.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "image.path",
+  "section": "Elements > Image > path [L3158-3160]",
+  "signature": "path() » a string",
+  "claim": "path returns the image's URL or file name.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "image.path=",
+  "section": "Elements > Image > path= [L3162-3164]",
+  "signature": "path = a string",
+  "claim": "path = string swaps in a different image from a file or URL.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "image.scaled_height",
+  "section": "Elements > Common Methods > height [L2634-2635]",
+  "signature": "image(\"150x150.png\", width: 50).height",
+  "claim": "A 150x150 image styled to width 50 reports height 50.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": "Assumes aspect ratio is kept, which the manual never states."
+ },
+ {
+  "id": "list_box.items_style",
+  "section": "Elements > ListBox [L3172-3181]",
+  "signature": "list_box items: [\"Grapes\", \"Pears\", \"Apricots\"]",
+  "claim": "A list box takes its options from an Array of Strings in :items.",
+  "example_lines": [
+   [
+    3175,
+    3181
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "list_box.default_size",
+  "section": "Elements > ListBox [L3183-3184]",
+  "signature": "list_box",
+  "claim": "A list box is about 200 pixels wide and 28 pixels high; :width adjusts the length.",
+  "example_lines": [
+   [
+    3186,
+    3197
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "list_box.choose_style",
+  "section": "Elements > ListBox [L3186-3202]",
+  "signature": "list_box items: [...], choose: \"Apricots\"",
+  "claim": ":choose preselects that item when the list box is created.",
+  "example_lines": [
+   [
+    3186,
+    3197
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "list_box.change_block",
+  "section": "Elements > ListBox [L3204-3206]",
+  "signature": "list_box ... do |list| @fruit.text = list.text end",
+  "claim": "A block on list_box is its change handler, called whenever the selection changes; it receives the list box.",
+  "example_lines": [
+   [
+    3186,
+    3197
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "list_box.change",
+  "section": "Elements > ListBox > change [L3211-3215]",
+  "signature": "change() { |self| ... } » self",
+  "claim": "change { |list_box| } runs when the user highlights a new option and receives the list box.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "list_box.choose",
+  "section": "Elements > ListBox > choose [L3217-3219]",
+  "signature": "choose(item: a string) » self",
+  "claim": "choose(item) selects the option that matches the string.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "list_box.focus",
+  "section": "Elements > ListBox > focus [L3221-3224]",
+  "signature": "focus() » self",
+  "claim": "focus highlights the list box; the up and down arrow keys then change the selection.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "list_box.items",
+  "section": "Elements > ListBox > items [L3226-3228]",
+  "signature": "items() » an array of strings",
+  "claim": "items returns every option string the list box shows.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "list_box.items=",
+  "section": "Elements > ListBox > items= [L3230-3232]",
+  "signature": "items = an array of strings",
+  "claim": "items = array replaces the list box's options.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "list_box.text",
+  "section": "Elements > ListBox > text [L3234-3237]",
+  "signature": "text() » a string",
+  "claim": "text returns the highlighted option, or nil if nothing is selected.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "progress.range",
+  "section": "Elements > Progress [L3241-3243]",
+  "signature": "(prose)",
+  "claim": "Progress is measured from 0.0 to 1.0.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "progress.default_width",
+  "section": "Elements > Progress [L3245-3246]",
+  "signature": "progress width: 1.0",
+  "claim": "A progress bar is 200 pixels wide by default; :width lengthens it.",
+  "example_lines": [
+   [
+    3248,
+    3259
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "progress.animate_example",
+  "section": "Elements > Progress [L3248-3259]",
+  "signature": "@p.fraction = (i % 100) / 100.0",
+  "claim": "An animate loop can drive @p.fraction to sweep a full-width progress bar repeatedly.",
+  "example_lines": [
+   [
+    3248,
+    3259
+   ]
+  ],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "progress.fraction",
+  "section": "Elements > Progress > fraction [L3264-3266]",
+  "signature": "fraction() » a decimal number",
+  "claim": "fraction returns progress as a decimal between 0.0 and 1.0.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "progress.fraction=",
+  "section": "Elements > Progress > fraction= [L3268-3270]",
+  "signature": "fraction = a decimal number",
+  "claim": "fraction = decimal sets progress to a value between 0.0 and 1.0.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "radio.one_marked_per_group",
+  "section": "Elements > Radio [L3274-3276]",
+  "signature": "radio",
+  "claim": "Only one radio button in a group can be marked at a time.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "radio.all_visible",
+  "section": "Elements > Radio [L3278-3281]",
+  "signature": "(prose)",
+  "claim": "All radio buttons stay visible whichever one is marked, unlike a list box.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "radio.same_slot_groups",
+  "section": "Elements > Radio [L3283-3294]",
+  "signature": "radio; para strong(\"...\"), \" by ...\\n\"",
+  "claim": "Three radios in the same slot (mixed with paras) are mutually exclusive.",
+  "example_lines": [
+   [
+    3283,
+    3291
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "radio.separate_slots_independent",
+  "section": "Elements > Radio [L3296-3308]",
+  "signature": "flow { radio; para \"...\" }",
+  "claim": "Radios each in their own flow, with no group name, are NOT mutually exclusive.",
+  "example_lines": [
+   [
+    3298,
+    3308
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "radio.named_group_across_slots",
+  "section": "Elements > Radio [L3310-3334]",
+  "signature": "radio :films",
+  "claim": "Radios given the same group name (:films) are mutually exclusive across different slots.",
+  "example_lines": [
+   [
+    3315,
+    3334
+   ]
+  ],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "radio.checked?",
+  "section": "Elements > Radio > checked? [L3339-3342]",
+  "signature": "checked?() » true or false",
+  "claim": "checked? returns true when the radio is checked.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "radio.checked=",
+  "section": "Elements > Radio > checked= [L3344-3347]",
+  "signature": "checked = true or false",
+  "claim": "checked = true/false marks or clears the radio.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "radio.click",
+  "section": "Elements > Radio > click [L3349-3354]",
+  "signature": "click() { |self| ... } » self",
+  "claim": "click { |radio| } runs when the radio is clicked, when marking and unmarking, and receives the radio.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "radio.focus",
+  "section": "Elements > Radio > focus [L3356-3359]",
+  "signature": "focus() » self",
+  "claim": "focus highlights the radio; pressing Enter then toggles it.",
+  "example_lines": [],
+  "testability": "interactive",
+  "version_note": ""
+ },
+ {
+  "id": "shape.element",
+  "section": "Elements > Shape [L3363-3366]",
+  "signature": "Shoes::Shape",
+  "claim": "A Shape is the path outline made by drawing methods such as oval and rect, and supports all common methods.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "textblock.types",
+  "section": "Elements > TextBlock [L3370-3376]",
+  "signature": "(prose)",
+  "claim": "A TextBlock is a group of text treated as one element; caption is a TextBlock, while link and strong are TextClass types.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "textblock.size_table",
+  "section": "Elements > TextBlock [L3378-3384]",
+  "signature": "(list)",
+  "claim": "Default text block sizes: banner 48, title 34, subtitle 26, tagline 18, caption 14, para 12, inscription 10 pixels.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": ""
+ },
+ {
+  "id": "textblock.contents",
+  "section": "Elements > TextBlock > contents [L3386-3388]",
+  "signature": "contents() » an array of elements",
+  "claim": "contents lists every String and styled text object inside the block.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "textblock.replace",
+  "section": "Elements > TextBlock > replace [L3390-3392]",
+  "signature": "replace(a string)",
+  "claim": "replace(string) replaces the text of the whole block.",
+  "example_lines": [
+   [
+    1886,
+    1894
+   ],
+   [
+    2229,
+    2237
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "textblock.text",
+  "section": "Elements > TextBlock > text [L3394-3398]",
+  "signature": "text() » a string",
+  "claim": "text returns all of the block's characters with styling and text classes stripped.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "textblock.text=",
+  "section": "Elements > TextBlock > text= [L3400-3402]",
+  "signature": "text = a string",
+  "claim": "text = string replaces the text of the whole block.",
+  "example_lines": [
+   [
+    916,
+    929
+   ],
+   [
+    3186,
+    3197
+   ]
+  ],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "textblock.to_s",
+  "section": "Elements > TextBlock > to_s [L3404-3407]",
+  "signature": "to_s() » a string",
+  "claim": "to_s is an alias of text: the flattened contents as a String.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "timers.classes",
+  "section": "Elements > Timers [L3411-3413]",
+  "signature": "Shoes::Animation, Shoes::Every, Shoes::Timer",
+  "claim": "There are three timer classes: Animation and Every loop after they start; Timer runs once.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "timers.animation_vs_every",
+  "section": "Elements > Timers [L3415-3417]",
+  "signature": "(prose)",
+  "claim": "Animations fire many times a second; Everies fire once every few seconds or less often.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "timers.start",
+  "section": "Elements > Timers > start [L3419-3423]",
+  "signature": "start() » self",
+  "claim": "Timers start themselves; start restarts one after stop.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "timers.stop",
+  "section": "Elements > Timers > stop [L3425-3428]",
+  "signature": "stop() » self",
+  "claim": "stop pauses an animation or timer; on a one-shot timer that has already fired it does nothing.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "timers.toggle",
+  "section": "Elements > Timers > toggle [L3430-3433]",
+  "signature": "toggle() » self",
+  "claim": "toggle starts a stopped animation or timer and stops a running one.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": ""
+ },
+ {
+  "id": "video.formats",
+  "section": "Elements > Video [L3437-3443]",
+  "signature": "(prose)",
+  "claim": "Video supports QuickTime, FLV, DivX, Xvid and other formats (via VideoLAN and ffmpeg), plus audio in MP3, WAV and Ogg Vorbis.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "video.optional_support",
+  "section": "Elements > Video [L3445-3448]",
+  "signature": "(prose)",
+  "claim": "Video support is optional; builds without it are marked 'novideo'.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "video.hide",
+  "section": "Elements > Video > hide [L3450-3454]",
+  "signature": "hide() » self",
+  "claim": "hide hides the video display while playback continues, e.g. to collapse an audio-only file.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "video.length",
+  "section": "Elements > Video > length [L3456-3459]",
+  "signature": "length() » a number",
+  "claim": "length returns the video's full length in milliseconds, or nil before it has loaded.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "video.move",
+  "section": "Elements > Video > move [L3461-3464]",
+  "signature": "move(left, top) » self",
+  "claim": "move(left, top) moves the video so its upper-left corner is at those coordinates.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "video.pause",
+  "section": "Elements > Video > pause [L3466-3468]",
+  "signature": "pause() » self",
+  "claim": "pause pauses a playing video.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "video.playing?",
+  "section": "Elements > Video > playing? [L3470-3473]",
+  "signature": "playing?() » true of false",
+  "claim": "playing? returns true while the video plays and false when paused or stopped.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "video.play",
+  "section": "Elements > Video > play [L3475-3478]",
+  "signature": "play() » self",
+  "claim": "play starts the video; if it is already playing it restarts from the beginning.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "video.position",
+  "section": "Elements > Video > position [L3480-3484]",
+  "signature": "position() » a decimal",
+  "claim": "position returns playback position as a Float from 0.0 (start) to 1.0 (end).",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "video.position=",
+  "section": "Elements > Video > position= [L3486-3489]",
+  "signature": "position = a decimal",
+  "claim": "position = float seeks, e.g. 0.25 for the quarter mark.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "video.remove",
+  "section": "Elements > Video > remove [L3491-3493]",
+  "signature": "remove() » self",
+  "claim": "remove takes the video out of its slot and stops it.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "video.show",
+  "section": "Elements > Video > show [L3495-3497]",
+  "signature": "show() » self",
+  "claim": "show reveals a video hidden with hide.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "video.stop",
+  "section": "Elements > Video > stop [L3499-3501]",
+  "signature": "stop() » self",
+  "claim": "stop stops a playing video.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "video.time",
+  "section": "Elements > Video > time [L3503-3506]",
+  "signature": "time() » a number",
+  "claim": "time returns the playback position in milliseconds (10000 at ten seconds in).",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "video.time=",
+  "section": "Elements > Video > time= [L3508-3510]",
+  "signature": "time = a number",
+  "claim": "time = ms seeks to that time in milliseconds.",
+  "example_lines": [],
+  "testability": "api",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "video.toggle",
+  "section": "Elements > Video > toggle [L3512-3515]",
+  "signature": "toggle() » self",
+  "claim": "toggle calls hide if the video is visible and show otherwise.",
+  "example_lines": [],
+  "testability": "visual",
+  "version_note": "VLC-backed video from the Raisins/Policeman era; the manual itself says some builds ship without video ('novideo', PowerPC)."
+ },
+ {
+  "id": "andsoforth.sample_apps",
+  "section": "AndSoForth > Sample Apps [L3521-3525]",
+  "signature": "{SAMPLES}",
+  "claim": "A list of sample apps.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": "Unrendered {SAMPLES} placeholder; no samples are listed."
+ },
+ {
+  "id": "andsoforth.faq",
+  "section": "AndSoForth > FAQ [L3527-3533]",
+  "signature": "(links)",
+  "claim": "FAQ: links to the Shoes mailing list, the official source on GitHub and the wiki.",
+  "example_lines": [],
+  "testability": "untestable",
+  "version_note": ""
+ }
+]
