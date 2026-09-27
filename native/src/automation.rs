@@ -200,7 +200,9 @@ impl Runtime {
             Kind::Para | Kind::TextDrawable => layout.texts.get(&id).map(|tb| tb.shaped.text()),
             Kind::Button => node.props.text("text"),
             Kind::EditLine | Kind::EditBox => {
-                self.views.get(&app).and_then(|v| v.ui.fields.get(&id)).map(|f| f.text()).or_else(|| node.props.text("text"))
+                let text = self.views.get(&app).and_then(|v| v.ui.fields.get(&id)).map(|f| f.text()).or_else(|| node.props.text("text"))?;
+                // A secret field reads as its bullets, to automation as to a person.
+                Some(if node.props.truthy("secret") { text.chars().map(|_| crate::elements::text_field::BULLET).collect() } else { text })
             }
             Kind::ListBox => crate::elements::list_box::chosen(node),
             ref k if k.is_span() => Some(fragment_text(&self.doc, id)),
