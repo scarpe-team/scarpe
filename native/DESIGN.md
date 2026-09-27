@@ -228,7 +228,8 @@ neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1).
   shrink-to-fit (max-content width capped at the remaining row width, wrapping at that width).
   Line height = 1.2 x size (plus `leading` if given).
 - **Widgets** have intrinsic sizes (research 02 section 13): button = label + padding (min 22 high),
-  edit_line 200x28, edit_box 200x108, list_box 160x28, progress 160x14, check/radio 18x18.
+  edit_line 200x28, edit_box 200x108, list_box 200x28, progress 200x14 (manual sizes, ledger C4),
+  check/radio 18x18.
   Explicit width/height override.
 - **Margins** add outside the box (`margin`, `margin_left/top/right/bottom`; arrays are
   [left, top, right, bottom]). `padding` (Scarpe extension) adds inside slots.

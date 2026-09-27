@@ -194,8 +194,9 @@ fn widgets_have_intrinsic_sizes() {
     let l = s.layout(480.0, 420.0);
     assert_eq!((r(&l, el).w, r(&l, el).h), (200.0, 28.0));
     assert_eq!((r(&l, eb).w, r(&l, eb).h), (200.0, 108.0));
-    assert_eq!((r(&l, lb).w, r(&l, lb).h), (160.0, 28.0));
-    assert_eq!((r(&l, pr).w, r(&l, pr).h), (160.0, 14.0));
+    // Ledger C4: the manual gives list_box and progress 200 px.
+    assert_eq!((r(&l, lb).w, r(&l, lb).h), (200.0, 28.0));
+    assert_eq!((r(&l, pr).w, r(&l, pr).h), (200.0, 14.0));
     assert_eq!((r(&l, ch).w, r(&l, ch).h), (18.0, 18.0));
     assert!(r(&l, bt).h >= 22.0 && r(&l, bt).w > 28.0);
     assert_eq!(r(&l, wide).w, 300.0);
