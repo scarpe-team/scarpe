@@ -109,6 +109,27 @@ pub fn read_line_lossy(input: &mut impl std::io::BufRead, buf: &mut Vec<u8>) -> 
     }
 }
 
+/// Reads `input` to its end, handing `deliver` every complete line the buffer holds as one
+/// batch: a frame of a thousand prop changes arrives once, not a thousand times. Stops early
+/// when `deliver` says nobody is listening.
+pub fn read_batches(input: impl std::io::Read, mut deliver: impl FnMut(Vec<String>) -> bool) {
+    let mut reader = std::io::BufReader::with_capacity(1 << 16, input);
+    let mut batch = Vec::new();
+    let mut bytes = Vec::new();
+    while let Some(line) = read_line_lossy(&mut reader, &mut bytes) {
+        batch.push(line);
+        if reader.buffer().contains(&b'\n') {
+            continue;
+        }
+        if !deliver(std::mem::take(&mut batch)) {
+            return;
+        }
+    }
+    if !batch.is_empty() {
+        deliver(batch);
+    }
+}
+
 pub fn parse_line(line: &str) -> Result<Incoming, ParseError> {
     let value: Value = serde_json::from_str(line).map_err(|e| ParseError::Json(e.to_string()))?;
     let Value::Object(obj) = value else {
