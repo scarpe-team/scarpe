@@ -343,7 +343,16 @@ impl ApplicationHandler<UserEvent> for Shell {
             el.exit();
             return;
         }
-        let wake = [self.deadline, self.orphaned_since.map(|t| t + Duration::from_secs(3))].into_iter().flatten().min();
+        // A tooltip whose time has come needs a frame; one still to come needs a wake-up.
+        let tooltip = self.rt.tooltip_due();
+        if let Some((app, _)) = tooltip.filter(|(_, due)| now >= *due) {
+            self.rt.request_redraw(app);
+            if let Some(win) = self.window_for(app) {
+                win.window.request_redraw();
+            }
+        }
+        let tooltip_wake = tooltip.map(|(_, due)| due).filter(|due| *due > now);
+        let wake = [self.deadline, self.orphaned_since.map(|t| t + Duration::from_secs(3)), tooltip_wake].into_iter().flatten().min();
         el.set_control_flow(match wake {
             Some(at) => ControlFlow::WaitUntil(at),
             None => ControlFlow::Wait,
