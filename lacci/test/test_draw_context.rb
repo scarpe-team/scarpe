@@ -221,4 +221,33 @@ class TestDrawContext < NienteTest
       assert_equal [Shoes.APPS.first] * 2, $returned, "translate and cap return self"
     SHOES_SPEC
   end
+
+  # Ledger E10: rotate turns the pen by so many degrees more, as Shoes 3's
+  # cairo_matrix_rotate on the canvas matrix does (s3_ruby.h:472-480). A slot inherits
+  # its parent's turn, clear keeps it, and rotate(nil) drops the slot's own.
+  def test_rotate_adds_up_within_a_slot
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        rotate 30
+        rotate 15
+        @first = rect 0, 0, 10
+        stack do
+          rotate 5
+          @inner = rect 0, 0, 10
+        end
+        @spinner = stack { rotate 1 }
+        @spinner.clear { rotate 1 }
+        @spinner.clear { rotate 1; @again = rect 0, 0, 10 }
+        rotate nil
+        @reset = rect 0, 0, 10
+      end
+    SHOES_APP
+      turn = ->(name) { rect(name).style[:draw_context]["rotate"] }
+
+      assert_equal 45, turn.("@first"), "two turns in one slot add up"
+      assert_equal 50, turn.("@inner"), "a slot starts from its parent's turn"
+      assert_equal 48, turn.("@again"), "and keeps turning through clear, as rotating-star.rb needs"
+      assert_nil turn.("@reset"), "rotate nil drops the slot's own turn"
+    SHOES_SPEC
+  end
 end
