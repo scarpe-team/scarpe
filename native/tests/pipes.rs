@@ -84,3 +84,29 @@ fn a_writer_that_reads_only_at_the_end_is_answered() {
     assert_eq!(finished, Ok(true), "Ruby's side finished writing 5000 frames without reading");
     assert_eq!(reply.map(|r| r["value"].clone()), Some(json!("pong")), "and the ping after them was answered");
 }
+
+/// `--exit-after` ends a headless run the way it ends a window: every running app is reported
+/// `closed`, Ruby quits them, and the child exits 0. Headless used to call exit(0) mid-run,
+/// which the shim reported as a crash (ChildDied) and the launcher exited 1.
+#[test]
+fn exit_after_closes_the_canvas_like_a_window() {
+    let mut child = scarpe_native(&["--exit-after", "0.3"]);
+    let mut stdin = child.stdin.take().expect("stdin");
+    oval_app(&mut stdin).expect("the app is written");
+    let (heard, closed) = mpsc::channel();
+    let stdout = child.stdout.take().expect("stdout");
+    std::thread::spawn(move || {
+        for line in BufReader::new(stdout).lines().map_while(Result::ok) {
+            if serde_json::from_str::<Value>(&line).is_ok_and(|m| m["t"] == "closed") {
+                let _ = heard.send(line);
+            }
+        }
+    });
+    let said = closed.recv_timeout(Duration::from_secs(10));
+    if said.is_ok() {
+        send(&mut stdin, json!({"t": "quit", "app": null})).expect("quit is written");
+    }
+    let status = child.wait().expect("the child exits");
+    assert_eq!(said.ok().map(|line| serde_json::from_str::<Value>(&line).unwrap()), Some(json!({"t": "closed", "app": 1})), "Rust said the app closed");
+    assert_eq!(status.code(), Some(0), "and left cleanly once Ruby quit it");
+}

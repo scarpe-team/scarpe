@@ -10,7 +10,7 @@ use crate::paint::damage::FrameMemory;
 use crate::props::Id;
 use crate::protocol::Outbox;
 use crate::runtime::stats::{self, Phase};
-use crate::runtime::{load_fonts, Effect, Options, Runtime};
+use crate::runtime::{load_fonts, Effect, Options, Runtime, QUIT_GRACE};
 use crate::text::FontMode;
 use pacing::Pacing;
 use std::collections::HashMap;
@@ -438,7 +438,7 @@ impl ApplicationHandler<UserEvent> for Shell {
             self.user_closed = true;
             self.orphaned_since = Some(now);
         }
-        if self.deadline.is_some_and(|d| now >= d) || self.orphaned_since.is_some_and(|t| now.duration_since(t) > Duration::from_secs(3)) {
+        if self.deadline.is_some_and(|d| now >= d) || self.orphaned_since.is_some_and(|t| now.duration_since(t) > QUIT_GRACE) {
             self.rt.out.flush();
             el.exit();
             return;
@@ -459,7 +459,7 @@ impl ApplicationHandler<UserEvent> for Shell {
             }
         }
         let next_frame = self.windows.values().filter_map(|w| w.pacing.due()).min();
-        let wake = [self.deadline, self.orphaned_since.map(|t| t + Duration::from_secs(3)), tooltip_wake, next_frame]
+        let wake = [self.deadline, self.orphaned_since.map(|t| t + QUIT_GRACE), tooltip_wake, next_frame]
             .into_iter()
             .flatten()
             .min();
