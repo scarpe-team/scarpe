@@ -124,14 +124,15 @@ impl Shell {
         self.windows.values().find(|w| w.app == app)
     }
 
-    fn open_window(&mut self, el: &ActiveEventLoop, app: Id) {
+    /// Opens `app`'s window. Returns whether it has one.
+    fn open_window(&mut self, el: &ActiveEventLoop, app: Id) -> bool {
         if self.window_for(app).is_some() {
-            return;
+            return true;
         }
-        let Some(view) = self.rt.views.get(&app) else { return };
+        let Some(view) = self.rt.views.get(&app) else { return false };
         let props = self.rt.doc.get(app).map(|n| n.props.clone()).unwrap_or_default();
-        let title = props.text("title").unwrap_or_else(|| "Shoes".into());
-        let resizable = props.get("resizable").and_then(|v| v.as_bool()).unwrap_or(true);
+        let title = self.rt.window_title(app);
+        let resizable = !view.standalone && props.get("resizable").and_then(|v| v.as_bool()).unwrap_or(true);
         let attrs = Window::default_attributes()
             .with_title(title)
             .with_inner_size(LogicalSize::new(view.size.0 as f64, view.size.1 as f64))
@@ -141,7 +142,7 @@ impl Shell {
             Ok(w) => Rc::new(w),
             Err(e) => {
                 eprintln!("[scarpe-native] could not open a window: {e}");
-                return;
+                return false;
             }
         };
         self.rt.stats.mark("window_created");
@@ -149,14 +150,14 @@ impl Shell {
             Ok(c) => c,
             Err(e) => {
                 eprintln!("[scarpe-native] softbuffer: {e}");
-                return;
+                return false;
             }
         };
         let surface = match softbuffer::Surface::new(&context, window.clone()) {
             Ok(s) => s,
             Err(e) => {
                 eprintln!("[scarpe-native] softbuffer surface: {e}");
-                return;
+                return false;
             }
         };
         if let Some(view) = self.rt.views.get_mut(&app) {
@@ -167,7 +168,7 @@ impl Shell {
             if !ghost::show(&window) {
                 eprintln!("[scarpe-native] --ghost: the window could not be made invisible, so it never showed");
                 self.rt.exit = Some(1);
-                return;
+                return false;
             }
             self.rt.stats.mark("ghost");
         } else if let Some(opacity) = props.f32("opacity") {
@@ -195,12 +196,15 @@ impl Shell {
                 ime: None,
             },
         );
+        true
     }
 
     fn apply_effects(&mut self, el: &ActiveEventLoop) {
         for effect in std::mem::take(&mut self.rt.effects) {
             match effect {
-                Effect::OpenWindow(app) => self.open_window(el, app),
+                Effect::OpenWindow(app) => {
+                    self.open_window(el, app);
+                }
                 Effect::CloseWindow(app) => self.windows.retain(|_, w| w.app != app),
                 Effect::SetTitle(app, title) => {
                     if let Some(w) = self.window_for(app) {
@@ -230,12 +234,19 @@ impl Shell {
                 }
                 // Nobody can answer a ghost's dialog or see what it opens: it answers the way a
                 // headless run does, and links stay shut.
-                Effect::Dialog { req, kind, message, default } => {
-                    let (value, cancelled) = if self.ghost {
-                        crate::dialogs::headless_answer(&kind)
-                    } else {
-                        crate::dialogs::native(&kind, &message, &default)
-                    };
+                Effect::Dialog { req, dialog } if self.ghost => {
+                    let (value, cancelled) = crate::dialogs::headless_answer(&dialog.kind);
+                    self.rt.dialog_answered(req, value, cancelled);
+                }
+                // An `ask` or `ask_color` no app window can hold gets a small window of its own.
+                Effect::Dialog { req, dialog } if crate::dialogs::drawn_by_us(&dialog.kind) => {
+                    let app = self.rt.open_standalone(req, &dialog);
+                    if !self.open_window(el, app) {
+                        self.rt.window_closed(app);
+                    }
+                }
+                Effect::Dialog { req, dialog } => {
+                    let (value, cancelled) = crate::dialogs::native(&dialog.kind, &dialog.message, &dialog.default);
                     self.rt.dialog_answered(req, value, cancelled);
                 }
                 Effect::OpenUrl(url) => {
@@ -356,7 +367,8 @@ impl ApplicationHandler<UserEvent> for Shell {
         match event {
             WindowEvent::CloseRequested => {
                 self.windows.remove(&id);
-                self.user_closed = true;
+                // Closing a dialog's own window is a Cancel, not the app going away.
+                self.user_closed |= !self.rt.is_standalone(app);
                 self.rt.window_closed(app);
             }
             WindowEvent::RedrawRequested => self.redraw(id),

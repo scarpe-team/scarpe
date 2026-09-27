@@ -13,7 +13,7 @@ use crate::limits;
 use crate::paint::damage::{FrameMemory, Revisions};
 use crate::paint::{self, Scene};
 use crate::props::Id;
-use crate::protocol::{self, Create, Incoming, Op, Outbox, Outgoing};
+use crate::protocol::{self, Create, DialogRequest, Incoming, Op, Outbox, Outgoing};
 use crate::text::{FontMode, TextEngine};
 use serde_json::{Map, Value};
 use stats::{Phase, Stats};
@@ -54,7 +54,8 @@ pub enum Effect {
     Cursor(Id, CursorShape),
     /// App `opacity`, 0.0 (clear) to 1.0.
     Opacity(Id, f32),
-    Dialog { req: u64, kind: String, message: String, default: Value },
+    /// A native dialog, or an `ask` no app window can hold (dialogs::open_standalone).
+    Dialog { req: u64, dialog: DialogRequest },
     OpenUrl(String),
 }
 
@@ -75,6 +76,27 @@ pub struct AppView {
     pub frames: u64,
     /// The rects Ruby was last told about, `[x, y, w, h, scroll_h]` by id.
     pub told: HashMap<Id, [f64; 5]>,
+    /// A window of its own for a dialog no app window could hold (dialogs::open_standalone):
+    /// no document, and Ruby never hears of it.
+    pub standalone: bool,
+}
+
+impl AppView {
+    pub fn new(app: Id, doc_root: Id, size: (f32, f32), scale: f32) -> Self {
+        AppView {
+            app,
+            doc_root,
+            size,
+            scale,
+            running: false,
+            layout: None,
+            ui: ViewState::default(),
+            dirty: true,
+            frames: 0,
+            told: HashMap::new(),
+            standalone: false,
+        }
+    }
 }
 
 struct PendingFrames {
@@ -247,21 +269,7 @@ impl Runtime {
         self.revisions.touch(c.id);
         if is_app {
             let scale = self.default_scale();
-            self.views.insert(
-                c.id,
-                AppView {
-                    app: c.id,
-                    doc_root,
-                    size,
-                    scale,
-                    running: false,
-                    layout: None,
-                    ui: ViewState::default(),
-                    dirty: true,
-                    frames: 0,
-                    told: HashMap::new(),
-                },
-            );
+            self.views.insert(c.id, AppView::new(c.id, doc_root, size, scale));
         }
         self.invalidate();
     }
@@ -366,6 +374,14 @@ impl Runtime {
     /// app and sends `quit`.
     pub fn window_closed(&mut self, app: Id) {
         self.answer_what_waits_on(app, "window closed");
+        if self.is_standalone(app) {
+            // Ruby never knew this window: the dialog's answer was all it waited for.
+            self.views.remove(&app);
+            if self.active_app == Some(app) {
+                self.active_app = None;
+            }
+            return;
+        }
         if let Some(view) = self.views.get_mut(&app) {
             view.running = false;
         }
@@ -519,15 +535,17 @@ impl Runtime {
         }
     }
 
-    /// Picks the app a request means: the named one, else the active one.
+    /// Picks the app a request means: the named one, else the active one. A dialog's window of
+    /// its own is never the one meant unless named.
     pub fn app_for(&self, app: Option<Id>) -> Option<Id> {
         if let Some(a) = app.filter(|a| self.views.contains_key(a)) {
             return Some(a);
         }
+        let apps = || self.views.iter().filter(|(_, v)| !v.standalone);
         self.active_app
-            .filter(|a| self.views.contains_key(a))
-            .or_else(|| self.views.iter().find(|(_, v)| v.running).map(|(id, _)| *id))
-            .or_else(|| self.views.keys().next().copied())
+            .filter(|a| self.views.get(a).is_some_and(|v| !v.standalone))
+            .or_else(|| apps().find(|(_, v)| v.running).map(|(id, _)| *id))
+            .or_else(|| apps().next().map(|(id, _)| *id))
     }
 
     pub(crate) fn wait_frames(&mut self, req: u64, app: Id, n: u32) {

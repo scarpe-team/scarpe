@@ -1,6 +1,7 @@
 //! Builtin dialogs. Headless runs never open anything and answer with the
 //! DESIGN 5.2 defaults. In a window, alert/confirm and the file pickers are
-//! native (rfd); `ask` and `ask_color` are an in-window modal we draw.
+//! native (rfd); `ask` and `ask_color` are a modal we draw, in a running app's
+//! window, or in a small window of its own when no app window is running yet.
 
 use crate::elements::text_field::TextField;
 use crate::elements::{ACCENT, CONTROL_TEXT_SIZE};
@@ -9,12 +10,17 @@ use crate::layout::Rect;
 use crate::paint::text::draw_shaped;
 use crate::paint::Canvas;
 use crate::props::Id;
-use crate::protocol::Outgoing;
-use crate::runtime::Runtime;
+use crate::protocol::{DialogRequest, Outgoing};
+use crate::runtime::{AppView, Effect, Runtime};
 use crate::style::Color;
 use crate::text::rich::{TextStyle, INK};
 use crate::text::{FamilyName, RichText, TextEngine};
 use serde_json::{json, Map, Value};
+
+/// The dialogs we draw ourselves rather than hand to the OS.
+pub fn drawn_by_us(kind: &str) -> bool {
+    matches!(kind, "ask" | "ask_color")
+}
 
 /// The value and `cancelled` flag a headless run answers with.
 pub fn headless_answer(kind: &str) -> (Value, bool) {
@@ -69,6 +75,10 @@ pub enum ModalKind {
 pub struct Modal {
     pub req: u64,
     pub message: String,
+    /// `ask`'s `title:`, shown as a heading (and as the title of a window of its own).
+    pub title: Option<String>,
+    /// It has a window of its own, with nothing under it to dim.
+    pub standalone: bool,
     pub kind: ModalKind,
     pub pressed: Option<ModalButton>,
     /// A press began in the text field: moves extend its selection.
@@ -104,6 +114,8 @@ pub const SWATCHES: [Color; 12] = [
     Color::rgb(0x1d, 0x1d, 0x1f),
 ];
 
+const PANEL: Color = Color::rgb(0xf6, 0xf6, 0xf8);
+
 struct Geometry {
     panel: Rect,
     message: (f32, f32, f32),
@@ -113,15 +125,35 @@ struct Geometry {
     cancel: Rect,
 }
 
+/// The modal's words: its title as a heading, then its message.
+fn words(modal: &Modal) -> RichText {
+    let style = TextStyle::new(CONTROL_TEXT_SIZE, INK);
+    let mut rich = RichText::plain(&modal.message, style.clone());
+    if let Some(title) = modal.title.as_deref().filter(|t| !t.is_empty()) {
+        let heading = crate::text::rich::Run { text: format!("{title}\n"), style: TextStyle { weight: 600, ..style }, node: 0, spans: Vec::new() };
+        rich.runs.insert(0, heading);
+    }
+    rich
+}
+
+/// The widest a panel gets.
+const PANEL_WIDTH: f32 = 360.0;
+
+/// The panel's width in a window `size` wide; a window of its own is all panel.
+fn panel_width(modal: &Modal, window_w: f32) -> f32 {
+    if modal.standalone {
+        window_w
+    } else {
+        (window_w - 40.0).clamp(160.0, PANEL_WIDTH)
+    }
+}
+
 fn geometry(modal: &Modal, size: (f32, f32), text: &mut TextEngine) -> (Geometry, crate::text::ShapedText) {
-    let w = (size.0 - 40.0).clamp(160.0, 360.0);
-    let shaped = text.shape(&RichText::plain(&modal.message, TextStyle::new(CONTROL_TEXT_SIZE, INK)), Some(w - 32.0));
-    let body = match modal.kind {
-        ModalKind::Ask(_) => 28.0,
-        ModalKind::Color { .. } => 2.0 * 30.0 + 6.0,
-    };
-    let h = 16.0 + shaped.height + 12.0 + body + 16.0 + 28.0 + 16.0;
-    let panel = Rect::new((size.0 - w) / 2.0, ((size.1 - h) / 2.0).max(8.0), w, h);
+    let w = panel_width(modal, size.0);
+    let shaped = text.shape(&words(modal), Some(w - 32.0));
+    let body = body_height(&modal.kind);
+    let h = panel_height(shaped.height, body);
+    let panel = if modal.standalone { Rect::new(0.0, 0.0, w, h) } else { Rect::new((size.0 - w) / 2.0, ((size.1 - h) / 2.0).max(8.0), w, h) };
     let body_y = panel.y + 16.0 + shaped.height + 12.0;
     let field = Rect::new(panel.x + 16.0, body_y, w - 32.0, 28.0);
     let side = ((w - 32.0 - 5.0 * 8.0) / 6.0).min(30.0);
@@ -137,15 +169,36 @@ fn geometry(modal: &Modal, size: (f32, f32), text: &mut TextEngine) -> (Geometry
     (Geometry { panel, message: (panel.x + 16.0, panel.y + 16.0, w - 32.0), field, swatch, ok, cancel }, shaped)
 }
 
+fn panel_height(words_height: f32, body: f32) -> f32 {
+    16.0 + words_height + 12.0 + body + 16.0 + 28.0 + 16.0
+}
+
+fn body_height(kind: &ModalKind) -> f32 {
+    match kind {
+        ModalKind::Ask(_) => 28.0,
+        ModalKind::Color { .. } => 2.0 * 30.0 + 6.0,
+    }
+}
+
+/// The size of a window of its own for `modal`: just the panel.
+fn standalone_size(modal: &Modal, text: &mut TextEngine) -> (f32, f32) {
+    let words_height = text.shape(&words(modal), Some(PANEL_WIDTH - 32.0)).height;
+    (PANEL_WIDTH, panel_height(words_height, body_height(&modal.kind)))
+}
+
 pub fn paint_modal(canvas: &mut Canvas, view: &mut ViewState, text: &mut TextEngine, size: (f32, f32)) {
     let Some(modal) = view.modal.as_mut() else { return };
     let (g, message) = geometry(modal, size, text);
-    canvas.fill_rect(Rect::new(0.0, 0.0, size.0, size.1), Color::rgba(0, 0, 0, 70), None);
-    for (grow, alpha) in [(12.0, 10), (6.0, 16), (2.0, 28)] {
-        let p = g.panel;
-        canvas.fill_rounded(Rect::new(p.x - grow, p.y - grow + 6.0, p.w + grow * 2.0, p.h + grow * 2.0), 12.0 + grow, Color::rgba(0, 0, 0, alpha), None);
+    if modal.standalone {
+        canvas.fill_rect(Rect::new(0.0, 0.0, size.0, size.1), PANEL, None);
+    } else {
+        canvas.fill_rect(Rect::new(0.0, 0.0, size.0, size.1), Color::rgba(0, 0, 0, 70), None);
+        for (grow, alpha) in [(12.0, 10), (6.0, 16), (2.0, 28)] {
+            let p = g.panel;
+            canvas.fill_rounded(Rect::new(p.x - grow, p.y - grow + 6.0, p.w + grow * 2.0, p.h + grow * 2.0), 12.0 + grow, Color::rgba(0, 0, 0, alpha), None);
+        }
+        canvas.fill_rounded(g.panel, 12.0, PANEL, None);
     }
-    canvas.fill_rounded(g.panel, 12.0, Color::rgb(0xf6, 0xf6, 0xf8), None);
     draw_shaped(canvas, text, &message, g.message.0, g.message.1, None, None);
     match &mut modal.kind {
         ModalKind::Ask(field) => {
@@ -177,22 +230,64 @@ pub fn paint_modal(canvas: &mut Canvas, view: &mut ViewState, text: &mut TextEng
 }
 
 impl Runtime {
-    /// Opens the in-window modal for `ask` / `ask_color` in `app`.
-    pub fn open_modal(&mut self, app: Id, req: u64, kind: &str, message: &str, default: &Value) {
-        let Some(view) = self.views.get_mut(&app) else {
-            self.out.send(reply(req, Value::Null, true));
-            return;
-        };
-        let modal_kind = if kind == "ask" {
-            let initial = default.as_str().unwrap_or("");
-            let mut field = TextField::new(&mut self.text.fonts.system, initial, false, false, FamilyName::Sans, CONTROL_TEXT_SIZE, INK);
+    /// A running app's window that can hold an in-window `ask` or `ask_color`: the active
+    /// one, else the first running. None while no app window is up yet, as when an app asks
+    /// while its body is still being built, before `run`.
+    pub fn modal_host(&self) -> Option<Id> {
+        let app_window = |id: &Id| self.views.get(id).is_some_and(|v| v.running && !v.standalone);
+        self.active_app.filter(app_window).or_else(|| self.views.keys().copied().find(app_window))
+    }
+
+    fn modal(&mut self, req: u64, dialog: &DialogRequest, standalone: bool) -> Modal {
+        let kind = if dialog.kind == "ask" {
+            let initial = dialog.default.as_str().unwrap_or("");
+            let fs = &mut self.text.fonts.system;
+            let mut field = TextField::new(fs, initial, false, dialog.secret, FamilyName::Sans, CONTROL_TEXT_SIZE, INK);
             field.select_all();
             ModalKind::Ask(Box::new(field))
         } else {
             ModalKind::Color { selected: 5 }
         };
-        view.ui.modal = Some(Modal { req, message: message.to_string(), kind: modal_kind, pressed: None, selecting: false });
+        Modal { req, message: dialog.message.clone(), title: dialog.title.clone(), standalone, kind, pressed: None, selecting: false }
+    }
+
+    /// Opens the in-window modal for `ask` / `ask_color` in `app`.
+    pub fn open_modal(&mut self, app: Id, req: u64, dialog: &DialogRequest) {
+        if !self.views.contains_key(&app) {
+            self.out.send(reply(req, Value::Null, true));
+            return;
+        }
+        let modal = self.modal(req, dialog, false);
+        if let Some(view) = self.views.get_mut(&app) {
+            view.ui.modal = Some(modal);
+        }
         self.request_redraw(app);
+    }
+
+    /// A view of its own for an `ask` or `ask_color` no app window can hold: the window layer
+    /// opens a window for it, sized to the dialog. It has no document; it lasts as long as its
+    /// modal, and Ruby never hears of it. Returns its id (negative, so no drawable has it).
+    pub fn open_standalone(&mut self, req: u64, dialog: &DialogRequest) -> Id {
+        let id = -(req as Id) - 1;
+        let modal = self.modal(req, dialog, true);
+        let size = standalone_size(&modal, &mut self.text);
+        let scale = self.default_scale();
+        let mut view = AppView::new(id, id, size, scale);
+        view.standalone = true;
+        view.running = true;
+        view.ui.modal = Some(modal);
+        self.views.insert(id, view);
+        id
+    }
+
+    /// The title a window gets: the App's `title`, a dialog's own title, else "Shoes".
+    pub fn window_title(&self, app: Id) -> String {
+        let dialog = || self.views.get(&app)?.ui.modal.as_ref()?.title.clone().filter(|_| self.is_standalone(app));
+        self.doc.get(app).and_then(|n| n.props.text("title")).or_else(dialog).unwrap_or_else(|| "Shoes".into())
+    }
+
+    pub fn is_standalone(&self, app: Id) -> bool {
+        self.views.get(&app).is_some_and(|v| v.standalone)
     }
 
     fn close_modal(&mut self, app: Id, ok: bool) {
@@ -207,7 +302,12 @@ impl Runtime {
         };
         self.out.send(msg);
         self.out.flush();
-        self.request_redraw(app);
+        if self.is_standalone(app) {
+            self.views.remove(&app);
+            self.effects.push(Effect::CloseWindow(app));
+        } else {
+            self.request_redraw(app);
+        }
     }
 
     pub(crate) fn modal_pointer(&mut self, app: Id, x: f32, y: f32, phase: PointerPhase) -> bool {
