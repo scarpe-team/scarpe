@@ -648,7 +648,8 @@ change the code and this list together.
   which cosmic-text never selects. The bundled fonts have no emoji.
 - **`sub` and `sup`** draw x-small, 10 px below or above the baseline.
 - **Closing a window** sends `closed {app}`; the window goes at once, and if no `quit` follows
-  within 3 seconds the process exits by itself. `--exit-after SECS` closes every window that way
+  within 3 seconds the process exits by itself. Ruby may be blocked on that window, so an `ask`
+  open in it is answered as cancelled, and a `frames` request with an error, before `closed`. `--exit-after SECS` closes every window that way
   when the time is up, so a Ruby app quits cleanly (headless it is a hard stop). It and `--inactive`
   (or `SCARPE_NATIVE_INACTIVE=1`) open windows without activating the app or taking keyboard focus.
 - **Ghost windows** (`--ghost`, which the shim passes for `SCARPE_NATIVE_GHOST=1`; implies

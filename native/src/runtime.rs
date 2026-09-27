@@ -358,33 +358,43 @@ impl Runtime {
         }
     }
 
-    /// The user closed a window: tell Ruby, which destroys the app and sends `quit`.
+    /// The user closed a window. Ruby may be blocked waiting on it (an `ask` in its modal, a
+    /// `frames` request), so those are answered first; then Ruby hears `closed`, destroys the
+    /// app and sends `quit`.
     pub fn window_closed(&mut self, app: Id) {
+        self.answer_what_waits_on(app, "window closed");
         if let Some(view) = self.views.get_mut(&app) {
             view.running = false;
+        }
+        if self.active_app == Some(app) {
+            self.active_app = self.views.iter().find(|(_, v)| v.running).map(|(id, _)| *id);
         }
         self.out.send(Outgoing::Closed { app });
         self.out.flush();
     }
 
     fn close_view(&mut self, app: Id) {
-        let Some(view) = self.views.remove(&app) else { return };
-        if let Some(modal) = view.ui.modal {
-            self.out.send(crate::dialogs::reply(modal.req, Value::Null, true));
+        self.answer_what_waits_on(app, "app closed");
+        if self.views.remove(&app).is_none() {
+            return;
         }
-        let mut still_pending = Vec::new();
-        for p in std::mem::take(&mut self.pending_frames) {
-            if p.app == app {
-                self.out.send(Outgoing::error(p.req, "app closed", Value::Null));
-            } else {
-                still_pending.push(p);
-            }
-        }
-        self.pending_frames = still_pending;
         self.doc.remove_app(app);
         self.effects.push(Effect::CloseWindow(app));
         if self.active_app == Some(app) {
             self.active_app = self.views.keys().next().copied();
+        }
+    }
+
+    /// Answers every request still waiting on `app`'s window: its modal as cancelled, its
+    /// `frames` requests with `why`.
+    fn answer_what_waits_on(&mut self, app: Id, why: &str) {
+        if let Some(modal) = self.views.get_mut(&app).and_then(|view| view.ui.modal.take()) {
+            self.out.send(crate::dialogs::reply(modal.req, Value::Null, true));
+        }
+        let (theirs, others): (Vec<_>, Vec<_>) = std::mem::take(&mut self.pending_frames).into_iter().partition(|p| p.app == app);
+        self.pending_frames = others;
+        for p in theirs {
+            self.out.send(Outgoing::error(p.req, why, Value::Null));
         }
     }
 
