@@ -192,6 +192,29 @@ A stale pixel is worse than a slow one, so partial repaints are checked three wa
 A node must never paint outside `paint::damage::paint_bounds`. Code that makes a node draw
 further (a new transform, a shadow) grows that function too; check mode says when it did not.
 
+After the lanes merged (27 Sep), `damage.rs` has 19 tests: a tooltip, a masked slot, a shape block
+member and an image canvas child each move and repaint in part, and the mask and canvas tests
+also compare the whole frame with a full paint, which catches a layer that forgets where its rect
+sits. A tooltip now repaints the whole frame, like a popup, from the moment the pointer rests on
+its owner. The check-mode sweep over all 434 examples (the 424 plus the bench apps) verified 1441
+repaints (413 partial): no mismatch, no panic.
+
+## After the merge: the layout push-back
+
+The layout lane's push-back (contract a) sends Ruby every rect that moved after each layout pass.
+On the 500 ovals, headless at 2x, two interleaved rounds against the perf branch (1fd904a) on a
+loaded machine (load average 20 to 40), with `bench.rb ovals_headless --seconds 5`:
+
+| | perf branch | merged |
+|---|---|---|
+| Rust layout per frame | 0.45-0.46 ms | 0.57 ms |
+| Ruby handler per tick | 7.82-8.21 ms | 7.97 ms |
+| Ruby CPU | 39.1-39.4% | 39.7% |
+| frame interval p50 | 20.6-20.9 ms | 21.0-21.1 ms |
+
+The push costs Rust about 0.11 ms a frame here; the Ruby side stays within the noise. The windowed
+benches were not rerun: no windows were opened for the merge.
+
 ## Running the benchmarks
 
 ```
