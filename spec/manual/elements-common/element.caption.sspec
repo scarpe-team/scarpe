@@ -4,8 +4,6 @@ lines: [1941, 1941]
 testability: api
 display: any
 ledger: F2
-expect: fail
-reason: "Lacci's caption returns a Shoes::Para with size :caption; there is no Shoes::Caption class"
 ----------- app code
 Shoes.app do
   $block = caption "Shoes"

@@ -4,8 +4,6 @@ lines: [3162, 3164]
 testability: visual
 display: native
 ledger: C5
-expect: fail
-reason: Lacci's Image has no path= (C5 rules path an alias of url).
 ----------- app code
 Shoes.app width: 200, height: 200 do
   @logo = image "assets/red-40x30.png", left: 10, top: 10

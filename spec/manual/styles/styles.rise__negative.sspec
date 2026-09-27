@@ -4,8 +4,6 @@ lines: [1371, 1373]
 testability: visual
 display: native
 ledger: F5
-expect: fail
-reason: "TextDrawable does not declare :rise, so Lacci drops it before it reaches the display (see styles.rise__accepted)."
 ----------- app code
 Shoes.app width: 400, height: 200 do
   flow do

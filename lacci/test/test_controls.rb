@@ -105,4 +105,23 @@ class TestControls < NienteTest
       assert_equal ["", "", 0.0], [edit_line.text, edit_box.text, progress.fraction]
     SHOES_SPEC
   end
+
+  # Ledger G4: the six controls the manual lists take :state, nil, "readonly" or
+  # "disabled" (manual 1410-1421), and send it so a display can lock them.
+  def test_controls_keep_their_state
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        button "b", state: "disabled"
+        check state: "disabled"
+        radio state: "readonly"
+        edit_line state: "readonly"
+        edit_box state: "disabled"
+        list_box items: ["a"], state: "disabled"
+      end
+    SHOES_APP
+      states = [button, check, radio, edit_line, edit_box, list_box].map { |control| control.style[:state] }
+      assert_equal %w[disabled disabled readonly readonly disabled disabled], states
+      assert_equal "disabled", button.display.instance_variable_get(:@data)["state"], "and the display is told"
+    SHOES_SPEC
+  end
 end

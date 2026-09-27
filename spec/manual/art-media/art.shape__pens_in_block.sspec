@@ -1,0 +1,22 @@
+---
+manual: art.shape
+lines: [1799, 1804]
+testability: visual
+display: native
+ledger: E7
+----------- app code
+# Shoes 3 makes the shape once its block has run and takes the pens then
+# (s3t_shape.c:290-315), so a stroke set inside the block strokes that shape.
+# expert/curve-animation.rb colours every wave this way.
+Shoes.app width: 200, height: 200 do
+  strokewidth 8
+  nofill
+  shape do
+    move_to 20, 100
+    stroke red
+    line_to 180, 100
+  end
+end
+----------- test code
+colour = pixel_at(100, 100).first(3)
+assert_equal [255, 0, 0], colour, "the line takes the red set inside its shape block, not the default black"

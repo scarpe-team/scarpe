@@ -5,6 +5,8 @@ class Shoes
     include Shoes::Focusable
 
     shoes_styles :items, :height, :width, :font, :stroke
+    shoes_style :change # the handler (manual 1123-1128, ledger G10)
+    shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
 
     # Shoes3 uses choose as the initialize arg, and .choose(item) as the setter here,
     # but queries it with .text. So this is an unusual style, and we've chosen this
@@ -20,13 +22,13 @@ class Shoes
       @items = kwargs.delete(:items) || []
       # Nothing is selected unless choose: says so (manual 3234-3237, ledger G3)
       @chosen = kwargs.delete(:choose)
-      @callback = block
 
       super(**kwargs)
+      @change = block if block
 
       bind_self_event("change") do |new_item|
         self.chosen = new_item
-        @callback&.call(self)
+        @change&.call(self)
       end
 
       create_display_drawable
@@ -57,7 +59,7 @@ class Shoes
     # @yield the block to be called when selection changes
     # @return [Shoes::ListBox] self
     def change(&block)
-      @callback = block
+      @change = block
       self # Allow chaining calls
     end
   end

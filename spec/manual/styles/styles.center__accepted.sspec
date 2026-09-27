@@ -4,8 +4,6 @@ lines: [1115, 1121]
 testability: api
 display: any
 ledger: E2
-expect: fail
-reason: "Rect does not declare :center (only Oval does), so Lacci drops it with a warning (E2)."
 ----------- app code
 Shoes.app do
   @square = rect 100, 100, 60, 40, center: true

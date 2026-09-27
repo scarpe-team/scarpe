@@ -221,4 +221,49 @@ class TestDrawContext < NienteTest
       assert_equal [Shoes.APPS.first] * 2, $returned, "translate and cap return self"
     SHOES_SPEC
   end
+
+  # Ledger E10: rotate turns the pen by so many degrees more, as Shoes 3's
+  # cairo_matrix_rotate on the canvas matrix does (s3_ruby.h:472-480). A slot inherits
+  # its parent's turn, clear keeps it, and rotate(nil) drops the slot's own.
+  def test_rotate_adds_up_within_a_slot
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        rotate 30
+        rotate 15
+        @first = rect 0, 0, 10
+        stack do
+          rotate 5
+          @inner = rect 0, 0, 10
+        end
+        @spinner = stack { rotate 1 }
+        @spinner.clear { rotate 1 }
+        @spinner.clear { rotate 1; @again = rect 0, 0, 10 }
+        rotate nil
+        @reset = rect 0, 0, 10
+      end
+    SHOES_APP
+      turn = ->(name) { rect(name).style[:draw_context]["rotate"] }
+
+      assert_equal 45, turn.("@first"), "two turns in one slot add up"
+      assert_equal 50, turn.("@inner"), "a slot starts from its parent's turn"
+      assert_equal 48, turn.("@again"), "and keeps turning through clear, as rotating-star.rb needs"
+      assert_nil turn.("@reset"), "rotate nil drops the slot's own turn"
+    SHOES_SPEC
+  end
+
+  # Ledger D8: strokewidth is honoured on every shape, not only through the draw
+  # context; ledger E2: rect and arc take center: as oval does (manual 1115-1121).
+  def test_every_shape_keeps_its_own_strokewidth
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $shapes = [rect(0, 0, 5, strokewidth: 6), line(0, 0, 5, 5, strokewidth: 6),
+          arc(0, 0, 5, 5, 0, 1, strokewidth: 6), arrow(5, 5, 5, strokewidth: 6),
+          star(5, 5, strokewidth: 6), oval(0, 0, 5, strokewidth: 6)]
+        $centred = [rect(50, 50, 20, 10, center: true), arc(50, 50, 20, 10, 0, 1, center: true)]
+      end
+    SHOES_APP
+      assert_equal [6] * 6, $shapes.map { |shape| shape.style[:strokewidth] }
+      assert_equal [true, true], $centred.map { |shape| shape.style[:center] }
+    SHOES_SPEC
+  end
 end

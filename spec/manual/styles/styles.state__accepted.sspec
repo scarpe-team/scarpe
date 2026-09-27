@@ -4,8 +4,6 @@ lines: [1410, 1421]
 testability: api
 display: any
 ledger: G4
-expect: fail
-reason: "No control in Lacci declares :state; it is dropped with a warning (G4, Lacci change unscheduled)."
 ----------- app code
 Shoes.app do
   @open = edit_line state: nil

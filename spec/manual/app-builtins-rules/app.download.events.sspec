@@ -4,8 +4,6 @@ lines: [908, 914]
 testability: api
 display: any
 ledger: K5
-expect: fail
-reason: "Lacci's download accepts no start:, progress: or finish: handlers and fires no start or progress (K5, M30)"
 ----------- app code
 # The event handlers take the shape of the simple-downloader sample the manual shows at line 70.
 Shoes.app do

@@ -1,0 +1,33 @@
+---
+manual: app.visit
+lines: [1012, 1014]
+testability: api
+display: native
+ledger: B7
+----------- app code
+# Ledger B7: clear keeps a slot's timers, but visit starts the new page from nothing,
+# timers included, as Shoes 3 resets the whole canvas (s3_app.c:524-533, 93-101).
+$ticks = 0
+Shoes.app do
+  url "/", :index
+  url "/about", :about
+
+  def index
+    para "Welcome"
+    every(0.1) { $ticks += 1 }
+    @go = button("About") { visit "/about" }
+  end
+
+  def about
+    para "Made with Shoes"
+  end
+end
+----------- test code
+advance 0.55
+assert_operator $ticks, :>, 0, "the first page's timer runs"
+
+find_button("About").trigger_click
+assert_equal "Made with Shoes", para.text, "visit showed the new page"
+after_visit = $ticks
+advance 0.55
+assert_equal after_visit, $ticks, "and the old page's timer stopped"

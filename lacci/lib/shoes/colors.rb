@@ -165,9 +165,9 @@ class Shoes
 
     # Each component is an Integer from 0 to 255 or a Float from 0.0 to 1.0,
     # decided one component at a time, so rgb(0, 0.4, 0) is dark green.
-    # The result is always four Integers from 0 to 255, like Shoes 3's colors.
+    # The result is always a Shoes::Color of four Integers from 0 to 255, like Shoes 3's.
     def rgb(r, g, b, a = 255)
-      [r, g, b, a].map { |component| color_byte(component) }
+      Shoes::Color[color_byte(r), color_byte(g), color_byte(b), color_byte(a)]
     end
 
     # In Shoes, gradient(color1, color2) creates a gradient pattern.
@@ -179,6 +179,8 @@ class Shoes
 
     # Simple gradient class to hold colors and angle for rendering.
     class Gradient
+      include Shoes::Pattern
+
       attr_reader :color1, :color2, :angle
 
       # Angle 0 runs top to bottom and 90 left to right (manual 1073-1079,

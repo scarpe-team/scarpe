@@ -4,8 +4,6 @@ lines: [815, 815]
 testability: api
 display: any
 ledger: D1
-expect: fail
-reason: "Lacci colours are plain Arrays; there is no Shoes::Color class (D1)"
 ----------- app code
 Shoes.app do
   $blueviolet = rgb(138, 43, 226)

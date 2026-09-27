@@ -4,8 +4,6 @@ lines: [2127, 2127]
 testability: api
 display: any
 ledger: F2
-expect: fail
-reason: "Lacci's title returns a Shoes::Para with size :title; there is no Shoes::Title class"
 ----------- app code
 Shoes.app do
   $block = title "Shoes"

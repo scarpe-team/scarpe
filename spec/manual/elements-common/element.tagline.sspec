@@ -4,8 +4,6 @@ lines: [2107, 2107]
 testability: api
 display: any
 ledger: F2
-expect: fail
-reason: "Lacci's tagline returns a Shoes::Para with size :tagline; there is no Shoes::Tagline class"
 ----------- app code
 Shoes.app do
   $block = tagline "Shoes"

@@ -7,6 +7,22 @@ class TestColors < Minitest::Test
     include Shoes::Colors
   end
 
+  # Ledger D1: colours are Shoes::Color objects with red, green, blue and alpha, and
+  # still Arrays, so destructuring and comparing keep working (manual 790-834).
+  def test_colours_are_shoes_colors_that_still_act_as_arrays
+    violet = Shoes.rgb(138, 43, 226)
+    assert_kind_of Shoes::Color, violet
+    assert_equal [138, 43, 226, 255], [violet.red, violet.green, violet.blue, violet.alpha]
+    assert_kind_of Shoes::Color, Dummy.new.blue
+    assert_kind_of Shoes::Color, Shoes.gray(10)
+
+    r, g, b, a = violet
+    assert_equal [138, 43, 226, 255], [r, g, b, a]
+    assert_equal [138, 43, 226, 255], violet
+    assert_equal [255, 136, 0, 255], Shoes::Color.from("#ff8800")
+    assert_nil Shoes::Color.from(nil)
+  end
+
   def test_default_colors_are_accessible_via_methods
     assert_equal [0, 0, 0, 255], Dummy.new.black
     assert_equal [255, 255, 255, 255], Dummy.new.white

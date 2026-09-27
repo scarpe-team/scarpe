@@ -5,6 +5,8 @@ class Shoes
     include Shoes::Focusable
 
     shoes_styles :text, :height, :width, :tooltip, :font, :stroke
+    shoes_style :change # the handler (manual 1123-1128, ledger G10)
+    shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
     shoes_events :change
 
     # text "returns a string of characters", empty ones included (ledger M5)
@@ -13,15 +15,15 @@ class Shoes
     init_args
     opt_init_args :text
     def initialize(*args, **kwargs, &block)
-      @callback = block
       @setting_from_event = false
       super
+      @change = block if block
 
       bind_self_event("change") do |new_text|
         @setting_from_event = true
         self.text = new_text
         @setting_from_event = false
-        @callback&.call(self)
+        @change&.call(self)
       end
 
       create_display_drawable
@@ -32,7 +34,7 @@ class Shoes
     # @yield [edit_box] the edit box, already holding its new text
     # @return [self]
     def change(&block)
-      @callback = block
+      @change = block
       self
     end
 
@@ -45,7 +47,7 @@ class Shoes
 
       # Fire callback if text changed and not being set from the event handler
       if !@setting_from_event && old_value != new_value
-        @callback&.call(self)
+        @change&.call(self)
       end
     end
 

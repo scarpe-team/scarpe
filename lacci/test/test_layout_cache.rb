@@ -61,15 +61,68 @@ class TestLayoutCache < NienteTest
       Shoes::DisplayService.layout_cache[para("@words").linkable_id] = [0.0, 0.0, 64.0, 14.4, 14.4]
       Shoes::DisplayService.layout_cache[button("@go").linkable_id] = [70.0, 0.0, 40.0, 24.0, 24.0]
 
-      assert_equal 14, para("@words").height
+      assert_equal 30, para("@words").height, "14.4 px of text plus its 4 px margin above and 12 below"
       assert_equal [70, 0, 40, 24], [button("@go").left, button("@go").top, button("@go").width, button("@go").height]
+    SHOES_SPEC
+  end
+
+  # Shoes 3 reports an element's place, margins included (s3_ruby.h:376-413 read
+  # place.x, place.y, place.w and place.h), and text blocks carry 4 px margins with
+  # 12 below (ledger C9). The display pushes the box inside the margins.
+  def test_getters_report_the_box_with_its_margins
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @plain = para "plain"
+        @spaced = para "spaced", margin: 10
+        @tall = para "tall", margin_left: 2
+        @sized = para "sized", width: 200
+        @go = button "Go", margin: [5, 6, 7, 8]
+        @styled = stack
+        @styled.style(margin: 3)
+      end
+    SHOES_APP
+      cache = Shoes::DisplayService.layout_cache
+      box = ->(name) { d = drawable(name); [d.left, d.top, d.width, d.height] }
+      cache[para("@plain").linkable_id] = [4.0, 4.0, 64.0, 14.4, 14.4]
+      cache[para("@spaced").linkable_id] = [10.0, 40.0, 64.0, 14.4, 14.4]
+      cache[para("@tall").linkable_id] = [2.0, 80.0, 64.0, 14.4, 14.4]
+      cache[para("@sized").linkable_id] = [4.0, 120.0, 200.0, 14.4, 14.4]
+      cache[button("@go").linkable_id] = [105.0, 206.0, 40.0, 24.0, 24.0]
+      cache[stack("@styled").linkable_id] = [3.0, 303.0, 594.0, 0.0, 0.0]
+
+      assert_equal [0, 0, 72, 30], box.("@plain"), "4 px round the text and 12 below"
+      assert_equal [0, 30, 84, 34], box.("@spaced"), "margin: 10 on every side, the 12 below included"
+      assert_equal [0, 76, 70, 30], box.("@tall"), "one side given, the others keep the text defaults"
+      assert_equal 200, para("@sized").width, "a pixel width the app gave is still the answer"
+      assert_equal [100, 200, 52, 38], box.("@go"), "a control has no margin unless given one"
+      assert_equal [0, 300, 600, 6], box.("@styled"), "a margin set later through style counts too"
+    SHOES_SPEC
+  end
+
+  # Manual 2623-2626: left and top of a displaced element read "as if there was no
+  # displacement". The display pushes where it painted, so the displacement comes off,
+  # a displaced slot's included.
+  def test_left_and_top_ignore_displacement
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @box = stack(margin: 0) { @go = button "Go" }
+      end
+    SHOES_APP
+      cache = Shoes::DisplayService.layout_cache
+      stack("@box").displace(10, 20)
+      button("@go").displace(2, 6)
+      cache[stack("@box").linkable_id] = [10.0, 20.0, 600.0, 24.0, 24.0]
+      cache[button("@go").linkable_id] = [12.0, 26.0, 40.0, 24.0, 24.0]
+
+      assert_equal [0, 0], [stack("@box").left, stack("@box").top]
+      assert_equal [0, 0], [button("@go").left, button("@go").top]
     SHOES_SPEC
   end
 
   def test_scroll_height_and_scroll_max_come_from_the_content_height
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
-        @list = stack width: 200, height: 100, scroll: true do
+        @list = stack width: 200, height: 100, scroll: true, margin: 10 do
           5.times { stack height: 40 }
         end
         @short = stack width: 200, height: 100
@@ -79,7 +132,7 @@ class TestLayoutCache < NienteTest
       Shoes::DisplayService.layout_cache[stack("@short").linkable_id] = [0.0, 100.0, 200.0, 100.0, 100.0]
 
       assert_equal 200, stack("@list").scroll_height
-      assert_equal 100, stack("@list").scroll_max
+      assert_equal 100, stack("@list").scroll_max, "scrolling is measured in the viewport, inside the margins"
       assert_equal 0, stack("@short").scroll_max
     SHOES_SPEC
   end

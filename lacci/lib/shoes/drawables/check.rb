@@ -5,17 +5,18 @@ class Shoes
     include Shoes::Focusable
 
     shoes_styles :checked
+    shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
     shoes_events :click
 
     init_args
     opt_init_args :checked
     def initialize(*args, **kwargs, &block)
-      @block = block
       super
+      @click = block if block
 
       bind_self_event("click") do
         self.checked = !checked?
-        @block.call(self) if @block
+        @click&.call(self)
       end
       create_display_drawable
     end
@@ -23,7 +24,7 @@ class Shoes
     # @yield [check] the check box, already toggled
     # @return [self]
     def click(&block)
-      @block = block
+      @click = block
       self
     end
 

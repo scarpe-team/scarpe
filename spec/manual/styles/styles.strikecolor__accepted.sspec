@@ -4,8 +4,6 @@ lines: [1436, 1441]
 testability: api
 display: any
 ledger: F5
-expect: fail
-reason: "Para does not declare :strikecolor, so Lacci drops it with a warning (F5, Lacci change unscheduled)."
 ----------- app code
 Shoes.app do
   @it = para "struck", strikethrough: "single", strikecolor: red
