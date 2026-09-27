@@ -7,6 +7,12 @@ module SpecSuite
   class Sandbox
     attr_reader :root
 
+    # Readable, and unique even for cases whose names differ only in characters a directory
+    # name cannot keep: check.checked?.sspec and check.checked=.sspec both flatten to "_".
+    def self.dir_name(relative_path)
+      "#{relative_path.gsub(/[^\w.-]+/, "_")}-#{Zlib.crc32(relative_path).to_s(16)}"
+    end
+
     def initialize(parent, name)
       @root = File.join(parent, name)
       FileUtils.mkdir_p([home, local_app_data, work])
@@ -16,6 +22,7 @@ module SpecSuite
     def local_app_data = File.join(root, "localappdata")
     def work = File.join(root, "work")
     def trap_file = File.join(root, "trapped_commands.txt")
+    def clipboard_file = File.join(root, "clipboard.txt")
     def log = File.join(root, "output.log")
 
     def path(name)
@@ -56,6 +63,7 @@ module SpecSuite
         "BUNDLE_GEMFILE" => File.join(REPO, "Gemfile"),
         "RUBYOPT" => "-r#{BUILTIN_STUB}",
         "SPEC_TRAP_FILE" => trap_file,
+        "SPEC_CLIPBOARD_FILE" => clipboard_file,
         "SCARPE_NATIVE_SNAPSHOT_DIR" => File.join(RESULTS_DIR, "snapshots"),
       }.merge(ToolchainEnv.passthrough)
     end

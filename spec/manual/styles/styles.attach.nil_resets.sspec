@@ -5,9 +5,10 @@ testability: visual
 display: native
 ledger: C11
 ----------- app code
+# margin: 0, so the para starts at the stack's left edge like the slot does (text margins, ledger C9).
 Shoes.app width: 400, height: 300 do
   stack margin: 40 do
-    @words = para "Above the pinned slot"
+    @words = para "Above the pinned slot", margin: 0
     @pinned = stack width: 60, height: 40, attach: Window do
       background red
     end

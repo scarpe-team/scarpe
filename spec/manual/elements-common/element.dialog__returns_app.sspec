@@ -3,6 +3,7 @@ manual: element.dialog
 lines: [1958, 1958]
 testability: api
 display: any
+ledger: A9
 ----------- app code
 Shoes.app title: "The Owner" do
   button "Ask me" do

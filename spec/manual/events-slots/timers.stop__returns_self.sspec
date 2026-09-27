@@ -3,6 +3,7 @@ manual: timers.stop
 lines: [3425, 3425]
 testability: api
 display: any
+ledger: B6
 ----------- app code
 Shoes.app do
   $animation = animate(10) { }

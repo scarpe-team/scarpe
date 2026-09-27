@@ -3,6 +3,7 @@ manual: common.hide
 lines: [2639, 2639]
 testability: api
 display: any
+ledger: B6
 ----------- app code
 Shoes.app do
   $b = button "Now you see me"

@@ -3,6 +3,7 @@ manual: art.nofill
 lines: [1701, 1701]
 testability: api
 display: any
+ledger: B6
 ----------- app code
 Shoes.app do
   $app = self

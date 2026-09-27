@@ -3,7 +3,7 @@ manual: element.edit_box
 lines: [1965, 1966]
 testability: api
 display: any
-ledger: M5
+ledger: G12
 ----------- app code
 Shoes.app do
   edit_box

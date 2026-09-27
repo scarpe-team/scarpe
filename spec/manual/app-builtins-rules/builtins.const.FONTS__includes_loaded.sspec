@@ -5,8 +5,8 @@ testability: api
 display: any
 ledger: K4
 ----------- app code
-# Pacifico ships with Scarpe (fonts/Pacifico.ttf); Shoes::Constants::DIR is the checkout.
-PACIFICO = File.join(Shoes::Constants::DIR, "fonts", "Pacifico.ttf")
+# Pacifico (OFL) is in spec/support/assets, copied into every sandbox.
+PACIFICO = File.expand_path("assets/Pacifico.ttf")
 
 Shoes.app do
   $listed_before = Shoes::FONTS.include?("Pacifico")

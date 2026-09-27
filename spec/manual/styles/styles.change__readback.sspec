@@ -3,8 +3,9 @@ manual: styles.change
 lines: [1123, 1128]
 testability: api
 display: any
+ledger: G10
 expect: fail
-reason: "Lacci keeps the change block in @block, not in the style hash (no ledger row yet; requested)."
+reason: "Lacci keeps the change block in @block, not in the style hash (G10)."
 ----------- app code
 Shoes.app do
   @line = edit_line

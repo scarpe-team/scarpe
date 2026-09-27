@@ -28,7 +28,7 @@ module SpecSuite
       return row("not_applicable", "display: #{@case.scope} case") unless @case.runs_on?(@display)
       return row("error", "invalid case: #{@case.problems.join("; ")}") unless @case.valid?
 
-      sandbox = Sandbox.new(@sandboxes, sandbox_name)
+      sandbox = Sandbox.new(@sandboxes, Sandbox.dir_name(@case.relative_path))
       status, message, extra = run_in(sandbox)
       status, message = apply_expectation(status, message)
       row(status, message, **extra, sandbox: (sandbox.root if @keep))
@@ -122,10 +122,6 @@ module SpecSuite
         "scope" => @case.valid? ? @case.scope : nil,
         "sandbox" => sandbox,
       }.compact
-    end
-
-    def sandbox_name
-      @case.relative_path.gsub(/[^\w.-]+/, "_")
     end
 
     # Object.const_set needs a valid constant; "manual/_examples" becomes "SpecManualExamples".

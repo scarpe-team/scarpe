@@ -4,9 +4,10 @@ lines: [1067, 1070]
 testability: visual
 display: native
 ----------- app code
+# margin: 0, so the para is exactly as wide as its stack (text blocks default to 4 px margins, ledger C9).
 Shoes.app width: 400, height: 200 do
   stack width: 300 do
-    @text = para "HHHH", align: "center", size: 24
+    @text = para "HHHH", align: "center", size: 24, margin: 0
   end
 end
 ----------- test code
