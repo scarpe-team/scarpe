@@ -1644,8 +1644,9 @@ module Scarpe
       FileUtils.rm_rf(dmg_staging)
       FileUtils.mkdir_p(dmg_staging)
 
-      # Copy .app into staging
-      FileUtils.cp_r(app_path, File.join(dmg_staging, "#{@name}.app"))
+      # Copy .app into staging with ditto, which keeps file mtimes. A native build's bytecode is
+      # checked against them, and after FileUtils.cp_r every file would quietly load from source.
+      system("ditto", app_path, File.join(dmg_staging, "#{@name}.app")) || raise("Copying #{app_path} for the DMG failed")
 
       # Create Applications symlink for drag-to-install
       File.symlink("/Applications", File.join(dmg_staging, "Applications"))
@@ -2750,26 +2751,21 @@ module Scarpe
         exit(options[:help] ? 0 : 1)
       end
 
-      packager = new(
-        options[:app_file],
-        name: options[:name],
-        icon: options[:icon],
-        arch: options[:arch],
-        output_dir: options[:output_dir],
-        verbose: options[:verbose],
-        dev: options[:dev],
-        sign: options[:sign],
-        dmg: options[:dmg],
-        universal: options[:universal],
-        minimal: options[:minimal],
-        target_os: options[:target_os],
-        skip_webview_check: options[:skip_webview_check],
-      )
-      packager.build!
+      packager_for(options).build!
     rescue => e
       $stderr.puts "❌ Packaging failed: #{e.message}"
       $stderr.puts e.backtrace.first(5).map { |l| "   #{l}" }.join("\n") if options&.dig(:verbose)
       exit 1
+    end
+
+    # A native package when asked with --native, or when SCARPE_DISPLAY_SERVICE says the app runs native.
+    def self.packager_for(options, env: ENV)
+      shared = options.slice(:name, :icon, :arch, :output_dir, :verbose, :dev, :sign, :dmg, :universal, :minimal, :target_os)
+      if options[:native] || env["SCARPE_DISPLAY_SERVICE"] == "native"
+        Native.new(options[:app_file], install_dir: options[:install_dir] || Native::INSTALL_DIR, bytecode: options.fetch(:bytecode, true), **shared)
+      else
+        new(options[:app_file], skip_webview_check: options[:skip_webview_check], **shared)
+      end
     end
 
     def self.parse_args(args)
@@ -2824,6 +2820,15 @@ module Scarpe
         when "--skip-webview-check"
           options[:skip_webview_check] = true
           i += 1
+        when "--native"
+          options[:native] = true
+          i += 1
+        when "--install-dir"
+          options[:install_dir] = args[i + 1]
+          i += 2
+        when "--no-bytecode"
+          options[:bytecode] = false
+          i += 1
         when "--help", "-h"
           options[:help] = true
           i += 1
@@ -2869,6 +2874,14 @@ module Scarpe
               --dmg             Also create a .dmg disk image for distribution
           -u, --universal       Build universal binary (x86_64 + arm64)
 
+        Native display service (macOS; also chosen by SCARPE_DISPLAY_SERVICE=native):
+              --native          Draw with the Rust display service instead of a webview.
+                                Bundles Ruby, Lacci, the shim and the release scarpe-native
+                                binary; always ad-hoc signed. See docs/native_packaging.md
+              --install-dir DIR Where the app will be installed (default /Applications);
+                                its Ruby is precompiled for that place
+              --no-bytecode     Skip precompiling Ruby to bytecode
+
           -h, --help            Show this help
 
         Examples:
@@ -2877,6 +2890,7 @@ module Scarpe
           scarpe package myapp.rb --name "My App" --icon icon.png --sign
           scarpe package myapp.rb --minimal --sign --dmg
           scarpe package myapp.rb --universal --sign --dmg
+          scarpe package myapp.rb --native --dmg
 
           # Linux
           scarpe package myapp.rb --linux
@@ -2906,3 +2920,5 @@ module Scarpe
     end
   end
 end
+
+require_relative "package/native"

@@ -364,9 +364,12 @@ order, and exits. It is the quick "look and click" tool for humans and agents.
 
 ## 11. Packaging
 
-`scarpe package` gains a native path: bundle the release binary into the app (macOS: `Contents/MacOS`,
-signed explicitly), drop `require 'scarpe/wv'` from the boot script, set `SCARPE_DISPLAY_SERVICE=native`
-(the packager currently sets the dead `SCARPE_DISPLAY`), skip WebKitGTK/WebView2 checks.
+`scarpe package --native` (or `SCARPE_DISPLAY_SERVICE=native scarpe package`) builds a macOS `.app`
+(`lib/scarpe/package/native.rb`, docs/native_packaging.md): Traveling Ruby, `lib`, `lacci/lib` and
+`scarpe-components/lib` copied from source (no gems, no webview), the release binary stripped into
+`Contents/MacOS` and signed explicitly, a boot script that never loads `scarpe/wv` and sets
+`SCARPE_DISPLAY_SERVICE=native`, and an ad-hoc signature on the whole bundle. Linux and Windows
+native packages are not built yet.
 
 Ruby speed in packaged apps (Nick's call, 27 Sep 2026). Two cheap wins, both measured before and after:
 
