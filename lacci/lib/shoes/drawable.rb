@@ -241,6 +241,18 @@ class Shoes
           (self != Shoes::Drawable && superclass.shoes_style_name?(name))
       end
 
+      # Shapes, backgrounds and borders are drawn with the slot's current fill, stroke
+      # and strokewidth (manual 1692-1709). Text and controls are not: Shoes 3 colours
+      # text from its own styles only (s3t_textblock.c:250-258), and native controls
+      # ignore stroke.
+      def uses_draw_context
+        @uses_draw_context = true
+      end
+
+      def uses_draw_context?
+        @uses_draw_context || (self != Shoes::Drawable && superclass.uses_draw_context?)
+      end
+
       # Current_app is set every time a drawable is created - we don't want to keep a default
       # long because it's possible for apps to alternate who is creating. So make sure it's
       # not kept long, and used up when used once.
@@ -350,7 +362,7 @@ class Shoes
 
       # What styles are in the draw context, are used by this drawable, and weren't
       # given as positional or keyword arguments?
-      draw_context_styles = (DRAW_CONTEXT_STYLES & this_drawable_styles) - supplied_args
+      draw_context_styles = self.class.uses_draw_context? ? (DRAW_CONTEXT_STYLES & this_drawable_styles) - supplied_args : []
       unless draw_context_styles.empty?
         draw_context_styles.each do |style|
           dc_val = dc[style.to_s]
