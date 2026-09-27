@@ -184,7 +184,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | K2 | Option hashes on dialogs | EXT | unsched. | |
 | K3 | `debug`, `info`, `warn`, `error` | MANUAL | unsched. | |
 | K4 | `font(path)` returns family names | MANUAL | | |
-| K5 | `download` and its events | MANUAL | unsched. | |
+| K5 | `download` and its events | MANUAL | | |
 | K6 | `exit` stops the program at once | MANUAL | unsched. | |
 | L1 | App code runs at top level | S3 | | |
 | L2 | Case-insensitive `require` | OOS | | |
@@ -1168,10 +1168,10 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### K5. `download` and its events
 
-**Ruling: MANUAL.** Specced under a `network` tag that is off by default. **Lacci change, unscheduled.** New row.
+**Ruling: MANUAL.** Specced under a `network` tag that is off by default. **Lacci change, done 27 Sep 2026.** New row.
 
 - **Manual:** runs in the background and "fires `start`, `progress` and `finish` events" (manual 906-975); only `finish` is shown (M30).
-- **Lacci today:** `Shoes::App#download` (`download.rb:31-125`) calls `handle_failure` with one argument though it takes two, so every non-2xx response logs an `ArgumentError` instead; it requires `nokogiri` unconditionally; it runs the user's block on a background `Thread` (report 04, C4).
+- **Lacci today:** `Shoes::App#download` (`download.rb:31-125`) calls `handle_failure` with one argument though it takes two, so every non-2xx response logs an `ArgumentError` instead; it requires `nokogiri` unconditionally; it runs the user's block on a background `Thread` (report 04, C4). Since the wave-4 Lacci lane `download` takes `start:`, `progress:` and `finish:` (a block is `finish`), each handed a `Download` with `response`, `length`, `transferred` and `percent`; `headers:` and `body:` shape the request beside `method:`; and `save:` writes the file, hands the finish event the download too, and leaves `response.body` nil with the headers kept. It no longer needs `nokogiri`. The whole body is read at once, so `progress` fires once, at 100 percent, and every event still runs on the download's thread.
 - **Spec:** against a local HTTP server, `finish` fires once with the body and `start` fires before it.
 - **Native:** display updates can arrive from that background thread; DESIGN 5.2 guards writes with a Mutex, which covers it.
 
@@ -1235,7 +1235,7 @@ These are bugs, not disagreements about Shoes. A new display service inherits ev
 | X15 | `alias_method :remove, :destroy` on Drawable binds the base `destroy`, so `slot.remove` skips the cascade and `finish`. | `drawable.rb:615`, `drawables/slot.rb:231-235` | Removed slots leak their children in Lacci; `finish` never fires on `remove`. | B5 | fixed 27 Sep (`64e1ca6`) |
 | X16 | `App#destroy` (and its alias `close`) sends a nil-target `destroy`, which every App obeys. | `app.rb:109-113, 280-287` | Closing one window closes all of them. | A8 | unscheduled |
 | X17 | `all_drawables` seeds its queue with `[@document_root, @document_root.children]`, so the children Array itself lands in the result. | `app.rb:289-299` | Class-filtered finders hide it; `drawables()` with no filter returns an Array among the drawables. Matters to the spec finders. | spec API | unscheduled |
-| X18 | `download`'s failure path calls `handle_failure(code)` against `def handle_failure(code, logger)`, requires `nokogiri` unconditionally, and runs blocks on a background Thread. | `download.rb:31-125` | Every non-2xx response logs an ArgumentError instead of failing cleanly. | K5 | failure path fixed 27 Sep (`3dcf19a`); the rest unscheduled |
+| X18 | `download`'s failure path calls `handle_failure(code)` against `def handle_failure(code, logger)`, requires `nokogiri` unconditionally, and runs blocks on a background Thread. | `download.rb:31-125` | Every non-2xx response logs an ArgumentError instead of failing cleanly. | K5 | failure path fixed 27 Sep (`3dcf19a`); `nokogiri` dropped in wave 4 (K5); blocks still run on the download's thread |
 | X19 | Webview subscribes to `full_redraw_request`, `focus` and `scroll_top` with the wrong target (nil against id, or the reverse). | `drawables/slot.rb:243, 267` against `wv/slot.rb:14`; `edit_line.rb:45` against `wv/edit_line.rb:19`; `drawables/stack.rb:29` against `wv/stack.rb:8` | `slot.clear { }` never redraws in Webview; `focus` and `scroll_top` never arrive. The native shim subscribes by id and ignores `full_redraw_request` (DESIGN 5.2). | C5, G9 | WV only |
 | X20 | The draw context's `fill`, `stroke`, `strokewidth`, `rotate`, `transform` and `translate` are copied onto every drawable that declares the style, text blocks and controls included, unless the call supplied it. | `drawable.rb:288, 353-361` | `stroke "#BBB"; button "Expert"` sends `stroke: [187, 187, 187]` on the Button and on later paras (confirmed on the wire): `simple/control-sizes.rb` draws every control in #dde, and minesweeper's buttons turn grey after a redraw. The manual's `stroke` and `fill` colour "any subsequent shape" (manual 1682-1687, 1833-1836). | D8, E10 | fixed 27 Sep (`668cbf0`); pinned by `art.stroke__shapes_only` |
 
