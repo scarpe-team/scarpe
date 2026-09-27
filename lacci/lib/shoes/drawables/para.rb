@@ -12,21 +12,7 @@ class Shoes
     # text_marker: integer character position of the selection anchor, or nil (no selection)
     shoes_styles :text_cursor, :text_marker
 
-    UNDERLINE_VALUES = [nil, "none", "single", "double", "low", "error"]
-    shoes_style :underline do |val, _name|
-      unless UNDERLINE_VALUES.include?(val)
-        raise Shoes::Errors::InvalidAttributeValueError, "Underline must be one of: #{UNDERLINE_VALUES.inspect}!"
-      end
-      val
-    end
-
-    STRIKETHROUGH_VALUES = [nil, "none", "single"]
-    shoes_style :strikethrough do |val, _name|
-      unless STRIKETHROUGH_VALUES.include?(val)
-        raise Shoes::Errors::InvalidAttributeValueError, "Strikethrough must be one of: #{STRIKETHROUGH_VALUES.inspect}!"
-      end
-      val
-    end
+    include TextDecoration
 
     shoes_style(:align) do |val|
       unless ["left", "center", "right"].include?(val)
