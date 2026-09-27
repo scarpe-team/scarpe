@@ -59,7 +59,11 @@ impl Runtime {
                 Ok(Some(json!({"path": path, "w": pm.width(), "h": pm.height()})))
             }
             Op::Click { target, button, app } => {
-                let app = self.app_for(app).ok_or_else(no_app)?;
+                let owner = match &target {
+                    Target::Id(id) => self.owner_app(*id),
+                    _ => None,
+                };
+                let app = owner.or_else(|| self.app_for(app)).ok_or_else(no_app)?;
                 self.active_app = Some(app);
                 self.click(app, target, button).map(Some)
             }
@@ -242,6 +246,16 @@ impl Runtime {
         self.pointer_down(app, button);
         self.pointer_up(app, button);
         Ok(json!({"hit": hit_id, "x": round(x), "y": round(y)}))
+    }
+
+    /// The open app a drawable is drawn in: up its parents, or for a text fragment
+    /// (which has none), the app whose layout shows it.
+    fn owner_app(&mut self, id: Id) -> Option<Id> {
+        if let Some(app) = self.doc.app_of(id).filter(|a| self.views.contains_key(a)) {
+            return Some(app);
+        }
+        let apps: Vec<Id> = self.views.keys().copied().collect();
+        apps.into_iter().find(|&app| self.layout_of(app).is_some_and(|l| para_of(l, id).is_some()))
     }
 
     /// Clicking an item of an open list_box popup by its text.

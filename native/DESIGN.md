@@ -335,8 +335,13 @@ on top of the Niente-compatible finders and proxies (`button`, `para`, `edit_lin
 | `stub_dialog(kind, value)` | answer the next `kind` builtin with `value` |
 
 `scarpe peek APP.rb [--size WxH] [--scale 2] [--wait SECS] [--click TEXT | --click-at X,Y]
-[--type TEXT] [--key NAME] [--shot OUT.png] [--layout]` runs an app headless, performs the steps in
-order, and exits. It is the quick "look and click" tool for humans and agents.
+[--type TEXT] [--key NAME] [--wheel DY[,X,Y]] [--window N | --app ID] [--shot OUT.png] [--layout]`
+runs an app headless, performs the steps in order, and exits. It is the quick "look and click" tool
+for humans and agents. `--window N` (counting from 1 in `Shoes.APPS`) or `--app ID` sends every
+later step to that window.
+
+Automation aimed at one drawable (`trigger_click`, `layout_of`, `trigger_hover`) goes to the window
+that drawable is in; Rust also routes `click {id}` to the drawable's own app, whatever `app` says.
 
 ## 9. The spec suite (`spec/`)
 

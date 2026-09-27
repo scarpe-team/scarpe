@@ -147,6 +147,11 @@ module Scarpe::Native
       @open_apps.key(true)
     end
 
+    # The app a drawable belongs to, so automation aimed at it reaches its window.
+    def app_id_of(id)
+      display_drawable(id)&.app_id
+    end
+
     # Shoes-Spec runs: nobody can click a dialog, and time only moves when the test says so.
     def spec_mode!
       @builtins.interactive = false

@@ -240,3 +240,34 @@ fn slot_click_release_and_motion_use_window_coordinates() {
     assert_eq!(named(&evs, "release")[0].2, json!([1, 150, 120]));
     assert_eq!(named(&evs, "motion")[0].2, json!([150, 120, false, false]));
 }
+
+// ---- Several windows ----
+
+/// A second app (9, root 10) beside the harness's app 1, with a button and a link.
+fn second_window(h: &mut Harness) {
+    let lines = [
+        json!({"t":"create","id":10,"kind":"DocumentRoot","parent":null,"props":{}}),
+        json!({"t":"create","id":9,"kind":"App","parent":null,"props":{"width":200,"height":100},"doc_root":10}),
+        create(11, "Button", 10, json!({"text": "Close me"})),
+        json!({"t":"create","id":12,"kind":"Link","parent":null,"props":{"text_items":["more"]}}),
+        create(13, "Para", 10, json!({"text_items": [12]})),
+        json!({"t":"run","app":9}),
+        json!({"t":"flush"}),
+    ];
+    h.feed(&lines.iter().map(|l| format!("{l}\n")).collect::<String>());
+}
+
+/// spec app.close: a click by id goes to the window the drawable is in, whichever
+/// app the request names.
+#[test]
+fn a_click_by_id_goes_to_the_drawables_own_window() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(3, "Button", 2, json!({"text": "Another"}))]));
+    second_window(&mut h);
+    for target in [11, 12] {
+        let (evs, reply) = h.req(json!({"op": "click", "target": {"id": target}, "app": 1}));
+        assert_eq!(reply["error"], Value::Null, "{reply}");
+        assert_eq!(named(&events(&evs), "click")[0].1, json!(target));
+    }
+    assert_eq!(h.rt.active_app, Some(9), "that window is now the active one");
+}
