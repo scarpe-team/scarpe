@@ -173,7 +173,6 @@ module Scarpe::Native
       @trace = !ENV["SCARPE_NATIVE_TRACE"].to_s.empty?
       @ready_timeout = ready_timeout
       Stats.mark("spawn")
-      @spawned_at = monotonic
       @stdin, @stdout, @stderr, @wait_thread = spawn(command)
       @pid = @wait_thread.pid
       [@stdin, @stdout].each(&:binmode)
@@ -201,8 +200,13 @@ module Scarpe::Native
     end
 
     # A child that has not answered hello by now is stuck starting up: say so instead of waiting on.
+    # The clock starts when Ruby first listens (the pump's first step), not at the spawn: the app
+    # body runs between the two, with the answer unread in the pipe, and its time is not the child's.
     def check_started!
-      return if @ready || @eof || monotonic - @spawned_at < @ready_timeout
+      return if @ready || @eof
+
+      @listening_since ||= monotonic
+      return if monotonic - @listening_since < @ready_timeout
 
       raise ChildTimeout, "scarpe-native did not answer hello within #{@ready_timeout}s"
     end
