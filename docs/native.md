@@ -62,8 +62,13 @@ The first run builds the Rust binary (`cargo build --release`, about a minute) a
 stderr. After that the shim rebuilds it only when something under `native/src`, or a Cargo file,
 changes. The installed `scarpe` command takes the same `--native` flag, and
 `SCARPE_DISPLAY_SERVICE=native` picks the native service the same way for anything that runs an app.
+Outside a git checkout nothing is built: the shim runs `SCARPE_NATIVE_BIN`, or a `scarpe-native`
+on your `PATH`. One on your `PATH` wins in a checkout too, so set `SCARPE_NATIVE_BIN` when you
+want a particular build.
 
-A window closes the way any Mac window does. When the last one goes, the app exits.
+A window closes the way any Mac window does. When the last one goes, the app exits. `close` in
+your code closes its own window the same way, and `exit` ends every window at once. Ctrl-C in
+the terminal quits the app; a second Ctrl-C ends it even if the renderer has stopped answering.
 
 ## Looking and clicking with `scarpe peek`
 
@@ -224,7 +229,7 @@ and the numbers.
 | `SCARPE_NATIVE_BIN` | run this binary instead of building `native/target/release/scarpe-native` |
 | `SCARPE_NATIVE_TRACE=1` | print every message in both directions to stderr |
 | `SCARPE_NATIVE_LOG_LEVEL` | `debug`, `info`, `warn` (the default) or `error` |
-| `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept |
+| `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept; by default your own cache folder (`~/Library/Caches/scarpe-native` on a Mac), never the shared temp folder |
 | `SCARPE_NATIVE_SNAPSHOT_DIR` | where a spec's `snapshot("name")` writes its picture |
 | `SCARPE_NATIVE_STATS=DIR` | each process writes where its time went (`ruby.json`, `rust.json`) when it exits |
 | `SCARPE_NATIVE_DAMAGE` | `off` repaints every frame whole; `check` verifies every partial repaint pixel by pixel |
@@ -335,8 +340,7 @@ As of 27 Sep 2026. Each has more detail in the ledger or in DESIGN.
   parent's content origin. `font(url)` returns the file's name before the font is fetched.
   A slot's `start` fires on the first heartbeat after it appears. Image downloads happen at create
   time and hold up building the tree. `download` reads the whole body before its one `progress`.
-  Ledger rows A8 (closing one window), B1 (a slot block's `self`) and K6 (`exit` at once) are
-  still open.
+  Ledger rows B1 (a slot block's `self`) and K6 (`exit` at once) are still open.
 - **Packaging.** No YJIT in the shipped Ruby yet. Bytecode only helps when the app runs from where it
   was compiled for. Only the app file and its assets are copied, not other `.rb` files it requires.
 - **Text.** The stretch (condensed, expanded) and small-caps styles are not drawn (ledger F4, F5),

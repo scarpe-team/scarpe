@@ -3,7 +3,8 @@
 module SpecSuite
   # Runs one command in its own process group with a deadline, output to a log file.
   # Past the deadline the whole group gets TERM, then KILL, so a display child or a stray
-  # grandchild never outlives its case.
+  # grandchild never outlives its case. The native renderer leads a group of its own, so it goes
+  # too, through the pid the shim leaves in SCARPE_NATIVE_PID_FILE while it runs.
   class Child
     Finished = Struct.new(:exitstatus, :termsig, :timed_out, :secs, :log, keyword_init: true) do
       def output
@@ -36,6 +37,7 @@ module SpecSuite
         log: @log)
     ensure
       kill_group(pid, "KILL") if pid
+      kill_renderer
     end
 
     private
@@ -56,6 +58,15 @@ module SpecSuite
         kill_group(pid, "KILL")
         Process.wait2(pid).last
       end
+    end
+
+    # The shim deletes the file once the renderer has gone, so one still there means Ruby died
+    # before it could stop it.
+    def kill_renderer
+      file = @env["SCARPE_NATIVE_PID_FILE"]
+      kill_group(Integer(File.read(file)), "KILL") if file && File.exist?(file)
+    rescue ArgumentError, SystemCallError
+      nil
     end
 
     def kill_group(pid, signal)

@@ -9,7 +9,7 @@ use crate::layout::Rect;
 use crate::paint::text::draw_shaped;
 use crate::paint::Canvas;
 use crate::props::Id;
-use crate::protocol::Outgoing;
+use crate::protocol::{AskOptions, Outgoing};
 use crate::runtime::Runtime;
 use crate::style::Color;
 use crate::text::rich::{TextStyle, INK};
@@ -69,6 +69,8 @@ pub enum ModalKind {
 pub struct Modal {
     pub req: u64,
     pub message: String,
+    /// `ask`'s title, drawn as the panel's first line: the modal has no title bar to put it in.
+    pub title: Option<String>,
     pub kind: ModalKind,
     pub pressed: Option<ModalButton>,
     /// A press began in the text field: moves extend its selection.
@@ -113,9 +115,21 @@ struct Geometry {
     cancel: Rect,
 }
 
+/// The message, under the title in bold when there is one.
+fn heading(modal: &Modal) -> RichText {
+    let mut rich = RichText::plain(&modal.message, TextStyle::new(CONTROL_TEXT_SIZE, INK));
+    if let Some(title) = &modal.title {
+        let mut line = rich.runs[0].clone();
+        line.text = format!("{title}\n");
+        line.style.weight = 600;
+        rich.runs.insert(0, line);
+    }
+    rich
+}
+
 fn geometry(modal: &Modal, size: (f32, f32), text: &mut TextEngine) -> (Geometry, crate::text::ShapedText) {
     let w = (size.0 - 40.0).clamp(160.0, 360.0);
-    let shaped = text.shape(&RichText::plain(&modal.message, TextStyle::new(CONTROL_TEXT_SIZE, INK)), Some(w - 32.0));
+    let shaped = text.shape(&heading(modal), Some(w - 32.0));
     let body = match modal.kind {
         ModalKind::Ask(_) => 28.0,
         ModalKind::Color { .. } => 2.0 * 30.0 + 6.0,
@@ -178,20 +192,20 @@ pub fn paint_modal(canvas: &mut Canvas, view: &mut ViewState, text: &mut TextEng
 
 impl Runtime {
     /// Opens the in-window modal for `ask` / `ask_color` in `app`.
-    pub fn open_modal(&mut self, app: Id, req: u64, kind: &str, message: &str, default: &Value) {
+    pub fn open_modal(&mut self, app: Id, req: u64, kind: &str, message: &str, default: &Value, ask: &AskOptions) {
         let Some(view) = self.views.get_mut(&app) else {
             self.out.send(reply(req, Value::Null, true));
             return;
         };
         let modal_kind = if kind == "ask" {
             let initial = default.as_str().unwrap_or("");
-            let mut field = TextField::new(&mut self.text.fonts.system, initial, false, false, FamilyName::Sans, CONTROL_TEXT_SIZE, INK);
+            let mut field = TextField::new(&mut self.text.fonts.system, initial, false, ask.secret, FamilyName::Sans, CONTROL_TEXT_SIZE, INK);
             field.select_all();
             ModalKind::Ask(Box::new(field))
         } else {
             ModalKind::Color { selected: 5 }
         };
-        view.ui.modal = Some(Modal { req, message: message.to_string(), kind: modal_kind, pressed: None, selecting: false });
+        view.ui.modal = Some(Modal { req, message: message.to_string(), title: ask.title.clone(), kind: modal_kind, pressed: None, selecting: false });
         self.request_redraw(app);
     }
 

@@ -43,7 +43,7 @@ module Scarpe::Native
     end
 
     def answer(cmd_name, args)
-      return dialog(cmd_name, args.first) if DIALOGS.include?(cmd_name)
+      return dialog(cmd_name, args[0], args[1]) if DIALOGS.include?(cmd_name)
 
       if cmd_name == "font"
         @service.register_font(args.first)
@@ -55,13 +55,13 @@ module Scarpe::Native
 
     private
 
-    def dialog(kind, message)
+    def dialog(kind, message, options)
       @seen << [kind, message]
       return @next_answers[kind].shift unless @next_answers[kind].empty?
       return @standing_answers[kind] if @standing_answers.key?(kind)
       return QUIET_ANSWERS[kind] unless @interactive
 
-      reply = @service.child.request(:dialog, kind: kind, message: message&.to_s, default: nil)
+      reply = @service.child.request(:dialog, kind: kind, message: message&.to_s, default: nil, **ask_options(options))
       if reply["error"]
         @log.warn("The #{kind} dialog failed: #{reply["error"]}")
         return QUIET_ANSWERS[kind]
@@ -70,6 +70,15 @@ module Scarpe::Native
       return "" if kind == "ask" && reply["value"].nil?
 
       reply["value"]
+    end
+
+    # ask's options, which Lacci hands over beside the message (ledger K1): Rust masks a secret
+    # answer as it is typed and heads the dialog with the title.
+    def ask_options(options)
+      return {} unless options.is_a?(Hash)
+
+      options = options.transform_keys(&:to_s)
+      { secret: (true if options["secret"]), title: options["title"]&.to_s }.compact
     end
   end
 end

@@ -88,7 +88,9 @@ module Scarpe::Native
     end
   end
 
-  # Finds the scarpe-native binary, building it first in a dev checkout when it is missing or stale.
+  # Finds the scarpe-native binary: SCARPE_NATIVE_BIN, a packaged app's own, one on PATH, or in a
+  # git checkout of Scarpe a dev build, built first when it is missing or stale. An installed gem
+  # ships the crate too, but a gem directory is no place to run cargo at an app's launch.
   module Binary
     extend self
 
@@ -98,9 +100,14 @@ module Scarpe::Native
     def path
       explicit = ENV["SCARPE_NATIVE_BIN"].to_s
       return explicit unless explicit.empty?
-      return dev_binary if File.exist?(File.join(CRATE, "Cargo.toml"))
 
-      packaged_binary || raise(ChildNotFound, "Can't find the scarpe-native binary. Set SCARPE_NATIVE_BIN to its path.")
+      packaged_binary || which("scarpe-native") || (dev_binary if checkout?) ||
+        raise(ChildNotFound, "Can't find the scarpe-native binary. Set SCARPE_NATIVE_BIN to its path.")
+    end
+
+    # A worktree's .git is a file, a clone's a directory; an installed gem has neither.
+    def checkout?(root: ROOT)
+      File.exist?(File.join(root, ".git")) && File.exist?(File.join(root, "native", "Cargo.toml"))
     end
 
     def dev_binary
@@ -137,7 +144,7 @@ module Scarpe::Native
     def packaged_binary
       beside_script = File.dirname(File.expand_path($PROGRAM_NAME))
       candidates = [beside_script, File.expand_path("../MacOS", beside_script)].map { |dir| File.join(dir, "scarpe-native") }
-      candidates.find { |candidate| File.executable?(candidate) } || which("scarpe-native")
+      candidates.find { |candidate| File.executable?(candidate) }
     end
 
     def which(name)
@@ -173,9 +180,9 @@ module Scarpe::Native
       @trace = !ENV["SCARPE_NATIVE_TRACE"].to_s.empty?
       @ready_timeout = ready_timeout
       Stats.mark("spawn")
-      @spawned_at = monotonic
       @stdin, @stdout, @stderr, @wait_thread = spawn(command)
       @pid = @wait_thread.pid
+      name_in_pid_file
       [@stdin, @stdout].each(&:binmode)
 
       @outbox = []
@@ -201,8 +208,13 @@ module Scarpe::Native
     end
 
     # A child that has not answered hello by now is stuck starting up: say so instead of waiting on.
+    # The clock starts when Ruby first listens (the pump's first step), not at the spawn: the app
+    # body runs between the two, with the answer unread in the pipe, and its time is not the child's.
     def check_started!
-      return if @ready || @eof || monotonic - @spawned_at < @ready_timeout
+      return if @ready || @eof
+
+      @listening_since ||= monotonic
+      return if monotonic - @listening_since < @ready_timeout
 
       raise ChildTimeout, "scarpe-native did not answer hello within #{@ready_timeout}s"
     end
@@ -288,19 +300,46 @@ module Scarpe::Native
       return if @closed
 
       @closed = true
+      close_stdin
+      unless @wait_thread.join(grace)
+        signal("TERM")
+        signal("KILL") unless @wait_thread.join(1)
+      end
+      forget_pid_file
+    end
+
+    # Ends the child, and anything it started, at once: for when Ruby itself is being stopped and
+    # has no time to wait for a child that may be stuck. Safe from a signal trap.
+    def kill!
+      signal("TERM") if @wait_thread.alive?
+    end
+
+    private
+
+    # SCARPE_NATIVE_PID_FILE names the child's process group for as long as the child runs, so a
+    # harness that had to kill Ruby (whose group signals never reach the child's) can end it too.
+    def name_in_pid_file
+      @pid_file = ENV["SCARPE_NATIVE_PID_FILE"].to_s
+      File.write(@pid_file, "#{@pid}\n") unless @pid_file.empty?
+    rescue SystemCallError => e
+      @log.warn("Could not write SCARPE_NATIVE_PID_FILE #{@pid_file}: #{e.message}")
+      @pid_file = ""
+    end
+
+    def forget_pid_file
+      File.delete(@pid_file) unless @pid_file.empty? || !File.exist?(@pid_file)
+    rescue SystemCallError
+      nil
+    end
+
+    def close_stdin
       @write_lock.synchronize do
         write_outbox
         @stdin.close unless @stdin.closed?
       end
-      return if @wait_thread.join(grace)
-
-      signal("TERM")
-      signal("KILL") unless @wait_thread.join(1)
     rescue IOError, SystemCallError
       nil
     end
-
-    private
 
     # Its own process group, so a terminal Ctrl-C reaches Ruby (which quits the child) and not the child.
     def spawn(command)
@@ -416,8 +455,9 @@ module Scarpe::Native
       nil
     end
 
+    # To the child's whole process group (it leads one), so what it started goes with it.
     def signal(name)
-      Process.kill(name, @pid)
+      Process.kill(name, -@pid)
     rescue SystemCallError
       nil
     end

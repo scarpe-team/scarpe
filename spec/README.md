@@ -154,7 +154,7 @@ Everything above, plus the native API (DESIGN.md section 8):
 | `layout_tree` | every laid-out node as a Hash with **Symbol** keys (`:id`, `:kind`, `:x`, `:y`, `:w`, `:h`, `:visible`, `:text`), in paint order |
 | `pixel_at(x, y)` | `[r, g, b, a]` |
 | `snapshot(name)` | writes `spec/results/snapshots/<name>.png`, returns the path |
-| `wait_frames(n = 1)`, `advance(seconds)` | pump the loop; `advance` fires timers |
+| `wait_frames(n = 1)`, `advance(seconds)` | pump the loop; `wait_frames` also beats the heart, so a slot made since starts; `advance` fires timers |
 | `focused_drawable` | proxy or nil |
 
 Every event a synthetic input causes has been dispatched by the time the call returns
@@ -189,7 +189,8 @@ backend follows the ruling).
    and are still recorded in `dialog_calls`. The runner fails any case that
    reaches `osascript`.
 6. **No network, no sleeping, no writing outside the working directory.** Each case runs in a
-   throwaway directory with its own `HOME`; `say`, `open`, `afplay` and `osascript` are trapped.
+   throwaway directory with its own `HOME`, `TMPDIR` and image cache; `say`, `open`, `afplay`
+   and `osascript` are trapped.
    `pbcopy`, `pbpaste` and `xclip` read and write the file `ENV["SPEC_CLIPBOARD_FILE"]` in the
    sandbox instead of the real clipboard: write that file to seed the clipboard, read it to
    see what the app copied.

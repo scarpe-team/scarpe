@@ -49,9 +49,17 @@ pub enum MouseAction {
     Up,
 }
 
+/// What `ask` adds to its message (ledger K1): `secret` masks the answer as it is typed, and
+/// `title` heads the dialog.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct AskOptions {
+    pub secret: bool,
+    pub title: Option<String>,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Op {
-    Dialog { kind: String, message: String, default: Value },
+    Dialog { kind: String, message: String, default: Value, ask: AskOptions },
     Layout { app: Option<Id> },
     Snapshot { path: String, app: Option<Id>, scale: Option<f32> },
     Click { target: Target, button: u8, app: Option<Id> },
@@ -166,6 +174,7 @@ fn op_fields(obj: &Map<String, Value>) -> Result<Op, ParseError> {
             kind: required(s(obj, "kind"), "kind")?,
             message: obj.get("message").map(crate::props::value_text).unwrap_or_default(),
             default: obj.get("default").cloned().unwrap_or(Value::Null),
+            ask: AskOptions { secret: obj.get("secret").and_then(Value::as_bool).unwrap_or(false), title: s(obj, "title") },
         },
         "layout" => Op::Layout { app },
         "snapshot" => Op::Snapshot { path: required(s(obj, "path"), "path")?, app, scale: f(obj, "scale") },
@@ -362,7 +371,16 @@ mod tests {
         };
         assert_eq!(
             op(r#"{"t":"req","req":1,"op":"dialog","kind":"ask","message":"Name?","default":null}"#),
-            Op::Dialog { kind: "ask".into(), message: "Name?".into(), default: Value::Null }
+            Op::Dialog { kind: "ask".into(), message: "Name?".into(), default: Value::Null, ask: AskOptions::default() }
+        );
+        assert_eq!(
+            op(r#"{"t":"req","req":1,"op":"dialog","kind":"ask","message":"Pin?","default":null,"secret":true,"title":"Log in"}"#),
+            Op::Dialog {
+                kind: "ask".into(),
+                message: "Pin?".into(),
+                default: Value::Null,
+                ask: AskOptions { secret: true, title: Some("Log in".into()) },
+            }
         );
         assert_eq!(op(r#"{"t":"req","req":1,"op":"layout"}"#), Op::Layout { app: None });
         assert_eq!(

@@ -36,6 +36,37 @@ class SpecTest < Minitest::Test
     assert run.received.index(first_req) > run.received.index(run.of_type("run").first)
   end
 
+  # Lacci runs a slot's start blocks on the first heartbeat, so test code runs once that heartbeat's
+  # handlers are done: before, it ran first, and no slot had started (ledger H8, events.start).
+  def test_tests_run_after_the_first_heartbeat_has_started_the_slots
+    run = run_app(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        $started = []
+        stack { start { |slot| $started << slot.linkable_id } }
+      end
+    APP
+      assert_equal [stack.linkable_id], $started
+    TEST
+    assert_spec_passed(run)
+  end
+
+  # A slot made while test code runs starts on the next heartbeat, which wait_frames beats as the
+  # pump would.
+  def test_a_slot_made_by_test_code_starts_by_the_next_frame
+    run = run_app(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        $started = []
+        button("more") { stack { start { $started << :more } } }
+      end
+    APP
+      click_on "more"
+      assert_empty $started, "a slot starts once it has been drawn, not when it is made"
+      wait_frames
+      assert_equal [:more], $started
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_failures_are_exported_and_the_process_still_exits
     run = run_app("Shoes.app { para 'hi' }", test_code: "assert_equal 'bye', para.text")
     assert_clean_exit(run)

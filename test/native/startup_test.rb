@@ -13,12 +13,31 @@ class StartupTest < Minitest::Test
     $stdin.each_line {}
   RUBY
 
+  # One that answers at once.
+  PROMPT_CHILD = <<~RUBY
+    $stdout.sync = true
+    $stdin.gets
+    puts '{"t":"ready","v":1,"version":"prompt"}'
+    $stdin.each_line {}
+  RUBY
+
   def test_hello_goes_out_and_ruby_carries_on_without_waiting_for_ready
     started = monotonic
     child = Scarpe::Native::Child.new([RbConfig.ruby, "-e", SLOW_CHILD])
     assert_operator monotonic - started, :<, 0.5, "Child.new came back before the answer"
     assert_equal "slow", child.version, "and the answer is there when asked for"
     assert_operator monotonic - started, :>=, 1.0
+  ensure
+    child&.close
+  end
+
+  # Ruby runs the app body between spawning the child and the pump's first look at its answer,
+  # so a slow body is not a slow child (review: a 20 s body raised a false ChildTimeout).
+  def test_a_long_app_body_is_not_taken_for_a_child_that_never_answered
+    child = Scarpe::Native::Child.new([RbConfig.ruby, "-e", PROMPT_CHILD], ready_timeout: 0.3)
+    sleep 0.5 # the app body; ready sits unread in the pipe meanwhile
+    child.check_started!
+    assert_equal "prompt", child.version
   ensure
     child&.close
   end

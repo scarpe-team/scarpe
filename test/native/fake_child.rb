@@ -6,6 +6,7 @@
 #
 #   FAKE_CHILD_LOG=path     appends every message it receives, one JSON object per line
 #   FAKE_CHILD_ARGV=path    writes the arguments it was started with, as a JSON array
+#   FAKE_CHILD_PID=path     writes its pid
 #   FAKE_CHILD_SCRIPT=path  a JSON array of rules, each fired the first time its "on" matches:
 #     "on":    a message type ("run", "props", ...) or "req:<op>" ("req:click", "req:dialog")
 #     "match": fields the message must have, e.g. {"kind": "Button"}
@@ -17,6 +18,7 @@
 #     "crash": text to print to stderr before dying with status 101
 #     "signal_parent": a signal name to send the Ruby process (what Ctrl-C in a terminal does)
 #     "exit":  a status to exit with right after emitting
+#     "hang":  true to stop reading for good, like a renderer stuck in layout (signals still end it)
 #
 # Layout is fake: every visible node gets a 100x20 box, one per row, in tree order.
 
@@ -43,6 +45,7 @@ class FakeChild
 
   def initialize
     File.write(ENV["FAKE_CHILD_ARGV"], JSON.generate(ARGV)) if ENV["FAKE_CHILD_ARGV"]
+    File.write(ENV["FAKE_CHILD_PID"], Process.pid.to_s) if ENV["FAKE_CHILD_PID"]
     @log = ENV["FAKE_CHILD_LOG"] && File.open(ENV["FAKE_CHILD_LOG"], "a")
     @rules = ENV["FAKE_CHILD_SCRIPT"] ? JSON.parse(File.read(ENV["FAKE_CHILD_SCRIPT"])) : []
     @nodes = {}
@@ -91,6 +94,7 @@ class FakeChild
       rules.each { |rule| emit_rule(rule) }
     end
     rules.each { |rule| exit(rule["exit"]) if rule.key?("exit") }
+    sleep if rules.any? { |rule| rule["hang"] }
   end
 
   def apply(message)
