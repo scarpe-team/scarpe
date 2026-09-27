@@ -183,6 +183,22 @@ class AppTest < Minitest::Test
     assert_equal([["ask", "Your name?"], ["confirm", "Sure?"]], dialogs.map { |req| [req["kind"], req["message"]] })
   end
 
+  # Ledger K1: ask takes secret: and title: (manual 1385-1391, Shoes 3 s3_gtk.c:1772-1826); Lacci
+  # hands them over beside the message, and they reach Rust with the dialog.
+  def test_ask_hands_its_secret_and_title_to_the_dialog
+    run = run_app(<<~RUBY, headless: false, script: [{ "on" => "req:dialog", "reply" => "hunter2" }])
+      Shoes.app do
+        puts ask("Password?", secret: true, title: "Log in")
+        timer(0.05) { Shoes.quit }
+      end
+    RUBY
+    assert_clean_exit(run)
+    assert_equal "hunter2\n", run.stdout
+    dialog = run.of_type("req").find { |req| req["op"] == "dialog" }
+    assert_equal({ "kind" => "ask", "message" => "Password?", "secret" => true, "title" => "Log in" },
+      dialog.slice("kind", "message", "secret", "title"))
+  end
+
   def test_a_cancelled_file_dialog_is_nil_and_never_falls_back_to_osascript
     run = run_app(<<~RUBY, headless: false, script: [{ "on" => "req:dialog", "reply" => nil }])
       puts ask_open_file.inspect
