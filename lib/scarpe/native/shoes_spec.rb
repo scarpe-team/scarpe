@@ -219,6 +219,29 @@ module Scarpe::Native
       drawable && proxy(drawable)
     end
 
+    # What a screen reader meets (DESIGN 12): the window's Hash with Symbol keys (:role, :name,
+    # :value, :toggled, :actions, :bounds...) and its nodes under :children. platform: true reads
+    # what AppKit hands VoiceOver instead (:role, :subrole, :title, :value, :help), from a real window.
+    def a11y_tree(platform: false)
+      automation.a11y(platform: platform)
+    end
+
+    # Every node of a11y_tree, the window first, depth first.
+    def a11y_nodes(platform: false)
+      flatten = ->(node) { [node, *Array(node[:children]).flat_map(&flatten)] }
+      flatten.call(a11y_tree(platform: platform))
+    end
+
+    # Acts on a node as a screen reader does. The target is a drawable, an id or a node Hash
+    # from the tree; the action is :click, :focus, :set_value (give the value), :expand or :collapse.
+    # platform: true goes through AppKit as VoiceOver does, and the target is the element's title.
+    def a11y_action(target, action, value = nil, platform: false)
+      return automation.platform_a11y_action(target, action, value: value) if platform
+
+      id = target.is_a?(Hash) ? target.fetch(:id) : target_id(target)
+      automation.a11y_action(id, action, value: value)
+    end
+
     def stub_dialog(kind, value)
       builtins.stub(kind, value)
     end
