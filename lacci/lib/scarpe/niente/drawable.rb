@@ -30,6 +30,7 @@ module Niente
 
       bind_shoes_event(event_name: "destroy", target: shoes_linkable_id) do
         set_parent(nil)
+        unsub_all_shoes_events
       end
     end
 

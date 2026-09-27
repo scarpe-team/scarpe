@@ -1,6 +1,30 @@
 # frozen_string_literal: true
 
 class Shoes
+  # underline and strikethrough, for text blocks and the fragments inside them.
+  #
+  # A style that sets one to nil or false means "none", and says so on the wire, so a
+  # display drops its own default (a link's underline) instead of reading nil as
+  # "unset" (wire contract (d); style(Link, underline: nil) in accordion.rb). true is
+  # "single" (ledger F6).
+  module TextDecoration
+    UNDERLINES = ["none", "single", "double", "low", "error"].freeze
+    STRIKETHROUGHS = ["none", "single"].freeze
+    SWITCHES = { nil => "none", false => "none", true => "single" }.freeze
+
+    def self.included(text_class)
+      text_class.shoes_style(:underline) { |value, _name| TextDecoration.pick(value, UNDERLINES, "Underline") }
+      text_class.shoes_style(:strikethrough) { |value, _name| TextDecoration.pick(value, STRIKETHROUGHS, "Strikethrough") }
+    end
+
+    def self.pick(value, allowed, name)
+      value = SWITCHES.fetch(value) { value.to_s }
+      return value if allowed.include?(value)
+
+      raise Shoes::Errors::InvalidAttributeValueError, "#{name} must be one of: #{allowed.inspect}!"
+    end
+  end
+
   # TextDrawable is the parent class of various classes of
   # text that can go inside a para. This includes normal
   # text, but also links, italic text, bold text, etc.
@@ -13,22 +37,7 @@ class Shoes
   # It's a very similar API.
   class TextDrawable < Shoes::Drawable
     shoes_styles :text_items, :size, :stroke, :strokewidth, :fill, :undercolor, :font
-
-    STRIKETHROUGH_VALUES = [nil, "none", "single"]
-    shoes_style :strikethrough do |val, _name|
-      unless STRIKETHROUGH_VALUES.include?(val)
-        raise Shoes::Errors::InvalidAttributeValueError, "Strikethrough must be one of: #{STRIKETHROUGH_VALUES.inspect}!"
-      end
-      val
-    end
-
-    UNDERLINE_VALUES = [nil, "none", "single", "double", "low", "error"]
-    shoes_style :underline do |val, _name|
-      unless UNDERLINE_VALUES.include?(val)
-        raise Shoes::Errors::InvalidAttributeValueError, "Underline must be one of: #{UNDERLINE_VALUES.inspect}!"
-      end
-      val
-    end
+    include TextDecoration
 
     shoes_events # No TextDrawable-specific events yet
 

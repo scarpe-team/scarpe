@@ -2,6 +2,7 @@
 
 class Shoes
   class Line < Shoes::Drawable
+    uses_draw_context
     shoes_styles :left, :top, :x2, :y2, :draw_context
     shoes_events # No Line-specific events yet
 

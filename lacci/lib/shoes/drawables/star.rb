@@ -2,6 +2,7 @@
 
 class Shoes
   class Star < Shoes::Drawable
+    uses_draw_context
     shoes_styles :left, :top, :draw_context
 
     shoes_style(:points) { |val| convert_to_integer(val, "points") }

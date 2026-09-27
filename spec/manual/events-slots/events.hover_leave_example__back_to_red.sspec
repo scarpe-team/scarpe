@@ -3,8 +3,6 @@ manual: events.hover_leave_example
 lines: [2167, 2185]
 testability: interactive
 display: native
-expect: fail
-reason: Lacci makes hover and leave children of the slot, so the hover block's s.clear destroys the leave handler and the background stays blue (ledger row requested)
 ----------- app code
 Shoes.app do
   s = stack width: 200, height: 200 do

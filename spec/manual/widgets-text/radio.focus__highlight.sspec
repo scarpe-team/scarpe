@@ -4,8 +4,6 @@ lines: [3356, 3359]
 testability: visual
 display: native
 ledger: G9
-expect: fail
-reason: Lacci's Radio has no focus method (G9, an unscheduled Lacci change).
 ----------- app code
 Shoes.app do
   stack do

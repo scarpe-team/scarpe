@@ -18,12 +18,14 @@ class Niente::Test
     class_name ||= ENV["SHOES_MINITEST_CLASS_NAME"] || "TestShoesSpecCode"
     test_name ||= ENV["SHOES_MINITEST_METHOD_NAME"] || "test_shoes_spec"
 
+    # Marked done before the tests run, so test code that dispatches a heartbeat of its
+    # own (to fire slot start blocks, say) does not start the tests all over again.
     Shoes::DisplayService.subscribe_to_event("heartbeat", nil) do
-      unless @hb_init
-        Minitest.run []
-        Shoes.APPS.each(&:destroy)
-      end
+      next if @hb_init
+
       @hb_init = true
+      Minitest.run []
+      Shoes.APPS.each(&:destroy)
     end
 
     test_class = Class.new(Niente::ShoesSpecTest)

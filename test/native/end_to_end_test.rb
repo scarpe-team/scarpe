@@ -108,7 +108,7 @@ class EndToEndTest < Minitest::Test
         list_box(items: [:phyllis, :ronald, :wyatt]) { |box| $picked << box.chosen }
       end
     APP
-      assert_equal "phyllis", layout_tree.find { |node| node[:kind] == "ListBox" }[:text]
+      assert_nil layout_tree.find { |node| node[:kind] == "ListBox" }[:text], "nothing chosen yet (ledger G3)"
       click_on(list_box)
       click_on("wyatt")
       assert_equal [:wyatt], $picked

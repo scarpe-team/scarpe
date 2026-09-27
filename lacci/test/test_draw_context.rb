@@ -164,4 +164,61 @@ class TestDrawContext < NienteTest
       assert_equal [0, 100, 0, 255], ov.style["stroke"]
     SHOES_SPEC
   end
+
+  # Integration lane: `stroke "#BBB"; button "Expert"` sent the stroke to the Button and
+  # to every Para, so control-sizes.rb drew its controls in #dde and minesweeper greyed
+  # its buttons. Shoes 3 colours text from its own styles only (s3t_textblock.c:250-258)
+  # and its native controls ignore stroke.
+  def test_text_and_controls_keep_their_own_colours
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        stroke red
+        fill blue
+        strokewidth 5
+        @p = para "plain ", strong("bold")
+        @b = button "Push"
+        @e = edit_line
+        @eb = edit_box
+        @l = list_box items: ["a"]
+        @r = rect 0, 0, 10
+      end
+    SHOES_APP
+      %w[@p @b @e @eb @l].each do |name|
+        drawable = drawable(name)
+        assert_nil drawable.style[:stroke], "\#{name} keeps its own stroke"
+      end
+      assert_nil para("@p").style[:fill]
+      strong = para("@p").contents.last
+      assert_equal [nil, nil, nil], [strong.style[:stroke], strong.style[:fill], strong.style[:strokewidth]]
+      assert_equal [255, 0, 0, 255], rect("@r").style[:stroke], "shapes still draw with the slot's stroke"
+      assert_equal [0, 0, 255, 255], rect("@r").style[:fill]
+    SHOES_SPEC
+  end
+
+  # Wire contract (b), ledger E10: translate (cumulative), transform and cap travel in
+  # the draw context, where they used to be no-ops.
+  def test_translate_transform_and_cap_reach_the_shapes
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $returned = [translate(10, 20), cap(:curve)]
+        stack do
+          translate 5, 5
+          transform :center
+          @inner = rect 0, 0, 10
+        end
+        @outer = rect 0, 0, 10
+        @line = line 0, 0, 10, 10, cap: :project
+      end
+    SHOES_APP
+      inner = rect("@inner").style[:draw_context]
+      assert_equal [[15, 25], :center, :curve], inner.values_at("translate", "transform", "cap")
+
+      outer = rect("@outer").style[:draw_context]
+      assert_equal [[10, 20], nil, :curve], outer.values_at("translate", "transform", "cap"),
+        "a slot's translate and transform stay in that slot"
+
+      assert_equal :project, line("@line").style[:cap], "a shape's own cap is kept"
+      assert_equal [Shoes.APPS.first] * 2, $returned, "translate and cap return self"
+    SHOES_SPEC
+  end
 end

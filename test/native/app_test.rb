@@ -18,7 +18,7 @@ class AppTest < Minitest::Test
     root, app, para = run.creates
     assert_equal({ "id" => 2, "kind" => "DocumentRoot", "parent" => nil }, root.slice("id", "kind", "parent"))
     assert_equal({ "id" => 1, "kind" => "App", "doc_root" => 2, "owner" => nil }, app.slice("id", "kind", "doc_root", "owner"))
-    assert_equal({ "title" => "Hello", "width" => 480, "height" => 420 }, app["props"].slice("title", "width", "height"))
+    assert_equal({ "title" => "Hello", "width" => 600, "height" => 500 }, app["props"].slice("title", "width", "height"))
     assert_equal({ "kind" => "Para", "parent" => 2, "index" => nil }, para.slice("kind", "parent", "index"))
     assert_equal ["Hello"], para["props"]["text_items"]
     refute para["props"].key?("shoes_linkable_id")
@@ -175,10 +175,14 @@ class AppTest < Minitest::Test
   end
 
   def test_font_sends_an_absolute_path
-    run = run_app(<<~RUBY, script: CLOSE_ON_RUN)
+    run = run_app(<<~RUBY, script: CLOSE_ON_RUN) do |dir|
       font "fonts/Fancy.ttf"
       Shoes.app { para "hi" }
     RUBY
+      # font reads the family names out of the file, so it has to be a real font (ledger K4).
+      FileUtils.mkdir_p(File.join(dir, "fonts"))
+      FileUtils.cp(File.expand_path("../../fonts/Pacifico.ttf", __dir__), File.join(dir, "fonts", "Fancy.ttf"))
+    end
     assert_clean_exit(run)
     path = run.of_type("font").first["path"]
     assert path.start_with?("/")
@@ -263,7 +267,7 @@ class AppTest < Minitest::Test
     assert_match(/\Aclick "Go" -> #4 at 50,30/, lines[0])
     assert_includes lines, "#3 Para 0,0 100x20 \"Gone\""
     assert_includes lines, "#4 Button 0,20 100x20 \"Go\""
-    assert_match(%r{\Ashot /.*/#{File.basename(run.dir)}/out\.png \(480x420\)\z}, lines.last)
+    assert_match(%r{\Ashot /.*/#{File.basename(run.dir)}/out\.png \(600x500\)\z}, lines.last)
   end
 
   def test_peek_waits_in_real_time_and_resizes_first

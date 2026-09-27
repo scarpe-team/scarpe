@@ -48,7 +48,7 @@ class Shoes
           end
 
           wrapped_response = ResponseWrapper.new(response) # Wrap the response
-          handle_response(wrapped_response, save, styles)
+          handle_response(wrapped_response, save, styles, logger)
         rescue Net::HTTPError, Net::OpenTimeout, Net::ReadTimeout => e
           handle_error(e, logger)
         rescue StandardError => e
@@ -76,7 +76,7 @@ class Shoes
       # Add more custom styles to the request as needed
     end
 
-    def handle_response(response, save, styles)
+    def handle_response(response, save, styles, logger)
       case response.response.code.to_i
       when 200..299
         content = response.body
@@ -88,7 +88,7 @@ class Shoes
           handle_finish_event(response) # Pass response and headers to handle_finish_event
         end
       else
-        handle_failure(response.response.code)
+        handle_failure(response.response.code, logger)
       end
     end
 

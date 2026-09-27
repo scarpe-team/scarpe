@@ -4,8 +4,6 @@ lines: [3086, 3090]
 testability: interactive
 display: any
 ledger: G1
-expect: fail
-reason: Lacci's EditLine hands its change block the new String instead of the edit line (edit_line.rb:15-20); G1 is an unscheduled Lacci change.
 ----------- app code
 Shoes.app do
   @line = edit_line

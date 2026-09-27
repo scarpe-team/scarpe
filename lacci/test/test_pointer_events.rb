@@ -63,7 +63,7 @@ class TestPointerEvents < NienteTest
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
         @typed = []
-        edit_line { |text| @typed << text }.click { }
+        edit_line { |line| @typed << line.text }.click { }
       end
     SHOES_APP
       Shoes::DisplayService.dispatch_event("change", edit_line.linkable_id, "hi")

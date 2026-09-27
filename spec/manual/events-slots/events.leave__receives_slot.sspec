@@ -4,8 +4,6 @@ lines: [2251, 2255]
 testability: interactive
 display: native
 ledger: H5
-expect: fail
-reason: Lacci hands a slot's leave block the SubscriptionItem, not the slot (ledger H5)
 ----------- app code
 $left = []
 Shoes.app width: 400, height: 300 do
