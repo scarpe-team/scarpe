@@ -136,6 +136,30 @@ impl Popup {
     }
 }
 
+/// Up and Down on a focused list box pick the item before or after the chosen one,
+/// without opening the popup (manual 3221-3224). None when the key is not an arrow
+/// or the choice would not move.
+pub fn stepped(node: &Node, key: &KeyInput) -> Option<String> {
+    let step: isize = match key.key {
+        Key::Named(Named::Up) if !key.modified() => -1,
+        Key::Named(Named::Down) if !key.modified() => 1,
+        _ => return None,
+    };
+    let items = items(node);
+    let current = chosen(node).and_then(|c| items.iter().position(|i| *i == c));
+    let next = match current {
+        Some(i) => (i as isize + step).clamp(0, items.len() as isize - 1) as usize,
+        None if step > 0 => 0,
+        None => items.len().checked_sub(1)?,
+    };
+    (Some(next) != current).then(|| items[next].clone())
+}
+
+/// Return and Space open the popup of a focused list box.
+pub fn opens(key: &KeyInput) -> bool {
+    !key.modified() && (key.key == Key::Named(Named::Enter) || key.key == Key::Char(" ".into()))
+}
+
 pub enum PopupKey {
     Choose(usize),
     Close,

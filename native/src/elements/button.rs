@@ -68,7 +68,7 @@ pub fn label(node: &Node, w: f32, h: f32, engine: &mut TextEngine) -> Label {
 
 /// Space and Return press a focused button.
 pub fn activates(key: &KeyInput) -> bool {
-    !key.ctrl && !key.alt && (key.key == Key::Named(Named::Enter) || key.key == Key::Char(" ".into()))
+    !key.modified() && (key.key == Key::Named(Named::Enter) || key.key == Key::Char(" ".into()))
 }
 
 pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, label: Option<&TextBox>, state: WidgetState, engine: &mut TextEngine) {

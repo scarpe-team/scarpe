@@ -16,7 +16,7 @@ pub fn box_rect(r: Rect) -> Rect {
 }
 
 pub fn activates(key: &KeyInput) -> bool {
-    !key.ctrl && !key.alt && key.key == Key::Char(" ".into())
+    !key.modified() && key.key == Key::Char(" ".into())
 }
 
 pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, state: WidgetState) {

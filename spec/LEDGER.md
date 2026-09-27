@@ -149,7 +149,7 @@ Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Sho
 
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
-| H1 | `keypress` values; Cmd on macOS | MANUAL (Q5) | | DESIGN |
+| H1 | `keypress` values; Cmd on macOS | MANUAL | | |
 | H2 | Mouse button numbers | S3 | | |
 | H3 | Coordinate frame of mouse events | S3 (Q4) | | DESIGN |
 | H4 | The extra `mods` argument | MANUAL | | |
@@ -821,7 +821,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### H1. `keypress` key values
 
-**Ruling: MANUAL (Q5),** with **S3**'s platform mapping for macOS: **Cmd is `alt_`**. Shoes 4's `super_` is **EXT**.
+**Ruling: MANUAL,** with **S3**'s platform mapping for macOS: **Cmd is `alt_`** (Q5, answered 27 Sep 2026: Cmd arrives as `:alt_q`, like Shoes 3, and the default app menu may still quit on Cmd-Q). Shoes 4's `super_` is **EXT**.
 
 - **Manual:** characters arrive as Strings; special keys and combinations as Symbols. "The modifier keys are `control`, `shift` and `alt`. They appear in that order." (manual 2219-2221). Shift only shows on special keys; Return is `"\n"`, but with modifiers it becomes `:control_enter`, `:shift_alt_enter` and so on; `Shift-Alt-7` is `:alt_&` (manual 2207-2249).
 - **Shoes 3, GTK:** Return is `rb_str_new2("\n")` (`s3_gtk.c:760-762`); Ctrl or Alt plus a character becomes a Symbol (`:765-778`); a modified Return becomes `:enter` (`:817-819`); modifiers are applied alt, then shift, then control, each as a prefix (`:821-830`), giving `control_shift_alt_...`.
@@ -830,8 +830,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Examples:** `for_playtest/shoes-contrib/simple/simple-editor.rb:19-23` and `philippe_checked/editor.rb:19-23` bind `:alt_q` (quit), `:alt_c` (copy), `:alt_v` (paste), which are Cmd-Q, Cmd-C and Cmd-V on a Mac under Shoes 3. `philippe/minimal_editor.rb:119` accepts `:control_a, :alt_a`. `needs_deps/expert-irb.rb:80` waits for `"\n"`.
 - **Lacci / WV today:** WV maps Enter to `:return` (`wv/subscription_item.rb:127`); prefixes are `alt_`, then `control_`, then `shift_` (`:147-158`); Cmd (Meta) is ignored; a modified special key loses its `:` and arrives as the String `"alt_left"` (`:158`); a modified character arrives as the String `"alt_q"` because Lacci only symbolises values that start with `:` (`subscription_item.rb:67-77`). Plus the double fire (X1).
 - **Spec:** `press_key "a"` gives `"a"`; Shift-a gives `"A"`; F1 gives `:f1`; Return gives `"\n"`; Control-Return gives `:control_enter`; Control-Shift-Alt-PageUp gives `:control_shift_alt_page_up`; Alt-q gives `:alt_q`. On macOS, Cmd-q gives `:alt_q`.
-- **Native:** DESIGN 4.4, except for Cmd.
-- **DESIGN conflict:** DESIGN 4.4 says "On macOS, Cmd maps to `control_` as well (Shoes 3 did this)". The Shoes 3 Cocoa source maps Cmd to `alt_`, and the examples' Cmd shortcuts are written as `:alt_q`/`:alt_c`/`:alt_v`. See Q5.
+- **Native:** DESIGN 4.4. Since M2 Cmd is named `alt_` (and still edits like Control in text fields), and Shift folds into characters with a US map, so `:shift_7` is `"&"` and `:shift_alt_7` is `:alt_&`. The DESIGN conflict over Cmd is resolved.
 
 ### H2. Mouse button numbers
 
@@ -1202,7 +1201,7 @@ M1 to M37 carry the numbers of the contradictions in `native/research/03_manual_
 
 `native/DESIGN.md` says "If the code and this document disagree, fix one of them in the same change." These are the places where DESIGN and a ruling above disagree today. Items 1 to 3 are factual; the rest wait on Nick's answers below.
 
-1. **Cmd on macOS (H1).** DESIGN 4.4: "On macOS, Cmd maps to `control_` as well (Shoes 3 did this)". Shoes 3's Cocoa backend maps Cmd to `alt_` (`s3_cocoa.m:287-288, 296-297`), and the examples' Cmd shortcuts are `:alt_q`, `:alt_c`, `:alt_v`.
+1. **Cmd on macOS (H1).** Resolved in M2: DESIGN 4.4 now names Cmd `alt_`, as Shoes 3's Cocoa backend did (`s3_cocoa.m:287-288, 296-297`).
 2. **`every`'s first count (I1).** DESIGN 5.4: "every (count starts at 1)". Shoes 3 (`s3t_timerbase.c:35, 43-44`) and Shoes 4 (`s4_animation.rb:20`) start at 0.
 3. **Control widths (C4).** DESIGN 6: `list_box 160x28`, `progress 160x14`. The manual: list_box "about 200 pixels wide" (manual 3183), progress "200 pixels wide" (manual 3245).
 4. **Text in a flow (C7, Q2).** DESIGN 6 makes each text block a shrink-to-fit box; the manual and Shoes 3 continue it as one paragraph. The rule is also ambiguous about whether the width cap comes before or after the "does it fit on this row" test.
@@ -1219,7 +1218,7 @@ The evidence is balanced on each of these, so the rows above carry a provisional
 - **Q2 (C7).** Two `para`s side by side in a flow: should the second **continue the first as one paragraph**, its later lines wrapping back to the flow's left edge (manual 1610-1612 and Shoes 3), or be **its own box** beside or below the first (Webview today, DESIGN 6)? Single-line paras look the same either way. The paragraph model needs a first-line indent in the text layout.
 - **Q3 (C9).** Should text blocks get Shoes 3's **default margins (4 px, 12 px below)**, or Webview's **zero**? Shoes 3 examples were written with the gap; Scarpe-authored examples were written without it.
 - **Q4 (H3).** When a stack nested at (100, 100) has its own `click` handler, should a click at window (150, 120) report **(150, 120)** (Shoes 3) or **(50, 20)** (Webview, DESIGN 4.3)? No example found depends on either.
-- **Q5 (H1).** On a Mac, should **Cmd-q arrive as `:alt_q`**, as in Shoes 3 and as the example editors expect, or as `:control_q`, as DESIGN 4.4 says? And should Cmd-Q still quit through the app menu before the app sees it?
+- **Q5 (H1).** On a Mac, should **Cmd-q arrive as `:alt_q`**, as in Shoes 3 and as the example editors expect, or as `:control_q`, as DESIGN 4.4 says? And should Cmd-Q still quit through the app menu before the app sees it? **Answered 27 Sep 2026:** `:alt_q`, like Shoes 3; the default app menu may still quit on Cmd-Q.
 - **Q6 (K1).** When the user cancels `ask`, should it return **nil** (Shoes 3's source) or **""** (your commit `6ce3d28`, which kept Hackety Hack's guessing game alive)?
 - **Q7 (G5), lower priority.** Your commit `eda8975` makes `edit_line.text = "x"` fire `change`, on purpose. Should the spec pin that under `ext-scarpe`, or keep asserting neither?
 
