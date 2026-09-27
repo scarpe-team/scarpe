@@ -1,16 +1,20 @@
 //! The Runtime: the retained document, per-app view state and the protocol
 //! handler, shared by the window and the headless canvas.
 
+pub mod stats;
+
 use crate::doc::{Doc, Kind, NewNode};
 use crate::elements::image::ImageCache;
 use crate::input::{Clipboard, CursorShape, ViewState};
 use crate::layout::{self, Inputs, Layout};
 use crate::paint::{self, Scene};
 use crate::props::Id;
-use crate::protocol::{self, Create, Incoming, Outbox, Outgoing};
+use crate::protocol::{self, Create, Incoming, Op, Outbox, Outgoing};
 use crate::text::{FontMode, TextEngine};
 use serde_json::{Map, Value};
+use stats::{Phase, Stats};
 use std::collections::BTreeMap;
+use std::time::Instant;
 use tiny_skia::Pixmap;
 
 pub const DEFAULT_SIZE: (f32, f32) = (480.0, 420.0);
@@ -82,14 +86,18 @@ pub struct Runtime {
     /// rather than show half a batch.
     pub mid_batch: bool,
     pending_frames: Vec<PendingFrames>,
+    pub stats: Stats,
 }
 
 impl Runtime {
     pub fn new(opts: Options, out: Outbox) -> Self {
         let clipboard = if opts.headless { Clipboard::local() } else { Clipboard::system() };
+        let mut stats = Stats::default();
+        let text = TextEngine::new(opts.fonts);
+        stats.mark("fonts");
         Runtime {
             doc: Doc::default(),
-            text: TextEngine::new(opts.fonts),
+            text,
             images: ImageCache::default(),
             views: BTreeMap::new(),
             out,
@@ -100,6 +108,7 @@ impl Runtime {
             exit: None,
             mid_batch: false,
             pending_frames: Vec::new(),
+            stats,
         }
     }
 
@@ -120,7 +129,10 @@ impl Runtime {
         if self.opts.trace {
             eprintln!("[scarpe-native] << {line}");
         }
-        match protocol::parse_line(line) {
+        let parsing = Instant::now();
+        let parsed = protocol::parse_line(line);
+        self.stats.since(Phase::Parse, parsing);
+        match parsed {
             Ok(msg) => self.apply(msg),
             Err(e) => {
                 eprintln!("[scarpe-native] {e}: {line}");
@@ -131,8 +143,13 @@ impl Runtime {
 
     pub fn apply(&mut self, msg: Incoming) {
         self.mid_batch = !matches!(msg, Incoming::Flush | Incoming::Req { .. } | Incoming::Hello { .. });
+        let started = Instant::now();
+        let change = matches!(msg, Incoming::Create(_) | Incoming::Props { .. } | Incoming::Destroy { .. } | Incoming::Reparent { .. });
         match msg {
-            Incoming::Hello { .. } => self.out.send(Outgoing::ready()),
+            Incoming::Hello { .. } => {
+                self.out.send(Outgoing::ready());
+                self.stats.mark("ready");
+            }
             Incoming::Create(c) => self.create(c),
             Incoming::Props { id, props } => self.set_props(id, props),
             Incoming::Destroy { id } => self.destroy(id),
@@ -167,13 +184,22 @@ impl Runtime {
             Incoming::Flush => self.flush(),
             Incoming::Req { req, op } => {
                 self.flush();
+                if is_input(&op) {
+                    self.stats.input();
+                }
+                let answering = Instant::now();
                 self.handle_req(req, op);
+                self.stats.since(Phase::Req, answering);
                 self.out.flush();
             }
+        }
+        if change {
+            self.stats.since(Phase::Apply, started);
         }
     }
 
     fn create(&mut self, c: Create) {
+        self.stats.mark("first_create");
         let is_app = c.kind == "App";
         let size = app_size(&c.props);
         let doc_root = c.doc_root.unwrap_or(c.id + 1);
@@ -250,6 +276,7 @@ impl Runtime {
     }
 
     fn run_app(&mut self, app: Option<Id>) {
+        self.stats.mark("run");
         let Some(app) = app.or_else(|| self.doc.apps().last().map(|a| a.id)) else { return };
         let Some(view) = self.views.get_mut(&app) else { return };
         if !view.running {
@@ -330,8 +357,11 @@ impl Runtime {
         if view.layout.is_some() {
             return;
         }
+        let started = Instant::now();
         let inputs = Inputs { doc: &self.doc, text: &mut self.text, images: &mut self.images, scroll: &view.ui.scroll };
         view.layout = Some(layout::layout(inputs, view.doc_root, view.size));
+        self.stats.since(Phase::Layout, started);
+        self.stats.mark("first_layout");
     }
 
     pub fn layout_of(&mut self, app: Id) -> Option<&Layout> {
@@ -344,9 +374,12 @@ impl Runtime {
         let Some(view) = self.views.get_mut(&app) else { return };
         let AppView { layout, ui, frames, .. } = view;
         let Some(layout) = layout.as_ref() else { return };
+        let started = Instant::now();
         let mut scene = Scene { doc: &self.doc, layout, view: ui, text: &mut self.text, images: &mut self.images };
         paint::paint(&mut scene, pm, scale);
         *frames += 1;
+        self.stats.since(Phase::Paint, started);
+        self.stats.mark("first_paint");
     }
 
     /// Paints `app` for its window: the view is clean afterwards.
@@ -362,6 +395,9 @@ impl Runtime {
         let size = self.views.get(&app)?.size;
         let mut pm = Pixmap::new((size.0 * scale).ceil().max(1.0) as u32, (size.1 * scale).ceil().max(1.0) as u32)?;
         self.paint_into(app, &mut pm, scale);
+        if self.opts.headless {
+            self.stats.frame_shown();
+        }
         Some(pm)
     }
 
@@ -398,6 +434,8 @@ impl Runtime {
 
     /// The window presented a frame: answer `frames` requests that were waiting for it.
     pub fn frame_presented(&mut self, app: Id) {
+        self.stats.frame_shown();
+        self.stats.mark("first_present");
         let frames = self.views.get(&app).map(|v| v.frames).unwrap_or(0);
         let mut waiting = false;
         let mut kept = Vec::new();
@@ -423,6 +461,11 @@ impl Runtime {
         self.out.send(crate::dialogs::reply(req, value, cancelled));
         self.out.flush();
     }
+}
+
+/// Requests that act like a person at the keyboard or mouse.
+fn is_input(op: &Op) -> bool {
+    matches!(op, Op::Click { .. } | Op::Mouse { .. } | Op::Type { .. } | Op::Key { .. } | Op::Wheel { .. })
 }
 
 pub fn app_size(props: &Map<String, Value>) -> (f32, f32) {

@@ -5,6 +5,7 @@
 use crate::input::{CursorShape, Key, KeyInput, Modifiers, Named};
 use crate::props::Id;
 use crate::protocol::Outbox;
+use crate::runtime::stats::{self, Phase};
 use crate::runtime::{Effect, Options, Runtime};
 use std::collections::HashMap;
 use std::io::BufRead;
@@ -55,6 +56,7 @@ struct Shell {
 }
 
 pub fn run(opts: Options, window_opts: WindowOptions) -> i32 {
+    stats::process_started();
     let trace = opts.trace;
     let mut builder = EventLoop::<UserEvent>::with_user_event();
     #[cfg(target_os = "macos")]
@@ -143,6 +145,7 @@ impl Shell {
             view.scale = window.scale_factor() as f32;
             view.dirty = true;
         }
+        self.rt.stats.mark("window");
         window.request_redraw();
         let id = window.id();
         self.windows.insert(
@@ -222,6 +225,7 @@ impl Shell {
             view.scale = scale;
         }
         self.rt.render(win.app, pm, scale);
+        let presenting = Instant::now();
         if win.surface_size != (w, h) {
             if win.surface.resize(NonZeroU32::new(w).expect("w"), NonZeroU32::new(h).expect("h")).is_err() {
                 return;
@@ -233,6 +237,7 @@ impl Shell {
             *dst = ((px[0] as u32) << 16) | ((px[1] as u32) << 8) | (px[2] as u32);
         }
         let _ = buffer.present();
+        self.rt.stats.since(Phase::Present, presenting);
         let app = win.app;
         self.rt.frame_presented(app);
     }
@@ -280,6 +285,7 @@ impl ApplicationHandler<UserEvent> for Shell {
             }
             WindowEvent::CursorLeft { .. } => self.rt.pointer_left(app),
             WindowEvent::MouseInput { state, button, .. } => {
+                self.rt.stats.input();
                 let b = match button {
                     MouseButton::Left => 1,
                     MouseButton::Middle => 2,
@@ -307,6 +313,7 @@ impl ApplicationHandler<UserEvent> for Shell {
                 self.rt.set_modifiers(app, modifiers(state));
             }
             WindowEvent::KeyboardInput { event, .. } if event.state == ElementState::Pressed => {
+                self.rt.stats.input();
                 let mods = self.windows.get(&id).map(|w| w.modifiers).unwrap_or_default();
                 if let Some(key) = key_input(&event, mods) {
                     self.rt.key_input(app, key);

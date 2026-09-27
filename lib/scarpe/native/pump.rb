@@ -20,15 +20,18 @@ module Scarpe::Native
       return if @installed
 
       @installed = true
+      Stats.mark("run")
       # A script that died with an exception (or called exit) wants to stop, not show a window.
       at_exit { run unless $! }
     end
 
     def run
+      Stats.mark("pump")
       step until done?
       raise ChildDied, @service.child.death_report if @service.child.dead? && @service.any_app_open?
     ensure
       @service.shutdown
+      Stats.write
     end
 
     def done?
@@ -36,11 +39,11 @@ module Scarpe::Native
     end
 
     def step
-      @service.child.wait_for_input(wait_time)
-      drain
-      @service.fire_timers
-      heartbeat
-      @service.child.flush
+      Stats.time(:wait) { @service.child.wait_for_input(wait_time) }
+      Stats.time(:drain) { drain }
+      Stats.time(:timers) { @service.fire_timers }
+      Stats.time(:heartbeat) { heartbeat }
+      Stats.time(:flush) { @service.child.flush }
     end
 
     # Dispatches everything already read. Handlers can make requests that queue more; keep going.
