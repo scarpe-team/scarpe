@@ -246,6 +246,15 @@ impl SpanNames {
         self.loose_since.insert(id, self.count);
         self.loose.push_back((self.count, id));
     }
+
+    /// Drops the queue's stale entries once they outnumber the live ones: an app that shows
+    /// `@on` and `@off` by turns lets them loose and names them again every tick.
+    fn forget_stale(&mut self) {
+        if self.loose.len() > 2 * self.loose_since.len() + 1024 {
+            let since = &self.loose_since;
+            self.loose.retain(|(when, id)| since.get(id) == Some(when));
+        }
+    }
 }
 
 pub struct NewNode {
@@ -356,7 +365,7 @@ impl Doc {
         let mut removed = Vec::new();
         while self.spans.loose_since.len() > keep {
             let Some((when, id)) = self.spans.loose.pop_front() else { break };
-            if self.spans.loose_since.get(&id) != Some(&when) {
+            if self.spans.loose_since.get(&id) != Some(&when) || self.spans.named.contains_key(&id) {
                 continue;
             }
             self.spans.loose_since.remove(&id);
@@ -364,6 +373,7 @@ impl Doc {
                 removed.extend(self.destroy(id));
             }
         }
+        self.spans.forget_stale();
         removed
     }
 
@@ -582,6 +592,23 @@ mod tests {
         show(&mut doc, 9, json!(["plain"]));
         doc.let_go_of_loose_spans(0);
         assert!(!doc.contains(4), "past the bound it goes");
+    }
+
+    /// `@p.replace(@on)` and `@p.replace(@off)` by turns, for hours: two spans, and the queue of
+    /// loose ones stays about that size.
+    #[test]
+    fn spans_named_by_turns_leave_no_trail() {
+        let mut doc = Doc::default();
+        doc.create(new(2, "DocumentRoot", None, None));
+        doc.create(new(3, "Para", Some(2), None));
+        span(&mut doc, 4, "ON");
+        span(&mut doc, 5, "off");
+        for tick in 0..10_000 {
+            show(&mut doc, 3, json!([if tick % 2 == 0 { 4 } else { 5 }]));
+            doc.let_go_of_loose_spans(crate::limits::LOOSE_SPANS);
+        }
+        assert!(doc.contains(4) && doc.contains(5));
+        assert!(doc.spans.loose.len() < 2_000, "{} queued for 1 loose span", doc.spans.loose.len());
     }
 
     /// A span inside a span is named by the outer one's text.
