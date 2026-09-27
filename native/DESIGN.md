@@ -226,7 +226,8 @@ neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1).
 - Slot height = content height unless `height` given. `scroll: true` with a height clips and scrolls.
 - **Text blocks** (para and family) with no width: in a stack, full inner width; in a flow,
   shrink-to-fit (max-content width capped at the remaining row width, wrapping at that width).
-  Line height = 1.2 x size (plus `leading` if given).
+  Line height = 1.2 x size. `leading` (default 4 px, manual 1286, ledger F10) goes between lines
+  only, as Pango's spacing does: one line is 1.2 x size tall, two are 2.4 x size + 4.
 - **Widgets** have intrinsic sizes (research 02 section 13): button = label + padding (min 22 high),
   edit_line 200x28, edit_box 200x108, list_box 200x28, progress 200x14 (manual sizes, ledger C4),
   check/radio 18x18.

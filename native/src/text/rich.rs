@@ -13,6 +13,8 @@ pub const LINK: Color = Color::rgb(0x00, 0x66, 0xee);
 pub const LINK_HOVER: Color = Color::rgb(0x00, 0x33, 0x99);
 pub const DEFAULT_SIZE: f32 = 12.0;
 pub const LINE_HEIGHT: f32 = 1.2;
+/// Space between the lines of a text block unless it says otherwise (manual 1286, Shoes 3).
+pub const DEFAULT_LEADING: f32 = 4.0;
 /// How far sub and sup move their baseline, in pixels.
 pub const SCRIPT_RISE: f32 = 10.0;
 
@@ -111,7 +113,10 @@ pub struct Run {
 pub struct RichText {
     pub runs: Vec<Run>,
     pub size: f32,
+    /// The distance from one line to the next: 1.2 x size plus `leading`.
     pub line_height: f32,
+    /// Extra space between lines (manual 1286); none above the first or below the last.
+    pub leading: f32,
     pub align: Align,
     pub wrap: WrapMode,
     /// Para-level `fill`: painted behind the whole block.
@@ -125,6 +130,7 @@ impl RichText {
             runs: vec![Run { text: text.to_string(), style, node: 0, spans: Vec::new() }],
             size,
             line_height: (size * LINE_HEIGHT).max(1.0),
+            leading: 0.0,
             align: Align::Left,
             wrap: WrapMode::Word,
             fill: None,
@@ -146,6 +152,7 @@ impl RichText {
         }
         self.size.to_bits().hash(&mut h);
         self.line_height.to_bits().hash(&mut h);
+        self.leading.to_bits().hash(&mut h);
         self.align.hash(&mut h);
         self.wrap.hash(&mut h);
         width.map(f32::to_bits).hash(&mut h);
@@ -165,7 +172,7 @@ pub fn resolve_block(doc: &Doc, fonts: &Fonts, id: Id) -> Option<RichText> {
     apply_text_props(&mut style, &node.props, fonts);
     let mut runs = Vec::new();
     collect(doc, fonts, &node.props, &style, id, &[], &mut runs);
-    let leading = node.props.f32("leading").unwrap_or(0.0);
+    let leading = node.props.f32("leading").unwrap_or(DEFAULT_LEADING).max(0.0);
     let align = if node.props.truthy("justify") {
         Align::Justify
     } else {
@@ -185,6 +192,7 @@ pub fn resolve_block(doc: &Doc, fonts: &Fonts, id: Id) -> Option<RichText> {
         runs,
         size: style.size,
         line_height: (style.size * LINE_HEIGHT + leading).max(1.0),
+        leading,
         align,
         wrap,
         fill,
@@ -387,6 +395,6 @@ mod tests {
         assert_eq!(rich.size, 34.0);
         assert_eq!(rich.runs[0].style.color, Color::rgb(255, 0, 0));
         assert_eq!(rich.align, Align::Center);
-        assert!((rich.line_height - 40.8).abs() < 0.01);
+        assert!((rich.line_height - 44.8).abs() < 0.01, "1.2 x 34 plus the default leading");
     }
 }

@@ -331,6 +331,7 @@ impl Engine<'_> {
                 let shaped = rich::resolve_block(doc, &self.text.fonts, node.id).map(|rich| self.text.shape(&rich, Some(w.max(1.0))));
                 let text_h = shaped.as_ref().map(|s| s.height).unwrap_or(0.0);
                 if let Some(shaped) = shaped {
+                    let y = y + shaped.top;
                     self.out.texts.insert(node.id, TextBox { shaped, x, y });
                 }
                 explicit_h.unwrap_or(text_h)
