@@ -251,8 +251,11 @@ neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1).
   ledger C3). Text blocks default to Shoes 3's margins: 4 px on every side, and 12 px below
   unless `margin` or `margin_bottom` is given (ledger C9, s3t_textblock.c:108-110); everything
   else defaults to 0. `padding` (Scarpe extension) adds inside slots.
-- **Absolute placement**: any child with `left` or `top` set, and every art shape, is out of flow,
-  placed at (left, top) relative to its slot's content origin, does not affect siblings or slot height.
+- **Absolute placement**: any child with `left`, `top`, `right` or `bottom` set, and every art
+  shape, is out of flow, placed at (left, top) relative to its slot's content origin, does not
+  affect siblings or slot height. `right: n` puts the element's right margin edge n px in from the
+  slot's right edge, `bottom: n` likewise from the bottom (manual 1100-1106, 1356-1364, ledger
+  C10); `left` and `top` win when both are given.
   `displace_left/top` shifts a laid-out element visually without affecting others.
 - `hidden: true` removes the element from layout and painting.
 - `attach: "window"` positions relative to the window instead of the slot.

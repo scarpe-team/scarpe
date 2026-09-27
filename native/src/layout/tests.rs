@@ -494,3 +494,17 @@ fn text_that_cannot_share_the_line_starts_a_row() {
     assert!(b.y > a.y, "a first word too long for the rest of the line takes the para to a new row: {a:?} {b:?}");
     assert!(line_starts(&l, word)[0] - b.x < 0.5);
 }
+
+#[test]
+fn right_and_bottom_place_from_the_far_edges() {
+    // Ledger C10 and M19: `right: 50` puts the right edge 50 px in from the slot's (manual 1356-1364).
+    let mut s = Scene::new();
+    let column = s.add("Background", ROOT, json!({"fill": "#000", "width": 50, "right": 50}));
+    let slot = s.add("Stack", ROOT, json!({"width": 100, "height": 40, "right": 0, "bottom": 0}));
+    let text = s.add("Para", ROOT, json!({"text_items": ["right"], "right": 20, "top": 100}));
+    let l = s.layout(400.0, 300.0);
+    assert_eq!(r(&l, column), Rect::new(300.0, 0.0, 50.0, 300.0));
+    assert_eq!(r(&l, slot), Rect::new(300.0, 260.0, 100.0, 40.0));
+    let t = r(&l, text);
+    assert!((t.right() + 4.0 - 380.0).abs() < 0.01 && (t.y - 104.0).abs() < 0.01, "a text's margin box ends 20 px in: {t:?}");
+}
