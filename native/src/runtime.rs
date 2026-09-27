@@ -460,6 +460,16 @@ impl Runtime {
     /// End of a batch: lay out whatever changed.
     pub fn flush(&mut self) {
         self.images.next_batch();
+        self.let_go_of_loose_spans();
+        self.let_go_of_unshown_pictures();
+        let running: Vec<Id> = self.views.iter().filter(|(_, v)| v.running && v.layout.is_none()).map(|(id, _)| *id).collect();
+        for app in running {
+            self.ensure_layout(app);
+        }
+    }
+
+    /// Text spans no text has named for longest, past limits::LOOSE_SPANS (Doc's span names).
+    fn let_go_of_loose_spans(&mut self) {
         let let_go = self.doc.let_go_of_loose_spans(limits::LOOSE_SPANS);
         if !let_go.is_empty() {
             self.revisions.forget(&let_go);
@@ -467,13 +477,13 @@ impl Runtime {
                 view.ui.forget(&let_go);
             }
         }
+    }
+
+    /// Pictures no drawable shows any more, once something that could show one went or changed.
+    fn let_go_of_unshown_pictures(&mut self) {
         if std::mem::take(&mut self.pictures_to_check) && !self.images.is_empty() {
             let shown: std::collections::HashSet<std::path::PathBuf> = self.doc.iter().flat_map(crate::elements::image::shown_by).collect();
             self.images.retain(|path| shown.contains(path));
-        }
-        let running: Vec<Id> = self.views.iter().filter(|(_, v)| v.running && v.layout.is_none()).map(|(id, _)| *id).collect();
-        for app in running {
-            self.ensure_layout(app);
         }
     }
 
