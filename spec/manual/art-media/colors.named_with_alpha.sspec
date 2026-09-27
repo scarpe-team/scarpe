@@ -1,0 +1,18 @@
+---
+manual: colors.named_with_alpha
+lines: [380, 387]
+testability: api
+display: any
+ledger: D3
+----------- app code
+Shoes.app do
+  $black = black
+  $faint_black = black(0.1)
+  $faint_red = red(0.2)
+end
+----------- test code
+assert_equal 255, $black.to_a[3], "no argument means opaque"
+
+assert_equal [0, 0, 0], $faint_black.to_a.first(3), "the alpha argument keeps the colour"
+assert_equal 26, $faint_black.to_a[3], "black(0.1) is 10% opaque, 0.1 x 255 rounded"
+assert_equal [255, 0, 0, 51], $faint_red.to_a, "red(0.2) is red at 20% opacity"

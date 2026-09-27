@@ -1,0 +1,21 @@
+---
+manual: element.flow
+lines: [1996, 2004]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $row = flow do
+    @one = stack width: 200 do
+      caption "Column one"
+      para "is 200 pixels wide"
+    end
+    @two = stack width: -200 do
+      caption "Column two"
+      para "is 100% minus 200 pixels wide"
+    end
+  end
+end
+----------- test code
+assert_instance_of Shoes::Flow, $row, "flow returns a Shoes::Flow"
+assert_equal [stack("@one").obj, stack("@two").obj], $row.contents, "the block's elements go inside it, in order"

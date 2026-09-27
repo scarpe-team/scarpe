@@ -1,0 +1,17 @@
+---
+manual: builtins.warn
+lines: [836, 844]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  button "Warn" do
+    $returned = :not_called
+    $returned = warn("The save format changes in the next release")
+  end
+end
+----------- test code
+out, err = capture_io { find_button("Warn").trigger_click }
+
+assert_includes out + err, "The save format changes in the next release", "the warning reaches the console"
+assert_nil $returned, "warn returns nil"

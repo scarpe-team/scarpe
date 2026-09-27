@@ -1,0 +1,11 @@
+---
+manual: slot.width
+lines: [2511, 2513]
+testability: api
+display: any
+----------- app code
+Shoes.app width: 400, height: 300 do
+  $half = stack width: "50%"
+end
+----------- test code
+assert_equal 200, $half.width, "a 50% slot in a 400 pixel window is 200 pixels wide"

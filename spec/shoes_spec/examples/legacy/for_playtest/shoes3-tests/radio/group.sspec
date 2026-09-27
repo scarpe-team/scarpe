@@ -1,0 +1,38 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes3-tests/radio/group.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+# group
+  Shoes.app do
+   stack do
+     para "Among these films, which do you prefer?"
+     flow do
+       radio :films
+       para "The Taste of Tea by Katsuhito Ishii"
+     end
+     flow do
+       radio :films
+       para "Kin-Dza-Dza by Georgi Danelia"
+     end
+     flow do
+       radio :films
+       para "Children of Heaven by Majid Majidi"
+     end
+   end
+ end
+----------- test code
+# Tests grouped radio buttons (:films group)
+# Verifies radio group renders with 3 options
+
+# Find all radios in :films group
+radios = Shoes::App.find_drawables_by(Shoes::Radio)
+assert_equal 3, radios.length, "Should have 3 radio buttons"
+
+# Find paras
+paras = Shoes::App.find_drawables_by(Shoes::Para)
+assert paras.length >= 4, "Should have question para plus 3 film title paras"
+
+assert true, "Radio group test completed"

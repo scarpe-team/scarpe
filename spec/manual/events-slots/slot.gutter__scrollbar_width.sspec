@@ -1,0 +1,18 @@
+---
+manual: slot.gutter
+lines: [2394, 2399]
+testability: visual
+display: native
+ledger: C6
+----------- app code
+Shoes.app width: 300, height: 200 do
+  @page = stack do
+    background red
+    stack height: 600
+  end
+end
+----------- test code
+wheel(40, x: 150, y: 100)
+gutter = Shoes.APPS.first.gutter
+assert_equal [255, 0, 0, 255], pixel_at(300 - gutter - 1, 10),
+  "the scrollbar covers no more than gutter pixels at the window's right edge"

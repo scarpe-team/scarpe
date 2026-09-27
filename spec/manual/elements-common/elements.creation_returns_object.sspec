@@ -1,0 +1,21 @@
+---
+manual: elements.creation_returns_object
+lines: [2550, 2557]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $img = image("assets/red-40x30.png")
+end
+----------- test code
+$img.move(10, 20)
+assert_equal [10, 20], [image.left, image.top], "moving the returned object moves the image"
+
+$img.style(width: 80)
+assert_equal 80, image.style[:width], "restyling it restyles the image"
+
+$img.hide
+assert_equal true, image.style[:hidden], "hiding it hides the image"
+
+$img.remove
+assert_empty images, "removing it removes the image"

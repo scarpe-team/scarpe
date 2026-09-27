@@ -1,0 +1,24 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/simple/phat-button.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/working/simple/phat-button.sspec
+- cases/scarpe_examples/legacy/for_playtest/simple/phat-button.sspec
+- cases/scarpe_examples/legacy/working/simple/phat-button.sspec
+----------- app code
+Shoes.app do
+  # A button which takes up the whole page
+  @b = button "WAT DO", :width => 1.0, :height => 1.0
+
+  # When clicked, show the styles
+  @b.click { alert(@b.style.inspect) }
+end
+----------- test code
+# Verify full-page button exists with correct text
+assert_equal "WAT DO", button().text
+# Button should have 100% width/height styles
+assert_equal 1.0, button().style[:width]
+assert_equal 1.0, button().style[:height]

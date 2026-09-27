@@ -1,0 +1,12 @@
+---
+manual: styles.choose
+lines: [1137, 1142]
+testability: api
+display: any
+ledger: G3
+----------- app code
+Shoes.app do
+  @cards = list_box items: ["Jack", "Ace", "Joker"], choose: "Ace"
+end
+----------- test code
+assert_equal "Ace", list_box.text, "choose: sets the item chosen when the box appears"

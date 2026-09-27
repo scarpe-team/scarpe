@@ -1,0 +1,23 @@
+---
+manual: element.radio
+lines: [2073, 2074]
+testability: api
+display: any
+ledger: G6
+----------- app code
+Shoes.app do
+  stack do
+    $tea = radio
+    para "Tea"
+  end
+  stack do
+    $coffee = radio
+    para "Coffee"
+  end
+end
+----------- test code
+radio("$tea").trigger_click
+radio("$coffee").trigger_click
+
+assert $tea.checked?, "a radio in one slot stays marked"
+assert $coffee.checked?, "when a radio in another slot is marked"

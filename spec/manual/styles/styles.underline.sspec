@@ -1,0 +1,13 @@
+---
+manual: styles.underline
+lines: [1496, 1509]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  %w[none single double low error].each { |kind| instance_variable_set("@#{kind}", para(kind, underline: kind)) }
+end
+----------- test code
+%w[none single double low error].each do |kind|
+  assert_equal kind, para("@#{kind}").style[:underline], "underline: #{kind.inspect} is accepted and kept"
+end

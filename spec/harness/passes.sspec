@@ -1,0 +1,12 @@
+---
+# Runner self-test: the simplest passing case.
+testability: api
+----------- app code
+Shoes.app do
+  @button = button "Push"
+  @label = para "before"
+  @button.click { @label.replace "after" }
+end
+----------- test code
+button.trigger_click
+assert_equal "after", para.text

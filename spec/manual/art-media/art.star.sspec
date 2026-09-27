@@ -1,0 +1,29 @@
+---
+manual: art.star
+lines: [1826, 1831]
+testability: visual
+display: native
+ledger: E4
+----------- app code
+Shoes.app width: 200, height: 200 do
+  fill red
+  nostroke
+  star 100, 100, 5, 50, 20
+end
+----------- test code
+# E4: centred on (left, top), outer and inner are radii, and (Shoes 3's path) the first
+# point is straight down, so a five-pointed star has a point at the bottom.
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(100, 100, [255, 0, 0], "the star is centred on (left, top)")
+paints.(100, 145, [255, 0, 0], "a point reaches 45 px straight down, inside the outer radius of 50")
+paints.(100, 55, [255, 255, 255], "opposite it, straight up, is a notch at the inner radius")
+
+outside = (0...16).map { |i| i * Math::PI / 8 }
+  .map { |a| [(100 + 53 * Math.cos(a)).round, (100 + 53 * Math.sin(a)).round] }
+  .reject { |x, y| pixel_at(x, y).first(3) == [255, 255, 255] }
+assert_empty outside, "nothing is painted more than 51 px from the centre"

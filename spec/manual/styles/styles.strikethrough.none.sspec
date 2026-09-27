@@ -1,0 +1,23 @@
+---
+manual: styles.strikethrough.none
+lines: [1448, 1450]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  flow(margin_bottom: 20) { @plain = para "H     H", strikethrough: "none", size: 30 }
+  flow(margin_bottom: 20) { @control = para "H     H", strikethrough: "single", size: 30 }
+end
+----------- test code
+# The gap between the two H's holds no letters, so any ink in it is a line drawn across the text.
+# Lines may hang a little below the line box, so look 10 pixels past it (neighbours sit 20 below).
+gap_runs = lambda do |name|
+  box = layout_of(para(name))
+  x = (box.x + box.w / 2).round
+  rows = (box.y.floor...(box.y + box.h + 10).ceil).select { |y| pixel_at(x, y).first(3).sum < 600 }
+  runs = rows.slice_when { |a, b| b != a + 1 }.to_a
+  runs.map { |run| (run.first + run.last) / 2.0 - box.y }
+end
+
+assert_equal 1, gap_runs.call("@control").size, "the same text with strikethrough: \"single\" does show a line in the gap"
+assert_empty gap_runs.call("@plain"), "strikethrough: \"none\" draws no line"

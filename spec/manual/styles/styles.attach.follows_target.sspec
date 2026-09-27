@@ -1,0 +1,24 @@
+---
+manual: styles.attach.follows_target
+lines: [1089, 1089]
+testability: visual
+display: native
+ledger: C11
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @anchor = stack left: 150, top: 100, width: 80, height: 30 do
+    background blue
+  end
+  @tag = stack left: 5, top: 7, width: 40, height: 20, attach: @anchor do
+    background red
+  end
+end
+----------- test code
+before = layout_of(stack("@tag"))
+
+stack("@anchor").move(250, 200)
+wait_frames
+
+after = layout_of(stack("@tag"))
+assert_in_delta 100, after.x - before.x, 0.5, "the attached slot moved right with its element"
+assert_in_delta 100, after.y - before.y, 0.5, "and down with it"

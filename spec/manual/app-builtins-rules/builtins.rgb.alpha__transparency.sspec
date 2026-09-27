@@ -1,0 +1,19 @@
+---
+manual: builtins.rgb.alpha
+lines: [817, 818]
+testability: visual
+display: native
+ledger: D3
+----------- app code
+Shoes.app do
+  background white
+  nostroke
+  fill rgb(255, 0, 0, 0.5)
+  rect 20, 20, 100, 100
+end
+----------- test code
+r, g, b, = pixel_at(70, 70)
+
+assert_in_delta 255, r, 3, "half-transparent red over white keeps full red"
+assert_in_delta 128, g, 4, "and lets half the white through"
+assert_in_delta 128, b, 4

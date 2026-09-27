@@ -1,0 +1,34 @@
+---
+manual: art.shape.arc_to
+lines: [1802, 1818]
+testability: visual
+display: native
+ledger: E7
+----------- app code
+Shoes.app do
+  fill red(0.2)
+  shape do
+    move_to(90, 55)
+    arc_to(50, 55, 50, 50, 0, PI/2)
+    arc_to(50, 55, 60, 60, PI/2, PI)
+    arc_to(50, 55, 70, 70, PI, TWO_PI-PI/2)
+    arc_to(50, 55, 80, 80, TWO_PI-PI/2, TWO_PI)
+  end
+end
+----------- test code
+# The manual's spiral. arc_to(x, y, w, h, a1, a2) adds an arc of the oval centred on (x, y),
+# w wide and h high, from a1 to a2 radians, clockwise on screen from three o'clock, and
+# joins it to the pen with a straight line (cairo's arc, which Shoes 3 uses). The four
+# arcs have radii 25, 30, 35 and 40 around (50, 55), one quarter each.
+dark_near = lambda do |x, y|
+  (-2..2).to_a.product((-2..2).to_a).any? { |dx, dy| pixel_at(x + dx, y + dy).first(3).max < 150 }
+end
+
+assert dark_near.(68, 73), "the first arc, radius 25, sweeps the lower right quarter"
+assert dark_near.(29, 76), "the second, radius 30, the lower left"
+assert dark_near.(25, 30), "the third, radius 35, the upper left"
+assert dark_near.(78, 27), "the fourth, radius 40, the upper right, back to the start"
+refute dark_near.(68, 37), "angles turn clockwise on screen: no radius 25 arc in the upper right"
+
+inside = pixel_at(50, 55).first(3)
+assert inside[0] > 230 && (170..235).cover?(inside[1]), "red(0.2) fills the spiral: #{inside.inspect}"

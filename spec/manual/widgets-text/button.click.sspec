@@ -1,0 +1,19 @@
+---
+manual: button.click
+lines: [2918, 2921]
+testability: interactive
+display: any
+----------- app code
+Shoes.app do
+  $clicks = 0
+  @go = button "Go"
+  @go.click { $clicks += 1 }
+end
+----------- test code
+assert_equal 0, $clicks, "the click block waits for a click"
+
+button.trigger_click
+assert_equal 1, $clicks, "a click calls the click block"
+
+button.trigger_click
+assert_equal 2, $clicks, "once per click"

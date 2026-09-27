@@ -1,0 +1,25 @@
+---
+manual: element.link.click_string
+lines: [2034, 2034]
+testability: interactive
+display: native
+ledger: J2
+----------- app code
+Shoes.app do
+  url "/", :index
+  url "/two", :two
+
+  def index
+    para link("go", click: "/two")
+  end
+
+  def two
+    para "Page two"
+  end
+end
+----------- test code
+assert_equal "go", para.text
+
+click_on para
+
+assert_equal "Page two", para.text, "clicking the link visits /two"

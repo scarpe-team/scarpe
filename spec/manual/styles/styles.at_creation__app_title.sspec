@@ -1,0 +1,12 @@
+---
+manual: styles.at_creation
+lines: [1028, 1034]
+testability: api
+display: any
+----------- app code
+Shoes.app title: "A Styling Sample" do
+  para "Red with an underline", stroke: red, underline: "single"
+end
+----------- test code
+app = Shoes.APPS.first
+assert_equal "A Styling Sample", app.style[:title], "the app took its :title style"

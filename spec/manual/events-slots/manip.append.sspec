@@ -1,0 +1,24 @@
+---
+manual: manip.append
+lines: [2296, 2313]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @slot = stack { para 'Good Morning' }
+  @news = button "News" do
+    @slot.append do
+      title "Breaking News"
+      tagline "Astronauts arrested for space shuttle DUI."
+    end
+  end
+end
+----------- test code
+assert_equal ["Good Morning"], stack("@slot").contents.map(&:text)
+
+button("@news").trigger_click
+
+assert_equal ["Good Morning", "Breaking News", "Astronauts arrested for space shuttle DUI."],
+  stack("@slot").contents.map(&:text), "the title and tagline land at the end of the slot"
+assert_equal "Breaking News", title.text
+assert_equal "Astronauts arrested for space shuttle DUI.", tagline.text

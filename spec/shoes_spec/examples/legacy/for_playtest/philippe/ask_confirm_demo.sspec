@@ -1,0 +1,68 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/philippe/ask_confirm_demo.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+# Demo: ask() and confirm() with return values
+# These now use native macOS dialogs and return actual values!
+Shoes.app :width => 400, :height => 300, :title => "Ask & Confirm Demo" do
+  background "#444"
+
+  stack :margin => 15 do
+    title "Ask & Confirm Demo", :stroke => white
+
+    @result = para "Click a button to test dialogs.", :stroke => "#DFA"
+
+    flow :margin_top => 10 do
+      button "ask()" do
+        name = ask("What is your name?")
+        if name
+          @result.replace "You said: #{name}"
+        else
+          @result.replace "You cancelled the ask dialog."
+        end
+      end
+
+      button "confirm()" do
+        answer = confirm("Do you like Ruby?")
+        if answer
+          @result.replace "You confirmed: Yes!"
+        else
+          @result.replace "You declined (or cancelled)."
+        end
+      end
+    end
+
+    flow :margin_top => 10 do
+      button "Clipboard write" do
+        self.clipboard = "Hello from Scarpe!"
+        @result.replace "Wrote 'Hello from Scarpe!' to clipboard."
+      end
+
+      button "Clipboard read" do
+        text = self.clipboard
+        @result.replace "Clipboard: #{text}"
+      end
+    end
+  end
+end
+----------- test code
+# Test ask_confirm_demo.sspec - demonstrates ask() and confirm() dialogs
+# Note: Dialog interactions require special test support
+
+# Verify title exists
+t = titles().first
+assert t, "Should have title"
+assert_includes t.text, "Ask & Confirm Demo"
+
+# Verify initial result text
+p = paras().find { |p| p.text.include?("Click a button") }
+assert p, "Should have instruction para"
+
+# Verify all buttons exist
+assert find_button("ask()"), "Should have ask() button"
+assert find_button("confirm()"), "Should have confirm() button"
+assert find_button("Clipboard write"), "Should have Clipboard write button"
+assert find_button("Clipboard read"), "Should have Clipboard read button"

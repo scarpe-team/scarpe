@@ -1,0 +1,25 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/working/shoes_manual/save_download.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/working/shoes_manual/save_download.sspec
+----------- app code
+#!ruby
+ Shoes.app do
+   stack do
+     title "Downloading Google image", size: 16
+     @status = para "One moment..."
+
+     download "http://www.google.com/logos/nasa50th.gif",
+       save: "nasa50th.gif" do
+         @status.text = "Okay, is downloaded."
+     end
+   end
+ end
+----------- test code
+# Verify status para exists via instance variable
+status = drawable(Shoes::Para, "@status")
+assert_equal "One moment...", status.text

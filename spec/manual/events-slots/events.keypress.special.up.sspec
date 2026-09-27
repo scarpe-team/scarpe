@@ -1,0 +1,13 @@
+---
+manual: events.keypress.special.up
+lines: [2242, 2245]
+testability: interactive
+display: native
+----------- app code
+$keys = []
+Shoes.app do
+  keypress { |key| $keys << key }
+end
+----------- test code
+press_key :up
+assert_equal [:up], $keys, "the up key arrives once, as the Symbol :up"

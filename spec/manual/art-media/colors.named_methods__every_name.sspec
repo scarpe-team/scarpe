@@ -1,0 +1,19 @@
+---
+manual: colors.named_methods
+lines: [1568, 1574]
+testability: api
+display: any
+ledger: M38
+----------- app code
+Shoes.app do
+  $answers = Shoes::COLORS.keys.to_h { |name| [name, send(name).to_a] }
+end
+----------- test code
+assert_operator Shoes::COLORS.size, :>=, 138, "the list covers the X11 and HTML palettes"
+
+wrong = $answers.reject { |name, rgba| rgba == [*Shoes::COLORS[name], 255] }
+assert_empty wrong, "every colour name is a method returning its own numbers"
+
+%i[aliceblue cornflowerblue gold navy tomato yellowgreen].each do |name|
+  assert_includes $answers.keys, name, "#{name} is in the list"
+end

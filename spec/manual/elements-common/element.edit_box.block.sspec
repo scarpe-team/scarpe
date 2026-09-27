@@ -1,0 +1,22 @@
+---
+manual: element.edit_box.block
+lines: [3021, 3030]
+testability: interactive
+display: any
+ledger: G1
+----------- app code
+Shoes.app do
+  edit_box do |e|
+    @counter.text = e.text.size
+  end
+  @counter = strong("0")
+  para @counter, " characters"
+end
+----------- test code
+assert_equal "0 characters", para.text, "the block waits for a change"
+
+edit_box.trigger_change("hello")
+assert_equal "5 characters", para.text, "a change runs the block"
+
+edit_box.trigger_change("hell")
+assert_equal "4 characters", para.text, "and so does every change after it"

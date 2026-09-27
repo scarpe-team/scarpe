@@ -1,0 +1,22 @@
+---
+manual: manip.direct_add_in_handler
+lines: [2906, 2913]
+testability: interactive
+display: any
+ledger: B3
+----------- app code
+Shoes.app do
+  @b1 = button "OK!"
+  @b1.click { para "Well okay then." }
+  @b2 = button "Are you sure?"
+  @b2.click { para "Your confidence is inspiring." }
+end
+----------- test code
+assert_empty paras, "no paragraphs before a click"
+
+button("@b1").trigger_click
+button("@b2").trigger_click
+
+top_slot = button("@b1").parent
+assert_equal ["Well okay then.", "Your confidence is inspiring."], top_slot.contents.last(2).map(&:text),
+  "a bare para in a click handler is appended to the app's slot, no append needed"

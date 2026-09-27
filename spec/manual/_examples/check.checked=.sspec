@@ -1,0 +1,17 @@
+---
+manual: check.checked=
+lines: [2983, 2986]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  check
+end
+----------- test code
+refute check.checked?, "a new check starts unchecked"
+
+check.checked = true
+assert check.checked?, "checked = true marks the box"
+
+check.checked = false
+refute check.checked?, "checked = false unmarks the box"

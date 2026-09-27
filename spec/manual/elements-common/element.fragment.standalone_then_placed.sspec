@@ -1,0 +1,19 @@
+---
+manual: element.fragment.standalone_then_placed
+lines: [3021, 3030]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  edit_box do |e|
+    @counter.text = e.text.size
+  end
+  @counter = strong("0")
+  para @counter, " characters"
+end
+----------- test code
+counter = Shoes.APPS.first.instance_variable_get(:@counter)
+
+assert_instance_of Shoes::Strong, counter, "the fragment was made on its own first"
+assert_same counter, para.contents.first, "and the para holds that same fragment"
+assert_equal "0 characters", para.text

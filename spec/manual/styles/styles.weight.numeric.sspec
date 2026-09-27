@@ -1,0 +1,13 @@
+---
+manual: styles.weight.numeric
+lines: [1537, 1537]
+testability: visual
+display: native
+ledger: F4
+----------- app code
+Shoes.app width: 500, height: 300 do
+  flow { @plain = para "Weight Watchers", size: 20 }
+  flow { @numeric = para "Weight Watchers", weight: 600, size: 20 }
+end
+----------- test code
+assert_operator layout_of(para("@numeric")).w, :>, layout_of(para("@plain")).w + 1, "weight: 600, a bare number, makes the letters heavier"

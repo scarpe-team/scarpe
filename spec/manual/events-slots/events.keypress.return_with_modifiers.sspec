@@ -1,0 +1,14 @@
+---
+manual: events.keypress.return_with_modifiers
+lines: [2247, 2249]
+testability: interactive
+display: native
+ledger: H1
+----------- app code
+$keys = []
+Shoes.app do
+  keypress { |key| $keys << key }
+end
+----------- test code
+%i[control_enter control_alt_enter shift_alt_enter].each { |chord| press_key chord }
+assert_equal %i[control_enter control_alt_enter shift_alt_enter], $keys, "Return with modifiers arrives as an _enter Symbol"

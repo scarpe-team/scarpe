@@ -1,0 +1,26 @@
+---
+manual: element.link.click_string
+lines: [2034, 2034]
+testability: interactive
+display: any
+ledger: J2
+----------- app code
+Shoes.app do
+  url "/", :index
+  url "/two", :two
+
+  def index
+    para "Page one: ", link("go", click: "/two")
+  end
+
+  def two
+    para "Page two"
+  end
+end
+----------- test code
+assert_equal "Page one: go", para.text, "the app starts on its first page"
+
+go = para.contents.last
+Shoes::DisplayService.dispatch_event("click", go.linkable_id)
+
+assert_equal "Page two", para.text, "clicking a link with click: \"/two\" visits that page"

@@ -1,0 +1,43 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/motion_events.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app width: 600, height: 600 do
+  stack do
+    para "Events and Menus"
+    flow do
+      @btn1 = button "button 1", width: 75 do
+        @eb.append "button 1 clicked\n"
+      end
+      click do
+        @eb.append "flow click\n"
+      end
+      hover do
+        @eb.append "flow hover\n"
+      end
+    end
+    @eb = edit_box width: 500, height: 350
+  end
+  motion do |x, y, mods|
+    @eb.append "motion #{x},#{y} #{mods} "
+  end
+end
+----------- test code
+# Test: Motion/hover/click event handlers
+# Check UI elements exist
+p = para()
+assert p, "Expected a para"
+assert_includes p.text, "Events", "Para should mention 'Events'"
+
+btn = drawable(Shoes::Button, "@btn1")
+assert btn, "Expected 'button 1' button"
+
+eb = edit_box()
+assert eb, "Expected an edit_box for event log"
+
+# Click the button and check edit_box logs it
+btn.trigger_click
+assert_includes eb.text, "button 1 clicked", "Edit box should log button click"

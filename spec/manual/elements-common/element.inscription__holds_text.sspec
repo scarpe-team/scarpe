@@ -1,0 +1,12 @@
+---
+manual: element.inscription
+lines: [2030, 2033]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $block = inscription "Shoes"
+end
+----------- test code
+assert_equal "Shoes", $block.text, "the text block holds the text it was given"
+assert_same $block, drawable("$block").obj, "and is in the window"

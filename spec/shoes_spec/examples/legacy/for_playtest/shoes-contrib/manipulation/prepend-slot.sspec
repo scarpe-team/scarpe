@@ -1,0 +1,28 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/manipulation/prepend-slot.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  @slot = stack { para 'Good Morning' }
+  button "Prepend" do
+    @slot.prepend { para "Your car is ready." }
+  end
+end
+----------- test code
+# Tests slot.prepend() via button click
+# Initially shows "Good Morning" para
+# Button click prepends "Your car is ready."
+
+# Verify initial state
+assert_equal "Good Morning", para().text
+assert_equal "Prepend", button().text
+
+# Trigger the button to prepend content
+button().trigger_click
+
+# After click, there should be two paras
+# The prepended one should be first (but selector returns first match)
+# Note: Need to verify prepend behavior - new para should appear before original

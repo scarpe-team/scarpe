@@ -1,0 +1,21 @@
+---
+manual: intro.consistent_look_native_controls
+lines: [76, 79]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  stack do
+    @ok = button "OK", width: 120, height: 40
+    @name = edit_line width: 150, height: 30
+    @notes = edit_box width: 180, height: 90
+    @done = progress width: 100, height: 20
+  end
+end
+----------- test code
+{ button("@ok") => [120, 40], edit_line("@name") => [150, 30],
+  edit_box("@notes") => [180, 90], progress("@done") => [100, 20] }.each do |control, (w, h)|
+  box = layout_of(control)
+  assert_in_delta w, box.w, 0.5, "a native control stays within the width it is given"
+  assert_in_delta h, box.h, 0.5, "and the height"
+end

@@ -1,0 +1,17 @@
+---
+manual: styles.weight.ultrabold
+lines: [1526, 1535]
+testability: visual
+display: native
+ledger: F4
+----------- app code
+Shoes.app width: 500, height: 300 do
+  flow { @named = para "Weight Watchers", weight: "ultrabold", size: 20 }
+  flow { @numeric = para "Weight Watchers", weight: 800, size: 20 }
+  flow { @regular = para "Weight Watchers", weight: 400, size: 20 }
+  flow { @heavy = para "Weight Watchers", weight: 900, size: 20 }
+end
+----------- test code
+width = ->(name) { layout_of(para(name)).w }
+refute_in_delta width.call("@regular"), width.call("@heavy"), 1, "numeric weights change the width of this text, so width tells weights apart"
+assert_in_delta width.call("@numeric"), width.call("@named"), 0.25, "weight: \"ultrabold\" lays out exactly like weight 800"

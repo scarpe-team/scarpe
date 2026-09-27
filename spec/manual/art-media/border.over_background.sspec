@@ -1,0 +1,17 @@
+---
+manual: border.over_background
+lines: [2817, 2818]
+testability: visual
+display: native
+ledger: C12
+----------- app code
+Shoes.app width: 200, height: 200 do
+  stack left: 0, top: 0, width: 100, height: 100 do
+    background red
+    border blue, strokewidth: 10
+  end
+end
+----------- test code
+assert_equal [0, 0, 255], pixel_at(5, 50).first(3), "the border paints over the background's edge"
+assert_equal [255, 0, 0], pixel_at(15, 50).first(3), "just inside the border the background shows"
+assert_equal [255, 0, 0], pixel_at(50, 50).first(3), "and in the middle"

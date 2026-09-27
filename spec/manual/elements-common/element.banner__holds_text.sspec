@@ -1,0 +1,12 @@
+---
+manual: element.banner
+lines: [1921, 1924]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $block = banner "Shoes"
+end
+----------- test code
+assert_equal "Shoes", $block.text, "the text block holds the text it was given"
+assert_same $block, drawable("$block").obj, "and is in the window"

@@ -1,0 +1,17 @@
+---
+manual: builtins.debug
+lines: [719, 727]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  button "Log" do
+    $returned = :not_called
+    $returned = debug("Running Shoes on " + RUBY_PLATFORM)
+  end
+end
+----------- test code
+out, err = capture_io { find_button("Log").trigger_click }
+
+assert_includes out + err, "Running Shoes on #{RUBY_PLATFORM}", "the message reaches the console"
+assert_nil $returned, "debug returns nil"

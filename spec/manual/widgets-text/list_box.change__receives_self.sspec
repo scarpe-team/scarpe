@@ -1,0 +1,19 @@
+---
+manual: list_box.change
+lines: [3211, 3215]
+testability: interactive
+display: any
+ledger: G1
+----------- app code
+Shoes.app do
+  @fruit = list_box items: ["Grapes", "Pears", "Apricots"]
+  @fruit.change { |list| $handed = list }
+end
+----------- test code
+assert_nil $handed
+
+list_box.trigger_change("Pears")
+
+assert_kind_of Shoes::ListBox, $handed, "the change block is given the list box"
+assert_equal list_box.linkable_id, $handed.linkable_id, "the one that changed"
+assert_equal "Pears", $handed.text, "already showing the new option"

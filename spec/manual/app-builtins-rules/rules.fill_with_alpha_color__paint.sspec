@@ -1,0 +1,18 @@
+---
+manual: rules.fill_with_alpha_color
+lines: [382, 382]
+testability: visual
+display: native
+ledger: D3
+----------- app code
+Shoes.app do
+  background white
+  nostroke
+  fill black(0.1)
+  oval 50, 50, 100
+end
+----------- test code
+r, g, b, = pixel_at(100, 100)
+[r, g, b].each do |channel|
+  assert_in_delta 230, channel, 3, "a 10% black over white is a pale grey: #{[r, g, b].inspect}"
+end

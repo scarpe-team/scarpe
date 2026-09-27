@@ -1,0 +1,16 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/drawables/check/check_initial_value.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  @c = check true
+end
+----------- test code
+assert_equal true, check.checked?
+check.checked = false
+assert_equal false, check.checked?
+check.checked = false
+assert_equal false, check.checked?

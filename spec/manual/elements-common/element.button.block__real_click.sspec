@@ -1,0 +1,20 @@
+---
+manual: element.button.block
+lines: [2877, 2887]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  button "OK!" do
+    append { para "Well okay then." }
+  end
+  button "Are you sure?" do
+    append { para "Your confidence is inspiring." }
+  end
+end
+----------- test code
+assert_empty paras, "the blocks wait for a press"
+
+click_on "OK!"
+
+assert_equal ["Well okay then."], paras.map(&:text), "pressing OK! runs its block, and only its block"

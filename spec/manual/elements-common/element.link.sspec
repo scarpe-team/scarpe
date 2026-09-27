@@ -1,0 +1,21 @@
+---
+manual: element.link
+lines: [2034, 2037]
+testability: visual
+display: native
+ledger: F7
+----------- app code
+Shoes.app do
+  flow { @p = para link("MMMM") { }, size: 40 }
+end
+----------- test code
+columns = ->(box, step = 1) { (box.x.ceil..(box.x + box.w).floor - 1).step(step).to_a }
+darkest = ->(box) do
+  points = (box.y.ceil..(box.y + box.h).floor - 1).flat_map { |y| columns.(box).map { |x| [x, y] } }
+  points.map { |x, y| pixel_at(x, y).first(3) }.min_by(&:sum)
+end
+near = ->(expected, actual, tolerance = 24) { expected.zip(actual).all? { |e, a| (e - a).abs <= tolerance } }
+
+ink = darkest.(layout_of(para("@p")))
+
+assert near.([0x00, 0x66, 0xEE], ink, 20), "link text is drawn in #06E, got #{ink.inspect}"

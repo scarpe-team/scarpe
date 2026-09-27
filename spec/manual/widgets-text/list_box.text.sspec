@@ -1,0 +1,14 @@
+---
+manual: list_box.text
+lines: [3234, 3236]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @fruit = list_box items: ["Grapes", "Pears", "Apricots"], choose: "Pears"
+end
+----------- test code
+assert_equal "Pears", list_box.text, "text is the option highlighted now"
+
+list_box.trigger_change("Apricots")
+assert_equal "Apricots", list_box.text, "and follows the user's pick"

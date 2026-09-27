@@ -1,0 +1,15 @@
+---
+manual: element.strong
+lines: [2089, 2090]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @p = para "Plain, then ", strong("fragment")
+end
+----------- test code
+fragment = para("@p").contents.last
+
+assert_instance_of Shoes::Strong, fragment, "strong returns a Shoes::Strong"
+assert_equal "fragment", fragment.text, "holding the text it was given"
+assert_equal "Plain, then fragment", para("@p").text, "as a fragment inside the text block"

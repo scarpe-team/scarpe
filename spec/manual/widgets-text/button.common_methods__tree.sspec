@@ -1,0 +1,21 @@
+---
+manual: button.common_methods
+lines: [2915, 2916]
+testability: api
+display: any
+----------- app code
+# parent and remove (manual 2676-2684) on a button.
+Shoes.app do
+  stack do
+    @ok = button "OK!"
+    @sure = button "Are you sure?"
+  end
+end
+----------- test code
+ok = button("@ok")
+assert_equal stack.linkable_id, ok.parent.linkable_id, "parent is the button's slot"
+assert_equal 2, stack.contents.size
+
+ok.remove
+assert_equal [button("@sure").linkable_id], stack.contents.map(&:linkable_id), "remove takes the button out of its slot"
+assert_equal ["Are you sure?"], buttons.map(&:text), "and out of the window"

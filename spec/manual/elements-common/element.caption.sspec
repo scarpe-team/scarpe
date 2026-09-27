@@ -1,0 +1,15 @@
+---
+manual: element.caption
+lines: [1941, 1941]
+testability: api
+display: any
+ledger: F2
+expect: fail
+reason: "Lacci's caption returns a Shoes::Para with size :caption; there is no Shoes::Caption class"
+----------- app code
+Shoes.app do
+  $block = caption "Shoes"
+end
+----------- test code
+assert Shoes.const_defined?(:Caption), "Shoes::Caption exists"
+assert_kind_of Shoes::Caption, $block, "caption returns a Shoes::Caption"

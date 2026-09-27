@@ -1,0 +1,12 @@
+---
+manual: list_box.items_style
+lines: [3172, 3181]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  para "Choose a fruit:"
+  list_box items: ["Grapes", "Pears", "Apricots"]
+end
+----------- test code
+assert_equal ["Grapes", "Pears", "Apricots"], list_box.items, "the options come from the :items array, in order"

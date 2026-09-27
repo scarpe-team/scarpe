@@ -1,0 +1,14 @@
+---
+manual: events.keypress.shift_absorbed
+lines: [2225, 2227]
+testability: interactive
+display: native
+ledger: H1
+----------- app code
+$keys = []
+Shoes.app do
+  keypress { |key| $keys << key }
+end
+----------- test code
+press_key :shift_alt_7
+assert_equal [:"alt_&"], $keys, "Shift-Alt-7 folds the shift into the character: :alt_&"

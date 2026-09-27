@@ -1,0 +1,18 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/gutter.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+#!ruby
+ Shoes.app do
+   stack margin_right: 20 + gutter do
+     para "Insert fat and ratified declaration of independence here..."
+   end
+ end
+----------- test code
+# Verify gutter margin is applied to stack with para content
+assert stacks().length >= 1, "Expected a stack container"
+assert paras().length >= 1, "Expected a para element"
+assert_includes para().text, "Insert fat"

@@ -1,0 +1,21 @@
+---
+manual: manip.clear
+lines: [2325, 2329]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @slot = stack do
+    para "one"
+    stack { para "two" }
+  end
+  @clear = button("Clear") { @slot.clear }
+end
+----------- test code
+assert_equal 2, stack("@slot").contents.size
+assert_equal %w[one two], paras.map(&:text).sort
+
+button("@clear").trigger_click
+
+assert_empty stack("@slot").contents, "the slot is empty"
+assert_empty paras, "the nested slot's para went too, as if each child had been removed"

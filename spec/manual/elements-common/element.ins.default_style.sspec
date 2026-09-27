@@ -1,0 +1,31 @@
+---
+manual: element.ins.default_style
+lines: [2025, 2028]
+testability: visual
+display: native
+ledger: F1
+----------- app code
+Shoes.app do
+  flow { @plain = para "nnnn", size: 40 }
+  flow { @inserted = para ins("nnnn"), size: 40 }
+end
+----------- test code
+columns = ->(box, step = 1) { (box.x.ceil..(box.x + box.w).floor - 1).step(step).to_a }
+dark = ->(x, y) { pixel_at(x, y).first(3).sum < 384 }
+rows = ->(box) { (box.y.ceil..(box.y + box.h).floor - 1).to_a }
+ink_rows = ->(box) { rows.(box).select { |y| columns.(box).any? { |x| dark.(x, y) } } }
+full_rows = ->(box) do
+  xs = columns.(box, 2)[1..-2]
+  rows.(box).select { |y| xs.all? { |x| dark.(x, y) } }
+end
+
+plain = layout_of(para("@plain"))
+assert_empty full_rows.(plain), "plain text has no line all the way across"
+
+inserted = layout_of(para("@inserted"))
+lines = full_rows.(inserted)
+refute_empty lines, "ins underlines its text"
+
+glyph_bottom = ink_rows.(plain).last - plain.y
+assert lines.all? { |y| y - inserted.y >= glyph_bottom - 1 }, "the line runs under the letters"
+assert_operator lines.size, :<=, 6, "a single line"

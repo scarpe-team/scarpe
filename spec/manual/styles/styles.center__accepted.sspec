@@ -1,0 +1,14 @@
+---
+manual: styles.center
+lines: [1115, 1121]
+testability: api
+display: any
+ledger: E2
+expect: fail
+reason: "Rect does not declare :center (only Oval does), so Lacci drops it with a warning; no ledger row names rect yet."
+----------- app code
+Shoes.app do
+  @square = rect 100, 100, 60, 40, center: true
+end
+----------- test code
+assert_equal true, rect("@square").style[:center], "a rect keeps center: true, so a display can centre it"

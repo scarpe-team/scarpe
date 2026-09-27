@@ -1,0 +1,14 @@
+---
+manual: builtins.ask_color
+lines: [643, 655]
+testability: dialog
+display: any
+dialogs: {ask_color: [[255, 136, 0, 255]]}
+----------- app code
+backcolor = ask_color("Pick a background")
+Shoes.app do
+ background backcolor
+end
+----------- test code
+assert_equal [[:ask_color, "Pick a background"]], dialog_calls, "ask_color shows its title"
+assert_equal [255, 136, 0, 255], background.fill.to_a, "the picked colour becomes the background"

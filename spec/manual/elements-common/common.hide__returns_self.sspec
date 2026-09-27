@@ -1,0 +1,13 @@
+---
+manual: common.hide
+lines: [2639, 2639]
+testability: api
+display: any
+expect: fail
+reason: "Lacci's hide, show and toggle return the new value of the hidden flag (drawable.rb), not self"
+----------- app code
+Shoes.app do
+  $b = button "Now you see me"
+end
+----------- test code
+assert_same $b, $b.hide, "hide returns the element itself"

@@ -1,0 +1,19 @@
+---
+manual: check.click
+lines: [2988, 2991]
+testability: interactive
+display: any
+ledger: G1
+----------- app code
+Shoes.app do
+  @box = check
+  @box.click { |c| $handed = c }
+end
+----------- test code
+assert_nil $handed
+
+check.trigger_click
+
+assert_kind_of Shoes::Check, $handed, "the click block is handed the check"
+assert_equal check.linkable_id, $handed.linkable_id, "the one that was clicked"
+assert_equal true, $handed.checked?, "already showing its new state"

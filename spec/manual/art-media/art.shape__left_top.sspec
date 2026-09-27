@@ -1,0 +1,29 @@
+---
+manual: art.shape
+lines: [1799, 1802]
+testability: visual
+display: native
+ledger: E7
+----------- app code
+Shoes.app width: 300, height: 300 do
+  fill red
+  nostroke
+  shape 100, 100 do
+    line_to 50, 0
+    line_to 50, 50
+    line_to 0, 50
+    line_to 0, 0
+  end
+end
+----------- test code
+# E7 (native): the path begins at (left, top) and its points are offset by it, so this
+# square covers (100, 100) to (150, 150).
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(125, 125, [255, 0, 0], "the shape starts at (left, top)")
+paints.(147, 147, [255, 0, 0], "and its points are measured from there")
+paints.(25, 25, [255, 255, 255], "not from the slot's corner")

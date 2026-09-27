@@ -1,0 +1,20 @@
+---
+manual: rules.redirection.element_app_method
+lines: [297, 298]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $app = self
+  @words = para "Words"
+  @go = button "Go"
+  @column = stack { @inner = para "Inner" }
+  @ring = oval 10, 10, 20
+end
+----------- test code
+[para("@words"), button("@go"), stack("@column"), para("@inner"), oval("@ring")].each do |thing|
+  assert_same $app, thing.app, "#{thing.linkable_id} knows its App"
+end
+
+para("@words").app { $inside = self }
+assert_same $app, $inside, "and app { } runs its block with the App as self"

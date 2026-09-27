@@ -1,0 +1,16 @@
+---
+manual: element.edit_box
+lines: [1965, 1965]
+testability: api
+display: native
+----------- app code
+Shoes.app do
+  edit_box
+end
+----------- test code
+click_on edit_box
+type_text "first line"
+press_key "\n"
+type_text "second line"
+
+assert_equal "first line\nsecond line", edit_box.text, "Return starts a new line inside the box"

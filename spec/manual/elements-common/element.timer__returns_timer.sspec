@@ -1,0 +1,14 @@
+---
+manual: element.timer
+lines: [2111, 2114]
+testability: api
+display: any
+expect: fail
+reason: "Lacci's animate, every and timer return a Shoes::SubscriptionItem; Shoes::Animation, Shoes::Every and Shoes::Timer do not exist"
+----------- app code
+Shoes.app do
+  $timer = timer(5) { }
+end
+----------- test code
+assert Shoes.const_defined?(:Timer), "Shoes::Timer exists"
+assert_kind_of Shoes::Timer, $timer, "timer returns a Shoes::Timer"

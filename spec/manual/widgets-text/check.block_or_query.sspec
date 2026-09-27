@@ -1,0 +1,22 @@
+---
+manual: check.block_or_query
+lines: [2947, 2949]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $clicks = 0
+  @with_block = check { $clicks += 1 }
+  @plain = check
+end
+----------- test code
+with_block = check("@with_block")
+plain = check("@plain")
+assert_equal 0, $clicks
+
+with_block.trigger_click
+assert_equal 1, $clicks, "a block attached to the check runs when it is clicked"
+
+assert_equal false, plain.checked?
+plain.trigger_click
+assert_equal true, plain.checked?, "a check with no block can be asked later with checked?"

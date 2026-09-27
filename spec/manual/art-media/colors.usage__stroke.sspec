@@ -1,0 +1,21 @@
+---
+manual: colors.usage
+lines: [1568, 1570]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  stroke purple
+  strokewidth 10
+  nofill
+  rect 20, 20, 100, 100
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(20, 70, [128, 0, 128], "a named colour strokes a shape's outline")
+paints.(70, 70, [255, 255, 255], "nofill leaves the middle alone")

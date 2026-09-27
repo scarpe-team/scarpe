@@ -1,0 +1,15 @@
+---
+manual: events.overview
+lines: [2158, 2165]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $slot = stack { para "listening" }
+end
+----------- test code
+%i[motion click hover leave keypress].each do |event|
+  $slot.public_send(event) { }
+rescue NoMethodError => e
+  flunk "a slot takes a #{event} block: #{e.message}"
+end

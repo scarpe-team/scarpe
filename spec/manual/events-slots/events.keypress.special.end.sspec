@@ -1,0 +1,13 @@
+---
+manual: events.keypress.special.end
+lines: [2242, 2245]
+testability: interactive
+display: native
+----------- app code
+$keys = []
+Shoes.app do
+  keypress { |key| $keys << key }
+end
+----------- test code
+press_key :end
+assert_equal [:end], $keys, "the end key arrives once, as the Symbol :end"

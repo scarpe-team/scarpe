@@ -1,0 +1,31 @@
+---
+manual: styles.margin_left
+lines: [1317, 1321]
+testability: visual
+display: native
+ledger: C3
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @outer = stack width: 300 do
+    @row = flow do
+      @spaced = stack width: 50, height: 20, margin_left: 12 do
+        background red
+      end
+      @beside = stack width: 50, height: 20 do
+        background blue
+      end
+    end
+    @below = stack width: 50, height: 20 do
+      background green
+    end
+  end
+end
+----------- test code
+outer = layout_of(stack("@outer"))
+spaced = layout_of(stack("@spaced"))
+beside = layout_of(stack("@beside"))
+below = layout_of(stack("@below"))
+assert_in_delta 12, spaced.x - outer.x, 0.5, "left margin: 12"
+assert_in_delta 0, spaced.y - outer.y, 0.5, "top margin: 0"
+assert_in_delta 0, beside.x - (spaced.x + spaced.w), 0.5, "right margin: 0"
+assert_in_delta 0, below.y - (spaced.y + spaced.h), 0.5, "bottom margin: 0"

@@ -1,0 +1,18 @@
+---
+manual: styles.height.percent
+lines: [1243, 1245]
+testability: visual
+display: native
+ledger: C1
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @outer = stack width: 300, height: 200 do
+    @half = stack width: 100, height: 0.5
+  end
+  @side = stack width: 300, height: 200 do
+    @all = stack width: 100, height: 1.0
+  end
+end
+----------- test code
+assert_in_delta 100, layout_of(stack("@half")).h, 0.5, "height: 0.5 is half of a 200 pixel parent"
+assert_in_delta 200, layout_of(stack("@all")).h, 0.5, "height: 1.0 is all of it"

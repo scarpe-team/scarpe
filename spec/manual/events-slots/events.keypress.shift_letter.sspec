@@ -1,0 +1,14 @@
+---
+manual: events.keypress.shift_letter
+lines: [2211, 2214]
+testability: interactive
+display: native
+ledger: H1
+----------- app code
+$keys = []
+Shoes.app do
+  keypress { |key| $keys << key }
+end
+----------- test code
+press_key :shift_a
+assert_equal ["A"], $keys, "Shift-a arrives as the String \"A\", not as a Symbol"

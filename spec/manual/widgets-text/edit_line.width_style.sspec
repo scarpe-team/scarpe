@@ -1,0 +1,19 @@
+---
+manual: edit_line.width_style
+lines: [3066, 3078]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  stack do
+    @plain = edit_line
+    @wide = edit_line width: 400
+  end
+end
+----------- test code
+plain = layout_of(edit_line("@plain"))
+wide = layout_of(edit_line("@wide"))
+
+assert_in_delta 400, wide.w, 0.5, ":width sets the edit line's width"
+refute_in_delta plain.w, wide.w, 2
+assert_in_delta plain.h, wide.h, 0.5, "the height still sizes itself to the font"

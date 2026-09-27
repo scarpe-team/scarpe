@@ -1,0 +1,15 @@
+---
+manual: element.sup
+lines: [2102, 2103]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @p = para "Plain, then ", sup("fragment")
+end
+----------- test code
+fragment = para("@p").contents.last
+
+assert_instance_of Shoes::Sup, fragment, "sup returns a Shoes::Sup"
+assert_equal "fragment", fragment.text, "holding the text it was given"
+assert_equal "Plain, then fragment", para("@p").text, "as a fragment inside the text block"

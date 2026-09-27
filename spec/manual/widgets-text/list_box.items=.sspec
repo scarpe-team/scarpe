@@ -1,0 +1,12 @@
+---
+manual: list_box.items=
+lines: [3230, 3232]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @fruit = list_box items: ["Grapes", "Pears", "Apricots"]
+end
+----------- test code
+list_box.items = ["Kiwi", "Plum"]
+assert_equal ["Kiwi", "Plum"], list_box.items, "items = replaces the options with the new list"

@@ -1,0 +1,17 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/working/simple/image-icon.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  image "https://user-images.githubusercontent.com/7865030/217309905-7f25e3cf-1850-481d-811b-dfddea2df54a.png"
+end
+----------- test code
+# Tests loading image from URL
+img = image()
+assert img, "Image element should exist"
+
+# Should have the URL as source
+assert_includes img.url, "githubusercontent.com"

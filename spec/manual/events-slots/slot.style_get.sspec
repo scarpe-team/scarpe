@@ -1,0 +1,14 @@
+---
+manual: slot.style_get
+lines: [2470, 2487]
+testability: api
+display: any
+ledger: C2
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @s = stack width: "100%"
+  para @s.style[:width]
+end
+----------- test code
+assert_equal "100%", para.text, "style[:width] is the width asked for"
+assert_equal 400, stack("@s").width, "while width is the real pixel size"

@@ -1,0 +1,18 @@
+---
+manual: slot.left
+lines: [2421, 2423]
+testability: visual
+display: native
+ledger: A4
+expect: fail
+reason: Lacci's left reads the :left style (0 when unset); nothing feeds laid-out positions back from the display (ledger A4 covers sizes; positions need a row)
+----------- app code
+Shoes.app width: 400, height: 300 do
+  stack width: 400, height: 30
+  stack width: 120, height: 20
+  @box = stack width: 50, height: 20
+end
+----------- test code
+box = stack("@box")
+assert_in_delta 120, layout_of(box).x, 0.5
+assert_in_delta 120, box.left, 0.5, "left is where the slot sits, in pixels"

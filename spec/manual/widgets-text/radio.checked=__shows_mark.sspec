@@ -1,0 +1,22 @@
+---
+manual: radio.checked=
+lines: [3344, 3347]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @film = radio
+end
+----------- test code
+r = layout_of(radio)
+look = lambda do
+  (1..5).flat_map { |i| (1..5).map { |j| pixel_at(r.x + r.w * i / 6.0, r.y + r.h * j / 6.0) } }
+end
+
+unmarked = look.call
+radio.checked = true
+marked = look.call
+refute_equal unmarked, marked, "checked = true draws the mark"
+
+radio.checked = false
+assert_equal unmarked, look.call, "checked = false clears it"

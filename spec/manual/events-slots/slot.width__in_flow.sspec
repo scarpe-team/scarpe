@@ -1,0 +1,19 @@
+---
+manual: slot.width
+lines: [2511, 2513]
+testability: visual
+display: native
+ledger: C8
+expect: fail
+reason: Lacci's width getter falls back to the parent's width for an unsized slot, and nothing feeds laid-out sizes back from the display (ledgers C8, A4)
+----------- app code
+Shoes.app width: 400, height: 300 do
+  flow width: 300 do
+    stack width: 100, height: 20
+    @rest = stack { stack height: 20 }
+  end
+end
+----------- test code
+rest = stack("@rest")
+assert_in_delta 200, layout_of(rest).w, 0.5, "a stack in a flow takes the rest of the row"
+assert_in_delta 200, rest.width, 0.5, "and width reports that, in pixels"

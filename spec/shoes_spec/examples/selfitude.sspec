@@ -1,0 +1,33 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/selfitude.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+def printish(msg)
+  #$stderr.puts msg
+  File.open("/tmp/shoesy_stuff.txt", "a") do |f|
+    f.write(msg + "\n")
+  end
+end
+
+Shoes.app do
+  printish "Self top: #{self.inspect}" # It's an instance of Shoes::App, yes
+  stack do
+    printish "Self in stack: #{self.inspect}" # Yup, here too
+  end
+  button("Clickity") do
+    alert("You clicked me!")
+    printish "Self in button handler: #{self.inspect}" # And here too
+  end
+end
+----------- test code
+# Test: Self/scope inspection in Shoes contexts
+# Note: This writes to /tmp/shoesy_stuff.txt as a side effect
+btn = button()
+assert btn, "Expected 'Clickity' button"
+assert_equal "Clickity", btn.text
+
+# The app should have a stack with the button
+# Self should always be Shoes::App in different contexts

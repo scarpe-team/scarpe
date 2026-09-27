@@ -1,0 +1,27 @@
+---
+manual: art.arc
+lines: [1665, 1670]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 300 do
+  fill red
+  nostroke
+  arc 100, 100, 100, 100, PI / 2, PI
+end
+----------- test code
+# The oval's box is (100, 100, 100, 100), so its centre is (150, 150). Angles are
+# radians from three o'clock, turning clockwise on screen: PI/2 is six o'clock and
+# PI is nine o'clock, so the section is the lower left quarter.
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+red = [255, 0, 0]
+white = [255, 255, 255]
+
+paints.(118, 182, red, "the lower left quarter, from angle1 to angle2, is drawn")
+paints.(182, 182, white, "the arc starts at angle1, not at 0")
+paints.(118, 118, white, "angles turn clockwise on screen, so the upper left is empty")
+paints.(182, 118, white, "the upper right is empty")

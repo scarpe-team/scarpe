@@ -1,0 +1,17 @@
+---
+manual: styles.left.nil_flows
+lines: [1292, 1296]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @slot = stack margin_left: 50, width: 300 do
+    @spacer = stack width: 300, height: 50
+    @flowing = button "Flowing", left: nil
+  end
+end
+----------- test code
+slot = layout_of(stack("@slot"))
+flowing = layout_of(button("@flowing"))
+assert_in_delta slot.x, flowing.x, 0.5, "with left: nil the button starts at the slot's left edge, like any stacked element"
+assert_in_delta slot.y + 50, flowing.y, 0.5, "and flows in below its 50 pixel neighbour"

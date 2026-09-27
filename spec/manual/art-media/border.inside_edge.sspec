@@ -1,0 +1,21 @@
+---
+manual: border.inside_edge
+lines: [2811, 2830]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  stack width: 50 do
+    border black, strokewidth: 5
+    para "=^.^=", stroke: green
+  end
+end
+----------- test code
+# The manual's slot: 50 px wide, with a 5 px border painted inside it.
+box = layout_of(stack)
+assert_in_delta 50, box.w, 0.5, "the slot is fifty pixels wide"
+
+middle = (box.y + box.h / 2).floor
+assert_equal [0, 0, 0], pixel_at((box.x + 2).floor, middle).first(3), "the border runs inside the left edge"
+assert_equal [0, 0, 0], pixel_at((box.x + 47).floor, middle).first(3), "and inside the right edge"
+assert_equal [255, 255, 255], pixel_at((box.x + 52).floor, middle).first(3), "nothing is painted outside the slot"

@@ -1,0 +1,20 @@
+---
+manual: list_box.choose_style
+lines: [3199, 3202]
+testability: visual
+display: native
+ledger: G3
+----------- app code
+Shoes.app do
+  para "Choose a fruit:"
+  list_box items: ["Grapes", "Pears", "Apricots"],
+    width: 120, choose: "Apricots" do |list|
+      @fruit.text = list.text
+  end
+
+  @fruit = para "No fruit selected"
+end
+----------- test code
+node = layout_tree.find { |n| n[:id] == list_box.linkable_id }
+assert node, "the list box is laid out"
+assert_equal "Apricots", node[:text], "the box shows the chosen item from the start"

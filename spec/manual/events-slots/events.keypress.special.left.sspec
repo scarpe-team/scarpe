@@ -1,0 +1,13 @@
+---
+manual: events.keypress.special.left
+lines: [2242, 2245]
+testability: interactive
+display: native
+----------- app code
+$keys = []
+Shoes.app do
+  keypress { |key| $keys << key }
+end
+----------- test code
+press_key :left
+assert_equal [:left], $keys, "the left key arrives once, as the Symbol :left"

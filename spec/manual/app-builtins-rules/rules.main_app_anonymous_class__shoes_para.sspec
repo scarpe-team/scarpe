@@ -1,0 +1,14 @@
+---
+manual: rules.main_app_anonymous_class
+lines: [489, 506]
+testability: api
+display: any
+ledger: L1
+----------- app code
+$named_outside = Shoes::Para
+
+Shoes.app do
+  $made = para "A paragraph"
+end
+----------- test code
+assert_instance_of $named_outside, $made, "Shoes::Para names the paragraph class, outside Shoes.app as well"

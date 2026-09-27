@@ -1,0 +1,25 @@
+---
+manual: common.remove
+lines: [2683, 2684]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @goner = button "Goodbye", left: 10, top: 10
+end
+----------- test code
+drawn = lambda do |box|
+  (0...box.h.floor).step(2).any? do |dy|
+    (0...box.w.floor).step(2).any? { |dx| pixel_at(box.x + dx, box.y + dy).first(3).sum < 700 }
+  end
+end
+
+box = layout_of(button("@goner"))
+assert drawn.(box), "the button is drawn"
+id = button("@goner").linkable_id
+
+button("@goner").remove
+wait_frames
+
+refute drawn.(box), "a removed element is no longer displayed"
+refute layout_tree.any? { |node| node[:id] == id }, "and is gone from the layout"

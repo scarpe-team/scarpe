@@ -1,0 +1,28 @@
+---
+manual: background.right_column
+lines: [2787, 2794]
+testability: visual
+display: native
+ledger: M19
+----------- app code
+Shoes.app do
+  background black, width: 50, right: 50
+end
+----------- test code
+# M19: right: 50 puts the column's right edge 50 px in from the window's right edge,
+# so the column covers x (width - 100)..(width - 50).
+window = Shoes.APPS.first
+edge = window.width - 50
+bottom = window.height - 1
+
+paints = lambda do |x, y, expected, why|
+  assert_equal expected, pixel_at(x, y).first(3), "#{why} at (#{x}, #{y})"
+end
+black = [0, 0, 0]
+white = [255, 255, 255]
+
+paints.(edge - 50, 0, black, "a fifty pixel column")
+paints.(edge - 1, bottom, black, "top to bottom")
+paints.(edge, bottom / 2, white, "its right edge is 50 px in from the right side")
+paints.(edge - 51, bottom / 2, white, "and it is 50 px wide")
+paints.(25, bottom / 2, white, "on the right-hand side of the window, not the left")

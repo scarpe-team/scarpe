@@ -1,0 +1,18 @@
+---
+manual: common.move
+lines: [2648, 2653]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  flow margin: 12 do
+    button "One"
+    $two = button "Two"
+    button "Three"
+  end
+end
+----------- test code
+moved = $two.move(40, 40)
+
+assert_same $two, moved, "move returns the element itself"
+assert_equal [40, 40], [$two.left, $two.top], "and left and top now read where it was moved to"

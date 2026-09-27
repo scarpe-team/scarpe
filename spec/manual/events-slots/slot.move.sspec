@@ -1,0 +1,21 @@
+---
+manual: slot.move
+lines: [2425, 2428]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  stack width: 100, height: 50
+  @box = stack width: 50, height: 50 do
+    background red
+  end
+end
+----------- test code
+start = layout_of(stack("@box"))
+assert_equal [100, 0], [start.x.round, start.y.round]
+
+stack("@box").move(20, 120)
+
+moved = layout_of(stack("@box"))
+assert_equal [20, 120], [moved.x.round, moved.y.round], "its upper left corner is now at (20, 120)"
+assert_equal [255, 0, 0, 255], pixel_at(25, 125), "and it is drawn there"

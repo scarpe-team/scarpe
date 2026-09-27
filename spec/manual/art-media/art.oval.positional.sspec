@@ -1,0 +1,27 @@
+---
+manual: art.oval.positional
+lines: [1716, 1732]
+testability: visual
+display: native
+ledger: E1
+----------- app code
+Shoes.app do
+  stroke blue
+  strokewidth 4
+  fill black
+  oval 10, 10, 50
+end
+----------- test code
+# E1: the third argument is the full width and height, so the circle's box is
+# (10, 10, 50, 50) and its centre (35, 35).
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(35, 35, [0, 0, 0], "the fill colour paints the inside")
+paints.(60, 35, [0, 0, 255], "the line colour paints the right edge, 50 px from x = 10")
+paints.(65, 35, [255, 255, 255], "a width of 50, not 100")
+paints.(35, 65, [255, 255, 255], "a height of 50, not 100")
+paints.(14, 14, [255, 255, 255], "(left, top) is the top left corner of the box, not the centre")

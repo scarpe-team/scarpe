@@ -1,0 +1,14 @@
+---
+manual: art.nostroke
+lines: [1706, 1706]
+testability: api
+display: any
+expect: fail
+reason: Lacci's nostroke returns the transparent colour it stores, not self (no ledger row yet; see the lane report).
+----------- app code
+Shoes.app do
+  $app = self
+  $returned = nostroke
+end
+----------- test code
+assert_same $app, $returned, "nostroke returns self"

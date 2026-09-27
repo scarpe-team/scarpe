@@ -1,0 +1,17 @@
+---
+manual: edit_box.text
+lines: [3049, 3051]
+testability: interactive
+display: native
+ledger: M5
+----------- app code
+Shoes.app do
+  @box = edit_box
+end
+----------- test code
+click_on edit_box
+type_text "Essays,"
+press_key "\n"
+type_text "even!"
+
+assert_equal "Essays,\neven!", edit_box.text, "text holds everything typed, across lines"

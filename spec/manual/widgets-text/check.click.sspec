@@ -1,0 +1,19 @@
+---
+manual: check.click
+lines: [2988, 2993]
+testability: interactive
+display: any
+----------- app code
+Shoes.app do
+  $states = []
+  @box = check
+  @box.click { $states << @box.checked? }
+end
+----------- test code
+assert_empty $states
+
+check.trigger_click
+assert_equal [true], $states, "the click block runs when the box is checked"
+
+check.trigger_click
+assert_equal [true, false], $states, "and again when it is unchecked"

@@ -1,0 +1,23 @@
+---
+manual: rules.temporary_vs_required_classes
+lines: [517, 533]
+testability: api
+display: any
+ledger: L1
+----------- app code
+File.write("keeper.rb", "class Keeper\n  def self.motto = \"kept around\"\nend\n")
+require "keeper"
+
+class Storage
+  def to_s = "a Storage box"
+  def inspect = to_s
+end
+
+Shoes.app do
+  @box = para Storage.new
+  @kept = para Keeper.motto
+end
+----------- test code
+assert_equal "a Storage box", para("@box").text, "a class from the app file is usable in its app"
+assert_equal "kept around", para("@kept").text, "and so is one loaded with require"
+assert Object.const_defined?(:Keeper), "code loaded with require stays in Ruby's top-level environment"

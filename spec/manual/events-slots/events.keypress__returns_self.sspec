@@ -1,0 +1,13 @@
+---
+manual: events.keypress
+lines: [2207, 2207]
+testability: api
+display: any
+expect: fail
+reason: Lacci's slot keypress returns the SubscriptionItem it creates, not the slot (ledger row requested)
+----------- app code
+Shoes.app do
+  $slot = stack { para "type here" }
+end
+----------- test code
+assert_same $slot, $slot.keypress { }, "keypress { } returns self"

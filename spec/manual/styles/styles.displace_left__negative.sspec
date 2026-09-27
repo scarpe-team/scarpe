@@ -1,0 +1,16 @@
+---
+manual: styles.displace_left
+lines: [1165, 1167]
+testability: visual
+display: native
+ledger: M9
+----------- app code
+Shoes.app width: 300, height: 200 do
+  @moved = stack left: 100, top: 20, width: 40, height: 30, displace_left: -30 do
+    background red
+  end
+end
+----------- test code
+red = ->(x) { r, g, b, = pixel_at(x, 35); r > 200 && g < 60 && b < 60 }
+assert red.call(80), "a negative displace_left draws the block 30 pixels to the left, from x 70"
+refute red.call(125), "so its old right-hand part at x 110 to 140 is empty"

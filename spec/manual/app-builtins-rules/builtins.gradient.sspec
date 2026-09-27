@@ -1,0 +1,25 @@
+---
+manual: builtins.gradient
+lines: [785, 788]
+testability: api
+display: native
+----------- app code
+Shoes.app do
+  @swatch = stack width: 100, height: 100 do
+    background gradient(rgb(255, 0, 0), "#0000ff")
+  end
+end
+----------- test code
+box = layout_of(stack("@swatch"))
+at = ->(fx, fy) { pixel_at((box.x + box.w * fx).round, (box.y + box.h * fy).round) }
+
+start_colour = at.call(0.03, 0.03)
+end_colour = at.call(0.97, 0.97)
+middle = at.call(0.5, 0.5)
+
+assert_operator start_colour[0], :>, 200, "the gradient starts at the Color object, red: #{start_colour.inspect}"
+assert_operator start_colour[2], :<, 60, start_colour.inspect
+assert_operator end_colour[2], :>, 200, "and ends at the colour string, blue: #{end_colour.inspect}"
+assert_operator end_colour[0], :<, 60, end_colour.inspect
+assert_includes 70..185, middle[0], "half way it is a blend: #{middle.inspect}"
+assert_includes 70..185, middle[2], "half way it is a blend: #{middle.inspect}"

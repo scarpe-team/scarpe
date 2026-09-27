@@ -1,0 +1,17 @@
+---
+manual: common.displace.coords_unchanged
+lines: [2623, 2626]
+testability: api
+display: any
+ledger: M9
+----------- app code
+Shoes.app do
+  @two = button "Two", left: 20, top: 40
+end
+----------- test code
+two = button("@two")
+
+two.displace(2, 6)
+
+assert_equal 20, two.left, "left still reads the undisplaced 20"
+assert_equal 40, two.top, "top still reads the undisplaced 40"

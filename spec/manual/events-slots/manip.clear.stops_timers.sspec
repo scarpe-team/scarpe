@@ -1,0 +1,21 @@
+---
+manual: manip.clear.stops_timers
+lines: [2327, 2329]
+testability: api
+display: native
+----------- app code
+$ticks = 0
+Shoes.app do
+  @slot = stack do
+    para "ticking"
+    every(0.1) { $ticks += 1 }
+  end
+end
+----------- test code
+advance 0.55
+assert_operator $ticks, :>, 0, "the timer runs while its slot is alive"
+
+stack("@slot").clear
+after_clear = $ticks
+advance 0.55
+assert_equal after_clear, $ticks, "clearing the slot stopped the timer inside it"

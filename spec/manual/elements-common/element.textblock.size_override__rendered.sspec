@@ -1,0 +1,19 @@
+---
+manual: element.textblock.size_override
+lines: [919, 920]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  flow { @small_title = title "Searching Google", size: 16 }
+  flow { @title = title "Searching Google" }
+  flow { @sized = para "Searching Google", size: 16 }
+end
+----------- test code
+small_title = layout_of(drawable("@small_title"))
+title = layout_of(drawable("@title"))
+sized = layout_of(drawable("@sized"))
+
+assert_operator small_title.h, :<, title.h, "size: 16 shrinks the title"
+assert_in_delta sized.w, small_title.w, 0.5, "to 16 pixel text"
+assert_in_delta sized.h, small_title.h, 0.5

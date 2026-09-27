@@ -1,0 +1,11 @@
+---
+# Runner self-test: spec/support/assets/ is copied to assets/ in every sandbox's cwd.
+testability: api
+----------- app code
+Shoes.app do
+  image "assets/red-40x30.png"
+end
+----------- test code
+assert_equal "assets/red-40x30.png", image.url
+assert File.file?(image.url), "the sandbox has its own copy of the asset"
+refute_includes Dir.pwd, "/spec/", "cases never run inside the repo"

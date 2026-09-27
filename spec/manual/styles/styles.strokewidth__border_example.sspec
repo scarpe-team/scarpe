@@ -1,0 +1,19 @@
+---
+manual: styles.strokewidth
+lines: [2820, 2830]
+testability: visual
+display: native
+ledger: M4
+----------- app code
+Shoes.app do
+  stack width: 50 do
+    border black, strokewidth: 5
+    para "=^.^=", stroke: green
+  end
+end
+----------- test code
+box = layout_of(stack)
+y = (box.y + box.h / 2).round
+right = (box.x + box.w).round
+dark = ((right - 12)...right).select { |x| pixel_at(x, y).first(3).sum < 200 }
+assert_equal ((right - 5)...right).to_a, dark, "strokewidth: 5 gives a 5 pixel border, stroked inside the slot's right edge"

@@ -1,0 +1,22 @@
+---
+manual: radio.checked=
+lines: [3344, 3347]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @film = radio
+end
+----------- test code
+refute radio.checked?
+
+radio.checked = true
+assert_equal true, radio.checked?, "checked = true marks the radio"
+
+radio.checked = false
+assert_equal false, radio.checked?, "checked = false clears it"
+
+radio.trigger_click
+assert radio.checked?
+radio.checked = false
+assert_equal false, radio.checked?, "checked = false also clears a radio the user marked"

@@ -1,0 +1,22 @@
+---
+manual: events.leave
+lines: [2251, 2255]
+testability: interactive
+display: native
+----------- app code
+$leaves = 0
+Shoes.app width: 400, height: 300 do
+  stack width: 200, height: 100 do
+    leave { $leaves += 1 }
+  end
+end
+----------- test code
+move_mouse 50, 50
+move_mouse 150, 80
+assert_equal 0, $leaves, "the mouse is still inside the slot"
+
+move_mouse 300, 200
+assert_equal 1, $leaves, "the mouse crossed the slot's edge on the way out"
+
+move_mouse 350, 250
+assert_equal 1, $leaves, "moving around outside is not another exit"

@@ -1,0 +1,20 @@
+---
+manual: art.strokewidth
+lines: [1853, 1853]
+testability: visual
+display: native
+ledger: D8
+----------- app code
+Shoes.app width: 300, height: 300 do
+  stroke black
+  stack left: 0, top: 0, width: 300, height: 100 do
+    strokewidth 10
+    line 20, 50, 280, 50
+  end
+  line 20, 200, 280, 200
+end
+----------- test code
+inked = ->(from, to) { (from..to).count { |y| pixel_at(150, y).first(3) != [255, 255, 255] } }
+
+assert_includes 10..11, inked.(35, 65), "strokewidth sets the line size for drawing within its slot"
+assert_operator inked.(185, 215), :<=, 2, "and not outside it: the window's line keeps the default 1 px"

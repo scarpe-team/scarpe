@@ -1,0 +1,17 @@
+---
+manual: art.stroke
+lines: [1835, 1837]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $blue = blue
+  $red = red
+  stroke $blue
+  @before = oval 0, 0, 10
+  stroke $red
+  @after = oval 20, 0, 10
+end
+----------- test code
+assert_equal $red, oval("@after").stroke, "a shape drawn after stroke carries that line colour"
+assert_equal $blue, oval("@before").stroke, "a shape drawn earlier keeps its own"

@@ -1,0 +1,32 @@
+---
+manual: styles.scroll
+lines: [1379, 1381]
+testability: interactive
+display: native
+----------- app code
+Shoes.app width: 460, height: 300 do
+  flow do
+    @box = stack width: 200, height: 200, scroll: true do
+      background "#DFA"
+      para "Paragraph No. 0"
+    end
+    @more = button "More", margin_left: 20 do
+      @box.append { 100.times { |i| para "Paragraph No. #{i + 1}" } }
+    end
+  end
+end
+----------- test code
+# Any pixel in the slot's right-hand 12 columns that is not the slot's own background belongs to a scrollbar.
+bar_pixels = lambda do |name|
+  box = layout_of(stack(name))
+  ground = pixel_at((box.x + 150).round, (box.y + box.h - 4).round).first(3)
+  xs = ((box.x + box.w - 12).round...(box.x + box.w).round).to_a
+  ys = ((box.y + 1).round...(box.y + box.h - 1).round).step(3).to_a
+  ys.flat_map { |y| xs.map { |x| pixel_at(x, y).first(3) } }.reject { |px| px.zip(ground).all? { |a, b| (a - b).abs <= 6 } }
+end
+assert_empty bar_pixels.call("@box"), "no scrollbar while the content fits"
+
+click_on button("@more")
+wait_frames
+
+refute_empty bar_pixels.call("@box"), "the scrollbar appears once the content passes the slot's height"

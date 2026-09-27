@@ -1,0 +1,45 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/list_box_choose.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app(title: "Guessing secret word", width: 500, height: 450) do
+  secret_word = "apple"
+  guess_label = para "Guess the secret word:"
+  guess_input = list_box items: ["apple", "banana", "orange"], choose: "orange"
+
+  button "Guess" do
+    guess = guess_input.text
+
+    if guess == secret_word
+      alert("Yayyy! that's right.")
+    else
+      alert("No, better luck next time😕")
+    end
+
+    guess_input.choose "orange"
+  end
+end
+----------- test code
+# Test: List box with choose and guessing game
+# Check UI elements exist
+p = para()
+assert p, "Expected a para label"
+assert_includes p.text, "Guess", "Para should ask to guess"
+
+lb = list_box()
+assert lb, "Expected a list_box"
+
+btn = button()
+assert btn, "Expected a Guess button"
+
+# Verify list_box items
+items = lb.items
+assert_includes items, "apple"
+assert_includes items, "banana"
+assert_includes items, "orange"
+
+# Initial selection should be "orange" (from choose: "orange")
+assert_equal "orange", lb.text, "List box should initially show 'orange'"

@@ -1,0 +1,38 @@
+---
+manual: styles.scroll.width_constant
+lines: [1381, 1383]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 460, height: 300 do
+  flow do
+    @box = stack width: 200, height: 200, scroll: true do
+      background "#DFA"
+      para "Paragraph No. 0"
+    end
+    @neighbour = stack width: 100, height: 50 do
+      background blue
+    end
+    @more = button "More", margin_left: 20 do
+      @box.append { 100.times { |i| para "Paragraph No. #{i + 1}" } }
+    end
+  end
+end
+----------- test code
+# Any pixel in the slot's right-hand 12 columns that is not the slot's own background belongs to a scrollbar.
+bar_pixels = lambda do |name|
+  box = layout_of(stack(name))
+  ground = pixel_at((box.x + 150).round, (box.y + box.h - 4).round).first(3)
+  xs = ((box.x + box.w - 12).round...(box.x + box.w).round).to_a
+  ys = ((box.y + 1).round...(box.y + box.h - 1).round).step(3).to_a
+  ys.flat_map { |y| xs.map { |x| pixel_at(x, y).first(3) } }.reject { |px| px.zip(ground).all? { |a, b| (a - b).abs <= 6 } }
+end
+before = layout_of(stack("@box"))
+neighbour_before = layout_of(stack("@neighbour"))
+
+click_on button("@more")
+wait_frames
+
+refute_empty bar_pixels.call("@box"), "the scrollbar is showing now"
+assert_in_delta before.w, layout_of(stack("@box")).w, 0.5, "the slot keeps its width with the scrollbar"
+assert_in_delta neighbour_before.x, layout_of(stack("@neighbour")).x, 0.5, "so nothing beside it moves"

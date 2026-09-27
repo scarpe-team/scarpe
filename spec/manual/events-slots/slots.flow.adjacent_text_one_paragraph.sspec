@@ -1,0 +1,19 @@
+---
+manual: slots.flow.adjacent_text_one_paragraph
+lines: [1611, 1612]
+testability: visual
+display: native
+ledger: C7
+----------- app code
+Shoes.app width: 400, height: 300 do
+  flow width: 400 do
+    @hello = para "Hello,"
+    @world = para "world."
+  end
+end
+----------- test code
+hello = layout_of(para("@hello"))
+world = layout_of(para("@world"))
+
+assert_in_delta hello.y, world.y, 0.5, "two short paras side by side in a flow share one line"
+assert_operator world.x + world.w, :>, hello.x + hello.w, "and the second one's text follows the first"

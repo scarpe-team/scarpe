@@ -1,0 +1,15 @@
+---
+manual: art.rect.fill_parent_minus_margin
+lines: [1762, 1762]
+testability: api
+display: any
+ledger: A4
+----------- app code
+Shoes.app width: 300, height: 200 do
+  $width = self.width
+  $height = self.height
+  @box = rect 10, 10, self.width - 20, self.height - 20
+end
+----------- test code
+assert_equal [300, 200], [$width, $height], "inside the app block self.width and self.height are the app's size"
+assert_equal [280, 180], [rect("@box").width, rect("@box").height], "so the example's rectangle is the window less 10 px a side"

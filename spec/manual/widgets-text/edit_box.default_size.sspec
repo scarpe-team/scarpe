@@ -1,0 +1,15 @@
+---
+manual: edit_box.default_size
+lines: [3006, 3007]
+testability: visual
+display: native
+ledger: C4
+----------- app code
+Shoes.app do
+  @plain = edit_box
+  @sized = edit_box width: 100, height: 100
+end
+----------- test code
+plain = layout_of(edit_box("@plain"))
+assert_in_delta 200, plain.w, 2, "an unstyled edit box is 200 pixels wide"
+assert_in_delta 108, plain.h, 2, "and 108 pixels high"

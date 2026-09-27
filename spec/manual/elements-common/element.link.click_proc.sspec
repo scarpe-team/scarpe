@@ -1,0 +1,19 @@
+---
+manual: element.link.click_proc
+lines: [2034, 2034]
+testability: interactive
+display: any
+ledger: F9
+----------- app code
+Shoes.app do
+  $clicks = 0
+  @p = para "Go ", link("there", click: proc { $clicks += 1 })
+end
+----------- test code
+there = para("@p").contents.last
+assert_equal 0, $clicks, "the proc waits for a click"
+
+# Links are text fragments, which the finders cannot reach.
+Shoes::DisplayService.dispatch_event("click", there.linkable_id)
+
+assert_equal 1, $clicks, "clicking the link runs its click: proc"

@@ -1,0 +1,25 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/button_alert.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  @push = button "Push me"
+  @push.click {
+    alert "Aha! Click!"
+  }
+end
+----------- test code
+btn = button("@push")
+
+# Button should exist with correct text
+assert_equal "Push me", btn.text
+
+# Click triggers alert - we can't easily test the alert dialog itself,
+# but we can verify the button exists and is clickable
+btn.trigger_click
+
+# If we got here without error, the click handler ran
+assert true, "Button click handler executed"

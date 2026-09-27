@@ -1,0 +1,14 @@
+---
+manual: progress.fraction=
+lines: [3268, 3270]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @bar = progress
+end
+----------- test code
+[0.0, 0.25, 1.0, 0.5].each do |value|
+  progress.fraction = value
+  assert_equal value, progress.fraction, "fraction = #{value} sets the progress"
+end

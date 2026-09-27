@@ -1,0 +1,28 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/shoes-contrib/basic/list_box-select-class.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/list_box-select-class.sspec
+----------- app code
+Shoes.app do
+  para "Choose your class:"
+  list_box :items => ["Wizard", "Warrior", "Rogue"],
+    :width => 120, :choose => "Rogue" do |list|
+      if list.text == "Wizard"
+        @player.text = "I put on my robe and wizard hat."
+      else
+        @player.text = list.text
+      end 
+  end
+
+  @player = para "No class selected."
+end
+----------- test code
+# Tests list_box with RPG class selection
+all_paras = paras()
+assert_includes all_paras[0].text, "Choose your class:"
+assert_equal "Rogue", list_box().text  # Default selection
+assert_equal "No class selected.", all_paras[1].text

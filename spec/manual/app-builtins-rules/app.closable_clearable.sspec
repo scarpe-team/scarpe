@@ -1,0 +1,22 @@
+---
+manual: app.closable_clearable
+lines: [852, 853]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  para "Old news"
+  button "Refill" do
+    clear do
+      para "Fresh page"
+    end
+  end
+end
+----------- test code
+assert_equal ["Old news"], paras.map(&:text)
+
+find_button("Refill").trigger_click
+
+assert_equal ["Fresh page"], paras.map(&:text), "the cleared window is filled with new elements"
+assert_empty buttons, "nothing from before the clear is left"
+assert_equal 1, Shoes.APPS.size, "clearing keeps the same window"

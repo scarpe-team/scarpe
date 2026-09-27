@@ -1,0 +1,15 @@
+---
+manual: intro.hello_one_liner
+lines: [12, 21]
+testability: interactive
+display: native
+----------- app code
+Shoes.app { button("Click me!") { alert("Good job.") } }
+----------- test code
+box = layout_of(button)
+assert_operator box.w, :>, 0, "the button is on show"
+assert_empty dialog_calls
+
+click_on "Click me!"
+
+assert_equal [[:alert, "Good job."]], dialog_calls, "a real click on the button pops up the message"

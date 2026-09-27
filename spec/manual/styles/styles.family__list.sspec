@@ -1,0 +1,16 @@
+---
+manual: styles.family
+lines: [1199, 1200]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  flow { @list_i = para "iiiiii", family: "No Such Font, monospace", size: 20 }
+  flow { @list_w = para "WWWWWW", family: "No Such Font, monospace", size: 20 }
+  flow { @sans_i = para "iiiiii", size: 20 }
+  flow { @sans_w = para "WWWWWW", size: 20 }
+end
+----------- test code
+width = ->(name) { layout_of(para(name)).w }
+assert_operator width.call("@sans_w"), :>, width.call("@sans_i") + 20, "the default family is proportional"
+assert_in_delta width.call("@list_w"), width.call("@list_i"), 0.5, "a missing first family falls through to the next one in the list, monospace"

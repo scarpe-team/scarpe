@@ -1,0 +1,34 @@
+---
+manual: element.image
+lines: [2006, 2009]
+testability: visual
+display: native
+----------- app code
+# A solid red 40x30 JPEG, written next to the app.
+File.binwrite("red-40x30.jpeg", <<~B64.unpack1("m"))
+  /9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB
+  AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB
+  AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAAeACgDAREAAhEBAxEB/8QA
+  HwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIh
+  MUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVW
+  V1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXG
+  x8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQF
+  BgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAV
+  YnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOE
+  hYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq
+  8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD8X6/ynP8Av4CgAoAKACgAoAKACgAoAKACgAoAKACgAoAKACgA
+  oAKACgD/2Q==
+B64
+
+Shoes.app do
+  para "Nice, nice, very nice.  Busy, busy, busy."
+  @picture = image "red-40x30.jpeg"
+end
+----------- test code
+px = ->(x, y) { pixel_at(x.round, y.round).first(3) }
+near = ->(expected, actual, tolerance = 24) { expected.zip(actual).all? { |e, a| (e - a).abs <= tolerance } }
+
+picture = layout_of(image("@picture"))
+
+assert_equal [40, 30], [picture.w.round, picture.h.round], "the JPEG shows at its own size"
+assert near.([255, 0, 0], px.(picture.x + 20, picture.y + 15), 4), "and shows its red pixels"

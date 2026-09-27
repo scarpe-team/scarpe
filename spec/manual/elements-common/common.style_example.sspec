@@ -1,0 +1,26 @@
+---
+manual: common.style_example
+lines: [2565, 2583]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  stack do
+    # Background, text and a button: both are elements!
+    @back  = background green
+    @text  = banner "A Message for You, Rudy"
+    @press = button "Stop your messin about!"
+
+    # And so, both can be styled.
+    @text.style size: 12, stroke: red, margin: 10
+    @press.style width: 400
+    @back.style height: 10
+  end
+end
+----------- test code
+text = drawable("@text")
+
+assert_equal 12, text.style[:size], "the banner took its new size"
+assert_equal [255, 0, 0], text.style[:stroke].to_a.first(3), "and its new stroke"
+assert_equal 400, button("@press").style[:width], "the button took its new width"
+assert_equal 10, background("@back").style[:height], "the background took its new height"

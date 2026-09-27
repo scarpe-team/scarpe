@@ -1,0 +1,25 @@
+---
+manual: slot.scroll
+lines: [2435, 2438]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 400 do
+  @unbounded = stack width: 150, scroll: true do
+    4.times { stack height: 50 }
+  end
+  @bounded = stack width: 150, height: 100, scroll: true do
+    4.times { stack height: 50 }
+  end
+end
+----------- test code
+unbounded, bounded = stack("@unbounded"), stack("@bounded")
+assert_in_delta 200, layout_of(unbounded).h, 0.5, "without a height the slot grows to fit, so it has nothing to scroll"
+assert_in_delta 100, layout_of(bounded).h, 0.5, "with a height it stays that tall"
+
+wheel(40, x: 75, y: 50)
+assert_equal 0, unbounded.scroll_top, "the wheel does not scroll the unbounded slot"
+
+bounded_box = layout_of(bounded)
+wheel(40, x: bounded_box.x + 75, y: bounded_box.y + 50)
+assert_operator bounded.scroll_top, :>, 0, "the bounded one scrolls"

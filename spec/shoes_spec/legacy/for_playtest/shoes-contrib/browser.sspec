@@ -1,0 +1,32 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/shoes-contrib/browser.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app :title => "shoes-contrib browser", :height => 75, :width => 355 do
+  stack do
+    flow do
+      para "Choose a category:"
+      @category_box = list_box :items => %w[animation app art basic elements events expert good kernel manipulation position simple styles]
+    end
+    @example_flow = flow :hidden => true do
+      para "Choose an example:"
+      @example_box = list_box :items => []
+    end
+
+    @category_box.change do |box|
+      @example_flow.style :hidden => false
+      @example_box.items = Dir.glob("#{box.text}/*.rb")
+    end
+
+    @example_box.change do |box|
+      eval(File.open(box.text, "rb").read, TOPLEVEL_BINDING)
+    end
+  end
+end
+----------- test code
+# Example browser with category/example list_boxes
+# Tests initial UI state
+assert_includes paras()[0].text, "Choose a category:"

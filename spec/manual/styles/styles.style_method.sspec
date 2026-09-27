@@ -1,0 +1,14 @@
+---
+manual: styles.style_method
+lines: [1037, 1045]
+testability: api
+display: any
+----------- app code
+Shoes.app title: "A Styling Sample" do
+  @text = para "Red with an underline"
+  @text.style(stroke: red, underline: "single")
+end
+----------- test code
+text = para("@text")
+assert_equal "single", text.style[:underline], "style(hash) set the underline after creation"
+assert_equal [255, 0, 0], text.style[:stroke].to_a.first(3), "style(hash) set the stroke after creation"

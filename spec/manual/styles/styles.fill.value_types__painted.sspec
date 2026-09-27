@@ -1,0 +1,24 @@
+---
+manual: styles.fill.value_types
+lines: [1202, 1210]
+testability: visual
+display: native
+ledger: M17
+----------- app code
+Shoes.app width: 300, height: 200 do
+  nostroke
+  @hex = rect 10, 10, 40, 40, fill: "#00ff00"
+  @color = rect 60, 10, 40, 40, fill: red
+  @hex_range = rect 110, 10, 40, 40, fill: "#ff0000".."#0000ff"
+  @color_range = rect 160, 10, 40, 40, fill: red..blue
+end
+----------- test code
+reddish = ->(px) { px[0] > 200 && px[2] < 60 }
+bluish = ->(px) { px[2] > 200 && px[0] < 60 }
+
+assert_equal [0, 255, 0], pixel_at(30, 30).first(3), "a hex code string fills with that colour"
+assert_equal [255, 0, 0], pixel_at(80, 30).first(3), "a Shoes colour fills with that colour"
+[110, 160].each do |left|
+  assert reddish.call(pixel_at(left + 20, 13)), "a range starts at its first colour at the top (rect at #{left})"
+  assert bluish.call(pixel_at(left + 20, 46)), "and ends at its second colour at the bottom (rect at #{left})"
+end

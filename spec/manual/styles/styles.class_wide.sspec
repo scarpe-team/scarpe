@@ -1,0 +1,15 @@
+---
+manual: styles.class_wide
+lines: [1022, 1024]
+testability: api
+display: any
+ledger: M35
+----------- app code
+Shoes.app do
+  style(Shoes::Para, family: "monospace")
+  @plain = para "Every paragraph"
+  @own = para "Except this one", family: "serif"
+end
+----------- test code
+assert_equal "monospace", para("@plain").style[:family], "a paragraph made after the class-wide style picks it up"
+assert_equal "serif", para("@own").style[:family], "a style given to the element itself still wins"

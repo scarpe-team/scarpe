@@ -1,0 +1,26 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/style_info.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/working/shoes_manual/style_info.sspec
+- cases/scarpe_examples/legacy/for_playtest/shoes_manual/style_info.sspec
+- cases/scarpe_examples/legacy/working/shoes_manual/style_info.sspec
+----------- app code
+#!ruby
+ Shoes.app do
+   # A button which take up the whole page
+   @b = button "All of it", width: 1.0, height: 1.0
+
+   # When clicked, show the styles
+   @b.click { alert(@b.style.inspect) }
+ end
+----------- test code
+# Verify button exists with full-page dimensions
+btn = button()
+assert_equal "All of it", btn.text
+# Button should have width: 1.0 and height: 1.0 styles
+assert_equal 1.0, btn.style[:width]
+assert_equal 1.0, btn.style[:height]

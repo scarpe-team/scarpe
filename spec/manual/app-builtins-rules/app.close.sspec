@@ -1,0 +1,30 @@
+---
+manual: app.close
+lines: [901, 904]
+testability: api
+display: any
+ledger: A8
+expect: fail
+reason: "Lacci's close sends a nil-target destroy, which closes every app (A8, X16)"
+----------- app code
+Shoes.app title: "First" do
+  $first = self
+  $closed = []
+  button("Another") do
+    window(title: "Second") do
+      $second = self
+      button("Close me") { close }
+    end
+  end
+end
+----------- test code
+find_button("Another").trigger_click
+[$first, $second].each do |app|
+  app.bind_shoes_event(event_name: "destroy") { $closed << app.style[:title] }
+end
+
+find_button("Close me").trigger_click
+
+assert_equal ["Second"], $closed, "close shuts this window only"
+refute_includes Shoes.APPS, $second, "the closed window is gone"
+assert_includes Shoes.APPS, $first, "the first window stays open"

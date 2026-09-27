@@ -1,0 +1,25 @@
+---
+manual: border.outside_via_wrapper
+lines: [2832, 2845]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @outer = stack width: 60 do
+    border black, strokewidth: 5
+    @inner = stack width: 50 do
+      para "=^.^=", stroke: green
+    end
+  end
+end
+----------- test code
+outer = layout_of(stack("@outer"))
+inner = layout_of(stack("@inner"))
+
+assert_in_delta 50, inner.w, 0.5, "the wrapped slot keeps its 50 px"
+assert_in_delta 60, outer.w, 0.5, "inside a 60 px wrapper"
+assert_operator inner.x + inner.w, :<=, outer.x + outer.w - 5 + 0.5, "the wrapper's right border lies outside the wrapped slot"
+
+middle = (outer.y + outer.h / 2).floor
+assert_equal [0, 0, 0], pixel_at((outer.x + 57).floor, middle).first(3), "the border is painted on the wrapper"
+assert_equal [255, 255, 255], pixel_at((outer.x + 52).floor, middle).first(3), "between the slot and the border nothing is painted"

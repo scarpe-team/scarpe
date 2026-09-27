@@ -1,0 +1,19 @@
+---
+manual: traverse.contents
+lines: [2521, 2528]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @slot = stack do
+    para "words"
+    button "press"
+    flow { para "nested" }
+  end
+end
+----------- test code
+listed = stack("@slot").contents
+assert_equal [Shoes::Para, Shoes::Button, Shoes::Flow], listed.map(&:class), "every element in the slot, in order"
+assert_equal "words", listed[0].text
+assert_equal "press", listed[1].text
+assert_equal ["nested"], listed[2].contents.map(&:text), "a nested slot lists its own children"

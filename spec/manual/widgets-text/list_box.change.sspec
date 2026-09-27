@@ -1,0 +1,18 @@
+---
+manual: list_box.change
+lines: [3211, 3215]
+testability: interactive
+display: any
+----------- app code
+Shoes.app do
+  $picked = []
+  @fruit = list_box items: ["Grapes", "Pears", "Apricots"]
+  @fruit.change { $picked << @fruit.text }
+end
+----------- test code
+assert_empty $picked
+
+list_box.trigger_change("Pears")
+list_box.trigger_change("Apricots")
+
+assert_equal ["Pears", "Apricots"], $picked, "the change block runs whenever a new option is highlighted"

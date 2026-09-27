@@ -1,0 +1,17 @@
+---
+manual: app.owner
+lines: [1000, 1004]
+testability: api
+display: any
+ledger: A3
+----------- app code
+Shoes.app do
+  $main = self
+  button("Spawn") { window { $spawned = self } }
+end
+----------- test code
+assert_nil $main.owner, "an app opened with Shoes.app has no owner"
+
+find_button("Spawn").trigger_click
+
+assert_same $main, $spawned.owner, "a window's owner is the app that called window"

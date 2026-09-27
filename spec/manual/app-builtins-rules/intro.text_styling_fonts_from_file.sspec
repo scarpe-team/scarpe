@@ -1,0 +1,19 @@
+---
+manual: intro.text_styling_fonts_from_file
+lines: [64, 66]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  background white
+  @words = para "Handwriting", size: 32, stroke: red
+end
+----------- test code
+box = layout_of(para("@words"))
+rows = [0.4, 0.5, 0.6].map { |fraction| (box.y + box.h * fraction).round }
+columns = box.x.ceil..(box.x + box.w - 1).floor
+
+red_ink = rows.any? do |y|
+  columns.any? { |x| r, g, b, = pixel_at(x, y); r > 200 && g < 80 && b < 80 }
+end
+assert red_ink, "the words are laid out in the colour asked for"

@@ -1,0 +1,19 @@
+---
+manual: background.common_methods
+lines: [2796, 2797]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 200, height: 200 do
+  @stripe = background red, height: 50
+end
+----------- test code
+assert_equal [255, 0, 0], pixel_at(100, 25).first(3), "the stripe is painted"
+
+background("@stripe").hide
+wait_frames
+assert_equal [255, 255, 255], pixel_at(100, 25).first(3), "hide takes it off the window"
+
+background("@stripe").show
+wait_frames
+assert_equal [255, 0, 0], pixel_at(100, 25).first(3), "show puts it back"

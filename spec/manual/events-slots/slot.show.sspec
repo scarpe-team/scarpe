@@ -1,0 +1,15 @@
+---
+manual: slot.show
+lines: [2465, 2468]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $slot = stack(hidden: true) { para "peekaboo" }
+end
+----------- test code
+assert_equal true, $slot.style[:hidden], "the slot starts out hidden"
+
+$slot.show
+
+refute $slot.style[:hidden], "show reveals it"

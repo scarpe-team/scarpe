@@ -1,0 +1,31 @@
+---
+manual: element.del.default_style
+lines: [1953, 1956]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  flow { @plain = para "IIII", size: 40 }
+  flow { @deleted = para del("IIII"), size: 40 }
+end
+----------- test code
+columns = ->(box, step = 1) { (box.x.ceil..(box.x + box.w).floor - 1).step(step).to_a }
+dark = ->(x, y) { pixel_at(x, y).first(3).sum < 384 }
+rows = ->(box) { (box.y.ceil..(box.y + box.h).floor - 1).to_a }
+ink_rows = ->(box) { rows.(box).select { |y| columns.(box).any? { |x| dark.(x, y) } } }
+full_rows = ->(box) do
+  xs = columns.(box, 2)[1..-2]
+  rows.(box).select { |y| xs.all? { |x| dark.(x, y) } }
+end
+
+plain = layout_of(para("@plain"))
+assert_empty full_rows.(plain), "plain text has no line all the way across"
+
+deleted = layout_of(para("@deleted"))
+struck = full_rows.(deleted)
+refute_empty struck, "del draws one line across its text"
+
+top, bottom = ink_rows.(plain).minmax.map { |y| y - plain.y }
+middle = (top + (bottom - top) * 0.25)..(top + (bottom - top) * 0.75)
+assert struck.all? { |y| middle.cover?(y - deleted.y) }, "through the middle of the letters"
+assert_operator struck.size, :<=, 6, "a single line, not a block"

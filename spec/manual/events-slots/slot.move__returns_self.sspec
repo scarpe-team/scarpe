@@ -1,0 +1,11 @@
+---
+manual: slot.move
+lines: [2425, 2425]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $slot = stack width: 50, height: 50
+end
+----------- test code
+assert_same $slot, $slot.move(20, 120), "move returns self"

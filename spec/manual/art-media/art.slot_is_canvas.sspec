@@ -1,0 +1,22 @@
+---
+manual: art.slot_is_canvas
+lines: [1625, 1629]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  stack left: 100, top: 50, width: 150, height: 100 do
+    fill red
+    nostroke
+    rect 10, 10, 30, 30
+  end
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(125, 75, [255, 0, 0], "a shape drawn in a slot lands at (10, 10) of that slot's canvas")
+paints.(25, 25, [255, 255, 255], "not at (10, 10) of the window")

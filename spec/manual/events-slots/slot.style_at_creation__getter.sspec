@@ -1,0 +1,11 @@
+---
+manual: slot.style_at_creation
+lines: [2367, 2376]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $precise = stack(width: 150) { para "Now that's precision." }
+end
+----------- test code
+assert_equal 150, $precise.width, "stack(width: 150) is 150 pixels wide"

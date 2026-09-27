@@ -1,0 +1,14 @@
+---
+manual: art.star.defaults
+lines: [1826, 1826]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @plain = star 100, 100
+end
+----------- test code
+plain = star("@plain")
+assert_equal 10, plain.points, "points defaults to 10"
+assert_equal 100.0, plain.outer, "outer defaults to 100.0"
+assert_equal 50.0, plain.inner, "inner defaults to 50.0"

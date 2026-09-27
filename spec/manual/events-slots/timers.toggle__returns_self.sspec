@@ -1,0 +1,13 @@
+---
+manual: timers.toggle
+lines: [3430, 3430]
+testability: api
+display: any
+expect: fail
+reason: Lacci's toggle returns the new value of its stopped style, not the timer (ledger row requested)
+----------- app code
+Shoes.app do
+  $animation = animate(10) { }
+end
+----------- test code
+assert_same $animation, $animation.toggle, "toggle returns self"

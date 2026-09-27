@@ -1,0 +1,26 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/background_para.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/working/shoes_manual/background_para.sspec
+- cases/scarpe_examples/legacy/for_playtest/shoes_manual/background_para.sspec
+- cases/scarpe_examples/legacy/working/shoes_manual/background_para.sspec
+----------- app code
+Shoes.app do
+  background "#DFA"
+  para "Welcome to Shoes"
+end
+----------- test code
+# Tests simple background with para text
+# Verifies background and para exist
+
+# Verify background exists
+backgrounds = Shoes::App.find_drawables_by(Shoes::Background)
+assert backgrounds.length == 1, "Should have exactly one background"
+
+# Verify para with welcome text
+p = para()
+assert_equal "Welcome to Shoes", p.text, "Para should say 'Welcome to Shoes'"

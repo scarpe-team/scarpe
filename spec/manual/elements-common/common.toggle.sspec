@@ -1,0 +1,17 @@
+---
+manual: common.toggle
+lines: [2715, 2717]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @b = button "Flicker"
+end
+----------- test code
+refute button("@b").style[:hidden], "the button starts shown"
+
+button("@b").toggle
+assert_equal true, button("@b").style[:hidden], "toggle hides a shown element"
+
+button("@b").toggle
+refute button("@b").style[:hidden], "and shows a hidden one"

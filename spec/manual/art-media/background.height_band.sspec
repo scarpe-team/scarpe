@@ -1,0 +1,16 @@
+---
+manual: background.height_band
+lines: [2776, 2785]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  background black, height: 50
+end
+----------- test code
+right = Shoes.APPS.first.width - 1
+
+assert_equal [0, 0, 0], pixel_at(0, 0).first(3), "the top of the window is black"
+assert_equal [0, 0, 0], pixel_at(right, 49).first(3), "across its whole width, down to 50 px"
+assert_equal [255, 255, 255], pixel_at(0, 50).first(3), "below the top fifty pixels nothing is painted"
+assert_equal [255, 255, 255], pixel_at(right, 50).first(3)

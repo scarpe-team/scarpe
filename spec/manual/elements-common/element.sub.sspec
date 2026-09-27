@@ -1,0 +1,15 @@
+---
+manual: element.sub
+lines: [2093, 2094]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @p = para "Plain, then ", sub("fragment")
+end
+----------- test code
+fragment = para("@p").contents.last
+
+assert_instance_of Shoes::Sub, fragment, "sub returns a Shoes::Sub"
+assert_equal "fragment", fragment.text, "holding the text it was given"
+assert_equal "Plain, then fragment", para("@p").text, "as a fragment inside the text block"
