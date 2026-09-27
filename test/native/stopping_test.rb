@@ -32,6 +32,40 @@ class StoppingTest < Minitest::Test
     assert wait_until { gone?(@child) }, "the stuck child outlived Ruby"
   end
 
+  # Every Shoes::App traps Ctrl-C afresh when it is made, and a window is an App: the pump's wake
+  # must be chained to the newest trap, or an idle pump notices the quit only a second later.
+  def test_ctrl_c_after_a_second_window_wakes_the_idle_pump_at_once
+    start_app(<<~RUBY, script: [{ "on" => "run", "match" => { "app" => 1 }, "emit" => [{ "t" => "event", "name" => "click", "target" => { "kind" => "Button" }, "args" => [] }] }])
+      Shoes.app { button("another") { window(title: "two") { para "second" } } }
+    RUBY
+    wait_until { child_log.include?('"t":"run","app":4') }
+    sleep 0.3 # the pump is asleep, waiting up to a second for something to happen
+
+    interrupted = monotonic
+    signal("INT", @ruby)
+    Process.wait(@ruby)
+    @ruby = nil
+    assert_operator monotonic - interrupted, :<, 0.4, "Ctrl-C woke the pump rather than waiting out its sleep"
+  end
+
+  # The first Ctrl-C asks nicely. Ruby may be stuck writing to a child that stopped reading (a full
+  # pipe), where asking changes nothing; the second one ends the child, and with it the write.
+  def test_a_second_ctrl_c_ends_a_stuck_child_ruby_is_blocked_on
+    start_app(<<~RUBY, script: [{ "on" => "run", "hang" => true }])
+      Shoes.app { @p = para ""; every(0.01) { @p.replace("x" * 100_000) } }
+    RUBY
+    wait_until { child_log.include?('"t":"run"') }
+    sleep 0.5 # a few of those 100 KB changes fill the pipe
+    signal("INT", @ruby)
+    sleep 0.3
+    assert_nil Process.wait(@ruby, Process::WNOHANG), "Ruby is stuck in the write, which asking cannot reach"
+
+    signal("INT", @ruby)
+    assert wait_until(3) { Process.wait(@ruby, Process::WNOHANG) }, "the second Ctrl-C ends it"
+    @ruby = nil
+    assert wait_until { gone?(@child) }
+  end
+
   # A harness that has to kill Ruby finds the child through SCARPE_NATIVE_PID_FILE, which names
   # it for exactly as long as it runs.
   def test_the_pid_file_names_the_child_until_it_is_gone
@@ -46,8 +80,8 @@ class StoppingTest < Minitest::Test
 
   private
 
-  def start_app(script:)
-    File.write(File.join(@dir, "app.rb"), "Shoes.app { para 'hi' }\n")
+  def start_app(app = "Shoes.app { para 'hi' }\n", script:)
+    File.write(File.join(@dir, "app.rb"), app)
     File.write(File.join(@dir, "script.json"), JSON.generate(script))
     env = {
       "SCARPE_NATIVE_BIN" => FAKE_CHILD, "SCARPE_NATIVE_HEADLESS" => "1", "SCARPE_NATIVE_GHOST" => nil,
@@ -69,6 +103,10 @@ class StoppingTest < Minitest::Test
     Process.kill(name, pid)
   rescue Errno::ESRCH, Errno::EPERM
     nil
+  end
+
+  def monotonic
+    Process.clock_gettime(Process::CLOCK_MONOTONIC)
   end
 
   def gone?(pid)
