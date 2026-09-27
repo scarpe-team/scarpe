@@ -375,6 +375,7 @@
 "examples/margin_check.rb": {category: ".", needs: ["dialog"], status: "loads"}
 "examples/motion_events.rb": {category: ".", needs: [], status: "loads"}
 "examples/native/showcase/for_noah.rb": {category: "native/showcase", needs: [], status: "loads"}
+"examples/native/showcase/pomodoro.rb": {category: "native/showcase", needs: ["timer/animation"], status: "loads", steps: [{click: "Start"}, {wait: 2.2}]}
 "examples/oval-with-kwargs.rb": {category: ".", needs: [], status: "loads"}
 "examples/oval.rb": {category: ".", needs: [], status: "loads"}
 "examples/page_navigation_single_app.rb": {category: ".", needs: [], status: "loads"}
