@@ -4,38 +4,10 @@ lines: [3107, 3109]
 testability: visual
 display: native
 ----------- app code
-# A 40x30 solid blue JPEG and a 40x30 solid green GIF, written into the case's working
-# directory (spec/support/assets only has PNGs).
-File.binwrite("blue-40x30.jpg", <<~BASE64.unpack1("m"))
-  /9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQA
-  AAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAKKADAAQAAAAB
-  AAAAHgAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUA
-  AAAAABDUHYzZjwCyBOmACZjs+EJ+/8AAEQgAHgAoAwERAAIRAQMRAf/EAB8A
-  AAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQE
-  AAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYX
-  GBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3
-  eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfI
-  ycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEB
-  AQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMR
-  BAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJico
-  KSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWG
-  h4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW
-  19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMAAQEBAQEBAQEBAQEBAQEBAQEB
-  AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB
-  Af/bAEMBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB
-  AQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAf/dAAQABf/aAAwDAQACEQMRAD8A
-  /jnr/v4P5XCgAoAKACgD/9D+Oev+/g/lcKACgAoAKAP/0f456/7+D+VwoAKA
-  CgAoA//S/jnr/v4P5XCgAoAKACgD/9k=
-BASE64
-File.binwrite("green-40x30.gif", <<~BASE64.unpack1("m"))
-  R0lGODdhKAAeAJEAAAAAAAD/AP///wAAACH5BAQAAAAALAAAAAAoAB4AAAIh
-  jI+py+0Po5y02ouz3rz7D4biSJbmiabqyrbuC8fyTHMFADs=
-BASE64
-
 Shoes.app width: 300, height: 200 do
   @png = image "assets/red-40x30.png"
-  @jpeg = image "blue-40x30.jpg"
-  @gif = image "green-40x30.gif"
+  @jpeg = image "assets/blue-40x30.jpg"
+  @gif = image "assets/green-40x30.gif"
 end
 ----------- test code
 { "@png" => [255, 0, 0], "@jpeg" => [0, 0, 255], "@gif" => [0, 255, 0] }.each do |name, colour|

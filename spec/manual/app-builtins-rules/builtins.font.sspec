@@ -7,12 +7,13 @@ ledger: K4
 expect: fail
 reason: "Lacci's font returns all of Shoes::FONTS with the file's basename appended, not the families in the file (K4)"
 ----------- app code
-# Both fonts ship with Scarpe; Shoes::Constants::DIR is the checkout.
-FIRA_MONO = File.join(Shoes::Constants::DIR, "native", "assets", "fonts", "FiraMono-Medium.ttf")
-PACIFICO = File.join(Shoes::Constants::DIR, "fonts", "Pacifico.ttf")
+# Pacifico (OFL) is in spec/support/assets, copied into every sandbox.
+# Loading it once first means Shoes::FONTS is not empty, so handing back all of
+# Shoes::FONTS cannot pass for the families in the file.
+PACIFICO = File.expand_path("assets/Pacifico.ttf")
 
 Shoes.app do
-  font FIRA_MONO
+  font PACIFICO
   $families = font(PACIFICO)
 end
 ----------- test code

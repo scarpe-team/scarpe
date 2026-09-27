@@ -163,9 +163,17 @@ headless with bundled fonts (`SCARPE_NATIVE_FONTS=bundled`).
    `pbcopy`, `pbpaste` and `xclip` read and write the file `ENV["SPEC_CLIPBOARD_FILE"]` in the
    sandbox instead of the real clipboard: write that file to seed the clipboard, read it to
    see what the app copied.
-7. **Images:** `spec/support/assets/` is copied to `assets/` in the case's working directory:
-   `image "assets/red-40x30.png"` (solid #ff0000), `assets/checker-20x20.png` (10 px black and
-   white squares, black at the top left). Add small files there if you need more.
+7. **Images and fonts:** `spec/support/assets/` is copied to `assets/` in the case's working
+   directory. Never inline base64 files or read fonts from the checkout; add small files here.
+
+   | file | what it is |
+   |---|---|
+   | `red-40x30.png` | solid #ff0000 |
+   | `red-40x30.jpg` | solid red JPEG (decodes to about #fe0000) |
+   | `blue-40x30.jpg` | solid blue JPEG (about #0000fe) |
+   | `green-40x30.gif` | solid #00ff00 GIF |
+   | `checker-20x20.png` | 10 px black and white squares, black at the top left |
+   | `Pacifico.ttf` | the Pacifico family (SIL OFL 1.1, `Pacifico-LICENSE`): `font File.expand_path("assets/Pacifico.ttf")` |
 8. **`expect: fail` is a promise, not a hiding place.** Use it when the behaviour is right in
    the manual and wrong in Scarpe today, give the `reason`, and cite the ledger row. When the
    code is fixed the case reports `unexpected_pass` and fails the run until someone removes the
