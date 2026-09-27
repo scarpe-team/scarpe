@@ -157,7 +157,7 @@ module Scarpe::Native
     READY_TIMEOUT = 20.0
     POLL = 0.05
 
-    attr_reader :pid, :version
+    attr_reader :pid
 
     def self.start(headless: false)
       args = []
@@ -166,10 +166,12 @@ module Scarpe::Native
       new([Binary.path, *args])
     end
 
-    def initialize(command)
+    def initialize(command, ready_timeout: READY_TIMEOUT)
       @log = Shoes::Log.logger("Scarpe::Native::Child")
       @trace = !ENV["SCARPE_NATIVE_TRACE"].to_s.empty?
+      @ready_timeout = ready_timeout
       Stats.mark("spawn")
+      @spawned_at = monotonic
       @stdin, @stdout, @stderr, @wait_thread = spawn(command)
       @pid = @wait_thread.pid
       [@stdin, @stdout].each(&:binmode)
@@ -187,7 +189,19 @@ module Scarpe::Native
       @stderr_lock = Mutex.new
       @stderr_thread = Thread.new { drain_stderr }
 
-      handshake
+      say_hello
+    end
+
+    # Rust's version, from its answer to hello (waiting for it, the first time).
+    def version
+      ready["version"]
+    end
+
+    # A child that has not answered hello by now is stuck starting up: say so instead of waiting on.
+    def check_started!
+      return if @ready || @eof || monotonic - @spawned_at < @ready_timeout
+
+      raise ChildTimeout, "scarpe-native did not answer hello within #{@ready_timeout}s"
     end
 
     def post(message)
@@ -283,16 +297,21 @@ module Scarpe::Native
       raise ChildNotFound, "Can't start #{command.first}: #{e.message}"
     end
 
-    def handshake
+    # Hello goes out without waiting for the answer, so Ruby builds the app while Rust starts up
+    # (loading fonts, opening its event loop). Rust answers in order, so nothing needs the answer first.
+    def say_hello
       post(t: "hello", v: PROTOCOL_VERSION, pid: Process.pid)
       @write_lock.synchronize { write_outbox }
-      ready = await("the ready handshake", timeout: READY_TIMEOUT) do
-        index = @inbox.index { |message| message["t"] == "ready" }
-        index && @inbox.delete_at(index)
-      end
-      @version = ready["version"]
+    end
+
+    def ready
+      @ready || await("the ready handshake", timeout: @ready_timeout) { @ready }
+    end
+
+    def note_ready(message)
+      @ready = message
       Stats.mark("ready")
-      @log.warn("scarpe-native speaks protocol #{ready["v"].inspect}, we speak #{PROTOCOL_VERSION}") if ready["v"] != PROTOCOL_VERSION
+      @log.warn("scarpe-native speaks protocol #{message["v"].inspect}, we speak #{PROTOCOL_VERSION}") if message["v"] != PROTOCOL_VERSION
     end
 
     def await(what, timeout: nil)
@@ -331,10 +350,10 @@ module Scarpe::Native
 
       $stderr.puts("scarpe-native <- #{line}") if @trace
       message = Stats.time(:parse) { JSON.parse(line) }
-      if message["t"] == "reply"
-        @replies[message["req"]] = message
-      else
-        @inbox << message
+      case message["t"]
+      when "reply" then @replies[message["req"]] = message
+      when "ready" then note_ready(message)
+      else @inbox << message
       end
     rescue JSON::ParserError
       @log.warn("Ignoring a line from scarpe-native that is not JSON: #{line[0, 200].inspect}")

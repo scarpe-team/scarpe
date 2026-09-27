@@ -106,8 +106,8 @@ module Bench
       add(label, "spawn to first frame on screen (median of #{@runs})", median.(:total), "ms")
       [
         [:ruby_boot, "Ruby VM boot"], [:ruby_load, "Ruby: load Scarpe + Lacci + shim, start the app"],
-        [:child_exec, "Rust child exec"], [:fonts, "Rust: font system ready (from its start)"],
-        [:handshake, "hello -> ready (from spawn)"], [:app_build, "Ruby: app body built, run sent (after ready)"],
+        [:child_exec, "Rust child exec"], [:event_loop, "Rust: event loop running, hello answered (from its start)"],
+        [:fonts, "Rust: system fonts loaded (from its start)"], [:app_build, "Ruby: app built, run sent (from spawn)"],
         [:window, "Rust: window open (after run)"], [:first_frame, "first layout + paint + present"]
       ].each { |key, name| add(label, name, median.(key), "ms") }
     end
@@ -255,9 +255,9 @@ module Bench
         ruby_boot: ms.(spawned_at, boot),
         ruby_load: ms.(boot, ruby_at.("spawn")),
         child_exec: ms.(ruby_at.("spawn"), rust["started_unix"]),
-        fonts: ms.(rust["started_unix"], rust_at.("fonts")),
-        handshake: ms.(ruby_at.("spawn"), ruby_at.("ready")),
-        app_build: ms.(ruby_at.("ready"), ruby_at.("run")),
+        event_loop: ms.(rust["started_unix"], rust_at.("ready")),
+        fonts: ms.(rust["started_unix"], rust_at.("system_fonts_loaded") || rust_at.("fonts")),
+        app_build: ms.(ruby_at.("spawn"), ruby_at.("run")),
         window: ms.(rust_at.("run"), rust_at.("window")),
         first_frame: ms.(rust_at.("window"), rust_at.("first_present")),
       }
