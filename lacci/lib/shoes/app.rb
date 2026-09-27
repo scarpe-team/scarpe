@@ -309,9 +309,16 @@ class Shoes
       send_shoes_event(event_name: 'destroy') if send_event
     end
 
-    # Close the application window. This is an alias for destroy
-    # that matches Shoes3 API.
-    alias close destroy
+    # Closes this app's window only (manual 901-904, ledger A8): while another window is open the
+    # app goes on there, and this one leaves Shoes.APPS (manual 887-888). The display hears a
+    # destroy aimed at this app. The last window to close takes everything with it, as destroy does.
+    def close
+      return destroy unless Shoes.APPS.any? { |app| !app.equal?(self) && app.started? }
+
+      @do_shutdown = true
+      Shoes.APPS.delete(self)
+      send_self_event(event_name: 'destroy')
+    end
 
     def all_drawables
       out = []

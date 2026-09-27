@@ -58,7 +58,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | A5 | Built-in dialogs with no app open | MANUAL | 10.6 | |
 | A6 | `Shoes.app("/start/url")` | EXT | | |
 | A7 | Shoes 3.3 app styles | OOS | | |
-| A8 | `close` closes one window | MANUAL | unsched. | |
+| A8 | `close` closes one window | MANUAL | | |
 | A9 | `Shoes.app`, `window` and `dialog` return the App | MANUAL | | |
 
 ### B. Blocks, `self` and slot manipulation
@@ -268,13 +268,13 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### A8. `close` closes one window
 
-**Ruling: MANUAL.** **Lacci change, unscheduled.** New row.
+**Ruling: MANUAL.** **Lacci change, done 27 Sep 2026.** New row.
 
 - **Manual:** "Closes the app window. If multiple windows are open and you want to close the entire application, use the built-in method `exit`." (manual 901-904).
 - **Shoes 3:** not checked.
-- **Lacci today:** `App#destroy` sends `destroy` with a **nil** target (`app.rb:280-283`), every App listens for nil-target `destroy` (`app.rb:109-113`), and `close` is an alias of `destroy` (`app.rb:287`). So `close` on any window closes every app.
-- **Spec:** with two windows open, `close` on the second leaves the first open and `Shoes.APPS.size == 1`.
-- **Native:** DESIGN 4.1 `quit` takes an app id or null, but a nil-target `destroy` does not say which app. It needs Lacci to target the App's id.
+- **Lacci today:** `App#destroy` sends `destroy` with a **nil** target (`app.rb:280-283`), every App listens for nil-target `destroy` (`app.rb:109-113`), and `close` is an alias of `destroy` (`app.rb:287`). So `close` on any window closes every app. Since the wave-5 shim lane `close` is its own method: while another started app is open it leaves `Shoes.APPS` and sends `destroy` aimed at its own id; the last window's `close` is still `destroy`. Niente's App ends its loop on that aimed destroy.
+- **Spec:** with two windows open, `close` on the second leaves the first open and `Shoes.APPS.size == 1` (`app.close`, `app.Shoes.APPS__closed_removed`, both passing on both displays; `app.close` watches destroys aimed at each app, and a nil-target one, which would mean every app quit).
+- **Native:** the shim takes a `destroy` aimed at an App as that window closing: it sends `quit {app}`, so Rust frees the view and its document, and forgets the app's timers and drawables. A window the user closes while another is open goes the same way, and leaves `Shoes.APPS` too.
 
 ### A9. `Shoes.app`, `window` and `dialog` return the App
 
@@ -1246,7 +1246,7 @@ These are bugs, not disagreements about Shoes. A new display service inherits ev
 | X13 | `#rgb` expands each nibble times 16; `rgb()` picks int or float mode from `r` alone. | `colors.rb:229-234`, `:168-176` | `#DFA` is `[208, 240, 160]`; `rgb(0, 0.4, 0)` keeps a raw 0.4. | D2, D5 | 10.7 |
 | X14 | Oval's third positional is stored as a radius and doubled. | `drawables/oval.rb:18-19, 33, 42` | Every three-argument oval is twice the size; four-argument ovals are 2w x h. | E1, M2 | 10.10 |
 | X15 | `alias_method :remove, :destroy` on Drawable binds the base `destroy`, so `slot.remove` skips the cascade and `finish`. | `drawable.rb:615`, `drawables/slot.rb:231-235` | Removed slots leak their children in Lacci; `finish` never fires on `remove`. | B5 | fixed 27 Sep (`64e1ca6`) |
-| X16 | `App#destroy` (and its alias `close`) sends a nil-target `destroy`, which every App obeys. | `app.rb:109-113, 280-287` | Closing one window closes all of them. | A8 | unscheduled |
+| X16 | `App#destroy` (and its alias `close`) sends a nil-target `destroy`, which every App obeys. | `app.rb:109-113, 280-287` | Closing one window closes all of them. | A8 | fixed (wave 5): `close` closes one window while another is open |
 | X17 | `all_drawables` seeds its queue with `[@document_root, @document_root.children]`, so the children Array itself lands in the result. | `app.rb:289-299` | Class-filtered finders hide it; `drawables()` with no filter returns an Array among the drawables. Matters to the spec finders. | spec API | unscheduled |
 | X18 | `download`'s failure path calls `handle_failure(code)` against `def handle_failure(code, logger)`, requires `nokogiri` unconditionally, and runs blocks on a background Thread. | `download.rb:31-125` | Every non-2xx response logs an ArgumentError instead of failing cleanly. | K5 | failure path fixed 27 Sep (`3dcf19a`); `nokogiri` dropped in wave 4 (K5); blocks still run on the download's thread |
 | X19 | Webview subscribes to `full_redraw_request`, `focus` and `scroll_top` with the wrong target (nil against id, or the reverse). | `drawables/slot.rb:243, 267` against `wv/slot.rb:14`; `edit_line.rb:45` against `wv/edit_line.rb:19`; `drawables/stack.rb:29` against `wv/stack.rb:8` | `slot.clear { }` never redraws in Webview; `focus` and `scroll_top` never arrive. The native shim subscribes by id and ignores `full_redraw_request` (DESIGN 5.2). | C5, G9 | WV only |

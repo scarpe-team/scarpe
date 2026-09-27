@@ -28,6 +28,24 @@ class TestApp < NienteTest
     SHOES_SPEC
   end
 
+  # Ledger A8: close shuts its own window while another is open, and that window leaves
+  # Shoes.APPS (manual 887-888, 901-904); the last window's close ends everything, as destroy does.
+  def test_close_shuts_one_window_and_the_last_one_quits
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      $main = Shoes.app do
+        $window = window(title: "second") { para "two" }
+      end
+    SHOES_APP
+      quits = []
+      Shoes::DisplayService.subscribe_to_event("destroy", nil) { quits << :everything }
+      $window.close
+      assert_equal [$main], Shoes.APPS
+      assert_empty quits, "the main window stays open"
+      $main.close
+      assert_equal [:everything], quits
+    SHOES_SPEC
+  end
+
   # Ledger J1: location is the URL of the page on show (manual 980-982).
   def test_location_follows_visit
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
