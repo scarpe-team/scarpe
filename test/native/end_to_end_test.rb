@@ -26,6 +26,25 @@ class EndToEndTest < Minitest::Test
     assert_spec_passed(run)
   end
 
+  def test_rust_pushes_where_things_landed_into_the_layout_cache
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        @box = stack(width: 120) { @b = button "B", width: 50, height: 20 }
+      end
+    APP
+      cache = Shoes::DisplayService.layout_cache
+      b = button("@b")
+      assert_equal layout_of(b).to_a, cache[b.linkable_id].first(4), "the button's rect, as Rust laid it out"
+      assert_equal 20, cache[b.linkable_id][4], "an element's scroll height is its height"
+      assert_equal [0, 0, 120, 20, 20], cache[stack("@box").linkable_id], "a slot's is its content's"
+
+      id = b.linkable_id
+      b.remove
+      refute cache.key?(id), "a destroyed drawable leaves the cache"
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_short_hex_colours_expand_the_same_on_both_sides
     run = run_real(<<~APP, test_code: <<~TEST)
       Shoes.app { background "#DFA" }

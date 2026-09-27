@@ -466,6 +466,57 @@ fn a_para_fill_highlights_its_text_not_its_box() {
     assert!(ht < 20.0, "{ht}");
 }
 
+/// The `layout` messages Rust pushed, as {id: [x, y, w, h, scroll_h]} per message.
+fn pushed(msgs: &[Value]) -> Vec<std::collections::BTreeMap<i64, Vec<f64>>> {
+    msgs.iter()
+        .filter(|m| m["t"] == "layout")
+        .map(|m| {
+            m["rects"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|r| {
+                    let r = r.as_array().unwrap();
+                    (r[0].as_i64().unwrap(), r[1..].iter().map(|v| v.as_f64().unwrap()).collect())
+                })
+                .collect()
+        })
+        .collect()
+}
+
+#[test]
+fn layout_pushes_every_rect_first_then_only_what_moved() {
+    // Cross-lane contract (a): Rust tells Ruby where things landed (ledger A4, C5).
+    let mut h = Harness::new();
+    let msgs = h.feed(&app(300, 200, &[
+        create(3, "Stack", 2, json!({"height": 50, "scroll": true})),
+        create(4, "Button", 3, json!({"text": "a", "width": 40, "height": 80})),
+        create(5, "Button", 2, json!({"text": "b", "width": 40, "height": 20})),
+    ]));
+    let first = pushed(&msgs);
+    assert_eq!(first.len(), 1, "one message for the first layout: {msgs:?}");
+    let first = &first[0];
+    assert_eq!(first.keys().copied().collect::<Vec<_>>(), vec![2, 3, 4, 5], "every laid-out node");
+    assert_eq!(first[&3], vec![0.0, 0.0, 300.0, 50.0, 80.0], "a slot's scroll height is its content's");
+    assert_eq!(first[&4], vec![0.0, 0.0, 40.0, 80.0, 80.0], "anything else reports its own height");
+    assert_eq!(msgs.iter().position(|m| m["t"] == "layout"), Some(1), "right after ready, before anything else");
+
+    let msgs = h.feed(&json!({"t":"props","id":5,"props":{"width":60}}).to_string());
+    assert!(pushed(&msgs).is_empty(), "nothing is pushed before the batch's flush");
+    let msgs = h.feed(&json!({"t":"flush"}).to_string());
+    let moved = pushed(&msgs);
+    assert_eq!(moved.len(), 1);
+    assert_eq!(moved[0].keys().copied().collect::<Vec<_>>(), vec![5], "only the node whose rect changed");
+    assert_eq!(moved[0][&5], vec![0.0, 50.0, 60.0, 20.0, 20.0]);
+
+    h.feed(&json!({"t":"destroy","id":5}).to_string());
+    let msgs = h.feed(&format!("{}\n{}", json!({"t":"create","id":6,"kind":"Button","parent":2,"index":null,"widget":false,"props":{"text":"c","width":10,"height":20}}), json!({"t":"flush"})));
+    let later = pushed(&msgs);
+    assert_eq!(later.len(), 1);
+    assert_eq!(later[0].keys().copied().collect::<Vec<_>>(), vec![6], "destroyed ids are not sent again");
+    assert!(pushed(&h.feed(&json!({"t":"flush"}).to_string())).is_empty(), "no layout, no message");
+}
+
 #[test]
 fn app_title_and_size_props() {
     let mut h = Harness::new();
