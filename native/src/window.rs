@@ -418,9 +418,9 @@ impl Shell {
     }
 }
 
-/// Sends the window's tree to its screen reader adapter: the whole tree the first time, then what
-/// changed. The adapter builds nothing unless a screen reader is listening, so this costs a
-/// window nobody reads aloud nothing (a11y.rs).
+/// Sends the window's tree to its screen reader adapter: the whole tree the first time and after a
+/// screen reader starts again, else what changed. The adapter builds nothing unless a screen reader
+/// is listening, so this costs a window nobody reads aloud nothing (a11y.rs).
 fn tell_screen_reader(rt: &mut Runtime, win: &mut Win) {
     let (app, scale) = (win.app, win.window.scale_factor() as f32);
     let Win { a11y, mirror, .. } = win;

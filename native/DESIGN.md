@@ -750,7 +750,8 @@ change the code and this list together.
   the window shows through winit's `set_visible`, which may activate it (no automated run opens a
   window off macOS yet). The adapter asks for nothing until
   a screen reader does; after that each presented frame builds the tree and sends only the nodes
-  that changed (`Mirror`). Not exposed yet: a field's caret and selection (a screen reader reads a
+  that changed (`Mirror`), and the whole tree again when a screen reader starts again (the
+  adapter's own handlers mark that as it happens, so no partial update reaches a new adapter). Not exposed yet: a field's caret and selection (a screen reader reads a
   field whole), click handlers on slots and art, radio groups, scrolling a node into view.
 
 ## 13. Environment
