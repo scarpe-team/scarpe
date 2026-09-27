@@ -1,14 +1,17 @@
 //! Window mode: winit 0.30 + softbuffer, one window per running App.
 //! stdin is read on a thread and fed to the event loop through a proxy; the
 //! loop waits (ControlFlow::Wait) and redraws only apps whose view is dirty.
+//! Each window has an AccessKit adapter, so a screen reader can read and work it (a11y.rs).
 
 mod ghost;
 mod pacing;
+mod voiceover;
 
+use crate::a11y::Mirror;
 use crate::input::{us_shifted, CursorShape, Key, KeyInput, Modifiers, Named};
 use crate::paint::damage::FrameMemory;
 use crate::props::Id;
-use crate::protocol::Outbox;
+use crate::protocol::{Outbox, Outgoing};
 use crate::runtime::stats::{self, Phase};
 use crate::runtime::{load_fonts, Effect, Options, Runtime};
 use crate::text::FontMode;
@@ -30,6 +33,14 @@ pub enum UserEvent {
     /// Every complete line stdin had ready, so a batch wakes the loop once.
     Lines(Vec<String>),
     Eof,
+    /// A screen reader wants a window's whole tree, or asks something of a node.
+    A11y(accesskit_winit::Event),
+}
+
+impl From<accesskit_winit::Event> for UserEvent {
+    fn from(event: accesskit_winit::Event) -> Self {
+        UserEvent::A11y(event)
+    }
 }
 
 pub struct WindowOptions {
@@ -42,6 +53,10 @@ pub struct WindowOptions {
 
 struct Win {
     app: Id,
+    /// Declared before the window so it lets go of the window's view first.
+    a11y: accesskit_winit::Adapter,
+    /// What the screen reader was last sent, so a frame sends only what changed.
+    mirror: Mirror,
     window: Rc<Window>,
     // Declared before the context so it is dropped first.
     surface: softbuffer::Surface<Rc<Window>, Rc<Window>>,
@@ -59,6 +74,8 @@ struct Win {
 struct Shell {
     rt: Runtime,
     windows: HashMap<WindowId, Win>,
+    /// Hands each window's screen reader requests to the event loop.
+    proxy: EventLoopProxy<UserEvent>,
     deadline: Option<Instant>,
     inactive: bool,
     ghost: bool,
@@ -97,13 +114,15 @@ pub fn run(opts: Options, window_opts: WindowOptions) -> i32 {
     event_loop.set_control_flow(ControlFlow::Wait);
     let loop_built = Instant::now();
     let proxy = event_loop.create_proxy();
-    std::thread::spawn(move || read_stdin(proxy));
+    let stdin_proxy = proxy.clone();
+    std::thread::spawn(move || read_stdin(stdin_proxy));
     let mut shell = Shell {
         rt: match fonts {
             Some(loading) => Runtime::with_fonts_loading(opts, Outbox::stdout(trace), loading),
             None => Runtime::new(opts, Outbox::stdout(trace)),
         },
         windows: HashMap::new(),
+        proxy,
         deadline: window_opts.exit_after.map(|d| Instant::now() + d),
         inactive,
         ghost: window_opts.ghost,
@@ -132,10 +151,12 @@ impl Shell {
         let props = self.rt.doc.get(app).map(|n| n.props.clone()).unwrap_or_default();
         let title = props.text("title").unwrap_or_else(|| "Shoes".into());
         let resizable = props.get("resizable").and_then(|v| v.as_bool()).unwrap_or(true);
+        // Hidden until its screen reader adapter is in place: AccessKit has to come first.
         let attrs = Window::default_attributes()
             .with_title(title)
             .with_inner_size(LogicalSize::new(view.size.0 as f64, view.size.1 as f64))
-            .with_resizable(resizable);
+            .with_resizable(resizable)
+            .with_visible(false);
         let attrs = if self.ghost { ghost::attributes(attrs) } else { attrs.with_active(!self.inactive) };
         let window = match el.create_window(attrs) {
             Ok(w) => Rc::new(w),
@@ -144,6 +165,7 @@ impl Shell {
                 return;
             }
         };
+        let a11y = accesskit_winit::Adapter::with_event_loop_proxy(el, &window, self.proxy.clone());
         self.rt.stats.mark("window_created");
         let context = match softbuffer::Context::new(window.clone()) {
             Ok(c) => c,
@@ -170,8 +192,11 @@ impl Shell {
                 return;
             }
             self.rt.stats.mark("ghost");
-        } else if let Some(opacity) = props.f32("opacity") {
-            set_opacity(&window, opacity);
+        } else {
+            if let Some(opacity) = props.f32("opacity") {
+                set_opacity(&window, opacity);
+            }
+            show(&window, self.inactive);
         }
         self.rt.stats.mark("window");
         if match_frame_colour_space(&window) {
@@ -184,6 +209,8 @@ impl Shell {
             id,
             Win {
                 app,
+                a11y,
+                mirror: Mirror::default(),
                 window,
                 surface,
                 _context: context,
@@ -242,6 +269,16 @@ impl Shell {
                     if !self.ghost {
                         open_url(&url);
                     }
+                }
+                Effect::PlatformA11y { req, app, act } => {
+                    let answer = match self.windows.values_mut().find(|w| w.app == app) {
+                        Some(win) => voiceover::answer(&mut self.rt, win, act),
+                        None => Err("the app has no window".into()),
+                    };
+                    self.rt.out.send(match answer {
+                        Ok(value) => Outgoing::reply(req, value),
+                        Err(e) => Outgoing::error(req, e, serde_json::Value::Null),
+                    });
                 }
             }
         }
@@ -323,6 +360,68 @@ impl Shell {
         self.rt.stats.since(Phase::Present, presenting);
         let app = win.app;
         self.rt.frame_presented(app);
+        // A new frame shows a change, and a screen reader that is listening hears of it too.
+        tell_screen_reader(&mut self.rt, win);
+    }
+
+    /// A screen reader wants the window's whole tree, or asks something of one of its nodes.
+    fn a11y_event(&mut self, event: accesskit_winit::Event) {
+        let Some(win) = self.windows.get_mut(&event.window_id) else { return };
+        match event.window_event {
+            accesskit_winit::WindowEvent::InitialTreeRequested => {
+                win.mirror.reset();
+                tell_screen_reader(&mut self.rt, win);
+            }
+            accesskit_winit::WindowEvent::ActionRequested(request) => {
+                self.rt.stats.input();
+                self.rt.active_app = Some(win.app);
+                if let Err(e) = self.rt.a11y_action(win.app, &request) {
+                    eprintln!("[scarpe-native] screen reader: {e}");
+                }
+            }
+            accesskit_winit::WindowEvent::AccessibilityDeactivated => win.mirror.reset(),
+        }
+    }
+}
+
+/// Sends the window's tree to its screen reader adapter: the whole tree the first time, then what
+/// changed. The adapter builds nothing unless a screen reader is listening, so this costs a
+/// window nobody reads aloud nothing (a11y.rs).
+fn tell_screen_reader(rt: &mut Runtime, win: &mut Win) {
+    let (app, scale) = (win.app, win.window.scale_factor() as f32);
+    let Win { a11y, mirror, .. } = win;
+    a11y.update_if_active(|| mirror.update(rt.a11y_tree(app, scale)));
+}
+
+/// Puts a window that was created hidden on screen the way winit opens one: key and in front,
+/// or, for an inactive run, in front without taking the keyboard.
+fn show(window: &Window, inactive: bool) {
+    #[cfg(target_os = "macos")]
+    if inactive {
+        order_front(window);
+        return;
+    }
+    let _ = inactive;
+    window.set_visible(true);
+}
+
+/// NSWindow's orderFront:, which winit uses for a new window that is not active.
+#[cfg(target_os = "macos")]
+fn order_front(window: &Window) {
+    use objc2::msg_send;
+    use objc2::runtime::AnyObject;
+    use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+
+    let Ok(handle) = window.window_handle() else { return };
+    let RawWindowHandle::AppKit(appkit) = handle.as_raw() else { return };
+    // SAFETY: winit hands us a live NSView on the main thread; -window and -orderFront: are
+    // plain AppKit API taking id.
+    unsafe {
+        let view: &AnyObject = appkit.ns_view.cast().as_ref();
+        let ns_window: Option<&AnyObject> = msg_send![view, window];
+        if let Some(ns_window) = ns_window {
+            let _: () = msg_send![ns_window, orderFront: std::ptr::null::<AnyObject>()];
+        }
     }
 }
 
@@ -341,6 +440,7 @@ impl ApplicationHandler<UserEvent> for Shell {
                 el.exit();
                 return;
             }
+            UserEvent::A11y(event) => self.a11y_event(event),
         }
         self.settle(el);
     }
@@ -350,7 +450,8 @@ impl ApplicationHandler<UserEvent> for Shell {
         if !matches!(event, WindowEvent::RedrawRequested) {
             self.rt.mid_batch = false;
         }
-        let Some(win) = self.windows.get(&id) else { return };
+        let Some(win) = self.windows.get_mut(&id) else { return };
+        win.a11y.process_event(&win.window, &event);
         let app = win.app;
         let scale = win.window.scale_factor();
         match event {

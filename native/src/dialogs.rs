@@ -104,16 +104,16 @@ pub const SWATCHES: [Color; 12] = [
     Color::rgb(0x1d, 0x1d, 0x1f),
 ];
 
-struct Geometry {
-    panel: Rect,
-    message: (f32, f32, f32),
-    field: Rect,
-    swatch: Vec<Rect>,
-    ok: Rect,
-    cancel: Rect,
+pub(crate) struct Geometry {
+    pub panel: Rect,
+    pub message: (f32, f32, f32),
+    pub field: Rect,
+    pub swatch: Vec<Rect>,
+    pub ok: Rect,
+    pub cancel: Rect,
 }
 
-fn geometry(modal: &Modal, size: (f32, f32), text: &mut TextEngine) -> (Geometry, crate::text::ShapedText) {
+pub(crate) fn geometry(modal: &Modal, size: (f32, f32), text: &mut TextEngine) -> (Geometry, crate::text::ShapedText) {
     let w = (size.0 - 40.0).clamp(160.0, 360.0);
     let shaped = text.shape(&RichText::plain(&modal.message, TextStyle::new(CONTROL_TEXT_SIZE, INK)), Some(w - 32.0));
     let body = match modal.kind {
@@ -195,7 +195,7 @@ impl Runtime {
         self.request_redraw(app);
     }
 
-    fn close_modal(&mut self, app: Id, ok: bool) {
+    pub(crate) fn close_modal(&mut self, app: Id, ok: bool) {
         let Some(modal) = self.views.get_mut(&app).and_then(|v| v.ui.modal.take()) else { return };
         let msg = match (&modal.kind, ok) {
             (ModalKind::Ask(field), true) => reply(modal.req, Value::String(field.text()), false),
