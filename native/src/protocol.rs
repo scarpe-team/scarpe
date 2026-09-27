@@ -211,6 +211,9 @@ pub enum Outgoing {
     ParaHit { id: Id, value: Option<i64> },
     Resize { app: Id, w: i64, h: i64 },
     Scroll { id: Id, top: i64 },
+    /// Where laid-out nodes landed, `[id, x, y, w, h, scroll_h]` in window px: all of them
+    /// after an app's first layout, then those whose rect changed (cross-lane contract a).
+    Layout { app: Id, rects: Vec<(Id, f64, f64, f64, f64, f64)> },
     Closed { app: Id },
     Reply {
         req: u64,
@@ -390,6 +393,10 @@ mod tests {
         assert_eq!(v(Outgoing::ParaHit { id: 3, value: None }), json!({"t":"para_hit","id":3,"value":null}));
         assert_eq!(v(Outgoing::Resize { app: 1, w: 500, h: 400 }), json!({"t":"resize","app":1,"w":500,"h":400}));
         assert_eq!(v(Outgoing::Scroll { id: 2, top: 40 }), json!({"t":"scroll","id":2,"top":40}));
+        assert_eq!(
+            v(Outgoing::Layout { app: 1, rects: vec![(3, 4.0, 4.0, 292.0, 14.4, 14.4)] }),
+            json!({"t":"layout","app":1,"rects":[[3,4.0,4.0,292.0,14.4,14.4]]})
+        );
         assert_eq!(v(Outgoing::Closed { app: 1 }), json!({"t":"closed","app":1}));
         let mut extra = Map::new();
         extra.insert("cancelled".into(), json!(true));

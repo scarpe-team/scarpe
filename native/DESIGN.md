@@ -115,6 +115,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 | `para_hit` | `id`, `value` | `para_hit_cache[id] = value` (Integer keys) |
 | `resize` | `app`, `w`, `h` | set the App's `@width`/`@height` ivars directly (no prop_change echo) |
 | `scroll` | `id`, `top` | set the slot's `@scroll_top` directly |
+| `layout` | `app`, `rects`: `[[id, x, y, w, h, scroll_h], ...]` | `Shoes::DisplayService.layout_cache[id] = [x, y, w, h, scroll_h]` (Integer keys; the shim defines the accessor if Lacci lacks it and deletes ids on destroy). Sent after every layout pass, before its frame is presented and before the reply of any request that caused it: every laid-out node on an app's first layout, then only those whose rect changed. Window logical px, rounded to 1/100; `scroll_h` is a slot's content height, else `h`. Destroyed ids are simply not sent again (ledger A4, C5) |
 | `closed` | `app` | user closed a window: destroy that app (all apps if it was the last) |
 | `reply` | `req`, `value`, `error` (null or String), plus op extras like `cancelled` | answers a `req` |
 | `log` | `level`, `msg` | forwarded to Shoes::Log |

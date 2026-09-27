@@ -132,6 +132,8 @@ pub struct Layout {
     pub order: Vec<Id>,
     pub texts: HashMap<Id, TextBox>,
     pub scrollers: HashMap<Id, Scroller>,
+    /// How tall each slot's content is, padding included: its scroll height.
+    pub content_heights: HashMap<Id, f32>,
     /// Live SubscriptionItems (their parent slot is laid out), in tree order.
     pub subscriptions: Vec<Id>,
 }
@@ -273,6 +275,7 @@ impl Engine<'_> {
         let doc_h = (content_h + padding.vertical()).max(size.1);
         let slot_box = Rect::new(0.0, 0.0, size.0, doc_h);
         self.out.boxes.insert(root, LBox { rect: viewport, clip: None, origin: (0.0, 0.0), parent_size: size });
+        self.out.content_heights.insert(root, content_h + padding.vertical());
         self.place_later(&later, slot_box, Rect::new(content.x, content.y, content.w, doc_h - padding.vertical()), size.1);
         // The window's own backgrounds cover the whole document, so they scroll with it.
         self.scroll_subtree(root, viewport, content_h + padding.vertical(), true, true);
@@ -502,6 +505,7 @@ impl Engine<'_> {
         let h = explicit_h.unwrap_or(used + padding.vertical());
         let slot_box = Rect::new(frame.x, frame.y, frame.w, h);
         self.record(node, slot_box, parent);
+        self.out.content_heights.insert(node.id, used + padding.vertical());
         let content = Rect::new(content.x, content.y, content.w, (h - padding.vertical()).max(0.0));
         self.place_later(&later, slot_box, content, avail_h);
         let scrolls = node.props.truthy("scroll") && explicit_h.is_some();
