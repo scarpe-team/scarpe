@@ -251,6 +251,7 @@ impl Runtime {
         let title = props.get("title").map(crate::props::value_text);
         let resized = props.contains_key("width") || props.contains_key("height");
         let restyled = ["font", "stroke", "secret"].iter().any(|k| props.contains_key(*k));
+        let looks_only = self.doc.get(id).is_some_and(|n| props.keys().all(|key| changes_only_looks(&n.kind, key)));
         if !self.doc.set_props(id, props) {
             return;
         }
@@ -281,7 +282,12 @@ impl Runtime {
             }
             _ => {}
         }
-        self.invalidate();
+        if looks_only {
+            // Paint reads these straight from the props: the layout stands and the node repaints.
+            self.views.values_mut().for_each(|view| view.dirty = true);
+        } else {
+            self.invalidate();
+        }
     }
 
     fn destroy(&mut self, id: Id) {
@@ -489,6 +495,21 @@ impl Runtime {
     pub fn dialog_answered(&mut self, req: u64, value: Value, cancelled: bool) {
         self.out.send(crate::dialogs::reply(req, value, cancelled));
         self.out.flush();
+    }
+}
+
+/// Props that change how a node looks and never where anything goes, so they keep the layout:
+/// paint reads them from the node itself. A line's strokewidth is not one (its box includes the
+/// stroke), nor is anything a Para shapes into its text.
+fn changes_only_looks(kind: &Kind, key: &str) -> bool {
+    match kind {
+        k if k.is_art() => matches!(key, "fill" | "stroke" | "cap"),
+        Kind::Background | Kind::Border => matches!(key, "fill" | "stroke" | "strokewidth" | "curve"),
+        Kind::Check | Kind::Radio => key == "checked",
+        Kind::Progress | Kind::Slider => key == "fraction",
+        Kind::EditLine | Kind::EditBox => key == "text",
+        Kind::Para | Kind::TextDrawable => matches!(key, "text_cursor" | "text_marker"),
+        _ => false,
     }
 }
 

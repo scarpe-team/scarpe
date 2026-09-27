@@ -230,3 +230,45 @@ fn clearing_and_rebuilding_2000_paras() {
     build.report("building 2000 paras", window.pixels());
     rebuild.report("clearing and rebuilding 2000 paras", window.pixels());
 }
+
+/// A long document with one small thing moving: every frame lays out all 2000 paras again (their
+/// shapes come from the cache) to move one ball.
+#[test]
+#[ignore]
+fn one_ball_over_2000_paras() {
+    let mut h = Harness::new();
+    let mut body = vec![create(4, "Stack", 2, json!({}))];
+    for i in 0..2000 {
+        body.push(create(1000 + i, "Para", 4, json!({"text_items": [format!("Line {i}: the quick brown fox jumps over the lazy dog")]})));
+    }
+    body.push(create(99, "Oval", 2, json!({"left": 0, "top": 100, "width": 24, "height": 24, "fill": {"rgba": [220, 30, 30, 255]}})));
+    h.feed(&app(600, 500, &body));
+    let mut window = Frame::open(&mut h);
+    let mut times = FrameTimes::default();
+    for n in 1..=60 {
+        let props = json!({"t": "props", "id": 99, "props": {"left": (n * 4) % 550, "top": 100}});
+        frame(&mut h, &mut window, &format!("{props}\n"), &mut times);
+    }
+    times.report("one ball over 2000 paras", window.pixels());
+}
+
+/// The same long document with a shape that only changes colour: nothing needs laying out again
+/// (runtime.rs, changes_only_looks), so only the shape repaints.
+#[test]
+#[ignore]
+fn one_shape_changing_colour_over_2000_paras() {
+    let mut h = Harness::new();
+    let mut body = vec![create(4, "Stack", 2, json!({}))];
+    for i in 0..2000 {
+        body.push(create(1000 + i, "Para", 4, json!({"text_items": [format!("Line {i}: the quick brown fox jumps over the lazy dog")]})));
+    }
+    body.push(create(99, "Oval", 2, json!({"left": 400, "top": 100, "width": 60, "height": 60, "fill": {"rgba": [220, 30, 30, 255]}})));
+    h.feed(&app(600, 500, &body));
+    let mut window = Frame::open(&mut h);
+    let mut times = FrameTimes::default();
+    for n in 1..=60 {
+        let props = json!({"t": "props", "id": 99, "props": {"fill": {"rgba": [(n * 4) % 256, 30, 200, 255]}}});
+        frame(&mut h, &mut window, &format!("{props}\n"), &mut times);
+    }
+    times.report("one shape changing colour over 2000 paras", window.pixels());
+}
