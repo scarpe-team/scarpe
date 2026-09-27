@@ -14,11 +14,12 @@ end
 px = ->(x, y) { pixel_at(x.round, y.round).first(3) }
 
 box = layout_of(stack("@box"))
+mid = box.y + box.h / 2
 red = [255, 0, 0]
 white = [255, 255, 255]
 
-assert_equal red, px.(box.x + 1, box.y + 30), "the stroke starts at the slot's edge"
-assert_equal red, px.(box.x + 3, box.y + 30), "and is four pixels wide"
-assert_equal white, px.(box.x + 6, box.y + 30), "no wider"
-assert_equal white, px.(box.x + 50, box.y + 30), "the middle is left alone"
-assert_equal white, px.(box.x - 3, box.y + 30), "and nothing is drawn outside the slot"
+assert_equal red, px.(box.x + 1, mid), "the stroke starts at the slot's edge"
+assert_equal red, px.(box.x + 3, mid), "and is four pixels wide"
+assert_equal white, px.(box.x + 6, mid), "no wider"
+assert_equal white, px.(box.x + 30, mid), "the middle is left alone"
+assert_equal white, px.(box.x - 3, mid), "and nothing is drawn outside the slot"

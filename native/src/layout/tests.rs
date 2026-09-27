@@ -67,9 +67,9 @@ fn stack_children_go_top_to_bottom_with_margins() {
     let a = s.add("Button", stack, json!({"text": "A", "width": 100, "height": 30}));
     let b = s.add("Button", stack, json!({"text": "B", "width": 100, "height": 30, "margin_top": 5}));
     let l = s.layout(480.0, 420.0);
-    assert_eq!(r(&l, stack), Rect::new(10.0, 10.0, 460.0, 65.0));
+    assert_eq!(r(&l, stack), Rect::new(10.0, 10.0, 460.0, 60.0));
     assert_eq!(r(&l, a), Rect::new(10.0, 10.0, 100.0, 30.0));
-    assert_eq!(r(&l, b), Rect::new(10.0, 45.0, 100.0, 30.0));
+    assert_eq!(r(&l, b), Rect::new(10.0, 45.0, 100.0, 25.0), "its 30 px hold its 5 px margin (Q9)");
 }
 
 #[test]
@@ -104,11 +104,25 @@ fn width_forms() {
 #[test]
 fn relative_widths_size_the_margin_box() {
     let mut s = Scene::new();
-    let a = s.add("Flow", ROOT, json!({"width": 0.5, "margin": 10, "height": 20}));
-    let b = s.add("Flow", ROOT, json!({"width": 0.5, "margin": 10, "height": 20}));
+    let a = s.add("Flow", ROOT, json!({"width": 0.5, "margin": 10, "height": 40}));
+    let b = s.add("Flow", ROOT, json!({"width": 0.5, "margin": 10, "height": 40}));
     let l = s.layout(480.0, 420.0);
     assert_eq!(r(&l, a), Rect::new(10.0, 10.0, 220.0, 20.0));
     assert_eq!(r(&l, b), Rect::new(250.0, 10.0, 220.0, 20.0));
+}
+
+/// Q9 (ruled 27 Sep 2026, ledger C14): an explicit width or height is the margin box, as in
+/// Shoes 3 (s3_ruby.c:506, 537; s3t_textblock.c:125-126), px or relative alike. menu1.rb's four
+/// panels (170, 140, 140 and 140 px, margin 4) fill one 600 px row only so: 590 px against 622.
+#[test]
+fn an_explicit_size_is_the_margin_box() {
+    let mut s = Scene::new();
+    let panels: Vec<Id> = [170, 140, 140, 140].iter().map(|w| s.add("Widget", ROOT, json!({"width": w, "height": 120, "margin": 4}))).collect();
+    let para = s.add("Para", ROOT, json!({"text_items": ["words"], "width": 200}));
+    let l = s.layout(600.0, 130.0);
+    assert_eq!(r(&l, panels[0]), Rect::new(4.0, 4.0, 162.0, 112.0));
+    assert_eq!((r(&l, panels[3]).y, r(&l, panels[3]).right() + 4.0), (4.0, 590.0), "all four on one row");
+    assert_eq!(r(&l, para).w, 192.0, "a para 200 wide wraps inside its 4 px margins, at 192");
 }
 
 #[test]
@@ -142,6 +156,7 @@ fn stack_in_stack_takes_the_full_width() {
 #[test]
 fn out_of_flow_placement() {
     let mut s = Scene::new();
+    // 200 x 100 with a 10 px margin: a 180 x 80 box inside it (Q9).
     let stack = s.add("Stack", ROOT, json!({"width": 200, "height": 100, "margin": 10}));
     let first = s.add("Button", stack, json!({"text": "a", "width": 50, "height": 20}));
     let placed = s.add("Button", stack, json!({"text": "b", "width": 50, "height": 20, "left": 30, "top": 40}));
@@ -150,7 +165,7 @@ fn out_of_flow_placement() {
     let l = s.layout(480.0, 420.0);
     assert_eq!(r(&l, first).y, 10.0);
     assert_eq!(r(&l, placed), Rect::new(40.0, 50.0, 50.0, 20.0));
-    assert_eq!(r(&l, corner), Rect::new(160.0, 90.0, 50.0, 20.0));
+    assert_eq!(r(&l, corner), Rect::new(140.0, 70.0, 50.0, 20.0));
     assert_eq!(r(&l, after).y, 30.0, "positioned siblings take no room");
 }
 
@@ -225,7 +240,7 @@ fn backgrounds_fill_their_slot() {
     let stripe = s.add("Background", stack, json!({"fill": "#000", "width": 50}));
     let _ = s.add("Button", stack, json!({"text": "x", "width": 10, "height": 40}));
     let l = s.layout(480.0, 420.0);
-    assert_eq!(r(&l, bg), Rect::new(5.0, 5.0, 200.0, 40.0));
+    assert_eq!(r(&l, bg), Rect::new(5.0, 5.0, 190.0, 40.0), "the slot is 200 with its margins (Q9)");
     assert_eq!(r(&l, stripe), Rect::new(5.0, 5.0, 50.0, 40.0));
     assert_eq!(l.order.iter().position(|i| *i == bg), Some(2), "paint order is tree order");
 }
