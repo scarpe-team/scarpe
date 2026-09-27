@@ -147,7 +147,7 @@ Mouse buttons are 1 = left, 2 = middle, 3 = right (manual numbering).
 - On the wire a Symbol travels as a String starting with `":"` (`":left"`); Lacci's SubscriptionItem turns it back into a Symbol. Plain printable keys travel as themselves.
 - On macOS, Cmd is named `alt_`, as Shoes 3's Cocoa backend did (ledger H1, Q5 ruled 27 Sep 2026):
   Cmd-q arrives as `:alt_q`, which is what the example editors bind. In text fields Cmd still works
-  like Control (copy, paste, select all, line ends); Option moves by words. The default app menu
+  like Control (copy, paste, select all, line ends, undo and redo); Option moves by words. The default app menu
   still quits on Cmd-Q before the app sees the key; Rust then reports every open window `closed`.
   The `key` op accepts `command_` (or `cmd_`, `super_`) for Cmd.
 
@@ -530,6 +530,16 @@ change the code and this list together.
   node must never paint outside `paint::damage::paint_bounds`: code that makes a node draw further (a
   new transform, a bigger shadow) grows that function too, or `SCARPE_NATIVE_DAMAGE=check` will say so.
   A masked slot's layers cover only the repainted rect, so masks repaint in part like anything else.
+- **Text fields** keep an undo history: Cmd-Z (`:alt_z` by Shoes' name, Q5) or Control-Z undoes,
+  Cmd-Shift-Z, Control-Shift-Z or Control-Y redoes. A run of typing, or of deleting, is one step,
+  as in a Mac or GTK field; a paste, a cut or a caret move ends it, and the caret and selection
+  come back with the text. Lacci's echo keeps the history; text the app sets itself starts a new
+  one. Readonly fields refuse both. Input methods are on while a field that takes text has focus,
+  with their candidates at its caret: a commit (a dead key's accent, a word of Japanese) is one
+  edit and one `change`, or keypresses when no field has focus; text still being composed shows
+  in the input method's own panel, not in the field. **Secret fields** never give their text away:
+  copy and cut do nothing (cut would throw it away), input methods stay off, and automation's
+  `layout` reads bullets, so `click {text}` cannot find one by its secret.
 - **Untrusted input** (`src/limits.rs`, wave 4). Nothing on stdin can make Rust panic, hang or
   allocate without bound: a bad line is logged (bytes that are not UTF-8 included) and the next
   one is read. App and window sides are finite and at most 10,000 logical px (a NaN, zero or
