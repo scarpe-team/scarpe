@@ -3,7 +3,7 @@ manual: element.edit_line
 lines: [1980, 1981]
 testability: api
 display: any
-ledger: M5
+ledger: G12
 ----------- app code
 Shoes.app do
   edit_line

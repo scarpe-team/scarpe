@@ -3,6 +3,7 @@ manual: element.timer
 lines: [2111, 2114]
 testability: api
 display: any
+ledger: I2
 ----------- app code
 Shoes.app do
   $timer = timer(5) { }

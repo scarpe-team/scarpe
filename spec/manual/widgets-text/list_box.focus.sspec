@@ -3,6 +3,7 @@ manual: list_box.focus
 lines: [3221, 3224]
 testability: interactive
 display: native
+ledger: G13
 ----------- app code
 Shoes.app do
   @first = list_box items: ["Grapes", "Pears", "Apricots"], choose: "Grapes"

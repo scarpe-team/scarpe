@@ -93,7 +93,8 @@ module SpecSuite
 
   # Included into Minitest::Test, so every display's test class has them unless it defines its own.
   module TestHelpers
-    # Answer the next `kind` dialog with `value` (nil means Cancel for ask and the file dialogs).
+    # Answer the next `kind` dialog with `value`. A cancelled ask returns "" (ledger K1); a
+    # cancelled file, folder or colour dialog returns nil.
     def stub_dialog(kind, value)
       Dialogs.stub(kind, value)
     end
@@ -120,6 +121,14 @@ module SpecSuite
     end
   end
 
+  # Prepended to Niente::ShoesSpecProxy, whose own respond_to_missing? calls the drawable's
+  # private respond_to_missing? and raises NoMethodError (lacci/lib/scarpe/niente/shoes_spec.rb).
+  module NienteRespondTo
+    def respond_to_missing?(name, include_private = false)
+      @obj.respond_to?(name, include_private)
+    end
+  end
+
   INSTALLERS = {
     "Shoes::Builtins" => ->(builtins) { builtins.prepend(AnsweredBuiltins) },
     "Minitest::Test" => ->(test_class) { test_class.include(TestHelpers) },
@@ -129,6 +138,7 @@ module SpecSuite
 
         proxy_class.define_method(name, NienteTriggers.instance_method(name))
       end
+      proxy_class.prepend(NienteRespondTo)
     end,
   }
 

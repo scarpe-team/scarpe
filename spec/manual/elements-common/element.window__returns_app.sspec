@@ -3,6 +3,7 @@ manual: element.window
 lines: [2135, 2135]
 testability: api
 display: any
+ledger: A9
 ----------- app code
 Shoes.app title: "The Owner" do
   button "Pop up?" do

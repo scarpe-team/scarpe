@@ -5,12 +5,13 @@ testability: visual
 display: native
 ledger: C7
 expect: fail
-reason: DESIGN 6 lays each text block out as its own shrink-to-fit box, so a long second para starts a new row; the manual's single paragraph waits on Q2 (ledger C7)
+reason: "The native layout still boxes each para on its own, so the long one starts a new row; C7 was ruled for one paragraph on 27 Sep 2026 (Q2) and the layout lane is landing it"
 ----------- app code
+# margin: 0 keeps the default text margins (ledger C9) out of the paragraph question.
 Shoes.app width: 400, height: 300 do
   @flow = flow width: 300 do
-    @short = para "Short."
-    @long = para "This second paragraph is long enough that it has to wrap onto more lines inside three hundred pixels."
+    @short = para "Short.", margin: 0
+    @long = para "This second paragraph is long enough that it has to wrap onto more lines inside three hundred pixels.", margin: 0
   end
 end
 ----------- test code

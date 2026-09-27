@@ -1,0 +1,13 @@
+---
+# Runner self-test: a finder's proxy answers respond_to? for its drawable's methods on every
+# display (spec/support mends Niente's, which called a private method and raised).
+testability: api
+----------- app code
+Shoes.app do
+  @label = para "hello"
+end
+----------- test code
+label = para("@label")
+assert label.respond_to?(:text), "the proxy answers for the para's own methods"
+assert label.respond_to?(:replace), "including ones it only forwards"
+refute label.respond_to?(:no_such_method_anywhere), "and says no to the rest"

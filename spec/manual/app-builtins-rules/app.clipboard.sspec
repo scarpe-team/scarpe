@@ -6,15 +6,9 @@ display: any
 ----------- app code
 Shoes.app { para "Reads the clipboard from its test code" }
 ----------- test code
-# A stand-in system clipboard in this sandbox, so the case never touches the real one.
-# Other programs (pbcopy/pbpaste, xclip) read and write it through a file.
-board = File.expand_path("system-clipboard.txt")
-Dir.mkdir("fakeclip")
-File.write("fakeclip/pbcopy", "#!/bin/sh\ncat > '#{board}'\n")
-File.write("fakeclip/pbpaste", "#!/bin/sh\ncat '#{board}'\n")
-File.write("fakeclip/xclip", "#!/bin/sh\nfor arg; do [ \"$arg\" = -o ] && exec cat '#{board}'; done\ncat > '#{board}'\n")
-Dir["fakeclip/*"].each { |tool| File.chmod(0o755, tool) }
-ENV["PATH"] = "#{File.expand_path("fakeclip")}:#{ENV["PATH"]}"
+# spec/run's pbcopy, pbpaste and xclip keep the system clipboard in this sandbox file,
+# so the case never touches the real one.
+board = ENV.fetch("SPEC_CLIPBOARD_FILE")
 
 File.write(board, "copied in another program")
 

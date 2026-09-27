@@ -3,8 +3,9 @@ manual: rules.utf8_bad_chars_error
 lines: [482, 485]
 testability: api
 display: any
+ledger: F12
 expect: fail
-reason: "Lacci passes text with invalid UTF-8 through without a word, and neither display reports it (no ledger row yet)"
+reason: "Lacci passes text with invalid UTF-8 through without a word, and neither display reports it (F12)"
 ----------- app code
 Shoes.app do
   @good = para "Fine text"

@@ -19,7 +19,7 @@ groups has at least one case in this directory.
 | `rules.group_shapes_perf` | 428-430 | Performance advice (grouping shapes saves memory and speed), no behaviour to assert. |
 | `rules.main_app_isolation` | 508-515 | Raisins-era sandbox rules; the note at 489 says Policeman runs at the top level, and ledger L1 rules the spec asserts nothing about the sandbox. |
 | `shoes.reference_navigation` | 537-569 | The manual's own table of contents and its Search page. |
-| `builtins.console_hotkey` | 721-722 | Scarpe has no console window for Alt-/ to open; ledger K3 routes the log built-ins to the Shoes log. Needs an OOS ruling in the ledger. |
+| `builtins.console_hotkey` | 721-722 | Scarpe has no console window for Alt-/ to open; ledger K3 routes the log built-ins to the Shoes log. Ledger H10 rules the hotkey out of scope. |
 | `builtins.font.formats` | 754-764 | Which font file formats each OS supports; platform-specific and outside Scarpe's control. |
 | `builtins.info.shy_loading` | 812-813 | Shy is the Shoes 2/3 packaging format; Scarpe has no Shy loader. |
 | `classes.hierarchy` | 1558-1564 | The chart is an unexpanded `{INDEX}` placeholder (M38); there is nothing in the manual to check against. |

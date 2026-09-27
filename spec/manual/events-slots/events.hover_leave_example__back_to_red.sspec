@@ -3,6 +3,7 @@ manual: events.hover_leave_example
 lines: [2167, 2185]
 testability: interactive
 display: native
+ledger: H9
 ----------- app code
 Shoes.app do
   s = stack width: 200, height: 200 do

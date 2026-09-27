@@ -5,7 +5,7 @@ testability: visual
 display: any
 ledger: A4
 ----------- app code
-Shoes.app do
+Shoes.app width: 600, height: 500 do
   flow do
     @one = stack width: 200 do
       para "is 200 pixels wide"
@@ -16,5 +16,5 @@ Shoes.app do
   end
 end
 ----------- test code
-assert_equal 480, Shoes.APPS.first.width, "the window this case assumes"
-assert_equal 280, stack("@two").width, "width: -200 is the whole parent width minus 200 pixels"
+assert_equal 600, Shoes.APPS.first.width, "the window this case assumes"
+assert_equal 400, stack("@two").width, "width: -200 is the whole parent width minus 200 pixels"

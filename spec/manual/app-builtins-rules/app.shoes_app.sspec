@@ -3,6 +3,7 @@ manual: app.shoes_app
 lines: [859, 865]
 testability: api
 display: any
+ledger: A9
 ----------- app code
 $returned = Shoes.app do
   para "Hello"

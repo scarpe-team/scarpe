@@ -10,6 +10,7 @@ require "fileutils"
 require "tmpdir"
 require "rbconfig"
 require "etc"
+require "zlib"
 
 module SpecSuite
   SPEC_DIR = File.expand_path("..", __dir__)
@@ -50,6 +51,7 @@ require_relative "suite/minitest_outcome"
 require_relative "suite/case_run"
 require_relative "suite/example_list"
 require_relative "suite/example_run"
+require_relative "suite/gallery"
 require_relative "suite/png"
 require_relative "suite/results_file"
 require_relative "suite/scoreboard"

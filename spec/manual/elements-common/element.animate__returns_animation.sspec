@@ -3,6 +3,7 @@ manual: element.animate
 lines: [1877, 1877]
 testability: api
 display: any
+ledger: I2
 ----------- app code
 Shoes.app do
   $animation = animate(24) { |frame| }
