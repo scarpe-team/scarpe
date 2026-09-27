@@ -34,7 +34,11 @@ impl SpanMeta {
 pub struct ShapedText {
     pub buffer: Rc<Buffer>,
     pub width: f32,
+    /// From the top of the first line to the bottom of the last: leading only between lines.
     pub height: f32,
+    /// Where the buffer's origin sits against the text's top edge. cosmic-text centres a
+    /// line's leading in the line, so the first line would otherwise start half of it low.
+    pub top: f32,
     pub metas: Rc<Vec<SpanMeta>>,
     pub fill: Option<Color>,
 }
@@ -133,7 +137,8 @@ fn shape(fs: &mut FontSystem, rich: &RichText, width: Option<f32>, optical_track
     if h == 0.0 {
         h = rich.line_height;
     }
-    ShapedText { buffer: Rc::new(buffer), width: w, height: h, metas: Rc::new(metas), fill: rich.fill }
+    let height = (h - rich.leading).max(1.0);
+    ShapedText { buffer: Rc::new(buffer), width: w, height, top: -rich.leading / 2.0, metas: Rc::new(metas), fill: rich.fill }
 }
 
 /// Every run names its line height: cosmic-text sizes a line by the runs that do, so a

@@ -325,3 +325,27 @@ fn trimmed_text_ends_in_an_ellipsis_inside_its_box() {
     let last = runs[0].glyphs.last().expect("glyphs");
     assert_eq!(last.start, last.end, "the last glyph is the ellipsis, which stands for no text of its own");
 }
+
+#[test]
+fn leading_goes_between_lines_and_defaults_to_four() {
+    let mut s = Scene::new();
+    let stack = s.add("Stack", ROOT, json!({"width": 300}));
+    let tight = s.add("Para", stack, json!({"text_items": ["one\ntwo"], "leading": 0}));
+    let normal = s.add("Para", stack, json!({"text_items": ["one\ntwo"]}));
+    let wide = s.add("Para", stack, json!({"text_items": ["one\ntwo"], "leading": 20}));
+    let single = s.add("Para", stack, json!({"text_items": ["one"]}));
+    let l = s.layout(480.0, 420.0);
+    let h = |id| r(&l, id).h;
+    // Manual 1286: "Defaults to 4 pixels", spacing between lines, as Pango's.
+    assert!((h(normal) - h(tight) - 4.0).abs() < 0.01, "{} {}", h(normal), h(tight));
+    assert!((h(wide) - h(tight) - 20.0).abs() < 0.01, "{} {}", h(wide), h(tight));
+    assert!((h(single) - 14.4).abs() < 0.01, "one line has no leading: {}", h(single));
+    let (tb, b) = (&l.texts[&normal], r(&l, normal));
+    let first = tb.shaped.buffer.layout_runs().next().unwrap();
+    let tight_first = l.texts[&tight].shaped.buffer.layout_runs().next().unwrap();
+    let baseline = |tb: &TextBox, y: f32, box_y: f32| tb.y + y - box_y;
+    assert!(
+        (baseline(tb, first.line_y, b.y) - baseline(&l.texts[&tight], tight_first.line_y, r(&l, tight).y)).abs() < 0.01,
+        "the first line sits where it would without leading"
+    );
+}
