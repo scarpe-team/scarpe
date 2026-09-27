@@ -5,12 +5,17 @@ module Scarpe
     DEFAULT_USAGE = <<~'USAGE'
       Usage: scarpe [OPTIONS] <scarpe app file>                # Same as "scarpe run"
              scarpe [OPTIONS] run <scarpe app file>
+             scarpe peek APP.rb [PEEK-OPTIONS]                 # run headless on the native display, look and click
              scarpe package <scarpe app file> [PACKAGE-OPTIONS] # package as standalone .app
              scarpe [OPTIONS] env                              # print Scarpe environment settings
              scarpe -v                                         # print the Scarpe gem version and exit
         Options:
             --dev                          Use development local scarpe, not an installed gem
             --debug                        Turn on application debug mode
+            --native                       Draw with the native (Rust) display service
+
+        Peek options (use "scarpe peek --help" for details):
+            --shot OUT.png --scale 2 --click TEXT --type TEXT --key NAME --layout
 
         Package options (use "scarpe package --help" for details):
             --name NAME                    Application name
