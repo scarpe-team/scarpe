@@ -1,0 +1,300 @@
+# frozen_string_literal: true
+
+require_relative "helper"
+
+# Real Lacci apps through exe/scarpe --native, with the fake child in Rust's seat.
+class AppTest < Minitest::Test
+  include NativeTestHelpers
+
+  CLOSE_ON_RUN = [{ "on" => "run", "emit" => [{ "t" => "closed", "app" => "first" }] }].freeze
+
+  def test_hello_world_create_sequence
+    run = run_app(<<~RUBY, script: CLOSE_ON_RUN)
+      Shoes.app(title: "Hello") { para "Hello" }
+    RUBY
+    assert_clean_exit(run)
+
+    assert_equal "hello", run.received.first["t"]
+    root, app, para = run.creates
+    assert_equal({ "id" => 2, "kind" => "DocumentRoot", "parent" => nil }, root.slice("id", "kind", "parent"))
+    assert_equal({ "id" => 1, "kind" => "App", "doc_root" => 2, "owner" => nil }, app.slice("id", "kind", "doc_root", "owner"))
+    assert_equal({ "title" => "Hello", "width" => 480, "height" => 420 }, app["props"].slice("title", "width", "height"))
+    assert_equal({ "kind" => "Para", "parent" => 2, "index" => nil }, para.slice("kind", "parent", "index"))
+    assert_equal ["Hello"], para["props"]["text_items"]
+    refute para["props"].key?("shoes_linkable_id")
+
+    types = run.received.map { |message| message["t"] }
+    assert_equal ["run", "flush"], types[types.index("run"), 2], "the first batch ends at run"
+    assert_equal({ "t" => "run", "app" => 1 }, run.of_type("run").first)
+    assert_equal "quit", types.last
+  end
+
+  def test_button_click_runs_the_ruby_handler_and_the_change_goes_back_as_props
+    run = run_app(<<~RUBY, script: [
+      Shoes.app do
+        @p = para "Waiting"
+        button("Go") { @p.replace("clicked"); puts "handler ran" }
+      end
+    RUBY
+      { "on" => "run", "emit" => [{ "t" => "event", "name" => "click", "target" => { "kind" => "Button" }, "args" => [] }] },
+      { "on" => "props", "after" => 0.05, "emit" => [{ "t" => "closed", "app" => "first" }] },
+    ])
+    assert_clean_exit(run)
+    assert_equal "handler ran\n", run.stdout
+    para_id = run.creates("Para").first["id"]
+    assert_equal [{ "t" => "props", "id" => para_id, "props" => { "text_items" => ["clicked"] } }], run.of_type("props")
+  end
+
+  def test_create_props_are_normalized
+    run = run_app(<<~RUBY, script: CLOSE_ON_RUN)
+      Shoes.app do
+        background "#DFA".."#000"
+        stack(attach: Window) { border red, strokewidth: 2 }
+        image "cat.png"
+        para "hi", stroke: rgb(0.5, 0.5, 0.5)
+        link("home") { }
+      end
+    RUBY
+    assert_clean_exit(run)
+    assert_equal({ "gradient" => [{ "rgba" => [221, 255, 170, 255] }, { "rgba" => [0, 0, 0, 255] }], "angle" => 0 },
+      run.creates("Background").first["props"]["fill"])
+    assert_equal "window", run.creates("Stack").first["props"]["attach"]
+    assert_equal({ "rgba" => [255, 0, 0, 255] }, run.creates("Border").first["props"]["stroke"])
+    assert run.creates("Image").first["props"]["url"].end_with?("/#{File.basename(run.dir)}/cat.png"), "relative to the app"
+    assert_equal({ "rgba" => [128, 128, 128, 255] }, run.creates("Para").first["props"]["stroke"])
+    assert_equal true, run.creates("Link").first["props"]["has_block"]
+  end
+
+  def test_prepend_sends_the_position
+    run = run_app(<<~RUBY, script: CLOSE_ON_RUN)
+      Shoes.app do
+        @s = stack { para "b"; para "c" }
+        @s.prepend { para "a" }
+      end
+    RUBY
+    assert_clean_exit(run)
+    stack_id = run.creates("Stack").first["id"]
+    prepended = run.creates("Para").find { |para| para["props"]["text_items"] == ["a"] }
+    assert_equal({ "parent" => stack_id, "index" => 0 }, prepended.slice("parent", "index"))
+  end
+
+  def test_ruby_timers_fire_at_the_right_counts_in_real_time
+    run = run_app(<<~RUBY)
+      Shoes.app do
+        frames = []
+        counts = []
+        animate(40) { |frame| frames << frame }
+        every(0.05) { |count| counts << count }
+        timer(0.4) do
+          puts frames.inspect
+          puts counts.inspect
+          Shoes.quit
+        end
+      end
+    RUBY
+    assert_clean_exit(run)
+    frames, counts = run.stdout.lines.map { |line| JSON.parse(line) }
+    assert_equal (0...frames.size).to_a, frames, "animate counts frames from 0, one at a time"
+    assert_operator frames.size, :>=, 5
+    assert_equal (1..counts.size).to_a, counts, "every counts from 1"
+    assert_operator counts.size, :>=, 3
+  end
+
+  def test_a_raising_handler_is_logged_and_the_loop_keeps_going
+    run = run_app(<<~RUBY, script: [
+      Shoes.app do
+        button("boom") { raise "kaboom" }
+        button("fine") { puts "still alive"; Shoes.quit }
+      end
+    RUBY
+      { "on" => "run", "emit" => [
+        { "t" => "event", "name" => "click", "target" => { "text" => "boom" }, "args" => [] },
+        { "t" => "event", "name" => "click", "target" => { "text" => "fine" }, "args" => [] },
+      ] },
+    ])
+    assert_clean_exit(run)
+    assert_equal "still alive\n", run.stdout
+    assert_match(/RuntimeError: kaboom in the click handler for 3 \(at .*app\.rb:2/, run.stderr)
+  end
+
+  def test_a_child_crash_is_reported_with_its_stderr
+    run = run_app(<<~RUBY, script: [{ "on" => "run", "crash" => "thread 'main' panicked at src/paint.rs:7:5" }])
+      Shoes.app { para "hi" }
+    RUBY
+    refute run.timed_out
+    refute run.status.success?
+    assert_match(/scarpe-native \(pid \d+\) exited with status 101/, run.stderr)
+    assert_match(%r{The end of its stderr:.*\nthread 'main' panicked at src/paint.rs:7:5}, run.stderr)
+  end
+
+  def test_a_child_that_closes_its_last_window_and_exits_has_not_crashed
+    run = run_app(<<~RUBY, script: [{ "on" => "run", "emit" => [{ "t" => "closed", "app" => "first" }], "exit" => 0 }])
+      Shoes.app { para "hi" }
+      sleep 0.2 # the child is long gone before the pump reads its last words
+    RUBY
+    assert_clean_exit(run)
+  end
+
+  def test_builtin_round_trip_queues_events_until_the_answer_arrives
+    run = run_app(<<~RUBY, headless: false, script: [
+      Shoes.app do
+        button("b") { puts "clicked" }
+        puts "answer: \#{ask("Your name?")}"
+        puts "confirm: \#{confirm("Sure?").inspect}"
+        timer(0.1) { Shoes.quit }
+      end
+    RUBY
+      { "on" => "req:dialog", "match" => { "kind" => "ask" }, "reply" => "Nick",
+        "emit" => [{ "t" => "event", "name" => "click", "target" => { "kind" => "Button" }, "args" => [] }] },
+    ])
+    assert_clean_exit(run)
+    assert_equal ["answer: Nick", "confirm: true", "clicked"], run.stdout.lines.map(&:chomp)
+    dialogs = run.of_type("req").select { |req| req["op"] == "dialog" }
+    assert_equal([["ask", "Your name?"], ["confirm", "Sure?"]], dialogs.map { |req| [req["kind"], req["message"]] })
+  end
+
+  def test_a_cancelled_file_dialog_is_nil_and_never_falls_back_to_osascript
+    run = run_app(<<~RUBY, headless: false, script: [{ "on" => "req:dialog", "reply" => nil }])
+      puts ask_open_file.inspect
+      Shoes.app { timer(0.05) { Shoes.quit } }
+    RUBY
+    assert_clean_exit(run)
+    assert_equal "nil\n", run.stdout
+  end
+
+  def test_headless_dialogs_answer_quietly_without_asking_the_child
+    run = run_app(<<~RUBY)
+      Shoes.app do
+        p [ask("q"), confirm("c"), alert("a"), ask_color("t"), ask_open_file, ask_save_folder]
+        Shoes.quit
+      end
+    RUBY
+    assert_clean_exit(run)
+    assert_equal "[\"\", false, nil, nil, nil, nil]\n", run.stdout
+    assert_empty run.of_type("req")
+  end
+
+  def test_font_sends_an_absolute_path
+    run = run_app(<<~RUBY, script: CLOSE_ON_RUN)
+      font "fonts/Fancy.ttf"
+      Shoes.app { para "hi" }
+    RUBY
+    assert_clean_exit(run)
+    path = run.of_type("font").first["path"]
+    assert path.start_with?("/")
+    assert path.end_with?("/fonts/Fancy.ttf")
+  end
+
+  def test_list_box_choice_comes_back_as_the_original_item
+    run = run_app(<<~RUBY, script: [
+      Shoes.app do
+        list_box(items: [1, 2, 3]) { |box| p box.chosen; Shoes.quit }
+      end
+    RUBY
+      { "on" => "run", "emit" => [{ "t" => "event", "name" => "change", "target" => { "kind" => "ListBox" }, "args" => ["2"] }] },
+    ])
+    assert_clean_exit(run)
+    assert_equal "2\n", run.stdout
+  end
+
+  def test_a_second_window_outlives_the_first
+    run = run_app(<<~RUBY, script: [
+      Shoes.app do
+        button("new") { window(title: "two") { para "second" } }
+      end
+    RUBY
+      { "on" => "run", "match" => { "app" => 1 }, "emit" => [{ "t" => "event", "name" => "click", "target" => { "kind" => "Button" }, "args" => [] }] },
+      { "on" => "run", "match" => { "app" => 4 }, "emit" => [{ "t" => "closed", "app" => 1 }] },
+      { "on" => "run", "match" => { "app" => 4 }, "after" => 0.2, "emit" => [{ "t" => "closed", "app" => 4 }] },
+    ])
+    assert_clean_exit(run)
+    assert_equal([1, 4], run.of_type("run").map { |message| message["app"] })
+    assert_equal 1, run.creates("App").last["owner"]
+    assert_equal [{ "t" => "quit", "app" => nil }], run.of_type("quit"), "one quit, at the very end"
+  end
+
+  def test_an_app_nested_in_another_apps_body_shows_both
+    run = run_app(<<~RUBY, script: [{ "on" => "run", "match" => { "app" => 1 }, "emit" => [{ "t" => "closed", "app" => 3 }, { "t" => "closed", "app" => 1 }] }])
+      Shoes.app do
+        Shoes.app { para "inner" }
+      end
+    RUBY
+    assert_clean_exit(run)
+    assert_equal([3, 1], run.of_type("run").map { |message| message["app"] })
+  end
+
+  def test_a_script_that_raises_after_shoes_app_exits_without_running
+    run = run_app(<<~RUBY)
+      Shoes.app { para "hi" }
+      raise "after the app"
+    RUBY
+    refute run.timed_out
+    refute run.status.success?
+    assert_match(/after the app/, run.stderr)
+  end
+
+  def test_a_raise_in_the_app_body_ends_the_process
+    run = run_app(<<~RUBY)
+      Shoes.app { para "hi"; raise "in the body" }
+    RUBY
+    refute run.timed_out
+    refute run.status.success?
+    assert_match(/in the body/, run.stderr)
+  end
+
+  def test_ctrl_c_quits_the_child_and_exits
+    run = run_app(<<~RUBY, script: [{ "on" => "run", "signal_parent" => "INT" }])
+      Shoes.app { para "hi" }
+    RUBY
+    assert_clean_exit(run)
+    assert_equal [{ "t" => "quit", "app" => nil }], run.of_type("quit")
+  end
+
+  def test_peek_clicks_prints_layout_and_saves_a_shot
+    shot = ->(app) { File.join(File.dirname(app), "out.png") }
+    run = run_app(<<~RUBY, argv: ->(app) { ["peek", app, "--click", "Go", "--layout", "--shot", shot.call(app)] })
+      Shoes.app do
+        @p = para "Waiting"
+        button("Go") { @p.replace("Gone") }
+      end
+    RUBY
+    assert_clean_exit(run)
+    lines = run.stdout.lines.map(&:chomp)
+    assert_match(/\Aclick "Go" -> #4 at 50,30/, lines[0])
+    assert_includes lines, "#3 Para 0,0 100x20 \"Gone\""
+    assert_includes lines, "#4 Button 0,20 100x20 \"Go\""
+    assert_match(%r{\Ashot /.*/#{File.basename(run.dir)}/out\.png \(480x420\)\z}, lines.last)
+  end
+
+  def test_peek_waits_in_real_time_and_resizes_first
+    run = run_app(<<~RUBY, argv: ->(app) { ["peek", app, "--wait", "0.3", "--layout", "--size", "300x200"] })
+      Shoes.app do
+        @p = para "start"
+        animate(20) { |frame| @p.replace("frame \#{frame}") }
+      end
+    RUBY
+    assert_clean_exit(run)
+    frame = run.stdout[/"frame (\d+)"/, 1]
+    assert frame, run.stdout
+    assert_operator frame.to_i, :>=, 3
+    resize = run.of_type("req").find { |req| req["op"] == "resize" }
+    assert_equal({ "w" => 300, "h" => 200 }, resize.slice("w", "h"))
+    assert_operator run.received.index(resize), :<, run.received.index(run.of_type("req").find { |req| req["op"] == "layout" })
+  end
+
+  def test_peek_with_nothing_to_do_saves_peek_png_here
+    run = run_app("Shoes.app { para 'hi' }", argv: ->(app) { ["peek", app, "--size", "300x200"] })
+    assert_clean_exit(run)
+    assert_match(%r{\Ashot /.*/#{File.basename(run.dir)}/peek\.png \(300x200\)\n\z}, run.stdout)
+  end
+
+  def test_peek_reports_a_missed_click
+    run = run_app("Shoes.app { para 'hi' }", argv: ->(app) { ["peek", app, "--click", "Nope"] })
+    refute run.status.success?
+    assert_match(/peek: click failed: nothing to click/, run.stderr)
+  end
+
+  def test_rake_test_glob_leaves_native_tests_alone
+    assert_empty Dir[File.join(ROOT, "test", "native", "**", "test_*.rb")]
+  end
+end

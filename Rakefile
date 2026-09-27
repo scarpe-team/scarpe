@@ -63,6 +63,14 @@ Rake::TestTask.new(:lacci_test) do |t|
   t.test_files = FileList['lacci/test/**/test_*.rb']
 end
 
+# The Rust display service's Ruby side. Files are named *_test.rb so the test/**/test_*.rb
+# glob above (webview) never picks them up.
+Rake::TestTask.new(:native_test) do |t|
+  t.libs << 'test/native'
+  t.libs << 'lib'
+  t.test_files = FileList['test/native/**/*_test.rb']
+end
+
 Rake::TestTask.new(:component_test) do |t|
   t.libs << 'scarpe-components/test'
   t.libs << 'scarpe-components/lib'
@@ -84,3 +92,6 @@ namespace :test do
 end
 
 task default: %i[test lacci_test component_test]
+
+# The consolidated Shoes spec suite (spec/run). Tasks: spec:run, spec:examples, spec:check.
+load "spec/spec.rake"
