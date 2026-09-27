@@ -6,6 +6,7 @@ class Shoes
 
     shoes_styles :text, :height, :width, :tooltip, :font, :stroke
     shoes_style :change # the handler (manual 1123-1128, ledger G10)
+    shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
     shoes_events :change
 
     # text "returns a string of characters", empty ones included (ledger M5)

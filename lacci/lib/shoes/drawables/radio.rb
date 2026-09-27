@@ -8,6 +8,7 @@ class Shoes
     include Shoes::Focusable
 
     shoes_styles :group, :checked
+    shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
     shoes_events :click
 
     # Track radio groups for mutual exclusion

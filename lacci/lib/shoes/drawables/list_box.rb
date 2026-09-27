@@ -6,6 +6,7 @@ class Shoes
 
     shoes_styles :items, :height, :width, :font, :stroke
     shoes_style :change # the handler (manual 1123-1128, ledger G10)
+    shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
 
     # Shoes3 uses choose as the initialize arg, and .choose(item) as the setter here,
     # but queries it with .text. So this is an unusual style, and we've chosen this
