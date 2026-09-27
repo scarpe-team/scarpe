@@ -78,7 +78,7 @@
 "examples/legacy/for_playtest/philippe/ask_confirm_demo.rb": {category: "legacy/for_playtest/philippe", needs: ["dialog"], status: "loads"}
 "examples/legacy/for_playtest/philippe/fill_pattern_demo.rb": {category: "legacy/for_playtest/philippe", needs: ["asset:image.png(missing?)","asset:avatar.png(missing?)"], status: "loads"}
 "examples/legacy/for_playtest/philippe/hh_patterns_test.rb": {category: "legacy/for_playtest/philippe", needs: ["dialog","timer/animation"], status: "loads"}
-"examples/legacy/for_playtest/philippe/image_events_test.rb": {category: "legacy/for_playtest/philippe", needs: ["asset:tab-home.png(missing?)"], status: {niente: "loads", native: "fails"}, reason: "its images come from via.placeholder.com, which no longer answers; the app falls back to a drawn box, but the shim's download warning names an SSLError, which the smoke run reads as a Ruby error"}
+"examples/legacy/for_playtest/philippe/image_events_test.rb": {category: "legacy/for_playtest/philippe", needs: ["asset:tab-home.png(missing?)"], status: "loads"}
 "examples/legacy/for_playtest/philippe/minimal_editor.rb": {category: "legacy/for_playtest/philippe", needs: ["shell"], status: "loads"}
 "examples/legacy/for_playtest/philippe/shape_curves.rb": {category: "legacy/for_playtest/philippe", needs: [], status: "loads"}
 "examples/legacy/for_playtest/philippe_checked/accordion.rb": {category: "legacy/for_playtest/philippe_checked", needs: ["timer/animation"], status: "loads"}

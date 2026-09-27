@@ -11,7 +11,9 @@ module SpecSuite
     DEFAULT_WAIT = { "niente" => 3.0, "native" => 1.5 }.freeze
     PEEK_ALLOWANCE = 30
     LOGGED_ERROR = /\A\S+ error: /
-    NOT_AN_ERROR = /warning:|SignalException|SIGTERM/
+    # A line logged at warn level is a warning even when it names an exception it survived
+    # ("Normalize warn: Could not download ...: OpenSSL::SSL::SSLError").
+    NOT_AN_ERROR = /warning:|\S warn: |SignalException|SIGTERM/
 
     def initialize(example, display:, tree:, sandboxes:, wait: nil, include_skipped: false, keep: false)
       @example = example

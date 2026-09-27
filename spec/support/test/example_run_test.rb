@@ -25,6 +25,15 @@ class ExampleRunTest < Minitest::Test
     assert_empty SpecSuite::ExampleRun.new(SpecSuite::ExampleList::Example.new(path: "x.rb"), display: "native", tree: nil, sandboxes: nil).send(:dialog_stubs)
   end
 
+  def test_a_warning_that_names_an_exception_is_not_an_error
+    run = SpecSuite::ExampleRun.new(SpecSuite::ExampleList::Example.new(path: "x.rb"), display: "native", tree: nil, sandboxes: nil)
+    warned = "[scarpe-native] Scarpe::Native::Normalize warn: Could not download https://x/y.png: OpenSSL::SSL::SSLError: eof\n"
+    run.instance_variable_set(:@tree, Struct.new(:root).new("/nowhere"))
+
+    assert_nil run.send(:first_error, warned)
+    assert_match(/NoMethodError/, run.send(:first_error, "app.rb:3:in 'block': undefined method 'x' for nil (NoMethodError)\n"))
+  end
+
   def test_an_unknown_step_names_the_example
     example = SpecSuite::ExampleList::Example.new(path: "examples/demo.rb", steps: [{ "hover" => [1, 2] }])
     run = SpecSuite::ExampleRun.new(example, display: "native", tree: nil, sandboxes: nil)
