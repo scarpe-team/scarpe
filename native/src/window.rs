@@ -19,6 +19,8 @@ use pacing::Pacing;
 use std::collections::HashMap;
 use std::num::NonZeroU32;
 use std::rc::Rc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tiny_skia::Pixmap;
 use winit::application::ApplicationHandler;
@@ -37,9 +39,41 @@ pub enum UserEvent {
     A11y(accesskit_winit::Event),
 }
 
-impl From<accesskit_winit::Event> for UserEvent {
-    fn from(event: accesskit_winit::Event) -> Self {
-        UserEvent::A11y(event)
+/// A window's screen reader handlers, which AccessKit calls on whatever thread its platform uses.
+/// Starting or stopping raises the Mirror's flag right there, while the adapter changes its state,
+/// so the next update is whole exactly when the adapter needs it; the rest goes to the event loop.
+#[derive(Clone)]
+struct Listening {
+    window: WindowId,
+    proxy: EventLoopProxy<UserEvent>,
+    restarted: Arc<AtomicBool>,
+}
+
+impl Listening {
+    fn send(&self, window_event: accesskit_winit::WindowEvent) {
+        let _ = self.proxy.send_event(UserEvent::A11y(accesskit_winit::Event { window_id: self.window, window_event }));
+    }
+}
+
+impl accesskit::ActivationHandler for Listening {
+    /// The tree comes from the event loop, where the document is: None here, and the adapter
+    /// shows a placeholder until the loop's first update.
+    fn request_initial_tree(&mut self) -> Option<accesskit::TreeUpdate> {
+        self.restarted.store(true, Ordering::SeqCst);
+        self.send(accesskit_winit::WindowEvent::InitialTreeRequested);
+        None
+    }
+}
+
+impl accesskit::ActionHandler for Listening {
+    fn do_action(&mut self, request: accesskit::ActionRequest) {
+        self.send(accesskit_winit::WindowEvent::ActionRequested(request));
+    }
+}
+
+impl accesskit::DeactivationHandler for Listening {
+    fn deactivate_accessibility(&mut self) {
+        self.restarted.store(true, Ordering::SeqCst);
     }
 }
 
@@ -165,7 +199,9 @@ impl Shell {
                 return;
             }
         };
-        let a11y = accesskit_winit::Adapter::with_event_loop_proxy(el, &window, self.proxy.clone());
+        let mirror = Mirror::default();
+        let listening = Listening { window: window.id(), proxy: self.proxy.clone(), restarted: mirror.restarts() };
+        let a11y = accesskit_winit::Adapter::with_direct_handlers(el, &window, listening.clone(), listening.clone(), listening);
         self.rt.stats.mark("window_created");
         let context = match softbuffer::Context::new(window.clone()) {
             Ok(c) => c,
@@ -210,7 +246,7 @@ impl Shell {
             Win {
                 app,
                 a11y,
-                mirror: Mirror::default(),
+                mirror,
                 window,
                 surface,
                 _context: context,
@@ -364,14 +400,12 @@ impl Shell {
         tell_screen_reader(&mut self.rt, win);
     }
 
-    /// A screen reader wants the window's whole tree, or asks something of one of its nodes.
+    /// A screen reader wants the window's whole tree (the Mirror already knows it owes it), or
+    /// asks something of one of its nodes.
     fn a11y_event(&mut self, event: accesskit_winit::Event) {
         let Some(win) = self.windows.get_mut(&event.window_id) else { return };
         match event.window_event {
-            accesskit_winit::WindowEvent::InitialTreeRequested => {
-                win.mirror.reset();
-                tell_screen_reader(&mut self.rt, win);
-            }
+            accesskit_winit::WindowEvent::InitialTreeRequested => tell_screen_reader(&mut self.rt, win),
             accesskit_winit::WindowEvent::ActionRequested(request) => {
                 self.rt.stats.input();
                 self.rt.active_app = Some(win.app);
@@ -379,7 +413,7 @@ impl Shell {
                     eprintln!("[scarpe-native] screen reader: {e}");
                 }
             }
-            accesskit_winit::WindowEvent::AccessibilityDeactivated => win.mirror.reset(),
+            accesskit_winit::WindowEvent::AccessibilityDeactivated => {}
         }
     }
 }

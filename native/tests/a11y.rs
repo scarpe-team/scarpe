@@ -433,8 +433,23 @@ fn after_the_first_update_a_window_sends_only_what_changed() {
     assert_eq!(update.nodes.iter().map(|(id, _)| id.0).collect::<Vec<_>>(), vec![4], "only the check");
     assert!(update.tree.is_none());
     adapter.in_step(&mut h);
-    adapter.mirror.reset();
-    assert_eq!(adapter.push(&mut h).nodes.len(), 5, "a screen reader that starts again gets it all");
+}
+
+/// A Linux adapter stops and starts with the screen reader, and takes the tree whole again: its
+/// handlers raise the Mirror's flag as it does, and the next update is whole whatever came before.
+#[test]
+fn a_screen_reader_that_starts_again_gets_the_whole_tree() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[para(3, 2, json!(["Hello"])), create(4, "Check", 2, json!({}))]));
+    let mut mirror = Mirror::default();
+    assert!(mirror.update(h.rt.a11y_tree(1, 1.0)).tree.is_some(), "the first update is whole");
+    assert!(mirror.update(h.rt.a11y_tree(1, 1.0)).nodes.is_empty());
+    mirror.restarts().store(true, std::sync::atomic::Ordering::SeqCst);
+    let again = mirror.update(h.rt.a11y_tree(1, 1.0));
+    assert_eq!((again.nodes.len(), again.tree.is_some()), (4, true), "whole again, tree and all");
+    // A fresh AccessKit tree takes it, as an adapter that just started does.
+    assert_eq!(a11y::read(&Tree::new(again, true))["children"][0]["value"], json!("Hello"));
+    assert!(mirror.update(h.rt.a11y_tree(1, 1.0)).nodes.is_empty(), "and the flag is spent");
 }
 
 #[test]

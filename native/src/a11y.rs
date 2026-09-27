@@ -23,6 +23,8 @@ use crate::text::TextEngine;
 use accesskit::{Action, ActionData, ActionRequest, Affine, HasPopup, Node, NodeId, Role, Toggled, Tree, TreeId, TreeUpdate};
 use serde_json::{json, Map, Value};
 use std::collections::{HashMap, HashSet};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 /// Nodes that are no drawable of Lacci's (a para's runs of text, a list box's items, the parts
 /// of an ask dialog) take ids a drawable never has: the top bit set, then the owner's id, then
@@ -630,20 +632,28 @@ pub fn request(id: u64, action: &str, value: Option<String>) -> Result<ActionReq
 }
 
 /// What a platform adapter was last sent, so each update after the first carries only the nodes
-/// that changed. AccessKit's adapters take the whole tree once, then changes.
+/// that changed. AccessKit's adapters take the whole tree once, then changes, and take it whole
+/// again when a screen reader starts again (Linux adapters stop and start with the screen reader).
 #[derive(Default)]
 pub struct Mirror {
     sent: Option<HashMap<NodeId, Node>>,
+    /// Set by the adapter's own handlers as a screen reader starts or stops. They run while the
+    /// adapter changes its state, under its lock, and so does `update` (inside update_if_active),
+    /// so the next update is whole exactly when the adapter needs it to be.
+    restarted: Arc<AtomicBool>,
 }
 
 impl Mirror {
-    /// The next update is the whole tree: a screen reader started, or started again.
-    pub fn reset(&mut self) {
-        self.sent = None;
+    /// The flag a window's screen reader handlers raise as a screen reader starts or stops.
+    pub fn restarts(&self) -> Arc<AtomicBool> {
+        Arc::clone(&self.restarted)
     }
 
     /// The update that takes the adapter from what it was last sent to `full`.
     pub fn update(&mut self, full: TreeUpdate) -> TreeUpdate {
+        if self.restarted.swap(false, Ordering::SeqCst) {
+            self.sent = None;
+        }
         let TreeUpdate { nodes, tree, tree_id, focus } = full;
         let Some(sent) = self.sent.take() else {
             self.sent = Some(nodes.iter().cloned().collect());
