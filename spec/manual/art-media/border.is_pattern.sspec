@@ -4,8 +4,6 @@ lines: [2807, 2809]
 testability: api
 display: any
 ledger: D9
-expect: fail
-reason: Lacci has no Shoes::Pattern; Border inherits straight from Shoes::Drawable (D9).
 ----------- app code
 Shoes.app do
   $border = border blue

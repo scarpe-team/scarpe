@@ -103,7 +103,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | D6 | Gradient direction, `:angle`, Ranges | MANUAL | | |
 | D7 | `nofill`/`nostroke` mean none | MANUAL | | |
 | D8 | Default fill, stroke and stroke width | S3 | | |
-| D9 | `Shoes::Pattern`: `gradient`, backgrounds, borders, `to_pattern` | MANUAL | unsched. | |
+| D9 | `Shoes::Pattern`: `gradient`, backgrounds, borders, `to_pattern` | MANUAL | | |
 
 ### E. Art
 
@@ -596,11 +596,11 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### D9. `Shoes::Pattern`: `gradient`, backgrounds, borders and `to_pattern`
 
-**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, unscheduled.** New row, requested by the art and app writers.
+**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, done 27 Sep 2026.** New row, requested by the art and app writers.
 
 - **Manual:** `gradient(color1, color2) » Shoes::Pattern` (manual 785); "Both backgrounds and borders are a type of Shoes::Pattern" (manual 2754-2755, 2807-2809); `to_pattern() » a Shoes::Pattern` on both, reusable in other backgrounds and borders (manual 2799-2803, 2854-2858).
 - **Shoes 3:** `Shoes::Pattern` has `to_pattern` (returning itself), and `Background` and `Border` subclass it (`s3t_pattern.c:13-31, 117-119`); `gradient` builds a `Pattern` (`s3t_color.c:226-238`).
-- **Lacci today:** no `Shoes::Pattern`. `Background` and `Border` inherit from `Shoes::Drawable` (`drawables/background.rb:11`, `drawables/border.rb:4`) and have no `to_pattern`; `gradient` returns a `Shoes::Colors::Gradient` (`colors.rb:176-198`).
+- **Lacci today:** no `Shoes::Pattern`. `Background` and `Border` inherit from `Shoes::Drawable` (`drawables/background.rb:11`, `drawables/border.rb:4`) and have no `to_pattern`; `gradient` returns a `Shoes::Colors::Gradient` (`colors.rb:176-198`). Since the wave-4 Lacci lane `Shoes::Pattern` is a module (`pattern.rb`) that `Background`, `Border` and `Gradient` include, since the first two stay Drawables. `to_pattern` returns the pattern itself, and a background's `fill`, a border's `stroke` and the draw context's `fill` and `stroke` take a pattern and keep its paint (the background's fill, the border's stroke, or the gradient), so the wire carries the same colour, gradient or image as before.
 - **Spec:** `background.is_pattern`, `border.is_pattern`, `background.to_pattern` (and `__reused`), `border.to_pattern` (and `__reused`), `builtins.gradient__pattern`.
 - **Native:** nothing new: a reused pattern arrives as the same colour, gradient or image wire value (DESIGN 5.3).
 

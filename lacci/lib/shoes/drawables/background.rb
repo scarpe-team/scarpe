@@ -9,8 +9,11 @@ class Shoes
   # In Shoes3, `background blue` returns a Background drawable that can have
   # its style changed later: `@back.style :height => 10`
   class Background < Shoes::Drawable
+    include Shoes::Pattern
+
     uses_draw_context
-    shoes_styles :fill, :curve, :angle
+    shoes_style(:fill) { |paint| Shoes::Pattern.paint(paint) } # another pattern paints this one too
+    shoes_styles :curve, :angle
 
     shoes_style(:curve) { |val| convert_to_integer(val, "curve") }
 
@@ -25,6 +28,11 @@ class Shoes
       @fill = turned(@fill, @angle) if @angle
 
       create_display_drawable
+    end
+
+    # @return [Object] the colour, gradient or image this background paints
+    def paint
+      @fill
     end
 
     private

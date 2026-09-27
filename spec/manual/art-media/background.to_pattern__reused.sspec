@@ -4,8 +4,6 @@ lines: [2801, 2803]
 testability: visual
 display: native
 ledger: D9
-expect: fail
-reason: Lacci's Background has no to_pattern, so the app block raises NoMethodError (D9).
 ----------- app code
 Shoes.app width: 200, height: 200 do
   stripe = background tomato, height: 50

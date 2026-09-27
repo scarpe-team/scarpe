@@ -2,11 +2,11 @@
 
 class Shoes
   class Border < Shoes::Drawable
-    uses_draw_context
-    # Shoes style with verification or value mapping:
-    # shoes_style(:left) { |val| convert_to_integer(val, "left") }
+    include Shoes::Pattern
 
-    shoes_styles :stroke, :strokewidth  # Write your shoes styles here
+    uses_draw_context
+    shoes_style(:stroke) { |paint| Shoes::Pattern.paint(paint) } # another pattern strokes this one too
+    shoes_style :strokewidth
 
     shoes_style(:strokewidth) { |val| convert_to_integer(val, "strokewidth") }
     shoes_style(:curve) { |val| convert_to_integer(val, "curve") }
@@ -23,7 +23,9 @@ class Shoes
       create_display_drawable
     end
 
-    private
-
+    # @return [Object] the colour, gradient or image this border strokes with
+    def paint
+      @stroke
+    end
   end
 end

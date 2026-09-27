@@ -4,8 +4,6 @@ lines: [2799, 2803]
 testability: api
 display: any
 ledger: D9
-expect: fail
-reason: Lacci's Background has no to_pattern, and there is no Shoes::Pattern (D9).
 ----------- app code
 Shoes.app do
   @stripe = background red, height: 50
