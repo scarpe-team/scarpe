@@ -22,7 +22,7 @@ class Shoes
     # @param color [Nil,Color] a Shoes color for the fill color or nil to use parent setting
     # @return [Color, nil] the pattern, as the manual's fill(pattern) » pattern
     def fill(color)
-      draw_context["fill"] = color
+      draw_context["fill"] = Shoes::Pattern.paint(color)
     end
 
     # Set the default fill in this slot and child slots to transparent.
@@ -39,7 +39,7 @@ class Shoes
     # @param color [Nil,Color] a Shoes color for the stroke color or nil to use parent setting
     # @return [Color, nil] the pattern, as the manual's stroke(pattern) » pattern
     def stroke(color)
-      draw_context["stroke"] = color
+      draw_context["stroke"] = Shoes::Pattern.paint(color)
     end
 
     # Set the default strokewidth in this slot and child slots.

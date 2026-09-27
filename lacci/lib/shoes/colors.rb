@@ -179,6 +179,8 @@ class Shoes
 
     # Simple gradient class to hold colors and angle for rendering.
     class Gradient
+      include Shoes::Pattern
+
       attr_reader :color1, :color2, :angle
 
       # Angle 0 runs top to bottom and 90 left to right (manual 1073-1079,
