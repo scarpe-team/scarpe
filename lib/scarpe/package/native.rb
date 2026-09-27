@@ -42,9 +42,10 @@ module Scarpe
       VENDORED_GEMS = %w[fastimage base64].freeze
       # strip_unnecessary_files deletes these libraries, and Ruby warns at every start if it looks.
       RUBY_FLAGS = %w[--disable-did_you_mean --disable-error_highlight --disable-syntax_suggest].freeze
-      # --minimal strips libraries the native shim loads at boot: net/http and resolv fetch images,
-      # digest names the image cache. They come back from the cached runtime (paths under the stdlib;
-      # %{platform} is the stdlib's native-extension directory). Without OpenSSL, https stays out.
+      # --minimal strips libraries the native shim needs for its first image download: net/http and
+      # resolv fetch images, digest names the image cache (normalize.rb requires them then, not at
+      # boot). They come back from the cached runtime (paths under the stdlib; %{platform} is the
+      # stdlib's native-extension directory). Without OpenSSL, https stays out.
       MINIMAL_KEEPS = %w[net resolv.rb %{platform}/digest.bundle %{platform}/digest].freeze
 
       def initialize(app_file, install_dir: INSTALL_DIR, bytecode: true, **options)
