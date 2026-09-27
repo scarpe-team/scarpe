@@ -87,8 +87,9 @@ class NativePackageTest < Minitest::Test
     File.join(dir, "PackagedApp.app")
   end
 
+  # Headless unless env says otherwise, and a window it does open is a ghost nobody can see.
   def launch(app, env = {})
-    env = { "HOME" => Dir.home, "PATH" => "/usr/bin:/bin", "SCARPE_NATIVE_HEADLESS" => "1" }.merge(env)
+    env = { "HOME" => Dir.home, "PATH" => "/usr/bin:/bin", "SCARPE_NATIVE_HEADLESS" => "1", "SCARPE_NATIVE_GHOST" => "1" }.merge(env)
     launcher = File.join(app, "Contents", "MacOS", "scarpe-launcher")
     _out, err, status = Open3.capture3(env, launcher, unsetenv_others: true)
     probe = err[/^scarpe-probe (.*)$/, 1]

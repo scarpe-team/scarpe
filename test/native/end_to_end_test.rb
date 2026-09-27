@@ -311,8 +311,8 @@ class EndToEndTest < Minitest::Test
     assert_spec_passed(run)
   end
 
-  # Real windows appear on screen (inactive, never taking focus), so these run only when asked:
-  # SCARPE_NATIVE_WINDOWED_TESTS=1 bundle exec rake native_test
+  # Real windows (ghosts through run_real: they present frames, but nobody can see or click
+  # them), so these run only when asked: SCARPE_NATIVE_WINDOWED_TESTS=1 bundle exec rake native_test
 
   def test_a_window_paints_real_frames
     skip_unless_windowed_tests

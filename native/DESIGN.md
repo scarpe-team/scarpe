@@ -348,7 +348,7 @@ Three levels, all headless, all deterministic with `--fonts bundled`:
    real child (`end_to_end_test.rb`: headless, bundled fonts, the binary rebuilt first when a crate
    source is newer), and against a scripted fake child (`fake_child.rb`) for exact wire checks and
    failure paths such as crashes and signals. Tests that open real windows run only with
-   `SCARPE_NATIVE_WINDOWED_TESTS=1`.
+   `SCARPE_NATIVE_WINDOWED_TESTS=1`, and their windows are ghosts (section 12).
 3. **The spec suite** (`spec/`, section 9), run by `spec/run`.
 
 Native test API available inside Shoes-Spec test code (`lib/scarpe/native/shoes_spec.rb`),
@@ -509,8 +509,9 @@ change the code and this list together.
   when the time is up, so a Ruby app quits cleanly (headless it is a hard stop). It and `--inactive`
   (or `SCARPE_NATIVE_INACTIVE=1`) open windows without activating the app or taking keyboard focus.
 - **Ghost windows** (`--ghost`, which the shim passes for `SCARPE_NATIVE_GHOST=1`; implies
-  `--inactive`) lay out, paint and present real frames, but nobody can see or touch them, for
-  automated windowed runs. On macOS a ghost is created hidden and only shown once it
+  `--inactive`) lay out, paint and present real frames, but nobody can see or touch them. Every
+  automated windowed run opens them: the test helpers, the benches, `native_cold_start.rb
+  --windowed` and the package test. On macOS a ghost is created hidden and only shown once it
   reads back as alphaValue 0 and click-through (else the process exits 1); it has no shadow, stays
   out of Mission Control, the window cycle and the Window menu, and the app is an accessory that
   never activates (a packaged app checks in with LaunchServices as an LSUIElement, so its Dock
@@ -552,11 +553,11 @@ change the code and this list together.
 | `SCARPE_NATIVE_HEADLESS` | passes `--headless` (`scarpe peek` sets it) |
 | `SCARPE_NATIVE_ARGS` | extra child arguments, e.g. `--fonts bundled` or `--exit-after 3` |
 | `SCARPE_NATIVE_INACTIVE` | windows open without activating the app or taking keyboard focus |
-| `SCARPE_NATIVE_GHOST` | passes `--ghost` (scarpe-native honours it too): windows present real frames but are invisible, click-through and never in front (section 12); `0` turns it off |
+| `SCARPE_NATIVE_GHOST` | passes `--ghost` (scarpe-native honours it too): windows present real frames but are invisible, click-through and never in front (section 12). Every automated windowed run sets it; `0` turns it off |
 | `SCARPE_NATIVE_TRACE` | prints every NDJSON line both ways to stderr (Ruby side) |
 | `SCARPE_NATIVE_LOG_LEVEL` | `debug`, `info`, `warn` (default) or `error` |
 | `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept |
 | `SCARPE_NATIVE_SNAPSHOT_DIR` | where relative `snapshot(name)` paths go (default `spec/results/snapshots`) |
-| `SCARPE_NATIVE_WINDOWED_TESTS` | lets `rake native_test` open real, inactive windows |
+| `SCARPE_NATIVE_WINDOWED_TESTS` | lets `rake native_test` open real windows, as ghosts |
 | `SCARPE_NATIVE_STATS` | a directory: each process writes where its time went (`ruby.json`, `rust.json`) as it exits (native/PERF.md) |
 | `SCARPE_NATIVE_DAMAGE` | `off` repaints every window frame whole; `check` also paints each one whole and reports any pixel a partial repaint got wrong (headless too) |
