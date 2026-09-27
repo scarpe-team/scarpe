@@ -511,9 +511,11 @@ used, so any Scarpe display service can run them. `spec/README.md` is the writer
   (HOME, LOCALAPPDATA, cwd in a temp dir, dialogs stubbed, clipboard kept in a file), writes
   `spec/results/<display>.json` and prints a scoreboard. Exit code non-zero on failures.
 
-At `877e262` (27 Sep 2026) the suite holds 978 cases: native 887 pass, 0 fail, 4 skip and 87
-expected failures, each citing its ledger row; niente 488 pass. Examples on native: 305 pass, 23 fail
-(dialog-only apps, blank timer apps, the network, scripts that never start an app), 89 skipped.
+At the fourth build wave's merge (`5b0c9d2`, 27 Sep 2026) the suite holds 983 cases: native 958
+pass, 0 fail, 1 skip and 24 expected failures, each citing its ledger row; niente 534 pass and 16
+expected failures (432 need layout or input and are n/a there). Examples on native: 317 pass, 0
+fail, 90 skipped, and 23 that `spec/examples.yml` expects to fail there, each with its reason
+(dialog-only apps, scripts that never start an app, apps that only log or paint one flat colour).
 
 ## 10. Lacci fixes this work depends on (each has a LEDGER row and a test)
 
