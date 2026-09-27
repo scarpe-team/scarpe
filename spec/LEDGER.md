@@ -2,7 +2,7 @@
 
 Shoes-Spec was Noah Gibbs' idea: write down what Shoes *is* as tests that any display service can run. Wherever the sources disagree about what Shoes is, the argument happens on this page. Each row records one disagreement, the evidence on every side, the ruling, what `spec/` asserts, and what the native Rust backend does.
 
-Status: v1, 27 Sep 2026. Seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`.
+Status: v1.1, 27 Sep 2026. The orchestrator ruled the seven open questions (Q1 to Q7) that day, and the rows the first build wave asked for joined it (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20). v1 was seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`.
 
 ## How to read this
 
@@ -30,7 +30,7 @@ The default rule: **the manual wins, unless a large body of working examples dep
 | **ERRATA** | The manual text is wrong. The spec follows the verified behaviour, and nobody transcribes that manual snippet verbatim. | `core` |
 | **OOS** | Out of scope for the spec. | none |
 
-A ruling tagged **(Q3)** is provisional: the evidence is balanced and question 3 at the bottom of this page asks Nick to settle it. Until he does, the spec writes the provisional assertion and cites the question.
+A ruling marked **ruled 27 Sep 2026 (Q3)** settled question 3 at the bottom of this page, where the evidence was balanced. The orchestrator ruled all seven on 27 Sep 2026. Nick may overrule any of them; his answer then replaces the ruling line, with its date.
 
 ### The fields in each row
 
@@ -41,7 +41,7 @@ A ruling tagged **(Q3)** is provisional: the evidence is balanced and question 3
 - **Native**: what the Rust backend and its Ruby shim do. Where DESIGN.md says something different from the ruling, the row says so under **DESIGN conflict**.
 - **Lacci fix**: the fix from DESIGN section 10 this row waits on (**fix 10.N**), or **Lacci change, unscheduled** when the ruling needs a Lacci change that section 10 does not list yet.
 
-Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Shoes. Each points at the behaviour rows it poisons. Rows M1 to M39 are the manual's own errata and vague spots; where a behaviour row already argues the point, the M row is one line pointing at it.
+Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Shoes. Each points at the behaviour rows it poisons. Rows M1 to M39 are the manual's own errata and vague spots; where a behaviour row already argues the point, the M row is one line pointing at it.
 
 ## Contents: every row and its ruling
 
@@ -51,14 +51,15 @@ Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Sho
 
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
-| A1 | Default window size and title | S3 (Q1) | unsched. | DESIGN |
+| A1 | Default window size and title | S3, ruled (Q1) | unsched. | DESIGN |
 | A2 | When the `Shoes.app` block runs | S3 | | |
 | A3 | `window`, `dialog`, `owner` | MANUAL | | |
-| A4 | Live `width`/`height` of apps and slots | MANUAL | unsched. | |
+| A4 | Live positions and sizes of apps, slots and elements | MANUAL | unsched. | |
 | A5 | Built-in dialogs with no app open | MANUAL | 10.6 | |
 | A6 | `Shoes.app("/start/url")` | EXT | | |
 | A7 | Shoes 3.3 app styles | OOS | | |
 | A8 | `close` closes one window | MANUAL | unsched. | |
+| A9 | `Shoes.app`, `window` and `dialog` return the App | MANUAL | unsched. | |
 
 ### B. Blocks, `self` and slot manipulation
 
@@ -69,6 +70,7 @@ Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Sho
 | B3 | Elements created in handlers land in the app's top slot | MANUAL | | |
 | B4 | `prepend`/`before`/`after` keep the written order | MANUAL | 10.3 | |
 | B5 | `slot.remove` removes children and fires `finish` | MANUAL | unsched. | |
+| B6 | Methods headed `» self` return `self` | MANUAL | unsched. | |
 
 ### C. Layout and dimensions
 
@@ -80,12 +82,13 @@ Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Sho
 | C4 | Default sizes of native controls | MANUAL | | DESIGN |
 | C5 | Missing slot and element methods | MANUAL | unsched. | |
 | C6 | The window scrolls; `gutter` | MANUAL | | |
-| C7 | Text side by side in a flow reads as one paragraph | MANUAL (Q2) | | DESIGN |
+| C7 | Text side by side in a flow reads as one paragraph | MANUAL, ruled (Q2) | | DESIGN |
 | C8 | Default width of a slot | S3 | | |
-| C9 | Default margins of text blocks | S3 (Q3) | | DESIGN |
+| C9 | Default margins of text blocks | S3, ruled (Q3) | | DESIGN |
 | C10 | `:right` and `:bottom` | MANUAL | | DESIGN |
 | C11 | `attach: Window` | MANUAL | | |
 | C12 | Paint order: backgrounds are layered elements | MANUAL | | |
+| C13 | A fixed height clips the slot | MANUAL | | DESIGN |
 
 ### D. Colours and patterns
 
@@ -99,6 +102,7 @@ Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Sho
 | D6 | Gradient direction, `:angle`, Ranges | MANUAL | unsched. | |
 | D7 | `nofill`/`nostroke` mean none | MANUAL | | |
 | D8 | Default fill, stroke and stroke width | S3 | | |
+| D9 | `Shoes::Pattern`: `gradient`, backgrounds, borders, `to_pattern` | MANUAL | unsched. | |
 
 ### E. Art
 
@@ -114,6 +118,7 @@ Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Sho
 | E8 | Mouse events on art, text and images | MANUAL | 10.9 | |
 | E9 | `image(w, h) { }` is a canvas | MANUAL | unsched. | |
 | E10 | Transforms | MANUAL | | |
+| E11 | Art methods return `Shoes::Shape` | MANUAL | unsched. | |
 
 ### F. Text
 
@@ -130,6 +135,7 @@ Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Sho
 | F9 | `link(click: proc)` fires | MANUAL | 10.5 | |
 | F10 | `:leading` defaults to 4 px | MANUAL | | DESIGN |
 | F11 | `para` with non-String arguments | BOTH | | |
+| F12 | Text with invalid UTF-8 is reported | MANUAL | unsched. | |
 
 ### G. Native controls
 
@@ -139,37 +145,46 @@ Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Sho
 | G2 | The `list_box { }` block is the change handler | MANUAL | 10.4 | |
 | G3 | List box selection, `text`, `choose` | MANUAL | 10.4, unsched. | |
 | G4 | `:state` | MANUAL | unsched. | |
-| G5 | Programmatic `text=` and `change` | BOTH | | |
+| G5 | Programmatic `text=` and `change` | BOTH; EXT pin, ruled (Q7) | | |
 | G6 | Radio grouping | MANUAL | | |
 | G7 | Button styling | EXT | | |
 | G8 | `check.checked` | MANUAL | | |
 | G9 | `focus` on buttons; Enter clicks | MANUAL | unsched. | |
+| G10 | `click:` and `change:` styles are the handlers | MANUAL | unsched. | |
+| G11 | Fonts on edit lines and edit boxes | EXT | | |
+| G12 | New inputs read `""`, new progress bars `0.0` | MANUAL | unsched. | |
+| G13 | Up and Down on a focused list box select | MANUAL | | |
+| G14 | A radio unmarked by its sibling: does its block run? | BOTH | | |
 
 ### H. Events
 
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
-| H1 | `keypress` values; Cmd on macOS | MANUAL (Q5) | | DESIGN |
+| H1 | `keypress` values; Cmd on macOS | MANUAL, ruled (Q5) | | DESIGN |
 | H2 | Mouse button numbers | S3 | | |
-| H3 | Coordinate frame of mouse events | S3 (Q4) | | DESIGN |
+| H3 | Coordinate frame of mouse events | S3, ruled (Q4) | | DESIGN |
 | H4 | The extra `mods` argument | MANUAL | | |
 | H5 | `hover`/`leave` get the slot | MANUAL | unsched. | |
 | H6 | Registering an event twice | BOTH | | |
 | H7 | `wheel` | EXT | | |
 | H8 | `start` and `finish` | MANUAL | unsched. | |
+| H9 | Slot event handlers survive `clear` | MANUAL | unsched. | |
+| H10 | Hotkeys the manual reserves for the console | OOS | | |
 
 ### I to L. Timers, navigation, built-ins, loader
 
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
 | I1 | Timer rate and counting | MANUAL | 10.1 | DESIGN |
+| I2 | `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer` | MANUAL | unsched. | |
 | J1 | `url`, `visit`, pages, `location` | BOTH | unsched. | |
 | J2 | `link(click: "/path")` visits | MANUAL | | |
-| K1 | `ask` on Cancel; its options | S3 (Q6) | 10.6 | |
+| K1 | `ask` on Cancel; its options | MANUAL, ruled (Q6) | 10.6 | DESIGN |
 | K2 | Option hashes on dialogs | EXT | unsched. | |
 | K3 | `debug`, `info`, `warn`, `error` | MANUAL | unsched. | |
 | K4 | `font(path)` returns family names | MANUAL | unsched. | |
 | K5 | `download` and its events | MANUAL | unsched. | |
+| K6 | `exit` stops the program at once | MANUAL | unsched. | |
 | L1 | App code runs at top level | S3 | | |
 | L2 | Case-insensitive `require` | OOS | | |
 | L3 | Constants | MANUAL | | |
@@ -178,21 +193,21 @@ Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Sho
 
 ### X and M
 
-X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): M1 ERRATA, M2 MANUAL, M3 ERRATA, M4 ERRATA, M5 ERRATA, M6 ERRATA, M7 ERRATA, M8 ERRATA, M9 ERRATA, M10 MANUAL, M11 ERRATA, M12 ERRATA, M13 ERRATA, M14 MANUAL, M15 OOS, M16 ERRATA, M17 MANUAL, M18 S3, M19 ERRATA, M20 MANUAL, M21 S3, M22 MANUAL, M23 MANUAL, M24 MANUAL, M25 MANUAL, M26 MANUAL, M27 S3, M28 MANUAL, M29 BOTH, M30 MANUAL, M31 S3, M32 BOTH, M33 BOTH, M34 S3, M35 MANUAL, M36 OOS, M37 OOS, M38 ERRATA, M39 ERRATA.
+X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): M1 ERRATA, M2 MANUAL, M3 ERRATA, M4 ERRATA, M5 ERRATA, M6 ERRATA, M7 ERRATA, M8 ERRATA, M9 ERRATA, M10 MANUAL, M11 ERRATA, M12 ERRATA, M13 ERRATA, M14 MANUAL, M15 OOS, M16 ERRATA, M17 MANUAL, M18 S3, M19 ERRATA, M20 MANUAL, M21 S3, M22 MANUAL, M23 MANUAL, M24 MANUAL, M25 MANUAL, M26 MANUAL, M27 S3, M28 MANUAL, M29 BOTH, M30 MANUAL, M31 S3, M32 BOTH, M33 BOTH, M34 S3, M35 MANUAL, M36 OOS, M37 OOS, M38 ERRATA, M39 ERRATA.
 
 ## A. App and window
 
 ### A1. Default window size and title
 
-**Ruling: S3 (Q1).** 600x500 and the title "Shoes". Shoes 3 and Shoes 4 agree; the manual is silent. **Lacci change, unscheduled.**
+**Ruling: S3, ruled 27 Sep 2026 (Q1)** by the orchestrator; Nick may overrule. 600x500 and the title "Shoes". Shoes 3 and Shoes 4 agree; the manual is silent. **Lacci change, unscheduled.**
 
 - **Manual:** silent. Examples that care pass `width:`/`height:`.
 - **Shoes 3:** `#define SHOES_APP_WIDTH 600`, `SHOES_APP_HEIGHT 500` (`s3_app.h:20-21`), applied at `s3_app.c:62-63, 176`. Title comes from `ATTR(attr, title)`, or the settings app name when built with `MTITLE` (`s3_app.c:144-154`).
 - **Shoes 4:** `DEFAULT_OPTIONS = { width: 600, height: 500, title: "Shoes 4", resizable: true, border: true }` (`internal_app.rb:19-25`).
 - **Examples:** 95 of the 350 examples in the target set pass a size (report 04, B3). The rest take the default; Scarpe's own examples were tuned at 480x420.
 - **Lacci today:** `title: 'Shoes!', width: 480, height: 420` (`app.rb:42-49`).
-- **Spec:** `core` asserts only that `app.width`/`app.height` report the size the window opened at. The 600x500 assertion is written, tagged `ledger: A1`, and waits on Q1.
-- **Native:** takes the App's `width`/`height` props, so it follows whatever Lacci defaults to. It has no default of its own (DESIGN section 6 says "Lacci default 480x420").
+- **Spec:** `app.style.width_height__default` asserts that an app with no size reports 600x500, and `app.style.title__default` that its title is "Shoes". Both are `expect: fail` until Lacci moves its default. Cases about something else pin their own window size so they hold on either side of that change (`rules.negative_width` now opens at an explicit 600x500).
+- **Native:** takes the App's `width`/`height` props, so it follows whatever Lacci defaults to. It has no default of its own; DESIGN section 6 still says "Lacci default 480x420".
 
 ### A2. When the `Shoes.app` block runs
 
@@ -215,15 +230,16 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Spec:** `window { }` from a handler creates a second app; `Shoes.APPS.size == 2`; its `owner` is the first app; the first app's `owner` is nil.
 - **Native:** declares `:multi_app` (DESIGN 5.1) and opens one OS window (or headless canvas) per App.
 
-### A4. `app.width`, `app.height` and slot sizes at runtime
+### A4. Live positions and sizes of apps, slots and elements
 
-**Ruling: MANUAL.** Live pixels after layout and after the user resizes.
+**Ruling: MANUAL.** Live pixels after layout and after the user resizes: `width` and `height` of apps, slots and elements, and `left` and `top` of slots and elements (extended to `left`/`top` on 27 Sep 2026, at the events and elements writers' request). **Lacci change, unscheduled** (the getters), fed by wire contract (a) below.
 
-- **Manual:** `width()` "returns an exact pixel size" (manual 2511-2513, 2723-2732); `rect 10, 10, self.width - 20, self.height - 20` fills the box (manual 1757-1768).
+- **Manual:** `width()` "returns an exact pixel size" (manual 2511-2513, 2723-2732); `left()` is "The left pixel location of the slot" and `top()` likewise (manual 2421-2423, 2507-2509; for elements 2644-2646, 2719-2721); `rect 10, 10, self.width - 20, self.height - 20` fills the box (manual 1757-1768).
 - **Shoes 3:** `shoes_app_get_width` returns the live `app->width` (`s3_app.c:199-209`), updated on GTK `size-allocate` (`s3_gtk.c:736-750`).
-- **Lacci today:** App `width`/`height` are static styles (`app.rb:19`); nothing feeds a resize back. Slot `width` falls back to the parent's style (`drawable.rb:649-716`): `stack(width: -100).width == 380` in a 480 app, `stack(width: "50%").width == 240`.
-- **Spec:** after `resize` to 300x200, `app.width == 300` and `app.height == 200`. A laid-out `stack(width: 0.5)` reports half its parent's inner width in pixels (see C1).
-- **Native:** reports resizes with the `resize` message; the shim sets `@width`/`@height` without a `prop_change` echo (DESIGN 4.2). Slot sizes need a layout query or a pushed size; DESIGN 4.2 has none yet for slots.
+- **Shoes 3, positions:** slots answer `left`/`top` from their placed canvas (`s3_ruby.c:748-749`).
+- **Lacci today:** App `width`/`height` are static styles (`app.rb:19`); nothing feeds a resize back. Slot `width` falls back to the parent's style (`drawable.rb:649-716`): `stack(width: -100).width == 380` in a 480 app, `stack(width: "50%").width == 240`. `left` and `top` return the `left`/`top` styles: nil for an element its slot placed, 0 for a slot.
+- **Spec:** after `resize` to 300x200, `app.width == 300` and `app.height == 200`. A laid-out `stack(width: 0.5)` reports half its parent's inner width in pixels (see C1). `common.left` and `common.top` read the laid-out position of an element its slot placed; `slot.left`, `slot.top` and `slot.height__content` do the same for slots.
+- **Native:** reports resizes with the `resize` message; the shim sets `@width`/`@height` without a `prop_change` echo (DESIGN 4.2). **Wire contract (a), 27 Sep 2026:** after every layout pass, and before presenting, Rust sends `{"t":"layout","app":N,"rects":[[id,x,y,w,h,scroll_h],...]}` for the nodes whose rect changed (every node on an app's first layout), in window logical px as Floats; `scroll_h` is a slot's content height, else `h`. Destroyed ids are not sent again. The shim keeps `Shoes::DisplayService.layout_cache[id] = [x, y, w, h, scroll_h]` (Integer keys, a class-level Hash like `para_hit_cache`) and deletes ids on destroy. Lacci's `left`/`top`/`width`/`height` return the laid-out values when present and fall back to today's behaviour otherwise. App size still comes from `resize`.
 
 ### A5. Built-in dialogs with no app open
 
@@ -256,6 +272,16 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Lacci today:** `App#destroy` sends `destroy` with a **nil** target (`app.rb:280-283`), every App listens for nil-target `destroy` (`app.rb:109-113`), and `close` is an alias of `destroy` (`app.rb:287`). So `close` on any window closes every app.
 - **Spec:** with two windows open, `close` on the second leaves the first open and `Shoes.APPS.size == 1`.
 - **Native:** DESIGN 4.1 `quit` takes an app id or null, but a nil-target `destroy` does not say which app. It needs Lacci to target the App's id.
+
+### A9. `Shoes.app`, `window` and `dialog` return the App
+
+**Ruling: MANUAL.** **Lacci change, unscheduled.** New row, requested by the elements and app writers.
+
+- **Manual:** `Shoes.app(styles) { ... } » Shoes::App` (manual 859); `window` and `dialog` return a `Shoes::App` too (manual 1958, 2135).
+- **Shoes 3:** `shoes_app_window` ends `return app;` (`s3_app.c:186`); `Shoes.app` returns it (`:189-191`), and so do `window` and `dialog` (`s3_canvas.c:1387-1394`).
+- **Lacci today:** `Shoes.app` ends `app.init; app.run; nil` (`lacci/lib/shoes.rb:192-194`), and `App#window`/`#dialog` return what `Shoes.app` returns (`app.rb:585-593`), so all three give nil.
+- **Spec:** `app.shoes_app`, `element.window__returns_app`, `element.dialog__returns_app`: each returns a `Shoes::App`, the very one in `Shoes.APPS`.
+- **Native:** nothing; the return value is Ruby-side.
 
 ## B. Blocks, `self` and slot manipulation
 
@@ -310,6 +336,30 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Spec:** `slot.remove` fires the slot's `finish` block with the slot, and none of its children can be found afterwards.
 - **Native:** `destroy` removes the whole subtree already (DESIGN 4.1), so the pixels are right today; the Lacci-side children leak and `finish` is lost.
 
+### B6. Methods headed `» self` return `self`
+
+**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, unscheduled.** New row, requested by the events, elements and art writers; it covers the `hide`/`show`/`toggle` request too.
+
+- **Manual:** every heading below ends `» self` (manual 1676-1862, 2187-2360, 2417-2503, 2639-2715, 3419-3430).
+- **Shoes 3:** `append`, `prepend`, `before`, `after` (`s3_canvas.c:731-757`), `toggle` (`:924-932`) and every slot event method (`EVENT_HANDLER`, `:934-944`) end `return self`; so do `hide`/`show` (`s3t_native.c:232-248`) and the timers' `start`/`stop`/`toggle` (`s3t_timerbase.c:93-121`). The draw-context methods are generated by a macro whose bodies are not in the fetched files.
+- **Shoes 4:** `nofill`, `nostroke` and `translate` return the App (`s4_dsl_style.rb:57-80`); the timers' `start`/`stop`/`toggle` return the new flag (`s4_animation.rb:27-41`).
+- **Lacci today:**
+
+  | Method | Returns | Where |
+  |---|---|---|
+  | slot `append`, `prepend` | the block's last value | `drawables/slot.rb:292-312` |
+  | slot `clear`, `clear { }` | nil | `drawables/slot.rb:263-274` |
+  | `hide`, `show`, `toggle` (slots and elements) | the new `hidden` value | `drawable.rb:739-751` |
+  | slot `click`, `hover`, `leave`, `motion`, `release`, `keypress` | the new SubscriptionItem | `app.rb:414-422` |
+  | slot `finish` | its Array of callbacks | `drawables/slot.rb:213-216` |
+  | timer `start`, `stop`, `toggle` | the new `stopped` value | `drawables/subscription_item.rb:97-109` |
+  | `nofill`, `nostroke`, `strokewidth`, `rotate` | the value stored in the draw context | `drawables/slot.rb:135-172` |
+  | `cap`, `translate` | nil (no-op stubs) | `app.rb:565-582` |
+  | `move`, `displace`, `remove`, `before`, `after` | self (already right) | |
+
+- **Spec:** one `__returns_self` case per method: `events.{click,hover,leave,motion,release,keypress,finish}__returns_self`, `manip.{append,prepend,clear,clear_with_block}__returns_self`, `slot.{hide,show,toggle}__returns_self`, `common.{hide,show,toggle}__returns_self`, `timers.{start,stop,toggle}__returns_self`, `art.{nofill,nostroke,rotate}__returns_self` (rotate also sits under E10). Each checks the result with `assert_same` against the receiver.
+- **Native:** nothing; the return values are Ruby-side.
+
 ## C. Layout and dimensions
 
 ### C1. A Float dimension is a fraction of the parent
@@ -334,6 +384,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Manual:** a number, or "an array of four numbers in the form `[left, top, right, bottom]`" (manual 1298-1309). `margin: 0.1` is used as a fraction (manual 3250; see M10).
 - **Shoes 3:** `ATTR_MARGINS` reads array entries 0 to 3; a missing entry falls back to the element's default margin (0 for slots, 4 for text blocks), and every entry goes through `shoes_px`, so Floats are fractions (`s3_ruby.h:147-165`).
 - **Lacci today:** `MarginHelper#margin_parse` accepts a number, a Hash, a String `"1 2 3 4"`, and 1- or 4-element arrays; **2- and 3-element arrays raise `InvalidAttributeValueError`** (`margin_helper.rb:45-51`).
+- **Also today:** `margin_parse` expands `margin` into the four sides and then clears it, so `stack(margin: 10).margin` reads nil (`slot.style_getter_methods__margin`, from the events writer).
 - **Spec:** `margin: [10, 20]` is accepted: left 10, top 20, right and bottom default. `margin: 0.1` in a 400-wide parent gives 40 px left and right.
 - **Native:** DESIGN 6 reads arrays as `[left, top, right, bottom]`; missing entries use the default margin.
 
@@ -356,7 +407,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Examples:** `before` in 5 files, `after` 4, `scroll_max` 1, `location` 3.
 - **Lacci today:** none of `before`, `after`, `scroll_max`, `scroll_height`, `location`, `started?`, `imagesize` exist; Image uses a `url` style (`image.rb:5`); `gutter` is App-only and a constant 28 (`app.rb:551-553`).
 - **Spec:** each method exists and returns a plausible value (for example `scroll_max == scroll_height - height` on a scrolling stack with overflowing content).
-- **Native:** `scroll_height` and `scroll_max` need the content height from Rust. DESIGN 4.2 pushes `scroll` offsets but not content height; the shim can read it from `req layout` or a new push.
+- **Native:** `scroll_height` and `scroll_max` need the content height from Rust. Wire contract (a) (see A4) carries it as each slot's `scroll_h`: Lacci reads `scroll_height = scroll_h` and `scroll_max = max(0, scroll_h - h)` from `Shoes::DisplayService.layout_cache`.
 
 ### C6. The window scrolls, and `gutter` says by how much
 
@@ -370,15 +421,15 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### C7. Text blocks side by side in a flow read as one paragraph
 
-**Ruling: MANUAL (Q2).** **Native change** if confirmed. New row.
+**Ruling: MANUAL, ruled 27 Sep 2026 (Q2)** by the orchestrator; Nick may overrule. Text blocks side by side in a flow continue as one paragraph: a text block placed after other inline content starts at the current x (a first-line indent), and its later lines wrap back to the flow's left edge (manual 1610-1612, Shoes 3). **Native change.** New row.
 
 - **Manual:** "Text elements placed next to each other will appear as a single paragraph. Images and widgets will run together as a series." (manual 1610-1612). The window is a flow (manual 1621).
 - **Shoes 3:** a text block with no width takes the remaining width of the current line (`s3t_textblock.c:125`). If it starts mid-line, it moves to the flow's left edge with a first-line indent equal to the space already used (`:134-145`), so its first line continues where the previous text ended and later lines wrap back to the left edge. Afterwards the cursor sits at the end of its last line (`:217-228`), so the next element continues from there. In a stack the cursor returns to the left edge (`:235-237`).
 - **Examples:** every app that puts two `para`s at the top level relies on this, since the top slot is a flow. Single-line paras look the same under every model. Multi-line paras differ.
 - **Lacci / WV today:** each para is its own flex item: shrink-to-fit, packed side by side, and a long para wraps onto a new row as its own box (report 02, 4.1).
-- **Spec:** two single-line paras in a flow share a row (all models agree). The multi-line case (the second para's continuation lines start at the flow's left edge) is written, tagged `ledger: C7`, and waits on Q2.
-- **Native:** DESIGN 6 today: "in a flow, shrink-to-fit (max-content width capped at the remaining row width, wrapping at that width)". That is WV's box model.
-- **DESIGN conflict:** DESIGN 6 follows WV, not the manual. The rule is also ambiguous about order: if the width is capped at the remaining row width before the fit test, a long para never moves to a new row and renders as a narrow column. The layout lane should say "measure max-content; if it does not fit, start a new row; then cap at the row width".
+- **Spec:** two single-line paras in a flow share a row (`slots.flow.adjacent_text_one_paragraph`, all models agree). The multi-line case, where the second para's later lines start at the flow's left edge, is `slots.flow.adjacent_text_one_paragraph__wraps_to_left_edge`: `expect: fail` until the native layout lands the paragraph model, with `margin: 0` so C9 stays out of it. Many style cases put one para alone in a flow and read `layout_of(para).w` as the text's width. That matches Shoes 3, where a one-line text block shrinks to its line (`s3t_textblock.c:207-210`), so a single-line para's box must stay as wide as its text under the paragraph model.
+- **Native:** DESIGN 6 (and DESIGN 12's "Text in a flow") today: "in a flow, shrink-to-fit (max-content width capped at the remaining row width, wrapping at that width)". That is WV's box model; the layout lane is replacing it with the ruling.
+- **DESIGN conflict:** DESIGN 6 follows WV, not the ruling. The rule is also ambiguous about order: if the width is capped at the remaining row width before the fit test, a long para never moves to a new row and renders as a narrow column. The layout lane should say "measure max-content; if it does not fit, start a new row; then cap at the row width".
 
 ### C8. Default width of a slot
 
@@ -392,14 +443,14 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### C9. Default margins of text blocks
 
-**Ruling: S3 (Q3).** New row.
+**Ruling: S3, ruled 27 Sep 2026 (Q3)** by the orchestrator; Nick may overrule. Text blocks get Shoes 3's default margins: 4 px on every side, and 12 px below when neither `margin` nor `margin_bottom` is given. An explicit `margin: 0` gives none. New row.
 
 - **Manual:** silent.
 - **Shoes 3:** text blocks default to a 4 px margin on every side (`ATTR_MARGINS(self_t->attr, 4, canvas)`), and the bottom margin becomes 12 px when neither `margin` nor `margin_bottom` is given (`s3t_textblock.c:108-110`). A second adjustment at `:239-240` sets the bottom margin to the last line's height after placement (not traced further).
 - **Examples:** Shoes 3 examples were written against the spacing; Scarpe-authored examples were written against WV's zero margins.
 - **Lacci / WV today:** `p { margin: 0 }` (`calzini.rb:56-87`). Paras stack with no gap.
-- **Spec:** written, tagged `ledger: C9`, and waiting on Q3. `core` asserts only that an explicit `margin: 0` gives no gap.
-- **Native:** DESIGN 6 gives text blocks no default margin.
+- **Spec:** `styles.margin__text_default` (native): a para in a stack sits 4 px in and 4 px down from the stack's corner, and the next para starts 12 + 4 px below it. `expect: fail` until the native layout lands the margins. Cases that measure a text block against a slot edge for another reason give the para `margin: 0` (`styles.align.left`, `.center`, `.right`, `styles.attach.nil_resets`), and `rules.fixed_height_scrollbar__needs_height` opens a window tall enough for the margins.
+- **Native:** DESIGN 6 gives text blocks no default margin; the layout lane is adding them. Lacci sends `margin: 0` as four explicit `margin_*: 0` props, so "given" and "not given" differ on the wire.
 
 ### C10. `:right` and `:bottom`
 
@@ -429,6 +480,18 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Lacci / WV today:** backgrounds and borders are `position:absolute` divs, and CSS paints positioned boxes after in-flow ones, so a background covers every para and button in its slot regardless of order (report 02, 4.4, screenshots p1 and p3).
 - **Spec:** a para declared after a background shows its text colour at a pixel inside a glyph. Nothing about a background declared after the text; Shoes 3's order in that case is not checked.
 - **Native:** DESIGN 6 paints in tree order. No conflict.
+
+### C13. A fixed height clips the slot
+
+**Ruling: MANUAL.** New row, requested by the app writer and the integration lane.
+
+- **Manual:** "fixed heights actually force slots to behave differently. To be sure that the end of the slot is chopped off perfectly, the slot becomes a 'nested window'" (manual 345-352); only nested-window slots can have scrollbars (manual 354-355).
+- **Shoes 3:** a slot with a `height` (or `scroll: true`) gets its own native surface when it is created (`s3_canvas.c:1316-1324`), which clips its drawing.
+- **Examples:** the accordions (`philippe_checked/accordion.rb`, `shoes-contrib/simple/simple-accordion.rb`) animate a fixed height to fold pages away; without clipping, the folded pages' text spills over the open one and still takes clicks.
+- **Lacci / WV today:** WV does not clip a fixed-height slot unless it scrolls.
+- **Spec:** `rules.fixed_height_clips`: a stack 100 px high holding a 300 px red stack shows red inside its height and not below it.
+- **Native:** DESIGN 6 clips only with `scroll: true`; the case fails on native until it clips every fixed-height slot. Hit-testing should respect the clip too.
+- **DESIGN conflict:** DESIGN 6 says "`scroll: true` with a height clips and scrolls" and nothing about a height alone.
 
 ## D. Colours and patterns
 
@@ -512,9 +575,19 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 - **Shoes 3:** `strokewidth` defaults to 1.0 (`s3t_shape.c:98`). Default fill and stroke colours: not re-checked here.
 - **Shoes 4:** `STYLES = { fill: black }` for Oval and Star (`s4_oval.rb:6`, `star.rb:6`).
-- **Lacci / WV today:** Oval defaults `fill: "black"`, `stroke: "black"` (`oval.rb:15-16`); Calzini uses stroke width 2 for ovals, a hard-coded 2 for stars and 4 for lines, ignoring `strokewidth` (`art_drawables.rb:78, 83, 97, 185`).
+- **Lacci / WV today:** Rect and Line declare no `strokewidth` style (`drawables/rect.rb:5`, `drawables/line.rb:5`), so `rect(..., strokewidth: 4)` is dropped with a warning; only the draw context's `strokewidth` reaches them. Oval defaults `fill: "black"`, `stroke: "black"` (`oval.rb:15-16`); Calzini uses stroke width 2 for ovals, a hard-coded 2 for stars and 4 for lines, ignoring `strokewidth` (`art_drawables.rb:78, 83, 97, 185`).
 - **Spec:** a default `rect` over white has a black interior and a 1 px outline; `strokewidth 5; line ...` draws a line about 5 px thick.
 - **Native:** draws every shape with the draw context's fill, stroke and width, defaulting to black, black, 1.
+
+### D9. `Shoes::Pattern`: `gradient`, backgrounds, borders and `to_pattern`
+
+**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, unscheduled.** New row, requested by the art and app writers.
+
+- **Manual:** `gradient(color1, color2) » Shoes::Pattern` (manual 785); "Both backgrounds and borders are a type of Shoes::Pattern" (manual 2754-2755, 2807-2809); `to_pattern() » a Shoes::Pattern` on both, reusable in other backgrounds and borders (manual 2799-2803, 2854-2858).
+- **Shoes 3:** `Shoes::Pattern` has `to_pattern` (returning itself), and `Background` and `Border` subclass it (`s3t_pattern.c:13-31, 117-119`); `gradient` builds a `Pattern` (`s3t_color.c:226-238`).
+- **Lacci today:** no `Shoes::Pattern`. `Background` and `Border` inherit from `Shoes::Drawable` (`drawables/background.rb:11`, `drawables/border.rb:4`) and have no `to_pattern`; `gradient` returns a `Shoes::Colors::Gradient` (`colors.rb:176-198`).
+- **Spec:** `background.is_pattern`, `border.is_pattern`, `background.to_pattern` (and `__reused`), `border.to_pattern` (and `__reused`), `builtins.gradient__pattern`.
+- **Native:** nothing new: a reused pattern arrives as the same colour, gradient or image wire value (DESIGN 5.3).
 
 ## E. Art
 
@@ -536,7 +609,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 - **Manual:** `:center` means the coordinates are the centre (manual 1115-1121, 1745).
 - **Shoes 3:** shifts by `w/2`, `h/2` (`s3_ruby.c:401-404`).
-- **Lacci / WV today:** stored, but Calzini inverts it: `cx: center ? radius : 0` (`art_drawables.rb:114, 123`). Without `center`, WV shows a clipped quarter circle; with it, the oval sits where the manual's default would put it.
+- **Lacci / WV today:** Oval stores it, but Calzini inverts it: `cx: center ? radius : 0` (`art_drawables.rb:114, 123`). Without `center`, WV shows a clipped quarter circle; with it, the oval sits where the manual's default would put it. Rect declares no `:center` style (`drawables/rect.rb:5`), so `rect(..., center: true)` is dropped with a warning (`styles.center__accepted`).
 - **Spec:** `oval 100, 100, 50, center: true` covers pixel (100, 100) and its box is (75, 75, 50, 50).
 - **Native:** centres on (left, top) when `center` is true.
 
@@ -613,7 +686,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Examples:** 3 files (`simple-sphere.rb`, `shoes_manual/ovals_image.rb`, ...); `blur` in 1.
 - **Lacci today:** `image(w, h)` becomes a blank placeholder and the block is ignored (`image.rb:10-20`).
 - **Spec:** `image(100, 100) { oval 0, 0, 50 }` paints the oval inside the image's box.
-- **Native:** needs the image to act as an offscreen slot. Not in DESIGN yet.
+- **Native:** **wire contract (c), 27 Sep 2026:** the `image(w, h) { }` block runs with the Image as the current slot, so the art and text inside arrive as children of the Image node, and Rust paints them clipped to the image's box in image-local coordinates.
 
 ### E10. `transform`, `translate`, `cap`, `rotate`, `scale`, `skew`
 
@@ -622,7 +695,17 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Manual:** manual 1676-1680, 1783-1797, 1857-1868.
 - **Lacci today:** `translate` and `cap` are no-ops (`app.rb:555-573`); `transform` exists only on Image (`image.rb:74-83`); `rotate`/`scale`/`skew` go into the draw context (`slot.rb:166-193`), and WV applies them to some shapes only (report 02, 6.8).
 - **Spec:** `rotate 45; rect 100, 100, 50, 10` paints a pixel off the unrotated rect's box.
-- **Native:** applies the draw context's transforms to every shape, rotating about the corner unless `transform :center`.
+- **Native:** applies the draw context's transforms to every shape, rotating about the corner unless `transform :center`. **Wire contract (b), 27 Sep 2026:** Lacci sends `"translate": [x, y]` (cumulative), `"transform": "center" | "corner"` (the rotate and scale pivot, default corner) and `"cap": "curve" | "rect" | "project"` (round, butt, square) in the draw context, and Rust renders them. DESIGN 12 still pivots on the centre; the contract supersedes it.
+
+### E11. Art methods return `Shoes::Shape`
+
+**Ruling: MANUAL** (Shoes 3 agrees). Subclasses (`Shoes::Oval < Shoes::Shape`) satisfy it. **Lacci change, unscheduled.** New row, requested by the art writer.
+
+- **Manual:** `arc`, `arrow`, `line`, `oval`, `rect`, `shape` and `star` are each headed `» Shoes::Shape` (manual 1665-1826), and "A shape is a path outline usually created by drawing methods like `oval` and `rect`" (manual 3363-3366).
+- **Shoes 3:** every art call makes a `cShape` (`s3t_shape.c:16, 195-198, 334`).
+- **Lacci today:** `Shoes::Oval`, `Shoes::Rect` and the rest inherit from `Shoes::Drawable`; `Shoes::Shape` exists only as the `shape { }` slot (`drawables/shape.rb`).
+- **Spec:** `shape.element`: every art method's result `is_a?(Shoes::Shape)` and answers the Common methods.
+- **Native:** nothing; the `kind` on the wire stays the concrete class name (DESIGN 4.1).
 
 ## F. Text
 
@@ -694,7 +777,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Examples:** `style(Shoes::Link, :underline => nil)` plus `style(Shoes::LinkHover, ...)` in `for_playtest/simple/menu.rb:25-26`, `menu1.rb:14-15`, `philippe_checked/accordion.rb:46-47`, `shoes-contrib/simple/simple-accordion.rb:39`.
 - **Lacci today:** Link styles are nil; LinkHover class defaults are stored by `style()` but "The functionality isn't present in Lacci yet" (`link.rb:35-41`).
 - **Spec:** an unstyled link's glyph pixels read close to `#0066EE` and it is underlined; after `style(Shoes::Link, underline: nil)` it is not.
-- **Native:** DESIGN 7 uses `#0066ee` with an underline, which is `#06E`. On hover it should switch to `#039` (`#003399`) unless the app styled LinkHover; DESIGN only says "darker on hover".
+- **Native:** DESIGN 7 uses `#0066ee` with an underline, which is `#06E`. On hover it should switch to `#039` (`#003399`) unless the app styled LinkHover; DESIGN only says "darker on hover". **Wire contract (d), 27 Sep 2026:** when a style sets `underline` (or `strikethrough`) to nil or false, Lacci sends `"none"`, and Rust draws no decoration for `"none"`. That is how `style(Shoes::Link, underline: nil)` reaches the display, since create props drop nils.
 
 ### F8. The argument passed to a link's click block
 
@@ -734,6 +817,16 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Lacci today:** Arrays are joined (`para(["a", "b"]).text == "ab"`), other objects go through `to_s`/`inspect`; `strong("0").text = 5` reads back `"5"` (report 03 probes).
 - **Spec:** only `para(5).text == "5"` and `text = 5` reading back `"5"`.
 - **Native:** receives Strings.
+
+### F12. Text with invalid UTF-8 is reported
+
+**Ruling: MANUAL.** **Lacci change, unscheduled.** New row, requested by the app writer.
+
+- **Manual:** "Edit boxes, edit lines, list boxes, window titles and text blocks all take UTF-8. If you give a string with bad characters in it, an error will show up in the console." (manual 482-485).
+- **Shoes 3:** not checked.
+- **Lacci today:** passes the bytes through without a word; neither display reports them.
+- **Spec:** `rules.utf8_bad_chars_error`: a para made from a string with a stray Latin-1 byte puts a UTF-8 or encoding message on stdout or stderr, and the app carries on. Scarpe has no console window (H10), so the log stands in for it.
+- **Native:** the shim must not crash on such a string: JSON generation of invalid UTF-8 raises, so it should report and replace the bad bytes before the text crosses the wire.
 
 ## G. Native controls
 
@@ -782,13 +875,13 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### G5. Does a programmatic `text=` fire `change`?
 
-**Ruling: BOTH.** The spec asserts neither. Q7 asks whether to pin Scarpe's choice under `ext-scarpe`.
+**Ruling: BOTH** in `core`, which asserts neither. **EXT pin, ruled 27 Sep 2026 (Q7)** by the orchestrator (Nick may overrule): Scarpe's choice to fire `change` is pinned under `ext-scarpe`.
 
 - **Manual:** silent (M32).
 - **Shoes 3:** platform-dependent: GTK emits "changed" from `gtk_entry_set_text`, Cocoa does not.
 - **Lacci today:** fires, on purpose: commit `eda8975` ("a deliberate deviation from Shoes3 behavior for better UX"), `edit_line.rb:30-40`, `edit_box.rb:30-40`.
-- **Spec:** nothing either way.
-- **Native:** sends `change` only for user edits; the programmatic path is Lacci's.
+- **Spec:** `core` nothing either way; `edit_line.text=__fires_change` pins the extension: setting `text` from code calls the change block once.
+- **Native:** sends `change` only for user edits; the programmatic path is Lacci's, so the pin holds on every display.
 
 ### G6. Radio grouping
 
@@ -816,11 +909,59 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Spec:** `button.focus`, then `press_key "\n"`, fires the click block once.
 - **Native:** accepts `focus` for buttons, checks and radios; Enter or Space on a focused button sends `click`.
 
+### G10. `click:` and `change:` styles are the handlers
+
+**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, unscheduled.** New row, requested by the styles writer and the lacci lane.
+
+- **Manual:** "The `click` event handler is stored in this style" for everything in the `:click` For-list (manual 1144-1151); "The `change` event handler is stored in this style" for edit_box, edit_line and list_box (manual 1123-1128).
+- **Shoes 3:** handlers live in the element's style hash: `ATTRSET(attr, change, ...)` for edit lines, edit boxes and list boxes (`s3t_edit_line.c:100`, `s3t_edit_box.c:102`, `s3t_list_box.c:107`), and slot events the same way (`s3_canvas.c:934-944`).
+- **Lacci today:** Button and EditLine declare no `:click`/`:change` style (`drawables/button.rb:5-6`, `drawables/edit_line.rb:5-6`), so `button "Go", click: proc { }` and `edit_line change: proc { }` are dropped with an "Unexpected non-style keyword" warning; blocks live in `@block`, so `style[:click]` is nil. Links accept `click:` (F9); art and paras drop it (E8).
+- **Spec:** `styles.click` and `styles.change` fire a proc passed as the style; `styles.click__readback` and `styles.change__readback` read the handler back from `style`.
+- **Native:** nothing; handlers stay in Ruby. A `click:` style on art or text must still turn on `has_click` (DESIGN section 10, fix 9).
+
+### G11. Fonts on edit lines and edit boxes
+
+**Ruling: EXT** (`ext-scarpe`). New row, requested by the widgets writer.
+
+- **Manual:** "in current versions of Shoes, the font for edit lines and edit boxes cannot be altered anyway" (manual 3078-3079): a limitation of that release, not a promise.
+- **Lacci today:** EditLine and EditBox declare `:font` (`drawables/edit_line.rb:5`, `drawables/edit_box.rb:5`), and the native backend honours it.
+- **Spec:** `core` asserts nothing; `edit_line.font_fixed` stays in `UNTESTABLE.md`. A case under `ext-scarpe` may assert that `font:` changes an input's text.
+- **Native:** honours `font:` on inputs.
+
+### G12. New inputs read `""`, new progress bars `0.0`
+
+**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, unscheduled.** New row, requested by the widgets and elements writers; see M5.
+
+- **Manual:** `text` on an edit line or edit box returns "a string of characters" (manual 3051, 3099); `fraction` returns "a decimal number from 0.0 to 1.0" (manual 3264-3266).
+- **Shoes 3:** `text` reads the native widget (`s3t_edit_line.c:23-27`), which is a String even when empty. The progress getter is not in the fetched files.
+- **Lacci today:** `edit_line.text`, `edit_box.text` and `progress.fraction` are nil until something sets them (`drawables/edit_line.rb:5-9`, `drawables/progress.rb:5`).
+- **Spec:** `element.edit_line__no_text` and `element.edit_box__no_text` read `""`; `progress.fraction__untouched` reads `0.0`.
+- **Native:** shows an empty field and an empty bar either way.
+
+### G13. Up and Down on a focused list box select
+
+**Ruling: MANUAL.** New row, requested by the widgets writer.
+
+- **Manual:** focus on a list box: "if the user hits the up and down arrow keys, other options in the list will be selected" (manual 3221-3224).
+- **Shoes 3:** a native combo box; not traced.
+- **Spec:** `list_box.focus`: after `focus`, Down selects the next item and sends `change`, with no popup opened.
+- **Native:** opens the popup on Up/Down (`native/src/input.rs`, around lines 777-781); the case fails until arrows select in place.
+
+### G14. A radio unmarked by its sibling: does its click block run?
+
+**Ruling: BOTH.** The spec asserts neither. New row, the M27 follow-up the widgets writer asked for.
+
+- **Manual:** "Clicks are sent for both marking and unmarking the radio" (manual 3349-3354).
+- **Shoes 3:** radios are native GTK or Cocoa buttons; the widgets writer reports GTK emits `clicked` on the button that loses its mark too. The fetched files hold only the grouping code (`s3t_radio.c:20-60`), so this is not checked.
+- **Lacci today:** only the clicked radio's block runs; a sibling it unmarks gets a `checked` echo and no call.
+- **Spec:** nothing. M27 covers what a click does to the clicked radio.
+- **Native:** nothing; Lacci owns the grouping (G6).
+
 ## H. Events
 
 ### H1. `keypress` key values
 
-**Ruling: MANUAL (Q5),** with **S3**'s platform mapping for macOS: **Cmd is `alt_`**. Shoes 4's `super_` is **EXT**.
+**Ruling: MANUAL,** with **S3**'s platform mapping for macOS, **ruled 27 Sep 2026 (Q5)** by the orchestrator (Nick may overrule): **Cmd arrives as `alt_`** (`:alt_q`), as in Shoes 3. The default app menu may still quit on Cmd-Q before the app sees it. Shoes 4's `super_` is **EXT**.
 
 - **Manual:** characters arrive as Strings; special keys and combinations as Symbols. "The modifier keys are `control`, `shift` and `alt`. They appear in that order." (manual 2219-2221). Shift only shows on special keys; Return is `"\n"`, but with modifiers it becomes `:control_enter`, `:shift_alt_enter` and so on; `Shift-Alt-7` is `:alt_&` (manual 2207-2249).
 - **Shoes 3, GTK:** Return is `rb_str_new2("\n")` (`s3_gtk.c:760-762`); Ctrl or Alt plus a character becomes a Symbol (`:765-778`); a modified Return becomes `:enter` (`:817-819`); modifiers are applied alt, then shift, then control, each as a prefix (`:821-830`), giving `control_shift_alt_...`.
@@ -828,9 +969,9 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Shoes 4:** CR is `"\n"`; prefixes `control_`, `shift_` (special keys only), `alt_`, `super_` for Cmd (`s4swt_key_listener.rb:27, 85-91`); any modified key becomes a Symbol (`:143-145`).
 - **Examples:** `for_playtest/shoes-contrib/simple/simple-editor.rb:19-23` and `philippe_checked/editor.rb:19-23` bind `:alt_q` (quit), `:alt_c` (copy), `:alt_v` (paste), which are Cmd-Q, Cmd-C and Cmd-V on a Mac under Shoes 3. `philippe/minimal_editor.rb:119` accepts `:control_a, :alt_a`. `needs_deps/expert-irb.rb:80` waits for `"\n"`.
 - **Lacci / WV today:** WV maps Enter to `:return` (`wv/subscription_item.rb:127`); prefixes are `alt_`, then `control_`, then `shift_` (`:147-158`); Cmd (Meta) is ignored; a modified special key loses its `:` and arrives as the String `"alt_left"` (`:158`); a modified character arrives as the String `"alt_q"` because Lacci only symbolises values that start with `:` (`subscription_item.rb:67-77`). Plus the double fire (X1).
-- **Spec:** `press_key "a"` gives `"a"`; Shift-a gives `"A"`; F1 gives `:f1`; Return gives `"\n"`; Control-Return gives `:control_enter`; Control-Shift-Alt-PageUp gives `:control_shift_alt_page_up`; Alt-q gives `:alt_q`. On macOS, Cmd-q gives `:alt_q`.
+- **Spec:** `press_key "a"` gives `"a"`; Shift-a gives `"A"`; F1 gives `:f1`; Return gives `"\n"`; Control-Return gives `:control_enter`; Control-Shift-Alt-PageUp gives `:control_shift_alt_page_up`; Alt-q gives `:alt_q`. `press_key` takes Shoes key names, so no case can press Cmd; the Cmd mapping is checked in the native backend's own tests.
 - **Native:** DESIGN 4.4, except for Cmd.
-- **DESIGN conflict:** DESIGN 4.4 says "On macOS, Cmd maps to `control_` as well (Shoes 3 did this)". The Shoes 3 Cocoa source maps Cmd to `alt_`, and the examples' Cmd shortcuts are written as `:alt_q`/`:alt_c`/`:alt_v`. See Q5.
+- **DESIGN conflict:** DESIGN 4.4 says "On macOS, Cmd maps to `control_` as well (Shoes 3 did this)". The Shoes 3 Cocoa source maps Cmd to `alt_`, the examples' Cmd shortcuts are written as `:alt_q`/`:alt_c`/`:alt_v`, and Q5 was ruled that way.
 
 ### H2. Mouse button numbers
 
@@ -846,15 +987,15 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### H3. Coordinate frame of `click`, `release` and `motion`
 
-**Ruling: S3 (Q4).** Window (app canvas) coordinates for every slot.
+**Ruling: S3, ruled 27 Sep 2026 (Q4)** by the orchestrator; Nick may overrule. `click`, `release` and `motion` report window (app canvas) coordinates for every slot, nested and scrolling ones included. Shoes 3's slot-relative frame inside slots with their own native surface is dropped; no example depends on it.
 
 - **Manual:** silent. The motion example moves an oval by the reported coordinates in an app-level handler (manual 2264-2275), where every frame agrees.
 - **Shoes 3:** the slot's click block gets the `x, y` it was called with (`s3_canvas.c:1056-1061`), and nested slots are called with the same coordinates unless the child canvas has its own origin (`:1045-1051, 1065-1068`). That flag is set only for a child slot drawn on its own native surface (`DC(c->slot) != DC(pc->slot)`, `:445-450, 586-590`), which Shoes 3 gives to scrolling slots; not traced further. Inside such a slot, coordinates are slot-relative. Motion is the same (`:1181-1193`). The app's top slot adds its scroll offset (`:1053-1054`).
 - **Examples:** almost every coordinate reader binds at app level (`minesweeper.rb:256`, `tankspank.rb:362`, `othello.rb:304`, `curve-control-point.rb:33`, `mice-satellites.rb:24`). The one nested reader found, `examples/para_cursor_demo.rb:69-79`, passes x and y to `Para#hit`, which ignores them (`para.rb:232-234`).
 - **Lacci / WV today:** WV computes coordinates relative to `e.currentTarget.getBoundingClientRect()`, that is slot-relative (`wv/subscription_item.rb:66-100`).
-- **Spec:** app-level `click` reports window coordinates (every model agrees). The nested case (a click at window (150, 120) on a stack placed at (100, 100) reports (150, 120)) is written, tagged `ledger: H3`, and waits on Q4.
-- **Native:** DESIGN 4.3 gives drawable clicks window coordinates, and SubscriptionItem `click`/`release`/`motion` "x/y relative to the item's parent slot".
-- **DESIGN conflict:** the SubscriptionItem rule is WV's frame, not Shoes 3's.
+- **Spec:** app-level `click` reports window coordinates (every model agrees; every existing coordinate case sits at the window origin). `events.click__nested_window_coords`: a click at window (150, 40) on a stack placed at (100, 0) reports (150, 40). `expect: fail` on native until wire contract (g) lands.
+- **Native:** DESIGN 4.3 gives drawable clicks window coordinates, and SubscriptionItem `click`/`release`/`motion` "x/y relative to the item's parent slot". **Wire contract (g), 27 Sep 2026:** SubscriptionItem `click`/`release`/`motion` coordinates are window coordinates.
+- **DESIGN conflict:** DESIGN 4.3's SubscriptionItem rule is WV's frame; the ruling and contract (g) replace it.
 
 ### H4. The extra `mods` argument
 
@@ -904,9 +1045,28 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Manual:** `start { |self| }` fires "The first time the slot is drawn"; `finish { |self| }` fires on removal (manual 2195-2198, 2286-2289). See M26 for App `start` against `started?`.
 - **Shoes 3:** `start` is a slot method (`s3_canvas.c:974-988`), sent after the first paint (`:180`, `:990-1016`); `finish` receives the slot (`:1030-1036`); `keydown`/`keyup` exist (`:950-952`).
 - **Shoes 4:** adds `keyrelease` and `resize` (`s4_dsl_interaction.rb:32-35, 78-81`).
-- **Lacci today:** `start` exists only on App and runs after the body with no argument (`app.rb:146-159`); `finish` on Slot fires on destroy with no argument (`slot.rb:209-219`, commit `1ce13b0`). No `keydown`, `keyup`, `keyrelease`, `resize`.
+- **Lacci today:** `start` exists only on App and runs after the body with no argument (`app.rb:146-159`); `finish` on Slot fires on destroy with no argument (`slot.rb:209-219`, commit `1ce13b0`). No `keydown`, `keyup`, `keyrelease`, `resize`. Worse than a missing argument: `finish { }` written inside a slot's block runs against the App (B1) and raises `NoMethodError` at load time (the events writer's report).
 - **Spec:** `stack { start { |s| $started = s } }` sets `$started` to the stack after the first frame; `finish { |s| }` gets the slot on `clear`.
 - **Native:** the pump dispatches the first `heartbeat` after the first frame; `start` should hang off that point (DESIGN 5.4).
+
+### H9. Slot event handlers survive `clear`
+
+**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, unscheduled.** New row, requested by the events writer.
+
+- **Manual:** the hover/leave example clears its own stack in both handlers, and the background turns blue on hover and red again on leave (manual 2167-2185). That only works if `clear` leaves the handlers in place.
+- **Shoes 3:** a slot's handlers live in its style hash (`EVENT_HANDLER`, `s3_canvas.c:934-944`), and `clear` walks only `contents` (`:759-775`).
+- **Lacci today:** slot event methods make a SubscriptionItem child of the slot (`app.rb:414-422`), and `clear` destroys every child (`drawables/slot.rb:263-265`), so the first hover's `clear` removes the leave handler and the stack stays blue.
+- **Spec:** `events.hover_leave_example__back_to_red`: hover, then leave, and the stack is red again.
+- **Native:** SubscriptionItems are doc nodes under the slot; once Lacci stops destroying them, the shim sends no `destroy` and Rust keeps routing to them.
+
+### H10. Hotkeys the manual reserves for the console
+
+**Ruling: OOS.** New row, requested by the events and app writers.
+
+- **Manual:** "Alt-Period (`:alt_.`), Alt-Question (`:alt_?`) and Alt-Slash (`:alt_/`) are reserved for Shoes" (manual 2239-2240); Alt-/ (Cmd-/ on OS X) opens the Shoes console (manual 721-722, 843-844).
+- **Scarpe:** has no console window; the log built-ins go to the Shoes log (K3). Nothing reserves these keys, so an app receives them like any other.
+- **Spec:** no case. `events.keypress.reserved_hotkeys` and `builtins.console_hotkey` stay in their `UNTESTABLE.md`.
+- **Native:** sends them to `keypress` like any other key.
 
 ## I. Timers
 
@@ -921,7 +1081,19 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Lacci / WV today:** WV defaults to 10 fps (`wv/subscription_item.rb:24`) but pre-increments, so the first frame and the first count are **1** (`:25-39`); Lacci calls the `timer` block with nothing (`subscription_item.rb:33-36`); every callback fires twice (X1).
 - **Spec:** the first `animate` frame is 0 and frames increase by 1; `animate` with no fps ticks about 10 times per `advance(1)`; the first `every` count is 0; `timer(0.1)` fires exactly once.
 - **Native:** the Ruby pump owns timers (DESIGN 5.4).
-- **DESIGN conflict:** DESIGN 5.4 says "every (count starts at 1)". Shoes 3 and Shoes 4 both start at 0, the manual is silent, and no example depends on it.
+- **Wire contract (f), 27 Sep 2026:** `every`'s count starts at 0, and `animate`'s first frame is 0.
+- **DESIGN conflict:** DESIGN 5.4 says "every (count starts at 1)". Shoes 3 and Shoes 4 both start at 0, the manual is silent, no example depends on it, and contract (f) settles it at 0.
+
+### I2. `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer`
+
+**Ruling: MANUAL** (Shoes 3 agrees). **Lacci change, unscheduled.** New row, requested by the events and elements writers.
+
+- **Manual:** "Shoes contains three timer classes: the Animation class, the Every class and the Timer class" (manual 3411-3413); `animate » Shoes::Animation`, `every » Shoes::Every`, `timer » Shoes::Timer` (manual 1877, 1989, 2111).
+- **Shoes 3:** `Animation`, `Every` and `Timer` subclass `TimerBase` (`s3t_timerbase.c:11-22`), and `animate`, `every` and `timer` make one each (`:131-153`).
+- **Shoes 4:** `Shoes::Animation` and `Shoes::Timer`; `every` is an Animation (`s4_dsl_animate.rb:21-45`).
+- **Lacci today:** all three return a `Shoes::SubscriptionItem` (`app.rb:414-422`, `drawables/subscription_item.rb:17`); none of the three classes exists.
+- **Spec:** `timers.classes`, `element.animate__returns_animation`, `element.every__returns_every`, `element.timer__returns_timer`.
+- **Native:** **wire contract (e), 27 Sep 2026:** if Lacci adds `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer` as SubscriptionItem subclasses, they still announce themselves to the display as `"SubscriptionItem"`, so neither Rust nor the shim changes.
 
 ## J. Navigation
 
@@ -932,7 +1104,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Manual:** only `visit(url)` and `location()` (manual 980-982, 1012-1018); no `url` entry; "When you switch URLs, a new App object is created" (manual 848-849, see M29).
 - **Shoes 3 / Shoes 4:** class-level `url` on `class Foo < Shoes`. Shoes 4 anchors the page string as `/^page$/`, passes one capture, and makes a fresh instance of the class per visit (`s4_url.rb:4-43`); `visit` clears the app and sets `location` (`s4_dsl_interaction.rb:97-107`).
 - **Examples:** `examples/url_routing_example.rb` (instance-level), `examples/shoes_subclass_app.rb`, `examples/internal_link_navigation.rb` (pages plus `link(click: "/page2")`); 7 files use `url`, 9 use `visit`.
-- **Lacci today:** both class-level (`lacci/lib/shoes.rb:98-114`, copied onto the app through `pending_app_class`, `:152-190`) and instance-level `url` inside `Shoes.app` (`app.rb:401-409`); strings containing `(` become regexes; all captures are passed; an unknown URL prints `Error: URL '...' not found` (`app.rb:364-399`); `"/"` renders on first boot when routed to `:index` (`app.rb:598-604`). Scarpe-only `page(:name) { }` with `visit(:name)` (`app.rb:355-362`, `docs/SCARPE_FEATURES.md:15-38`). No `location`.
+- **Lacci today:** both class-level (`lacci/lib/shoes.rb:98-114`, copied onto the app through `pending_app_class`, `:152-190`) and instance-level `url` inside `Shoes.app` (`app.rb:401-409`); strings containing `(` become regexes; all captures are passed; an unknown URL prints `Error: URL '...' not found` (`app.rb:364-399`); `"/"` renders on first boot only when it is routed to `:index` (`app.rb:598-604`), so an app that routes `"/"` to another method shows nothing until it visits. Scarpe-only `page(:name) { }` with `visit(:name)` (`app.rb:355-362`, `docs/SCARPE_FEATURES.md:15-38`). No `location`.
 - **Spec:** after `visit "/about"`, the `/about` handler's content is shown and `location == "/about"`. Nothing about App identity across visits.
 - **Native:** nothing special: a visit is a `clear` plus new creates.
 
@@ -944,14 +1116,14 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### K1. What `ask` returns on Cancel, and its options
 
-**Ruling: S3 (Q6).** `nil` on Cancel in `core`; `""` stays as a documented Scarpe compatibility shim until Q6 is answered. Accept `secret:` and `title:`. **Needs fix 10.6.**
+**Ruling: MANUAL, ruled 27 Sep 2026 (Q6)** by the orchestrator; Nick may overrule. `ask` returns `""` when the user cancels: the manual promises a String (manual 629-641), and Nick's commit `6ce3d28` chose `""` on purpose so legacy scripts can compare the answer. Shoes 3's `nil` loses. Accept `secret:` and `title:`. **Needs fix 10.6.**
 
 - **Manual:** `ask(message)` returns a string (manual 629-641); `:secret` is "For: ask, edit_line" (manual 1385-1391).
 - **Shoes 3:** `ask(msg, opts)` reads `:title` and `:secret`; the answer starts as `Qnil` and is set only on `GTK_RESPONSE_OK` (`s3_gtk.c:1772-1826`).
 - **Docs:** "Classic Shoes: ask() returned nil on cancel; Scarpe returns """ (`docs/scarpe_shoes_incompatibilities.md:104-107`). Commit `6ce3d28` says the opposite ("Shoes3 likely returned empty string") to stop Hackety Hack's guessing game crashing on `nil.to_i`.
 - **Lacci today:** `ask(message_string)` takes one argument (`builtins.rb:20-22`); WV returns `""` on Cancel; a `nil` answer would trigger the `osascript` fallback (X8).
-- **Spec:** with `stub_dialog(:ask, nil)`, `ask("x")` returns nil and no `osascript` runs; `ask("x", secret: true)` is accepted.
-- **Native:** the dialog reply carries `value` null and `cancelled: true` (DESIGN 4.1); the shim passes nil through once fix 10.6 lands. Headless mode answers `""` today (DESIGN 5.2), which follows Scarpe, not the ruling.
+- **Spec:** the runner answers an unanswered `ask` with `""`, the Cancel answer, and `harness/dialogs_never_open` pins it; no `osascript` runs. `builtins.ask.secret`: `ask("x", secret: true)` is accepted. A stubbed `nil` still comes back as nil (the stub is only a stand-in for a display).
+- **Native:** the dialog reply carries `value` null and `cancelled: true` (DESIGN 4.1); the shim should turn a cancelled `ask` into `""`. Headless mode already answers `""` (DESIGN 5.2).
 
 ### K2. Option hashes on dialogs
 
@@ -963,7 +1135,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 - **Manual:** loggers for the Shoes console; `error` accepts exceptions (manual 719-844).
 - **Lacci today:** `debug`/`info` print `[DEBUG]`/`[INFO]` (`builtins.rb:54-60`), and App aliases both to `puts` (`app.rb:546-547`); `warn` is Ruby's `Kernel#warn`; `error` is undefined, so it raises `NoMethodError` inside an app.
-- **Spec:** each call returns without raising, and the message reaches `Shoes::Log`.
+- **Spec:** each call returns without raising, and the message reaches `Shoes::Log`. The app writer's cases look for the text on stdout or stderr, so they assume `debug` and `info` are not filtered by the log level; a level filter would turn them red.
 - **Native:** nothing; the log is Ruby-side, and Rust `log` messages join it (DESIGN 4.2).
 
 ### K4. `font(path)` returns the family names
@@ -984,6 +1156,16 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Spec:** against a local HTTP server, `finish` fires once with the body and `start` fires before it.
 - **Native:** display updates can arrive from that background thread; DESIGN 5.2 guards writes with a Mutex, which covers it.
 
+### K6. `exit` stops the program at once
+
+**Ruling: MANUAL.** **Lacci change, unscheduled.** New row, requested by the app writer.
+
+- **Manual:** "Stops your program. Call this anytime you want to suddenly call it quits." Ruby's own is reachable as `Kernel.exit` (manual 741-746).
+- **Shoes 3:** `exit` becomes `shoes_app_quit` only through `secret_exit_hook`, which is marked unused (`s3_ruby.c:864-866, 880-882, 909-912`); otherwise it is Ruby's `Kernel#exit`, which stops at once. Not traced further.
+- **Lacci today:** `exit` is an alias of `Shoes.quit` (`lacci/lib/shoes.rb:258-261`, `app.rb:597-602`), which destroys every app and returns, so the rest of the block and the file keep running.
+- **Spec:** `builtins.exit`: in a child program, nothing after `exit` runs, not even the rest of the block, and the program ends cleanly.
+- **Native:** the pump must let a `SystemExit` end the process after telling Rust to `quit`.
+
 ## L. Loader and environment
 
 ### L1. Where app code runs
@@ -996,7 +1178,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### L3. Constants
 
-**Ruling: MANUAL** for the names, values unspecified. The manual lists `Shoes::RELEASE_NAME`, `RELEASE_ID`, `REVISION` (a Subversion revision) and `FONTS` (manual 600-614). Lacci parses them from `CHANGELOG.md` (`changelog.rb:17-50`), sets `REVISION` to a git SHA, and adds `RELEASE_TYPE = "LOOSE_SHOES"`, `VERSION = "0.5.0"`, top-level `::VERSION`, `::ShoesGemJailBreak = true`, `DIR` and `LIB_DIR` (`constants.rb:6-76`). **Spec:** each manual constant is defined. **Native:** nothing.
+**Ruling: MANUAL** for the names, values unspecified. The manual lists `Shoes::RELEASE_NAME`, `RELEASE_ID`, `REVISION` (a Subversion revision) and `FONTS` (manual 600-614). Lacci parses them from `CHANGELOG.md` (`changelog.rb:17-50`), sets `REVISION` to a git SHA, and adds `RELEASE_TYPE = "LOOSE_SHOES"`, `VERSION = "0.5.0"`, top-level `::VERSION`, `::ShoesGemJailBreak = true`, `DIR` and `LIB_DIR` (`constants.rb:6-76`). **Spec:** each manual constant is defined. `REVISION` is blank whenever the app's working directory is not a git checkout, because `changelog.rb` runs `git rev-parse` in the current directory (so it is blank in every spec sandbox). **Native:** nothing.
 
 ### L4. Shoes 3 only widgets
 
@@ -1036,6 +1218,7 @@ These are bugs, not disagreements about Shoes. A new display service inherits ev
 | X17 | `all_drawables` seeds its queue with `[@document_root, @document_root.children]`, so the children Array itself lands in the result. | `app.rb:289-299` | Class-filtered finders hide it; `drawables()` with no filter returns an Array among the drawables. Matters to the spec finders. | spec API | unscheduled |
 | X18 | `download`'s failure path calls `handle_failure(code)` against `def handle_failure(code, logger)`, requires `nokogiri` unconditionally, and runs blocks on a background Thread. | `download.rb:31-125` | Every non-2xx response logs an ArgumentError instead of failing cleanly. | K5 | unscheduled |
 | X19 | Webview subscribes to `full_redraw_request`, `focus` and `scroll_top` with the wrong target (nil against id, or the reverse). | `drawables/slot.rb:243, 267` against `wv/slot.rb:14`; `edit_line.rb:45` against `wv/edit_line.rb:19`; `drawables/stack.rb:29` against `wv/stack.rb:8` | `slot.clear { }` never redraws in Webview; `focus` and `scroll_top` never arrive. The native shim subscribes by id and ignores `full_redraw_request` (DESIGN 5.2). | C5, G9 | WV only |
+| X20 | The draw context's `fill`, `stroke`, `strokewidth`, `rotate`, `transform` and `translate` are copied onto every drawable that declares the style, text blocks and controls included, unless the call supplied it. | `drawable.rb:288, 353-361` | `stroke "#BBB"; button "Expert"` sends `stroke: [187, 187, 187]` on the Button and on later paras (confirmed on the wire): `simple/control-sizes.rb` draws every control in #dde, and minesweeper's buttons turn grey after a redraw. The manual's `stroke` and `fill` colour "any subsequent shape" (manual 1682-1687, 1833-1836). | D8, E10 | unscheduled |
 
 ## M. Manual errata and vague spots
 
@@ -1147,7 +1330,7 @@ M1 to M37 carry the numbers of the contradictions in `native/research/03_manual_
 
 ### M27. Can a click unmark a radio?
 
-**Ruling: S3** (Lacci agrees): a click marks and never unmarks. The manual says clicks are sent "for both marking and unmarking" (manual 3354) and that Enter "toggles" a focused radio (manual 3358-3359), which fights the one-marked-per-group rule. Shoes 3 uses native radio buttons; Lacci's click handler "always check[s] on click (never toggle)" (`radio.rb:27-35`). **Spec:** clicking a marked radio leaves it marked and calls its block once; marking a second radio in the group unmarks the first.
+**Ruling: S3** (Lacci agrees): a click marks and never unmarks. The manual says clicks are sent "for both marking and unmarking" (manual 3354) and that Enter "toggles" a focused radio (manual 3358-3359), which fights the one-marked-per-group rule. Shoes 3 uses native radio buttons; Lacci's click handler "always check[s] on click (never toggle)" (`radio.rb:27-35`). **Spec:** clicking a marked radio leaves it marked and calls its block once; marking a second radio in the group unmarks the first. Whether the unmarked radio's block runs too is G14.
 
 ### M28. `prepend`, `before` and `after` inside handlers
 
@@ -1199,28 +1382,43 @@ M1 to M37 carry the numbers of the contradictions in `native/research/03_manual_
 
 ## Where DESIGN.md disagrees with this ledger
 
-`native/DESIGN.md` says "If the code and this document disagree, fix one of them in the same change." These are the places where DESIGN and a ruling above disagree today. Items 1 to 3 are factual; the rest wait on Nick's answers below.
+`native/DESIGN.md` says "If the code and this document disagree, fix one of them in the same change." These are the places where DESIGN and a ruling above disagree today. Items 1 to 3 are factual; items 4 to 7 were ruled on 27 Sep 2026; item 9 lists the wire contracts DESIGN does not carry yet.
 
 1. **Cmd on macOS (H1).** DESIGN 4.4: "On macOS, Cmd maps to `control_` as well (Shoes 3 did this)". Shoes 3's Cocoa backend maps Cmd to `alt_` (`s3_cocoa.m:287-288, 296-297`), and the examples' Cmd shortcuts are `:alt_q`, `:alt_c`, `:alt_v`.
 2. **`every`'s first count (I1).** DESIGN 5.4: "every (count starts at 1)". Shoes 3 (`s3t_timerbase.c:35, 43-44`) and Shoes 4 (`s4_animation.rb:20`) start at 0.
 3. **Control widths (C4).** DESIGN 6: `list_box 160x28`, `progress 160x14`. The manual: list_box "about 200 pixels wide" (manual 3183), progress "200 pixels wide" (manual 3245).
-4. **Text in a flow (C7, Q2).** DESIGN 6 makes each text block a shrink-to-fit box; the manual and Shoes 3 continue it as one paragraph. The rule is also ambiguous about whether the width cap comes before or after the "does it fit on this row" test.
-5. **Text-block margins (C9, Q3)** and **leading (F10).** DESIGN 6 gives text no default margin and adds `leading` only when given; Shoes 3 uses 4 px margins (12 px bottom) and the manual says leading defaults to 4 px.
-6. **Nested-slot event coordinates (H3, Q4).** DESIGN 4.3 makes SubscriptionItem coordinates parent-relative; Shoes 3 uses window coordinates.
-7. **Default window (A1, Q1).** DESIGN 6 names Lacci's 480x420 default; Shoes 3 and Shoes 4 use 600x500.
-8. **Smaller points.** DESIGN 6's Float rule says "between 0 and 1 exclusive" and "1.0 = 100%" in the same breath; Shoes 3 treats every Float as a fraction (C1). DESIGN 6 does not mention `right`/`bottom` (C10). DESIGN 5.2's headless `ask` answers `""`, while K1 rules nil.
+4. **Text in a flow (C7, ruled with Q2).** DESIGN 6 makes each text block a shrink-to-fit box; the ruling continues it as one paragraph. The rule is also ambiguous about whether the width cap comes before or after the "does it fit on this row" test.
+5. **Text-block margins (C9, ruled with Q3)** and **leading (F10).** DESIGN 6 gives text no default margin and adds `leading` only when given; the ruling uses Shoes 3's 4 px margins (12 px bottom) and the manual says leading defaults to 4 px.
+6. **Nested-slot event coordinates (H3, ruled with Q4).** DESIGN 4.3 makes SubscriptionItem coordinates parent-relative; the ruling and contract (g) use window coordinates.
+7. **Default window (A1, ruled with Q1).** DESIGN 6 names Lacci's 480x420 default; the ruling follows Shoes 3 and Shoes 4 to 600x500.
+8. **Smaller points.** DESIGN 6's Float rule says "between 0 and 1 exclusive" and "1.0 = 100%" in the same breath; Shoes 3 treats every Float as a fraction (C1). DESIGN 6 does not mention `right`/`bottom` (C10), nor that a fixed height clips (C13). DESIGN 4.1's `ask` reply is `null` on Cancel; the shim must hand Lacci `""` (K1).
+9. **Wire contracts from 27 Sep 2026.** (a) the `layout` push (A4, C5); (b) `translate`, `transform` and `cap` in the draw context (E10); (c) the `image(w, h) { }` canvas (E9); (d) `underline`/`strikethrough` `"none"` (F7); (e) timer classes announced as `SubscriptionItem` (I2); (f) `every` from 0 and `animate` from frame 0 (I1); (g) window coordinates for SubscriptionItem mouse events (H3). DESIGN sections 4 to 6 and 12 should gain them.
 
-## Questions for Nick
+## Rulings on the questions (27 Sep 2026)
 
-The evidence is balanced on each of these, so the rows above carry a provisional ruling and the spec cases that depend on the answer are written but tagged with the row. One answer settles each.
+The evidence was balanced on each of these, so v1 asked Nick. The orchestrator ruled all seven on 27 Sep 2026; Nick may overrule any of them, and his answer then replaces the ruling in the row. Each question is kept as it was asked, with the ruling under it.
 
 - **Q1 (A1).** Should an app with no size open at **600x500 titled "Shoes"**, as Shoes 3 and Shoes 4 both do, or stay at Scarpe's **480x420 "Shoes!"**? The manual is silent. Changing it moves every snapshot of every example that does not pass a size (about 70% of them).
+
+  **Ruled:** 600x500 titled "Shoes" (A1).
 - **Q2 (C7).** Two `para`s side by side in a flow: should the second **continue the first as one paragraph**, its later lines wrapping back to the flow's left edge (manual 1610-1612 and Shoes 3), or be **its own box** beside or below the first (Webview today, DESIGN 6)? Single-line paras look the same either way. The paragraph model needs a first-line indent in the text layout.
+
+  **Ruled:** one paragraph. A text block after other inline content starts at the current x (first-line indent), and its later lines wrap back to the flow's left edge (C7).
 - **Q3 (C9).** Should text blocks get Shoes 3's **default margins (4 px, 12 px below)**, or Webview's **zero**? Shoes 3 examples were written with the gap; Scarpe-authored examples were written without it.
+
+  **Ruled:** Shoes 3's margins, 4 px, 12 px below (C9).
 - **Q4 (H3).** When a stack nested at (100, 100) has its own `click` handler, should a click at window (150, 120) report **(150, 120)** (Shoes 3) or **(50, 20)** (Webview, DESIGN 4.3)? No example found depends on either.
+
+  **Ruled:** (150, 120), window coordinates (H3, wire contract g).
 - **Q5 (H1).** On a Mac, should **Cmd-q arrive as `:alt_q`**, as in Shoes 3 and as the example editors expect, or as `:control_q`, as DESIGN 4.4 says? And should Cmd-Q still quit through the app menu before the app sees it?
+
+  **Ruled:** Cmd arrives as `alt_` (`:alt_q`), like Shoes 3; the default app menu may still quit on Cmd-Q (H1).
 - **Q6 (K1).** When the user cancels `ask`, should it return **nil** (Shoes 3's source) or **""** (your commit `6ce3d28`, which kept Hackety Hack's guessing game alive)?
+
+  **Ruled:** `""`, Nick's deliberate choice (K1).
 - **Q7 (G5), lower priority.** Your commit `eda8975` makes `edit_line.text = "x"` fire `change`, on purpose. Should the spec pin that under `ext-scarpe`, or keep asserting neither?
+
+  **Ruled:** pinned under `ext-scarpe` (G5, `edit_line.text=__fires_change`).
 
 ## Citation check
 
@@ -1246,6 +1444,7 @@ Not re-read, taken from the research reports as written: the Webview and Calzini
 ## Keeping this page honest
 
 - The fetched Shoes 3 and Shoes 4 files live in a session scratchpad (`research/probe06/src/`), not in this repo. Until someone vendors them (for example under `native/research/sources/`), a reader re-checks a citation by fetching `shoes/shoes3@master` or `shoes/shoes4@main` and applying the file-name mapping in "How to read this".
-- When a Lacci fix lands, update the row's "Lacci today" field and the X row, and leave the ruling alone. When Nick answers a question, replace "(Qn)" with the ruling, drop the `ledger:` hold on the spec cases, and move the answer into the row's ruling line with the date.
+- When a Lacci fix lands, update the row's "Lacci today" field and the X row, and leave the ruling alone. If Nick overrules one of the 27 Sep 2026 rulings, replace the ruling line with his answer and its date, and retag the cases that cite the row.
+- Line numbers in rows added on 27 Sep 2026 (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20) are as of commit `36c6282`.
 - New disagreements get the next free id in their area (C13, H9, ...). Ids are never reused or renumbered.
 
