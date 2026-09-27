@@ -1,0 +1,16 @@
+# frozen_string_literal: true
+
+# Boots an app packaged by `scarpe package --native` (docs/native_packaging.md). The launcher
+# (Contents/MacOS/scarpe-launcher) has set up Traveling Ruby, put Scarpe, Lacci and
+# scarpe-components on RUBYLIB, pointed SCARPE_NATIVE_BIN at the Rust binary beside it, and passes
+# the app's file name. This is Contents/Resources/boot.rb, so __dir__ is the bundle's Resources.
+
+# A packaged app knows its display service, whatever the environment it was started from says.
+ENV["SCARPE_DISPLAY_SERVICE"] = "native"
+
+# Precompiled Ruby, when it was compiled for this place and this Ruby. SCARPE_BYTECODE=0 skips it.
+require "scarpe/package/bytecode"
+Scarpe::Package::Bytecode.install(__dir__) unless ENV["SCARPE_BYTECODE"] == "0"
+
+require "scarpe"
+Shoes.run_app(File.join(__dir__, "app", ARGV.fetch(0)))
