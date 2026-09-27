@@ -90,6 +90,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | C11 | `attach: Window` | MANUAL | | |
 | C12 | Paint order: backgrounds are layered elements | MANUAL | | |
 | C13 | A fixed height clips the slot | MANUAL | | |
+| C14 | An explicit width or height includes the margins | open (Q9) | | DESIGN |
 
 ### D. Colours and patterns
 
@@ -505,6 +506,18 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Lacci / WV today:** WV does not clip a fixed-height slot unless it scrolls.
 - **Spec:** `rules.fixed_height_clips`: a stack 100 px high holding a 300 px red stack shows red inside its height and not below it.
 - **Native:** since 27 Sep every slot with a fixed `height` clips what it holds, with or without `scroll: true`, and hit-testing respects the clip (DESIGN 6); `rules.fixed_height_clips` passes on native. Before, DESIGN 6 clipped only with `scroll: true`.
+
+### C14. An explicit width or height includes the margins
+
+**Ruling: open (Q9).** New row, found by the wave 4 native lane looking at example snapshots.
+
+- **Manual:** silent. `:margin` "space[s] an element out from its surroundings" (manual 1298-1309); `:width` says nothing of margins.
+- **Shoes 3:** a given `width` is the margin box: `place->w = PX(attr, width, ...)`, then the content is `place->iw = place->w - (lmargin + rmargin)` and likewise `ih` for `height` (`s3_ruby.c:506, 537, 540`). Slots are placed that way (`s3_canvas.c:468`), and text blocks too (`s3t_textblock.c:125-126`): `para "x", width: 200` wraps its text at 192, inside Shoes 3's 4 px text margins (C9).
+- **Examples:** `legacy/for_playtest/simple/menu1.rb` sets four panels of 170, 140, 140 and 140 px with `margin: 4` in a 600 px window; they fit on one row only if the margins are inside the widths (590 px against 622). 39 lines under `examples/` give an element both a px width and a margin; 17 manual cases do.
+- **Lacci / WV today:** Webview writes CSS `margin`, which always sits outside a CSS `width` (`calzini.rb:148-151`).
+- **Native:** DESIGN 12 (the M1 clarification) makes a px size the border box, with margins outside it; relative sizes already size the margin box, as Shoes 3 does for every size. So menu1's fourth panel wraps below the window.
+- **Spec:** nothing yet. Under S3, `stack width: 100, margin: 10` would be 100 wide in its parent's row with an 80 px content box.
+- **Proposal:** S3, since the manual is silent: a px width or height is the margin box, as relative ones already are. It moves every element that has both, text included, so it wants a ruling before the layout changes.
 
 ## D. Colours and patterns
 
@@ -1430,6 +1443,7 @@ The evidence was balanced on each of these, so v1 asked Nick. The orchestrator r
 
   **Ruled:** pinned under `ext-scarpe` (G5, `edit_line.text=__fires_change`).
 - **Q8 (B7), open, found at the 27 Sep 2026 merge.** Does `clear` stop the timers started inside the slot, as the manual says (manual 2327-2329), or leave them running, as Shoes 3's source does and ten examples that clear the app from inside their own `animate` need? `manip.clear.stops_timers` is `expect: fail` until this is ruled.
+- **Q9 (C14), open, found in wave 4.** Is an explicit `width` (or `height`) the element's **margin box**, margins inside it, as Shoes 3 does for slots and text blocks (`s3_ruby.c:506, 537`, `s3t_textblock.c:125-126`), or its **border box**, margins added outside, as DESIGN 12 and Webview do? The manual is silent. `menu1.rb`'s panels fit a row only under Shoes 3's rule; changing the rule moves every element that has both a px size and a margin.
 
 ## Citation check
 
