@@ -146,6 +146,8 @@ impl RichText {
         self.line_height.to_bits().hash(&mut h);
         self.align.hash(&mut h);
         self.wrap.hash(&mut h);
+        // The shaped text carries the fill to paint, so a new fill must not hit the old entry.
+        self.fill.hash(&mut h);
         width.map(f32::to_bits).hash(&mut h);
         h.finish()
     }
