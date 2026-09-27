@@ -521,3 +521,26 @@ fn word_wrap_never_breaks_a_word() {
     assert_eq!(l.texts[&word].shaped.buffer.layout_runs().count(), 1, "one line, running past the box");
     assert_eq!(l.texts[&chars].shaped.buffer.layout_runs().count(), 2, "wrap: char breaks the word");
 }
+
+#[test]
+fn an_indented_paragraph_counts_characters_from_its_own_text() {
+    // The indent's blank is layout, not text: the dump, Para#hit and the para cursor skip it.
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"width": 300}));
+    s.add("Para", flow, json!({"text_items": ["Short."]}));
+    let long = s.add("Para", flow, json!({"text_items": [LONG]}));
+    let l = s.layout(480.0, 420.0);
+    let tb = &l.texts[&long];
+    assert!(tb.shaped.indent > 0.0);
+    assert_eq!(tb.shaped.text(), LONG);
+    let start = tb.shaped.cursor_at(0);
+    assert_eq!(tb.shaped.char_index(start), 0);
+    let (caret_x, _, _) = crate::paint::text::caret_position(&tb.shaped.buffer, start).expect("a caret");
+    assert!((caret_x - tb.shaped.indent).abs() < 0.5, "character 0 sits after the indent: {caret_x}");
+    let run = tb.shaped.buffer.layout_runs().next().unwrap();
+    let first = run.glyphs.iter().find(|g| g.metadata != crate::text::shape_cache::INDENT_META).unwrap();
+    let hit = crate::input::char_at(tb, tb.x + first.x + 1.0, tb.y + run.line_y - 3.0);
+    assert_eq!(hit, Some(0), "Para#hit on the first letter is character 0");
+    let end = tb.shaped.cursor_at(LONG.chars().count());
+    assert_eq!(tb.shaped.char_index(end), LONG.chars().count());
+}
