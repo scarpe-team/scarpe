@@ -5,10 +5,16 @@ use super::rich::{Align, RichText, Underline, WrapMode};
 use crate::props::Id;
 use crate::style::Color;
 use cosmic_text::{
-    Attrs, Buffer, Cursor, Ellipsize, EllipsizeHeightLimit, Family, FontSystem, Metrics, Shaping, Style, UnderlineStyle, Weight, Wrap,
+    Attrs, Buffer, Cursor, Ellipsize, EllipsizeHeightLimit, Family, FeatureTag, FontFeatures, FontSystem, Metrics, Shaping, Style, UnderlineStyle,
+    Weight, Wrap,
 };
+use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
+
+/// Synthesised small capitals are capitals this much smaller than the text: about the height of
+/// its lower-case letters.
+const SMALL_CAPS_SCALE: f32 = 0.78;
 
 /// What paint and hit-testing need to know about one styled run, found
 /// through `LayoutGlyph::metadata - 1`.
@@ -47,6 +53,9 @@ pub struct ShapedText {
     /// How far left and right the glyphs' boxes reach, in buffer coordinates. Tight negative
     /// `kerning` pulls glyphs left of 0 and past `width`.
     pub ink: (f32, f32),
+    /// The app's own text, when the buffer shapes other letters for it (synthesised small
+    /// capitals shape capitals for lower-case letters, one for one).
+    written: Option<Rc<str>>,
 }
 
 /// The metadata of the blank that makes a first-line indent. It maps to no SpanMeta, so the
@@ -76,6 +85,9 @@ impl ShapedText {
 
     /// The text as the app gave it, lines joined by newlines.
     pub fn text(&self) -> String {
+        if let Some(written) = &self.written {
+            return written.to_string();
+        }
         let text = self.buffer.lines.iter().map(|l| l.text()).collect::<Vec<_>>().join("\n");
         text.chars().skip(self.lead()).collect()
     }
@@ -217,11 +229,20 @@ fn shape(fs: &mut FontSystem, rich: &RichText, width: Option<f32>, indent: f32, 
             color: run.style.color,
         })
         .collect();
-    let mut spans: Vec<(&str, Attrs)> = Vec::with_capacity(rich.runs.len() + 1);
+    let mut pieces: Vec<(Cow<str>, Attrs)> = Vec::with_capacity(rich.runs.len() + 1);
     if indent > 0.0 {
-        spans.push((" ", indent_attrs(&rich.runs[0], indent, rich)));
+        pieces.push((Cow::Borrowed(" "), indent_attrs(&rich.runs[0], indent, rich)));
     }
-    spans.extend(rich.runs.iter().enumerate().map(|(i, run)| (run.text.as_str(), attrs_for(run, i + 1, rich, optical_tracking))));
+    for (i, run) in rich.runs.iter().enumerate() {
+        let attrs = attrs_for(run, i + 1, rich, optical_tracking);
+        if run.style.small_caps {
+            small_caps(fs, run, attrs, rich, &mut pieces);
+        } else {
+            pieces.push((Cow::Borrowed(run.text.as_str()), attrs));
+        }
+    }
+    let written = pieces.iter().any(|(text, _)| matches!(text, Cow::Owned(_))).then(|| Rc::from(rich.plain_text()));
+    let spans: Vec<(&str, Attrs)> = pieces.iter().map(|(text, attrs)| (text.as_ref(), attrs.clone())).collect();
     let defaults = Attrs::new().family(Family::SansSerif);
     buffer.set_rich_text(spans, &defaults, Shaping::Advanced, Some(align));
     buffer.shape_until_scroll(fs, false);
@@ -238,7 +259,49 @@ fn shape(fs: &mut FontSystem, rich: &RichText, width: Option<f32>, indent: f32, 
         h = rich.line_height;
     }
     let height = (h - rich.leading).max(1.0);
-    ShapedText { buffer: Rc::new(buffer), width: w, height, top: -rich.leading / 2.0, metas: Rc::new(metas), indent, ink }
+    ShapedText { buffer: Rc::new(buffer), width: w, height, top: -rich.leading / 2.0, metas: Rc::new(metas), indent, ink, written }
+}
+
+/// A run in small capitals (`variant: "smallcaps"`, manual 1511-1519): the face's own when it has
+/// them (OpenType `smcp`), else lower-case letters drawn as capitals SMALL_CAPS_SCALE of the size.
+/// A letter keeps one character either way, so indexes into the text still hold.
+fn small_caps<'a>(fs: &mut FontSystem, run: &'a super::rich::Run, attrs: Attrs<'a>, rich: &RichText, pieces: &mut Vec<(Cow<'a, str>, Attrs<'a>)>) {
+    if has_small_caps(fs, &attrs) {
+        let mut features = FontFeatures::new();
+        features.enable(FeatureTag::SMALL_CAPS);
+        pieces.push((Cow::Borrowed(run.text.as_str()), attrs.font_features(features)));
+        return;
+    }
+    let smaller = attrs.clone().metrics(Metrics::new((run.style.size * SMALL_CAPS_SCALE).max(1.0), run_line_height(&run.style, rich)));
+    let mut lowered: Option<(String, bool)> = None;
+    for c in run.text.chars() {
+        let mut upper = c.to_uppercase();
+        let (shown, small) = match (upper.next(), upper.next()) {
+            (Some(capital), None) if c.is_lowercase() => (capital, true),
+            _ => (c, false),
+        };
+        match lowered.as_mut() {
+            Some((text, was_small)) if *was_small == small => text.push(shown),
+            _ => {
+                if let Some((text, was_small)) = lowered.replace((shown.to_string(), small)) {
+                    pieces.push((Cow::Owned(text), if was_small { smaller.clone() } else { attrs.clone() }));
+                }
+            }
+        }
+    }
+    if let Some((text, small)) = lowered {
+        pieces.push((Cow::Owned(text), if small { smaller } else { attrs }));
+    }
+}
+
+/// Whether the face `attrs` asks for has small capitals of its own (OpenType `smcp`).
+fn has_small_caps(fs: &mut FontSystem, attrs: &Attrs) -> bool {
+    let query = cosmic_text::fontdb::Query { families: &[attrs.family], weight: attrs.weight, stretch: attrs.stretch, style: attrs.style };
+    let Some(id) = fs.db().query(&query) else { return false };
+    let Some(font) = fs.get_font(id, attrs.weight) else { return false };
+    let smcp = swash::tag_from_bytes(b"smcp");
+    let has = font.as_swash().writing_systems().any(|system| system.features().any(|feature| feature.tag() == smcp));
+    has
 }
 
 /// The blank that stands in for a first-line indent: the first run's face, so no font

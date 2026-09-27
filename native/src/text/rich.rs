@@ -59,6 +59,8 @@ pub struct TextStyle {
     pub link: Option<Id>,
     /// Links recolour on hover unless the app gave them a colour.
     pub explicit_color: bool,
+    /// `variant: "smallcaps"` (manual 1511-1519, ledger F4): lower-case letters as small capitals.
+    pub small_caps: bool,
 }
 
 impl TextStyle {
@@ -78,6 +80,7 @@ impl TextStyle {
             highlight: None,
             link: None,
             explicit_color: false,
+            small_caps: false,
         }
     }
 
@@ -96,6 +99,7 @@ impl TextStyle {
         self.highlight.hash(h);
         self.link.hash(h);
         self.explicit_color.hash(h);
+        self.small_caps.hash(h);
     }
 }
 
@@ -324,6 +328,9 @@ pub fn apply_text_props(style: &mut TextStyle, props: &Props, fonts: &Fonts) {
     }
     if let Some(r) = props.f32("rise") {
         style.rise = r;
+    }
+    if let Some(variant) = props.str("variant").or_else(|| props.str("font_variant")) {
+        style.small_caps = matches!(variant.to_ascii_lowercase().as_str(), "smallcaps" | "small-caps" | "small_caps");
     }
 }
 

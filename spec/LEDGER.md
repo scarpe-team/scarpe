@@ -781,16 +781,16 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 - **Manual:** `:weight` names from `ultralight` (200) to `heavy` (900), or a number (manual 1521-1537); `:variant` is `"normal"` or `"smallcaps"` (manual 1511-1519); `:font` is a Pango description `"[FAMILY-LIST] [STYLE-OPTIONS] [SIZE]"` (manual 1212-1224).
 - **Examples:** `weight:` in 4 files (`"bold"`, `"ultrabold"`, `"strong"`).
-- **Lacci / WV today:** Para declares `:weight`, but Calzini only renders `font_weight` (`calzini/para.rb:47`), so `weight: "bold"` shows normal. `variant:` is not a style and is dropped with a warning. `FontHelper#parse_font` knows CSS names only (`font_helper.rb:15-18`). Since the wave-4 Lacci lane text blocks and text fragments keep `variant:` as a style and send it; the native display does not draw small capitals yet, so `styles.variant.normal` and `.smallcaps` stay `expect: fail` on native.
+- **Lacci / WV today:** Para declares `:weight`, but Calzini only renders `font_weight` (`calzini/para.rb:47`), so `weight: "bold"` shows normal. `variant:` is not a style and is dropped with a warning. `FontHelper#parse_font` knows CSS names only (`font_helper.rb:15-18`). Since the wave-4 Lacci lane text blocks and text fragments keep `variant:` as a style and send it.
 - **Spec:** `para "x", weight: "bold"` lays out wider than `para "x"`.
-- **Native:** maps weight names to numeric weights and parses the Pango-style font string (family list, style words, size).
+- **Native:** maps weight names to numeric weights and parses the Pango-style font string (family list, style words, size). Since wave 5 (27 Sep 2026) `variant: "smallcaps"` draws small capitals: the face's own (OpenType `smcp`) when it has them, else lower-case letters as capitals at 0.78 of the size (the bundled Inter has none), so `styles.variant.normal` and `.smallcaps` pass on native.
 
 ### F5. Text styles Lacci drops
 
 **Ruling: MANUAL.** **Lacci change, done 27 Sep 2026.**
 
 - **Manual:** `:leading` (manual 1282-1286, see F10), `:justify` (1268-1273), `:rise` (1366-1373), `:stretch` (1423-1434), `:strikecolor` (1436-1441), `:undercolor` on Para (1489-1494).
-- **Lacci / WV today:** none are Para styles (`para.rb:6-36`); they hit the "Unexpected non-style keyword" warning (`drawable.rb:385-388`). TextDrawable has `:undercolor` (`text_drawable.rb:15`). Calzini already renders `rise`, `strikecolor` and `undercolor` when present (`calzini/para.rb:43-50, 79-82`). Since the wave-4 Lacci lane Para declares all six (colours through `to_rgb`, as its stroke), and text fragments `justify`, `rise`, `stretch` and `strikecolor` besides their `undercolor`. The native display draws all but `stretch`, so the four `styles.stretch` visual cases stay `expect: fail` on native.
+- **Lacci / WV today:** none are Para styles (`para.rb:6-36`); they hit the "Unexpected non-style keyword" warning (`drawable.rb:385-388`). TextDrawable has `:undercolor` (`text_drawable.rb:15`). Calzini already renders `rise`, `strikecolor` and `undercolor` when present (`calzini/para.rb:43-50, 79-82`). Since the wave-4 Lacci lane Para declares all six (colours through `to_rgb`, as its stroke), and text fragments `justify`, `rise`, `stretch` and `strikecolor` besides their `undercolor`. The native display draws all but `stretch`, so the four `styles.stretch` visual cases stay `expect: fail` on native: cosmic-text varies only a font's weight axis, not its width, and the bundled fonts have no condensed or expanded faces (checked in wave 5).
 - **Spec:** each style is accepted without a warning and reads back through `style`; `leading` and `rise` change layout.
 - **Native:** honours them once Lacci sends them.
 
