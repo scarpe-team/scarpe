@@ -31,4 +31,11 @@ class SandboxTest < Minitest::Test
       assert_equal File.join(sandbox.root, "cache"), env["SCARPE_NATIVE_CACHE"]
     end
   end
+
+  def test_the_renderer_names_itself_inside_the_sandbox
+    Dir.mktmpdir do |parent|
+      sandbox = SpecSuite::Sandbox.new(parent, "case")
+      assert_equal File.join(sandbox.root, "renderer.pid"), sandbox.env("native")["SCARPE_NATIVE_PID_FILE"]
+    end
+  end
 end

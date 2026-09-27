@@ -196,7 +196,23 @@ module Scarpe::Native
     def start_child
       started = Child.start(headless: @headless, ghost: @ghost)
       at_exit { started.close }
+      kill_on_term(started)
       started
+    end
+
+    # TERM means stop now. at_exit gives the child 2 s to quit before it insists, and a harness that
+    # follows its TERM with a KILL a second later never waits that out: a child stuck in layout
+    # then outlived us in its own process group. So TERM ends it at once, then does what it did.
+    def kill_on_term(child)
+      previous = Signal.trap("TERM") do |signo|
+        child.kill!
+        case previous
+        when Proc then previous.arity.zero? ? previous.call : previous.call(signo)
+        when "IGNORE", "SIG_IGN" then nil
+        when "EXIT" then exit
+        else raise SignalException, "TERM"
+        end
+      end
     end
 
     def on_bus(name, target, &handler)

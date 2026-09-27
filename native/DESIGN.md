@@ -311,7 +311,11 @@ An idle pump sleeps. Besides the child's output, the select watches a wake pipe 
 another thread (a download) and Ctrl-C (the pump chains Lacci's INT trap) write to, so nothing
 waits on the timeout (native/PERF.md). Hello goes out without waiting for `ready`. When the loop
 ends the shim sends `quit`, closes the child's stdin and gives it 2 s before TERM and KILL; if the
-child died while an app was still open, it raises `ChildDied`.
+child died while an app was still open, it raises `ChildDied`. A TERM to Ruby ends the child at
+once (its whole process group) before Ruby goes on to die of it, because a child stuck in layout
+never reads that EOF and a harness that follows TERM with KILL never waits out the grace. While the
+child runs, `SCARPE_NATIVE_PID_FILE` (when set) holds its pid, so a harness that had to kill Ruby
+can kill the child's group too: `spec/run` and `rake native_test` do.
 
 ## 6. Layout rules (canonical)
 
@@ -742,6 +746,7 @@ change the code and this list together.
 | `SCARPE_NATIVE_LOG_LEVEL` | `debug`, `info`, `warn` (default; `debug` under `SCARPE_DEBUG`) or `error` |
 | `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept (default: the user's cache directory, 5.3) |
 | `SCARPE_NATIVE_SNAPSHOT_DIR` | where relative `snapshot(name)` paths go (default `spec/results/snapshots`) |
+| `SCARPE_NATIVE_PID_FILE` | a file that holds the child's pid while it runs, for harnesses that may have to kill it (5.4) |
 | `SCARPE_NATIVE_WINDOWED_TESTS` | lets `rake native_test` open real windows, as ghosts |
 | `SCARPE_NATIVE_STATS` | a directory: each process writes where its time went (`ruby.json`, `rust.json`) as it exits (native/PERF.md) |
 | `SCARPE_NATIVE_DAMAGE` | `off` repaints every window frame whole; `check` also paints each one whole and reports any pixel a partial repaint got wrong (headless too) |

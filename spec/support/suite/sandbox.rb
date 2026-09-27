@@ -25,6 +25,7 @@ module SpecSuite
     def work = File.join(root, "work")
     def tmp = File.join(root, "tmp")
     def download_cache = File.join(root, "cache")
+    def renderer_pid_file = File.join(root, "renderer.pid")
     def trap_file = File.join(root, "trapped_commands.txt")
     def clipboard_file = File.join(root, "clipboard.txt")
     def log = File.join(root, "output.log")
@@ -64,6 +65,7 @@ module SpecSuite
         "LOCALAPPDATA" => local_app_data,
         "TMPDIR" => tmp,
         "SCARPE_NATIVE_CACHE" => download_cache,
+        "SCARPE_NATIVE_PID_FILE" => renderer_pid_file,
         "LANG" => ENV.fetch("LANG", "en_US.UTF-8"),
         "BUNDLE_GEMFILE" => File.join(REPO, "Gemfile"),
         "RUBYOPT" => "-r#{BUILTIN_STUB}",
