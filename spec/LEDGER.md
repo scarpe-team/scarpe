@@ -942,7 +942,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** button `focus`: "The button will be highlighted and, if the user hits Enter, the button will be clicked." (manual 2923-2926); radio `focus`, Enter toggles (manual 3356-3359).
 - **Lacci today:** Button has no `focus` (report 03 probe); ListBox, EditBox and EditLine do. Since 27 Sep (`c91ffd6`) Button, Check and Radio have `focus` too, shared with the other controls through `Shoes::Focusable`.
 - **Spec:** `button.focus`, then `press_key "\n"`, fires the click block once.
-- **Native:** accepts `focus` for buttons, checks and radios; Enter or Space on a focused button sends `click`. Enter on a focused check or radio sends nothing yet, so `check.focus` and `radio.focus` stay `expect: fail` on native (the manual's Enter toggles them, manual 3356-3359).
+- **Native:** accepts `focus` for buttons, checks and radios; Enter or Space on a focused button, check or radio sends `click` (since wave 5, 27 Sep 2026; the manual's Enter toggles them, manual 3356-3359), so `check.focus` and `radio.focus` pass on native.
 
 ### G10. `click:` and `change:` styles are the handlers
 

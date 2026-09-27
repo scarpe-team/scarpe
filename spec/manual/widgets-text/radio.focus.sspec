@@ -4,8 +4,6 @@ lines: [3356, 3359]
 testability: interactive
 display: native
 ledger: G9
-expect: fail
-reason: "Lacci focuses the radio (G9), but the native display clicks only a focused button on Enter, not a radio."
 ----------- app code
 Shoes.app do
   stack do
