@@ -263,6 +263,28 @@ fn a_screen_reader_presses_buttons_checks_and_links_as_the_keyboard_does() {
 }
 
 #[test]
+fn a_run_of_text_takes_no_action_and_says_so() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[span(4, "Link", json!({"text_items": ["here"]})), para(3, 2, json!(["Go ", 4]))]));
+    let run = one(&mut h, "paragraph")["children"][0]["id"].clone();
+    let (evs, reply) = act(&mut h, &run, "click", None);
+    assert_eq!(reply["error"], json!("part 0 of 3 takes no action"));
+    assert!(evs.is_empty());
+}
+
+/// The platform tree is AppKit's, read from a window; a headless run has none and says so.
+#[test]
+fn a_headless_run_has_no_platform_tree() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(3, "Button", 2, json!({"text": "Go"}))]));
+    let (_, reply) = h.req(json!({"op": "a11y", "platform": true}));
+    assert!(reply["error"].as_str().unwrap().contains("headless"), "{reply}");
+    let (evs, reply) = h.req(json!({"op": "a11y_action", "platform": true, "name": "Go", "action": "click"}));
+    assert!(reply["error"].as_str().unwrap().contains("headless"), "{reply}");
+    assert!(named(&events(&evs), "click").is_empty());
+}
+
+#[test]
 fn focus_moves_where_a_screen_reader_asks() {
     let mut h = Harness::new();
     h.feed(&app(300, 200, &[create(3, "Button", 2, json!({"text": "A"})), create(4, "EditLine", 2, json!({}))]));
