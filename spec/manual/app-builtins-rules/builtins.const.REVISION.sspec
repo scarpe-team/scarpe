@@ -4,8 +4,6 @@ lines: [611, 611]
 testability: api
 display: any
 ledger: L3
-expect: fail
-reason: "Lacci runs git rev-parse HEAD in the app's working directory, so REVISION is blank when the app lives outside the Scarpe checkout"
 ----------- app code
 Shoes.app { para "revision #{Shoes::REVISION}" }
 ----------- test code

@@ -1197,7 +1197,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### L3. Constants
 
-**Ruling: MANUAL** for the names, values unspecified. The manual lists `Shoes::RELEASE_NAME`, `RELEASE_ID`, `REVISION` (a Subversion revision) and `FONTS` (manual 600-614). Lacci parses them from `CHANGELOG.md` (`changelog.rb:17-50`), sets `REVISION` to a git SHA, and adds `RELEASE_TYPE = "LOOSE_SHOES"`, `VERSION = "0.5.0"`, top-level `::VERSION`, `::ShoesGemJailBreak = true`, `DIR` and `LIB_DIR` (`constants.rb:6-76`). **Spec:** each manual constant is defined. `REVISION` is blank whenever the app's working directory is not a git checkout, because `changelog.rb` runs `git rev-parse` in the current directory (so it is blank in every spec sandbox). **Native:** nothing.
+**Ruling: MANUAL** for the names, values unspecified. The manual lists `Shoes::RELEASE_NAME`, `RELEASE_ID`, `REVISION` (a Subversion revision) and `FONTS` (manual 600-614). Lacci parses them from `CHANGELOG.md` (`changelog.rb:17-50`), sets `REVISION` to a git SHA, and adds `RELEASE_TYPE = "LOOSE_SHOES"`, `VERSION = "0.5.0"`, top-level `::VERSION`, `::ShoesGemJailBreak = true`, `DIR` and `LIB_DIR` (`constants.rb:6-76`). **Spec:** each manual constant is defined. `REVISION` is blank whenever the app's working directory is not a git checkout, because `changelog.rb` runs `git rev-parse` in the current directory (so it is blank in every spec sandbox). Since the wave-4 Lacci lane it asks the Scarpe checkout itself (`git -C`), so `builtins.const.REVISION` passes from any directory; outside a checkout (a packaged app) `REVISION` is nil. **Native:** nothing.
 
 ### L4. Shoes 3 only widgets
 

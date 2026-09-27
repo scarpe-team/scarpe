@@ -17,11 +17,7 @@ class Shoes
     def get_latest_release_info
       root_dir = File.dirname(__FILE__, 4) # this duplicates constants.rb, but how to share?
 
-      git_dir = "#{root_dir}/.git"
-      revision = nil
-      if File.exist?(git_dir)
-        revision = `git rev-parse HEAD`.chomp
-      end
+      revision = git_revision(root_dir)
 
       changelog_file = "#{root_dir}/CHANGELOG.md"
       if File.exist?(changelog_file)
@@ -47,6 +43,19 @@ class Shoes
 
       puts "No release found in CHANGELOG.md"
       { RELEASE_NAME: nil, RELEASE_BUILD_DATE: nil, RELEASE_ID: nil, REVISION: revision }
+    end
+
+    private
+
+    # The checkout's commit, asked of the checkout itself rather than of wherever the
+    # app runs from (ledger L3), or nil outside a git checkout (a packaged app).
+    def git_revision(root_dir)
+      return nil unless File.exist?("#{root_dir}/.git")
+
+      revision = IO.popen(["git", "-C", root_dir, "rev-parse", "HEAD"], err: File::NULL, &:read).chomp
+      revision.empty? ? nil : revision
+    rescue SystemCallError
+      nil
     end
   end
 end
