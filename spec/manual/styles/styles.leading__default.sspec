@@ -4,8 +4,6 @@ lines: [1286, 1286]
 testability: visual
 display: native
 ledger: F10
-expect: fail
-reason: "Para does not declare :leading, so leading: 0 never reaches the display to compare against the default (see styles.leading__accepted)."
 ----------- app code
 Shoes.app width: 400, height: 300 do
   stack width: 300 do

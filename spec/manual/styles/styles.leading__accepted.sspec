@@ -4,8 +4,6 @@ lines: [1282, 1286]
 testability: api
 display: any
 ledger: F5
-expect: fail
-reason: "Para does not declare :leading, so Lacci drops it with a warning (F5, Lacci change unscheduled)."
 ----------- app code
 Shoes.app do
   @it = para "one\ntwo", leading: 8

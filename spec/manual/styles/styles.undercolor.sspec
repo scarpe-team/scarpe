@@ -4,8 +4,6 @@ lines: [1489, 1494]
 testability: visual
 display: native
 ledger: F5
-expect: fail
-reason: "Para does not declare :undercolor, so Lacci drops it before it reaches the display (see styles.undercolor__accepted)."
 ----------- app code
 Shoes.app width: 400, height: 300 do
   flow(margin_bottom: 20) { @text = para "H     H", underline: "single", undercolor: red, size: 30 }

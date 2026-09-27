@@ -7,6 +7,12 @@ class Shoes
     shoes_style(:stroke) { |val, _name| Shoes::Colors.to_rgb(val) }
     shoes_style(:fill) { |val, _name| Shoes::Colors.to_rgb(val) }
 
+    # The manual's text styles (manual 1268-1286, 1366-1373, 1423-1441, 1489-1519;
+    # ledger F4, F5, F10). variant is the manual's name; font_variant stays for Scarpe.
+    shoes_styles :justify, :leading, :rise, :stretch, :variant
+    shoes_style(:strikecolor) { |val, _name| Shoes::Colors.to_rgb(val) }
+    shoes_style(:undercolor) { |val, _name| Shoes::Colors.to_rgb(val) }
+
     # Text cursor system (Shoes3 Para cursor/marker/hit)
     # text_cursor: integer character position of the caret, or nil (no cursor)
     # text_marker: integer character position of the selection anchor, or nil (no selection)

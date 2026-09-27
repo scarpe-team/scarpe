@@ -4,8 +4,6 @@ lines: [1366, 1373]
 testability: api
 display: any
 ledger: F5
-expect: fail
-reason: "Para does not declare :rise, so Lacci drops it with a warning (F5, Lacci change unscheduled)."
 ----------- app code
 Shoes.app do
   @it = para "up", rise: 10
