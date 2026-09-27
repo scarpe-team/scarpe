@@ -167,7 +167,8 @@ Without `x:` and `y:` it aims at the middle of the first window.
 
 Mouse coordinates are window coordinates everywhere: `click_at`, `layout_of`, and the
 `[button, x, y]` a `click`, `release` or `motion` handler receives, nested slots included
-(ledger H3, ruled 27 Sep 2026).
+(ledger H3, ruled 27 Sep 2026; `events.click__nested_window_coords` fails on native until the
+backend follows the ruling).
 
 ## Rules
 
