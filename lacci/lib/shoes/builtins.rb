@@ -59,7 +59,12 @@ module Shoes::Builtins
     puts "[INFO] #{msg}"
   end
 
-  # TO VERIFY OR ADD: gradient, gray, rgb
+  # rgb, gray and gradient are built-ins too, callable from any object (manual
+  # 785-834, ledger D4). Drawables keep their own Shoes::Colors copies, and the named
+  # colours (red, blue...) stay on drawables.
+  def rgb(...) = Shoes.rgb(...)
+  def gray(...) = Shoes.gray(...)
+  def gradient(...) = Shoes.gradient(...)
 
   private
 
