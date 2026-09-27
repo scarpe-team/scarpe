@@ -242,7 +242,7 @@ pub fn with_shader<R>(paint: &Paint, bounds: Rect, images: &mut ImageCache, f: i
 
 /// Skips what cannot show: outside the window or scrolled out of its slot.
 /// Shadows, focus rings and strokes spill a little; rotated art a lot.
-fn on_screen(art: bool, lbox: &crate::layout::LBox, window: Rect) -> bool {
+fn on_screen(node: &crate::doc::Node, lbox: &crate::layout::LBox, window: Rect) -> bool {
     let area = match lbox.clip {
         Some(clip) => match clip.intersect(&window) {
             Some(a) => a,
@@ -251,7 +251,7 @@ fn on_screen(art: bool, lbox: &crate::layout::LBox, window: Rect) -> bool {
         None => window,
     };
     let r = lbox.rect;
-    let slack = if art { r.w.max(r.h) / 2.0 + 8.0 } else { 8.0 };
+    let slack = if node.kind.is_art() { r.w.max(r.h) / 2.0 + 8.0 + shapes::overhang(node) } else { 8.0 };
     Rect::new(r.x - slack, r.y - slack, r.w + 2.0 * slack, r.h + 2.0 * slack).intersect(&area).is_some()
 }
 
@@ -350,7 +350,7 @@ fn paint_node(scene: &mut Scene, canvas: &mut Canvas, id: Id, only: Option<Rect>
     let doc = scene.doc;
     let window = Rect::new(0.0, 0.0, layout.size.0, layout.size.1);
     let (Some(node), Some(lbox)) = (doc.get(id), layout.boxes.get(&id)) else { return };
-    if !on_screen(node.kind.is_art(), lbox, window) {
+    if !on_screen(node, lbox, window) {
         return;
     }
     if only.is_some_and(|region| !damage::may_touch(node, lbox, layout.texts.get(&id), region)) {

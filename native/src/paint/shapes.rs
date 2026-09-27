@@ -141,6 +141,18 @@ fn geometry(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> Option<(Rect
     }
 }
 
+/// How far art draws past its layout box, its stroke aside. A star's box is sized by its outer
+/// radius (as in Shoes 3); an inner radius longer than that puts its points further out.
+pub fn overhang(node: &Node) -> f32 {
+    match node.kind {
+        Kind::Star => {
+            let outer = node.props.f32("outer").unwrap_or(100.0);
+            (node.props.f32("inner").unwrap_or(50.0).abs() - outer).max(0.0)
+        }
+        _ => 0.0,
+    }
+}
+
 pub fn rounded_rect(r: Rect, radius: f32) -> Option<Path> {
     if r.w <= 0.0 || r.h <= 0.0 {
         return None;
