@@ -11,7 +11,7 @@ Status: v1.1, 27 Sep 2026. The orchestrator ruled the seven open questions (Q1 t
 | Tag | Source | Where |
 |---|---|---|
 | Manual | The Shoes manual, `docs/static/manual.md` (3,533 lines). A Markdown copy of Shoes 3's built-in "Policeman"-era manual. Cited as `manual 1716-1722`. | this repo |
-| Shoes 3 | `shoes/shoes3@master` C source (3.3.x). Files are named as fetched: `s3_ruby.c` is `shoes/ruby.c`, `s3t_shape.c` is `shoes/types/shape.c`, `s3_gtk.c` and `s3_cocoa.m` are the GTK and Cocoa backends. | fetched copies in the session scratchpad `research/probe06/src/` (not vendored; see the end of this page) |
+| Shoes 3 | `shoes/shoes3@master` C source (3.3.x). Files are named as fetched: `s3_ruby.c` is `shoes/ruby.c`, `s3t_shape.c` is `shoes/types/shape.c`, `s3_gtk.c` and `s3_cocoa.m` are the GTK and Cocoa backends. | fetched copies in `native/research/sources/` (see the end of this page) |
 | Shoes 4 | `shoes/shoes4@main`, `shoes-core`. `s4_dsl_art.rb` is `shoes-core/lib/shoes/dsl/art.rb`; `s4swt_key_listener.rb` is the SWT key listener. | same folder |
 | Examples | `examples/` (424 `.rb` files). `legacy/working/` means "boots", not "behaves" (see G2). Counts come from report 04's inventory unless marked as a fresh count. | this repo |
 | Lacci / WV | What Scarpe does today: Lacci (`lacci/lib/shoes/`), the Webview display (`lib/scarpe/wv/`) and its Calzini HTML renderer (`scarpe-components/lib/scarpe/components/calzini/`). Line numbers are as of commit `fdcee7a`. Other lanes are fixing Lacci right now, so those numbers will drift. | this repo |
@@ -77,7 +77,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
-| C1 | A Float dimension is a fraction of the parent | MANUAL | | DESIGN |
+| C1 | A Float dimension is a fraction of the parent | MANUAL | | |
 | C2 | `style[:width]` returns what was asked for | MANUAL | | |
 | C3 | Forms of `:margin` | MANUAL | unsched. | |
 | C4 | Default sizes of native controls | MANUAL | | |
@@ -252,7 +252,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** `Shoes::Builtins#shoes_builtin` treats a `nil` answer as "nobody handled it" and falls back to `osascript` for `ask`, `confirm` and the four file/folder dialogs (`builtins.rb:66-105`, macOS only). `alert` and `ask_color` have no fallback and return nil (X8).
 - **Docs:** `docs/scarpe_shoes_incompatibilities.md:44-62, 109-118` says pre-app dialogs are unsupported. Partly stale.
 - **Spec:** a script that calls `confirm` before `Shoes.app`, with the dialog stubbed, receives the stubbed value and never spawns `osascript`.
-- **Native:** the shim must answer a `builtin` even when no App exists yet. DESIGN 5.2 spawns the child lazily on the first DocumentRoot, so a pre-app builtin has no child to ask. The shim should spawn the child on the first `builtin` too (or answer headless stubs), or Lacci pops a real macOS dialog.
+- **Native:** the shim must answer a `builtin` even when no App exists yet. DESIGN 5.2 spawns the child lazily on the first DocumentRoot, so a pre-app builtin has no child to ask. The shim should spawn the child on the first `builtin` too (or answer headless stubs), or Lacci pops a real macOS dialog. Since 27 Sep it does: `lib/scarpe/native.rb` subscribes to `builtin` at require time and switches Lacci's osascript fallback off, headless runs answer quietly, and a windowed dialog spawns the child when it asks (DESIGN 5.1, 5.2).
 
 ### A6. `Shoes.app("/start/url", styles)`
 
@@ -389,7 +389,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** `compute_dimension` handles `"N%"` and negatives but returns Floats unchanged (`drawable.rb:681-700`): `stack(width: 0.5).width == 0.5`. Calzini turns a Float into `"50.0%"` (`calzini.rb:102-115`), so only the Ruby getter is wrong. Since 27 Sep (`32ebbf3`) the getter reads the laid-out size when the display pushes one, and otherwise treats a Float in (0, 1] as a fraction of the parent, as `dim.rs` does.
 - **Spec:** a laid-out `stack(width: 0.5)` reports half its parent's inner width in pixels; `button width: 1.0` spans its slot.
 - **Native:** DESIGN 6.
-- **DESIGN conflict (small):** DESIGN 6 says "Float between 0 and 1 exclusive = fraction ... (1.0 = 100%)", which contradicts itself. Shoes 3 treats every Float as a fraction, including 1.0 and 1.5.
+- **DESIGN conflict (small), resolved 27 Sep:** DESIGN 6 said "Float between 0 and 1 exclusive = fraction ... (1.0 = 100%)", which contradicted itself. It now states what `dim.rs` does: a Float in (0, 1] is a fraction and a Float above 1 is px, where Shoes 3 treats every Float as a fraction, including 1.5. The manual's claims (0.5, 1.0) hold either way.
 
 ### C2. `style[:width]` returns what was asked for
 
@@ -487,7 +487,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Shoes 3:** `attach` of `Window` is window-relative, `Mouse` is cursor-relative, anything else is sticky to that element (`s3_ruby.c:440-447, 459-465`).
 - **Lacci / WV today:** Lacci defines `Window = Shoes::App` (`lacci/lib/shoes.rb:52`), which stringifies to `"Shoes::App"`, and WV matches only `/window/i`, so `attach: Window` does nothing (report 02, 4.3).
 - **Spec:** `stack top: 10, left: 10, attach: Window` inside a nested, scrolled slot lands at window point (10, 10).
-- **Native:** DESIGN 5.3 turns `attach: Shoes::App` into `"window"` and DESIGN 6 places it in window coordinates. Attaching to a drawable id is in the wire format; its layout rule is not in DESIGN 6 yet.
+- **Native:** DESIGN 5.3 turns `attach: Shoes::App` into `"window"` and DESIGN 6 places it in window coordinates. Attaching to a drawable id is in the wire format; since 27 Sep DESIGN 6 writes down what the layout does with it: the element is placed from that drawable's top-left corner, with the window's size as its frame.
 
 ### C12. Paint order: backgrounds are layered elements
 
@@ -1418,7 +1418,7 @@ M1 to M37 carry the numbers of the contradictions in `native/research/03_manual_
 **Ruling: ERRATA.** See B7 (Q8). "Empties the slot of any elements, timers and nested slots" (manual 2327-2329): Shoes 3's `clear` leaves the timers running (`s3_canvas.c:759-781`), and ten examples that clear their own slot from inside `animate` depend on it. **Spec:** `clear` keeps the slot's timers; do not transcribe manual 2327-2329's "timers" as an expectation. Inventory id: `manip.clear.stops_timers`.
 ## Where DESIGN.md disagrees with this ledger
 
-`native/DESIGN.md` says "If the code and this document disagree, fix one of them in the same change." These are the places where DESIGN and a ruling above disagreed. Items marked Resolved were fixed in DESIGN on 27 Sep 2026 and stay listed for the record; item 9 lists the wire contracts DESIGN does not carry yet.
+`native/DESIGN.md` says "If the code and this document disagree, fix one of them in the same change." These are the places where DESIGN and a ruling above disagreed. Items marked Resolved were fixed in DESIGN on 27 Sep 2026 and stay listed for the record. Since the docs pass of the fourth build wave (27 Sep) every item is resolved.
 
 1. **Cmd on macOS (H1, ruled with Q5).** Resolved 27 Sep: DESIGN 4.4 names Cmd `alt_`, as Shoes 3's Cocoa backend did (`s3_cocoa.m:287-288, 296-297`) and as the examples' `:alt_q`, `:alt_c`, `:alt_v` expect.
 2. **`every`'s first count (I1).** Resolved 27 Sep: DESIGN 5.4 and the pump now count from 0, as Shoes 3 (`s3t_timerbase.c:35, 43-44`) and Shoes 4 (`s4_animation.rb:20`) do.
@@ -1427,8 +1427,8 @@ M1 to M37 carry the numbers of the contradictions in `native/research/03_manual_
 5. **Text-block margins (C9, ruled with Q3)** and **leading (F10).** Resolved 27 Sep: DESIGN 6 and the layout give text Shoes 3's 4 px margins (12 px below) and 4 px of leading between lines.
 6. **Nested-slot event coordinates (H3, ruled with Q4).** Resolved 27 Sep: DESIGN 4.3 gives SubscriptionItem `click`, `release` and `motion` window coordinates, as the ruling and contract (g) say.
 7. **Default window (A1, ruled with Q1).** Resolved 27 Sep: DESIGN 6 and Rust fall back to 600x500, as Shoes 3 and Shoes 4 do, and Lacci's own default moved there the same day.
-8. **Smaller points.** DESIGN 6's Float rule says "between 0 and 1 exclusive" and "1.0 = 100%" in the same breath; Shoes 3 treats every Float as a fraction (C1). DESIGN 6 describes `right`/`bottom` (C10) and a fixed height clipping (C13) since 27 Sep. DESIGN 4.1's `ask` reply is `null` on Cancel, and since 27 Sep the shim hands Lacci `""` for it (K1, DESIGN 5.2).
-9. **Wire contracts from 27 Sep 2026.** (a) the `layout` push (A4, C5); (b) `translate`, `transform` and `cap` in the draw context (E10); (c) the `image(w, h) { }` canvas (E9); (d) `underline`/`strikethrough` `"none"` (F7); (e) timer classes announced as `SubscriptionItem` (I2); (f) `every` from 0 and `animate` from frame 0 (I1); (g) window coordinates for SubscriptionItem mouse events (H3). Since 27 Sep DESIGN carries (a) in 4.2, (g) in 4.3, (f) in 5.4, and (b) and (c) in 12. (d) and (e) need no Rust change and DESIGN does not mention them yet.
+8. **Smaller points.** Resolved 27 Sep: DESIGN 6 states the Float rule `dim.rs` follows (C1). It had said "between 0 and 1 exclusive" and "1.0 = 100%" in the same breath; Shoes 3 treats every Float as a fraction. DESIGN 6 describes `right`/`bottom` (C10) and a fixed height clipping (C13) since 27 Sep. DESIGN 4.1's `ask` reply is `null` on Cancel in a window (`""` headless), and the shim hands Lacci `""` for either (K1, DESIGN 4.1 and 5.2).
+9. **Wire contracts from 27 Sep 2026.** (a) the `layout` push (A4, C5); (b) `translate`, `transform` and `cap` in the draw context (E10); (c) the `image(w, h) { }` canvas (E9); (d) `underline`/`strikethrough` `"none"` (F7); (e) timer classes announced as `SubscriptionItem` (I2); (f) `every` from 0 and `animate` from frame 0 (I1); (g) window coordinates for SubscriptionItem mouse events (H3). Since 27 Sep DESIGN carries (a) in 4.2, (g) in 4.3, (f) in 5.4, and (b) and (c) in 12. (d) and (e) need no Rust change; since the docs pass DESIGN 4.5 lists all seven with where each lives. Resolved.
 
 ## Rulings on the questions (27 Sep 2026)
 
@@ -1483,7 +1483,7 @@ Not re-read, taken from the research reports as written: the Webview and Calzini
 
 ## Keeping this page honest
 
-- The fetched Shoes 3 and Shoes 4 files live in a session scratchpad (`research/probe06/src/`), not in this repo. Until someone vendors them (for example under `native/research/sources/`), a reader re-checks a citation by fetching `shoes/shoes3@master` or `shoes/shoes4@main` and applying the file-name mapping in "How to read this".
+- The fetched Shoes 3 and Shoes 4 files are vendored in `native/research/sources/` (MIT, fetched 27 Sep 2026), under the file names this page cites. A reader re-checks a citation there, or against `shoes/shoes3@master` or `shoes/shoes4@main` with the file-name mapping in "How to read this".
 - When a Lacci fix lands, update the row's "Lacci today" field and the X row, and leave the ruling alone. If Nick overrules one of the 27 Sep 2026 rulings, replace the ruling line with his answer and its date, and retag the cases that cite the row.
 - Line numbers in rows added on 27 Sep 2026 (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20) are as of commit `36c6282`.
 - New disagreements get the next free id in their area (C13, H9, ...). Ids are never reused or renumbered.

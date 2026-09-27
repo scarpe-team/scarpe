@@ -7,13 +7,32 @@ straightforward as possible.
 - Added CLAUDE.md for agentic coding assistance
 - Removed bloops as a required dependency - sound is now opt-in (install bloops gem separately if needed)
 - Added base64 gem dependency for Ruby 3.4+ compatibility
+- A native display service: `scarpe --native app.rb` draws with a Rust program (tiny-skia, cosmic-text, winit) instead of a webview, while Lacci and every block stay in Ruby. See docs/native.md and native/DESIGN.md. Dedicated to the late Noah Gibbs.
+- `scarpe peek APP.rb` runs an app headless on the native display, clicks, types, scrolls and saves pictures
+- `scarpe package --native` builds an ad-hoc signed macOS `.app` (and a `.dmg` with `--dmg`) with precompiled Ruby bytecode and no gems
+- The Shoes spec suite (`spec/run`): 978 cases from the manual and Noah Gibbs' Shoes-Spec corpus, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree
+- Lacci: `animate`, `every` and `timer` return `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer`; `Shoes.app`, `window` and `dialog` return the App; methods the manual marks "» self" return self
+- Lacci: `left`, `top`, `width` and `height` read laid-out pixels when the display reports them; slots gain `before`, `after`, `scroll_height`, `scroll_max` and `gutter`; `font(path)` returns the family names in the file
 
 ### Bugs Fixed
 - #569 link(click: "/path") now triggers internal navigation via visit(); paths like "/foo" also fall back to page(:foo) if no URL route matches
 - Support for `class MyApp < Shoes` inheritance pattern with URL routing
 - Fixed background() with remote URLs (now properly wrapped in CSS url())
+- Lacci: `animate`, `every`, `timer`, `hover`, `motion`, `keypress` and slot `click` blocks ran twice per event; now once
+- Lacci: `prepend` kept its children in reverse; `list_box { }` dropped its block and `choose` never told the display; `link(click: proc)` never fired; `click` and `release` on shapes, text and images bound nothing
+- Lacci: `"#abc"` expanded by 16 instead of 17, and `rgb()` now reads each component as Integer or Float on its own
+- Lacci: clearing a slot of 2000 paras took 10 s of unsubscribing; it takes 0.05 s
+- Lacci: a download that got an error response raised ArgumentError instead of logging the response code
+- `scarpe package` took scarpe-components for scarpe, and the webview packager set an environment variable nothing reads
 
 ### Incompatibilities
+- An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
+- `oval(left, top, n)`: `n` is a diameter, as the manual says, not a radius
+- `ins` is an underline fragment, no longer another name for `inscription`
+- Gradients run top to bottom (angle 0) unless given an angle; they used to default to 45
+- `clear` keeps the slot's event handlers and the timers it started, as Shoes 3 does
+- A `list_box` starts with nothing chosen unless `choose:` names an item
+- The draw context's `fill`, `stroke` and `strokewidth` no longer reach text and controls
 
 ## [0.4.0] - 2024-05-06 - Strangers
 
