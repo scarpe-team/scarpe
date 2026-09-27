@@ -4,8 +4,6 @@ lines: [1298, 1306]
 testability: visual
 display: native
 ledger: C9
-expect: fail
-reason: "The native layout gives text blocks no default margin (DESIGN 6); ledger C9 was ruled for Shoes 3's 4 px, 12 px below, on 27 Sep 2026 (Q3)"
 ----------- app code
 Shoes.app width: 400, height: 300 do
   @column = stack width: 300 do

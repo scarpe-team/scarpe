@@ -4,8 +4,6 @@ lines: [2507, 2509]
 testability: visual
 display: native
 ledger: A4
-expect: fail
-reason: Lacci's top reads the :top style (0 when unset); nothing feeds laid-out positions back from the display (ledger A4 covers sizes; positions need a row)
 ----------- app code
 Shoes.app width: 400, height: 300 do
   stack width: 400, height: 30
