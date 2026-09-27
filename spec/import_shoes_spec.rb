@@ -35,7 +35,8 @@ module ShoesSpecImport
   TITLE_FAMILY = "Lacci makes title, subtitle, banner and caption a Para with a :size, so paras() includes them " \
     "and restyling the size loses the banner; the manual gives each its own class (element.title)"
   NETWORK = "needs the network: the asserted text arrives from a download callback"
-  NO_TIMERS = "asserts on what an animate block draws, before any frame; Niente fires no timers"
+  NO_FIRST_FRAME = "asserts on what an animate block draws, but test code runs before the first timer tick " \
+    "on every display (spec/README.md), so nothing has been drawn yet"
 
   # Rulings made after running the import under niente (see the manifest), by source path.
   # drop:   the case is wrong or untestable as written, and the reason says why.
@@ -60,8 +61,8 @@ module ShoesSpecImport
     "scarpe_examples/legacy/for_playtest/shoes3-tests/curl/m3.sspec" => { drop: NETWORK },
 
     "scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/mouse-detection.sspec" =>
-      { expect: { "niente" => "fail" }, reason: NO_TIMERS },
-    "scarpe_examples/legacy/working/simple/clock.sspec" => { expect: { "niente" => "fail" }, reason: NO_TIMERS },
+      { expect: "fail", reason: NO_FIRST_FRAME },
+    "scarpe_examples/legacy/working/simple/clock.sspec" => { expect: "fail", reason: NO_FIRST_FRAME },
     "scarpe_examples/examples/shoes_splorer.sspec" =>
       { expect: "fail", reason: "text fragments such as code() live in their para's text items, not the drawable tree, so codes() finds none" },
     "scarpe_examples/legacy/for_playtest/shoes3-tests/radio/multiple.sspec" =>

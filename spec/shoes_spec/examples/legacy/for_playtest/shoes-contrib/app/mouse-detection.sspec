@@ -4,10 +4,9 @@
 source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/mouse-detection.sspec
 source_commit: 1e766c6
 display: any
-expect:
-  niente: fail
-reason: asserts on what an animate block draws, before any frame; Niente fires no
-  timers
+expect: fail
+reason: asserts on what an animate block draws, but test code runs before the first
+  timer tick on every display (spec/README.md), so nothing has been drawn yet
 ----------- app code
 Shoes.app do
   @p = para
