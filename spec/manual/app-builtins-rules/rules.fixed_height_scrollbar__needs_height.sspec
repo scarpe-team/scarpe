@@ -4,7 +4,8 @@ lines: [354, 355]
 testability: visual
 display: native
 ----------- app code
-Shoes.app do
+# Tall enough that the window never scrolls either, with or without text margins (C9).
+Shoes.app width: 400, height: 800 do
   @box = stack width: 200, scroll: true do
     20.times do |i|
       @last = para "Paragraph No. #{i}"

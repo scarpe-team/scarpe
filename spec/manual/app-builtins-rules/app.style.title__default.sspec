@@ -1,0 +1,14 @@
+---
+manual: app.style.title
+lines: [863, 870]
+testability: api
+display: any
+ledger: A1
+expect: fail
+reason: "Lacci still titles an app with no title \"Shoes!\" (app.rb:43); ledger A1 was ruled \"Shoes\" on 27 Sep 2026 (Q1)"
+----------- app code
+Shoes.app do
+  para "No title was given"
+end
+----------- test code
+assert_equal "Shoes", Shoes.APPS.first.style[:title], "an app with no title is titled Shoes, as in Shoes 3"
