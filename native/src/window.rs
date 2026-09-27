@@ -146,6 +146,9 @@ impl Shell {
             view.dirty = true;
         }
         self.rt.stats.mark("window");
+        if match_frame_colour_space(&window) {
+            self.rt.stats.mark("colour_space_matched");
+        }
         window.request_redraw();
         let id = window.id();
         self.windows.insert(
@@ -347,6 +350,37 @@ impl ApplicationHandler<UserEvent> for Shell {
             None => ControlFlow::Wait,
         });
     }
+}
+
+/// softbuffer hands CoreAnimation DeviceRGB frames. A window in any other colour space makes
+/// CoreAnimation colour-match every frame on the CPU as it commits (2.4 ms of a 2.7 ms present
+/// at 1200x1000, native/PERF.md). In the frame's own colour space the window server does that
+/// conversion while compositing, on the GPU, and the colours on screen are the same.
+#[cfg(target_os = "macos")]
+fn match_frame_colour_space(window: &Window) -> bool {
+    use objc2::runtime::AnyObject;
+    use objc2::{class, msg_send};
+    use winit::raw_window_handle::{HasWindowHandle, RawWindowHandle};
+
+    let Ok(handle) = window.window_handle() else { return false };
+    let RawWindowHandle::AppKit(appkit) = handle.as_raw() else { return false };
+    // SAFETY: winit hands us a live NSView on the main thread; NSView -window and the
+    // NSWindow/NSColorSpace calls below are plain AppKit API with object arguments.
+    unsafe {
+        let view: &AnyObject = appkit.ns_view.cast().as_ref();
+        let ns_window: Option<&AnyObject> = msg_send![view, window];
+        let Some(ns_window) = ns_window else { return false };
+        let device_rgb: *const AnyObject = msg_send![class!(NSColorSpace), deviceRGBColorSpace];
+        let _: () = msg_send![ns_window, setColorSpace: device_rgb];
+        let now: *const AnyObject = msg_send![ns_window, colorSpace];
+        let same: bool = msg_send![now, isEqual: device_rgb];
+        same
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn match_frame_colour_space(_window: &Window) -> bool {
+    false
 }
 
 fn modifiers(state: ModifiersState) -> Modifiers {

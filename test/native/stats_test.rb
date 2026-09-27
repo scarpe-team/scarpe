@@ -61,6 +61,26 @@ class StatsTest < Minitest::Test
     end
   end
 
+  # A real window (inactive, never taking focus), so only with SCARPE_NATIVE_WINDOWED_TESTS=1.
+  def test_a_window_uses_its_frames_colour_space
+    skip_without_real_binary
+    skip "set SCARPE_NATIVE_WINDOWED_TESTS=1 to open real windows" unless ENV["SCARPE_NATIVE_WINDOWED_TESTS"]
+    skip "only macOS colour-matches our frames" unless RUBY_PLATFORM.include?("darwin")
+    Dir.mktmpdir do |stats|
+      env = { "SCARPE_NATIVE_STATS" => stats, "SCARPE_NATIVE_INACTIVE" => "1" }
+      run = run_real(<<~APP, headless: false, env: env, test_code: <<~TEST)
+        Shoes.app { para "In colour" }
+      APP
+        assert_operator wait_frames(3), :>=, 3
+      TEST
+      assert_spec_passed(run)
+
+      rust = JSON.parse(File.read(File.join(stats, "rust.json")))
+      assert rust["marks"].key?("colour_space_matched"), "the window reads back DeviceRGB, the frames' colour space"
+      assert_operator rust["phases"]["present"]["n"], :>=, 3
+    end
+  end
+
   private
 
   def with_stats(dir)
