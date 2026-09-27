@@ -306,6 +306,11 @@ presented frame builds the app's tree and sends only the nodes that changed.
 That is about a fifth of the 2.9 ms a frame of "one ball over 2000 paras" costs, paid only while
 VoiceOver is on. Two runs at load 48 took 1.1 and 4.9 ms a frame.
 
+Creating each window's adapter costs nothing measurable. From `run` to the first frame on screen
+(SCARPE_NATIVE_STATS marks, hello world in a ghost window, six runs of each binary interleaved):
+29.3 to 34.2 ms with the adapter, median 30.0, and 29.4 to 50.3 ms at 98ad233 without it, median
+31.7. The release binary grew from 7.65 MB to 8.08 MB.
+
 ## Running the benchmarks
 
 ```
