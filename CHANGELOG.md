@@ -30,6 +30,10 @@ straightforward as possible.
 - `scarpe package` took scarpe-components for scarpe, and the webview packager set an environment variable nothing reads
 - Lacci: a `stroke` or `fill` set inside a `shape` block never reached that shape
 - Native: nothing on stdin (huge sizes, deep nesting, reparenting loops, lines that are not UTF-8) can crash the renderer or make it allocate without bound
+- Lacci: an app routed with `url "/", :anything` shows that page at boot; it had to be named `:index`
+- Lacci: art can be placed by `right:` and `bottom:` alone, and a rect or oval naming both edges runs between them
+- Lacci: `line`, `arc`, `arrow`, `star` and `shape` take `stroke:` and `fill:` (and `shape` `strokewidth:`) as the manual lists; a border's `strokewidth` reads back as a number; slots answer `respond_to?` for their style methods
+- Native packages read image sizes (`Image#size`, `imagesize`): FastImage is copied in; requiring Lacci no longer runs git
 
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
