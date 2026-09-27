@@ -86,7 +86,7 @@ pub fn run(opts: Options, window_opts: WindowOptions) -> i32 {
         }
     };
     event_loop.set_control_flow(ControlFlow::Wait);
-    let loop_built = std::time::Instant::now();
+    let loop_built = Instant::now();
     let proxy = event_loop.create_proxy();
     std::thread::spawn(move || read_stdin(proxy));
     let mut shell = Shell {
