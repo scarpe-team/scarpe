@@ -1,0 +1,16 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: interactive
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  @first = edit_line
+  @second = edit_line
+end
+----------- test code
+assert_nil focused_drawable
+a11y_action edit_line("@second"), :focus
+assert_equal edit_line("@second").linkable_id, focused_drawable.linkable_id
+focused = a11y_nodes.select { |n| n[:focused] }
+assert_equal [edit_line("@second").linkable_id], focused.map { |n| n[:id] }, "the tree says so too"

@@ -1,0 +1,16 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: interactive
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  @said = para "waiting"
+  @off = button("Off", state: "disabled") { @said.replace "pressed" }
+end
+----------- test code
+node = a11y_nodes.find { |n| n[:role] == "button" }
+assert_equal true, node[:disabled]
+assert_nil node[:actions], "a dimmed button offers nothing"
+assert_raises(Scarpe::Native::AutomationError) { a11y_action button("@off"), :click }
+assert_equal "waiting", para("@said").text

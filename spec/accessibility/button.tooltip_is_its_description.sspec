@@ -1,0 +1,12 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: visual
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  button "Save", tooltip: "Writes the file"
+end
+----------- test code
+node = a11y_nodes.find { |n| n[:role] == "button" }
+assert_equal "Writes the file", node[:description], "read after the name"

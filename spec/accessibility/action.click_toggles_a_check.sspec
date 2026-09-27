@@ -1,0 +1,14 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: interactive
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  @keep = check
+end
+----------- test code
+refute check("@keep").checked?
+a11y_action check("@keep"), :click
+assert check("@keep").checked?, "Lacci toggles it, as for a click"
+assert_equal true, a11y_nodes.find { |n| n[:role] == "check_box" }[:toggled], "and the tree follows"
