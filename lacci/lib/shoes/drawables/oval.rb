@@ -15,8 +15,11 @@ class Shoes
     Shoes::Drawable.drawable_default_styles[Shoes::Oval][:fill] = "black"
     Shoes::Drawable.drawable_default_styles[Shoes::Oval][:stroke] = "black"
 
+    # oval(left, top, diameter) and oval(left, top, width, height): the manual's
+    # third argument, Shoes 3 and Shoes 4 all mean the full width here. Only the
+    # radius: style is a true radius.
     init_args :left, :top
-    opt_init_args :radius, :height
+    opt_init_args :width, :height
     def initialize(*args, **options)
       super # Parse any positional or keyword args
 

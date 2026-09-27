@@ -15,7 +15,7 @@ class Shoes
     include Shoes::Colors
 
     # All Drawables have these so they go in Shoes::Drawable and are inherited
-    @shoes_events = ["parent", "destroy", "prop_change", "hover", "leave", "motion"]
+    @shoes_events = ["parent", "destroy", "prop_change", "hover", "leave", "motion", "click", "release"]
 
     class << self
       attr_accessor :drawable_classes
@@ -94,7 +94,7 @@ class Shoes
         if @shoes_events
           raise Shoes::Errors::DoubleRegisteredShoesEventError, "Registering shoes events #{args.inspect} for class #{self} but already registered events as #{@shoes_events.inspect}!"
         end
-        @shoes_events = args.map(&:to_s) + self.superclass.get_shoes_events
+        @shoes_events = args.map(&:to_s) | self.superclass.get_shoes_events
       end
 
       # Require supplying these Shoes style values as positional arguments to
@@ -783,23 +783,42 @@ class Shoes
 
     # Set the click handler. In Shoes3, all drawables support click events.
     # Returns self for method chaining (Shoes3 convention).
+    # Button, Check, Radio, Link and Image keep their own no-argument click.
     #
-    # @yield A block to be called when the drawable is clicked.
+    # @yield [button, left, top] the mouse button number and where the press happened
     # @return [self]
     def click(&block)
-      @block = block
+      @click_block = block
+      listen_for_pointer("click")
       self
     end
 
     # Set the release handler. In Shoes3, all drawables support release events.
     # Returns self for method chaining (Shoes3 convention).
     #
-    # @yield A block to be called when the mouse button is released over the drawable.
+    # @yield [button, left, top] the mouse button number and where the release happened
     # @return [self]
     def release(&block)
-      @release = block
+      @release_block = block
+      listen_for_pointer("release")
       self
     end
+
+    private
+
+    # Bind the display's click or release event once, and tell the display
+    # with has_click / has_release that presses on this drawable belong here.
+    def listen_for_pointer(event_name)
+      @pointer_events ||= {}
+      return if @pointer_events[event_name]
+
+      @pointer_events[event_name] = bind_self_event(event_name) do |button, left, top, **_kwargs|
+        instance_variable_get("@#{event_name}_block")&.call(button, left, top)
+      end
+      send_shoes_event({ "has_#{event_name}" => true }, event_name: "prop_change", target: linkable_id)
+    end
+
+    public
 
     # We use method_missing to auto-create Shoes style getters and setters.
     def method_missing(name, *args, **kwargs, &block)

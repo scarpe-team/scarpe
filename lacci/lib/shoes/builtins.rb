@@ -66,8 +66,7 @@ module Shoes::Builtins
   def shoes_builtin(cmd_name, *args)
     Shoes::DisplayService.clear_builtin_response
     Shoes::DisplayService.dispatch_event("builtin", nil, cmd_name, args)
-    result = Shoes::DisplayService.consume_builtin_response
-    return result unless result.nil?
+    return Shoes::DisplayService.consume_builtin_response if Shoes::DisplayService.builtin_response?
 
     # No display service handled this (e.g. called before Shoes.app).
     # Fall back to native OS dialogs for commands that support it.

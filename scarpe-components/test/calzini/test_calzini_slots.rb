@@ -60,6 +60,14 @@ class TestCalziniSlots < Minitest::Test
       @calzini.render("stack", { "border_color" => [1.0, 0.0, 0.0, 1.0] }) { "contents" }
   end
 
+  # Lacci colors are four Integers from 0 to 255; CSS alpha is a fraction.
+  def test_stack_border_integer_alpha
+    assert_equal %{<div id="elt-1" } +
+      %{style="#{@stack_base};border-style:solid;border-width:1px;border-radius:0px;border-color:rgba(255, 0, 0, 0.2);position:relative">} +
+      %{#{@stack_inner_div_tag}contents</div></div>},
+      @calzini.render("stack", { "border_color" => [255, 0, 0, 51] }) { "contents" }
+  end
+
   def test_stack_border_attrs
     assert_equal %{<div id="elt-1" } +
       %{style="#{@stack_base};border-style:solid;border-width:3px;border-radius:2px;border-color:red;position:relative">} +

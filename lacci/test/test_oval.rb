@@ -3,11 +3,13 @@
 require_relative "test_helper"
 
 class TestLacciOval < NienteTest
-  # For an oval, the args go left, top, radius, height
+  # For an oval, the positional args go left, top, width, height. The third
+  # argument is the diameter: the manual (manual.md:1716-1722, "a width and
+  # height of `radius` pixels"), Shoes 3 and Shoes 4 agree (research 06, E1).
   def test_simple_oval_values
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
-        oval 5, 10, 25 # circle with radius 25 with its upper-left point at 5, 10
+        oval 5, 10, 50 # circle 50 across with its upper-left point at 5, 10
       end
     SHOES_APP
       ov = oval()
@@ -22,7 +24,7 @@ class TestLacciOval < NienteTest
   def test_oval_with_height
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
-        oval 5, 10, 25, 35 # oval with radius 25, 50 wide, 35 tall
+        oval 5, 10, 50, 35 # oval 50 wide, 35 tall
       end
     SHOES_APP
       ov = oval()
@@ -34,6 +36,7 @@ class TestLacciOval < NienteTest
     SHOES_SPEC
   end
 
+  # The radius: style stays a true radius (manual.md:1348-1354).
   def test_simple_oval_keyword_values
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
@@ -68,7 +71,7 @@ class TestLacciOval < NienteTest
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
         strokewidth 3
-        oval 5, 10, 25
+        oval 5, 10, 50
       end
     SHOES_APP
       ov = oval()

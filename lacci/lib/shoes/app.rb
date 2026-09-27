@@ -459,6 +459,14 @@ class Shoes::App < Shoes::Drawable
     current_slot.prepend(&block)
   end
 
+  def before(drawable, &block)
+    current_slot.before(drawable, &block)
+  end
+
+  def after(drawable, &block)
+    current_slot.after(drawable, &block)
+  end
+
   # Returns the current mouse state as [button, x, y].
   # button is 1 if the left mouse button is held down, 0 otherwise.
   # x and y are the mouse coordinates relative to the app window.

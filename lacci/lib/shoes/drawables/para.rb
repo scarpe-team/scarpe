@@ -310,8 +310,5 @@ class Shoes
     def inscription(*args, **kwargs)
       para(*args, **{ size: :inscription }.merge(kwargs))
     end
-
-    # Alias for inscription (Shoes3 shorthand)
-    alias_method :ins, :inscription
   end
 end

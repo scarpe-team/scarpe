@@ -86,10 +86,6 @@ class Shoes::SubscriptionItem < Shoes::Drawable
       raise "Unknown Shoes event #{shoes_api_name.inspect} passed to SubscriptionItem!"
     end
 
-    @unsub_id = bind_self_event(shoes_api_name) do |*args|
-      @callback&.call(*args)
-    end
-
     # This won't create a visible display drawable, but will turn into
     # an invisible drawable and a stream of events.
     create_display_drawable

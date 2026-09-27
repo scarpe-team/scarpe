@@ -127,7 +127,7 @@ module Scarpe::Components::Calzini
       # Gradient object with angle support
       { "border-image": "linear-gradient(#{bc.angle}deg, #{bc.first}, #{bc.last})" }
     when Array
-      { "border-color": "rgba(#{bc.join(", ")})" }
+      { "border-color": rgba_css(bc) }
     else
       { "border-color": bc }
     end
@@ -144,7 +144,7 @@ module Scarpe::Components::Calzini
 
     color = case bc
     when Array
-      "rgba(#{bc.join(", ")})"
+      rgba_css(bc)
     when Range
       "linear-gradient(45deg, #{bc.first}, #{bc.last})"
     when ->(value) { value.respond_to?(:angle) }
