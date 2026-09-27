@@ -7,6 +7,7 @@ use crate::props::Id;
 use crate::style::Color;
 use crate::text::raster::blit;
 use crate::text::rich::{Underline, INK, LINK_HOVER};
+use crate::text::shape_cache::INDENT_META;
 use crate::text::{ShapedText, SpanMeta, TextEngine};
 use cosmic_text::{Buffer, Cursor, DecorationSpan, LayoutGlyph, LayoutRun};
 use tiny_skia::PathBuilder;
@@ -61,7 +62,7 @@ fn draw_runs(canvas: &mut Canvas, text: &mut TextEngine, buffer: &Buffer, x: f32
             continue;
         }
         draw_highlights(canvas, &run, x, y + half_leading, metas, clip, half_leading);
-        for glyph in run.glyphs {
+        for glyph in run.glyphs.iter().filter(|g| g.metadata != INDENT_META) {
             let meta = meta_of(metas, glyph.metadata);
             let rise = meta.map(|m| m.rise).unwrap_or(0.0);
             let mut color = glyph.color_opt.map(from_cosmic).unwrap_or(default);
@@ -217,20 +218,17 @@ fn wavy(canvas: &mut Canvas, x0: f32, x1: f32, y: f32, size: f32, color: Color, 
     }
 }
 
-/// Char index into the buffer's text to a cosmic-text Cursor.
-pub fn cursor_at_char(buffer: &Buffer, index: usize) -> Cursor {
-    let mut remaining = index;
-    for (line_i, line) in buffer.lines.iter().enumerate() {
-        let text = line.text();
-        let chars = text.chars().count();
-        if remaining <= chars {
-            let byte = text.char_indices().nth(remaining).map(|(b, _)| b).unwrap_or(text.len());
-            return Cursor::new(line_i, byte);
+/// A text block's `fill`, over its box less any first-line indent, which shows what came
+/// before it on the line.
+pub fn fill_block(canvas: &mut Canvas, tb: &TextBox, rect: Rect, color: Color, clip: Option<Rect>) {
+    match tb.indent_corner() {
+        None => canvas.fill_rect(rect, color, clip),
+        Some(corner) => {
+            let first = corner.h.min(rect.h);
+            canvas.fill_rect(Rect::new(corner.right(), rect.y, rect.right() - corner.right(), first), color, clip);
+            canvas.fill_rect(Rect::new(rect.x, rect.y + first, rect.w, rect.h - first), color, clip);
         }
-        remaining -= chars + 1;
     }
-    let last = buffer.lines.len().saturating_sub(1);
-    Cursor::new(last, buffer.lines.get(last).map(|l| l.text().len()).unwrap_or(0))
 }
 
 /// Where a cursor sits: (x, line_top, line_height) in buffer coordinates.
@@ -264,15 +262,15 @@ pub fn selection_rects(buffer: &Buffer, start: Cursor, end: Cursor) -> Vec<Rect>
 /// from the end, so Shoes 3 editors' `cursor = -1` sits after the last character.
 pub fn draw_para_cursor(canvas: &mut Canvas, node: &Node, tb: &TextBox, clip: Option<Rect>) {
     let buffer = &tb.shaped.buffer;
+    let len = tb.shaped.text().chars().count() as i64;
     let char_index = |key: &str| {
         let index = node.props.get(key)?.as_i64()?;
-        let len = buffer.lines.iter().map(|l| l.text().chars().count() + 1).sum::<usize>().saturating_sub(1) as i64;
         Some(if index < 0 { (len + 1 + index).max(0) } else { index } as usize)
     };
     let Some(index) = char_index("text_cursor") else { return };
-    let cursor = cursor_at_char(buffer, index);
+    let cursor = tb.shaped.cursor_at(index);
     if let Some(marker) = char_index("text_marker") {
-        let other = cursor_at_char(buffer, marker);
+        let other = tb.shaped.cursor_at(marker);
         let (a, b) = if (other.line, other.index) < (cursor.line, cursor.index) { (other, cursor) } else { (cursor, other) };
         for r in selection_rects(buffer, a, b) {
             let (top, h) = tb.shaped.line_box(r.y, r.h);

@@ -11,7 +11,7 @@ use crate::elements::{self, image::ImageCache};
 use crate::paint::shapes;
 use crate::props::{Edges, Id};
 use crate::style::Dim;
-use crate::text::{rich, ShapedText, TextEngine};
+use crate::text::{rich, RichText, ShapedText, TextEngine};
 use std::collections::HashMap;
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -73,11 +73,41 @@ pub struct LBox {
     pub parent_size: (f32, f32),
 }
 
+/// Shaped text and where its buffer's origin sits, in window coordinates.
 #[derive(Clone)]
 pub struct TextBox {
     pub shaped: ShapedText,
     pub x: f32,
     pub y: f32,
+}
+
+impl TextBox {
+    /// The corner a first-line indent leaves at the top left of text that continues a line
+    /// in a flow. It belongs to what came before on that line, down to the second line.
+    pub fn indent_corner(&self) -> Option<Rect> {
+        if self.shaped.indent <= 0.0 {
+            return None;
+        }
+        let first = self.shaped.buffer.layout_runs().next()?;
+        Some(Rect::new(self.x, self.y - self.shaped.top, self.shaped.indent, first.line_height))
+    }
+
+    /// Whether (x, y) is this text's own ground rather than its indent corner.
+    pub fn owns(&self, x: f32, y: f32) -> bool {
+        !self.indent_corner().is_some_and(|corner| corner.contains(x, y))
+    }
+
+    /// A point on this text inside `visible`: its centre, or one clear of the indent corner.
+    pub fn centre_within(&self, visible: Rect) -> (f32, f32) {
+        let centre = visible.center();
+        let Some(corner) = self.indent_corner().filter(|c| c.contains(centre.0, centre.1)) else { return centre };
+        let below = Rect::new(visible.x, corner.bottom(), visible.w, visible.bottom() - corner.bottom());
+        if below.h > 1.0 {
+            below.center()
+        } else {
+            Rect::new(corner.right(), visible.y, visible.right() - corner.right(), visible.h).center()
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -163,11 +193,25 @@ enum Attach {
     Node(Id),
 }
 
+/// Where the next in-flow child goes, relative to the slot's content box.
 #[derive(Default)]
 struct Cursor {
     x: f32,
+    /// The top of the current row.
     y: f32,
+    /// The row's height, bottom margins included.
     row_h: f32,
+    /// How far down the row's own boxes reach, margins left out.
+    content_bottom: f32,
+}
+
+impl Cursor {
+    fn new_row(&mut self) {
+        self.y += self.row_h;
+        self.x = 0.0;
+        self.row_h = 0.0;
+        self.content_bottom = self.y;
+    }
 }
 
 /// How a slot child takes part in layout.
@@ -277,6 +321,11 @@ impl Engine<'_> {
     }
 
     fn place_in_flow(&mut self, node: &Node, flow: bool, content: Rect, cursor: &mut Cursor, avail_h: f32) {
+        if flow {
+            if let Some(rich) = self.flowing_text(node) {
+                return self.place_paragraph(node, &rich, content, cursor, avail_h);
+            }
+        }
         let m = margins_of(node, content.w);
         let parent = (content.w, avail_h);
         let remaining = if flow { content.w - cursor.x } else { content.w };
@@ -285,9 +334,7 @@ impl Engine<'_> {
         // A slot filling its line would get no width at all after a full row.
         let squeezed = width < 1.0 && node.kind.is_slot();
         if flow && cursor.x > 0.0 && (overflows || squeezed) {
-            cursor.y += cursor.row_h;
-            cursor.x = 0.0;
-            cursor.row_h = 0.0;
+            cursor.new_row();
             width = self.width_for(node, flow, parent, content.w, &m);
         }
         let x = content.x + cursor.x + m.left;
@@ -296,9 +343,76 @@ impl Engine<'_> {
         if flow {
             cursor.x += m.horizontal() + width;
             cursor.row_h = cursor.row_h.max(m.vertical() + h);
+            cursor.content_bottom = cursor.content_bottom.max(cursor.y + m.top + h);
         } else {
             cursor.y += m.vertical() + h;
         }
+    }
+
+    /// A text block that reads as part of a paragraph when it sits in a flow: left aligned,
+    /// wrapping, and sized by its text rather than by a width or height of its own.
+    fn flowing_text(&self, node: &Node) -> Option<RichText> {
+        if !is_text(node) || node.props.has("width") || node.props.has("height") {
+            return None;
+        }
+        let rich = rich::resolve_block(self.doc, &self.text.fonts, node.id)?;
+        (rich.align == rich::Align::Left && rich.wrap != rich::WrapMode::Trim).then_some(rich)
+    }
+
+    /// Text in a flow carries on from whatever came before it on the line, as one paragraph
+    /// (manual 1610-1612, ledger C7): its first line starts where the line stands, its later
+    /// lines wrap back to the flow's left edge, and what follows carries on from the end of
+    /// its last line (Shoes 3, s3t_textblock.c:134-165, 217-228).
+    fn place_paragraph(&mut self, node: &Node, rich: &RichText, content: Rect, cursor: &mut Cursor, avail_h: f32) {
+        let m = margins_of(node, content.w);
+        let parent = (content.w, avail_h);
+        let full = (content.w - m.horizontal()).max(0.0);
+        let wanted = self.text.max_content(rich);
+        loop {
+            if wanted <= full - cursor.x + 0.5 {
+                // One line beside what came before, as wide as its text.
+                let shaped = self.text.shape(rich, Some(wanted.max(1.0)));
+                let rect = Rect::new(content.x + cursor.x + m.left, content.y + cursor.y + m.top, wanted, shaped.height);
+                self.put_text(node, shaped, rect, parent);
+                cursor.row_h = cursor.row_h.max(m.vertical() + rect.h);
+                cursor.content_bottom = cursor.content_bottom.max(rect.bottom() - content.y);
+                cursor.x = carry_on(rect.right() - content.x, &m);
+                return;
+            }
+            let shaped = if cursor.x > 0.0 {
+                if overhangs(cursor, rich, &m) {
+                    cursor.new_row();
+                    continue;
+                }
+                let shaped = self.text.shape_indented(rich, Some(full.max(1.0)), cursor.x);
+                // Not even the first word fits on the rest of the line: Shoes 3 starts a row.
+                if !shaped.indent_holds() {
+                    cursor.new_row();
+                    continue;
+                }
+                shaped
+            } else {
+                self.text.shape(rich, Some(full.max(1.0)))
+            };
+            let last = shaped.buffer.layout_runs().last().map(|run| (run.line_top, run.line_w)).unwrap_or_default();
+            let rect = Rect::new(content.x + m.left, content.y + cursor.y + m.top, full, shaped.height);
+            self.put_text(node, shaped, rect, parent);
+            // The next child goes on the last line, as if the rows before it were done.
+            let row_bottom = (cursor.y + cursor.row_h).max(rect.bottom() - content.y + m.bottom);
+            cursor.y = rect.y - content.y + last.0 - m.top;
+            cursor.row_h = row_bottom - cursor.y;
+            cursor.content_bottom = rect.bottom() - content.y;
+            cursor.x = carry_on(m.left + last.1, &m);
+            return;
+        }
+    }
+
+    /// Records a text block's box and its shaped text.
+    fn put_text(&mut self, node: &Node, shaped: ShapedText, rect: Rect, parent: (f32, f32)) {
+        let y = rect.y + shaped.top;
+        self.out.texts.insert(node.id, TextBox { shaped, x: rect.x, y });
+        self.record(node, rect, parent);
+        self.displace(node);
     }
 
     /// The border-box width a node gets on a line with `remaining` px left.
@@ -532,6 +646,21 @@ impl Engine<'_> {
             self.assign_clips(child, child_clip);
         }
     }
+}
+
+/// Where a line goes on after text ending at `text_end`: its right margin counts only for
+/// what it adds to its left one, so two paras sit one margin apart, as in Shoes 3
+/// (s3t_textblock.c:217-228), and nothing that follows can start inside the text.
+fn carry_on(text_end: f32, m: &Edges) -> f32 {
+    text_end + (m.right - m.left).max(0.0)
+}
+
+/// Whether something earlier on the line reaches well below this text's first line (an
+/// image, a title, a tall control), so wrapped lines would run into it at the left edge.
+/// Shoes 3 wraps them anyway; here the text starts a new row instead.
+fn overhangs(cursor: &Cursor, rich: &RichText, m: &Edges) -> bool {
+    let first_line = rich.size * rich::LINE_HEIGHT;
+    cursor.content_bottom > cursor.y + m.top + first_line * 1.5
 }
 
 /// A background or border fills its slot, less any edges it names: `top: 50` runs from

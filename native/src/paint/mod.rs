@@ -204,7 +204,7 @@ pub fn paint(scene: &mut Scene, pm: &mut Pixmap, scale: f32) {
             Kind::Para | Kind::TextDrawable => {
                 if let Some(tb) = layout.texts.get(&id) {
                     if let Some(fill) = tb.shaped.fill {
-                        canvas.fill_rect(lbox.rect, fill, lbox.clip);
+                        text::fill_block(&mut canvas, tb, lbox.rect, fill, lbox.clip);
                     }
                     // `wrap: "trim"` keeps the text on one line and cuts it off at the para's own edge.
                     let clip = if node.props.str("wrap") == Some("trim") {

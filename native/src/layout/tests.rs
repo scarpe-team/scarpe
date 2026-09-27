@@ -182,10 +182,10 @@ fn text_in_a_stack_fills_and_in_a_flow_shrinks() {
     assert_eq!(r(&l, in_stack).w, 292.0, "less the 4 px text margins");
     let (a, b, c) = (r(&l, one), r(&l, two), r(&l, long));
     assert!(a.w > 5.0 && a.w < 30.0, "{a:?}");
-    assert_eq!(b.x, a.right() + 8.0, "the second para sits beside the first, margins apart");
-    assert_eq!(c.x, 4.0, "the long para starts a row of its own");
+    assert_eq!(b.x, a.right() + 4.0, "the second para sits beside the first, one margin apart");
+    assert_eq!((c.x, c.y), (a.x, a.y), "the long one carries on along the same line, from the left edge");
     assert_eq!(c.w, 292.0);
-    assert!(c.h > 20.0, "and wraps there: {c:?}");
+    assert!(c.h > 20.0, "and wraps: {c:?}");
     assert!((a.h - 14.4).abs() < 0.01, "line height is 1.2 x 12px: {a:?}");
 }
 
@@ -392,4 +392,99 @@ fn text_blocks_keep_shoes_3_margins() {
     let o = r(&l, own_bottom);
     assert!((o.y - (f.bottom() + 4.0)).abs() < 0.01, "{o:?}");
     assert!((r(&l, after).y - (o.bottom() + 2.0)).abs() < 0.01, "margin_bottom: 2 replaces the 12");
+}
+
+const LONG: &str = "This second paragraph is long enough that it has to wrap onto more lines inside three hundred pixels.";
+
+/// The window x where each line of a text block starts, from its glyphs.
+fn line_starts(l: &Layout, id: Id) -> Vec<f32> {
+    let tb = &l.texts[&id];
+    tb.shaped
+        .buffer
+        .layout_runs()
+        .map(|run| tb.x + run.glyphs.iter().find(|g| g.metadata != crate::text::shape_cache::INDENT_META).map_or(0.0, |g| g.x))
+        .collect()
+}
+
+#[test]
+fn text_side_by_side_in_a_flow_reads_as_one_paragraph() {
+    // Ledger C7 (Q2): the second para's first line carries on from the first, and its later
+    // lines wrap back to the flow's left edge (manual 1610-1612, Shoes 3).
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"width": 300}));
+    let short = s.add("Para", flow, json!({"text_items": ["Short."]}));
+    let long = s.add("Para", flow, json!({"text_items": [LONG]}));
+    let l = s.layout(480.0, 420.0);
+    let (a, b) = (r(&l, short), r(&l, long));
+    assert_eq!((b.x, b.y), (a.x, a.y), "one row, one left edge: {a:?} {b:?}");
+    assert_eq!(b.w, 292.0, "the paragraph spans the flow, less its margins");
+    let starts = line_starts(&l, long);
+    assert!(starts.len() >= 2, "it wraps: {starts:?}");
+    assert!((starts[0] - (a.right() + 4.0)).abs() < 0.5, "its first line follows the first para's text: {starts:?} {a:?}");
+    assert!(starts[1..].iter().all(|x| (x - b.x).abs() < 0.5), "its later lines start at the left edge: {starts:?}");
+    let first_top = l.texts[&long].shaped.buffer.layout_runs().next().unwrap().line_top;
+    assert_eq!(first_top, l.texts[&short].shaped.buffer.layout_runs().next().unwrap().line_top, "the first lines share a baseline");
+}
+
+#[test]
+fn a_paragraph_indent_belongs_to_what_came_before() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"width": 300}));
+    let short = s.add("Para", flow, json!({"text_items": ["Short."]}));
+    let long = s.add("Para", flow, json!({"text_items": [LONG]}));
+    let l = s.layout(480.0, 420.0);
+    let (a, b) = (r(&l, short), r(&l, long));
+    let (x, y) = a.center();
+    assert_eq!(crate::input::hit_test(&s.doc, &l, x, y).map(|h| h.node), Some(short), "the first para's text is still the first para");
+    let below = (b.x + 5.0, b.bottom() - 5.0);
+    assert_eq!(crate::input::hit_test(&s.doc, &l, below.0, below.1).map(|h| h.node), Some(long));
+    let (cx, cy) = l.texts[&long].centre_within(b);
+    assert!(l.texts[&long].owns(cx, cy), "a click aimed at the paragraph lands on it");
+}
+
+#[test]
+fn what_follows_a_paragraph_carries_on_from_its_last_line() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"width": 300}));
+    let long = s.add("Para", flow, json!({"text_items": [format!("{LONG}\nend")]}));
+    let button = s.add("Button", flow, json!({"text": "b", "width": 40, "height": 10}));
+    let l = s.layout(480.0, 420.0);
+    let (p, b) = (r(&l, long), r(&l, button));
+    let tb = &l.texts[&long];
+    let last = tb.shaped.buffer.layout_runs().last().unwrap();
+    assert!((b.x - (p.x + last.line_w)).abs() < 0.5, "the button follows the last line's text: {b:?} {}", last.line_w);
+    assert!((b.y - (p.y + last.line_top - 4.0)).abs() < 0.5, "on the last line's row: {b:?} {p:?}");
+    assert!(r(&l, flow).h >= p.bottom() + 12.0 - 0.01, "the flow still holds the whole paragraph and its margin");
+}
+
+#[test]
+fn words_in_a_flow_sit_one_margin_apart() {
+    // examples/para/rainbow.rb: one para per word must read as a sentence.
+    let mut s = Scene::new();
+    let words: Vec<Id> = ["Paint", "the", "Whole"].iter().map(|w| s.add("Para", ROOT, json!({"text_items": [w]}))).collect();
+    let l = s.layout(480.0, 420.0);
+    let (a, b, c) = (r(&l, words[0]), r(&l, words[1]), r(&l, words[2]));
+    assert_eq!((a.x, a.y), (4.0, 4.0));
+    assert!((b.x - (a.right() + 4.0)).abs() < 0.01 && (c.x - (b.right() + 4.0)).abs() < 0.01, "{a:?} {b:?} {c:?}");
+    assert!(a.y == b.y && b.y == c.y);
+}
+
+#[test]
+fn text_that_cannot_share_the_line_starts_a_row() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"width": 300}));
+    let tall = s.add("Button", flow, json!({"text": "tall", "width": 40, "height": 60}));
+    let beside = s.add("Para", flow, json!({"text_items": ["fits beside"]}));
+    let wraps = s.add("Para", flow, json!({"text_items": [LONG]}));
+    let flow2 = s.add("Flow", ROOT, json!({"width": 300}));
+    let short = s.add("Para", flow2, json!({"text_items": ["Short words here and then"]}));
+    let word = s.add("Para", flow2, json!({"text_items": ["Pneumonoultramicroscopicsilicovolcanoconiosis goes on for a while after it"]}));
+    let l = s.layout(480.0, 420.0);
+    assert_eq!(r(&l, beside).y, 4.0, "a single line sits beside even a tall control");
+    let w = r(&l, wraps);
+    assert!(w.y >= r(&l, tall).bottom(), "a wrapping para does not run under it: {w:?}");
+    assert!(line_starts(&l, wraps)[0] - w.x < 0.5, "and starts its row without an indent");
+    let (a, b) = (r(&l, short), r(&l, word));
+    assert!(b.y > a.y, "a first word too long for the rest of the line takes the para to a new row: {a:?} {b:?}");
+    assert!(line_starts(&l, word)[0] - b.x < 0.5);
 }
