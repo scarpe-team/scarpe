@@ -2,6 +2,7 @@
 //! stdin is read on a thread and fed to the event loop through a proxy; the
 //! loop waits (ControlFlow::Wait) and redraws only apps whose view is dirty.
 
+mod ghost;
 mod pacing;
 
 use crate::input::{us_shifted, CursorShape, Key, KeyInput, Modifiers, Named};
@@ -35,6 +36,8 @@ pub struct WindowOptions {
     pub exit_after: Option<Duration>,
     /// Create windows without activating the app or taking keyboard focus.
     pub inactive: bool,
+    /// Windows nobody can see or touch (window::ghost), for automated runs. Implies `inactive`.
+    pub ghost: bool,
 }
 
 struct Win {
@@ -58,6 +61,7 @@ struct Shell {
     windows: HashMap<WindowId, Win>,
     deadline: Option<Instant>,
     inactive: bool,
+    ghost: bool,
     /// The user closed a window at some point.
     user_closed: bool,
     /// When the user closed the last window; if Ruby never answers with
@@ -70,11 +74,15 @@ pub fn run(opts: Options, window_opts: WindowOptions) -> i32 {
     // The system fonts load while the event loop starts and the window opens (runtime::startup).
     let fonts = (opts.fonts == FontMode::System).then(|| load_fonts(FontMode::System));
     let trace = opts.trace;
+    let inactive = window_opts.inactive || window_opts.ghost;
+    if window_opts.ghost {
+        ghost::hide_from_dock();
+    }
     let mut builder = EventLoop::<UserEvent>::with_user_event();
     #[cfg(target_os = "macos")]
     {
         use winit::platform::macos::{ActivationPolicy, EventLoopBuilderExtMacOS};
-        if window_opts.inactive {
+        if inactive {
             builder.with_activation_policy(ActivationPolicy::Accessory);
             builder.with_activate_ignoring_other_apps(false);
         }
@@ -97,7 +105,8 @@ pub fn run(opts: Options, window_opts: WindowOptions) -> i32 {
         },
         windows: HashMap::new(),
         deadline: window_opts.exit_after.map(|d| Instant::now() + d),
-        inactive: window_opts.inactive,
+        inactive,
+        ghost: window_opts.ghost,
         user_closed: false,
         orphaned_since: None,
     };
@@ -126,8 +135,8 @@ impl Shell {
         let attrs = Window::default_attributes()
             .with_title(title)
             .with_inner_size(LogicalSize::new(view.size.0 as f64, view.size.1 as f64))
-            .with_resizable(resizable)
-            .with_active(!self.inactive);
+            .with_resizable(resizable);
+        let attrs = if self.ghost { ghost::attributes(attrs) } else { attrs.with_active(!self.inactive) };
         let window = match el.create_window(attrs) {
             Ok(w) => Rc::new(w),
             Err(e) => {
@@ -154,7 +163,14 @@ impl Shell {
             view.scale = window.scale_factor() as f32;
             view.dirty = true;
         }
-        if let Some(opacity) = props.f32("opacity") {
+        if self.ghost {
+            if !ghost::show(&window) {
+                eprintln!("[scarpe-native] --ghost: the window could not be made invisible, so it never showed");
+                self.rt.exit = Some(1);
+                return;
+            }
+            self.rt.stats.mark("ghost");
+        } else if let Some(opacity) = props.f32("opacity") {
             set_opacity(&window, opacity);
         }
         self.rt.stats.mark("window");
@@ -206,16 +222,27 @@ impl Shell {
                         });
                     }
                 }
+                // A ghost stays clear whatever the app asks; its snapshots still carry the opacity.
                 Effect::Opacity(app, opacity) => {
-                    if let Some(win) = self.window_for(app) {
+                    if let Some(win) = self.window_for(app).filter(|_| !self.ghost) {
                         set_opacity(&win.window, opacity);
                     }
                 }
+                // Nobody can answer a ghost's dialog or see what it opens: it answers the way a
+                // headless run does, and links stay shut.
                 Effect::Dialog { req, kind, message, default } => {
-                    let (value, cancelled) = crate::dialogs::native(&kind, &message, &default);
+                    let (value, cancelled) = if self.ghost {
+                        crate::dialogs::headless_answer(&kind)
+                    } else {
+                        crate::dialogs::native(&kind, &message, &default)
+                    };
                     self.rt.dialog_answered(req, value, cancelled);
                 }
-                Effect::OpenUrl(url) => open_url(&url),
+                Effect::OpenUrl(url) => {
+                    if !self.ghost {
+                        open_url(&url);
+                    }
+                }
             }
         }
     }
