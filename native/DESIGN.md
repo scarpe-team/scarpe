@@ -243,7 +243,8 @@ neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1).
   Shoes 3 s3t_textblock.c:134-228): text that fits on the rest of the line sits there as a box
   as wide as its text; longer text starts its first line where the line stands (a first-line
   indent) and wraps its later lines back to the flow's left edge, its box spanning the flow.
-  The next element carries on from the end of the last line. After text the line goes on from
+  The next element carries on from the end of the last line; after text that ends in a newline,
+  from the start of the empty line below it, as Pango lays it out. After text the line goes on from
   the end of the text plus whatever its right margin adds to its left one, so two paras sit one
   margin apart. Text starts a new row instead when not even its first word fits on the rest of
   the line, or when something earlier on the line reaches more than half a line below its first
