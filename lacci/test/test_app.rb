@@ -27,4 +27,17 @@ class TestApp < NienteTest
       assert_same $main, $window.owner
     SHOES_SPEC
   end
+
+  # Ledger D6: background takes an :angle for its gradient (manual 1073-1079).
+  def test_a_backgrounds_angle_turns_its_gradient
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @turned = background red..blue, angle: 90
+      end
+    SHOES_APP
+      turned = background("@turned")
+      assert_equal 90, turned.style[:angle]
+      assert_equal 90, turned.fill.angle, "the angle travels with the gradient itself"
+    SHOES_SPEC
+  end
 end

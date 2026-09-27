@@ -58,4 +58,29 @@ class TestColors < Minitest::Test
     assert_equal [170, 187, 204, 255], Dummy.new.to_rgb("#abc")
     assert_equal [255, 255, 255, 255], Dummy.new.to_rgb("#fff")
   end
+
+  # Ledger D6: gradients run top to bottom unless given an angle (manual 1073-1079),
+  # and each end keeps its alpha.
+  def test_gradients_run_top_to_bottom_and_keep_alpha
+    fade = Dummy.new.gradient(Dummy.new.red(0.5), "#00f")
+    assert_equal 0, fade.angle
+    assert_equal ["rgba(255,0,0,0.502)", "rgba(0,0,255,1.0)"], [fade.color1, fade.color2]
+    assert_equal 90, Dummy.new.gradient("#f00", "#00f", angle: 90).angle
+  end
+
+  # Ledger D4: rgb, gray and gradient are built-ins, callable from any object
+  # (manual 785-834), not only from drawables.
+  class Palette
+    def colours
+      [rgb(138, 43, 226), gray(1.0), gradient("#000", "#fff")]
+    end
+  end
+
+  def test_rgb_gray_and_gradient_work_anywhere
+    violet, white, fade = Palette.new.colours
+    assert_equal [138, 43, 226, 255], violet
+    assert_equal [255, 255, 255, 255], white
+    assert_kind_of Shoes::Colors::Gradient, fade
+    refute Object.new.respond_to?(:red), "named colours stay on drawables"
+  end
 end
