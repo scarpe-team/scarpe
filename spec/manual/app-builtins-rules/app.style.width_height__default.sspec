@@ -4,8 +4,6 @@ lines: [869, 877]
 testability: api
 display: any
 ledger: A1
-expect: fail
-reason: "Lacci still opens an app with no size at 480x420 (app.rb:43-45); ledger A1 was ruled 600x500 on 27 Sep 2026 (Q1)"
 ----------- app code
 Shoes.app do
   para "No size was given"
