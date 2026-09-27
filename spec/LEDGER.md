@@ -51,7 +51,7 @@ Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Sho
 
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
-| A1 | Default window size and title | S3 (Q1) | unsched. | DESIGN |
+| A1 | Default window size and title | S3 | unsched. | |
 | A2 | When the `Shoes.app` block runs | S3 | | |
 | A3 | `window`, `dialog`, `owner` | MANUAL | | |
 | A4 | Live `width`/`height` of apps and slots | MANUAL | unsched. | |
@@ -77,13 +77,13 @@ Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Sho
 | C1 | A Float dimension is a fraction of the parent | MANUAL | unsched. | DESIGN |
 | C2 | `style[:width]` returns what was asked for | MANUAL | | |
 | C3 | Forms of `:margin` | MANUAL | unsched. | |
-| C4 | Default sizes of native controls | MANUAL | | DESIGN |
+| C4 | Default sizes of native controls | MANUAL | | |
 | C5 | Missing slot and element methods | MANUAL | unsched. | |
 | C6 | The window scrolls; `gutter` | MANUAL | | |
-| C7 | Text side by side in a flow reads as one paragraph | MANUAL (Q2) | | DESIGN |
+| C7 | Text side by side in a flow reads as one paragraph | MANUAL | | |
 | C8 | Default width of a slot | S3 | | |
-| C9 | Default margins of text blocks | S3 (Q3) | | DESIGN |
-| C10 | `:right` and `:bottom` | MANUAL | | DESIGN |
+| C9 | Default margins of text blocks | S3 | | |
+| C10 | `:right` and `:bottom` | MANUAL | | |
 | C11 | `attach: Window` | MANUAL | | |
 | C12 | Paint order: backgrounds are layered elements | MANUAL | | |
 
@@ -128,7 +128,7 @@ Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Sho
 | F7 | Link and LinkHover defaults | MANUAL | | |
 | F8 | Argument of a link's click block | S3 | | |
 | F9 | `link(click: proc)` fires | MANUAL | 10.5 | |
-| F10 | `:leading` defaults to 4 px | MANUAL | | DESIGN |
+| F10 | `:leading` defaults to 4 px | MANUAL | | |
 | F11 | `para` with non-String arguments | BOTH | | |
 
 ### G. Native controls
@@ -162,7 +162,7 @@ Rows X1 to X19 are Lacci and Webview defects rather than disagreements about Sho
 
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
-| I1 | Timer rate and counting | MANUAL | 10.1 | DESIGN |
+| I1 | Timer rate and counting | MANUAL | 10.1 | |
 | J1 | `url`, `visit`, pages, `location` | BOTH | unsched. | |
 | J2 | `link(click: "/path")` visits | MANUAL | | |
 | K1 | `ask` on Cancel; its options | S3 (Q6) | 10.6 | |
@@ -184,7 +184,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### A1. Default window size and title
 
-**Ruling: S3 (Q1).** 600x500 and the title "Shoes". Shoes 3 and Shoes 4 agree; the manual is silent. **Lacci change, unscheduled.**
+**Ruling: S3.** 600x500 and the title "Shoes". Shoes 3 and Shoes 4 agree; the manual is silent. Nick answered Q1 this way on 27 Sep 2026. **Lacci change, unscheduled.**
 
 - **Manual:** silent. Examples that care pass `width:`/`height:`.
 - **Shoes 3:** `#define SHOES_APP_WIDTH 600`, `SHOES_APP_HEIGHT 500` (`s3_app.h:20-21`), applied at `s3_app.c:62-63, 176`. Title comes from `ATTR(attr, title)`, or the settings app name when built with `MTITLE` (`s3_app.c:144-154`).
@@ -192,7 +192,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Examples:** 95 of the 350 examples in the target set pass a size (report 04, B3). The rest take the default; Scarpe's own examples were tuned at 480x420.
 - **Lacci today:** `title: 'Shoes!', width: 480, height: 420` (`app.rb:42-49`).
 - **Spec:** `core` asserts only that `app.width`/`app.height` report the size the window opened at. The 600x500 assertion is written, tagged `ledger: A1`, and waits on Q1.
-- **Native:** takes the App's `width`/`height` props, so it follows whatever Lacci defaults to. It has no default of its own (DESIGN section 6 says "Lacci default 480x420").
+- **Native:** takes the App's `width`/`height` props, so it follows whatever Lacci defaults to; an App that sends none opens at 600x500 titled "Shoes" (`runtime.rs` `DEFAULT_SIZE`, DESIGN 6, 27 Sep).
 
 ### A2. When the `Shoes.app` block runs
 
@@ -223,7 +223,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Shoes 3:** `shoes_app_get_width` returns the live `app->width` (`s3_app.c:199-209`), updated on GTK `size-allocate` (`s3_gtk.c:736-750`).
 - **Lacci today:** App `width`/`height` are static styles (`app.rb:19`); nothing feeds a resize back. Slot `width` falls back to the parent's style (`drawable.rb:649-716`): `stack(width: -100).width == 380` in a 480 app, `stack(width: "50%").width == 240`.
 - **Spec:** after `resize` to 300x200, `app.width == 300` and `app.height == 200`. A laid-out `stack(width: 0.5)` reports half its parent's inner width in pixels (see C1).
-- **Native:** reports resizes with the `resize` message; the shim sets `@width`/`@height` without a `prop_change` echo (DESIGN 4.2). Slot sizes need a layout query or a pushed size; DESIGN 4.2 has none yet for slots.
+- **Native:** reports resizes with the `resize` message; the shim sets `@width`/`@height` without a `prop_change` echo (DESIGN 4.2). Since 27 Sep Rust also pushes a `layout` message after every layout pass (every node on an app's first pass, then those that moved) and the shim keeps `Shoes::DisplayService.layout_cache[id] = [x, y, w, h, scroll_h]` in window pixels (DESIGN 4.2); Lacci's getters read it once the Lacci lane wires them.
 
 ### A5. Built-in dialogs with no app open
 
@@ -344,8 +344,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Manual:** edit_box "200 pixels by 108 pixels" (manual 3006); edit_line "200 pixels wide and 28 pixels wide. Roughly." (manual 3063, see M6); list_box "about 200 pixels wide and 28 pixels high" (manual 3183); progress "200 pixels wide" (manual 3245).
 - **Lacci today:** no defaults; Calzini emits no width (`calzini/misc.rb:15-37, 65-86, 113-128`), so browser defaults apply.
 - **Spec:** unstyled edit_box 200x108, edit_line 200 wide, list_box 200 wide, progress 200 wide (±2 px). Heights other than edit_box: 28 ±6.
-- **Native:** DESIGN 6 gives edit_line 200x28 and edit_box 200x108.
-- **DESIGN conflict:** DESIGN 6 says `list_box 160x28` and `progress 160x14`. The manual says 200 wide for both.
+- **Native:** edit_line 200x28, edit_box 200x108, list_box 200x28, progress 200x14 (DESIGN 6). DESIGN 6 and the Rust sizes said 160 for list_box and progress until 27 Sep.
 
 ### C5. Slot and element methods Lacci is missing
 
@@ -356,7 +355,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Examples:** `before` in 5 files, `after` 4, `scroll_max` 1, `location` 3.
 - **Lacci today:** none of `before`, `after`, `scroll_max`, `scroll_height`, `location`, `started?`, `imagesize` exist; Image uses a `url` style (`image.rb:5`); `gutter` is App-only and a constant 28 (`app.rb:551-553`).
 - **Spec:** each method exists and returns a plausible value (for example `scroll_max == scroll_height - height` on a scrolling stack with overflowing content).
-- **Native:** `scroll_height` and `scroll_max` need the content height from Rust. DESIGN 4.2 pushes `scroll` offsets but not content height; the shim can read it from `req layout` or a new push.
+- **Native:** the `layout` push (DESIGN 4.2, 27 Sep) carries each slot's content height as `scroll_h`, which the shim keeps in `layout_cache`; `scroll_height` is `scroll_h` and `scroll_max` is `max(0, scroll_h - h)` once Lacci reads them.
 
 ### C6. The window scrolls, and `gutter` says by how much
 
@@ -370,36 +369,36 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 
 ### C7. Text blocks side by side in a flow read as one paragraph
 
-**Ruling: MANUAL (Q2).** **Native change** if confirmed. New row.
+**Ruling: MANUAL.** Nick answered Q2 this way on 27 Sep 2026: a text block placed after other inline content starts at the current x, and its later lines wrap back to the flow's left edge. New row.
 
 - **Manual:** "Text elements placed next to each other will appear as a single paragraph. Images and widgets will run together as a series." (manual 1610-1612). The window is a flow (manual 1621).
 - **Shoes 3:** a text block with no width takes the remaining width of the current line (`s3t_textblock.c:125`). If it starts mid-line, it moves to the flow's left edge with a first-line indent equal to the space already used (`:134-145`), so its first line continues where the previous text ended and later lines wrap back to the left edge. Afterwards the cursor sits at the end of its last line (`:217-228`), so the next element continues from there. In a stack the cursor returns to the left edge (`:235-237`).
 - **Examples:** every app that puts two `para`s at the top level relies on this, since the top slot is a flow. Single-line paras look the same under every model. Multi-line paras differ.
 - **Lacci / WV today:** each para is its own flex item: shrink-to-fit, packed side by side, and a long para wraps onto a new row as its own box (report 02, 4.1).
-- **Spec:** two single-line paras in a flow share a row (all models agree). The multi-line case (the second para's continuation lines start at the flow's left edge) is written, tagged `ledger: C7`, and waits on Q2.
-- **Native:** DESIGN 6 today: "in a flow, shrink-to-fit (max-content width capped at the remaining row width, wrapping at that width)". That is WV's box model.
-- **DESIGN conflict:** DESIGN 6 follows WV, not the manual. The rule is also ambiguous about order: if the width is capped at the remaining row width before the fit test, a long para never moves to a new row and renders as a narrow column. The layout lane should say "measure max-content; if it does not fit, start a new row; then cap at the row width".
+- **Spec:** two single-line paras in a flow share a row (all models agree), and the multi-line case (the second para's continuation lines start at the flow's left edge, with the first para) passes on native.
+- **Native:** since 27 Sep, as Shoes 3 (DESIGN 6): text that fits on the rest of the line sits there; longer text indents its first line to where the line stands and wraps the rest to the left edge, and the next element carries on from its last line. Two paras sit one margin apart. Where Shoes 3 would wrap lines under something taller earlier on the line (a picture, a title), or not even the first word fits, the text starts a new row instead. Centred, right-aligned, justified, trimmed and sized text stays a box.
 
 ### C8. Default width of a slot
 
-**Ruling: S3.** New row.
+**Ruling: S3.** New row. Corrected 27 Sep 2026 by the layout lane: the Shoes 3 source gives an unsized slot its parent's whole width, not the rest of the line.
 
 - **Manual:** "A stack is also shaped like a box. So if a stack is given a width of 250, that stack is itself an element which is 250 pixels wide." (manual 1602-1603). Silent on the default.
-- **Shoes 3:** a slot with no width takes the remaining width of the current line (report 02, 4.1; not re-read line by line for this ledger).
+- **Shoes 3:** a slot reflows with `shoes_place_decide(..., dw = parent->place.iw, ...)` (`s3_canvas.c:468`), so its default width is the parent's whole inner width; a slot that no longer fits at the cursor moves to a new line (`s3_ruby.c:505-532`). So in a flow an unsized slot after anything else starts a row. (Report 02, 4.1 said "the remaining width of the current line"; the source says otherwise.)
+- **Shoes 4:** `self.width ||= 1.0` (`s4_slot.rb:48`), then a flow moves what does not fit to the next line (`s4_slot.rb:322-326, 375-381`).
 - **Lacci / WV today:** Lacci's getter says "Slots without explicit width should fill their parent (Shoes3 behavior)" (`drawable.rb:649-655`); WV makes a stack in a flow shrink-to-fit (measured 65 px for "stack in flow") and a stack in a stack full width; Flow defaults to `"100%"` (`flow.rb:9`).
-- **Spec:** in a flow, `para "a"` followed by `stack { para "b" }` puts the stack on the same row, filling the rest of it.
-- **Native:** DESIGN 6 follows Shoes 3. No conflict.
+- **Spec:** in a flow, an unsized stack after a 100 px one is as wide as the flow and starts a new row (`slot.width__in_flow`).
+- **Native:** since 27 Sep stacks, flows and widgets default to the parent's width (DESIGN 6); before, stacks and widgets took the rest of the line.
 
 ### C9. Default margins of text blocks
 
-**Ruling: S3 (Q3).** New row.
+**Ruling: S3.** Nick answered Q3 this way on 27 Sep 2026: Shoes 3's 4 px margins, 12 px below. New row.
 
 - **Manual:** silent.
 - **Shoes 3:** text blocks default to a 4 px margin on every side (`ATTR_MARGINS(self_t->attr, 4, canvas)`), and the bottom margin becomes 12 px when neither `margin` nor `margin_bottom` is given (`s3t_textblock.c:108-110`). A second adjustment at `:239-240` sets the bottom margin to the last line's height after placement (not traced further).
 - **Examples:** Shoes 3 examples were written against the spacing; Scarpe-authored examples were written against WV's zero margins.
 - **Lacci / WV today:** `p { margin: 0 }` (`calzini.rb:56-87`). Paras stack with no gap.
-- **Spec:** written, tagged `ledger: C9`, and waiting on Q3. `core` asserts only that an explicit `margin: 0` gives no gap.
-- **Native:** DESIGN 6 gives text blocks no default margin.
+- **Spec:** `core` asserts that an explicit `margin: 0` gives no gap; cases that measure text boxes allow for the 4 px margins.
+- **Native:** since 27 Sep text blocks default to 4 px margins, 12 px below unless `margin` or `margin_bottom` is given, and a short `margin` array keeps the default for the sides it leaves out (DESIGN 6, C3).
 
 ### C10. `:right` and `:bottom`
 
@@ -409,7 +408,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Shoes 3:** `shoes_px2` computes `(parent - dr) - px` when the right/bottom key is present (`s3_ruby.c:327-337`); art shapes read `right`/`bottom` as absolute coordinates instead (`s3_ruby.c:396-399`, see E6).
 - **Lacci / WV today:** declared as styles (`drawable.rb:264`) and never rendered (report 02, 4.2).
 - **Spec:** `background black, width: 50, right: 50` paints a 50 px column whose right edge is 50 px in from the window's right edge (see M19).
-- **Native:** DESIGN 6 does not mention `right`/`bottom`. It should: an element with `right` or `bottom` is out of flow and placed from the slot's right or bottom edge.
+- **Native:** an element with `right` or `bottom` is out of flow and placed from the slot's right or bottom edge; backgrounds and borders too (DESIGN 6 and 12, 27 Sep). Art ignores them; Shoes 3 reads them there as far-edge coordinates that size the shape (`s3_ruby.c:396-399`), not yet done.
 
 ### C11. `attach: Window`
 
@@ -723,8 +722,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Shoes 3:** `ld = ATTR2(int, self_t->attr, leading, 4)`, passed to `pango_layout_set_spacing` (`s3t_textblock.c:127, 148`).
 - **Lacci / WV today:** no `leading` style (F5); CSS line height applies.
 - **Spec:** a two-line para with `leading: 0` lays out shorter than the same para with default leading.
-- **Native:** DESIGN 6 says "Line height = 1.2 x size (plus `leading` if given)".
-- **DESIGN conflict:** the manual adds 4 px between lines when `leading` is not given.
+- **Native:** since 27 Sep leading defaults to 4 px and goes between lines only, as Pango's spacing does: one line is 1.2 x size, two are 2.4 x size + 4 (DESIGN 6). Lacci does not send `:leading` yet (F5).
 
 ### F11. `para` with non-String arguments
 
@@ -920,8 +918,7 @@ X1 to X19 (Lacci and Webview defects) are one table. M1 to M39 (manual errata): 
 - **Examples:** 23 files read `animate`'s frame. Two read `every`'s count (`examples/animate.rb:15`, `shoes3_only/switch/switch.rb:19`); neither depends on where it starts.
 - **Lacci / WV today:** WV defaults to 10 fps (`wv/subscription_item.rb:24`) but pre-increments, so the first frame and the first count are **1** (`:25-39`); Lacci calls the `timer` block with nothing (`subscription_item.rb:33-36`); every callback fires twice (X1).
 - **Spec:** the first `animate` frame is 0 and frames increase by 1; `animate` with no fps ticks about 10 times per `advance(1)`; the first `every` count is 0; `timer(0.1)` fires exactly once.
-- **Native:** the Ruby pump owns timers (DESIGN 5.4).
-- **DESIGN conflict:** DESIGN 5.4 says "every (count starts at 1)". Shoes 3 and Shoes 4 both start at 0, the manual is silent, and no example depends on it.
+- **Native:** the Ruby pump owns timers (DESIGN 5.4); since 27 Sep `every` counts from 0 there, as `animate` does.
 
 ## J. Navigation
 
@@ -1202,21 +1199,21 @@ M1 to M37 carry the numbers of the contradictions in `native/research/03_manual_
 `native/DESIGN.md` says "If the code and this document disagree, fix one of them in the same change." These are the places where DESIGN and a ruling above disagree today. Items 1 to 3 are factual; the rest wait on Nick's answers below.
 
 1. **Cmd on macOS (H1).** DESIGN 4.4: "On macOS, Cmd maps to `control_` as well (Shoes 3 did this)". Shoes 3's Cocoa backend maps Cmd to `alt_` (`s3_cocoa.m:287-288, 296-297`), and the examples' Cmd shortcuts are `:alt_q`, `:alt_c`, `:alt_v`.
-2. **`every`'s first count (I1).** DESIGN 5.4: "every (count starts at 1)". Shoes 3 (`s3t_timerbase.c:35, 43-44`) and Shoes 4 (`s4_animation.rb:20`) start at 0.
-3. **Control widths (C4).** DESIGN 6: `list_box 160x28`, `progress 160x14`. The manual: list_box "about 200 pixels wide" (manual 3183), progress "200 pixels wide" (manual 3245).
-4. **Text in a flow (C7, Q2).** DESIGN 6 makes each text block a shrink-to-fit box; the manual and Shoes 3 continue it as one paragraph. The rule is also ambiguous about whether the width cap comes before or after the "does it fit on this row" test.
-5. **Text-block margins (C9, Q3)** and **leading (F10).** DESIGN 6 gives text no default margin and adds `leading` only when given; Shoes 3 uses 4 px margins (12 px bottom) and the manual says leading defaults to 4 px.
+2. **`every`'s first count (I1).** Resolved 27 Sep: DESIGN 5.4 and the pump now count from 0, as Shoes 3 (`s3t_timerbase.c:35, 43-44`) and Shoes 4 (`s4_animation.rb:20`) do.
+3. **Control widths (C4).** Resolved 27 Sep: DESIGN 6 and Rust give list_box and progress the manual's 200 px (manual 3183, 3245).
+4. **Text in a flow (C7).** Resolved 27 Sep: DESIGN 6 and the layout continue text as one paragraph, as the manual and Shoes 3 do.
+5. **Text-block margins (C9)** and **leading (F10).** Resolved 27 Sep: DESIGN 6 and the layout give text Shoes 3's 4 px margins (12 px below) and 4 px of leading between lines.
 6. **Nested-slot event coordinates (H3, Q4).** DESIGN 4.3 makes SubscriptionItem coordinates parent-relative; Shoes 3 uses window coordinates.
-7. **Default window (A1, Q1).** DESIGN 6 names Lacci's 480x420 default; Shoes 3 and Shoes 4 use 600x500.
-8. **Smaller points.** DESIGN 6's Float rule says "between 0 and 1 exclusive" and "1.0 = 100%" in the same breath; Shoes 3 treats every Float as a fraction (C1). DESIGN 6 does not mention `right`/`bottom` (C10). DESIGN 5.2's headless `ask` answers `""`, while K1 rules nil.
+7. **Default window (A1).** Resolved 27 Sep: DESIGN 6 and Rust fall back to 600x500, as Shoes 3 and Shoes 4 do; Lacci's own default is the Lacci lane's.
+8. **Smaller points.** DESIGN 6's Float rule says "between 0 and 1 exclusive" and "1.0 = 100%" in the same breath; Shoes 3 treats every Float as a fraction (C1). DESIGN 6 now describes `right`/`bottom` (C10, 27 Sep). DESIGN 5.2's headless `ask` answers `""`, while K1 rules nil.
 
 ## Questions for Nick
 
 The evidence is balanced on each of these, so the rows above carry a provisional ruling and the spec cases that depend on the answer are written but tagged with the row. One answer settles each.
 
-- **Q1 (A1).** Should an app with no size open at **600x500 titled "Shoes"**, as Shoes 3 and Shoes 4 both do, or stay at Scarpe's **480x420 "Shoes!"**? The manual is silent. Changing it moves every snapshot of every example that does not pass a size (about 70% of them).
-- **Q2 (C7).** Two `para`s side by side in a flow: should the second **continue the first as one paragraph**, its later lines wrapping back to the flow's left edge (manual 1610-1612 and Shoes 3), or be **its own box** beside or below the first (Webview today, DESIGN 6)? Single-line paras look the same either way. The paragraph model needs a first-line indent in the text layout.
-- **Q3 (C9).** Should text blocks get Shoes 3's **default margins (4 px, 12 px below)**, or Webview's **zero**? Shoes 3 examples were written with the gap; Scarpe-authored examples were written without it.
+- **Q1 (A1).** Answered 27 Sep 2026; the ruling is in row A1. Should an app with no size open at **600x500 titled "Shoes"**, as Shoes 3 and Shoes 4 both do, or stay at Scarpe's **480x420 "Shoes!"**? The manual is silent. Changing it moves every snapshot of every example that does not pass a size (about 70% of them).
+- **Q2 (C7).** Answered 27 Sep 2026; the ruling is in row C7. Two `para`s side by side in a flow: should the second **continue the first as one paragraph**, its later lines wrapping back to the flow's left edge (manual 1610-1612 and Shoes 3), or be **its own box** beside or below the first (Webview today, DESIGN 6)? Single-line paras look the same either way. The paragraph model needs a first-line indent in the text layout.
+- **Q3 (C9).** Answered 27 Sep 2026; the ruling is in row C9. Should text blocks get Shoes 3's **default margins (4 px, 12 px below)**, or Webview's **zero**? Shoes 3 examples were written with the gap; Scarpe-authored examples were written without it.
 - **Q4 (H3).** When a stack nested at (100, 100) has its own `click` handler, should a click at window (150, 120) report **(150, 120)** (Shoes 3) or **(50, 20)** (Webview, DESIGN 4.3)? No example found depends on either.
 - **Q5 (H1).** On a Mac, should **Cmd-q arrive as `:alt_q`**, as in Shoes 3 and as the example editors expect, or as `:control_q`, as DESIGN 4.4 says? And should Cmd-Q still quit through the app menu before the app sees it?
 - **Q6 (K1).** When the user cancels `ask`, should it return **nil** (Shoes 3's source) or **""** (your commit `6ce3d28`, which kept Hackety Hack's guessing game alive)?
