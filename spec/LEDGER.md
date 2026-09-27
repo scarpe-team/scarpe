@@ -690,7 +690,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** the `:click` style is "For: arc, arrow, banner, button, caption, check, flow, image, inscription, line, link, mask, oval, para, radio, rect, shape, stack, star, subtitle, tagline, title" (manual 1144-1151).
 - **Shoes 3:** `Shape#click`, `release`, `hover`, `leave` (`s3t_shape.c:33-36`).
 - **Examples:** `for_playtest/expert/curve-control-point.rb:22-30` (drag with oval `click`/`release`), `expert/colours.rb:70`.
-- **Lacci today:** `Drawable#click`/`#release` store `@block`/`@release` (`drawable.rb:784-802`), but only Button, Check, Radio, Link, Image and SubscriptionItem bind a `click` event; art classes declare no events, so the handler never fires (X9).
+- **Lacci today:** `Drawable#click`/`#release` store `@block`/`@release` (`drawable.rb:784-802`), but only Button, Check, Radio, Link, Image and SubscriptionItem bind a `click` event; art classes declare no events, so the handler never fires (X9). Fix 10.9 bound the `click` and `release` methods; since the wave-4 Lacci lane a `click:` proc given as a style binds the same way (G10), so `styles.click__para` passes.
 - **Spec:** `oval(...).click { }` fires on `click_at` the oval's centre and not on a click outside it.
 - **Native:** routes a press to the topmost drawable with `has_click` (DESIGN 4.3).
 
