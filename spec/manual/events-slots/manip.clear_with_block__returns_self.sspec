@@ -3,8 +3,9 @@ manual: manip.clear_with_block
 lines: [2331, 2331]
 testability: api
 display: any
+ledger: B6
 expect: fail
-reason: Lacci's clear returns nil, not the slot (ledger row requested)
+reason: Lacci's clear returns nil, not the slot (B6)
 ----------- app code
 Shoes.app do
   $slot = stack { para "Old text" }

@@ -3,8 +3,9 @@ manual: events.motion
 lines: [2259, 2259]
 testability: api
 display: any
+ledger: B6
 expect: fail
-reason: Lacci's slot motion returns the SubscriptionItem it creates, not the slot (ledger row requested)
+reason: Lacci's slot motion returns the SubscriptionItem it creates, not the slot (B6)
 ----------- app code
 Shoes.app do
   $slot = stack { para "move over me" }

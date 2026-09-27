@@ -3,8 +3,9 @@ manual: timers.classes
 lines: [3411, 3413]
 testability: api
 display: any
+ledger: I2
 expect: fail
-reason: Lacci returns a Shoes::SubscriptionItem from animate, every and timer; Shoes::Animation, Shoes::Every and Shoes::Timer do not exist (ledger row requested)
+reason: Lacci returns a Shoes::SubscriptionItem from animate, every and timer; Shoes::Animation, Shoes::Every and Shoes::Timer do not exist (I2)
 ----------- app code
 Shoes.app do
   $animation = animate(10) { }

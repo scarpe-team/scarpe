@@ -3,8 +3,9 @@ manual: art.nostroke
 lines: [1706, 1706]
 testability: api
 display: any
+ledger: B6
 expect: fail
-reason: Lacci's nostroke returns the transparent colour it stores, not self (no ledger row yet; see the lane report).
+reason: Lacci's nostroke returns the transparent colour it stores, not self (B6).
 ----------- app code
 Shoes.app do
   $app = self

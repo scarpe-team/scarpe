@@ -3,8 +3,9 @@ manual: slot.toggle
 lines: [2503, 2503]
 testability: api
 display: any
+ledger: B6
 expect: fail
-reason: Lacci's toggle returns the new value of hidden, not the slot (ledger row requested)
+reason: Lacci's toggle returns the new value of hidden, not the slot (B6)
 ----------- app code
 Shoes.app do
   $slot = stack { para "blinking" }

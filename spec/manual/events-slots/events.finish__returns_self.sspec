@@ -3,8 +3,9 @@ manual: events.finish
 lines: [2195, 2195]
 testability: api
 display: any
+ledger: B6
 expect: fail
-reason: Lacci's Slot#finish returns its Array of callbacks, not the slot (ledger row requested)
+reason: Lacci's Slot#finish returns its Array of callbacks, not the slot (B6)
 ----------- app code
 Shoes.app do
   $slot = stack { para "going away" }

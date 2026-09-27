@@ -3,8 +3,9 @@ manual: timers.start
 lines: [3419, 3419]
 testability: api
 display: any
+ledger: B6
 expect: fail
-reason: Lacci's start returns the new value of its stopped style (false), not the timer (ledger row requested)
+reason: Lacci's start returns the new value of its stopped style (false), not the timer (B6)
 ----------- app code
 Shoes.app do
   $animation = animate(10) { }

@@ -3,6 +3,7 @@ manual: common.show
 lines: [2686, 2686]
 testability: api
 display: any
+ledger: B6
 expect: fail
 reason: "Lacci's hide, show and toggle return the new value of the hidden flag (drawable.rb), not self"
 ----------- app code

@@ -3,8 +3,9 @@ manual: app.shoes_app
 lines: [859, 865]
 testability: api
 display: any
+ledger: A9
 expect: fail
-reason: "Lacci's Shoes.app returns nil, not the Shoes::App (no ledger row yet)"
+reason: "Lacci's Shoes.app returns nil, not the Shoes::App (A9)"
 ----------- app code
 $returned = Shoes.app do
   para "Hello"

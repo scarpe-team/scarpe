@@ -3,6 +3,7 @@ manual: rules.fixed_height_clips
 lines: [345, 352]
 testability: visual
 display: native
+ledger: C13
 ----------- app code
 Shoes.app do
   @box = stack width: 200, height: 100 do

@@ -3,9 +3,10 @@ manual: builtins.exit
 lines: [741, 744]
 testability: api
 display: any
+ledger: K6
 timeout: 60
 expect: fail
-reason: "Lacci's exit is Shoes.quit, which destroys every app and returns, so the code after it keeps running (no ledger row yet)"
+reason: "Lacci's exit is Shoes.quit, which destroys every app and returns, so the code after it keeps running (K6)"
 ----------- app code
 Shoes.app { para "This app only hosts the experiment; the test code runs a second program." }
 ----------- test code
