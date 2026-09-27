@@ -4,8 +4,6 @@ lines: [1298, 1306]
 testability: visual
 display: native
 ledger: C14
-expect: fail
-reason: "the native layout adds margins outside a pixel width (DESIGN 12), where C14 (ruled 27 Sep 2026, Q9) puts them inside it as Shoes 3 does."
 ----------- app code
 Shoes.app width: 400, height: 300 do
   flow do

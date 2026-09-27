@@ -4,8 +4,6 @@ lines: [1288, 1294]
 testability: visual
 display: native
 ledger: C15
-expect: fail
-reason: "the native layout still reads a negative left or top as that far in from the slot's far edge (DESIGN 6's dimension rule), where art takes it as a plain coordinate (C15)."
 ----------- app code
 Shoes.app width: 300, height: 200 do
   nostroke

@@ -4,8 +4,6 @@ lines: [1239, 1243]
 testability: visual
 display: native
 ledger: C14
-expect: fail
-reason: "the native layout adds margins outside a pixel height (DESIGN 12), where C14 (ruled 27 Sep 2026, Q9) puts them inside it as Shoes 3 does."
 ----------- app code
 # The 30 px grid of shoes-contrib/simple/simple-control-sizes.rb, Shoes 3's own control check.
 Shoes.app width: 400, height: 300 do
