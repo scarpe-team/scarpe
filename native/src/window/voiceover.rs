@@ -20,6 +20,7 @@ pub fn answer(rt: &mut Runtime, win: &mut Win, act: Option<PlatformAct>) -> Resu
     let window = win.window.clone();
     objc2::rc::autoreleasepool(|_| {
         let view = appkit::view(&window).ok_or("the window has no view")?;
+        // The first question wakes the adapter, as VoiceOver's does; the whole tree follows at once.
         appkit::children(view);
         tell_screen_reader(rt, win);
         if let Some(act) = act {
