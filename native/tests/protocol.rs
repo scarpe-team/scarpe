@@ -268,6 +268,22 @@ fn slot_hover_leave_and_motion_items() {
     assert!(named(&evs, "motion").is_empty());
 }
 
+/// A press through automation moves the pointer to the press first; when it is already there,
+/// no motion fires (spec path-animation drew the last point of a drag twice).
+#[test]
+fn a_press_where_the_pointer_already_is_is_not_motion() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(4, "SubscriptionItem", 2, json!({"shoes_api_name": "motion"}))]));
+    let (evs, _) = h.req(json!({"op": "mouse", "action": "move", "x": 60, "y": 70}));
+    assert_eq!(named(&events(&evs), "motion").len(), 1);
+    for action in ["down", "up", "move"] {
+        let (evs, _) = h.req(json!({"op": "mouse", "action": action, "x": 60, "y": 70}));
+        assert!(named(&events(&evs), "motion").is_empty(), "{action} where the pointer is");
+    }
+    let (evs, _) = h.req(json!({"op": "mouse", "action": "up", "x": 61, "y": 70}));
+    assert_eq!(named(&events(&evs), "motion").len(), 1, "a release elsewhere moves it first");
+}
+
 #[test]
 fn mouse_state_is_reported() {
     let mut h = Harness::new();
