@@ -1153,7 +1153,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 **Ruling: MANUAL.** Route all four to the Shoes log. **Lacci change, unscheduled.**
 
 - **Manual:** loggers for the Shoes console; `error` accepts exceptions (manual 719-844).
-- **Lacci today:** `debug`/`info` print `[DEBUG]`/`[INFO]` (`builtins.rb:54-60`), and App aliases both to `puts` (`app.rb:546-547`); `warn` is Ruby's `Kernel#warn`; `error` is undefined, so it raises `NoMethodError` inside an app.
+- **Lacci today:** `debug`/`info` print `[DEBUG]`/`[INFO]` (`builtins.rb:54-60`), and App aliases both to `puts` (`app.rb:546-547`); `warn` is Ruby's `Kernel#warn`; `error` is undefined, so it raises `NoMethodError` inside an app. Since the wave-4 Lacci lane `error` is a built-in: it prints `[ERROR]` and the message, or an exception's class and message, on stderr and returns nil. None of the four goes through `Shoes::Log` yet.
 - **Spec:** each call returns without raising, and the message reaches `Shoes::Log`. The app writer's cases look for the text on stdout or stderr, so they assume `debug` and `info` are not filtered by the log level; a level filter would turn them red.
 - **Native:** nothing; the log is Ruby-side, and Rust `log` messages join it (DESIGN 4.2).
 
