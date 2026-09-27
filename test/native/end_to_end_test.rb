@@ -279,14 +279,15 @@ class EndToEndTest < Minitest::Test
       end
     APP
       first = -> { layout_tree.find { |node| node[:text] == "line 0" }[:y] }
-      assert_equal 0, first.call
+      top = first.call
+      assert_equal 4, top, "the first line sits in its 4 px text margin"
       wheel(50, x: 20, y: 50)
       assert_equal 50, stack("@list").scroll_top, "Rust reports where it scrolled to"
-      assert_equal(-50, first.call)
+      assert_equal top - 50, first.call
 
       stack("@list").scroll_top = 10
       wait_frames
-      assert_equal(-10, first.call)
+      assert_equal top - 10, first.call
     TEST
     assert_spec_passed(run)
   end
