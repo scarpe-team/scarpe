@@ -1,0 +1,20 @@
+---
+# Runner self-test: pbcopy, pbpaste and xclip read and write a file in the sandbox, never
+# the real clipboard. The first assertion stops the test before any clipboard call if the
+# runner gave no sandbox file.
+testability: api
+----------- app code
+Shoes.app do
+  button("Copy") { self.clipboard = "copied from the app" }
+end
+----------- test code
+board = ENV["SPEC_CLIPBOARD_FILE"]
+refute_nil board, "spec/run names a clipboard file for every case"
+sandbox = File.realpath(File.dirname(Dir.pwd))
+assert_equal sandbox, File.realpath(File.dirname(board)), "the file sits in this case's sandbox"
+
+find_button("Copy").trigger_click
+assert_equal "copied from the app", File.read(board), "clipboard= writes the sandbox file"
+
+File.write(board, "put there by another program")
+assert_equal "put there by another program", Shoes.APPS.first.clipboard, "clipboard reads it back"

@@ -22,6 +22,7 @@ module SpecSuite
     def local_app_data = File.join(root, "localappdata")
     def work = File.join(root, "work")
     def trap_file = File.join(root, "trapped_commands.txt")
+    def clipboard_file = File.join(root, "clipboard.txt")
     def log = File.join(root, "output.log")
 
     def path(name)
@@ -62,6 +63,7 @@ module SpecSuite
         "BUNDLE_GEMFILE" => File.join(REPO, "Gemfile"),
         "RUBYOPT" => "-r#{BUILTIN_STUB}",
         "SPEC_TRAP_FILE" => trap_file,
+        "SPEC_CLIPBOARD_FILE" => clipboard_file,
         "SCARPE_NATIVE_SNAPSHOT_DIR" => File.join(RESULTS_DIR, "snapshots"),
       }.merge(ToolchainEnv.passthrough)
     end
