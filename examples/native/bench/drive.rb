@@ -106,11 +106,19 @@ module Bench
           automation.key(key)
           automation.frames(1)
           samples << (monotonic - started) * 1000.0
-          automation.advance(0.02) # a fast typist, not a firehose
+          pause(0.05) # a fast typist, not a firehose
         end
       end
       @report["round_trip_ms"] = samples
       @report["text"] = line.text
+    end
+
+    # Lets the app run between keys the way it does between a person's keystrokes: the pump turns,
+    # and only the app itself asks for frames.
+    def pause(seconds)
+      pump = Scarpe::Native::DisplayService.instance.pump
+      deadline = monotonic + seconds
+      pump.step while monotonic < deadline
     end
 
     # Clicks something whose handler redraws a lot, timing each click until it is drawn.
