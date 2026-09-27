@@ -272,3 +272,42 @@ fn one_shape_changing_colour_over_2000_paras() {
     }
     times.report("one shape changing colour over 2000 paras", window.pixels());
 }
+
+/// The showcase starfield's first nebula (showcase lane, wave 4): 72 large translucent circles
+/// under 420 stars, six stars twinkling a frame. Each damaged rect paints the nebula again
+/// clipped small, which the lane measured as dearer than one whole repaint; on the merged tree
+/// it is not (native/PERF.md, wave 5). Run it with SCARPE_NATIVE_DAMAGE=off to compare.
+#[test]
+#[ignore]
+fn stars_twinkling_over_a_nebula() {
+    let mut h = Harness::new();
+    let mut seed = 72u64;
+    let mut rand = |n: u64| {
+        seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        (seed >> 33) % n
+    };
+    let mut body = vec![create(3, "Background", 2, json!({"fill": {"rgba": [8, 10, 30, 255]}}))];
+    for i in 0..72 {
+        let r = 100 + rand(200) as i64;
+        body.push(create(10 + i, "Oval", 2, json!({"left": rand(800) as i64 - r, "top": rand(500) as i64 - r, "width": 2 * r,
+            "fill": {"rgba": [60 + rand(120), 40, 120 + rand(120), 18]}, "stroke": {"rgba": [0, 0, 0, 0]}})));
+    }
+    let stars: Vec<i64> = (0..420).map(|i| 1000 + i).collect();
+    for &id in &stars {
+        body.push(create(id, "Oval", 2, json!({"left": rand(800), "top": rand(500), "width": 2 + rand(3),
+            "fill": {"rgba": [255, 255, 255, 200]}, "stroke": {"rgba": [0, 0, 0, 0]}})));
+    }
+    h.feed(&app(800, 500, &body));
+    let mut window = Frame::open(&mut h);
+    let mut times = FrameTimes::default();
+    for n in 0..120u64 {
+        let lines: String = (0..6)
+            .map(|k| {
+                let id = stars[((n * 37 + k * 71) % 420) as usize];
+                format!("{}\n", json!({"t": "props", "id": id, "props": {"fill": {"rgba": [255, 255, 200 + n % 50, 120 + n * 7 % 130]}}}))
+            })
+            .collect();
+        frame(&mut h, &mut window, &lines, &mut times);
+    }
+    times.report("stars twinkling over a nebula", window.pixels());
+}
