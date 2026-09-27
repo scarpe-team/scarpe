@@ -36,7 +36,7 @@ Shoes.app(title: "Pomodoro", width: 440, height: 580, resizable: false) do
   # Returns both, so the caller can recolour and relabel it later.
   def pill(label, width:, fill:, text:, &on_click)
     look = words = nil
-    button = stack(width: width, height: 46, margin_left: 6, margin_right: 6) do
+    button = stack(width: width + 12, height: 46, margin_left: 6, margin_right: 6) do
       look = background fill, curve: 23
       border rgb(0, 0, 0, 0.07), strokewidth: 1, curve: 23
       words = para label, align: "center", stroke: text, size: 14, weight: "semibold", margin_top: 14
