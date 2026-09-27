@@ -328,9 +328,7 @@ As of 27 Sep 2026. Each has more detail in the ledger or in DESIGN.
   universal builds, no notarisation. Window opacity works on macOS only.
 - **Drawing.** Radial gradients, dash styles, and `blur`, `glow` and `shadow` are not drawn. Video
   shows a placeholder frame and does not play. The bundled fonts have no emoji.
-- **Art.** `right:` and `bottom:` place art from the slot's far edges, but Lacci always sends
-  `left` and `top` with them, and those win (ledger C10); Shoes 3 read them on art as end points.
-  Pens set inside a `shape` block style that shape only, where Shoes 3 carries them on to the
+- **Art.** Pens set inside a `shape` block style that shape only, where Shoes 3 carries them on to the
   shapes after it (E7). `scale` and `skew` set their value outright, where Shoes 3 multiplies
   them into what came before; only `rotate` adds up (E10).
 - **Lacci.** `left` and `top` answer in window coordinates, where Shoes 3 answers from the
