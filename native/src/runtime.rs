@@ -386,10 +386,7 @@ impl Runtime {
         self.answer_what_waits_on(app, "window closed");
         if self.is_standalone(app) {
             // Ruby never knew this window: the dialog's answer was all it waited for.
-            self.views.remove(&app);
-            if self.active_app == Some(app) {
-                self.active_app = None;
-            }
+            self.drop_standalone(app);
             return;
         }
         if let Some(view) = self.views.get_mut(&app) {
@@ -400,6 +397,15 @@ impl Runtime {
         }
         self.out.send(Outgoing::Closed { app });
         self.out.flush();
+    }
+
+    /// Lets go of a dialog's own view (dialogs::open_standalone), and what it owned.
+    pub(crate) fn drop_standalone(&mut self, app: Id) {
+        self.views.remove(&app);
+        self.text.forget_layout(app);
+        if self.active_app == Some(app) {
+            self.active_app = None;
+        }
     }
 
     fn close_view(&mut self, app: Id) {

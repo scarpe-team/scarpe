@@ -303,7 +303,7 @@ impl Runtime {
         self.out.send(msg);
         self.out.flush();
         if self.is_standalone(app) {
-            self.views.remove(&app);
+            self.drop_standalone(app);
             self.effects.push(Effect::CloseWindow(app));
         } else {
             self.request_redraw(app);
