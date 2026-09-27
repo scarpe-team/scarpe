@@ -38,11 +38,16 @@ class Shoes
       attr_accessor :set_test_code
     end
 
+    # Shoes 3 and Shoes 4 both open a 600x500 window titled "Shoes" (ledger A1, Q1).
+    DEFAULT_TITLE = "Shoes"
+    DEFAULT_WIDTH = 600
+    DEFAULT_HEIGHT = 500
+
     init_args
     def initialize(
-      title: 'Shoes!',
-      width: 480,
-      height: 420,
+      title: DEFAULT_TITLE,
+      width: DEFAULT_WIDTH,
+      height: DEFAULT_HEIGHT,
       resizable: true,
       features: [],
       owner: nil,
