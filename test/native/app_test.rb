@@ -117,6 +117,36 @@ class AppTest < Minitest::Test
     assert_match(/RuntimeError: kaboom in the click handler for 3 \(at .*app\.rb:2/, run.stderr)
   end
 
+  # A failed require, a runaway recursion or NotImplementedError are not StandardErrors, but a bad
+  # block is a bad block: logged, and the app carries on (review).
+  def test_a_handler_that_raises_beyond_standard_error_is_logged_and_the_loop_keeps_going
+    clicks = %w[require recurse unimplemented fine].map do |text|
+      { "t" => "event", "name" => "click", "target" => { "text" => text }, "args" => [] }
+    end
+    run = run_app(<<~RUBY, script: [{ "on" => "run", "emit" => clicks }])
+      Shoes.app do
+        button("require") { require "definitely_not_a_gem_xyz" }
+        button("recurse") { recurse = ->(depth) { recurse.(depth + 1) }; recurse.(0) }
+        button("unimplemented") { raise NotImplementedError, "not yet" }
+        button("fine") { puts "still alive"; Shoes.quit }
+      end
+    RUBY
+    assert_clean_exit(run)
+    assert_equal "still alive\n", run.stdout
+    assert_match(/LoadError: cannot load such file -- definitely_not_a_gem_xyz in the click handler/, run.stderr)
+    assert_match(/SystemStackError: stack level too deep in the click handler/, run.stderr)
+    assert_match(/NotImplementedError: not yet in the click handler/, run.stderr)
+  end
+
+  # Inside an app `exit` is Shoes' own quit; Kernel.exit raises SystemExit, which still ends it.
+  def test_kernel_exit_in_a_handler_still_ends_the_app
+    run = run_app(<<~RUBY, script: [{ "on" => "run", "emit" => [{ "t" => "event", "name" => "click", "target" => { "kind" => "Button" }, "args" => [] }] }])
+      Shoes.app { button("bye") { Kernel.exit(3) } }
+    RUBY
+    refute run.timed_out
+    assert_equal 3, run.status.exitstatus
+  end
+
   def test_a_child_crash_is_reported_with_its_stderr
     run = run_app(<<~RUBY, script: [{ "on" => "run", "crash" => "thread 'main' panicked at src/paint.rs:7:5" }])
       Shoes.app { para "hi" }
