@@ -264,10 +264,12 @@ src/text/          fonts.rs (FontSystem: system or bundled; set sans/serif/mono 
                    rich.rs (resolve Para text_items tree -> spans with Attrs + metadata id per span),
                    shape_cache.rs (cache Buffers keyed by content hash + width), raster.rs (own glyph rasteriser
                    with slight embolden, HiDPI via glyph.physical)
-src/paint/         mod.rs (walk layout, clip, transforms), shapes.rs (rect oval line arrow star arc shape),
+src/paint/         mod.rs (walk layout, clip, mask layers), shapes.rs (rect oval line arrow star arc shape,
+                   shape groups, transforms),
                    decor.rs (background, border), text.rs (draw shaped text, decorations, selection, caret)
 src/elements/      one file per widget: button.rs check.rs radio.rs edit_line.rs edit_box.rs list_box.rs progress.rs
-                   slider.rs image.rs video.rs. Each exposes: intrinsic size, paint, pointer handling, key handling
+                   slider.rs image.rs video.rs. Each exposes: intrinsic size, paint, pointer handling, key handling.
+                   tooltip.rs draws the tooltip bubble over any drawable
 src/input.rs       hit-test (topmost in reverse paint order), hover chain diffing, press/release routing,
                    focus + tab order, keyboard -> Shoes key names, text editing via cosmic-text Editor
 src/runtime.rs     Runtime: owns Doc + per-app view state (scroll, focus, hover, editors, popups); apply(msg);
