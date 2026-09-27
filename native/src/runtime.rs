@@ -225,11 +225,7 @@ impl Runtime {
             }
             Incoming::ScrollTo { id, top } => {
                 if let Some(app) = self.doc.app_of(id) {
-                    if let Some(view) = self.views.get_mut(&app) {
-                        view.ui.scroll.insert(id, top.max(0.0));
-                        view.layout = None;
-                        view.dirty = true;
-                    }
+                    self.scroll_slot(app, id, top.max(0.0));
                 }
             }
             Incoming::Font { path } => {
@@ -431,6 +427,22 @@ impl Runtime {
         }
     }
 
+    /// Scrolls a slot of `app` to `top`. Its contents move in the layout that stands, and Ruby
+    /// hears the rects that moved; nothing is laid out again unless the layout cannot move
+    /// them by itself (layout::Layout::scroll), when it is dropped instead.
+    pub(crate) fn scroll_slot(&mut self, app: Id, slot: Id, top: f32) {
+        let Some(view) = self.views.get_mut(&app) else { return };
+        let before = view.layout.as_ref().and_then(|layout| layout.scrollers.get(&slot)).map(|s| s.top);
+        let settled = view.layout.as_mut().and_then(|layout| layout.scroll(&self.doc, slot, top));
+        view.ui.scroll.insert(slot, settled.unwrap_or(top));
+        view.dirty = true;
+        if settled.is_none() {
+            view.layout = None;
+        } else if settled != before {
+            self.push_layout(app);
+        }
+    }
+
     /// The document changed: every app lays out again before its next paint.
     pub fn invalidate(&mut self) {
         for view in self.views.values_mut() {
@@ -482,7 +494,7 @@ impl Runtime {
     /// Tells Ruby where nodes landed, so Lacci's left, top, width, height and scroll_height
     /// can answer in pixels (contract a; ledger A4, C5): every rect after an app's first
     /// layout, then only those that moved. Ids that left the layout are simply dropped.
-    fn push_layout(&mut self, app: Id) {
+    pub(crate) fn push_layout(&mut self, app: Id) {
         let Some(view) = self.views.get_mut(&app) else { return };
         let Some(layout) = view.layout.as_ref() else { return };
         let mut told = HashMap::with_capacity(layout.boxes.len());

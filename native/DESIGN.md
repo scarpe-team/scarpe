@@ -630,7 +630,11 @@ change the code and this list together.
   cannot ask for one).
 - **Wheel.** `req wheel` takes `dy` in logical px with DOM sign: positive scrolls down (content
   moves up). The `wheel` event sent to subscription items carries `delta = -dy` (positive = up)
-  and window coordinates. Scrolling a slot or the window also sends `scroll {id, top}`.
+  and window coordinates. Scrolling a slot or the window also sends `scroll {id, top}`. A scroll
+  (wheel or `scroll_to`) moves what the slot holds within the layout that stands, from where it
+  was laid out by the scrollers' offsets, rather than laying the window out again; Ruby still
+  hears every rect that moved (contract a), so a slot of 5000 rows re-sends 5000 rects a tick.
+  A layout with anything `attach`ed lays out again instead.
 - **Hit-testing.** Nothing is hit outside the window, so moving the pointer to (-1, -1) leaves every
   drawable including the DocumentRoot. Backgrounds and borders never catch the pointer. A clipped
   slot's hidden part catches nothing.
