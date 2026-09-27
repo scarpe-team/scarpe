@@ -4,8 +4,6 @@ lines: [1108, 1113]
 testability: api
 display: any
 ledger: E10
-expect: fail
-reason: "Line declares no :cap style and the cap() DSL method is a no-op (E10), so the value never reaches a display."
 ----------- app code
 Shoes.app do
   @it = line 50, 100, 150, 100, cap: :curve

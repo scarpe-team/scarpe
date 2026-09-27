@@ -4,8 +4,6 @@ lines: [766, 767]
 testability: api
 display: any
 ledger: K4
-expect: fail
-reason: "Lacci's font returns Shoes::FONTS with the file's basename appended, whatever the file holds (K4)"
 ----------- app code
 Shoes.app do
   $missing = font("no-such-font.ttf")

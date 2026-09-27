@@ -3,8 +3,6 @@ manual: app.shoes_app
 lines: [859, 865]
 testability: api
 display: any
-expect: fail
-reason: "Lacci's Shoes.app returns nil, not the Shoes::App (no ledger row yet)"
 ----------- app code
 $returned = Shoes.app do
   para "Hello"

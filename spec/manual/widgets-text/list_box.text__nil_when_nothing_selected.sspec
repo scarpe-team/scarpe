@@ -4,8 +4,6 @@ lines: [3234, 3237]
 testability: api
 display: any
 ledger: G3
-expect: fail
-reason: Lacci selects the first item when :choose is not given (list_box.rb:19); G3 rules nothing is selected, an unscheduled Lacci change.
 ----------- app code
 Shoes.app do
   @fruit = list_box items: ["Grapes", "Pears", "Apricots"]

@@ -4,8 +4,6 @@ lines: [571, 577]
 testability: api
 display: any
 ledger: D4
-expect: fail
-reason: "Lacci mixes rgb, gray and gradient into Drawables only, so a plain object cannot call them (D4)"
 ----------- app code
 # A plain Ruby class, nothing to do with Shoes.
 class Palette

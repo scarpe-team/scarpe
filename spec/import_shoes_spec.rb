@@ -62,8 +62,6 @@ module ShoesSpecImport
     "scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/mouse-detection.sspec" =>
       { expect: { "niente" => "fail" }, reason: NO_TIMERS },
     "scarpe_examples/legacy/working/simple/clock.sspec" => { expect: { "niente" => "fail" }, reason: NO_TIMERS },
-    "scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-oval-image.sspec" =>
-      { expect: "fail", reason: "Lacci ignores shapes drawn inside an image(w, h) { } block; Shoes 3 paints them onto the image" },
     "scarpe_examples/examples/shoes_splorer.sspec" =>
       { expect: "fail", reason: "text fragments such as code() live in their para's text items, not the drawable tree, so codes() finds none" },
     "scarpe_examples/legacy/for_playtest/shoes3-tests/radio/multiple.sspec" =>

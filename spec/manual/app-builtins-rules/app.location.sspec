@@ -4,8 +4,6 @@ lines: [980, 982]
 testability: api
 display: any
 ledger: J1
-expect: fail
-reason: "Lacci has no location method (J1, C5)"
 ----------- app code
 Shoes.app do
   url "/", :index

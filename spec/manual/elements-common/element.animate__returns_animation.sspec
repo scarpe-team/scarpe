@@ -3,8 +3,6 @@ manual: element.animate
 lines: [1877, 1877]
 testability: api
 display: any
-expect: fail
-reason: "Lacci's animate, every and timer return a Shoes::SubscriptionItem; Shoes::Animation, Shoes::Every and Shoes::Timer do not exist"
 ----------- app code
 Shoes.app do
   $animation = animate(24) { |frame| }
