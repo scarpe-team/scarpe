@@ -293,7 +293,8 @@ pub fn fragment_rect(layout: &Layout, fragment: Id) -> Option<Rect> {
         if let (Some(first), Some(last)) = (glyphs.first(), glyphs.last()) {
             let x0 = first.x.min(last.x);
             let x1 = (first.x + first.w).max(last.x + last.w);
-            return Some(Rect::new(tb.x + x0, tb.y + run.line_top, x1 - x0, run.line_height));
+            let (top, h) = tb.shaped.line_box(run.line_top, run.line_height);
+            return Some(Rect::new(tb.x + x0, tb.y + top, x1 - x0, h));
         }
     }
     None
