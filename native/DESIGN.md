@@ -310,7 +310,10 @@ need. Removing or destroying the slot stops them with it.
 
 An idle pump sleeps. Besides the child's output, the select watches a wake pipe that a post from
 another thread (a download) and Ctrl-C (the pump chains Lacci's INT trap) write to, so nothing
-waits on the timeout (native/PERF.md). Hello goes out without waiting for `ready`. When the loop
+waits on the timeout (native/PERF.md). Every `Shoes::App` traps INT afresh as it is made (a
+`window` is one), so the pump chains itself again at every run. A second Ctrl-C ends the child
+outright, since Ruby may be stuck writing to a child that stopped reading, where asking it to quit
+changes nothing. Hello goes out without waiting for `ready`. When the loop
 ends the shim sends `quit`, closes the child's stdin and gives it 2 s before TERM and KILL; if the
 child died while an app was still open, it raises `ChildDied`. A TERM to Ruby ends the child at
 once (its whole process group) before Ruby goes on to die of it, because a child stuck in layout

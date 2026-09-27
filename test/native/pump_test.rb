@@ -44,6 +44,36 @@ class PumpTest < Minitest::Test
     Signal.trap("INT", "DEFAULT")
   end
 
+  # The pump chains again at every run (each Shoes::App traps INT anew), so a run with no new trap
+  # to chain must leave the chain as it was.
+  def test_chaining_again_with_no_new_trap_still_wakes_once
+    reached = []
+    original = Signal.trap("INT") { reached << :lacci }
+    child = Struct.new(:woken) { def wake! = self.woken += 1 }.new(0)
+    pump = Scarpe::Native::Pump.new(Struct.new(:child).new(child))
+    2.times { pump.send(:wake_on_interrupt) }
+    ours = Signal.trap("INT", original)
+    ours.call("INT")
+    assert_equal [:lacci], reached
+    assert_equal 1, child.woken
+  ensure
+    Signal.trap("INT", "DEFAULT")
+  end
+
+  def test_a_second_ctrl_c_kills_the_child
+    Signal.trap("INT") {}
+    child = Struct.new(:woken, :killed) do
+      def wake! = self.woken += 1
+      def kill! = self.killed += 1
+    end.new(0, 0)
+    Scarpe::Native::Pump.new(Struct.new(:child).new(child)).send(:wake_on_interrupt)
+    ours = Signal.trap("INT", "DEFAULT")
+    2.times { ours.call("INT") }
+    assert_equal({ woken: 1, killed: 1 }, { woken: child.woken, killed: child.killed })
+  ensure
+    Signal.trap("INT", "DEFAULT")
+  end
+
   def test_a_handler_that_takes_no_signal_argument_is_chained_too
     reached = []
     original = Signal.trap("INT", -> { reached << :lacci })

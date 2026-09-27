@@ -308,11 +308,13 @@ module Scarpe::Native
     # Apps are built and run inside one handler, so an app still unrun after a handler raised is
     # a `window` whose block raised. It never opens: Rust frees it and Shoes.APPS lets it go.
     def drop_unstarted_apps
-      Shoes.APPS.reject { |app| @open_apps.key?(app.linkable_id) }.each do |app|
+      unstarted = Shoes.APPS.reject { |app| @open_apps.key?(app.linkable_id) }
+      unstarted.each do |app|
         Shoes.APPS.delete(app)
         app.destroy(send_event: false)
         free_app(app.linkable_id)
       end
+      @pump.wake_on_interrupt unless unstarted.empty? # each trapped INT as it was made
     end
 
     # Rust frees the app's window and document, and its timers, drawables and layout go here.
