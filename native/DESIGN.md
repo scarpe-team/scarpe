@@ -235,7 +235,10 @@ neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1).
   check/radio 18x18.
   Explicit width/height override.
 - **Margins** add outside the box (`margin`, `margin_left/top/right/bottom`; arrays are
-  [left, top, right, bottom]). `padding` (Scarpe extension) adds inside slots.
+  [left, top, right, bottom], and a short array keeps the default for the sides it leaves out,
+  ledger C3). Text blocks default to Shoes 3's margins: 4 px on every side, and 12 px below
+  unless `margin` or `margin_bottom` is given (ledger C9, s3t_textblock.c:108-110); everything
+  else defaults to 0. `padding` (Scarpe extension) adds inside slots.
 - **Absolute placement**: any child with `left` or `top` set, and every art shape, is out of flow,
   placed at (left, top) relative to its slot's content origin, does not affect siblings or slot height.
   `displace_left/top` shifts a laid-out element visually without affecting others.

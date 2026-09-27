@@ -51,6 +51,15 @@ fn r(l: &Layout, id: Id) -> Rect {
     l.rect(id).unwrap_or_else(|| panic!("{id} was not laid out"))
 }
 
+/// Rects equal to a hundredth of a pixel (text heights carry f32 rounding).
+fn assert_near(actual: Rect, expected: Rect) {
+    let close = |a: f32, b: f32| (a - b).abs() < 0.01;
+    assert!(
+        close(actual.x, expected.x) && close(actual.y, expected.y) && close(actual.w, expected.w) && close(actual.h, expected.h),
+        "{actual:?} is not {expected:?}"
+    );
+}
+
 #[test]
 fn stack_children_go_top_to_bottom_with_margins() {
     let mut s = Scene::new();
@@ -170,12 +179,12 @@ fn text_in_a_stack_fills_and_in_a_flow_shrinks() {
     let two = s.add("Para", flow, json!({"text_items": ["there"]}));
     let long = s.add("Para", flow, json!({"text_items": ["A long para that will certainly not fit on the rest of this short row at all."]}));
     let l = s.layout(480.0, 420.0);
-    assert_eq!(r(&l, in_stack).w, 300.0);
+    assert_eq!(r(&l, in_stack).w, 292.0, "less the 4 px text margins");
     let (a, b, c) = (r(&l, one), r(&l, two), r(&l, long));
     assert!(a.w > 5.0 && a.w < 30.0, "{a:?}");
-    assert_eq!(b.x, a.w, "the second para sits beside the first");
-    assert_eq!(c.x, 0.0, "the long para starts a row of its own");
-    assert_eq!(c.w, 300.0);
+    assert_eq!(b.x, a.right() + 8.0, "the second para sits beside the first, margins apart");
+    assert_eq!(c.x, 4.0, "the long para starts a row of its own");
+    assert_eq!(c.w, 292.0);
     assert!(c.h > 20.0, "and wraps there: {c:?}");
     assert!((a.h - 14.4).abs() < 0.01, "line height is 1.2 x 12px: {a:?}");
 }
@@ -363,4 +372,24 @@ fn a_fixed_height_clips_without_scrolling() {
     assert_eq!(l.visible_rect(tall), Some(Rect::new(0.0, 0.0, 200.0, 100.0)));
     assert!(!l.scrollers.contains_key(&fixed), "clipping is not scrolling");
     assert_eq!(l.boxes[&inside].clip, None, "a slot that grows with its content clips nothing");
+}
+
+#[test]
+fn text_blocks_keep_shoes_3_margins() {
+    // Ledger C9 (Q3): 4 px all round, 12 px below unless margin or margin_bottom is given.
+    let mut s = Scene::new();
+    let stack = s.add("Stack", ROOT, json!({"width": 300}));
+    let first = s.add("Para", stack, json!({"text_items": ["one"]}));
+    let second = s.add("Para", stack, json!({"text_items": ["two"]}));
+    let flush = s.add("Para", stack, json!({"text_items": ["flush"], "margin": 0}));
+    let own_bottom = s.add("Para", stack, json!({"text_items": ["own"], "margin_bottom": 2}));
+    let after = s.add("Button", stack, json!({"text": "b", "width": 10, "height": 10}));
+    let l = s.layout(480.0, 420.0);
+    assert_near(r(&l, first), Rect::new(4.0, 4.0, 292.0, 14.4));
+    assert!((r(&l, second).y - (4.0 + 14.4 + 12.0 + 4.0)).abs() < 0.01, "{:?}", r(&l, second));
+    let f = r(&l, flush);
+    assert!((f.y - (r(&l, second).bottom() + 12.0)).abs() < 0.01 && f.x == 0.0 && f.w == 300.0, "margin: 0 is flush: {f:?}");
+    let o = r(&l, own_bottom);
+    assert!((o.y - (f.bottom() + 4.0)).abs() < 0.01, "{o:?}");
+    assert!((r(&l, after).y - (o.bottom() + 2.0)).abs() < 0.01, "margin_bottom: 2 replaces the 12");
 }
