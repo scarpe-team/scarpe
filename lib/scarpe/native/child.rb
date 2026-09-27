@@ -10,6 +10,84 @@ module Scarpe::Native
   class ChildNotFound < Scarpe::Error; end
   class ChildTimeout < Scarpe::Error; end
 
+  # Where the Ruby side's time goes, for native/PERF.md. Off unless SCARPE_NATIVE_STATS names a
+  # directory; the pump then writes <dir>/ruby.json when it stops (Rust writes rust.json beside it).
+  module Stats
+    extend self
+
+    def enabled?
+      return @enabled if defined?(@enabled)
+
+      @enabled = !ENV["SCARPE_NATIVE_STATS"].to_s.empty?
+    end
+
+    # Adds the block's wall time to phase. Phases can nest (encode happens inside timers).
+    def time(phase)
+      return yield unless enabled?
+
+      started = monotonic
+      begin
+        yield
+      ensure
+        add(phase, monotonic - started)
+      end
+    end
+
+    def add(phase, seconds)
+      tally = (phases[phase] ||= { "n" => 0, "total_ms" => 0.0, "max_ms" => 0.0 })
+      ms = seconds * 1000.0
+      tally["n"] += 1
+      tally["total_ms"] += ms
+      tally["max_ms"] = ms if ms > tally["max_ms"]
+    end
+
+    def count(name, by = 1)
+      counters[name] = counters.fetch(name, 0) + by if enabled?
+    end
+
+    # A milestone, in Unix seconds so it lines up with Rust's rust.json. First time only.
+    def mark(name)
+      marks[name] ||= Process.clock_gettime(Process::CLOCK_REALTIME) if enabled?
+    end
+
+    def write
+      return unless enabled?
+
+      dir = ENV["SCARPE_NATIVE_STATS"]
+      FileUtils.mkdir_p(dir)
+      File.write(File.join(dir, "ruby.json"), JSON.generate(report))
+    end
+
+    # Forgets everything, and whether it is on (tests flip SCARPE_NATIVE_STATS).
+    def reset!
+      remove_instance_variable(:@enabled) if defined?(@enabled)
+      @phases = @counters = @marks = nil
+    end
+
+    def report
+      times = Process.times
+      {
+        "pid" => Process.pid, "ruby" => RUBY_VERSION, "yjit" => yjit?,
+        "marks" => marks, "phases" => phases, "counters" => counters,
+        "cpu" => { "ruby" => times.utime + times.stime, "children" => times.cutime + times.cstime },
+      }
+    end
+
+    private
+
+    def yjit?
+      defined?(RubyVM::YJIT) && RubyVM::YJIT.enabled? ? true : false
+    end
+
+    def phases = (@phases ||= {})
+    def counters = (@counters ||= {})
+    def marks = (@marks ||= {})
+
+    def monotonic
+      Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    end
+  end
+
   # Finds the scarpe-native binary, building it first in a dev checkout when it is missing or stale.
   module Binary
     extend self
@@ -91,6 +169,7 @@ module Scarpe::Native
     def initialize(command)
       @log = Shoes::Log.logger("Scarpe::Native::Child")
       @trace = !ENV["SCARPE_NATIVE_TRACE"].to_s.empty?
+      Stats.mark("spawn")
       @stdin, @stdout, @stderr, @wait_thread = spawn(command)
       @pid = @wait_thread.pid
       [@stdin, @stdout].each(&:binmode)
@@ -112,7 +191,7 @@ module Scarpe::Native
     end
 
     def post(message)
-      line = encode(message)
+      line = Stats.time(:encode) { encode(message) }
       @write_lock.synchronize { @outbox << line } if line
     end
 
@@ -122,6 +201,7 @@ module Scarpe::Native
         next if @outbox.empty?
 
         @outbox << encode(t: "flush")
+        Stats.count("flushes")
         write_outbox
       end
     end
@@ -211,6 +291,7 @@ module Scarpe::Native
         index && @inbox.delete_at(index)
       end
       @version = ready["version"]
+      Stats.mark("ready")
       @log.warn("scarpe-native speaks protocol #{ready["v"].inspect}, we speak #{PROTOCOL_VERSION}") if ready["v"] != PROTOCOL_VERSION
     end
 
@@ -249,7 +330,7 @@ module Scarpe::Native
       return if line.empty?
 
       $stderr.puts("scarpe-native <- #{line}") if @trace
-      message = JSON.parse(line)
+      message = Stats.time(:parse) { JSON.parse(line) }
       if message["t"] == "reply"
         @replies[message["req"]] = message
       else
@@ -273,8 +354,13 @@ module Scarpe::Native
       lines = @outbox
       @outbox = []
       lines.each { |line| $stderr.puts("scarpe-native -> #{line}") } if @trace
-      @stdin.write(lines.join("\n") << "\n")
-      @stdin.flush
+      Stats.time(:write) do
+        chunk = lines.join("\n") << "\n"
+        Stats.count("lines", lines.size)
+        Stats.count("bytes", chunk.bytesize)
+        @stdin.write(chunk)
+        @stdin.flush
+      end
     rescue IOError, SystemCallError
       # The child is gone; the reader sees EOF and reports it.
       nil
