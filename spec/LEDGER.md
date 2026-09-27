@@ -95,7 +95,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
-| D1 | Colours are `Shoes::Color` objects | MANUAL | unsched. | |
+| D1 | Colours are `Shoes::Color` objects | MANUAL | | |
 | D2 | `rgb()` types each component | MANUAL | 10.7 | |
 | D3 | Alpha is opacity; named colours take one | MANUAL | | |
 | D4 | `rgb`/`gray`/`gradient` are built-ins; `Shoes.rgb` | MANUAL | | |
@@ -512,11 +512,11 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### D1. Colours are `Shoes::Color` objects
 
-**Ruling: MANUAL.** Keep `to_a` and array destructuring working so Lacci callers survive. **Lacci change, unscheduled.**
+**Ruling: MANUAL.** Keep `to_a` and array destructuring working so Lacci callers survive. **Lacci change, done 27 Sep 2026.**
 
 - **Manual:** `ask_color` returns a `Shoes::Color` (manual 643-655); `rgb` and `gray` return `Shoes::Color` (manual 790, 815).
 - **Shoes 3:** `Shoes::Color` with `red green blue alpha black? dark? light? white? opaque? transparent? invert to_s inspect to_pattern <=> ==` (`s3t_color.c:16-33`).
-- **Lacci today:** plain Arrays `[r, g, b, a]` (`colors.rb:152-176`). `black(0.1)` gives `[0, 0, 0, 0.1]`, integer channels with a float alpha.
+- **Lacci today:** plain Arrays `[r, g, b, a]` (`colors.rb:152-176`). `black(0.1)` gives `[0, 0, 0, 0.1]`, integer channels with a float alpha. Since the wave-4 Lacci lane `rgb`, and so `gray` and every named colour, return a `Shoes::Color` (`color.rb`) with `red`, `green`, `blue` and `alpha`, and `ask_color` turns its answer into one. `Shoes::Color` subclasses Array, so destructuring, `==` against an Array, `to_a` and the displays' normalisers work unchanged; Shoes 3's `dark?`, `light?`, `invert` and friends are not there yet.
 - **Spec:** `rgb(1, 2, 3).is_a?(Shoes::Color)`, `.red == 1`, `.alpha == 255`; `r, g, b, a = rgb(1, 2, 3).to_a` still works.
 - **Native:** nothing. The shim's normaliser accepts both Arrays and Color objects (DESIGN 5.3).
 

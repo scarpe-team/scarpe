@@ -4,8 +4,6 @@ lines: [643, 647]
 testability: dialog
 display: any
 ledger: D1
-expect: fail
-reason: Lacci colours are plain Arrays; there is no Shoes::Color class (D1)
 dialogs: {ask_color: [[255, 136, 0, 255]]}
 ----------- app code
 $picked = ask_color("Pick a background")
