@@ -489,10 +489,11 @@ A handler that raises while test code is clicking or advancing fails the test in
 
 `scarpe peek APP.rb [--size WxH] [--scale 2] [--wait SECS] [--click TEXT | --click-at X,Y]
 [--drag X,Y,X,Y...] [--type TEXT] [--key NAME] [--wheel DY[,X,Y]] [--window N | --app ID]
-[--shot OUT.png] [--layout]` runs an app headless, performs the steps in order from the first
-heartbeat, prints one line per click, drag, wheel, window, shot and laid-out node, and exits (1
-when a step failed or no app started). With no `--shot` and no `--layout` it saves `peek.png` in
-the current directory. `--drag` presses at its first point and moves through the rest a frame
+[--shot OUT.png] [--layout] [--a11y]` runs an app headless, performs the steps in order from the first
+heartbeat, prints one line per click, drag, wheel, window, shot, laid-out node and accessibility
+node (`--a11y`: `#5 text_input "Name" = "Nick" (focused)`, indented under its parent), and exits
+(1 when a step failed or no app started). With no `--shot`, `--layout` or `--a11y` it saves
+`peek.png` in the current directory. `--drag` presses at its first point and moves through the rest a frame
 apart, so an app that reads `mouse` in a timer sees the button down at each. It is the quick
 "look and click" tool for humans and agents. `--window N` (counting from 1 in `Shoes.APPS`) or
 `--app ID` sends every later step to that window.

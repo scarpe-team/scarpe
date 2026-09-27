@@ -87,6 +87,27 @@ class A11yTest < Minitest::Test
     assert_spec_passed(run)
   end
 
+  def test_peek_prints_what_a_screen_reader_meets
+    run = run_real(<<~APP, argv: ->(app) { ["peek", app, "--a11y"] })
+      Shoes.app(title: "Order") do
+        flow do
+          check checked: true
+          para "Remember me"
+        end
+        para "Name"
+        edit_line "Nick"
+        button "Order"
+      end
+    APP
+    assert_clean_exit(run)
+    lines = run.stdout.lines.map(&:rstrip)
+    assert_equal '#1 window "Order" (focused)', lines.first
+    assert_includes lines, '  #4 check_box "Remember me" (checked)', "one line a node, indented under the window"
+    assert_includes lines, '  #7 text_input "Name" = "Nick"', "the name, then the value"
+    assert_includes lines, '  #8 button "Order"'
+    refute File.exist?(File.join(run.dir, "peek.png")), "--a11y is an output of its own, so no picture"
+  end
+
   # A real window (a ghost: nobody can see or click it) opens with its screen reader adapter in
   # place, and the tree reads the same there. Runs only with SCARPE_NATIVE_WINDOWED_TESTS=1.
   def test_a_window_carries_the_same_tree

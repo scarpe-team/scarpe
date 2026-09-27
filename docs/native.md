@@ -102,8 +102,9 @@ kind, position and size in window pixels, and its text.
 | `--wait SECS` | let timers and animations run |
 | `--window N`, `--app ID` | send the steps after it to another window |
 | `--layout` | print every laid-out node |
+| `--a11y` | print what a screen reader meets: each node's id, role, name and value, indented |
 
-With no `--shot` and no `--layout`, peek saves `peek.png` in the current directory. It exits 1 when
+With no `--shot`, `--layout` or `--a11y`, peek saves `peek.png` in the current directory. It exits 1 when
 a step failed (a click on something covered, say) or the script never started an app.
 `--fonts bundled` swaps the system fonts for Inter and Fira Mono, which ship with Scarpe, so a
 picture comes out the same on every machine.
