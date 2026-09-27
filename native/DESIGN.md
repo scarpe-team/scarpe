@@ -209,7 +209,8 @@ Handler exceptions are rescued per dispatch, logged with the app file/line, and 
 
 ## 6. Layout rules (canonical)
 
-Units are logical pixels (f32). Window content size = App `width` x `height` (Lacci default 480x420).
+Units are logical pixels (f32). Window content size = App `width` x `height`; an App that sends
+neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1).
 
 - **Dimensions** for width/height/left/top/margins: Integer = px; negative Integer = parent inner size
   minus |v|; Float between 0 and 1 exclusive = fraction of parent inner size (1.0 = 100%); String

@@ -433,6 +433,22 @@ fn resize_relayouts_and_tells_ruby() {
 }
 
 #[test]
+fn an_app_without_a_size_opens_at_600_by_500() {
+    // Ledger A1 (Q1): Shoes 3 and Shoes 4 both default to 600x500.
+    let mut h = Harness::new();
+    let lines = [
+        json!({"t":"hello","v":1,"pid":1}),
+        json!({"t":"create","id":2,"kind":"DocumentRoot","parent":null,"props":{}}),
+        json!({"t":"create","id":1,"kind":"App","parent":null,"props":{},"doc_root":2}),
+        json!({"t":"run","app":1}),
+        json!({"t":"flush"}),
+    ];
+    h.feed(&lines.iter().map(|l| format!("{l}\n")).collect::<String>());
+    let root = h.node(|n| n["kind"] == "DocumentRoot");
+    assert_eq!((root["w"].clone(), root["h"].clone()), (json!(600.0), json!(500.0)));
+}
+
+#[test]
 fn app_title_and_size_props() {
     let mut h = Harness::new();
     h.feed(&app(200, 100, &[]));

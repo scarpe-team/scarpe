@@ -111,7 +111,7 @@ impl Shell {
         }
         let Some(view) = self.rt.views.get(&app) else { return };
         let props = self.rt.doc.get(app).map(|n| n.props.clone()).unwrap_or_default();
-        let title = props.text("title").unwrap_or_else(|| "Shoes!".into());
+        let title = props.text("title").unwrap_or_else(|| "Shoes".into());
         let resizable = props.get("resizable").and_then(|v| v.as_bool()).unwrap_or(true);
         let attrs = Window::default_attributes()
             .with_title(title)
