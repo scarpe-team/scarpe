@@ -242,6 +242,25 @@ fn a_control_the_mouse_pressed_leaves_keys_to_the_app() {
     assert_eq!(keyed(&mut h, " ").2, vec![json!(4)], "and Space presses the focused button");
 }
 
+/// Return in an edit line sends `finish`, for Shoes 3.2.15's `edit_line.finish = proc`
+/// (ledger G16); an edit box takes it as a new line instead.
+#[test]
+fn return_in_an_edit_line_finishes_it() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(3, "EditLine", 2, json!({"text": ""})), create(4, "EditBox", 2, json!({"text": ""}))]));
+    let finished = |h: &mut Harness, key: &str| {
+        let (evs, _) = h.req(json!({"op": "key", "key": key}));
+        named(&events(&evs), "finish").iter().map(|e| e.1.clone()).collect::<Vec<_>>()
+    };
+    h.value(json!({"op": "click", "target": {"id": 3}}));
+    h.req(json!({"op": "type", "text": "tea"}));
+    assert_eq!(finished(&mut h, "\n"), vec![json!(3)]);
+    assert!(finished(&mut h, "a").is_empty(), "only Return");
+    assert!(finished(&mut h, ":control_enter").is_empty(), "a modified Return is a keypress");
+    h.value(json!({"op": "click", "target": {"id": 4}}));
+    assert!(finished(&mut h, "\n").is_empty(), "an edit box has no finish");
+}
+
 #[test]
 fn a_focused_text_input_keeps_plain_keys_to_itself() {
     let mut h = Harness::new();
