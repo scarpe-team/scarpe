@@ -25,16 +25,17 @@ without a screen, test it, and package it. Everything here was checked on 28 Sep
 3. Give the app a scratch `HOME` whenever it might save something.
 4. Let the person open the app themselves: hand over the command or the packaged `.app`.
 
-`scarpe.sh` in [Run it safely](#run-it-safely) does rules 2 and 3 for every command.
+`scarpe.sh` in [Run it safely](#run-it-safely) does rules 2 and 3 for every run and peek.
 
 ## The whole path
 
 1. Clone, `bundle install`, run one `peek` (it builds the renderer). [Set up](#set-up)
 2. Make a folder for the app, outside the clone, with `scarpe.sh` in it. [Run it safely](#run-it-safely)
-3. Loop: edit, `./scarpe.sh peek app.rb --scale 2 --shot shots/x.png --layout`, look at the
+3. Loop: edit, `./scarpe.sh peek my_app.rb --scale 2 --shot shots/x.png --layout`, look at the
    PNG, fix. [The loop](#the-loop)
-4. Pin what works with checks in `checks/*.sspec`. [Testing](#testing)
-5. Package: `scarpe package app.rb --native --dmg`. [Packaging](#packaging)
+4. Pin what works with checks in `checks/*.sspec`, run by `~/scarpe/spec/run`. [Testing](#testing)
+5. Package from the clone: `cd ~/scarpe && bundle exec ruby exe/scarpe package
+   ~/my_app/my_app.rb --native --dmg --output ~/my_app/dist`. [Packaging](#packaging)
 
 ## Set up
 
@@ -101,14 +102,16 @@ That is a real window, so you look at it with `peek` instead.
 
 ## Run it safely
 
-Save this as `~/my_app/scarpe.sh` and `chmod +x` it. Every command below goes through it.
+Save this as `~/my_app/scarpe.sh` and `chmod +x` it. Every run and peek below goes through it;
+`spec/run` sandboxes its checks itself, and packaging runs from the clone.
 
 ```sh
 #!/bin/sh
 # Runs Scarpe from your clone without disturbing the person at this machine: dialogs, sounds and
-# the clipboard go to Scarpe's stand-ins, and the app's HOME is a scratch folder.
+# the clipboard go to Scarpe's stand-ins, and the app's HOME is a scratch folder of its own.
 SCARPE="${SCARPE:-$HOME/scarpe}"                          # your clone of Scarpe
-BOX="${SCARPE_HOME:-${TMPDIR:-/tmp}/scarpe-home}"         # the app's HOME; rm -rf it for a first run
+APP_DIR="$(cd "$(dirname "$0")" && pwd)"                  # the folder this script sits in
+BOX="${SCARPE_HOME:-${TMPDIR:-/tmp}/scarpe-home-$(basename "$APP_DIR")}"  # this app's HOME
 RUBY="$(cd "$SCARPE" && ruby -e 'print RbConfig.ruby')"   # the clone's Ruby, past any version-manager shim
 mkdir -p "$BOX"
 exec env PATH="$SCARPE/spec/support/fakebin:$PATH" HOME="$BOX" \
@@ -120,8 +123,11 @@ exec env PATH="$SCARPE/spec/support/fakebin:$PATH" HOME="$BOX" \
 - `./scarpe.sh peek my_app.rb ...` looks at the app headless (next section).
 - `SCARPE_NATIVE_GHOST=1 SCARPE_NATIVE_ARGS='--exit-after 5' ./scarpe.sh --native my_app.rb`
   runs it in a ghost window for five seconds, when you need a real window (timing, frame rates).
-- Whatever the app saves lands under `$BOX` (`$BOX/Library/Application Support/...` on a Mac).
+- `$BOX` is `${TMPDIR:-/tmp}/scarpe-home-my_app`, one per app folder. What the app saves lands
+  under it (`$BOX/Library/Application Support/...` on a Mac); `rm -rf` it for a first run.
 - Every trapped command is a line in `$BOX/trapped.txt`, e.g. `afplay /var/.../pop.wav`.
+- `--dev` makes `exe/scarpe` load the clone's own `lib` and its Gemfile's gems, as `bundle exec`
+  would. It builds nothing. `exe/scarpe` has no `--help`; `./scarpe.sh peek --help` has one.
 - The wrapper resolves Ruby, and points rustup at its toolchains, before it moves `HOME`, so
   version-manager shims keep working and the renderer can still rebuild itself.
 
@@ -174,6 +180,8 @@ a control with no name there (`#15 check_box (unchecked)`) needs a text block be
 - Steps run in the order given, so a `--shot` before and after `--click` shows both. `--size`
   and `--scale` apply to the whole run.
 - With no `--shot`, `--layout` or `--a11y`, peek writes `peek.png` in the current folder.
+- Clicks and shots print a line each; `--type`, `--key` and `--wait` print nothing, so read
+  `--layout` or a shot to see what they did.
 - A step that fails prints `peek: ...` and exits 1: a click on nothing
   (`peek: click failed: no visible drawable shows ...`), a handler that raises
   (`peek: NameError: ...`), or a file that never calls `Shoes.app`.
@@ -202,6 +210,7 @@ Shoes.app(title: "Name", width: 640, height: 480, resizable: false) do  # defaul
   end
   stack(width: 200, height: 120, scroll: true) { }  # a fixed height clips; scroll: true scrolls it
   stack(left: 20, top: 40, width: 100) { }          # placed: out of the flow, from its slot's corner
+  stack(margin: [10, 0, 10, 20]) { }                # left, top, right, bottom, text too; or margin_bottom: 20
   stack(width: 220, margin: 6) do         # a slot is as tall as what it holds, so an empty one shows nothing
     background "#c0392b", curve: 8        # fills its slot, rounded
     border "#264653", strokewidth: 2, curve: 8
@@ -232,6 +241,7 @@ button("Save") { save }                              # Return or Space clicks a 
 @notes = edit_box(width: 300, height: 120)
 @done = check { |c| @hint.text = c.checked?.to_s }
 para "Done"                                          # the text beside a control names it for screen readers
+@done.checked = true                                 # ticks it without running its block
 radio(:size) { |r| }; para "Small"                   # radios sharing a group are exclusive
 radio(:size) { |r| }; para "Large"
 @pick = list_box(items: ["Tea", "Coffee"], choose: "Tea") { |lb| @hint.text = lb.text }
@@ -307,10 +317,16 @@ Changing what is on screen:
 @list.clear { para "fresh" }     # empties the slot and fills it again; its timers keep running
 @list.contents                   # its children
 @list.contents.last.remove
-@panel.hide; @panel.show; @panel.toggle     # hidden takes no space
+@panel.hide; @panel.show; @panel.toggle     # slots, text, controls and art; hidden takes no space
 @box.move(x, y)                  # for placed things; cheap enough for every frame
 @box.style(width: 200, fill: blue)
+@list.scroll_top = 0             # a scroll: true slot: 0 is the top, @list.scroll_max the end
+timer(0) { @list.scroll_top = @list.scroll_max }   # to the end after an append (below)
 ```
+
+`scroll_max` answers from the last layout, so right after `append` or `clear` it still gives the
+old end. Read it in a `timer(0)`, which runs once what you made is laid out. In peek, put
+`--wait 0.1` after the click so that timer runs; in a check, `advance(0.1)`.
 
 Pages. The app starts at `"/"`, `visit` replaces the whole window and stops the old page's
 timers, and `location` is the current path:
@@ -407,9 +423,10 @@ Each of these bit someone building the apps in `examples/native`. The rulings be
    slot's corner. Events, `--layout` and `layout_of` are always window coordinates (A4).
 8. A press runs the `click` block of every slot under the pointer, covered slots included (the
    window's first, then inner slots, the topmost of siblings first), then the clicked shape's
-   own. A button, field or link keeps its press to itself. When you show an overlay such as a
-   sheet or a menu, make the handlers beneath it check a flag (`return if @sheet_open`), as
-   Kanban does (E8, DESIGN 4.3).
+   own. Controls (buttons, check boxes, radios, list boxes, fields) and links keep their press to
+   themselves: a check box in a card with its own `click` toggles once, and the card hears
+   nothing. When you show an overlay such as a sheet or a menu, make the handlers beneath it
+   check a flag (`return if @sheet_open`), as Kanban does (E8, DESIGN 4.3).
 9. The App owns `@app`, `@title`, `@width`, `@height`, `@resizable`, `@owner`, `@features`,
    `@log`, `@subscriptions` and `@linkable_id`. Do not use those names for your own: after
    `@width = 17`, the app's `width` answers 17. Write `@heading = title "Hi"`.
@@ -473,8 +490,13 @@ cd ~/my_app
   before the `load`, to start from a saved state.
 - A failure prints your message and the file and line:
   `Expected: "Pushed!"` then `Actual: "Pushed" (/Users/you/my_app/checks/my_app.sspec:9)`.
-  Status `error` with `MultipleDrawablesFoundError: Found more than one para matching []!` means
-  a singular finder matched several drawables: select by `"@ivar"` instead.
+- A singular finder (`para(...)`) raises unless exactly one drawable matches, and the case shows
+  `error`: `MultipleDrawablesFoundError` means select by `"@ivar"` instead, and
+  `NoDrawablesFoundError` means nothing matched. For a readable failure, assert on the plural:
+  `assert_includes paras.map(&:text), "Saved"`.
+- Test code runs as one block, so a `def` in it cannot be called (NameError). Write helpers as
+  lambdas, as the reference checks do: `note = -> { para("@note").text }`, then `note.()`.
+- `Results: results/native.json` at the end means `~/scarpe/spec/results/native.json`.
 - Checks draw with the bundled fonts. `timeout: 60` in the front matter raises the 40 s limit.
 - `advance` runs a frozen clock: timers fire exactly and at once, but `Time.now` does not move.
   Drive what you want to test from `animate` frames, `every` counts or your own counters.
@@ -590,8 +612,9 @@ write under `~/Documents/<App>/`, as Typewriter does.
 
 ## Packaging
 
-macOS only. Run it from the clone with your real `HOME`: packaging opens no window, plays
-nothing and never runs the app; it caches its Ruby runtime in `~/.scarpe/packager-cache`.
+macOS only. Run it from the clone with your real `HOME`, not through `scarpe.sh`: packaging opens
+no window, plays nothing and never runs the app, and it keeps its Ruby runtime in
+`~/.scarpe/packager-cache`, which the wrapper's scratch `HOME` lacks (it would download it again).
 
 ```sh
 cd ~/scarpe
@@ -600,8 +623,9 @@ bundle exec ruby exe/scarpe package ~/my_app/my_app.rb --native --dmg \
 ```
 
 - It writes `dist/My App.app` (about 34 MB) and `dist/My App.dmg` (about 15 MB). Without
-  `--output`, both land in the current folder. Without `--name`, the name is the file name in
-  CamelCase (`my_app.rb` is `MyApp`).
+  `--output`, both land in the current folder, the clone. Without `--name`, the name is the file
+  name in CamelCase (`my_app.rb` is `MyApp`). `bundle exec ruby exe/scarpe package --help` lists
+  every flag.
 - The first build also downloads Traveling Ruby 3.4.7 (59 MB). A build with it cached took 13
   to 40 s here. The app runs on that bundled Ruby 3.4.7, whatever Ruby you develop on, so keep
   the app's code to what Ruby 3.4 and its standard library have.
@@ -625,6 +649,9 @@ bundle exec ruby exe/scarpe package ~/my_app/my_app.rb --native --dmg \
     SCARPE_NATIVE_ARGS='--exit-after 2' "$HOME/my_app/dist/My App.app/Contents/MacOS/scarpe-launcher"; echo $?
   ```
 
+- Its Ruby is precompiled for `/Applications/My App.app` (`--install-dir DIR` names another
+  place). Run from anywhere else, `dist/` included, it loads from source: up to about 20 ms
+  slower to start, and otherwise the same.
 - Started from Finder, its output goes to `~/Library/Logs/My App/launcher.log`.
 - More: `docs/native_packaging.md`.
 
