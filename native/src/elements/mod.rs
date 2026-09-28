@@ -118,8 +118,14 @@ pub fn paint(
 
 /// The soft focus halo drawn outside a focused control.
 pub fn focus_ring(canvas: &mut Canvas, rect: Rect, radius: f32, clip: Option<Rect>) {
+    focus_ring_in(canvas, rect, radius, ACCENT, clip);
+}
+
+/// The focus halo in a colour of the control's own (a field whose text has one, ledger G17), as
+/// light as the default blue one.
+pub fn focus_ring_in(canvas: &mut Canvas, rect: Rect, radius: f32, color: Color, clip: Option<Rect>) {
     let halo = Rect::new(rect.x - 3.0, rect.y - 3.0, rect.w + 6.0, rect.h + 6.0);
-    canvas.fill_rounded(halo, radius + 3.0, FOCUS_RING, clip);
+    canvas.fill_rounded(halo, radius + 3.0, color.with_alpha(FOCUS_RING.a), clip);
 }
 
 /// Picks readable text for a coloured surface.

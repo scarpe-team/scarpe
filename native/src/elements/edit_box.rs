@@ -1,6 +1,6 @@
 //! edit_box: a multi-line text field that wraps and scrolls to its caret.
 
-use super::edit_line::{draw_field, frame};
+use super::edit_line::{draw_field, frame, Colors};
 use super::text_field;
 use super::WidgetState;
 use crate::doc::Node;
@@ -16,11 +16,12 @@ pub fn inner_rect(r: Rect) -> Rect {
 
 pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, state: WidgetState, view: &mut ViewState, text: &mut TextEngine) {
     let r = lbox.rect;
-    frame(canvas, r, lbox.clip, state.focused);
+    let colors = Colors::of(node);
+    frame(canvas, &colors, r, lbox.clip, state.focused);
     let field = text_field::ensure(&mut view.fields, node, &mut text.fonts);
     let inner = inner_rect(r);
     field.fit(&mut text.fonts.system, inner);
-    draw_field(canvas, field, Rect::new(r.x + 3.0, r.y + 3.0, r.w - 6.0, r.h - 6.0), lbox.clip, state.focused, text);
+    draw_field(canvas, field, Rect::new(r.x + 3.0, r.y + 3.0, r.w - 6.0, r.h - 6.0), lbox.clip, state.focused, colors.accent, text);
     let (_, content_h) = field.content_size();
     if content_h > inner.h + 0.5 {
         let track = inner.h;

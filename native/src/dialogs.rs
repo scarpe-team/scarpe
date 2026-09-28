@@ -202,11 +202,11 @@ pub fn paint_modal(canvas: &mut Canvas, view: &mut ViewState, text: &mut TextEng
     draw_shaped(canvas, text, &message, g.message.0, g.message.1, None, None);
     match &mut modal.kind {
         ModalKind::Ask(field) => {
-            crate::elements::edit_line::frame(canvas, g.field, None, true);
+            crate::elements::edit_line::frame(canvas, &crate::elements::edit_line::Colors::PLAIN, g.field, None, true);
             let inner = crate::elements::edit_line::inner_rect(g.field, field.line_height());
             field.fit(&mut text.fonts.system, inner);
             let area = Rect::new(g.field.x + 3.0, g.field.y + 1.0, g.field.w - 6.0, g.field.h - 2.0);
-            crate::elements::edit_line::draw_field(canvas, field, area, None, true, text);
+            crate::elements::edit_line::draw_field(canvas, field, area, None, true, crate::elements::ACCENT, text);
         }
         ModalKind::Color { selected } => {
             for (i, r) in g.swatch.iter().enumerate() {

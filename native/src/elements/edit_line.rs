@@ -1,7 +1,7 @@
 //! edit_line: a single-line text field. Every edit sends `change [text]`.
 
 use super::text_field::{self, TextField};
-use super::{focus_ring, WidgetState, ACCENT, FIELD_BORDER};
+use super::{focus_ring_in, WidgetState, ACCENT, FIELD_BORDER};
 use crate::doc::Node;
 use crate::input::ViewState;
 use crate::layout::{LBox, Rect};
@@ -19,24 +19,56 @@ pub fn inner_rect(r: Rect, line_h: f32) -> Rect {
 
 pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, state: WidgetState, view: &mut ViewState, text: &mut TextEngine) {
     let r = lbox.rect;
-    frame(canvas, r, lbox.clip, state.focused);
+    let colors = Colors::of(node);
+    frame(canvas, &colors, r, lbox.clip, state.focused);
     let field = text_field::ensure(&mut view.fields, node, &mut text.fonts);
     let inner = inner_rect(r, field.line_height());
     field.fit(&mut text.fonts.system, inner);
-    draw_field(canvas, field, Rect::new(r.x + 3.0, r.y + 1.0, r.w - 6.0, r.h - 2.0), lbox.clip, state.focused, text);
+    draw_field(canvas, field, Rect::new(r.x + 3.0, r.y + 1.0, r.w - 6.0, r.h - 2.0), lbox.clip, state.focused, colors.accent, text);
 }
 
-/// The white rounded box with its border and focus ring.
-pub fn frame(canvas: &mut Canvas, r: Rect, clip: Option<Rect>, focused: bool) {
-    if focused {
-        focus_ring(canvas, r, RADIUS, clip);
+/// A field's colours (ledger G17). `fill` paints the box and `border_color` draws its edge. The
+/// caret, the focused edge and the focus halo are the default blue, or the text's own colour once
+/// `stroke` has given it one, the way CSS's caret-color is currentColor.
+pub struct Colors {
+    pub fill: Color,
+    pub border: Color,
+    pub accent: Color,
+}
+
+impl Colors {
+    /// A field nobody styled: white, a light grey edge, a blue caret and halo.
+    pub const PLAIN: Colors = Colors { fill: Color::WHITE, border: FIELD_BORDER, accent: ACCENT };
+
+    pub fn of(node: &Node) -> Colors {
+        let p = &node.props;
+        Colors {
+            fill: p.color("fill").unwrap_or(Color::WHITE),
+            border: p.color("border_color").unwrap_or(FIELD_BORDER),
+            accent: p.color("stroke").filter(|c| !c.is_invisible()).unwrap_or(ACCENT),
+        }
     }
-    canvas.fill_rounded(r, RADIUS, Color::WHITE, clip);
-    canvas.stroke_rounded(r, RADIUS, if focused { ACCENT } else { FIELD_BORDER }, 1.0, clip);
+}
+
+/// The rounded box with its border, and the focus halo round it while it has focus.
+pub fn frame(canvas: &mut Canvas, colors: &Colors, r: Rect, clip: Option<Rect>, focused: bool) {
+    if focused {
+        focus_ring_in(canvas, r, RADIUS, colors.accent, clip);
+    }
+    canvas.fill_rounded(r, RADIUS, colors.fill, clip);
+    canvas.stroke_rounded(r, RADIUS, if focused { colors.accent } else { colors.border }, 1.0, clip);
 }
 
 /// Selection, text (or bullets) and caret, clipped to the field's text area.
-pub fn draw_field(canvas: &mut Canvas, field: &TextField, area: Rect, clip: Option<Rect>, focused: bool, text: &mut TextEngine) {
+pub fn draw_field(
+    canvas: &mut Canvas,
+    field: &TextField,
+    area: Rect,
+    clip: Option<Rect>,
+    focused: bool,
+    caret_color: Color,
+    text: &mut TextEngine,
+) {
     let clip = match clip {
         Some(c) => c.intersect(&area),
         None => Some(area),
@@ -59,7 +91,7 @@ pub fn draw_field(canvas: &mut Canvas, field: &TextField, area: Rect, clip: Opti
         if let Some(caret) = field.caret() {
             let s = canvas.scale;
             let snapped = Rect::new((caret.x * s).round() / s, caret.y, 1.0, caret.h);
-            canvas.fill_rect(snapped, ACCENT, clip);
+            canvas.fill_rect(snapped, caret_color, clip);
         }
     }
 }
