@@ -87,7 +87,7 @@ Shoes.app(title: "System Monitor", width: 960, height: 664, resizable: false) do
 
   def gigabytes(bytes) = format("%.1f GB", bytes / 1024.0**3)
 
-  def size(bytes)
+  def memory_text(bytes)
     bytes >= 1024**3 ? gigabytes(bytes) : "#{(bytes / 1024.0**2).round} MB"
   end
 
@@ -314,7 +314,7 @@ Shoes.app(title: "System Monitor", width: 960, height: 664, resizable: false) do
             look = background EDGE, curve: 11, margin: 3, hidden: true
             words = para name, size: 11, weight: "semibold", stroke: MUTED, align: "center", margin: [0, 7, 0, 0]
           end
-          segment.click { sort_by(key) }
+          segment.click { sort_processes_by(key) }
           @sorts[key] = [look, words]
         end
       end
@@ -378,13 +378,13 @@ Shoes.app(title: "System Monitor", width: 960, height: 664, resizable: false) do
       process = top[i]
       row[:name].replace process ? process[:name] : ""
       value = process ? process[@sort] : 0
-      row[:value].replace(process ? (@sort == :cpu ? "#{value.round(1)}%" : size(value)) : "")
+      row[:value].replace(process ? (@sort == :cpu ? "#{value.round(1)}%" : memory_text(value)) : "")
       row[:bar].style(width: biggest.positive? ? (60 * value / biggest).round : 0, fill: @sort == :cpu ? TEAL : VIOLET)
     end
     @count_text.replace "#{@processes.size} processes, sorted by #{@sort == :cpu ? "CPU" : "memory"}"
   end
 
-  def sort_by(key)
+  def sort_processes_by(key)
     @sort = key
     @sorts.each do |each_key, (look, words)|
       look.hidden = each_key != key
@@ -411,7 +411,7 @@ Shoes.app(title: "System Monitor", width: 960, height: 664, resizable: false) do
   disk_card
   history_card
   processes_card
-  sort_by :cpu
+  sort_processes_by :cpu
 
   up = ((Time.now - @machine.up_since) / 86_400).floor
   memory_size = (@machine.memory_size / 1024.0**3).round

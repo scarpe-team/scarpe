@@ -203,9 +203,9 @@ Shoes.app(title: "Ledger", width: 960, height: 640, resizable: false) do
     @toast_timer = timer(2.6) { @toast.hide }
   end
 
-  # ---- the frame every page sits in ----------------------------------------------------
+  # ---- the frame every page sits in: framed(:overview) { ... } -------------------------
 
-  def page(current, &contents)
+  def framed(current, &contents)
     background PAPER
     sidebar(current)
     stack left: 220, top: 0, width: 740, height: 640, scroll: true do
@@ -288,7 +288,7 @@ Shoes.app(title: "Ledger", width: 960, height: 640, resizable: false) do
 
   def overview
     @shown_balance = @book.balance
-    page :overview do
+    framed :overview do
       label Date.today.strftime("%A %-d %B")
       flow do
         @balance = para money(@shown_balance), family: SERIF, size: 46, stroke: INK, margin: [0, 0, 16, 0]
@@ -501,11 +501,11 @@ Shoes.app(title: "Ledger", width: 960, height: 640, resizable: false) do
 
   def month(year, number)
     @month = Date.new(year.to_i, number.to_i, 1)
-    page(@month == @this_month ? :month : :other_month) do
+    framed(@month == @this_month ? :month : :other_month) do
       flow do
-        arrow("‹", "The month before") { visit month_path(@month << 1) }
+        step_button("‹", "The month before") { visit month_path(@month << 1) }
         para @month.strftime("%B %Y"), family: SERIF, size: 30, stroke: INK, margin: [12, 0, 0, 0]
-        arrow("›", "The month after", margin_left: 12) { visit month_path(@month >> 1) }
+        step_button("›", "The month after", margin_left: 12) { visit month_path(@month >> 1) }
         button "Export CSV", width: 116, height: 32, color: GREEN, stroke: white, right: 0, top: 5 do
           export_csv
         end
@@ -531,7 +531,7 @@ Shoes.app(title: "Ledger", width: 960, height: 640, resizable: false) do
     end
   end
 
-  def arrow(text, tooltip, margin_left: 0, &go)
+  def step_button(text, tooltip, margin_left: 0, &go)
     look = nil
     button = stack width: 34 + margin_left, height: 40, margin: [margin_left, 6, 0, 0], tooltip: tooltip do
       look = background white, curve: 17
@@ -711,7 +711,7 @@ Shoes.app(title: "Ledger", width: 960, height: 640, resizable: false) do
   # ---- categories ----------------------------------------------------------------------
 
   def categories
-    page :categories do
+    framed :categories do
       para "Categories", family: SERIF, size: 30, stroke: INK, margin: 0
       para "Every category has a budget for the month. Spending starts again on the 1st.",
         size: 13, stroke: MUTED, margin: [0, 6, 0, 20]
