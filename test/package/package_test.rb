@@ -2,6 +2,7 @@
 
 require_relative "helper"
 require "scarpe/package"
+require "minitest/mock"
 
 # `scarpe package` choosing between webview and native, and the pieces a native build writes.
 class PackageTest < Minitest::Test
@@ -99,11 +100,109 @@ class PackageTest < Minitest::Test
     refute_match(/SCARPE_DISPLAY\b(?!_)/, boot + launcher)
   end
 
+  def test_include_can_be_given_more_than_once
+    options = Scarpe::Package.parse_args([@app, "--native", "--include", "art", "--include", "playhouse"])
+
+    assert_equal %w[art playhouse], options[:includes]
+    assert_equal %w[art playhouse], Scarpe::Package.packager_for(options, env: {}).instance_variable_get(:@includes)
+  end
+
+  # ZARKING draws from art/ and playhouse/ beside its file; the packager only carried images/,
+  # assets/, fonts/ and sounds/, so a packaged copy lost every picture.
+  def test_included_files_and_folders_land_where_the_app_looks
+    root = scratch_dir
+    app = write(root, "dash.rb", "Shoes.app {}\n")
+    write(root, "art/pet/idle_1.png", "png")
+    write(root, "playhouse/today.md", "bonjour")
+    write(root, "notes/deep/tip.txt", "tip")
+    elsewhere = write(scratch_dir, "shared.txt", "shared")
+    packager = Scarpe::Package::Native.new(app, output_dir: scratch_dir,
+      includes: ["art", "playhouse/", "notes/deep/tip.txt", elsewhere])
+    app_dir = File.join(packager.app_path, "Contents", "Resources", "app")
+    FileUtils.mkdir_p(app_dir)
+
+    packager.send(:copy_user_app)
+
+    assert_equal "png", File.read(File.join(app_dir, "art", "pet", "idle_1.png"))
+    assert_equal "bonjour", File.read(File.join(app_dir, "playhouse", "today.md"))
+    assert_equal "tip", File.read(File.join(app_dir, "notes", "deep", "tip.txt")), "a path inside the app's folder keeps its place"
+    assert_equal "shared", File.read(File.join(app_dir, "shared.txt")), "a path outside it lands under its own name"
+  end
+
+  def test_a_missing_include_stops_the_build
+    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, includes: ["nowhere"])
+    FileUtils.mkdir_p(File.join(packager.app_path, "Contents", "Resources", "app"))
+
+    error = assert_raises(RuntimeError) { packager.send(:copy_user_app) }
+    assert_match(/--include nowhere/, error.message)
+  end
+
+  # sanitize_name turned "ZARKING (Rust)" into ZarkingRust.app and "For Noah" into ForNoah.app.
+  def test_a_native_package_keeps_the_name_it_was_given
+    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, name: "ZARKING (Rust)")
+
+    assert_equal "ZARKING (Rust).app", File.basename(packager.app_path)
+    assert_equal "/Applications/ZARKING (Rust).app/Contents/Resources", packager.installed_resources
+    assert_equal "com.scarpe.zarkingrust", packager.instance_variable_get(:@bundle_id)
+    assert_equal "ab.app", File.basename(Scarpe::Package::Native.new(@app, name: "..a/b:\t").app_path), "no slash, colon, control character or leading dot"
+    assert_equal "HelloApp.app", File.basename(Scarpe::Package::Native.new(@app).app_path), "a name made from the file stays CamelCase"
+    assert system("bash", "-n", "-c", render_launcher(name: "ZARKING (Rust)")), "the launcher is valid bash under that name"
+  end
+
+  def test_the_info_plist_holds_a_given_name_whole
+    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, name: "Salt & <Pepper>")
+    FileUtils.mkdir_p(File.join(packager.app_path, "Contents"))
+    packager.send(:write_info_plist)
+    plist = File.join(packager.app_path, "Contents", "Info.plist")
+
+    assert system("plutil", "-lint", "-s", plist), "Info.plist does not parse"
+    name, status = Open3.capture2("plutil", "-extract", "CFBundleName", "raw", "-o", "-", plist)
+    assert status.success?
+    assert_equal "Salt & <Pepper>", name.strip
+  end
+
+  # Builds share ~/.scarpe/packager-cache. Each used to stage its disk image in the same
+  # dmg-staging folder and empty it first, under any other build still copying into it.
+  def test_a_dmg_build_leaves_other_builds_staging_alone
+    cache = scratch_dir
+    other = write(cache, "dmg-staging/Other.app/Contents/Info.plist", "another build's")
+    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir)
+    packager.instance_variable_set(:@cache_dir, cache)
+    staged = nil
+    # ditto and hdiutil stand in: note where the app was staged, and make no image.
+    fake_system = lambda do |*args|
+      staged ||= File.dirname(args[2]) if args[0] == "ditto"
+      true
+    end
+
+    packager.stub(:system, fake_system) { packager.send(:create_dmg) }
+
+    assert File.exist?(other), "another build's staging survives"
+    refute_equal File.join(cache, "dmg-staging"), staged, "this build stages in a folder of its own"
+    refute File.exist?(staged), "and removes it"
+  end
+
+  # The PNG icon's iconset lived at one fixed path in the cache too.
+  def test_a_png_icon_leaves_other_builds_iconset_alone
+    cache = scratch_dir
+    other = write(cache, "icon.iconset/icon_16x16.png", "another build's")
+    icon = File.join(ROOT, "spec", "support", "assets", "red-40x30.png")
+    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, icon: icon)
+    packager.instance_variable_set(:@cache_dir, cache)
+    FileUtils.mkdir_p(File.join(packager.app_path, "Contents", "Resources"))
+
+    packager.send(:copy_icon)
+
+    assert File.exist?(File.join(packager.app_path, "Contents", "Resources", "red-40x30.icns")), "the icon was made"
+    assert File.exist?(other), "another build's iconset survives"
+    assert_equal ["icon.iconset"], Dir.children(cache), "this build's own folder is gone"
+  end
+
   private
 
-  def render_launcher
+  def render_launcher(name: nil)
     output = scratch_dir
-    packager = Scarpe::Package::Native.new(@app, output_dir: output)
+    packager = Scarpe::Package::Native.new(@app, output_dir: output, name: name)
     FileUtils.mkdir_p(File.join(packager.app_path, "Contents", "MacOS"))
     packager.send(:write_launcher)
     File.read(File.join(packager.app_path, "Contents", "MacOS", "scarpe-launcher"))
