@@ -487,8 +487,12 @@ fn paint_node(scene: &mut Scene, canvas: &mut Canvas, id: Id, only: Option<Rect>
                     lbox.clip
                 };
                 let hover = scene.view.hover_link;
+                let mode = scene.text.fonts.text_mode;
+                if mode == crate::text::TextMode::Shoes3 {
+                    text::draw_para_selection(canvas, node, tb, clip, text::SHOES3_SELECTION);
+                }
                 text::draw_shaped(canvas, scene.text, &tb.shaped, tb.x, tb.y, clip, hover);
-                text::draw_para_cursor(canvas, node, tb, clip);
+                text::draw_para_cursor(canvas, node, tb, clip, mode);
             }
         }
         _ => elements::paint(canvas, node, lbox, layout.texts.get(&id), scene.view, scene.text, scene.images),

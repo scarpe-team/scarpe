@@ -7,7 +7,7 @@ use crate::props::Id;
 use crate::style::Color;
 use crate::text::rich::{Underline, INK, LINK_HOVER};
 use crate::text::shape_cache::INDENT_META;
-use crate::text::{ShapedText, SpanMeta, TextEngine};
+use crate::text::{ShapedText, SpanMeta, TextEngine, TextMode};
 use cosmic_text::{Buffer, Cursor, DecorationSpan, LayoutGlyph, LayoutRun};
 use tiny_skia::PathBuilder;
 
@@ -277,24 +277,36 @@ pub fn para_caret(node: &Node, tb: &TextBox) -> Option<(f32, f32, f32)> {
     Some((tb.x + cx, tb.y + top, h))
 }
 
-/// Para#cursor= and #marker=: a caret and a marked range.
-pub fn draw_para_cursor(canvas: &mut Canvas, node: &Node, tb: &TextBox, clip: Option<Rect>) {
-    let buffer = &tb.shaped.buffer;
-    let Some(index) = para_index(node, tb, "text_cursor") else { return };
-    let cursor = tb.shaped.cursor_at(index);
-    if let Some(marker) = para_index(node, tb, "text_marker") {
-        let other = tb.shaped.cursor_at(marker);
-        let (a, b) = if (other.line, other.index) < (cursor.line, cursor.index) { (other, cursor) } else { (cursor, other) };
-        for r in selection_rects(buffer, a, b) {
-            let (top, h) = tb.shaped.line_box(r.y, r.h);
-            canvas.fill_rect(Rect::new(tb.x + r.x, tb.y + top, r.w, h), SELECTION, clip);
-        }
+/// Shoes 3's marked range: bright yellow behind the text (s3t_textblock.c:479-483).
+pub const SHOES3_SELECTION: Color = Color::rgb(0xff, 0xff, 0x00);
+
+/// Para#cursor= and #marker=: a caret and a marked range. In Shoes 3's text mode the range is
+/// yellow behind the text and the caret black, as Shoes 3 drew them (s3t_textblock.c:187-197,
+/// 479-483; draw the range with draw_para_selection before the text); otherwise the range is a
+/// tint over the text and the caret takes the text's colour, so it shows on dark backgrounds.
+pub fn draw_para_cursor(canvas: &mut Canvas, node: &Node, tb: &TextBox, clip: Option<Rect>, mode: TextMode) {
+    if mode == TextMode::Scarpe {
+        draw_para_selection(canvas, node, tb, clip, SELECTION);
     }
     if let Some((x, top, h)) = para_caret(node, tb) {
         let s = canvas.scale;
         let rect = Rect::new((x * s).round() / s, top, 1.0_f32.max(1.0 / s), h);
-        // In the text's own colour, so the caret shows on dark backgrounds too.
-        let color = tb.shaped.metas.first().map_or(INK, |m| m.color);
+        let color = match mode {
+            TextMode::Shoes3 => Color::BLACK,
+            TextMode::Scarpe => tb.shaped.metas.first().map_or(INK, |m| m.color),
+        };
         canvas.fill_rect(rect, color, clip);
+    }
+}
+
+/// The range between a para's `text_cursor` and `text_marker`, filled with `color`.
+pub fn draw_para_selection(canvas: &mut Canvas, node: &Node, tb: &TextBox, clip: Option<Rect>, color: Color) {
+    let Some(index) = para_index(node, tb, "text_cursor") else { return };
+    let Some(marker) = para_index(node, tb, "text_marker") else { return };
+    let (cursor, other) = (tb.shaped.cursor_at(index), tb.shaped.cursor_at(marker));
+    let (a, b) = if (other.line, other.index) < (cursor.line, cursor.index) { (other, cursor) } else { (cursor, other) };
+    for r in selection_rects(&tb.shaped.buffer, a, b) {
+        let (top, h) = tb.shaped.line_box(r.y, r.h);
+        canvas.fill_rect(Rect::new(tb.x + r.x, tb.y + top, r.w, h), color, clip);
     }
 }

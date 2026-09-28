@@ -107,3 +107,26 @@ fn backgrounds_honour_right_bottom_and_run_to_the_far_edge() {
     assert_eq!(rect(&h.node(|n| n["id"] == 6)), (2.0, 2.0, 316.0, 416.0));
     assert_eq!(rect(&h.node(|n| n["id"] == 7)), (0.0, 0.0, 320.0, 400.0));
 }
+
+/// Shoes 3 marked a text block's selection in bright yellow behind the text and drew its caret
+/// black (s3t_textblock.c:187-197, 479-483), which is what Hackety Hack's editor looked like;
+/// Shoes 3's text mode (ledger M14) draws them so. Otherwise the selection is a blue tint over
+/// the text and the caret takes the text's colour.
+#[test]
+fn shoes3_text_marks_a_selection_yellow_under_a_black_caret() {
+    let mut h = Harness::new();
+    let grey = json!({"rgba": [120, 120, 120, 255]});
+    h.feed(&app(300, 100, &[create(3, "Para", 2, json!({"text_items": ["MMMMMMMM"], "stroke": grey, "margin": 0, "text_cursor": 8, "text_marker": 4}))]));
+    let para = h.node(|n| n["id"] == 3);
+    let (x, y, w, _) = rect(&para);
+    let tinted = pixel(&mut h, x + w * 0.75, y + 1.0);
+    assert_ne!(&tinted[..3], &[255, 255, 0], "Scarpe's tint is not yellow");
+    h.feed(&json!({"t": "text_mode", "mode": "shoes3"}).to_string());
+    let para = h.node(|n| n["id"] == 3);
+    let (x, y, w, hgt) = rect(&para);
+    assert_eq!(pixel(&mut h, x + w * 0.75, y + 1.0), [255, 255, 0, 255], "yellow behind the marked letters");
+    assert_ne!(pixel(&mut h, x + w * 0.25, y + 1.0), [255, 255, 0, 255], "and only there");
+    let caret = h.value(json!({"op": "para_caret", "id": 3}));
+    let (cx, cy) = (caret["left"].as_f64().unwrap(), caret["top"].as_f64().unwrap() + hgt / 2.0);
+    assert_eq!(pixel(&mut h, cx + 0.5, cy), [0, 0, 0, 255], "a black caret after the grey text");
+}
