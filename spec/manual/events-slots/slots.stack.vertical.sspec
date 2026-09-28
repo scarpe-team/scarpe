@@ -1,0 +1,24 @@
+---
+manual: slots.stack.vertical
+lines: [1599, 1600]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  stack do
+    @first = para "First"
+    @second = para "Second"
+    @third = para "Third"
+  end
+end
+----------- test code
+first, second, third = [para("@first"), para("@second"), para("@third")].map { |found| layout_of(found) }
+
+assert_in_delta first.x, second.x, 0.5, "each para starts at the stack's left edge"
+assert_in_delta first.x, third.x, 0.5
+assert_operator second.y, :>=, first.y + first.h - 0.5, "Second sits under First"
+assert_operator third.y, :>=, second.y + second.h - 0.5, "Third sits under Second"
+
+gap_above_second = second.y - (first.y + first.h)
+gap_above_third = third.y - (second.y + second.h)
+assert_in_delta gap_above_second, gap_above_third, 0.5, "directly under: nothing but the paras' own spacing between them"

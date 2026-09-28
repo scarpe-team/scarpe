@@ -8,6 +8,10 @@ module Niente
       bind_shoes_event(event_name: "init") { init }
       bind_shoes_event(event_name: "run") { run }
       bind_shoes_event(event_name: "destroy") { destroy }
+      # App#close aims destroy at this app alone (ledger A8). Drawable's handler for it drops
+      # every subscription, the nil-target destroy that ends this app's loop included, so the
+      # loop has to end here.
+      bind_shoes_event(event_name: "destroy", target: shoes_linkable_id) { @do_shutdown = true }
     end
 
     def init

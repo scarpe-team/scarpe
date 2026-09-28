@@ -1,0 +1,26 @@
+---
+manual: styles.rise
+lines: [1366, 1373]
+testability: visual
+display: native
+ledger: F5
+----------- app code
+Shoes.app width: 400, height: 200 do
+  flow do
+    @line = para span("HH", stroke: red), span("HH", stroke: blue, rise: 10), size: 30
+  end
+end
+----------- test code
+box = layout_of(para("@line"))
+rows = Hash.new { |hash, key| hash[key] = [] }
+([box.y - 15, 0].max.floor...(box.y + box.h + 15).ceil).each do |y|
+  (box.x.floor...(box.x + box.w).ceil).step(2).each do |x|
+    r, g, b, = pixel_at(x, y)
+    rows[:red] << y if r > 180 && g < 120 && b < 120
+    rows[:blue] << y if b > 180 && r < 120 && g < 120
+  end
+end
+refute_empty rows[:red], "the plain run left red ink"
+refute_empty rows[:blue], "the risen run left blue ink"
+assert_in_delta rows[:red].min - 10, rows[:blue].min, 1.5, "rise: 10 lifts the letters 10 pixels: their tops are higher"
+assert_in_delta rows[:red].max - 10, rows[:blue].max, 1.5, "and their bottoms: the whole baseline moved up"

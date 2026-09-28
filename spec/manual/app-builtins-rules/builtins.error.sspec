@@ -1,0 +1,18 @@
+---
+manual: builtins.error
+lines: [732, 736]
+testability: api
+display: any
+ledger: K3
+----------- app code
+Shoes.app do
+  button "Fail" do
+    $returned = :not_called
+    $returned = error("The sprockets are jammed")
+  end
+end
+----------- test code
+out, err = capture_io { find_button("Fail").trigger_click }
+
+assert_includes out + err, "The sprockets are jammed", "the error reaches the console"
+assert_nil $returned, "error returns nil"

@@ -1,0 +1,14 @@
+---
+manual: element.para.multiple_args
+lines: [3027, 3028]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $title = title "Shoes ", em("in"), " motion"
+end
+----------- test code
+title = drawable("$title")
+
+assert_equal "Shoes in motion", title.text, "any text block joins its arguments in order"
+assert_equal [String, Shoes::Em, String], title.contents.map(&:class)

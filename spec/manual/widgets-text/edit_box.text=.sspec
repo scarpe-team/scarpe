@@ -1,0 +1,17 @@
+---
+manual: edit_box.text=
+lines: [3053, 3055]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @box = edit_box
+end
+----------- test code
+refute_equal "Essays, even!", edit_box.text
+
+edit_box.text = "Essays, even!"
+assert_equal "Essays, even!", edit_box.text, "text = fills the box with the string"
+
+edit_box.text = "Shorter"
+assert_equal "Shorter", edit_box.text, "replacing what was there"

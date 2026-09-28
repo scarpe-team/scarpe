@@ -1,0 +1,20 @@
+---
+manual: shape.element
+lines: [3363, 3366]
+testability: api
+display: any
+ledger: E11
+----------- app code
+Shoes.app do
+  $made = {
+    oval: oval(10, 10, 50),
+    rect: rect(10, 10, 50, 50),
+    star: star(100, 100),
+    line: line(0, 0, 10, 10),
+    arrow: arrow(50, 50, 20),
+    arc: arc(10, 10, 50, 50, 0, PI),
+  }
+end
+----------- test code
+not_shapes = $made.reject { |_name, made| made.is_a?(Shoes::Shape) }.keys
+assert_empty not_shapes, "drawing methods like oval and rect make Shoes::Shape objects"

@@ -1,0 +1,31 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/border.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+#!ruby
+ Shoes.app do
+   stack width: 60 do
+     border black, strokewidth: 5
+     stack width: 50 do
+       para "=^.^=", stroke: green
+     end
+   end
+ end
+----------- test code
+# Tests border around stack with para
+# Verifies border and nested content
+
+# Verify stacks exist (nested)
+stacks = Shoes::App.find_drawables_by(Shoes::Stack)
+assert stacks.length >= 2, "Should have at least 2 nested stacks"
+
+# Verify border exists
+borders = Shoes::App.find_drawables_by(Shoes::Border)
+assert borders.length >= 1, "Should have at least one border"
+
+# Verify cat face para
+p = para()
+assert_equal "=^.^=", p.text, "Para should show cat face"

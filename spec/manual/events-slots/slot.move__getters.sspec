@@ -1,0 +1,12 @@
+---
+manual: slot.move
+lines: [2425, 2428]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $slot = stack width: 50, height: 50
+end
+----------- test code
+$slot.move(20, 120)
+assert_equal [20, 120], [$slot.left, $slot.top], "move sets the slot's coordinates"

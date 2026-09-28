@@ -1,0 +1,21 @@
+---
+manual: rules.fixed_height_scrollbar
+lines: [354, 355]
+testability: visual
+display: native
+----------- app code
+# Tall enough that the window never scrolls either, with or without text margins (C9).
+Shoes.app width: 400, height: 800 do
+  @box = stack width: 200, scroll: true do
+    10.times do |i|
+      @last = para "Paragraph No. #{i}"
+    end
+  end
+end
+----------- test code
+box = layout_of(stack("@box"))
+last = layout_of(para("@last"))
+assert_operator last.y + last.h, :<=, box.y + box.h + 0.5, "without a fixed height the stack grows to hold everything"
+
+wheel(120, x: (box.x + 100).round, y: (box.y + 20).round)
+assert_in_delta last.y, layout_of(para("@last")).y, 0.5, "and there is nothing for it to scroll"

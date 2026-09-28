@@ -1,0 +1,17 @@
+---
+manual: element.animate.default_fps
+lines: [1896, 1897]
+testability: api
+display: native
+ledger: I1
+----------- app code
+Shoes.app do
+  $frames = []
+  animate { |frame| $frames << frame }
+end
+----------- test code
+assert_empty $frames, "no frame before the clock moves"
+
+advance(1)
+
+assert_in_delta 10, $frames.size, 1, "with no fps the block runs 10 times a second"

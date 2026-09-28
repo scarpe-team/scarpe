@@ -1,0 +1,22 @@
+---
+manual: rules.utf8_bad_chars_error
+lines: [482, 485]
+testability: api
+display: any
+ledger: F12
+----------- app code
+Shoes.app do
+  @good = para "Fine text"
+  button "Garble" do
+    para "caf\xE9 with a stray Latin-1 byte".dup.force_encoding(Encoding::UTF_8)
+  end
+end
+----------- test code
+out, err = capture_io do
+  find_button("Garble").trigger_click
+rescue StandardError => e
+  $stderr.puts "#{e.class}: #{e.message}"
+end
+
+assert_match(/utf-?8|invalid byte|encoding|malformed/i, out + err, "the bad string is reported in the console")
+assert_equal "Fine text", para("@good").text, "and the rest of the app carries on"

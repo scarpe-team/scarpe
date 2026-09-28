@@ -1,0 +1,15 @@
+---
+manual: element.link
+lines: [2034, 2037]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @p = para "Go ", link("home") { }
+end
+----------- test code
+fragment = para("@p").contents.last
+
+assert_instance_of Shoes::Link, fragment, "link returns a Shoes::Link"
+assert_equal "home", fragment.text, "holding its text"
+assert_equal "Go home", para("@p").text, "as a fragment inside the text block"

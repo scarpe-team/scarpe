@@ -1,0 +1,23 @@
+---
+manual: check.checked=
+lines: [2983, 2986]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @box = check
+end
+----------- test code
+box = check
+refute box.checked?
+
+box.checked = true
+assert_equal true, box.checked?, "checked = true marks the box"
+
+box.checked = false
+assert_equal false, box.checked?, "checked = false unchecks it"
+
+box.trigger_click
+assert box.checked?
+box.checked = false
+assert_equal false, box.checked?, "checked = false also unchecks a box the user checked"

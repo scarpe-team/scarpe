@@ -1,0 +1,20 @@
+---
+manual: manip.prepend
+lines: [2349, 2352]
+testability: api
+display: any
+ledger: B4
+----------- app code
+Shoes.app do
+  @slot = stack { para "old" }
+  @go = button "Go" do
+    @slot.prepend do
+      para "a"
+      para "b"
+    end
+  end
+end
+----------- test code
+button("@go").trigger_click
+
+assert_equal %w[a b old], stack("@slot").contents.map(&:text), "several elements keep the order they were written in"

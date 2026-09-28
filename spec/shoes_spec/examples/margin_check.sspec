@@ -1,0 +1,45 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/margin_check.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  background blue
+
+  @stack1 = stack(width: 100, height: 100) do
+    background red
+    b = button("Push me", margin: [10, 25, 5, 10]) do
+      alert "Aha! Click!"
+    end
+  end
+
+  @stack1 = stack do
+    background aquamarine
+    b = button("Hash margin", margin: { left: 10, right: 5, top: 25, bottom: 10 }) do
+      alert "Aha! Click!"
+    end
+  end
+
+  stack(width: 100, height: 100) do
+    background yellow
+    button "Middle Button", margin: 5, margin_top: 30
+  end
+
+  @stack2 = stack(width: 100, height: 100) do
+    background green
+    button "OK 2"
+  end
+end
+----------- test code
+# Test: Buttons with various margin configurations
+btns = buttons()
+assert_equal 4, btns.length, "Expected 4 buttons with different margins"
+
+# Check button texts
+texts = btns.map(&:text)
+assert_includes texts, "Push me"
+assert_includes texts, "Hash margin"
+assert_includes texts, "Middle Button"
+assert_includes texts, "OK 2"

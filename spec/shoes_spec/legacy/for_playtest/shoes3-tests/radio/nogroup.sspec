@@ -1,0 +1,25 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/shoes3-tests/radio/nogroup.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/for_playtest/shoes3-tests/radio/nogroup.sspec
+----------- app code
+# no group radios
+ Shoes.app do
+   stack do
+     para "Among these films, which do you prefer?"
+     flow { radio; para "The Taste of Tea by Katsuhito Ishii" }
+     flow { radio; para "Kin-Dza-Dza by Georgi Danelia" }
+     flow { radio; para "Children of Heaven by Majid Majidi" }
+   end
+ end
+----------- test code
+# Test the no-group radio demo
+all_paras = paras()
+assert_equal "Among these films, which do you prefer?", all_paras[0].text
+assert_equal "The Taste of Tea by Katsuhito Ishii", all_paras[1].text
+assert_equal "Kin-Dza-Dza by Georgi Danelia", all_paras[2].text
+assert_equal "Children of Heaven by Majid Majidi", all_paras[3].text

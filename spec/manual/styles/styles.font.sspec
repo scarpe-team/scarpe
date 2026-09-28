@@ -1,0 +1,20 @@
+---
+manual: styles.font
+lines: [1212, 1224]
+testability: visual
+display: native
+ledger: F4
+----------- app code
+Shoes.app width: 400, height: 300 do
+  flow { @described = para "Hello there", font: "Arial Bold 20px" }
+  flow { @spelled = para "Hello there", family: "Arial", weight: "bold", size: 20 }
+  flow { @plain = para "Hello there", size: 20 }
+end
+----------- test code
+described = layout_of(para("@described"))
+spelled = layout_of(para("@spelled"))
+plain = layout_of(para("@plain"))
+
+assert_operator spelled.w, :>, plain.w + 2, "bold text at this size is visibly wider than regular"
+assert_in_delta spelled.w, described.w, 0.5, "family, weight and size read from the string match the same styles spelled out"
+assert_in_delta spelled.h, described.h, 0.5, "including the 20px size"

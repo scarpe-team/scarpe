@@ -1,0 +1,25 @@
+---
+manual: timers.stop
+lines: [3425, 3427]
+testability: api
+display: native
+ledger: M13
+----------- app code
+$frames = 0
+$counts = 0
+Shoes.app do
+  $animation = animate(10) { $frames += 1 }
+  $every = every(0.1) { $counts += 1 }
+end
+----------- test code
+advance 0.55
+assert_operator $frames, :>, 0
+assert_operator $counts, :>, 0
+
+$animation.stop
+$every.stop
+frames, counts = $frames, $counts
+advance 0.55
+
+assert_equal frames, $frames, "stop paused the animation"
+assert_equal counts, $counts, "and the every"

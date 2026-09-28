@@ -1,0 +1,17 @@
+---
+manual: element.edit_line.block
+lines: [1981, 1982]
+testability: interactive
+display: any
+----------- app code
+Shoes.app do
+  $seen = []
+  @line = edit_line { $seen << @line.text }
+end
+----------- test code
+assert_empty $seen, "the block waits for a change"
+
+edit_line.trigger_change("h")
+edit_line.trigger_change("hi")
+
+assert_equal ["h", "hi"], $seen, "the block runs on every change, after the text has changed"

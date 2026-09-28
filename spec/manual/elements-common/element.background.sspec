@@ -1,0 +1,20 @@
+---
+manual: element.background
+lines: [1899, 1903]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @box = stack width: 100, height: 60 do
+    background red
+  end
+end
+----------- test code
+px = ->(x, y) { pixel_at(x.round, y.round).first(3) }
+
+box = layout_of(stack("@box"))
+
+assert_equal [255, 0, 0], px.(box.x + 50, box.y + 30), "the colour fills the slot"
+assert_equal [255, 0, 0], px.(box.x + 1, box.y + 1), "right up to its top left corner"
+assert_equal [255, 0, 0], px.(box.x + 98, box.y + 58), "and its bottom right corner"
+assert_equal [255, 255, 255], px.(box.x + 50, box.y + 64), "and stops at the slot's edge"

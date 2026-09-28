@@ -1,0 +1,18 @@
+---
+manual: traverse.parent
+lines: [2521, 2532]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $outer = stack do
+    $words = para "words"
+    $inner = flow { $nested = para "nested" }
+  end
+end
+----------- test code
+assert_same $outer, $words.parent, "parent is the slot directly above the element"
+assert_same $inner, $nested.parent
+assert_same $outer, $nested.parent.parent, "and climbing again reaches the outer slot"
+assert_kind_of Shoes::Stack, $words.parent
+assert_kind_of Shoes::Flow, $nested.parent

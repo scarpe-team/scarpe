@@ -1,0 +1,26 @@
+---
+manual: background.to_pattern
+lines: [2801, 2803]
+testability: visual
+display: native
+ledger: D9
+----------- app code
+Shoes.app width: 200, height: 200 do
+  stripe = background tomato, height: 50
+  stack top: 100, left: 0, width: 200, height: 50 do
+    background stripe.to_pattern
+  end
+  stack top: 160, left: 0, width: 200, height: 40 do
+    border stripe.to_pattern, strokewidth: 10
+  end
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(100, 125, [255, 99, 71], "the pattern paints a second background")
+paints.(100, 164, [255, 99, 71], "and a border")
+paints.(100, 180, [255, 255, 255], "which is only a line around the slot")

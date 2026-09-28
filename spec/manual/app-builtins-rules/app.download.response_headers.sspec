@@ -1,0 +1,46 @@
+---
+manual: app.download.response_headers
+lines: [916, 929]
+testability: api
+display: any
+ledger: K5
+----------- app code
+Shoes.app do
+  $finished = Queue.new
+  stack do
+    @status = para "One moment..."
+    button "Search" do
+      download "http://shoes.invalid/search?q=shoes" do |goog|
+        @status.text = "Headers: " + goog.response.headers.inspect
+        $finished << goog.response.headers
+      end
+    end
+  end
+end
+----------- test code
+require "net/http"
+
+# A fake web: Net::HTTP never opens a socket, and every request gets this answer.
+$requests = []
+Net::HTTP.prepend(Module.new do
+  def connect; end
+
+  def request(req, body = nil)
+    $requests << { method: req.method, headers: req.to_hash, body: req.body || body }
+    $gate&.pop(timeout: 5)
+    Net::HTTPOK.new("1.1", "200", "OK").tap do |res|
+      res["Content-Type"] = "text/plain"
+      res["X-Shoes"] = "Curious"
+      res.instance_variable_set(:@body, "Hello from the fake web")
+      res.instance_variable_set(:@read, true)
+    end
+  end
+end)
+
+find_button("Search").trigger_click
+headers = $finished.pop(timeout: 10)
+
+refute_nil headers, "the finish block ran"
+by_name = headers.to_h { |name, value| [name.to_s.downcase, Array(value).join] }
+assert_equal "Curious", by_name["x-shoes"], "response.headers holds the server's headers"
+assert_equal "text/plain", by_name["content-type"]

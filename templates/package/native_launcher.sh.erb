@@ -1,0 +1,45 @@
+#!/bin/bash
+# <%= @name %>: a Shoes app packaged by `scarpe package --native` (docs/native_packaging.md).
+# Sets up the bundled Traveling Ruby and runs Contents/Resources/boot.rb; Ruby then starts the
+# Rust display service (Contents/MacOS/scarpe-native) as its child.
+set -e
+
+# Finder, the Dock and `open` start an app under launchd with its output going nowhere, so a start
+# that fails would fail in silence. Then its output goes to ~/Library/Logs/<%= @name %>/launcher.log,
+# with one older log kept past 5 MB. From a terminal it stays on the terminal.
+if [ "$PPID" = 1 ] || [ /dev/fd/2 -ef /dev/null ]; then
+  LOG_DIR="$HOME/Library/Logs/"<%= Shellwords.escape(@name) %>
+  if mkdir -p "$LOG_DIR" 2>/dev/null; then
+    LOG="$LOG_DIR/launcher.log"
+    if [ "$(stat -f %z "$LOG" 2>/dev/null || echo 0)" -gt 5242880 ]; then mv -f "$LOG" "$LOG.1"; fi
+    exec >>"$LOG" 2>&1
+    echo "==== $(date '+%Y-%m-%d %H:%M:%S') pid $$: $0"
+  fi
+fi
+
+# Physical paths (pwd -P), so the paths Ruby loads match the ones the bytecode was compiled for.
+MACOS="$(cd "$(dirname "$0")" && pwd -P)"
+RES="$(cd "$MACOS/../Resources" && pwd -P)"
+
+# Traveling Ruby hands these back to any process the app starts (traveling_ruby_restore_environment).
+export ORIG_TERMINFO="$TERMINFO"
+export ORIG_SSL_CERT_DIR="$SSL_CERT_DIR"
+export ORIG_SSL_CERT_FILE="$SSL_CERT_FILE"
+export ORIG_RUBYOPT="$RUBYOPT"
+export ORIG_RUBYLIB="$RUBYLIB"
+export TERMINFO=/usr/share/terminfo
+export SSL_CERT_FILE="$RES/runtime/ruby/lib/ca-bundle.crt"
+unset SSL_CERT_DIR BUNDLE_GEMFILE BUNDLE_PATH BUNDLE_BIN_PATH
+export RUBYOPT="-rtraveling_ruby_restore_environment"
+
+<% runtime_env("$RES").each do |name, value| -%>
+export <%= name %>="<%= value %>"
+<% end -%>
+export SCARPE_NATIVE_BIN="$MACOS/<%= BINARY %>"
+# Shoes.run_program starts this launcher again with SCARPE_RUN_FILE naming the program to run.
+export SCARPE_LAUNCHER="$MACOS/scarpe-launcher"
+# YJIT is not switched on here: boot.rb turns it on after the first frame (RUBY_YJIT_ENABLE=0 opts out).
+
+# The strip removes did_you_mean, error_highlight and syntax_suggest, so Ruby is told not to look.
+cd "$RES/app"
+exec "$RES/runtime/ruby/bin.real/ruby" <%= RUBY_FLAGS.join(" ") %> "$RES/boot.rb" <%= Shellwords.escape(File.basename(@app_file)) %>

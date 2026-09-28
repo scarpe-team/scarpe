@@ -1,0 +1,18 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/styles/attachment.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/for_playtest/shoes-contrib/styles/attachment.sspec
+----------- app code
+Shoes.app do
+  stack :top => 10, :left => 10, :attach => Window do
+    para "I'm attached to the top left."
+  end
+end
+----------- test code
+# Tests stack with :attach => Window positioning
+p = para()
+assert_equal "I'm attached to the top left.", p.text

@@ -1,0 +1,13 @@
+---
+manual: builtins.const.FONTS
+lines: [613, 614]
+testability: api
+display: any
+expect: {niente: fail}
+reason: "Niente draws no text, so it registers no fonts"
+----------- app code
+Shoes.app { para "Which fonts?" }
+----------- test code
+assert_kind_of Array, Shoes::FONTS
+assert Shoes::FONTS.all?(String), "every entry is a font name"
+refute_empty Shoes::FONTS, "the app can draw text, so some font is available"

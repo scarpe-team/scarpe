@@ -1,0 +1,21 @@
+---
+manual: element.background.layers
+lines: [1909, 1919]
+testability: visual
+display: native
+ledger: C12
+----------- app code
+Shoes.app do
+  background black
+  background white, width: 50
+end
+----------- test code
+px = ->(x, y) { pixel_at(x.round, y.round).first(3) }
+
+white = [255, 255, 255]
+black = [0, 0, 0]
+
+assert_equal white, px.(25, 5), "a 50 pixel white stripe on the left"
+assert_equal white, px.(25, 400), "all the way down"
+assert_equal black, px.(75, 5), "black over the rest of the app"
+assert_equal black, px.(400, 400)

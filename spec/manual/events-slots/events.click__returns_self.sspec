@@ -1,0 +1,12 @@
+---
+manual: events.click
+lines: [2187, 2187]
+testability: api
+display: any
+ledger: B6
+----------- app code
+Shoes.app do
+  $slot = stack { para "click me" }
+end
+----------- test code
+assert_same $slot, $slot.click { }, "click { } returns self"

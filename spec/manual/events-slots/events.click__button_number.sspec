@@ -1,0 +1,16 @@
+---
+manual: events.click
+lines: [2189, 2191]
+testability: interactive
+display: native
+ledger: H2
+----------- app code
+$clicks = []
+Shoes.app width: 400, height: 300 do
+  stack width: 200, height: 100 do
+    click { |button, left, top| $clicks << [button, left, top] }
+  end
+end
+----------- test code
+click_at 60, 30, button: 3
+assert_equal [[3, 60, 30]], $clicks, "the right button is button 3"

@@ -1,0 +1,17 @@
+---
+manual: element.check
+lines: [1945, 1947]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  stack do
+    flow { $frances = check; para "Frances Johnson" }
+    flow { check; para "Ignatius J. Reilly" }
+    flow { check; para "Winston Niles Rumfoord" }
+  end
+end
+----------- test code
+assert_instance_of Shoes::Check, $frances, "check returns a Shoes::Check"
+assert_equal 3, checks.size, "each call adds a check box"
+assert_same $frances, check("$frances").obj, "the returned check box is the one in the window"

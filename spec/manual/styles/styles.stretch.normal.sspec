@@ -1,0 +1,21 @@
+---
+manual: styles.stretch.normal
+lines: [1428, 1433]
+testability: visual
+display: native
+ledger: F5
+expect: fail
+reason: "Lacci sends :stretch, but the native display does not draw condensed or expanded letters yet (F5)."
+----------- app code
+Shoes.app width: 500, height: 300 do
+  flow { @plain = para "Stretching the letters", size: 20 }
+  flow { @text = para "Stretching the letters", stretch: "condensed", size: 20 }
+end
+----------- test code
+width = ->(name) { layout_of(para(name)).w }
+assert_operator width.call("@text"), :<, width.call("@plain") - 5, "the paragraph starts condensed"
+
+para("@text").style(stretch: "normal")
+wait_frames
+
+assert_in_delta width.call("@plain"), width.call("@text"), 0.5, "stretch: \"normal\" gives the standard width of letters back"

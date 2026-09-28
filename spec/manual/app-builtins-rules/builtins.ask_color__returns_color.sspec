@@ -1,0 +1,13 @@
+---
+manual: builtins.ask_color
+lines: [643, 647]
+testability: dialog
+display: any
+ledger: D1
+dialogs: {ask_color: [[255, 136, 0, 255]]}
+----------- app code
+$picked = ask_color("Pick a background")
+Shoes.app { para "picked" }
+----------- test code
+assert_kind_of Shoes::Color, $picked, "ask_color gives back a Color object"
+assert_equal [255, 136, 0, 255], $picked.to_a

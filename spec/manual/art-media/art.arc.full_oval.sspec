@@ -1,0 +1,27 @@
+---
+manual: art.arc.full_oval
+lines: [1667, 1670]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  fill red
+  nostroke
+  arc 50, 50, 200, 100, 0, Shoes::TWO_PI
+end
+----------- test code
+# From 0 to TWO_PI the arc is the whole oval inscribed in (50, 50, 200, 100).
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+red = [255, 0, 0]
+white = [255, 255, 255]
+
+[[100, 80], [200, 80], [100, 120], [200, 120], [55, 100], [245, 100], [150, 55], [150, 145]].each do |x, y|
+  paints.(x, y, red, "every part of the oval is filled")
+end
+[[55, 55], [245, 55], [55, 145], [245, 145]].each do |x, y|
+  paints.(x, y, white, "the corners of the box are outside the oval")
+end

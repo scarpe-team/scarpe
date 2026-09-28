@@ -1,0 +1,16 @@
+---
+manual: styles.state
+lines: [1410, 1421]
+testability: api
+display: any
+ledger: G4
+----------- app code
+Shoes.app do
+  @open = edit_line state: nil
+  @locked = edit_line state: "readonly"
+  @off = edit_line state: "disabled"
+end
+----------- test code
+assert_nil edit_line("@open").style[:state], "state: nil is the active, editable setting"
+assert_equal "readonly", edit_line("@locked").style[:state], "readonly is kept, so a display can lock the control"
+assert_equal "disabled", edit_line("@off").style[:state], "disabled is kept, so a display can grey the control out"

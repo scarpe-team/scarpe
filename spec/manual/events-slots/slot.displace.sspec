@@ -1,0 +1,27 @@
+---
+manual: slot.displace
+lines: [2382, 2392]
+testability: visual
+display: native
+ledger: M9
+----------- app code
+Shoes.app width: 400, height: 300 do
+  stack width: 200 do
+    @moved = stack width: 50, height: 50 do
+      background red
+    end
+    @below = stack width: 50, height: 20
+  end
+end
+----------- test code
+red = [255, 0, 0, 255]
+below_before = layout_of(stack("@below"))
+assert_equal red, pixel_at(5, 5)
+refute_equal red, pixel_at(55, 65)
+
+stack("@moved").displace(10, 20)
+
+assert_equal red, pixel_at(55, 65), "the slot is painted 10 pixels right and 20 down"
+refute_equal red, pixel_at(5, 5), "and no longer at its old corner"
+below_after = layout_of(stack("@below"))
+assert_equal [below_before.x, below_before.y], [below_after.x, below_after.y], "the layout did not move"

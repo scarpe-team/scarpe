@@ -1,0 +1,15 @@
+---
+manual: common.height
+lines: [2628, 2635]
+testability: visual
+display: native
+ledger: A4
+----------- app code
+Shoes.app do
+  @img = image "assets/checker-20x20.png", width: 10
+end
+----------- test code
+shown = layout_of(image("@img"))
+
+assert_in_delta 10, shown.h, 0.5, "a 20x20 image set 10 wide is shown 10 high"
+assert_equal 10, image("@img").height, "height reports the size shown, not the file's 20"

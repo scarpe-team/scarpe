@@ -1,0 +1,16 @@
+---
+manual: art.color_methods_return_colors
+lines: [1647, 1648]
+testability: api
+display: any
+ledger: D1
+----------- app code
+Shoes.app do
+  $blue = blue
+  $red = red
+end
+----------- test code
+assert_kind_of Shoes::Color, $blue, "blue is a Color object"
+assert_kind_of Shoes::Color, $red, "red is a Color object"
+assert_equal 255, $blue.blue
+assert_equal 255, $red.red

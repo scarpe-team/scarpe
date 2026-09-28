@@ -1,0 +1,11 @@
+---
+manual: slot.style_at_creation
+lines: [2367, 2376]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @precise = stack(width: 150) { para "Now that's precision." }
+end
+----------- test code
+assert_in_delta 150, layout_of(stack("@precise")).w, 0.5, "the width given at creation is the width drawn"

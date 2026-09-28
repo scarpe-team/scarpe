@@ -1,0 +1,12 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: visual
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  @notes = edit_box "two\nlines"
+end
+----------- test code
+node = a11y_nodes.find { |n| n[:role] == "multiline_text_input" }
+assert_equal "two\nlines", node[:value]

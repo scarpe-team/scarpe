@@ -1,0 +1,15 @@
+---
+manual: install.welcome_example
+lines: [114, 123]
+testability: visual
+display: any
+ledger: D5
+----------- app code
+Shoes.app do
+  background "#DFA"
+  para "Welcome to Shoes"
+end
+----------- test code
+assert_equal "Welcome to Shoes", para.text, "the window says Welcome to Shoes"
+assert_equal [background.linkable_id, para.linkable_id], Shoes.APPS.first.document_root.contents.map(&:linkable_id),
+  "over a background declared first, so it sits under the text"

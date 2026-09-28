@@ -1,0 +1,13 @@
+---
+manual: element.banner
+lines: [1921, 1921]
+testability: api
+display: any
+ledger: F2
+----------- app code
+Shoes.app do
+  $block = banner "Shoes"
+end
+----------- test code
+assert Shoes.const_defined?(:Banner), "Shoes::Banner exists"
+assert_kind_of Shoes::Banner, $block, "banner returns a Shoes::Banner"

@@ -1,0 +1,17 @@
+---
+manual: app.shoes_app
+lines: [859, 865]
+testability: api
+display: any
+ledger: A10
+----------- app code
+# Ruby 1.9 programs pass Shoes.app its styles as a Hash, as Hackety Hack's turtle does
+# (Shoes.app opts). Ruby 3 hands that over as a positional argument.
+opts = { title: "Turtle", width: 320, height: 240 }
+Shoes.app(opts) do
+  para "drawn"
+end
+----------- test code
+app = Shoes.APPS.first
+assert_equal ["Turtle", 320, 240], [app.style[:title], app.width, app.height], "the Hash's styles open the window"
+assert_equal "drawn", para.text, "and the block still runs"

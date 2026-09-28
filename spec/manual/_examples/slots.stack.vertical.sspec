@@ -1,0 +1,18 @@
+---
+manual: slots.stack.vertical
+lines: [1599, 1600]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  stack width: 200 do
+    @first = button "First"
+    @second = button "Second"
+  end
+end
+----------- test code
+first = layout_of(button("@first"))
+second = layout_of(button("@second"))
+
+assert_in_delta first.x, second.x, 0.5, "stacked elements share a left edge"
+assert_in_delta first.y + first.h, second.y, 0.5, "the second sits directly under the first"

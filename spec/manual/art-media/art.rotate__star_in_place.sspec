@@ -1,0 +1,20 @@
+---
+manual: art.rotate
+lines: [1783, 1797]
+testability: visual
+display: native
+ledger: E10
+----------- app code
+# A star's left and top are its centre (E4), and that is the point a turn keeps still, as
+# center: true would make it. Hackety Hack's splash turns its star window one degree a frame
+# so it spins in place; turned about its box's corner it swung off across the window.
+Shoes.app width: 420, height: 420 do
+  nostroke
+  fill red
+  rotate 30
+  @star = star 210, 210, 5, 100, 50
+end
+----------- test code
+box = layout_of(star("@star"))
+assert_in_delta 210, box.x + box.w / 2, 1, "the turned star is still centred where it was drawn"
+assert_in_delta 210, box.y + box.h / 2, 1

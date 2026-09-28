@@ -1,0 +1,22 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/working/shoes_manual/animate.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/for_playtest/shoes_manual/animate.sspec
+----------- app code
+#!ruby
+ Shoes.app do
+   @counter = para "STARTING"
+   animate(24) do |frame|
+     @counter.replace "FRAME #{frame}"
+   end
+ end
+----------- test code
+# Verify animation creates the counter para
+# Check initial state shows STARTING or has already animated
+initial_text = para().text
+assert(initial_text.include?("STARTING") || initial_text.include?("FRAME"), 
+       "Para should show STARTING or FRAME")

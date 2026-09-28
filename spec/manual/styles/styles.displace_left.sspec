@@ -1,0 +1,26 @@
+---
+manual: styles.displace_left
+lines: [1161, 1169]
+testability: visual
+display: native
+ledger: M9
+----------- app code
+Shoes.app width: 300, height: 200 do
+  @row = flow do
+    @moved = stack width: 40, height: 30, displace_left: 20 do
+      background red
+    end
+    @beside = stack width: 40, height: 30 do
+      background blue
+    end
+  end
+end
+----------- test code
+row = layout_of(flow("@row"))
+beside = layout_of(stack("@beside"))
+middle = (row.y + 15).round
+red = ->(x) { r, g, b, = pixel_at(x.round, middle); r > 200 && g < 60 && b < 60 }
+
+assert_in_delta row.x + 40, beside.x, 0.5, "the neighbour keeps its place: displacing does not change the layout"
+refute red.call(row.x + 10), "the red block has left its laid-out spot"
+assert red.call(row.x + 30), "it is drawn 20 pixels further right"

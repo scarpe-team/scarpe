@@ -1,0 +1,29 @@
+---
+manual: app.window_at_url
+lines: [848, 850]
+testability: api
+display: any
+ledger: M29
+----------- app code
+class Library < Shoes
+  url "/", :index
+  url "/shelf", :shelf
+
+  def index
+    para "Front desk"
+    button("To the shelf") { visit "/shelf" }
+  end
+
+  def shelf
+    para "The shelf"
+  end
+end
+
+Shoes.app
+----------- test code
+assert_equal ["Front desk"], paras.map(&:text), "the app first runs the code at /"
+
+find_button("To the shelf").trigger_click
+
+assert_equal ["The shelf"], paras.map(&:text), "switching URLs fills the window with the new page's elements"
+assert_empty buttons, "and none of the old ones survive"

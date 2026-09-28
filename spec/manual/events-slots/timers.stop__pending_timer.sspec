@@ -1,0 +1,15 @@
+---
+manual: timers.stop
+lines: [3425, 3427]
+testability: api
+display: native
+ledger: M13
+----------- app code
+$fired = 0
+Shoes.app do
+  $timer = timer(0.3) { $fired += 1 }
+end
+----------- test code
+$timer.stop
+advance 0.6
+assert_equal 0, $fired, "a timer stopped before its time does not fire"

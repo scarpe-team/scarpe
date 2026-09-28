@@ -1,0 +1,13 @@
+---
+manual: styles.kerning
+lines: [1275, 1280]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 200 do
+  flow { @tight = para "IIII", size: 20 }
+  flow { @spaced = para "IIII", size: 20, kerning: 5 }
+end
+----------- test code
+extra = layout_of(para("@spaced")).w - layout_of(para("@tight")).w
+assert (14.5..20.5).cover?(extra), "5 pixels more between each of four letters: 15 in all, or 20 if the last letter gets them too; got #{extra}"

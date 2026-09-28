@@ -1,0 +1,29 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/drawables/para/para_replace.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  @p = para "Yo"
+  @b = button "OK" do
+    # Make sure replace works with simple one-argument text
+    @p.replace "Clicked"
+  end
+  @b2 = button "Replace" do
+    # Make sure replace works with em() and strong() text
+    @p.replace("This", em("Is"), strong("Text"))
+  end
+end
+----------- test code
+p = para()
+
+assert_equal "Yo", p.text
+button("@b").trigger_click
+assert_equal "Clicked", p.text
+p.replace("This", "Is", "Text")
+assert_equal "ThisIsText", p.text
+
+button("@b2").trigger_click
+assert_equal "ThisIsText", p.text

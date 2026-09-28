@@ -1,0 +1,14 @@
+---
+manual: events.keypress.function_key
+lines: [2216, 2216]
+testability: interactive
+display: native
+ledger: H1
+----------- app code
+$keys = []
+Shoes.app do
+  keypress { |key| $keys << key }
+end
+----------- test code
+press_key :f1
+assert_equal [:f1], $keys, "F1 arrives as the Symbol :f1"

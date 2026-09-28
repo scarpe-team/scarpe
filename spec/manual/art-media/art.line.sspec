@@ -1,0 +1,28 @@
+---
+manual: art.line
+lines: [1711, 1714]
+testability: visual
+display: native
+ledger: E6
+----------- app code
+Shoes.app width: 300, height: 400 do
+  stroke red
+  strokewidth 4
+  line 10, 150, 200, 150
+  line 290, 50, 240, 100
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+red = [255, 0, 0]
+white = [255, 255, 255]
+
+paints.(100, 150, red, "the line runs from (10, 150) to (200, 150) in the stroke colour")
+paints.(12, 150, red, "it starts at (left, top)")
+paints.(5, 150, white, "and not before")
+paints.(205, 150, white, "it ends at (x2, y2), an absolute point")
+paints.(20, 300, white, "(left, top) is not added twice")
+paints.(265, 75, red, "the end point may lie left of and below the start")

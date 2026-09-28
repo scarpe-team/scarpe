@@ -5,8 +5,10 @@ class Shoes
     class ResponseWrapper
       attr_reader :response
 
-      def initialize(response)
+      # @param saved [Boolean] true when the data went to a file, so body is nil
+      def initialize(response, saved: false)
         @response = response
+        @saved = saved
       end
 
       # HTTP status code (e.g., 200, 404, 500)
@@ -23,32 +25,60 @@ class Shoes
         @response.each_header.to_h
       end
 
+      # The data, or nil when save: wrote it to a file (manual 950-952).
       def body
-        @response.body
+        @saved ? nil : @response.body
       end
     end
 
-    def download(url, method: "GET", save: nil, styles: {}, &block)
+    # What start, progress and finish are handed (manual 906-975): the response once it
+    # has arrived, and how much of it has.
+    class Download
+      attr_reader :url
+      attr_accessor :response, :length, :transferred
+
+      def initialize(url)
+        @url = url
+        @length = 0
+        @transferred = 0
+      end
+
+      # @return [Integer] how much has arrived, from 0 to 100
+      def percent
+        length.zero? ? 0 : transferred * 100 / length
+      end
+    end
+
+    # Fetch url on a background thread and return at once (manual 906-975). The download
+    # fires start, progress and finish, each handed the Download; a block is the finish
+    # event. save: writes the data to that file, leaving response.body nil. method:,
+    # headers: and body: shape the request (manual 954-960; ledger K5).
+    #
+    # @return [Thread] the download's thread
+    def download(url, method: "GET", headers: {}, body: nil, save: nil,
+                 start: nil, progress: nil, finish: nil, styles: {}, &block)
       require "net/http"
       require "openssl"
-      require "nokogiri"
 
-      @block = block
+      finish ||= block
+      headers = (styles[:headers] || {}).merge(headers)
+      body ||= styles[:body]
 
       Thread.new do
         logger = Shoes::Log.logger("Shoes::App#download")
         begin
-          uri = URI(url)
-          response = perform_request(uri, method, styles)
+          dl = Download.new(url)
+          start&.call(dl)
 
-          if response.is_a?(Net::HTTPRedirection)
-            new_location = response["location"]
-            new_uri = URI(new_location)
-            response = perform_request(new_uri, method, styles)
+          response = perform_request(URI(url), method, headers, body)
+          response = perform_request(URI(response["location"]), method, headers, body) if response.is_a?(Net::HTTPRedirection)
+
+          if response.is_a?(Net::HTTPSuccess)
+            arrived(dl, response, save, progress)
+            finish&.call(dl)
+          else
+            handle_failure(response.code, logger)
           end
-
-          wrapped_response = ResponseWrapper.new(response) # Wrap the response
-          handle_response(wrapped_response, save, styles)
         rescue Net::HTTPError, Net::OpenTimeout, Net::ReadTimeout => e
           handle_error(e, logger)
         rescue StandardError => e
@@ -59,56 +89,25 @@ class Shoes
 
     private
 
-    def perform_request(uri, method, styles)
+    def perform_request(uri, method, headers, body)
       port = uri.port || (uri.scheme == "https" ? 443 : 80)
       http = Net::HTTP.start(uri.host, port, use_ssl: uri.scheme == "https", verify_mode: OpenSSL::SSL::VERIFY_NONE)
 
-      request = Net::HTTP.const_get(method.capitalize).new(uri.request_uri)
-      apply_styles(request, styles)
+      request = Net::HTTP.const_get(method.to_s.capitalize).new(uri.request_uri)
+      headers.each { |name, value| request[name.to_s] = value.to_s }
+      request.body = body if body
 
       http.request(request)
     end
 
-    def apply_styles(request, styles)
-      headers = styles[:headers]
-      request["Content-Type"] = headers["Content-Type"] if headers && headers["Content-Type"]
-      request.body = styles[:body] if styles[:body]
-      # Add more custom styles to the request as needed
-    end
+    # The whole response has been read, so progress fires once, at 100 percent.
+    def arrived(dl, response, save, progress)
+      content = response.body.to_s
+      dl.length = dl.transferred = content.bytesize
+      progress&.call(dl)
 
-    def handle_response(response, save, styles)
-      case response.response.code.to_i
-      when 200..299
-        content = response.body
-        # headers = response.headers # Access headers directly
-        if save
-          save_content(content, save)
-          parse_rss(content) # Parse the downloaded XML content
-        else
-          handle_finish_event(response) # Pass response and headers to handle_finish_event
-        end
-      else
-        handle_failure(response.response.code)
-      end
-    end
-
-    def save_content(content, file_name)
-      file = nil
-      begin
-        file = File.open(file_name, "w")
-        file.write(content)
-      rescue Errno::EACCES, Errno::ENOENT => e
-        raise FileError, "File error occurred: #{e.message}"
-      else
-        @block&.call
-      ensure
-        file&.close
-      end
-    end
-
-    def handle_finish_event(response)
-      passed = Struct.new(:response).new(response) # Create a new Struct with response attribute
-      @block&.call(passed) # Pass it ok
+      File.binwrite(save, content) if save
+      dl.response = ResponseWrapper.new(response, saved: !save.nil?)
     end
 
     def handle_failure(code, logger)
@@ -117,17 +116,6 @@ class Shoes
 
     def handle_error(error, logger)
       logger.error("An error occurred while downloading: #{error}")
-    end
-
-    def parse_rss(content)
-      doc = Nokogiri::XML(content)
-      items = doc.xpath("//item")
-      items.each do |item|
-        item.xpath("title").text
-        item.xpath("link").text
-        item.xpath("description").text
-        # Do something with the parsed content or use it if needed
-      end
     end
   end
 end

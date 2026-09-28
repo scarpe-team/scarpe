@@ -1,0 +1,18 @@
+---
+manual: app.clipboard=
+lines: [897, 899]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  button("Copy") { self.clipboard = "Shoes was here" }
+end
+----------- test code
+# spec/run's pbcopy, pbpaste and xclip keep the system clipboard in this sandbox file,
+# so the case never touches the real one.
+board = ENV.fetch("SPEC_CLIPBOARD_FILE")
+File.write(board, "old contents")
+
+find_button("Copy").trigger_click
+
+assert_equal "Shoes was here", File.read(board), "other programs see the text on the system clipboard"

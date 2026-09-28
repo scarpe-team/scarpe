@@ -1,0 +1,25 @@
+---
+manual: edit_line.block_is_change
+lines: [3082, 3084]
+testability: api
+display: any
+----------- app code
+# The edit box's own methods are change, focus, text and text= (manual 3038-3055).
+Shoes.app do
+  $changes = Hash.new(0)
+  @line = edit_line
+  @box = edit_box
+end
+----------- test code
+{ "edit line" => edit_line, "edit box" => edit_box }.each do |kind, input|
+  input.change { $changes[kind] += 1 }
+
+  input.text = "set"
+  assert_equal "set", input.text, "#{kind} has text and text="
+
+  before = $changes[kind]
+  input.trigger_change("typed")
+  assert_equal before + 1, $changes[kind], "#{kind} has change"
+
+  assert_equal input.linkable_id, input.focus.linkable_id, "#{kind} has focus, returning itself"
+end

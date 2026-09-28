@@ -1,0 +1,14 @@
+---
+manual: list_box.default_size
+lines: [3183, 3184]
+testability: visual
+display: native
+ledger: C4
+----------- app code
+Shoes.app do
+  @fruit = list_box items: ["Grapes", "Pears", "Apricots"]
+end
+----------- test code
+r = layout_of(list_box)
+assert_in_delta 200, r.w, 2, "a list box is about 200 pixels wide (ledger C4)"
+assert_in_delta 28, r.h, 6, "and about 28 pixels high"

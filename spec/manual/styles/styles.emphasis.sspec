@@ -1,0 +1,13 @@
+---
+manual: styles.emphasis
+lines: [1181, 1192]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  %w[normal oblique italic].each { |kind| instance_variable_set("@#{kind}", para(kind, emphasis: kind)) }
+end
+----------- test code
+%w[normal oblique italic].each do |kind|
+  assert_equal kind, para("@#{kind}").style[:emphasis], "emphasis: #{kind.inspect} is accepted and kept"
+end

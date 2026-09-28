@@ -1,0 +1,24 @@
+---
+manual: element.flow
+lines: [2001, 2003]
+testability: api
+display: native
+----------- app code
+Shoes.app do
+  flow do
+    @one = stack width: 200 do
+      caption "Column one"
+      para "is 200 pixels wide"
+    end
+    @two = stack width: -200 do
+      caption "Column two"
+      para "is 100% minus 200 pixels wide"
+    end
+  end
+end
+----------- test code
+one = layout_of(stack("@one"))
+two = layout_of(stack("@two"))
+
+assert_in_delta one.x + 200, two.x, 0.5, "the second column starts where the first ends"
+assert_in_delta one.y, two.y, 0.5, "on the same line"

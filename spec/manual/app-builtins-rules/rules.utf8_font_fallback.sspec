@@ -1,0 +1,29 @@
+---
+manual: rules.utf8_font_fallback
+lines: [466, 480]
+testability: visual
+display: native
+----------- app code
+# Pacifico (OFL) is in spec/support/assets, copied into every sandbox.
+font File.expand_path("assets/Pacifico.ttf")
+
+Shoes.app do
+  stack do
+    @listed = para "Handwriting", size: 32, font: "NoSuchFontAnywhere, Pacifico"
+    @direct = para "Handwriting", size: 32, font: "Pacifico"
+    @default = para "Handwriting", size: 32
+  end
+end
+----------- test code
+# The rightmost dark pixel across two rows through the middle of a text block.
+ink_right_edge = lambda do |rect|
+  [0.4, 0.6].map do |fraction|
+    y = (rect.y + rect.h * fraction).round
+    (rect.x + rect.w - 1).floor.downto(rect.x.ceil).find { |x| pixel_at(x, y)[0, 3].sum < 384 } || 0
+  end.max
+end
+
+listed, direct, default = %w[@listed @direct @default].map { |name| ink_right_edge.call(layout_of(para(name))) }
+
+assert_in_delta direct, listed, 1, "a font list uses the first family that exists"
+refute_in_delta default, listed, 4, "rather than falling back to the default font"

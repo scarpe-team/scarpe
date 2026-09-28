@@ -1,0 +1,13 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: visual
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  @hello = para "Hello, world"
+end
+----------- test code
+node = a11y_nodes.find { |n| n[:role] == "label" }
+assert_equal "Hello, world", node[:value], "static text carries its words as its value"
+assert_equal layout_of(para("@hello")).to_a, node[:bounds]

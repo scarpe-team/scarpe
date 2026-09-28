@@ -1,0 +1,19 @@
+---
+manual: element.dialog
+lines: [1958, 1958]
+testability: api
+display: any
+ledger: A9
+----------- app code
+Shoes.app title: "The Owner" do
+  button "Ask me" do
+    $dialog = dialog title: "A question" do
+      para "Inside the dialog"
+    end
+  end
+end
+----------- test code
+find_button("Ask me").trigger_click
+
+assert_instance_of Shoes::App, $dialog, "dialog returns a Shoes::App"
+assert_same Shoes.APPS.last, $dialog, "the app it opened"

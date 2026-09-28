@@ -1,0 +1,25 @@
+---
+manual: events.motion
+lines: [2259, 2275]
+testability: interactive
+display: native
+ledger: M8
+----------- app code
+Shoes.app width: 200, height: 200 do
+  background black
+  fill white
+  @circ = oval 0, 0, 100, 100
+
+  motion do |top, left|
+    @circ.move top - 50, left - 50
+  end
+end
+----------- test code
+move_mouse 120, 80
+assert_equal [70, 30], [oval("@circ").left, oval("@circ").top], "the first argument is the horizontal coordinate"
+assert_equal [255, 255, 255, 255], pixel_at(120, 80), "the circle is centred on the mouse"
+
+move_mouse 60, 150
+assert_equal [10, 100], [oval("@circ").left, oval("@circ").top], "every move calls the block again"
+assert_equal [255, 255, 255, 255], pixel_at(60, 150), "the circle followed"
+assert_equal [0, 0, 0, 255], pixel_at(120, 80), "and left its old spot"

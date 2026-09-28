@@ -1,0 +1,38 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/shoes3-tests/cursor/c1.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  stack do
+    para "Change cursor to"
+    flow do
+      button "arrow" do
+        app.cursor = :arrow_cursor
+      end
+      button "text" do
+        app.cursor = :text_cursor
+      end
+      button "watch" do
+        app.cursor = :watch_cursor
+      end
+      button "hand" do
+        app.cursor = :hand_cursor
+      end
+    end
+    para "app is #{app.class}"
+    para "Cursor is #{app.cursor.inspect}"
+  end
+end
+----------- test code
+# Test the cursor change UI
+all_paras = paras()
+all_buttons = buttons()
+assert_equal "Change cursor to", all_paras[0].text
+assert_equal "arrow", all_buttons[0].text
+assert_equal "text", all_buttons[1].text
+assert_equal "watch", all_buttons[2].text
+assert_equal "hand", all_buttons[3].text
+assert_includes all_paras[1].text, "app is"

@@ -1,0 +1,13 @@
+---
+manual: image.scaled_height
+lines: [2630, 2635]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 200, height: 200 do
+  @thumb = image "assets/checker-20x20.png", width: 50
+end
+----------- test code
+box = layout_of(image("@thumb"))
+assert_in_delta 50, box.w, 0.5, "the width style is honoured"
+assert_in_delta 50, box.h, 0.5, "a square image styled 50 wide is shown 50 high"

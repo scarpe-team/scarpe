@@ -1,0 +1,13 @@
+---
+manual: app.shoes_app
+lines: [859, 865]
+testability: api
+display: any
+ledger: A9
+----------- app code
+$returned = Shoes.app do
+  para "Hello"
+end
+----------- test code
+assert_kind_of Shoes::App, $returned, "Shoes.app returns the app"
+assert_same Shoes.APPS.first, $returned, "the very app that opened"

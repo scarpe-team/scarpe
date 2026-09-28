@@ -14,12 +14,10 @@
 
 require "thread"
 
-# A tiny 32x32 turtle SVG encoded as a data URI (green triangle pointing up)
-TURTLE_DATA_URI = "data:image/svg+xml;base64," + [
-  '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">' \
-  '<polygon points="16,2 28,28 16,22 4,28" fill="#2a2" stroke="#060" stroke-width="1.5"/>' \
-  '</svg>'
-].pack("m0")
+# Hackety Hack's little green turtle (its static/turtle.png), 32x32, beside this file so a
+# packaged app carries it. It was an SVG data URI, which the native display cannot draw, so no
+# turtle showed while it stepped.
+TURTLE_IMAGE = File.join(__dir__, "turtle.png")
 
 class Shoes::TurtleCanvas < Shoes::Widget
   WIDTH = 500
@@ -38,7 +36,7 @@ class Shoes::TurtleCanvas < Shoes::Widget
     @height = HEIGHT
     style :width => @width, :height => @height
     @queue = Queue.new
-    @image = image TURTLE_DATA_URI
+    @image = image TURTLE_IMAGE
     @image.transform :center
     @speed = SPEED
     @paused = true
@@ -230,7 +228,7 @@ class Shoes::TurtleCanvas < Shoes::Widget
     [:left, :top, :width, :height, :rotate].each do |k|
       image_styles[k] = old_style[k.to_s] if old_style.key?(k.to_s)
     end
-    @image = image TURTLE_DATA_URI
+    @image = image TURTLE_IMAGE
     @image.style(**image_styles) unless image_styles.empty?
     @image.transform :center
   end
@@ -250,16 +248,14 @@ class Shoes::TurtleCanvas < Shoes::Widget
   def display_command
     return unless @next_command
 
+    # The turtle command the program called is the outermost method on the stack before the
+    # program's own block. Read from the frames, not the backtrace's text, which Ruby 3.4
+    # changed (it quotes 'Shoes::TurtleCanvas#forward' where it printed `forward').
     method = nil
-    bt = caller
-    1.upto(4) do |i|
-      break unless bt[i]
-      m = bt[i][/`([^']*)'/, 1]
-      if m.nil? || m =~ /^block /
-        break
-      else
-        method = m
-      end
+    Array(caller_locations(2, 4)).each do |frame|
+      break if frame.label.nil? || frame.label.start_with?("block ")
+
+      method = frame.base_label
     end
     @next_command.replace(method.to_s)
   end
@@ -271,12 +267,12 @@ class Shoes::TurtleCanvas < Shoes::Widget
   def update_pen_info
     return unless @pen_info
 
-    bg_color = @bg_color
-    fg_color = @fg_color
-    pen_size = @pen_size
+    # The block keeps the canvas as self (ledger B1), and the canvas's own drawing calls land
+    # in the slot being appended to, as in Hackety Hack's turtle. background is the turtle
+    # command here, so the slot's own goes by its other name.
     @pen_info.append do
-      background bg_color
-      line 5, 10, 35, 10, :stroke => fg_color, :strokewidth => pen_size
+      background_internal @bg_color
+      line 5, 10, 35, 10, :stroke => @fg_color, :strokewidth => @pen_size
     end
   end
 end
@@ -299,8 +295,11 @@ module Turtle
       @block = blk
 
       unless is_draw
+        # Hackety Hack's turtle placed the swatch with :top => 5 alone, and Shoes 3 kept its x
+        # where the flow stood, after the label; native puts it at the slot's left edge, over the
+        # label (ledger C17), so it sits in the flow instead, 5 px down.
         para "pen: "
-        @pen_info = stack :top => 5, :width => 40, :height => 20 do
+        @pen_info = stack :margin_top => 5, :width => 40, :height => 25 do
           background white
           line 5, 10, 35, 10
         end
@@ -328,7 +327,7 @@ module Turtle
         draw_controls
         @interactive_thread = Thread.new do
           sleep 0.1
-          @canvas.instance_eval(&blk)
+          @canvas.instance_eval(&blk) if blk
           @next_command&.replace("(END)")
         end
       end
@@ -338,9 +337,10 @@ module Turtle
   private
 
   def execute_canvas_code(blk)
-    # In Shoes3, shape preserves self context. In Scarpe, shape changes self to App.
-    # Evaluate directly on canvas — the Widget itself serves as the drawing container.
-    @canvas.instance_eval(&blk)
+    # The turtle program's forward, turnleft and pencolor are the canvas's own methods, so it
+    # runs on the canvas, as Hackety Hack's turtle ran it. `Turtle.draw` alone has no program,
+    # and draws an empty canvas.
+    @canvas.instance_eval(&blk) if blk
   end
 
   def draw_controls
@@ -352,7 +352,9 @@ module Turtle
           @canvas.next_command = @next_command
         end
       end
-      button "execute", :width => 100 do
+      # execute and draw all sit at the right of their rows, as in Hackety Hack's turtle
+      # (:right => '-0px'), which leaves the window room for both rows of controls
+      button "execute", :width => 100, :right => 0 do
         @canvas.step
       end
     end
@@ -368,7 +370,7 @@ module Turtle
       button "faster", :width => 100 do
         @canvas.speed = (@canvas.speed || Shoes::TurtleCanvas::SPEED) * 2
       end
-      button "draw all", :width => 100 do
+      button "draw all", :width => 100, :right => 0 do
         @interactive_thread&.kill
         @canvas.reset
         @next_command.replace("(draw all)")

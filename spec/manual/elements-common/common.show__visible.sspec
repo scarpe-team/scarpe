@@ -1,0 +1,22 @@
+---
+manual: common.show
+lines: [2688, 2688]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @b = button "Peekaboo"
+  @b.hide
+end
+----------- test code
+drawn = lambda do |box|
+  (0...box.h.floor).step(2).any? do |dy|
+    (0...box.w.floor).step(2).any? { |dx| pixel_at(box.x + dx, box.y + dy).first(3).sum < 700 }
+  end
+end
+
+button("@b").show
+wait_frames
+
+box = layout_of(button("@b"))
+assert drawn.(box), "after show the button is drawn"

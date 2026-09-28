@@ -1,0 +1,18 @@
+---
+manual: edit_box.text
+lines: [3049, 3051]
+testability: api
+display: any
+ledger: M5
+----------- app code
+Shoes.app do
+  @box = edit_box
+end
+----------- test code
+essay = "Essays, even!\nA second line."
+refute_equal essay, edit_box.text
+
+edit_box.trigger_change(essay)
+
+assert_kind_of String, edit_box.text, "text returns a String, not the box (ledger M5)"
+assert_equal essay, edit_box.text, "holding every character typed, line breaks included"

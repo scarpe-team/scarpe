@@ -1,0 +1,21 @@
+---
+manual: element.progress
+lines: [2060, 2062]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  stack margin: 0.1 do
+    title "Progress example"
+    @p = progress width: 1.0
+
+    animate do |i|
+      @p.fraction = (i % 100) / 100.0
+    end
+  end
+end
+----------- test code
+bar = progress("@p")
+
+assert_instance_of Shoes::Progress, bar.obj, "progress returns a Shoes::Progress"
+assert_equal 1, progresses.size, "one progress bar in the window"

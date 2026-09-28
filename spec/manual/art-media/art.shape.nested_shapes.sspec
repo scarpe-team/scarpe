@@ -1,0 +1,26 @@
+---
+manual: art.shape.nested_shapes
+lines: [1820, 1824]
+testability: visual
+display: native
+ledger: M21
+----------- app code
+Shoes.app width: 300, height: 200 do
+  fill red
+  nostroke
+  shape do
+    oval 50, 50, 40
+    rect 150, 50, 40, 40
+  end
+end
+----------- test code
+# M21: the combined shape paints its region. Fill intensity is not asserted.
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(70, 70, [255, 0, 0], "an oval inside a shape is drawn")
+paints.(170, 70, [255, 0, 0], "so is a rect")
+paints.(120, 70, [255, 255, 255], "they are not joined into one line")

@@ -1,0 +1,14 @@
+---
+manual: edit_line.default_size
+lines: [3063, 3064]
+testability: visual
+display: native
+ledger: C4
+----------- app code
+Shoes.app do
+  @line = edit_line
+end
+----------- test code
+r = layout_of(edit_line)
+assert_in_delta 200, r.w, 2, "an unstyled edit line is 200 pixels wide"
+assert_in_delta 28, r.h, 6, "and roughly 28 pixels high (ledger M6: the manual's second 'wide' means high)"

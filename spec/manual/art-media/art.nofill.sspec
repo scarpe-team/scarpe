@@ -1,0 +1,24 @@
+---
+manual: art.nofill
+lines: [1701, 1704]
+testability: visual
+display: native
+ledger: D7
+----------- app code
+Shoes.app width: 200, height: 200 do
+  background yellow
+  fill red
+  nofill
+  stroke blue
+  strokewidth 4
+  oval 50, 50, 100
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(100, 100, [255, 255, 0], "the middle is transparent: the background shows through")
+paints.(50, 100, [0, 0, 255], "the shape keeps its lining")

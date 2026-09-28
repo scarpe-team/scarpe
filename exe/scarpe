@@ -26,8 +26,16 @@ end
 use_dev = ARGV.delete("--dev") ? true : false
 use_debug = ARGV.delete("--debug") ? true : false
 
+# --native draws with the Rust display service; peek always does, headless.
+use_native = ARGV.delete("--native") ? true : false
+if ARGV[0] == "peek"
+  use_native = true
+  ENV["SCARPE_NATIVE_HEADLESS"] ||= "1"
+end
+ENV["SCARPE_DISPLAY_SERVICE"] = "native" if use_native
+
 # Default to local webview display if not otherwise given
-ENV['SCARPE_DISPLAY'] ||= 'wv_local'
+ENV['SCARPE_DISPLAY_SERVICE'] ||= 'wv_local'
 
 if use_debug
   ENV['SCARPE_DEBUG'] = 'true'
@@ -75,6 +83,8 @@ when "env"
   end
 
   verb = "env"
+when "peek"
+  verb = "peek"
 when "run"
   if ARGV.length != 2
     print_usage
@@ -96,10 +106,18 @@ when "-v"
   puts "Scarpe-Components #{Scarpe::Components::VERSION}"
   puts "Lacci #{Lacci::VERSION}"
 when "run"
-  # Run the Scarpe app file
-  Shoes.run_app verb_target
+  # Run the Scarpe app file. A program Shoes.run_program started (SCARPE_RUN_FILE) reports to
+  # the process that started it (native/DESIGN.md 5.5).
+  if ENV["SCARPE_RUN_FILE"] && defined?(Scarpe::Native::ProgramChild)
+    Scarpe::Native::ProgramChild.run(ENV["SCARPE_RUN_FILE"])
+  else
+    Shoes.run_app verb_target
+  end
 when "env"
   print_env
+when "peek"
+  require "scarpe/native/peek"
+  Scarpe::Native::Peek.run(ARGV.drop(1))
 else
   raise "Internal error! Unknown ./exe/scarpe verb!"
 end

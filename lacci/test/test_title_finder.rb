@@ -108,4 +108,25 @@ assert_equal :title, title_para.size
 assert_kind_of Symbol, title_para.size
     SHOES_SPEC
   end
+
+  # Ledger F2: each text block kind is its own class (manual 1921-2129), a Para at its
+  # size, so style(Shoes::Title, ...) styles titles alone. Displays are still told Para.
+  def test_text_block_kinds_are_their_own_classes
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        style(Shoes::Title, stroke: red)
+        $made = [banner("b"), title("t"), subtitle("s"), tagline("g"), caption("c"), inscription("i")]
+        $plain = para "p"
+        $sized = title "small", size: 16
+      end
+    SHOES_APP
+      assert_equal [Shoes::Banner, Shoes::Title, Shoes::Subtitle, Shoes::Tagline, Shoes::Caption, Shoes::Inscription], $made.map(&:class)
+      assert_equal %i[banner title subtitle tagline caption inscription], $made.map(&:size)
+      assert $made.all? { |block| block.is_a?(Shoes::Para) }, "each is a Para"
+      assert_equal ["Para"], $made.map { |block| block.class.display_class_name }.uniq
+      assert_equal [255, 0, 0, 255], $made[1].style[:stroke], "style(Shoes::Title) styles titles"
+      assert_nil $plain.style[:stroke], "and leaves paras alone"
+      assert_equal 16, $sized.size
+    SHOES_SPEC
+  end
 end

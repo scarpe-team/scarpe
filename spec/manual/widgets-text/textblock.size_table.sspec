@@ -1,0 +1,38 @@
+---
+manual: textblock.size_table
+lines: [3378, 3384]
+testability: visual
+display: native
+ledger: M14
+----------- app code
+# Each named block beside a para given the manual's pixel size. :size is in pixels (ledger M14),
+# so each pair lays out the same height whatever the line height and margins turn out to be.
+Shoes.app(width: 600, height: 800) do
+  stack do
+    @banner = banner "Shoes"
+    @banner_px = para "Shoes", size: 48
+    @title = title "Shoes"
+    @title_px = para "Shoes", size: 34
+    @subtitle = subtitle "Shoes"
+    @subtitle_px = para "Shoes", size: 26
+    @tagline = tagline "Shoes"
+    @tagline_px = para "Shoes", size: 18
+    @caption = caption "Shoes"
+    @caption_px = para "Shoes", size: 14
+    @para = para "Shoes"
+    @para_px = para "Shoes", size: 12
+    @inscription = inscription "Shoes"
+    @inscription_px = para "Shoes", size: 10
+  end
+end
+----------- test code
+names = %w[banner title subtitle tagline caption para inscription]
+heights = names.map do |name|
+  named = layout_of(drawable("@#{name}")).h
+  sized = layout_of(drawable("@#{name}_px")).h
+  assert_in_delta sized, named, 0.5, "#{name} is set in the manual's pixel size"
+  named
+end
+
+assert_equal heights.sort.reverse, heights, "banner is the largest and inscription the smallest"
+assert_equal heights.uniq, heights, "no two sizes are the same"

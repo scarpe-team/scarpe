@@ -1,0 +1,15 @@
+---
+manual: art.oval.positional
+lines: [1716, 1719]
+testability: api
+display: any
+ledger: E1
+----------- app code
+Shoes.app do
+  @circle = oval 10, 20, 50
+end
+----------- test code
+circle = oval("@circle")
+assert_equal [10, 20], [circle.left, circle.top], "the first two arguments are left and top"
+assert_equal 50, circle.width, "a width of radius pixels"
+assert_equal 50, circle.height, "and a height of radius pixels"

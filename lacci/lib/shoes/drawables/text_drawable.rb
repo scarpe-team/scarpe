@@ -1,6 +1,30 @@
 # frozen_string_literal: true
 
 class Shoes
+  # underline and strikethrough, for text blocks and the fragments inside them.
+  #
+  # A style that sets one to nil or false means "none", and says so on the wire, so a
+  # display drops its own default (a link's underline) instead of reading nil as
+  # "unset" (wire contract (d); style(Link, underline: nil) in accordion.rb). true is
+  # "single" (ledger F6).
+  module TextDecoration
+    UNDERLINES = ["none", "single", "double", "low", "error"].freeze
+    STRIKETHROUGHS = ["none", "single"].freeze
+    SWITCHES = { nil => "none", false => "none", true => "single" }.freeze
+
+    def self.included(text_class)
+      text_class.shoes_style(:underline) { |value, _name| TextDecoration.pick(value, UNDERLINES, "Underline") }
+      text_class.shoes_style(:strikethrough) { |value, _name| TextDecoration.pick(value, STRIKETHROUGHS, "Strikethrough") }
+    end
+
+    def self.pick(value, allowed, name)
+      value = SWITCHES.fetch(value) { value.to_s }
+      return value if allowed.include?(value)
+
+      raise Shoes::Errors::InvalidAttributeValueError, "#{name} must be one of: #{allowed.inspect}!"
+    end
+  end
+
   # TextDrawable is the parent class of various classes of
   # text that can go inside a para. This includes normal
   # text, but also links, italic text, bold text, etc.
@@ -13,22 +37,9 @@ class Shoes
   # It's a very similar API.
   class TextDrawable < Shoes::Drawable
     shoes_styles :text_items, :size, :stroke, :strokewidth, :fill, :undercolor, :font
-
-    STRIKETHROUGH_VALUES = [nil, "none", "single"]
-    shoes_style :strikethrough do |val, _name|
-      unless STRIKETHROUGH_VALUES.include?(val)
-        raise Shoes::Errors::InvalidAttributeValueError, "Strikethrough must be one of: #{STRIKETHROUGH_VALUES.inspect}!"
-      end
-      val
-    end
-
-    UNDERLINE_VALUES = [nil, "none", "single", "double", "low", "error"]
-    shoes_style :underline do |val, _name|
-      unless UNDERLINE_VALUES.include?(val)
-        raise Shoes::Errors::InvalidAttributeValueError, "Underline must be one of: #{UNDERLINE_VALUES.inspect}!"
-      end
-      val
-    end
+    shoes_styles :justify, :rise, :stretch, :strikecolor, :variant # as on text blocks (ledger F5)
+    shoes_styles :weight, :family, :emphasis, :kerning # the manual lists span for these too (F5)
+    include TextDecoration
 
     shoes_events # No TextDrawable-specific events yet
 
@@ -92,12 +103,27 @@ class Shoes
       @text_children.dup
     end
 
+    # The text block or fragment this fragment sits in, as Shoes 3's cText#parent is
+    # (s3t_text.c:72-83, ledger F13): nil until a para or a fragment takes it as text.
+    # Hackety Hack's links recolour their para through it.
+    #
+    # @return [Shoes::Para, Shoes::TextDrawable, nil]
+    def parent
+      @parent || @text_parent
+    end
+
+    # The para or fragment that takes this fragment as text says so here.
+    def text_parent=(holder)
+      @text_parent = holder
+    end
+
     private
 
     # Text_children alternates strings and TextDrawables, so we can't just pass
     # it as a Shoes style. It won't serialize.
     def update_text_children(children)
-      @text_children = children.flatten
+      @text_children = children.flatten.map { |child| utf8_text(child) }
+      @text_children.each { |child| child.text_parent = self if child.is_a?(TextDrawable) }
       # This should signal the display drawable to change
       self.text_items = text_children_to_items(@text_children)
     end

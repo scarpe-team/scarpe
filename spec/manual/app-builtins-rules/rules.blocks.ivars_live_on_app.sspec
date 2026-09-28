@@ -1,0 +1,18 @@
+---
+manual: rules.blocks.ivars_live_on_app
+lines: [217, 229]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @s = stack do
+    @p1 = para "First"
+    @p2 = para "Second"
+    @p3 = para "Third"
+  end
+end
+----------- test code
+app = Shoes.APPS.first
+assert_empty %i[@s @p1 @p2 @p3] - app.instance_variables, "every one of them is an instance variable of the App"
+assert_equal "Second", para("@p2").text, "the one set inside the stack block included"
+assert_equal %w[@p1 @p2 @p3].map { |name| para(name).linkable_id }, stack("@s").contents.map(&:linkable_id)

@@ -1,0 +1,18 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes3-tests/curl/m4.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/for_playtest/shoes3-tests/curl/m4.sspec
+----------- app code
+Shoes.app do
+   button "Red Shoes" do
+     image "http://shoesrb.com/img/shoes-icon.png"
+   end
+ end
+----------- test code
+# Tests button that loads remote image - requires network
+b = button()
+assert_equal "Red Shoes", b.text

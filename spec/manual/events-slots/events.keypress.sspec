@@ -1,0 +1,20 @@
+---
+manual: events.keypress
+lines: [2207, 2237]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  @info = para "NO KEY is PRESSED."
+  keypress do |k|
+    @info.replace "#{k.inspect} was PRESSED."
+  end
+end
+----------- test code
+assert_equal "NO KEY is PRESSED.", para("@info").text, "nothing happens before a key is pressed"
+
+press_key "a"
+assert_equal '"a" was PRESSED.', para("@info").text, "a character key arrives as a String"
+
+press_key :left
+assert_equal ":left was PRESSED.", para("@info").text, "a special key arrives as a Symbol"

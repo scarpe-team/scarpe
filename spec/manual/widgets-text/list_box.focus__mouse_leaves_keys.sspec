@@ -1,0 +1,25 @@
+---
+manual: list_box.focus
+lines: [3221, 3224]
+testability: interactive
+display: native
+ledger: G13
+----------- app code
+# The arrows change a list box's choice after `focus`. A list box picked with the mouse
+# shows no focus and leaves Space and the arrows to the app, as a Mac's pop-up button does.
+$keys = []
+Shoes.app width: 260, height: 200 do
+  @box = list_box items: %w[One Two Three], choose: "Two"
+  keypress { |key| $keys << key }
+end
+----------- test code
+click_on list_box("@box")
+click_on "Three"
+assert_equal "Three", list_box("@box").text
+press_key " "
+press_key :down
+assert_equal [" ", :down], $keys, "Space and Down reach the app"
+assert_equal "Three", list_box("@box").text, "and leave the choice alone"
+list_box("@box").focus
+press_key :up
+assert_equal "Two", list_box("@box").text, "focus from the app takes the arrows again"

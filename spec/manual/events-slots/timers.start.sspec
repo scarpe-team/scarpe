@@ -1,0 +1,17 @@
+---
+manual: timers.start
+lines: [3419, 3421]
+testability: api
+display: native
+ledger: M13
+----------- app code
+$frames = 0
+$fired = 0
+Shoes.app do
+  animate(10) { $frames += 1 }
+  timer(0.2) { $fired += 1 }
+end
+----------- test code
+advance 0.55
+assert_operator $frames, :>, 0, "the animation started itself; nobody called start"
+assert_equal 1, $fired, "and so did the timer"

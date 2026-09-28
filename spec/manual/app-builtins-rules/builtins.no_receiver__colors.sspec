@@ -1,0 +1,21 @@
+---
+manual: builtins.no_receiver
+lines: [571, 577]
+testability: api
+display: any
+ledger: D4
+----------- app code
+# A plain Ruby class, nothing to do with Shoes.
+class Palette
+  def colours
+    [rgb(138, 43, 226), gray(1.0), gradient("#000", "#fff")]
+  end
+end
+
+Shoes.app { para "palette" }
+----------- test code
+violet, white, fade = Palette.new.colours
+
+assert_equal [138, 43, 226, 255], violet.to_a, "rgb works without a receiver"
+assert_equal [255, 255, 255, 255], white.to_a, "gray works without a receiver"
+refute_nil fade, "gradient works without a receiver"

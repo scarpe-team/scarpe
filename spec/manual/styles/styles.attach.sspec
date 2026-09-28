@@ -1,0 +1,20 @@
+---
+manual: styles.attach
+lines: [1081, 1085]
+testability: visual
+display: native
+ledger: C11
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @anchor = stack left: 150, top: 100, width: 80, height: 30 do
+    background blue
+  end
+  @tag = stack left: 5, top: 7, width: 40, height: 20, attach: @anchor do
+    background red
+  end
+end
+----------- test code
+anchor = layout_of(stack("@anchor"))
+tag = layout_of(stack("@tag"))
+assert_in_delta anchor.x + 5, tag.x, 0.5, "left is measured from the element the slot is pinned to"
+assert_in_delta anchor.y + 7, tag.y, 0.5, "and so is top"

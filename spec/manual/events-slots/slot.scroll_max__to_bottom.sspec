@@ -1,0 +1,20 @@
+---
+manual: slot.scroll_max
+lines: [2451, 2453]
+testability: visual
+display: native
+ledger: C5
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @list = stack width: 200, height: 100, scroll: true do
+    4.times { stack height: 40 }
+    @last = stack height: 40
+  end
+end
+----------- test code
+list = stack("@list")
+list.scroll_top = list.scroll_max
+
+box = layout_of(list)
+last = layout_of(stack("@last"))
+assert_in_delta box.y + box.h, last.y + last.h, 0.5, "scroll_top = scroll_max scrolls to the very bottom"

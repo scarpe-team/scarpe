@@ -1,0 +1,17 @@
+---
+manual: textblock.types
+lines: [3370, 3376]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @note = caption "A caption containing ", strong("bolded text"), " and ", link("a link")
+end
+----------- test code
+note = drawable("@note")
+
+assert_equal [note.linkable_id], note.parent.contents.map(&:linkable_id),
+  "the caption and everything in it is one element of its slot"
+assert_equal "A caption containing bolded text and a link", note.text, "its text reads as one group"
+assert_equal [String, Shoes::Strong, String, Shoes::Link], note.contents.map(&:class),
+  "strong and link are text classes inside the block, not blocks of their own"

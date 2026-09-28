@@ -1,0 +1,12 @@
+---
+manual: rules.blocks.app_block_changes_self
+lines: [195, 196]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $app_block_self = self
+end
+----------- test code
+assert_kind_of Shoes::App, $app_block_self, "inside the app block, self is an App"
+assert_same Shoes.APPS.first, $app_block_self, "the very App that Shoes.app opened"

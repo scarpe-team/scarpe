@@ -1,0 +1,20 @@
+---
+manual: app.white_circle_example
+lines: [867, 879]
+testability: visual
+display: native
+ledger: M1
+----------- app code
+Shoes.app(title: "White Circle",
+  width: 200, height: 200, resizable: false) {
+    background black
+    fill white
+    oval top: 20, left: 20, radius: 160
+}
+----------- test code
+assert_equal [0, 0, 0], pixel_at(5, 5)[0, 3], "a black background"
+assert_equal [255, 255, 255], pixel_at(100, 100)[0, 3], "with a white circle on it"
+
+# radius: 160 doubles to a 320-pixel circle from (20, 20) that overflows the window (M1),
+# so this point near the bottom left is inside it. A 160-pixel circle would leave it black.
+assert_equal [255, 255, 255], pixel_at(25, 190)[0, 3], "the :radius style is half the circle's width"

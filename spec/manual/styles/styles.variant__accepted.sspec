@@ -1,0 +1,12 @@
+---
+manual: styles.variant
+lines: [1511, 1519]
+testability: api
+display: any
+ledger: F4
+----------- app code
+Shoes.app do
+  @it = para "small caps", variant: "smallcaps"
+end
+----------- test code
+assert_equal "smallcaps", para("@it").style[:variant], "the :variant style is kept on the para and reads back, so a display can draw it"

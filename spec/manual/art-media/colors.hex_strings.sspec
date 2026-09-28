@@ -1,0 +1,20 @@
+---
+manual: colors.hex_strings
+lines: [116, 121]
+testability: visual
+display: native
+ledger: D5
+----------- app code
+Shoes.app do
+  background "#DFA"
+  para "Welcome to Shoes"
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 2 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+box = layout_of(para)
+paints.(box.x + 5, box.y + box.h + 20, [221, 255, 170], "#DFA is DD FF AA, each digit doubled")

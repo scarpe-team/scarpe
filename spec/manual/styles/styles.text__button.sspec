@@ -1,0 +1,11 @@
+---
+manual: styles.text
+lines: [1470, 1475]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @go = button text: "Go"
+end
+----------- test code
+assert_equal "Go", button.text, ":text is the message shown on a button"

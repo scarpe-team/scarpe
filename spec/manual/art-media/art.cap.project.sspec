@@ -1,0 +1,25 @@
+---
+manual: art.cap.project
+lines: [1680, 1680]
+testability: visual
+display: native
+ledger: E10
+----------- app code
+Shoes.app width: 300, height: 200 do
+  stroke black
+  strokewidth 20
+  cap :project
+  line 50, 100, 150, 100
+end
+----------- test code
+# A projecting cap is square and sticks out half the stroke width (10 px) past the end.
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(156, 100, [0, 0, 0], "the line sticks out past its end point")
+paints.(157, 107, [0, 0, 0], "with square corners, unlike a round cap")
+paints.(163, 100, [255, 255, 255], "by half the stroke width and no more")
+paints.(43, 100, [0, 0, 0], "at the start as well")

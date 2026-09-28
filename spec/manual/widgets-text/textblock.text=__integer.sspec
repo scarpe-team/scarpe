@@ -1,0 +1,13 @@
+---
+manual: textblock.text=
+lines: [3400, 3402]
+testability: api
+display: any
+ledger: F11
+----------- app code
+Shoes.app do
+  @count = para "none"
+end
+----------- test code
+para.text = 42
+assert_equal "42", para.text, "a number assigned to text reads back as its digits (the manual's own counter example does this)"

@@ -1,0 +1,29 @@
+---
+manual: art.shape.line_to
+lines: [1801, 1804]
+testability: visual
+display: native
+ledger: E7
+----------- app code
+Shoes.app width: 200, height: 200 do
+  nofill
+  stroke red
+  strokewidth 6
+  shape do
+    move_to 50, 50
+    line_to 150, 150
+  end
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+red = [255, 0, 0]
+white = [255, 255, 255]
+
+paints.(100, 100, red, "line_to draws a segment from the pen to (x, y)")
+paints.(130, 130, red, "a straight one")
+paints.(100, 120, white, "it does not bend")
+paints.(156, 156, white, "it ends at (x, y)")

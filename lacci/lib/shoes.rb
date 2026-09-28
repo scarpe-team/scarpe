@@ -33,13 +33,20 @@ class Shoes::Slot < Shoes::Drawable; end
 class Shoes::Widget < Shoes::Slot; end
 
 require_relative 'shoes/log'
+require_relative 'shoes/pattern'
+require_relative 'shoes/color'
 require_relative 'shoes/colors'
 
+require_relative 'shoes/font_file'
+require_relative 'shoes/error_report'
+require_relative 'shoes/console'
 require_relative 'shoes/builtins'
 
 require_relative 'shoes/background'
 
 require_relative 'shoes/drawable'
+require_relative 'shoes/art'
+require_relative 'shoes/draw_context'
 require_relative 'shoes/app'
 require_relative 'shoes/drawables'
 # Turtle graphics is loaded on-demand via `require 'scarpe/turtle'`
@@ -52,6 +59,7 @@ LinkHover = Shoes::LinkHover unless defined?(LinkHover)
 Window = Shoes::App unless defined?(Window)
 
 require_relative 'shoes/download'
+require_relative 'shoes/program'
 
 # No easy way to tell at this point whether
 # we will later load Shoes-Spec code, e.g.
@@ -78,6 +86,28 @@ class Shoes
         Shoes.pending_app_class = subclass
       end
       super
+    end
+
+    TEXT_MODES = %i[scarpe shoes3].freeze
+
+    # How text is sized and set, for every window the program opens. :scarpe, the default,
+    # reads a text size as pixels and sets text in the system's sans (ledger M14). :shoes3 sets
+    # it as Shoes 3 did: a size is points at 96 dpi, so a para's 12 draws 16 px tall, and a text
+    # block that names no face gets Arial (s3t_textblock.c:293, s3_world.c:46-48). It is for
+    # programs laid out for Shoes 3's text, such as Hackety Hack; set it before the first window.
+    #
+    # @return [Symbol] :scarpe or :shoes3
+    def text_mode
+      @text_mode || :scarpe
+    end
+
+    # @param mode [Symbol, String] :scarpe or :shoes3
+    def text_mode=(mode)
+      mode = mode.to_s.delete_prefix(":").to_sym
+      raise ArgumentError, "Shoes.text_mode is :scarpe or :shoes3, not #{mode.inspect}" unless TEXT_MODES.include?(mode)
+
+      @text_mode = mode
+      Shoes::DisplayService.dispatch_event("text_mode", nil, mode.to_s) if defined?(Shoes::DisplayService)
     end
 
     # In Shoes3, Shoes.setup installs gems. In Scarpe, this is a no-op stub
@@ -120,7 +150,9 @@ class Shoes
     #   In Scarpe, after the block is executed, the method will not return and Scarpe
     #   will retain control of execution until the window is closed and the app quits.
     #
-    # @incompatibility In Shoes3 the parameters were a hash of options, not keyword arguments.
+    # The styles come as keywords, or as one Hash, the way Ruby 1.9 programs passed them
+    # (Hackety Hack's turtle: Shoes.app opts), which Ruby 3 hands over as a positional
+    # argument (ledger A10). Keywords given beside a Hash win.
     #
     # @example Simple one-button app
     #   Shoes.app(title: "Button!", width: 200, height: 200) do
@@ -128,17 +160,28 @@ class Shoes
     #     button("clicky") { @p.replace("You pressed it! CELEBRATION!") }
     #   end
     #
+    # @param styles [Hash] the styles below, as a Hash
     # @param title [String] The new app window title
     # @param width [Integer] The new app window width
     # @param height [Integer] The new app window height
     # @param resizable [Boolean] Whether the app window should be resizeable
     # @param features [Symbol,Array<Symbol>] Additional Shoes extensions requested by the app
-    # @return [void]
+    # @return [Shoes::App] the new app (manual 859, ledger A3)
     # @see Shoes::App#new
-    def app(
-      title: 'Shoes!',
-      width: 480,
-      height: 420,
+    def app(styles = {}, **keywords, &app_code_body)
+      unless styles.is_a?(Hash)
+        raise ArgumentError, "Shoes.app takes its styles as keywords or a Hash, not #{styles.inspect}"
+      end
+
+      open_app(**styles.transform_keys(&:to_sym), **keywords, &app_code_body)
+    end
+
+    private
+
+    def open_app(
+      title: Shoes::App::DEFAULT_TITLE,
+      width: Shoes::App::DEFAULT_WIDTH,
+      height: Shoes::App::DEFAULT_HEIGHT,
       resizable: true,
       features: [],
       margin: nil,
@@ -191,39 +234,117 @@ class Shoes
 
       app.init
       app.run
-      nil
+      app
     end
+
+    public
 
     # Load a Shoes app from a file. By default, this will load old-style Shoes apps
     # from a .rb file with all the appropriate libraries loaded. By setting one or
     # more loaders, a Lacci-based display library can accept new file formats as
     # well, not just raw Shoes .rb files.
     #
+    # An error that stops the file loading reaches Shoes.on_error as "startup" first, then
+    # goes on up as before.
+    #
     # @param relative_path [String] The current-dir-relative path to the file
+    # @param dir [String, nil] the directory to run in; the file's own by default
     # @return [void]
     # @see Shoes.add_file_loader
-    def run_app(relative_path)
+    def run_app(relative_path, dir: nil)
       path = File.expand_path relative_path
-      dir = File.dirname(path)
+      file_dir = File.dirname(path)
 
       # Shoes assumes we're starting from the app code's path
-      Dir.chdir(dir)
+      Dir.chdir(dir || file_dir)
 
       # Shoes3 adds the app directory to the load path so that
       # require 'app/boot' style calls work from the app's directory
-      $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir)
+      $LOAD_PATH.unshift(file_dir) unless $LOAD_PATH.include?(file_dir)
 
       loaded = false
-      file_loaders.each do |loader|
-        if loader.call(path)
-          loaded = true
-          break
+      begin
+        file_loaders.each do |loader|
+          if loader.call(path)
+            loaded = true
+            break
+          end
         end
+      rescue StandardError, ScriptError, SystemStackError => e
+        report_error(e, during: "startup", program: path)
+        raise
       end
       raise "Could not find a file loader for #{path.inspect}!" unless loaded
 
       nil
     end
+
+    # Hands every error a handler, a timer or the program's startup raises to the block, on
+    # the event loop, as a Hash (Shoes::ErrorReport): "class", "message", "backtrace",
+    # "path", "line" and "during". The error is still logged and the program keeps going,
+    # as it does with no block. Each call adds a block. A Scarpe extension (ledger K9).
+    #
+    # @return [Proc] the block
+    def on_error(&block)
+      raise ArgumentError, "Shoes.on_error needs a block" unless block
+
+      error_hooks << block
+      block
+    end
+
+    # The blocks Shoes.on_error was given.
+    def error_hooks
+      @error_hooks ||= []
+    end
+
+    # Display services call this when a handler, a timer or a startup raises: the console
+    # lists the error, and every Shoes.on_error block hears of it. A block that raises is
+    # logged and the others still run.
+    #
+    # @param during [String] "startup", "handler", "timer" or "exit"
+    # @param program [String, nil] the program's main file, for the report's path and line
+    # @return [Hash] the report
+    def report_error(error, during:, program: nil)
+      err = Shoes::ErrorReport.from(error, during: during, program: program)
+      Shoes::Console.report(err)
+      error_hooks.each do |hook|
+        hook.call(err)
+      rescue StandardError, ScriptError => e
+        said = "A Shoes.on_error block raised #{e.class}: #{e.message}"
+        Shoes::Log.instance ? Shoes::Log.logger("Shoes").error(said) : warn(said)
+      end
+      err
+    end
+
+    # Starts the Shoes program in the file at path, and hands back a Shoes::Program to follow
+    # it with. The native display runs it in a process of its own on the same Ruby and
+    # Scarpe, so an endless loop in it freezes only it, and stop ends it; other displays run
+    # it inside this process, with a warning (Shoes::Program::InProcess). A Scarpe extension
+    # (ledger K10).
+    #
+    # @param path [String] the program's file
+    # @param dir [String] the directory it runs in (its own, by default)
+    # @param args [Array<String>] its ARGV
+    # @return [Shoes::Program]
+    def run_program(path, dir: nil, args: [])
+      path = File.expand_path(path)
+      raise Errno::ENOENT, path unless File.file?(path)
+
+      dir = File.expand_path(dir || File.dirname(path))
+      args = Array(args).map(&:to_s)
+      service = Shoes::DisplayService.display_service
+      return service.run_program(path, dir: dir, args: args) if service.respond_to?(:run_program)
+
+      Shoes::Program::InProcess.run(path, dir: dir, args: args)
+    end
+
+    # Opens the Shoes console (Shoes::Console), which Alt-/ opens too (Cmd-/ on a Mac).
+    #
+    # @return [Shoes::App] its window
+    def show_console
+      Shoes::Console.show
+    end
+    alias_method :show_log, :show_console
 
     def default_file_loaders
       [
@@ -260,31 +381,11 @@ class Shoes
     end
     alias_method :exit, :quit
 
-    # Opens the Shoes manual. In Shoes3, this showed an interactive built-in manual.
-    # In Scarpe, we open the online Scarpe documentation in the default browser.
-    #
-    # @param section [String, nil] An optional section to navigate to (ignored for now)
-    # @return [void]
+    # Opens the manual in a window of its own, as Shoes 3 did, at `section` when one is
+    # named (ledger K7). It never opens a browser.
     def show_manual(section = nil)
-      require 'uri'
-      manual_url = 'https://github.com/scarpe-team/scarpe/wiki'
-
-      # Try to open in the system browser
-      case RUBY_PLATFORM
-      when /darwin/
-        system('open', manual_url)
-      when /linux/
-        system('xdg-open', manual_url)
-      when /mingw|mswin/
-        system('start', manual_url)
-      else
-        # Fallback: show an alert with the URL
-        if Shoes.APPS.first
-          Shoes.APPS.first.alert("Manual available at:\n#{manual_url}")
-        else
-          warn "Shoes manual: #{manual_url}"
-        end
-      end
+      require_relative "shoes/manual"
+      Shoes::Manual.show(section)
     end
   end
 

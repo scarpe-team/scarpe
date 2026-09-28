@@ -1,0 +1,20 @@
+---
+manual: colors.usage
+lines: [1568, 1570]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  stack left: 20, top: 20, width: 100, height: 100 do
+    background tomato
+  end
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(70, 70, [255, 99, 71], "a named colour paints a background")
+paints.(150, 70, [255, 255, 255], "outside the slot stays white")

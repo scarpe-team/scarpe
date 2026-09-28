@@ -1,0 +1,31 @@
+---
+manual: rules.fixed_height_scrollbar
+lines: [354, 366]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @box = stack width: 200, height: 200, scroll: true do
+    background "#DFA"
+    100.times do |i|
+      para "Paragraph No. #{i}"
+    end
+  end
+end
+----------- test code
+box = layout_of(stack("@box"))
+assert_in_delta 200, box.h, 0.5, "the scrolling stack keeps its fixed height"
+
+first = paras.find { |p| p.text == "Paragraph No. 0" }
+top_before = layout_of(first).y
+wheel(120, x: (box.x + 100).round, y: (box.y + 100).round)
+
+assert_operator layout_of(first).y, :<, top_before, "the wheel scrolls the stack's content"
+assert_in_delta box.y, layout_of(stack("@box")).y, 0.5, "the stack itself stays put"
+
+# The paragraphs are short, so nothing but a scrollbar paints the stack's rightmost 10 pixels.
+band = ((box.x + box.w - 10).round..(box.x + box.w - 1).floor).step(2).to_a
+bar = (box.y.ceil..(box.y + box.h - 1).floor).step(2).find do |y|
+  band.any? { |x| pixel_at(x, y)[0, 3] != [221, 255, 170] }
+end
+refute_nil bar, "a scrollbar shows along the stack's right edge"

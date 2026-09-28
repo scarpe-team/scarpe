@@ -1,0 +1,27 @@
+---
+manual: art.rect.positional
+lines: [1749, 1755]
+testability: visual
+display: native
+ledger: E3
+----------- app code
+Shoes.app width: 200, height: 200 do
+  fill red
+  nostroke
+  rect 10, 20, 30, 40
+end
+----------- test code
+# E3: the heading's "(top, left)" is errata; the first argument is left.
+# rect(10, 20, 30, 40) covers x 10..40 and y 20..60.
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+red = [255, 0, 0]
+white = [255, 255, 255]
+
+paints.(12, 57, red, "the bottom left corner is at (10, 60)")
+paints.(37, 22, red, "the top right corner is at (40, 20)")
+paints.(45, 30, white, "30 wide, not 40")
+paints.(15, 63, white, "40 high")

@@ -1,0 +1,38 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/focus.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+# Test input focus control
+Shoes.app(title: "Focus Test", width: 350, height: 250) do
+  stack margin: 10 do
+    para "Click buttons to focus different inputs:"
+    
+    @el1 = edit_line text: "First field"
+    @el2 = edit_line text: "Second field"
+    @eb = edit_box text: "Text area"
+    
+    flow do
+      button "Focus First" do
+        @el1.focus
+      end
+      
+      button "Focus Second" do
+        @el2.focus
+      end
+      
+      button "Focus TextArea" do
+        @eb.focus
+      end
+    end
+  end
+end
+----------- test code
+# Verify focus test UI elements exist
+assert edit_lines().length >= 2, "Expected at least 2 edit_line fields"
+assert edit_boxes().length >= 1, "Expected at least 1 edit_box"
+assert buttons().length >= 3, "Expected 3 focus control buttons"
+assert_equal "First field", edit_lines()[0].text
+assert_equal "Second field", edit_lines()[1].text

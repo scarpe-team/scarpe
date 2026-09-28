@@ -1,0 +1,22 @@
+---
+manual: art.rotate
+lines: [1783, 1797]
+testability: visual
+display: native
+ledger: E10
+----------- app code
+Shoes.app do
+  fill "#333"
+  rotate 45
+  rect 30, 30, 40, 40
+end
+----------- test code
+# The manual's example. Turned 45 degrees about its corner (30, 30), the square becomes a
+# diamond hanging from that corner, to the left or above depending on the direction of
+# turn, which the manual does not give. Either way the far corner of the unrotated
+# square is left empty.
+dark = ->(x, y) { pixel_at(x, y).first(3).max < 100 }
+
+refute dark.(66, 66), "the unrotated square's far corner is empty: the rectangle is rotated"
+assert dark.(20, 58) || dark.(58, 20),
+  "the rotated square covers a point outside the unrotated one: #{pixel_at(20, 58).inspect}, #{pixel_at(58, 20).inspect}"

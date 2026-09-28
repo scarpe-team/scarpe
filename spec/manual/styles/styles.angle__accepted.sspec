@@ -1,0 +1,12 @@
+---
+manual: styles.angle
+lines: [1073, 1079]
+testability: api
+display: any
+ledger: D6
+----------- app code
+Shoes.app do
+  @it = background red..blue, angle: 90
+end
+----------- test code
+assert_equal 90, background("@it").style[:angle], "the :angle style is kept on the background, so a display can turn the gradient"

@@ -1,0 +1,22 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/position/gutter-margin.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  stack :margin_right => 20 + gutter do
+    para "Insert fat and ratified declaration of independence here..."
+  end
+end
+----------- test code
+# Tests gutter() method for margin calculations
+# Creates a stack with margin_right using gutter value
+# Para contains placeholder text
+
+# Verify the para exists with expected content
+assert para().text.include?("Insert fat and ratified"), "Para contains expected text"
+
+# Note: Full layout verification would require measuring actual margins
+# The gutter() method should return a numeric value for margin calculation

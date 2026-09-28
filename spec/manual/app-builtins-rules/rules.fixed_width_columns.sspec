@@ -1,0 +1,25 @@
+---
+manual: rules.fixed_width_columns
+lines: [328, 343]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  flow do
+    @one = stack width: 200 do
+      caption "Column one"
+      para "is 200 pixels wide"
+    end
+    @two = stack width: -200 do
+      caption "Column two"
+      para "is 100% minus 200 pixels wide"
+    end
+  end
+end
+----------- test code
+one = layout_of(stack("@one"))
+two = layout_of(stack("@two"))
+
+assert_in_delta 200, one.w, 0.5, "the first column is 200 pixels wide"
+assert_in_delta one.y, two.y, 0.5, "the columns sit side by side"
+assert_in_delta one.x + one.w, two.x, 0.5, "the second starts where the first ends"

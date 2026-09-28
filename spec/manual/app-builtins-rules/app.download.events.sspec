@@ -1,0 +1,48 @@
+---
+manual: app.download.events
+lines: [908, 914]
+testability: api
+display: any
+ledger: K5
+----------- app code
+# The event handlers take the shape of the simple-downloader sample the manual shows at line 70.
+Shoes.app do
+  $events = Queue.new
+  button "Fetch" do
+    download "http://shoes.invalid/logos/nasa50th.gif",
+      start: proc { |dl| $events << :start },
+      progress: proc { |dl| $events << :progress },
+      finish: proc { |dl| $events << :finish }
+  end
+end
+----------- test code
+require "net/http"
+
+# A fake web: Net::HTTP never opens a socket, and every request gets this answer.
+$requests = []
+Net::HTTP.prepend(Module.new do
+  def connect; end
+
+  def request(req, body = nil)
+    $requests << { method: req.method, headers: req.to_hash, body: req.body || body }
+    $gate&.pop(timeout: 5)
+    Net::HTTPOK.new("1.1", "200", "OK").tap do |res|
+      res["Content-Type"] = "text/plain"
+      res["X-Shoes"] = "Curious"
+      res.instance_variable_set(:@body, "Hello from the fake web")
+      res.instance_variable_set(:@read, true)
+    end
+  end
+end)
+
+find_button("Fetch").trigger_click
+
+seen = []
+while (event = $events.pop(timeout: 10))
+  seen << event
+  break if event == :finish
+end
+
+assert_equal :start, seen.first, "start fires first: #{seen.inspect}"
+assert_includes seen, :progress, "progress fires while the data arrives"
+assert_equal :finish, seen.last, "finish fires last"

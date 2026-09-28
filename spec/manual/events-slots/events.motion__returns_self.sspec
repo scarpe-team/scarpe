@@ -1,0 +1,12 @@
+---
+manual: events.motion
+lines: [2259, 2259]
+testability: api
+display: any
+ledger: B6
+----------- app code
+Shoes.app do
+  $slot = stack { para "move over me" }
+end
+----------- test code
+assert_same $slot, $slot.motion { }, "motion { } returns self"

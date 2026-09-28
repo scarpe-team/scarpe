@@ -1,0 +1,16 @@
+---
+manual: slots.window_is_flow
+lines: [1621, 1621]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @left = stack width: 100, height: 30
+  @right = stack width: 100, height: 30
+end
+----------- test code
+left = layout_of(stack("@left"))
+right = layout_of(stack("@right"))
+
+assert_in_delta left.y, right.y, 0.5, "two slots at the top of the window share a row, as in a flow"
+assert_in_delta left.x + 100, right.x, 0.5

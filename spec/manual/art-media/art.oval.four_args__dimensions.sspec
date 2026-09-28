@@ -1,0 +1,14 @@
+---
+manual: art.oval.four_args
+lines: [1734, 1734]
+testability: api
+display: any
+ledger: M2
+----------- app code
+Shoes.app do
+  @long = oval 0, 0, 100, 60
+end
+----------- test code
+long = oval("@long")
+assert_equal 100, long.width, "the third argument is the width"
+assert_equal 60, long.height, "the fourth is the height"

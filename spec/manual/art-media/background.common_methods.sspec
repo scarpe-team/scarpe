@@ -1,0 +1,23 @@
+---
+manual: background.common_methods
+lines: [2796, 2797]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @stripe = background red, height: 50
+end
+----------- test code
+stripe = background("@stripe")
+refute stripe.hidden, "a new background is shown"
+
+stripe.hide
+assert stripe.hidden, "hide works on a background"
+stripe.toggle
+refute stripe.hidden, "toggle works on a background"
+
+stripe.style(height: 80)
+assert_equal 80, stripe.style[:height], "style works on a background"
+
+stripe.remove
+assert_empty backgrounds, "remove takes it out of the app"

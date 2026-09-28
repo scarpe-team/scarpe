@@ -1,0 +1,16 @@
+---
+manual: styles.fill.text_highlight
+lines: [1208, 1210]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 200 do
+  flow { @marked = para "HH", fill: yellow, size: 40 }
+end
+----------- test code
+box = layout_of(para("@marked"))
+between = pixel_at((box.x + box.w / 2).round, (box.y + box.h / 2).round)
+assert(between[0] > 230 && between[1] > 230 && between[2] < 80, "the space between the letters is painted yellow, got #{between}")
+
+inked = (box.x.floor...(box.x + box.w).ceil).step(2).any? { |x| pixel_at(x, (box.y + box.h / 2).round).first(3).sum < 200 }
+assert inked, "the letters themselves are still printed in a dark pen on top"

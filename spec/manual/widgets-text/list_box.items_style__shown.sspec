@@ -1,0 +1,17 @@
+---
+manual: list_box.items_style
+lines: [3168, 3181]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  para "Choose a fruit:"
+  list_box items: ["Grapes", "Pears", "Apricots"]
+end
+----------- test code
+refute_equal "Apricots", list_box.text
+
+click_on list_box
+click_on "Apricots"
+
+assert_equal "Apricots", list_box.text, "the options drop down when the box is clicked, and one can be picked"

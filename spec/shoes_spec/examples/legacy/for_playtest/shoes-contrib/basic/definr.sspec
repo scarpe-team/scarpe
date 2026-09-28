@@ -1,0 +1,42 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/definr.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/for_playtest/shoes-contrib/basic/definr.sspec
+----------- app code
+Shoes.app :title => "Dictionary, powered by Definr", :width => 370, :height => 320 do
+  stack do
+    background red, :height => 60
+    flow :margin => 20 do
+      caption "Define: ", :stroke => white
+      @lookup = edit_line
+      button "Go" do
+        download "http://definr.com/definr/show/#{@lookup.text}" do |dl|
+          doc = dl.response.body.gsub('&nbsp;', ' ').
+              gsub(%r!(</a>|<br />|<a href.+?>)!, '').
+              gsub(%r!\(http://.+?\)!, '').strip
+          title, doc = doc.split(/\n+/, 2)
+          @deft.replace title
+          @defn.replace doc
+        end
+      end
+    end
+    stack :margin => 20 do
+      @deft = subtitle "", :margin => 10
+      @defn = para ""
+    end
+  end
+end
+----------- test code
+# Verify UI structure
+assert caption().text.include?("Define:"), "Should have Define label"
+assert_equal "Go", button().text, "Should have Go button"
+
+# Verify edit_line exists
+assert edit_line(), "Should have input field"
+
+# Verify empty subtitle and para for results
+assert_equal "", subtitle().text, "Subtitle should start empty"

@@ -1,0 +1,13 @@
+---
+manual: element.title
+lines: [2127, 2127]
+testability: api
+display: any
+ledger: F2
+----------- app code
+Shoes.app do
+  $block = title "Shoes"
+end
+----------- test code
+assert Shoes.const_defined?(:Title), "Shoes::Title exists"
+assert_kind_of Shoes::Title, $block, "title returns a Shoes::Title"

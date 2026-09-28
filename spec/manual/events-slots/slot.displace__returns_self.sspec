@@ -1,0 +1,11 @@
+---
+manual: slot.displace
+lines: [2382, 2382]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $slot = stack width: 50, height: 50
+end
+----------- test code
+assert_same $slot, $slot.displace(5, 6), "displace returns self"

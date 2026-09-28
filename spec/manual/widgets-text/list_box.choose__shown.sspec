@@ -1,0 +1,16 @@
+---
+manual: list_box.choose
+lines: [3217, 3219]
+testability: visual
+display: native
+ledger: G3
+----------- app code
+Shoes.app do
+  @fruit = list_box items: ["Grapes", "Pears", "Apricots"], choose: "Grapes"
+end
+----------- test code
+shown = -> { layout_tree.find { |n| n[:id] == list_box.linkable_id }&.fetch(:text, nil) }
+assert_equal "Grapes", shown.call
+
+list_box.choose("Pears")
+assert_equal "Pears", shown.call, "the box shows the option chosen after creation"

@@ -1,0 +1,28 @@
+---
+manual: element.border
+lines: [1931, 1934]
+testability: visual
+display: native
+ledger: C12
+----------- app code
+Shoes.app do
+  @border_on_top = stack width: 100, height: 60 do
+    background blue
+    border red, strokewidth: 6
+  end
+  @background_on_top = stack width: 100, height: 60 do
+    border red, strokewidth: 6
+    background blue
+  end
+end
+----------- test code
+px = ->(x, y) { pixel_at(x.round, y.round).first(3) }
+
+red = [255, 0, 0]
+blue = [0, 0, 255]
+first = layout_of(stack("@border_on_top"))
+second = layout_of(stack("@background_on_top"))
+
+assert_equal red, px.(first.x + 2, first.y + 30), "a border written after a background paints over its edge"
+assert_equal blue, px.(first.x + 50, first.y + 30), "and leaves its middle"
+assert_equal blue, px.(second.x + 2, second.y + 30), "a background written after a border covers it"

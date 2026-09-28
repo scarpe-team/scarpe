@@ -1,0 +1,16 @@
+---
+manual: styles.family
+lines: [1194, 1200]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  flow { @mono_i = para "iiiiii", family: "monospace", size: 20 }
+  flow { @mono_w = para "WWWWWW", family: "monospace", size: 20 }
+  flow { @sans_i = para "iiiiii", size: 20 }
+  flow { @sans_w = para "WWWWWW", size: 20 }
+end
+----------- test code
+width = ->(name) { layout_of(para(name)).w }
+assert_operator width.call("@sans_w"), :>, width.call("@sans_i") + 20, "the default family is proportional"
+assert_in_delta width.call("@mono_w"), width.call("@mono_i"), 0.5, "family: \"monospace\" gives every letter the same width"

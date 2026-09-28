@@ -1,0 +1,20 @@
+---
+manual: styles.height.pixels
+lines: [1239, 1243]
+testability: visual
+display: native
+ledger: C14
+----------- app code
+# The 30 px grid of shoes-contrib/simple/simple-control-sizes.rb, Shoes 3's own control check.
+Shoes.app width: 400, height: 300 do
+  stack do
+    @ok = button "OK", height: 30, margin: 2
+    @under = stack height: 10 do
+      background red
+    end
+  end
+end
+----------- test code
+ok = layout_of(button("@ok"))
+assert_equal [2, 26], [ok.y, ok.h].map(&:round), "height: 30 holds the 2 px margins above and below"
+assert_equal 30, layout_of(stack("@under")).y.round, "so what follows starts on the next 30 px line"

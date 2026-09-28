@@ -1,0 +1,21 @@
+---
+manual: builtins.error.exceptions
+lines: [738, 739]
+testability: api
+display: any
+ledger: K3
+----------- app code
+Shoes.app do
+  button "Fail" do
+    begin
+      raise ArgumentError, "the flux capacitor jammed"
+    rescue => e
+      error(e)
+    end
+  end
+end
+----------- test code
+out, err = capture_io { find_button("Fail").trigger_click }
+
+assert_match(/ArgumentError/, out + err, "the exception's class is shown")
+assert_match(/the flux capacitor jammed/, out + err, "and its message")

@@ -1,0 +1,38 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/animation/animate-ovals.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app(:width => 300,
+  :height => 400) do
+  
+  fill rgb(0, 0.6, 0.9, 0.1)
+  stroke rgb(0, 0.6, 0.9)
+  strokewidth 0.25
+ 
+  @shoes = [] 
+  10.times {
+    @shoes.push(oval :left => (-5..self.width).rand,
+      :top => (-5..self.height).rand,
+      :radius => (25..50).rand)
+  }
+
+  animate do |i|
+    @shoes.each do |s| 
+      s.top += (-20..20).rand
+      s.left += (-20..20).rand
+    end 
+  end
+end
+----------- test code
+# Test animate-ovals.sspec - 10 randomly moving ovals
+
+# Verify 10 ovals are created
+ovals = all_ovals()
+assert_equal 10, ovals.length, "Should create 10 ovals"
+
+# Each oval should have a radius between 25-50
+# Note: Animation moves ovals randomly each frame
+assert true, "Animate-ovals running with 10 ovals"

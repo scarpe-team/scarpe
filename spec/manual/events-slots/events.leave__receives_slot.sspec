@@ -1,0 +1,17 @@
+---
+manual: events.leave
+lines: [2251, 2255]
+testability: interactive
+display: native
+ledger: H5
+----------- app code
+$left = []
+Shoes.app width: 400, height: 300 do
+  $slot = stack width: 200, height: 100 do
+    leave { |slot| $left << slot }
+  end
+end
+----------- test code
+move_mouse 50, 50
+move_mouse 300, 200
+assert_equal [$slot], $left, "the block gets the slot being left"

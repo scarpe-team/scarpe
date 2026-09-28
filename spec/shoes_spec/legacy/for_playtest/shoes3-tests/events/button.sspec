@@ -1,0 +1,50 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/shoes3-tests/events/button.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+ 
+  stack do
+    para "Native button test"
+    flow do 
+      @btn1 = button "button 1", width: 75 do
+        @eb.append "button 1 clicked\n"
+      end
+      @btn2 = button "button 2" do
+        @eb.append "button 2 clicked\n"
+      end
+      flow do
+        @ck2 = check checked: true do
+          @eb.append "Happy: "
+          @eb.append "feeling good\n" if @r1.checked?
+          @eb.append "feeling something\n" if @r2.checked?
+          @eb.append "feeling low\n" if @r3.checked?
+        end
+        para "Happy?"
+      end
+      stack do
+        flow {@r1 = radio :happy; para "Estatic"}
+        flow {@r2 = radio :happy; para "So-So"}
+        flow {@r3 = radio :happy; para "Not really"}
+      end
+    end
+    @eb = edit_box width: 500, height: 350
+  end
+  click do |btn,x,y,mods|
+    @eb.append "click #{btn}, x: #{x}, y: #{y}. mods: #{mods}\n"
+  end
+end
+----------- test code
+# Test the button events demo UI elements
+all_paras = paras()
+all_buttons = buttons()
+assert_equal "Native button test", all_paras[0].text
+assert_equal "button 1", all_buttons[0].text
+assert_equal "button 2", all_buttons[1].text
+assert_equal "Happy?", all_paras[1].text
+assert_equal "Estatic", all_paras[2].text
+assert_equal "So-So", all_paras[3].text
+assert_equal "Not really", all_paras[4].text

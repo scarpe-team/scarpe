@@ -1,0 +1,26 @@
+---
+manual: manip.after
+lines: [2315, 2318]
+testability: api
+display: any
+ledger: B4
+----------- app code
+Shoes.app do
+  @slot = stack do
+    @first = para "first"
+    para "last"
+  end
+  @go = button "Go" do
+    @slot.after(@first) do
+      para "second"
+      para "third"
+    end
+  end
+end
+----------- test code
+assert_equal ["first", "last"], stack("@slot").contents.map(&:text)
+
+button("@go").trigger_click
+
+assert_equal ["first", "second", "third", "last"], stack("@slot").contents.map(&:text),
+  "the block's paras go just after the element, in the order written"

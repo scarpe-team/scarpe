@@ -1,0 +1,13 @@
+---
+manual: art.cap
+lines: [1676, 1680]
+testability: api
+display: any
+ledger: E10
+----------- app code
+Shoes.app do
+  $app = self
+  $returned = cap(:curve)
+end
+----------- test code
+assert_same $app, $returned, "cap returns self, so calls can chain"

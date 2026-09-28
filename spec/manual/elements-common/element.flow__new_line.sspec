@@ -1,0 +1,23 @@
+---
+manual: element.flow
+lines: [2002, 2004]
+testability: api
+display: native
+----------- app code
+Shoes.app do
+  @row = flow width: 250 do
+    @a = stack(width: 100, height: 20) { background red }
+    @b = stack(width: 100, height: 20) { background green }
+    @c = stack(width: 100, height: 20) { background blue }
+  end
+end
+----------- test code
+row = layout_of(flow("@row"))
+a = layout_of(stack("@a"))
+b = layout_of(stack("@b"))
+c = layout_of(stack("@c"))
+
+assert_in_delta a.x + 100, b.x, 0.5, "b follows a end to end"
+assert_in_delta a.y, b.y, 0.5, "on the same line"
+assert_in_delta row.x, c.x, 0.5, "c does not fit, so it starts a new line at the left edge"
+assert_in_delta a.y + 20, c.y, 0.5, "under the first line"

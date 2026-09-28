@@ -1,0 +1,29 @@
+---
+manual: background.right_column
+lines: [2787, 2794]
+testability: visual
+display: native
+ledger: M19
+----------- app code
+Shoes.app do
+  background black, width: 50, right: 50
+end
+----------- test code
+# M19: "a fifty pixel column on the right-side of the window". Shoes 3 measures right: 50
+# against the pattern's own size, 1 px for a colour (PATTERN_DIM), so the column's left edge
+# is 51 px in from the window's right edge, and it stops 1 px short of it.
+window = Shoes.APPS.first
+left = window.width - 51
+bottom = window.height - 1
+
+paints = lambda do |x, y, expected, why|
+  assert_equal expected, pixel_at(x, y).first(3), "#{why} at (#{x}, #{y})"
+end
+black = [0, 0, 0]
+white = [255, 255, 255]
+
+paints.(left, 0, black, "a fifty pixel column")
+paints.(left + 49, bottom, black, "top to bottom")
+paints.(left - 1, bottom / 2, white, "it is 50 px wide")
+paints.(window.width - 1, bottom / 2, white, "and on the right-side, a pixel short of the edge")
+paints.(25, bottom / 2, white, "on the right-hand side of the window, not the left")

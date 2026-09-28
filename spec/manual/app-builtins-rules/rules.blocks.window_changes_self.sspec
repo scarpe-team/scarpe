@@ -1,0 +1,23 @@
+---
+manual: rules.blocks.window_changes_self
+lines: [231, 244]
+testability: api
+display: any
+----------- app code
+Shoes.app title: "MAIN" do
+  para self
+  button "Spawn" do
+    window title: "CHILD" do
+      para self
+    end
+  end
+end
+----------- test code
+main = Shoes.APPS.first
+assert_equal [main.to_s], paras.map(&:text), "para self in the main app shows the main App"
+
+find_button("Spawn").trigger_click
+
+child = Shoes.APPS.last
+refute_same main, child, "window opened a new App"
+assert_includes paras.map(&:text), child.to_s, "and inside its block, self is that new App"

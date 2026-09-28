@@ -16,6 +16,23 @@ class Shoes::SubscriptionItem < Shoes::Drawable
   shoes_styles :shoes_api_name, :args, :stopped
   shoes_events :animate, :every, :timer, :hover, :leave, :motion, :click, :release, :keypress, :wheel
 
+  # animate, every and timer make a Shoes::Animation, Shoes::Every or Shoes::Timer
+  # (manual 1877, 1989, 2111). Displays still see each as a SubscriptionItem.
+  TIMER_CLASS_NAMES = { "animate" => "Animation", "every" => "Every", "timer" => "Timer" }.freeze
+
+  class << self
+    def new(*args, shoes_api_name:, **kwargs, &block)
+      timer_class = TIMER_CLASS_NAMES[shoes_api_name.to_s]&.then { |name| Shoes.const_get(name) }
+      return timer_class.new(*args, shoes_api_name:, **kwargs, &block) if timer_class && timer_class != self
+
+      super
+    end
+
+    def display_class_name
+      "SubscriptionItem"
+    end
+  end
+
   def initialize(args: [], shoes_api_name:, &block)
     super
 
@@ -35,14 +52,14 @@ class Shoes::SubscriptionItem < Shoes::Drawable
         @callback.call
       end
     when "hover"
-      # Hover passes the Shoes drawable as the block param
+      # Hover hands over the slot it watches (manual 2200-2205, ledger H5)
       @unsub_id = bind_self_event("hover") do
-        @callback&.call(self)
+        @callback&.call(parent)
       end
     when "leave"
-      # Leave passes the Shoes drawable as the block param
+      # Leave hands over the slot it watches (manual 2251-2257, ledger H5)
       @unsub_id = bind_self_event("leave") do
-        @callback&.call(self)
+        @callback&.call(parent)
       end
     when "motion"
       # Shoes sends back x, y, mods as the args.
@@ -67,9 +84,10 @@ class Shoes::SubscriptionItem < Shoes::Drawable
     when "keypress"
       # Keypress passes the key string or symbol to the handler.
       # The display service sends special keys prefixed with ":" (e.g. ":left"),
-      # which we convert to Ruby symbols (:left). Regular characters stay as strings.
+      # which we convert to Ruby symbols (:left). Regular characters stay as strings,
+      # the colon key's own ":" among them.
       @unsub_id = bind_self_event("keypress") do |key|
-        if key.is_a?(String) && key.start_with?(":")
+        if key.is_a?(String) && key.start_with?(":") && key.length > 1
           @callback&.call(key[1..].to_sym)
         else
           @callback&.call(key)
@@ -86,10 +104,6 @@ class Shoes::SubscriptionItem < Shoes::Drawable
       raise "Unknown Shoes event #{shoes_api_name.inspect} passed to SubscriptionItem!"
     end
 
-    @unsub_id = bind_self_event(shoes_api_name) do |*args|
-      @callback&.call(*args)
-    end
-
     # This won't create a visible display drawable, but will turn into
     # an invisible drawable and a stream of events.
     create_display_drawable
@@ -98,23 +112,46 @@ class Shoes::SubscriptionItem < Shoes::Drawable
   # Stop the animation/timer. In Shoes3, `anim = animate(fps) { ... }; anim.stop`
   # stops the periodic callback from firing. Setting the :stopped style triggers
   # a prop_change event that propagates to the display service.
+  #
+  # @return [self]
   def stop
     self.stopped = true
+    self
   end
 
   # Restart a stopped animation/timer.
+  #
+  # @return [self]
   def start
     self.stopped = false
+    self
   end
 
   # Toggle between started and stopped.
+  #
+  # @return [self]
   def toggle
     self.stopped = !self.stopped
+    self
   end
 
   # Whether this subscription is currently stopped.
   def stopped?
     !!self.stopped
+  end
+
+  # Shoes 3 keeps one handler per slot per event (EVENT_HANDLER stores a single proc,
+  # s3_canvas.c:934-955), so a slot given a second click or keypress block drops the first
+  # (ledger H6). Clear keeps a slot's handlers (H9), so a slot rebuilt with a fresh one,
+  # as Hackety Hack's editor is for every program it opens, would otherwise hear each key
+  # once per rebuild.
+  def replace_earlier_handlers
+    Array(parent&.children).dup.each do |sibling|
+      next if sibling.equal?(self) || !sibling.is_a?(Shoes::SubscriptionItem)
+
+      sibling.destroy if sibling.shoes_api_name == shoes_api_name
+    end
+    self
   end
 
   def destroy
@@ -124,4 +161,15 @@ class Shoes::SubscriptionItem < Shoes::Drawable
 
     super
   end
+end
+
+class Shoes
+  # What animate returns: its block gets the frame number, from 0 (manual 1877-1897).
+  class Animation < Shoes::SubscriptionItem; end
+
+  # What every returns: its block gets the count, from 0 (ledger I1).
+  class Every < Shoes::SubscriptionItem; end
+
+  # What timer returns: its block runs once (manual 2111-2114).
+  class Timer < Shoes::SubscriptionItem; end
 end

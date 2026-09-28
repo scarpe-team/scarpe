@@ -1,0 +1,18 @@
+---
+manual: common.style_set
+lines: [2709, 2713]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $red = red
+  @b = button "Restyle me"
+  @p = para "and me"
+end
+----------- test code
+button("@b").style(width: 150, height: 40)
+para("@p").style(size: 20, stroke: $red)
+
+assert_equal [150, 40], [button("@b").style[:width], button("@b").style[:height]], "style sets width and height"
+assert_equal 20, para("@p").style[:size], "the font size"
+assert_equal [255, 0, 0], para("@p").style[:stroke].to_a.first(3), "and the stroke"

@@ -1,0 +1,16 @@
+---
+manual: common.width.set_via_style
+lines: [2746, 2747]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @b = button "Click me"
+end
+----------- test code
+refute_in_delta 150, layout_of(button("@b")).w, 0.5, "the button does not start 150 wide"
+
+button("@b").style(width: 150)
+wait_frames
+
+assert_in_delta 150, layout_of(button("@b")).w, 0.5, "style(width: 150) makes it 150 pixels wide"

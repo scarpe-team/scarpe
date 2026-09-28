@@ -1,0 +1,21 @@
+---
+manual: element.radio
+lines: [2073, 2074]
+testability: api
+display: any
+ledger: G6
+----------- app code
+Shoes.app do
+  para "Among these films, which do you prefer?\n"
+  $taste = radio; para strong("The Taste of Tea"), " by Katsuhito Ishii\n"
+  $kin = radio; para strong("Kin-Dza-Dza"), " by Georgi Danelia\n"
+  $heaven = radio; para strong("Children of Heaven"), " by Majid Majidi\n"
+end
+----------- test code
+marks = -> { [$taste, $kin, $heaven].map(&:checked?) }
+
+radio("$taste").trigger_click
+assert_equal [true, false, false], marks.call, "clicking marks a radio"
+
+radio("$heaven").trigger_click
+assert_equal [false, false, true], marks.call, "radios with no group share their slot's group"

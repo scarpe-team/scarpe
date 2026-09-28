@@ -1,0 +1,21 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/mouse-detection.sspec
+source_commit: 1e766c6
+display: native
+----------- app code
+Shoes.app do
+  @p = para
+  animate do
+    button, left, top = self.mouse
+    @p.replace "mouse: #{button}, #{left}, #{top}"
+  end
+end
+----------- test code
+# animate reads self.mouse into the para. The corpus read the para before the first
+# frame; the case moves the pointer and advances one (spec/import_shoes_spec.rb, DRIVEN).
+assert_equal "", para.text, "nothing before the first frame"
+move_mouse 30, 40
+advance(1.0 / 10)
+assert_equal "mouse: 0, 30, 40", para.text, "a frame shows where the pointer is, with no button down"

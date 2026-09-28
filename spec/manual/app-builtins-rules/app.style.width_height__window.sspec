@@ -1,0 +1,14 @@
+---
+manual: app.style.width_height
+lines: [869, 877]
+testability: visual
+display: native
+----------- app code
+Shoes.app(title: "White Circle",
+  width: 200, height: 200, resizable: false) {
+    background black
+}
+----------- test code
+root = layout_tree.find { |node| node[:kind] == "DocumentRoot" }
+assert_equal [0, 0, 200, 200], root.values_at(:x, :y, :w, :h).map(&:round), "the window's content is 200 x 200"
+assert_equal [0, 0, 0, 255], pixel_at(199, 199), "and painted right to its far corner"

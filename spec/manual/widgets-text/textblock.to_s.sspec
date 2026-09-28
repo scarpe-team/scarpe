@@ -1,0 +1,14 @@
+---
+manual: textblock.to_s
+lines: [3404, 3407]
+testability: api
+display: any
+----------- app code
+# to_s is taken inside the app: a spec proxy answers to_s for itself.
+Shoes.app do
+  @note = inscription "Made with ", strong("Shoes"), "."
+  $flattened = @note.to_s
+end
+----------- test code
+assert_equal "Made with Shoes.", $flattened, "to_s flattens the contents into a String"
+assert_equal drawable("@note").text, $flattened, "the same as text"

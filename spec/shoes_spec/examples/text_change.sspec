@@ -1,0 +1,16 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/text_change.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  p = para "Hello"
+  p.replace "Goodbye"
+end
+----------- test code
+# Para starts with Hello, then immediately replaced with Goodbye
+# By the time we query, it should be Goodbye
+p = para()
+assert_equal "Goodbye", p.text

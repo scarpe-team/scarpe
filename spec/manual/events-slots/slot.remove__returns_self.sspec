@@ -1,0 +1,11 @@
+---
+manual: slot.remove
+lines: [2430, 2430]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $slot = stack { para "goes" }
+end
+----------- test code
+assert_same $slot, $slot.remove, "remove returns self"

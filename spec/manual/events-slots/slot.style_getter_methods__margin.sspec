@@ -1,0 +1,14 @@
+---
+manual: slot.style_getter_methods
+lines: [2378, 2380]
+testability: api
+display: any
+ledger: C3
+----------- app code
+Shoes.app do
+  $slot = stack margin: 10 do
+    para "styled"
+  end
+end
+----------- test code
+assert_equal 10, $slot.margin, "the margin style reads back through its method"

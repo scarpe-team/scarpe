@@ -1,0 +1,21 @@
+---
+manual: styles.left
+lines: [1288, 1294]
+testability: visual
+display: native
+ledger: C18
+----------- app code
+# Shoes 3 reads a position as a plain number (shoes_px2 passes nv 0 to shoes_px,
+# s3_ruby.c:298-337), so a slot moved to a negative left goes off its slot's left edge.
+# Hackety Hack's Ready button sweeps its intro away so, with move(-40, 0), move(-80, 0) and on.
+Shoes.app width: 400, height: 300 do
+  @intro = stack left: 0, top: 0, width: 1.0, height: 1.0 do
+    background red
+  end
+end
+----------- test code
+stack("@intro").move(-40, 0)
+swept = layout_of(stack("@intro"))
+assert_in_delta(-40, swept.x, 0.5, "left: -40 is 40 pixels past the window's left edge")
+assert_equal [255, 0, 0, 255], pixel_at(355, 150), "so the red reaches 40 pixels short of the right edge"
+assert_equal [255, 255, 255, 255], pixel_at(385, 150), "and the window shows beyond it"

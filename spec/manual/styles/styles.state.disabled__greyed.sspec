@@ -1,0 +1,19 @@
+---
+manual: styles.state.disabled
+lines: [1421, 1421]
+testability: visual
+display: native
+ledger: G4
+----------- app code
+Shoes.app width: 400, height: 200 do
+  @on = button "Label"
+  @off = button "Label", state: "disabled"
+end
+----------- test code
+darkest = lambda do |name|
+  box = layout_of(button(name))
+  ((box.y + 4).round..(box.y + box.h - 4).round).flat_map do |y|
+    ((box.x + 4).round..(box.x + box.w - 4).round).map { |x| pixel_at(x, y).first(3).sum }
+  end.min
+end
+assert_operator darkest.call("@off"), :>, darkest.call("@on") + 90, "a disabled button's label is greyed out, much lighter than an active one"

@@ -1,0 +1,27 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/instance_variable_check.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/working/shoes_manual/instance_variable_check.sspec
+- cases/scarpe_examples/legacy/working/shoes_manual/instance_variable_check.sspec
+----------- app code
+# instance variables allowed as the code block is essentially running
+# inside Shoes class due to the use of instance_eval
+
+Shoes.app do
+ @s = stack do
+   @p1 = para "First"
+   @p2 = para "Second"
+   @p3 = para "Third"
+ end
+end
+----------- test code
+# Verify instance variables work with para elements in stack
+assert stacks().length >= 1, "Expected a stack container"
+assert paras().length >= 3, "Expected 3 para elements"
+assert_equal "First", paras()[0].text
+assert_equal "Second", paras()[1].text
+assert_equal "Third", paras()[2].text

@@ -5,6 +5,8 @@
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-shopify-brightgreen.svg)](https://github.com/Shopify/ruby-style-guide)
 [![Discord](https://img.shields.io/discord/1072538177321058377?label=discord)](https://discord.gg/Ca5EHSsGYp)
 
+Coding agents building a desktop app with Scarpe: start at [FOR_AGENTS.md](FOR_AGENTS.md).
+
 <img src="docs/static/scarpe-logo.png">
 
 "Scarpe" means shoes in Italian. "Scarpe" also means [Shoes](https://github.com/shoes/shoes-deprecated) in modern Ruby and Webview!
@@ -49,6 +51,19 @@ end
 <img width="480" alt="hello_world" src="https://user-images.githubusercontent.com/9624267/158566011-0372d0c7-fbeb-4ed6-a082-73908f04a0b6.gif">
 
 More examples can be found in the [`examples` folder](https://github.com/scarpe-team/scarpe/tree/main/examples)!
+
+## Native display service
+
+Scarpe can also draw your app without a webview. Ruby keeps Lacci and every block you write, and a small Rust program paints the window, on screen or headless.
+
+```
+bundle exec ruby exe/scarpe --native examples/button.rb
+bundle exec ruby exe/scarpe peek examples/button.rb --click "Push me" --shot after.png
+```
+
+The first run builds the Rust program, so you need `cargo`. [docs/native.md](docs/native.md) covers running it, looking and clicking with `scarpe peek`, the spec suite, packaging a macOS app with `scarpe package --native --dmg`, and how it all fits together. The contract lives in [native/DESIGN.md](native/DESIGN.md).
+
+It is dedicated to the late Noah Gibbs, who made Scarpe's display services swappable.
 
 ## Wiki
 

@@ -1,0 +1,20 @@
+---
+manual: image.path=
+lines: [3162, 3164]
+testability: visual
+display: native
+ledger: C5
+----------- app code
+Shoes.app width: 200, height: 200 do
+  @logo = image "assets/red-40x30.png", left: 10, top: 10
+end
+----------- test code
+assert_equal [255, 0, 0], pixel_at(12, 12).first(3), "the red image is shown first"
+
+image("@logo").path = "assets/checker-20x20.png"
+wait_frames
+
+box = layout_of(image("@logo"))
+assert_in_delta 20, box.w, 0.5, "the new picture's own size replaces the old one"
+assert_equal [0, 0, 0], pixel_at(12, 12).first(3), "the checker's black top left square is shown"
+assert_equal [255, 255, 255], pixel_at(22, 12).first(3), "next to its white one"

@@ -1,0 +1,16 @@
+---
+manual: art.patterns_images_gradients
+lines: [1657, 1660]
+testability: visual
+display: native
+ledger: M18
+----------- app code
+Shoes.app width: 300, height: 200 do
+  stroke "assets/red-40x30.png"
+  strokewidth 10
+  line 20, 100, 280, 100
+end
+----------- test code
+# assets/red-40x30.png is solid #ff0000, so red on the line can only come from the image.
+assert_equal [255, 0, 0], pixel_at(150, 100).first(3), "an image draws the line"
+assert_equal [255, 255, 255], pixel_at(150, 120).first(3), "and only the line"

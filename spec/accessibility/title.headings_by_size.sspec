@@ -1,0 +1,16 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: visual
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  banner "Welcome"
+  title "Chapter"
+  subtitle "Section"
+  tagline "Aside"
+end
+----------- test code
+headings = a11y_nodes.select { |n| n[:role] == "heading" }
+assert_equal [["Welcome", 1], ["Chapter", 2], ["Section", 3]], headings.map { |n| n.values_at(:name, :level) }
+assert a11y_nodes.any? { |n| n[:role] == "label" && n[:value] == "Aside" }, "smaller text stays text"

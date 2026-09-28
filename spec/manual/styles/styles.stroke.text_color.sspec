@@ -1,0 +1,18 @@
+---
+manual: styles.stroke.text_color
+lines: [1459, 1461]
+testability: visual
+display: native
+----------- app code
+Shoes.app title: "A Styling Sample" do
+  para "Red with an underline", stroke: red, underline: "single"
+end
+----------- test code
+box = layout_of(para)
+pixels = (box.y.floor...(box.y + box.h).ceil).flat_map do |y|
+  (box.x.floor...(box.x + [box.w, 60].min).ceil).map { |x| pixel_at(x, y).first(3) }
+end
+covered = pixels.select { |_r, g, b| g + b < 400 }
+
+refute_empty covered, "the letters left ink"
+assert covered.all? { |r, _g, _b| r > 230 }, "every inked pixel keeps full red: the letters are printed in the stroke colour"

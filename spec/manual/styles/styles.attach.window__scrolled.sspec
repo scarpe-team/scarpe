@@ -1,0 +1,22 @@
+---
+manual: styles.attach.window
+lines: [1085, 1087]
+testability: visual
+display: native
+ledger: C11
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @outer = stack margin_left: 100, margin_top: 80, width: 200, height: 100, scroll: true do
+    30.times { |i| para "Line #{i}" }
+    @pinned = stack top: 10, left: 10, width: 60, height: 40, attach: Window do
+      background red
+    end
+  end
+end
+----------- test code
+stack("@outer").scroll_top = 60
+wait_frames
+
+pinned = layout_of(stack("@pinned"))
+assert_in_delta 10, pinned.x, 0.5, "a scrolled, nested parent does not move a window-attached slot"
+assert_in_delta 10, pinned.y, 0.5, "it stays at (10, 10) in the window"

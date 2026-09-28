@@ -1,0 +1,148 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/kids/memory_match/memory_match.rb")
+----------- test code
+require "json"
+app = Shoes.APPS.first
+ivar = ->(name) { app.instance_variable_get(name) }
+voices = ivar.(:@voices)
+cards = -> { ivar.(:@cards) }
+middle = ->(card) { [card.home[0] + card.size / 2, card.home[1] + card.size / 2] }
+edge = ->(card) { [card.home[0] + 14, card.home[1] + card.size / 2] } # just inside the card's left edge
+purple = ->(pixel) { pixel[2] > pixel[0] + 60 }
+cream = ->(pixel) { pixel[0] > 235 && pixel[1] > 225 && pixel[2] > 200 }
+save_file = File.join(Dir.home, "Library", "Application Support", "Memory Match", "progress.json")
+heard = lambda do |name|
+  voices.player.join(10)
+  voices.last_file.end_with?("/#{name}.wav") &&
+    File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true).include?("afplay #{voices.last_file}")
+end
+
+# the home screen: eight animals to say hello to, and three boards
+assert_equal ANIMALS.size, ivar.(:@friends).size
+click_at 150, 200
+assert heard.(:cat), "a click on the cat and it miaows"
+wav = File.binread(voices.last_file)
+assert_equal ["RIFF", "WAVE"], [wav[0, 4], wav[8, 4]]
+assert_operator wav[44..].unpack("s<*").map(&:abs).max, :<=, 32_767 / 4 + 1, "never above a quarter of full volume"
+
+# Tiny: two pairs, each growing up in its own place (nothing flies across the table), with a peek
+click_on "Tiny"
+assert_equal 4, cards.().size
+assert cards.().group_by(&:animal).values.all? { |pair| pair.size == 2 }, "every animal twice"
+advance 0.1
+assert cards.().all? { |card| layout_of(card.slot).x.round == card.home[0] }, "each in its own place from the start"
+assert cards.().all?(&:deal), "still being dealt"
+advance 0.8
+assert cards.().none?(&:deal), "all dealt"
+advance 0.5
+assert cards.().all? { |card| card.side == :face }, "a peek at every animal"
+click_at(*middle.(cards.()[0]))
+assert_equal :down, cards.()[0].state, "no turning while they are showing"
+advance 2.4
+assert cards.().all? { |card| card.side == :back }, "and back over"
+assert purple.(pixel_at(*edge.(cards.()[0]))), "a card back is purple"
+
+# a miss: both turn over, shake their heads and turn back by themselves
+first = cards.()[0]
+miss = cards.().find { |card| card.animal != first.animal }
+click_at(*middle.(first))
+assert heard.(:flip)
+advance 0.4
+assert_equal :face, first.side
+assert cream.(pixel_at(*edge.(first))), "its face shows"
+click_at(*middle.(miss))
+advance 0.4
+assert heard.(:oops), "a soft two-note hmm, never a buzzer"
+assert_equal [:up, :up], [first.state, miss.state]
+advance 1.4
+assert_equal [:down, :down], [first.state, miss.state], "back over, try again"
+assert_equal :back, first.side
+
+# while two that don't match are showing, a third card only wiggles; then taps work again
+click_at(*middle.(first))
+advance 0.4
+click_at(*middle.(miss))
+advance 0.4
+third = cards.().find { |card| card != first && card != miss && card.state == :down }
+click_at(*middle.(third))
+assert_equal :down, third.state, "no third card while two are showing"
+assert third.shake, "it wiggles instead"
+advance 1.3
+assert_equal [:down, :down], [first.state, miss.state]
+click_at(*middle.(first))
+advance 0.4
+assert_equal [:up, :face], [first.state, first.side], "and now it turns"
+advance 1.4
+
+# a match: the pair stays up, the animals dance and sing, and the row at the top fills
+twin = cards.().find { |card| card != first && card.animal == first.animal }
+twin_of_miss = cards.().find { |card| card != miss && card.animal == miss.animal }
+click_at(*middle.(twin))
+advance 0.4
+assert_equal [:matched, :matched], [first.state, twin.state]
+assert heard.(first.animal), "the animal sings"
+assert first.dance, "and dances"
+assert_equal [first.animal], ivar.(:@found)
+
+# the last pair wins: stars, confetti, and the board is remembered
+click_at(*middle.(miss))
+advance 0.4
+click_at(*middle.(twin_of_miss))
+advance 1.5
+drop = Array.new(8) { advance 0.05; layout_of(ivar.(:@win_box)).y }
+assert drop.all? { |y| y.between?(0, 200) }, "the win card drops in from the top, never from the bottom: #{drop.inspect}"
+advance 0.1
+assert_equal :done, ivar.(:@won)
+assert heard.(:hooray)
+assert para("You did it!")
+assert_operator ivar.(:@flakes).size, :>, 50, "confetti"
+assert_equal 3, app.send(:stars_earned), "three stars for everyone who is not counting"
+assert_includes JSON.parse(File.read(save_file))["done"], "Tiny"
+
+# Next: the Middle board, six pairs (the buttons sit on the card that dropped in)
+advance 0.6
+click_at 614, 400
+assert_equal 12, cards.().size
+assert cards.().group_by(&:animal).values.all? { |pair| pair.size == 2 }
+advance 1.6
+refute cards.().any? { |card| card.side == :face }, "no peek on the Middle board"
+
+# home, with a star on Tiny; big kid mode counts the moves and remembers the best
+click_at 56, 48
+assert ivar.(:@on_home)
+click_on "Big kid mode: count my moves"
+assert ivar.(:@big_kid)
+assert JSON.parse(File.read(save_file))["big_kid"]
+click_on "Tiny"
+advance 1.2
+assert_nil ivar.(:@peek_at), "big kids get no peek"
+a, b = cards.().group_by(&:animal).values
+[[a[0], b[0]], [a[1], b[1]], [a[0], a[1]], [b[0], b[1]]].each do |one, two| # two misses, then both pairs
+  click_at(*middle.(one))
+  advance 0.4
+  click_at(*middle.(two))
+  advance 1.5 # a miss turns back by itself
+end
+advance 0.5
+assert_equal :done, ivar.(:@won)
+assert_equal 4, ivar.(:@moves)
+assert_equal "Moves: 4", para("@moves_label").text
+assert para("4 moves")
+assert_equal 2, app.send(:stars_earned), "two stars for four moves on two pairs"
+assert_equal 4, JSON.parse(File.read(save_file))["best"]["Tiny"]
+click_at 482, 400 # Home, on the win card
+advance 0.3
+assert para("2 pairs, best 4 moves"), "the Tiny tile shows the best to beat"
+click_on "Tiny"
+advance 1.2
+
+# the speaker: quiet, and remembered
+voices.instance_variable_set(:@last_file, nil)
+click_at W - 52, 46
+assert voices.muted
+click_at(*middle.(cards.()[0]))
+assert_nil voices.last_file, "not a sound"
+assert JSON.parse(File.read(save_file))["muted"]

@@ -1,0 +1,34 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/message.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/working/shoes_manual/message.sspec
+- cases/scarpe_examples/legacy/for_playtest/shoes_manual/message.sspec
+- cases/scarpe_examples/legacy/working/shoes_manual/message.sspec
+----------- app code
+class Messenger
+ def initialize(stack)
+   @stack = stack
+ end
+ def add(msg)
+   @stack.app do
+     @stack.append do
+       para msg
+     end
+   end
+ end
+end
+
+Shoes.app do
+  @stack = stack do
+  end
+  Messenger.new(@stack).add('Hii')
+end
+----------- test code
+# Verify Messenger class appends message to stack
+assert stacks().length >= 1, "Expected a stack container"
+assert paras().length >= 1, "Expected para added by Messenger"
+assert_equal "Hii", para().text

@@ -1,0 +1,19 @@
+---
+manual: common.style_set
+lines: [2709, 2713]
+testability: api
+display: native
+----------- app code
+Shoes.app do
+  @b = button "Restyle me"
+  flow { @p = para "and me" }
+end
+----------- test code
+para_before = layout_of(para("@p"))
+
+button("@b").style(width: 150)
+para("@p").style(size: 30)
+wait_frames
+
+assert_in_delta 150, layout_of(button("@b")).w, 0.5, "the new width is drawn"
+assert_operator layout_of(para("@p")).h, :>, para_before.h * 2, "and the new font size"

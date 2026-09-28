@@ -1,0 +1,12 @@
+---
+manual: events.finish
+lines: [2195, 2195]
+testability: api
+display: any
+ledger: B6
+----------- app code
+Shoes.app do
+  $slot = stack { para "going away" }
+end
+----------- test code
+assert_same $slot, $slot.finish { }, "finish { } returns self"

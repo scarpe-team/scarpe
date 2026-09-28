@@ -1,0 +1,22 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/philippe_checked/gradient-shoes.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/working/simple/gradient-shoes.sspec
+----------- app code
+Shoes.app do
+  background "#F3F".."#F90"
+  title "Shoooes", :top => 60,
+    :align => "center",
+    :font => "Trebuchet MS",
+    :stroke => white
+end
+----------- test code
+# Test gradient-shoes.sspec - simple gradient background with title
+
+# Verify the title text is displayed
+assert title(), "Should have a title element"
+assert_equal "Shoooes", title().text

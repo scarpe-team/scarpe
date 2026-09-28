@@ -1,0 +1,11 @@
+---
+manual: styles.width.pixels
+lines: [2365, 2376]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  stack(width: 150) { para "Now that's precision." }
+end
+----------- test code
+assert_in_delta 150, layout_of(stack).w, 0.5, "width: 150 makes the stack 150 pixels wide"

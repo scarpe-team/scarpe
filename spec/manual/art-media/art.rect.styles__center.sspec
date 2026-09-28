@@ -1,0 +1,23 @@
+---
+manual: art.rect.styles
+lines: [1779, 1779]
+testability: visual
+display: native
+ledger: E2
+----------- app code
+Shoes.app width: 200, height: 200 do
+  fill red
+  nostroke
+  rect left: 100, top: 100, width: 40, height: 20, center: true
+end
+----------- test code
+# center: true puts (left, top) at the middle, so the box is (80, 90, 40, 20).
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(82, 92, [255, 0, 0], "the rectangle reaches 20 px left and 10 px up of (left, top)")
+paints.(78, 100, [255, 255, 255], "and no further left")
+paints.(125, 100, [255, 255, 255], "and ends 20 px right of left")

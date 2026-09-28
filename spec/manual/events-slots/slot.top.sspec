@@ -1,0 +1,15 @@
+---
+manual: slot.top
+lines: [2507, 2509]
+testability: visual
+display: native
+ledger: A4
+----------- app code
+Shoes.app width: 400, height: 300 do
+  stack width: 400, height: 30
+  @box = stack width: 50, height: 20
+end
+----------- test code
+box = stack("@box")
+assert_in_delta 30, layout_of(box).y, 0.5
+assert_in_delta 30, box.top, 0.5, "top is where the slot sits, in pixels"

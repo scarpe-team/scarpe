@@ -1,0 +1,13 @@
+---
+manual: styles.stroke
+lines: [1453, 1461]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  star 60, 100, 5, 50, 25, fill: red, stroke: red
+  shape(stroke: blue, strokewidth: 8) { move_to 150, 100; line_to 280, 100 }
+end
+----------- test code
+assert_equal [255, 0, 0], pixel_at(60, 100).first(3), "a star paints with the fill it was given"
+assert_equal [0, 0, 255], pixel_at(215, 100).first(3), "a shape strokes with the pens it was given"

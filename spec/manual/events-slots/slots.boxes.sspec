@@ -1,0 +1,21 @@
+---
+manual: slots.boxes
+lines: [1580, 1582]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $stack = stack do
+    para "in a stack"
+    image "assets/red-40x30.png"
+  end
+  $flow = flow do
+    para "in a flow"
+    image "assets/red-40x30.png"
+  end
+end
+----------- test code
+assert_equal [Shoes::Para, Shoes::Image], $stack.contents.map(&:class), "a stack holds the text and image laid out in it"
+assert_equal [Shoes::Para, Shoes::Image], $flow.contents.map(&:class), "so does a flow"
+assert_equal "in a stack", $stack.contents.first.text
+assert_equal "in a flow", $flow.contents.first.text

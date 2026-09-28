@@ -1,0 +1,20 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/local_assets/multi_image.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  image "http://shoesrb.com/manual/static/shoes-icon.png"
+  image "sample.gif", width: 120, height: 64 # an image big enough to be served with the asset server
+  image "small.png" # an image small enough to be served with a data URL
+end
+----------- test code
+# Test: Multiple images from various sources
+# Note: Requires local asset files (sample.gif, small.png) to exist
+imgs = images()
+assert_equal 3, imgs.length, "Expected 3 images"
+
+# First image is from remote URL
+assert_includes imgs[0].url, "shoes-icon.png", "First image should be shoes icon"

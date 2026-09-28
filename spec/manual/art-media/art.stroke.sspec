@@ -1,0 +1,23 @@
+---
+manual: art.stroke
+lines: [1833, 1837]
+testability: visual
+display: native
+ledger: D8
+----------- app code
+Shoes.app width: 300, height: 200 do
+  nofill
+  strokewidth 6
+  rect 20, 50, 100, 100
+  stroke red
+  rect 170, 50, 100, 100
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(170, 100, [255, 0, 0], "a shape drawn after stroke has its border in that colour")
+paints.(20, 100, [0, 0, 0], "a shape drawn before keeps the default black line")

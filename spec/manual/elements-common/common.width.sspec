@@ -1,0 +1,20 @@
+---
+manual: common.width
+lines: [2730, 2744]
+testability: visual
+display: any
+ledger: C2
+----------- app code
+Shoes.app do
+  stack width: 120 do
+    @b = button "Click me", width: "100%" do
+      alert "button.width = #{@b.width}\n" +
+        "button.style[:width] = #{@b.style[:width]}"
+    end
+  end
+end
+----------- test code
+button.trigger_click
+
+assert_equal [[:alert, "button.width = 120\nbutton.style[:width] = 100%"]], dialog_calls,
+  "width is the exact 120 pixels while style[:width] stays \"100%\""

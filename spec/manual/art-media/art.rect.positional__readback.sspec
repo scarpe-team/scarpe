@@ -1,0 +1,14 @@
+---
+manual: art.rect.positional
+lines: [1749, 1753]
+testability: api
+display: any
+ledger: E3
+----------- app code
+Shoes.app do
+  @box = rect 10, 20, 30, 40
+end
+----------- test code
+box = rect("@box")
+assert_equal [10, 20], [box.left, box.top], "the first two arguments are left and top (E3)"
+assert_equal [30, 40], [box.width, box.height], "then width and height"

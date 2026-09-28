@@ -1,0 +1,16 @@
+---
+manual: art.fill.image_path
+lines: [1688, 1696]
+testability: visual
+display: native
+ledger: M18
+----------- app code
+Shoes.app do
+  fill "assets/red-40x30.png"
+  star 200, 200, 5
+end
+----------- test code
+# The manual's example with our solid #ff0000 test image in place of static/avatar.png.
+# A string that is not a colour is an image path (M18), and red can only come from it.
+assert_equal [255, 0, 0], pixel_at(200, 200).first(3), "the star is painted with the image"
+assert_equal [255, 255, 255], pixel_at(200, 320).first(3), "and nothing outside the star is"

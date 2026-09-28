@@ -1,0 +1,20 @@
+---
+manual: button.focus
+lines: [2923, 2926]
+testability: interactive
+display: native
+ledger: G9
+----------- app code
+Shoes.app do
+  $clicked = []
+  @first = button("First") { $clicked << :first }
+  @second = button("Second") { $clicked << :second }
+end
+----------- test code
+second = button("@second")
+second.focus
+assert_equal second.linkable_id, focused_drawable&.linkable_id, "focus moves keyboard focus to the button"
+
+assert_empty $clicked
+press_key "\n"
+assert_equal [:second], $clicked, "Enter clicks the focused button, and only that one"

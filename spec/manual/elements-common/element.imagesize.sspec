@@ -1,0 +1,13 @@
+---
+manual: element.imagesize
+lines: [2017, 2020]
+testability: api
+display: any
+ledger: C5
+----------- app code
+Shoes.app do
+  $size = imagesize("assets/red-40x30.png")
+end
+----------- test code
+assert_equal [40, 30], $size, "imagesize gives [width, height] of the file"
+assert_empty images, "and does not display it"

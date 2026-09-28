@@ -1,0 +1,12 @@
+---
+manual: events.leave
+lines: [2251, 2251]
+testability: api
+display: any
+ledger: B6
+----------- app code
+Shoes.app do
+  $slot = stack { para "leave me" }
+end
+----------- test code
+assert_same $slot, $slot.leave { }, "leave { } returns self"

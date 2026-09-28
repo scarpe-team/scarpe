@@ -1,0 +1,20 @@
+---
+manual: element.inscription.size
+lines: [2030, 2033]
+testability: visual
+display: native
+ledger: F2
+----------- app code
+Shoes.app do
+  flow { @default = inscription "Shoes" }
+  flow { @sized = para "Shoes", size: 10 }
+  flow { @double = para "Shoes", size: 20 }
+end
+----------- test code
+default = layout_of(drawable("@default"))
+sized = layout_of(drawable("@sized"))
+double = layout_of(drawable("@double"))
+
+assert_operator double.w, :>, sized.w * 1.5, "the size style changes how big text is drawn"
+assert_in_delta sized.w, default.w, 0.5, "inscription text is as wide as 10 pixel text"
+assert_in_delta sized.h, default.h, 0.5, "and as high"

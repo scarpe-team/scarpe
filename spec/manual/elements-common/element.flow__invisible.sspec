@@ -1,0 +1,18 @@
+---
+manual: element.flow
+lines: [1998, 1998]
+testability: api
+display: native
+----------- app code
+Shoes.app do
+  background red
+  @row = flow width: 200, height: 50 do
+    para "inside"
+  end
+end
+----------- test code
+px = ->(x, y) { pixel_at(x.round, y.round).first(3) }
+
+row = layout_of(flow("@row"))
+
+assert_equal [255, 0, 0], px.(row.x + 190, row.y + 45), "the flow paints nothing of its own over what is behind it"

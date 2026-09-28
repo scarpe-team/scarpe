@@ -1,0 +1,32 @@
+---
+manual: element.radio
+lines: [2071, 2073]
+testability: api
+display: any
+ledger: G6
+----------- app code
+Shoes.app do
+  stack do
+    para "Among these films, which do you prefer?"
+    flow do
+      $taste = radio :films
+      para "The Taste of Tea by Katsuhito Ishii"
+    end
+    flow do
+      $kin = radio :films
+      para "Kin-Dza-Dza by Georgi Danelia"
+    end
+    flow do
+      $heaven = radio :films
+      para "Children of Heaven by Majid Majidi"
+    end
+  end
+end
+----------- test code
+marks = -> { [$taste, $kin, $heaven].map(&:checked?) }
+
+radio("$taste").trigger_click
+assert_equal [true, false, false], marks.call, "clicking marks a radio"
+
+radio("$kin").trigger_click
+assert_equal [false, true, false], marks.call, "the :films group spans slots, so only one stays marked"

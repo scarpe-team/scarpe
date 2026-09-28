@@ -1,0 +1,23 @@
+---
+manual: edit_box.change_counter_example
+lines: [3021, 3033]
+testability: interactive
+display: native
+ledger: F11
+----------- app code
+Shoes.app do
+  edit_box do |e|
+    @counter.text = e.text.size
+  end
+  @counter = strong("0")
+  para @counter, " characters"
+end
+----------- test code
+assert_equal "0 characters", para.text
+
+click_on edit_box
+type_text "Essays"
+assert_equal "6 characters", para.text, "the count follows real typing"
+
+press_key :backspace
+assert_equal "5 characters", para.text, "and real deleting"

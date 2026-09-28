@@ -1,0 +1,12 @@
+---
+manual: common.hide
+lines: [2639, 2639]
+testability: api
+display: any
+ledger: B6
+----------- app code
+Shoes.app do
+  $b = button "Now you see me"
+end
+----------- test code
+assert_same $b, $b.hide, "hide returns the element itself"

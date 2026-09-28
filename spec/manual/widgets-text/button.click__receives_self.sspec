@@ -1,0 +1,21 @@
+---
+manual: button.click
+lines: [2918, 2921]
+testability: interactive
+display: any
+ledger: G1
+----------- app code
+Shoes.app do
+  $handed = {}
+  @by_block = button("By block") { |b| $handed[:by_block] = b }
+  @by_method = button "By method"
+  @by_method.click { |b| $handed[:by_method] = b }
+end
+----------- test code
+button("@by_block").trigger_click
+button("@by_method").trigger_click
+
+assert_kind_of Shoes::Button, $handed[:by_block], "the block is handed the button"
+assert_equal button("@by_block").linkable_id, $handed[:by_block].linkable_id, "the button that was clicked"
+assert_kind_of Shoes::Button, $handed[:by_method], "a block attached with click is handed the button too"
+assert_equal button("@by_method").linkable_id, $handed[:by_method].linkable_id

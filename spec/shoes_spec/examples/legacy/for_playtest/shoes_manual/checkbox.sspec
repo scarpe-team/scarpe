@@ -1,0 +1,40 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/checkbox.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/working/shoes_manual/checkbox.sspec
+- cases/scarpe_examples/legacy/working/shoes_manual/checkbox.sspec
+----------- app code
+#!ruby
+ Shoes.app do
+   @list = ['Frances Johnson', 'Ignatius J. Reilly',
+     'Winston Niles Rumfoord']
+
+   stack do
+     @list.map! do |name|
+       flow { @c = check; para name }
+       [@c, name]
+     end
+
+     button "What's been checked?" do
+       selected = @list.map { |c, name| name if c.checked? }.compact
+       alert("You selected: " + selected.join(', '))
+     end
+   end
+ end
+----------- test code
+# Tests checkboxes with list of names
+# Verifies checkbox state and button interaction
+
+# Should have 3 checkboxes
+checks = Shoes::App.find_drawables_by(Shoes::Check)
+assert_equal 3, checks.length, "Should have 3 checkboxes"
+
+# Verify button exists
+buttons = Shoes::App.find_drawables_by(Shoes::Button)
+assert buttons.length >= 1, "Should have button"
+
+assert true, "Checkbox test completed"

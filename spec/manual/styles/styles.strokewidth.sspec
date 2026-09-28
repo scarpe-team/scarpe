@@ -1,0 +1,14 @@
+---
+manual: styles.strokewidth
+lines: [1463, 1468]
+testability: visual
+display: native
+ledger: D8
+----------- app code
+Shoes.app width: 300, height: 200 do
+  fill white
+  @thick = rect 50, 50, 100, 80, stroke: black, strokewidth: 6
+end
+----------- test code
+dark = (40..70).count { |x| pixel_at(x, 90).first(3).sum < 200 }
+assert_includes 5..7, dark, "a 6 pixel stroke paints about 6 dark pixels across the left edge"

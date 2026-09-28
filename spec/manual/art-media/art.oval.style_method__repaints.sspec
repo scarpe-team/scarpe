@@ -1,0 +1,19 @@
+---
+manual: art.oval.style_method
+lines: [1747, 1747]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  fill red
+  nostroke
+  @circle = oval 10, 10, 50
+end
+----------- test code
+assert_equal [255, 0, 0], pixel_at(35, 35).first(3), "the oval starts at (10, 10)"
+
+oval("@circle").style(left: 200)
+wait_frames
+
+assert_equal [255, 255, 255], pixel_at(35, 35).first(3), "after style(left: 200) it has moved away"
+assert_equal [255, 0, 0], pixel_at(225, 35).first(3), "and is drawn at its new left"

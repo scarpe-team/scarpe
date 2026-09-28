@@ -1,0 +1,20 @@
+---
+manual: styles.align.center
+lines: [1067, 1070]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 200 do
+  stack width: 300 do
+    @text = para "HHHH", align: "center", size: 24
+  end
+end
+----------- test code
+box = layout_of(para("@text"))
+rows = [0.4, 0.5, 0.6].map { |f| (box.y + box.h * f).round }
+ink = (box.x.floor...(box.x + box.w).ceil).select { |x| rows.any? { |y| pixel_at(x, y).first(3).sum < 384 } }
+
+assert_in_delta 300 - 8, box.w, 0.5, "the paragraph spans its 300 pixel stack, less its 4 px margins (ledger C9), so there is room to align in"
+refute_empty ink, "the letters left ink"
+
+assert_in_delta box.x + box.w / 2.0, (ink.first + ink.last) / 2.0, 3, "centred text has as much space on each side"

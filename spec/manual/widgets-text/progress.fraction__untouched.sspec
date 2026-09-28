@@ -1,0 +1,12 @@
+---
+manual: progress.fraction
+lines: [3264, 3266]
+testability: api
+display: any
+ledger: G12
+----------- app code
+Shoes.app do
+  @bar = progress
+end
+----------- test code
+assert_equal 0.0, progress("@bar").fraction, "a progress bar nobody has moved reads 0.0, a decimal"

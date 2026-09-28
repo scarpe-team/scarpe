@@ -1,0 +1,28 @@
+---
+manual: slots.width_fixed_height_grows
+lines: [1584, 1587]
+testability: visual
+display: native
+ledger: C6
+----------- app code
+Shoes.app width: 300, height: 200 do
+  stack do
+    5.times { stack height: 100 }
+    @last = stack height: 20
+  end
+end
+----------- test code
+start = layout_of(stack("@last"))
+assert_operator start.y, :>=, 200, "the last box starts below the bottom of the window"
+
+20.times do
+  now = layout_of(stack("@last"))
+  break if now.y + now.h <= 200.5
+
+  wheel(120, x: 150, y: 100)
+end
+
+now = layout_of(stack("@last"))
+assert_operator now.y, :>=, -0.5, "scrolling down brings the last box into view"
+assert_operator now.y + now.h, :<=, 200.5, "all of it"
+assert_in_delta start.x, now.x, 0.5, "the window only scrolls vertically"

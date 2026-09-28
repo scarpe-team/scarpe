@@ -1,0 +1,20 @@
+#!/bin/sh
+# The system clipboard, as far as a case or example can tell: a file in its sandbox
+# (SPEC_CLIPBOARD_FILE), so spec/run never reads or overwrites the real one.
+# Answers as pbcopy, pbpaste and xclip (Lacci's clipboard shells out to them).
+board="${SPEC_CLIPBOARD_FILE:?spec/run sets SPEC_CLIPBOARD_FILE}"
+
+paste() {
+  [ -f "$board" ] && cat "$board"
+  exit 0
+}
+
+case "$(basename "$0")" in
+  pbpaste) paste ;;
+  xclip)
+    for arg in "$@"; do
+      case "$arg" in -o|-out) paste ;; esac
+    done
+    ;;
+esac
+cat > "$board"

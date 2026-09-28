@@ -1,0 +1,15 @@
+---
+manual: styles.fill
+lines: [1202, 1210]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  strokewidth 4
+  @shape = oval left: 50, top: 50, width: 100, height: 80, fill: red, stroke: blue
+end
+----------- test code
+r, g, b, = pixel_at(100, 90)
+assert(r > 200 && g < 60 && b < 60, "the inside of the oval is painted with the fill colour, got #{[r, g, b]}")
+r, g, b, = pixel_at(51, 90)
+assert(b > 200 && r < 60, "while its outline keeps the stroke colour, got #{[r, g, b]}")

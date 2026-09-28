@@ -1,0 +1,13 @@
+---
+manual: styles.at_creation
+lines: [1026, 1035]
+testability: api
+display: any
+----------- app code
+Shoes.app title: "A Styling Sample" do
+  para "Red with an underline", stroke: red, underline: "single"
+end
+----------- test code
+styles = para.style
+assert_equal "single", styles[:underline], "the :underline style given at creation is applied"
+assert_equal [255, 0, 0], styles[:stroke].to_a.first(3), "the :stroke style given at creation is red"

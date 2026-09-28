@@ -1,0 +1,20 @@
+---
+manual: colors.hex_strings
+lines: [1790, 1797]
+testability: visual
+display: native
+ledger: D5
+----------- app code
+Shoes.app width: 200, height: 200 do
+  fill "#333"
+  nostroke
+  rect 50, 50, 100, 100
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 2 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(100, 100, [51, 51, 51], "a hex string works as a fill: #333 is 33 33 33")

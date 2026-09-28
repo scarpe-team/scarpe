@@ -1,0 +1,30 @@
+---
+manual: progress.animate_example
+lines: [3248, 3259]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  stack margin: 0.1 do
+    title "Progress example"
+    @p = progress width: 1.0
+
+    animate do |i|
+      @p.fraction = (i % 100) / 100.0
+    end
+  end
+end
+----------- test code
+bar = progress
+
+advance 1
+early = bar.fraction
+assert_operator early.to_f, :>, 0.0, "the animation starts filling the bar"
+
+advance 4
+middle = bar.fraction
+assert_operator middle, :>, early, "and keeps filling it"
+
+advance 6
+late = bar.fraction
+assert_operator late, :<, middle, "then starts over after 100 frames, sweeping repeatedly"

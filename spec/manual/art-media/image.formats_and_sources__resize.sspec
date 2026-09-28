@@ -1,0 +1,14 @@
+---
+manual: image.formats_and_sources
+lines: [3107, 3108]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  @big = image "assets/red-40x30.png", width: 80, height: 60
+end
+----------- test code
+box = layout_of(image("@big"))
+assert_in_delta 80, box.w, 0.5, "Shoes resizes the image to the width asked for"
+assert_in_delta 60, box.h, 0.5, "and the height"
+assert_equal [255, 0, 0], pixel_at((box.x + 75).floor, (box.y + 55).floor).first(3), "the picture fills the new size"

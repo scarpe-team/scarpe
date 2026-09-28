@@ -1,0 +1,14 @@
+---
+manual: styles.class_wide
+lines: [1022, 1024]
+testability: visual
+display: native
+ledger: M35
+----------- app code
+Shoes.app width: 400, height: 200 do
+  style(Shoes::Para, family: "monospace")
+  flow { @thin = para "iiiiii", size: 20 }
+  flow { @wide = para "WWWWWW", size: 20 }
+end
+----------- test code
+assert_in_delta layout_of(para("@thin")).w, layout_of(para("@wide")).w, 0.5, "every paragraph got the class-wide monospace font, so i and W are equally wide"

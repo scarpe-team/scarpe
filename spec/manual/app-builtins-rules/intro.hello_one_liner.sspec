@@ -1,0 +1,14 @@
+---
+manual: intro.hello_one_liner
+lines: [12, 21]
+testability: interactive
+display: any
+----------- app code
+Shoes.app { button("Click me!") { alert("Good job.") } }
+----------- test code
+assert_equal "Click me!", button.text, "the window holds one button reading Click me!"
+assert_empty dialog_calls, "no message until the button is clicked"
+
+button.trigger_click
+
+assert_equal [[:alert, "Good job."]], dialog_calls, "clicking it pops up the message"

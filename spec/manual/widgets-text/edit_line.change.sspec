@@ -1,0 +1,19 @@
+---
+manual: edit_line.change
+lines: [3086, 3090]
+testability: interactive
+display: any
+----------- app code
+Shoes.app do
+  $seen = []
+  @line = edit_line
+  @line.change { $seen << @line.text }
+end
+----------- test code
+assert_empty $seen
+
+edit_line.trigger_change("o")
+edit_line.trigger_change("ok")
+edit_line.trigger_change("o")
+
+assert_equal %w[o ok o], $seen, "the change block runs when a character is added and when one is removed"

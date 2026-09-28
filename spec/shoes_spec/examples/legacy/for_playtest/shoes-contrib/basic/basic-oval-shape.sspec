@@ -1,0 +1,20 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-oval-shape.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  fill black(0.1)
+  shape do
+    100.times do |i|
+      oval i, i, i * 2
+    end
+  end
+end
+----------- test code
+# Verify shape with ovals is rendered
+assert shape(), "Should have a shape container"
+all_ovals = ovals()
+assert_equal 100, all_ovals.count, "Should have 100 ovals inside shape"

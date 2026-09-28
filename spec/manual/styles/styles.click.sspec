@@ -1,0 +1,17 @@
+---
+manual: styles.click
+lines: [1144, 1151]
+testability: interactive
+display: any
+ledger: G10
+----------- app code
+Shoes.app do
+  @count = para "0"
+  @go = button "Go", click: proc { @count.replace((@count.text.to_i + 1).to_s) }
+end
+----------- test code
+assert_equal "0", para("@count").text, "nothing has been clicked yet"
+
+button.trigger_click
+
+assert_equal "1", para("@count").text, "the proc given as the :click style ran once"

@@ -1,0 +1,7 @@
+#!/bin/sh
+# spec/run puts this directory first on PATH. A real osascript would put a dialog on the
+# user's screen; record the attempt so the runner can fail the case, then refuse.
+if [ -n "$SPEC_TRAP_FILE" ]; then
+  printf '%s\n' "$(basename "$0") $*" >> "$SPEC_TRAP_FILE"
+fi
+exit 1

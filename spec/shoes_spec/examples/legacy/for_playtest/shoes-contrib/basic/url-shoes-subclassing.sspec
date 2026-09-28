@@ -1,0 +1,37 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/url-shoes-subclassing.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/for_playtest/shoes-contrib/basic/url-shoes-subclassing.sspec
+----------- app code
+class BookList < Shoes
+  url '/', :index
+  url '/twain', :twain
+  url '/kv', :vonnegut
+
+  def index
+    para "Books I've read: \n",
+      link("by Mark Twain\n", :click => "/twain"),
+      link("by Kurt Vonnegut\n", :click => "/kv")
+  end
+
+  def twain
+    para "Just Huck Finn.\n",
+     link("Go back.", :click => "/")
+  end
+
+  def vonnegut
+    para "Cat's Cradle. Sirens of Titan. ",
+      "Breakfast of Champions.\n",
+      link("Go back.", :click => "/")
+  end
+end
+
+Shoes.app :width => 400, :height => 500
+----------- test code
+# URL routing with Shoes subclass - starts at index showing book links
+p = para()
+assert p.text.include?("Books I've read"), "Index page shows book list header"

@@ -1,0 +1,24 @@
+---
+manual: intro.draw_animate_effects
+lines: [51, 52]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  background white
+  nostroke
+  fill red
+  @ball = oval 10, 10, 40
+  animate(10) do |frame|
+    @ball.move(10 + frame * 10, 10)
+  end
+end
+----------- test code
+assert_equal [255, 0, 0], pixel_at(30, 30)[0, 3], "the shape is drawn"
+
+advance 1.0
+
+left = oval.left
+assert_operator left, :>=, 60, "the animation moved it"
+assert_equal [255, 0, 0], pixel_at(left + 20, 30)[0, 3], "and it is drawn where it went"
+refute_equal [255, 0, 0], pixel_at(30, 30)[0, 3], "not where it was"

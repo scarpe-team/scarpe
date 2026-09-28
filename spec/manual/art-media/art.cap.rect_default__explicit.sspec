@@ -1,0 +1,25 @@
+---
+manual: art.cap.rect_default
+lines: [1679, 1680]
+testability: visual
+display: native
+ledger: E10
+----------- app code
+Shoes.app width: 300, height: 200 do
+  stroke black
+  strokewidth 20
+  cap :project
+  line 50, 50, 150, 50
+  cap :rect
+  line 50, 150, 150, 150
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(155, 50, [0, 0, 0], "the first line projects")
+paints.(155, 150, [255, 255, 255], "after cap :rect the next line ends flat")
+paints.(148, 150, [0, 0, 0], "right at its end point")

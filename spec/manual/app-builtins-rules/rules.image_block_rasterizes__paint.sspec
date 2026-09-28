@@ -1,0 +1,26 @@
+---
+manual: rules.image_block_rasterizes
+lines: [410, 426]
+testability: visual
+display: native
+ledger: E9
+----------- app code
+# nostroke leaves only the fills, so stacking is visible (the manual's version also strokes).
+Shoes.app do
+  background white
+  fill black(0.1)
+  nostroke
+  @canvas = image 300, 300 do
+    100.times do |i|
+      oval i, i, i * 2
+    end
+  end
+end
+----------- test code
+box = layout_of(image("@canvas"))
+at = ->(x, y) { pixel_at((box.x + x).round, (box.y + y).round) }
+
+assert_in_delta 300, box.w, 0.5
+assert_operator at.call(100, 100)[0], :<, 100, "41 filled 10% ovals overlap here, so it is nearly black"
+assert_operator at.call(60, 60)[0], :>, at.call(100, 100)[0], "fewer overlap here, so it is lighter"
+assert_equal [255, 255, 255], at.call(250, 30)[0, 3], "no oval reaches this corner"

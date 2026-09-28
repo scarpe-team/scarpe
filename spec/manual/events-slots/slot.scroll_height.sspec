@@ -1,0 +1,16 @@
+---
+manual: slot.scroll_height
+lines: [2440, 2442]
+testability: visual
+display: native
+ledger: C5
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @list = stack width: 200, height: 100, scroll: true do
+    5.times { stack height: 40 }
+  end
+end
+----------- test code
+list = stack("@list")
+assert_in_delta 200, list.scroll_height, 0.5, "the full height, including the part scrolled out of view"
+assert_in_delta 100, layout_of(list).h, 0.5, "while only 100 pixels show"

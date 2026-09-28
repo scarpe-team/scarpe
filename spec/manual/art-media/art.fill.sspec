@@ -1,0 +1,25 @@
+---
+manual: art.fill
+lines: [1682, 1686]
+testability: visual
+display: native
+ledger: D8
+----------- app code
+Shoes.app width: 300, height: 200 do
+  stack left: 0, top: 0, width: 150, height: 150 do
+    fill red
+    nostroke
+    oval 10, 10, 50
+  end
+  nostroke
+  oval 160, 10, 50
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(35, 35, [255, 0, 0], "a shape drawn after fill is coloured in with it")
+paints.(185, 35, [0, 0, 0], "fill belongs to its slot; outside it shapes keep the default black fill")
