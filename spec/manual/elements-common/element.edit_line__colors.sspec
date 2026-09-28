@@ -1,0 +1,44 @@
+---
+manual: element.edit_line
+lines: [1978, 1982]
+testability: visual
+display: native
+ledger: G17
+----------- app code
+# An ext pin (ledger G17): a field can wear its page's colours. fill: paints the box,
+# border_color: draws its edge, and once stroke: has given the text a colour, the caret and the
+# focus halo take that colour too (CSS's caret-color is currentColor), instead of the default blue.
+Shoes.app(width: 400, height: 300) do
+  background "#f4efe6"
+  @plain = edit_line left: 20, top: 20
+  @paper = edit_line fill: "#fbf3d0", border_color: "#b3321e", stroke: "#1c1a17", left: 20, top: 80
+  @notes = edit_box fill: "#fbf3d0", border_color: "#b3321e", stroke: "#1c1a17", left: 20, top: 140
+end
+----------- test code
+near = ->(px, rgb, slack = 6) { px.first(3).zip(rgb).all? { |got, want| (got - want).abs <= slack } }
+blue = ->(px) { px[2] - px[0] > 40 }
+mid = ->(r) { [r.x + r.w - 14, r.y + r.h / 2] }
+
+plain = layout_of(edit_line("@plain"))
+assert near.(pixel_at(*mid.(plain)), [255, 255, 255]), "a field given no colours stays white"
+
+paper = layout_of(edit_line("@paper"))
+assert near.(pixel_at(*mid.(paper)), [0xfb, 0xf3, 0xd0]), "fill: paints the line's box: #{pixel_at(*mid.(paper)).inspect}"
+edge = pixel_at(paper.x + paper.w / 2, paper.y)
+assert edge[0] - edge[2] > 30, "border_color: draws its edge: #{edge.inspect}"
+notes = layout_of(edit_box("@notes"))
+assert near.(pixel_at(*mid.(notes)), [0xfb, 0xf3, 0xd0]), "and an edit box's: #{pixel_at(*mid.(notes)).inspect}"
+
+edit_line("@plain").focus
+wait_frames
+halo = pixel_at(plain.x + plain.w / 2, plain.y - 2)
+assert blue.(halo), "the default focus halo is blue: #{halo.inspect}"
+
+edit_line("@paper").focus
+wait_frames
+halo = pixel_at(paper.x + paper.w / 2, paper.y - 2)
+refute blue.(halo), "a field with stroke: has a halo in its ink, not blue: #{halo.inspect}"
+refute near.(halo, [0xf4, 0xef, 0xe6], 2), "but a halo all the same: #{halo.inspect}"
+caret = (paper.x.round + 6..paper.x.round + 12).map { |x| pixel_at(x, (paper.y + paper.h / 2).round) }
+assert caret.any? { |px| px.first(3).max < 90 }, "the caret is drawn in the text's ink: #{caret.inspect}"
+refute caret.any?(&blue), "never the default blue"

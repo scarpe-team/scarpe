@@ -5,6 +5,7 @@ class Shoes
     include Shoes::Focusable
 
     shoes_styles :text, :height, :width, :tooltip, :font, :stroke
+    shoes_styles :fill, :border_color # the box and its edge, in the page's colours (ledger G17)
     shoes_style :change # the handler (manual 1123-1128, ledger G10)
     shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
     shoes_events :change
