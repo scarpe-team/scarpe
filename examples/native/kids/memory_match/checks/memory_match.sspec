@@ -91,7 +91,10 @@ assert_equal [first.animal], ivar.(:@found)
 click_at(*middle.(miss))
 advance 0.4
 click_at(*middle.(twin_of_miss))
-advance 2.0
+advance 1.5
+drop = Array.new(8) { advance 0.05; layout_of(ivar.(:@win_box)).y }
+assert drop.all? { |y| y.between?(0, 200) }, "the win card drops in from the top, never from the bottom: #{drop.inspect}"
+advance 0.1
 assert_equal :done, ivar.(:@won)
 assert heard.(:hooray)
 assert para("You did it!")

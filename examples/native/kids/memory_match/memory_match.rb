@@ -48,6 +48,7 @@ GOLD = [255, 190, 40]
 CONFETTI = [[255, 94, 98], [255, 152, 48], [247, 190, 22], [46, 196, 112], [22, 184, 172], [64, 146, 255],
   [146, 104, 250], [255, 100, 176]]
 FLIP = 0.32 # seconds for a card to turn over
+WIN_FROM, WIN_AT = 12, 150 # where the win card drops in from, and where it lands
 
 # A small synthesizer. Every sound is worked out once, written to a WAV file,
 # and played in the background with afplay while the game carries on.
@@ -734,7 +735,7 @@ Shoes.app(title: "Memory Match", width: W, height: H, resizable: false) do
     save_progress
     @voices.play(:hooray)
     @cards.each_with_index { |card, i| card.hop = -i * 0.05 }
-    @win_layer.clear { @win_box = stack(left: 0, top: -380, width: W, height: 360) { win_card(earned, best) } }
+    @win_layer.clear { @win_box = stack(left: 0, top: WIN_FROM, width: W, height: 360) { win_card(earned, best) } }
     @win_drop = 0.0
     @win_layer.show
     confetti
@@ -1008,11 +1009,13 @@ Shoes.app(title: "Memory Match", width: W, height: H, resizable: false) do
     @tiles[@beckon].move(120 + @beckon * 250, (262 - nod).round(1))
   end
 
-  # The win card drops in from above and bounces to a stop.
+  # The win card drops in and bounces to a stop. (It starts just inside the
+  # window: Shoes reads a slot's negative top as "up from the bottom", so a
+  # card dropping from above the window would first flash up at the bottom.)
   def drop_tick
     @win_drop += 1.0 / 60
-    @win_box.move(0, (-380 + 530 * overshoot(@win_drop / 0.7)).round(1))
-    @win_drop = nil if @win_drop >= 0.7
+    @win_box.move(0, (WIN_FROM + (WIN_AT - WIN_FROM) * overshoot(@win_drop / 0.6)).round(1))
+    @win_drop = nil if @win_drop >= 0.6
   end
 
   # Not a pair: both cards give a small shake of the head.
