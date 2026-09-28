@@ -22,7 +22,9 @@ myapp.rb` does the same.
 | `--install-dir DIR` | where the app will live once installed (default `/Applications`); its Ruby is precompiled for that place, see [Bytecode](#bytecode) |
 | `--no-bytecode` | skip precompiling |
 | `--minimal` | strip optional Ruby libraries: a 17.7 MB app instead of 32.4 MB; OpenSSL and FastImage go, so https image downloads and image sizes cannot work |
-| `--name`, `--icon`, `--output`, `--verbose` | as for any `scarpe package` build |
+| `--include PATH` | also carry a file or folder the app reads (repeatable): one inside the app's folder keeps its relative path, one elsewhere lands under its own name; an included `.rb` file is compiled like the app |
+| `--name NAME` | the name Finder, the Dock and the disk image show, kept as written (`"For Noah"`); without it the name comes from the file, CamelCased (`for_noah.rb` is `ForNoah`) |
+| `--icon`, `--output`, `--verbose` | as for any `scarpe package` build |
 
 A native package is always ad-hoc signed (Apple silicon runs nothing unsigned, and stripping the
 Rust binary drops the signature the linker gave it). `--universal` is not supported yet.
@@ -40,7 +42,7 @@ MyApp.app/Contents/
   MacOS/scarpe-launcher           bash: Traveling Ruby's environment, then exec ruby boot.rb
   MacOS/scarpe-native             the release Rust binary, stripped and signed      6.5 MB
   Resources/boot.rb               bytecode on, require "scarpe", YJIT later, run the app
-  Resources/app/                  myapp.rb and its assets
+  Resources/app/                  myapp.rb, its assets and anything named with --include
   Resources/scarpe/               lib, lacci/lib, scarpe-components/lib, CHANGELOG   0.6 MB
   Resources/scarpe/gems/          fastimage and base64 (pure Ruby), for image sizes
   Resources/bytecode/             150 precompiled files and a manifest               1.5 MB
@@ -181,5 +183,6 @@ headless from bytecode, and boots a moved copy from source.
   per-user cache compiled on first launch, bootsnap-style, would cover it.
 - LaunchServices identity: the window belongs to `scarpe-native`, a child of the launcher. Dock
   name and icon for a double-clicked app were not checked, since that needs `open`.
-- Like the webview packager, only the app file and its assets are copied; other `.rb` files the
-  app requires are not.
+- Like the webview packager, the app file, the pictures and sounds beside it and the `images`,
+  `assets`, `fonts` and `sounds` folders are copied on their own; any other file or folder the
+  app reads, `.rb` files it requires included, needs an `--include`.
