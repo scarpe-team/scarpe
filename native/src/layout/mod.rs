@@ -196,6 +196,7 @@ pub fn layout(inputs: Inputs, root: Id, size: (f32, f32)) -> Layout {
         out: Layout { size, root, ..Layout::default() },
         attached: Vec::new(),
         depth: 0,
+        row_floor: None,
     };
     engine.text.begin_layout(root);
     engine.root(root, size);
@@ -213,6 +214,9 @@ struct Engine<'a> {
     attached: Vec<(Id, Attach)>,
     /// How many slots (and shape blocks) deep the node being placed sits.
     depth: usize,
+    /// The height a slot about to be placed in a flow reaches down to at least: the bottom of
+    /// what came before it on its row (ledger C16). Taken by the next slot.
+    row_floor: Option<f32>,
 }
 
 #[derive(Clone, Copy)]
@@ -381,7 +385,11 @@ impl Engine<'_> {
         }
         let x = content.x + cursor.x + m.left;
         let y = content.y + cursor.y + m.top;
+        // A slot with no height of its own beside what came before it on the row reaches down to
+        // the bottom of that, as Shoes 3 grows it to its parent's end (s3_canvas.c:639-642).
+        self.row_floor = (flow && cursor.x > 0.0 && node.kind.is_slot()).then(|| cursor.row_h - m.vertical());
         let h = self.place_box(node, x, y, width, parent, &m);
+        self.row_floor = None;
         if flow {
             cursor.x += m.horizontal() + width;
             cursor.row_h = cursor.row_h.max(m.vertical() + h);
@@ -581,12 +589,13 @@ impl Engine<'_> {
 
     /// A slot: its children, then its decor and positioned children, then scrolling.
     fn slot(&mut self, node: &Node, frame: Rect, explicit_h: Option<f32>, parent: (f32, f32)) -> f32 {
+        let floor = self.row_floor.take().unwrap_or(0.0);
         let padding = node.props.padding(frame.w);
         let content = Rect::new(frame.x + padding.left, frame.y + padding.top, (frame.w - padding.horizontal()).max(0.0), 0.0);
         let avail_h = explicit_h.map(|h| (h - padding.vertical()).max(0.0)).unwrap_or(parent.1);
         let flow = matches!(node.kind, Kind::Flow | Kind::DocumentRoot | Kind::Widget | Kind::Mask);
         let (used, later) = self.children(node.id, flow, content, avail_h);
-        let h = explicit_h.unwrap_or(used + padding.vertical());
+        let h = explicit_h.unwrap_or((used + padding.vertical()).max(floor));
         let slot_box = Rect::new(frame.x, frame.y, frame.w, h);
         self.record(node, slot_box, parent);
         self.out.content_heights.insert(node.id, used + padding.vertical());

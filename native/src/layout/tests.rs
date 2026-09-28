@@ -632,3 +632,30 @@ fn an_indented_paragraph_counts_characters_from_its_own_text() {
     let end = tb.shaped.cursor_at(LONG.chars().count());
     assert_eq!(tb.shaped.char_index(end), LONG.chars().count());
 }
+
+#[test]
+fn a_slot_beside_a_taller_one_in_a_flow_reaches_down_to_its_bottom() {
+    // Shoes 3 grows a slot with no height of its own to its parent's end as it draws it
+    // (shoes_canvas_draw: fully = canvas->endy = max(canvas->endy, endy + bmargin), and
+    // place.h = canvas->endy - place.y, s3_canvas.c:639-642), and the parent's end is already the
+    // bottom of what came before on the row. So Hackety Hack's lesson pane, beside its 549 px
+    // content flow, is dark to the window's foot with its buttons along it; native stopped it at
+    // its own content and left a white strip under it.
+    let mut s = Scene::new();
+    let tall = s.add("Flow", ROOT, json!({"width": 200, "height": 300}));
+    let pane = s.add("Stack", ROOT, json!({"width": 150}));
+    let back = s.add("Background", pane, json!({"fill": "#111"}));
+    let words = s.add("Stack", pane, json!({"height": 100}));
+    let bar = s.add("Flow", pane, json!({"height": 32, "bottom": 0}));
+    let under = s.add("Stack", ROOT, json!({"width": 400}));
+    let short = s.add("Stack", under, json!({"width": 100}));
+    s.add("Stack", short, json!({"height": 40}));
+    let l = s.layout(400.0, 400.0);
+    assert_eq!(r(&l, tall), Rect::new(0.0, 0.0, 200.0, 300.0));
+    assert_eq!(r(&l, pane), Rect::new(200.0, 0.0, 150.0, 300.0), "as tall as the flow before it");
+    assert_eq!(r(&l, back), Rect::new(200.0, 0.0, 150.0, 300.0), "and its background with it");
+    assert_eq!(r(&l, words), Rect::new(200.0, 0.0, 150.0, 100.0));
+    assert_eq!(r(&l, bar), Rect::new(200.0, 268.0, 150.0, 32.0), "bottom: 0 is at the stretched foot");
+    assert_eq!(r(&l, short).h, 40.0, "the first on its row has nothing to reach down to");
+    let _ = under;
+}

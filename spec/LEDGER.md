@@ -93,6 +93,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | C13 | A fixed height clips the slot | MANUAL | | |
 | C14 | An explicit width or height includes the margins | S3, ruled (Q9) | | |
 | C15 | A number on art is a plain coordinate, negative or under 1 | S3; MANUAL for Floats | | |
+| C16 | A slot with no height reaches down to its row's bottom in a flow | S3 | | new 28 Sep |
 
 ### D. Colours and patterns
 
@@ -563,6 +564,15 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Spec:** `styles.left__art_negative` (both displays): an oval, arc, arrow and rect keep a negative `left` and `top` as given. `styles.left__art_negative__drawn` (native): `oval -30, 50, 100` has its box at x = -30 and shows its right half at the window's left edge.
 - **Native:** since wave 5 (`b52957b`, `shapes::coordinate`) art's `left` and `top`, a line's ends and a shape block's origin read a negative number as a plain coordinate: the example above lays out at `#3 Oval -30,50`. Before, it read as that far in from the slot's far edge (`#3 Oval 270,50`), the dimension rule every other element keeps. Fractions and percentages stay relative to the slot.
 - **Extended 28 Sep 2026 (wave 6), ruling MANUAL for Floats:** every number on art is pixels, Floats between 0 and 1 included, and a size too (`width`, `height`); only a percentage String is of the slot, and a negative size keeps the dimension rule. The manual draws an oval "at pixel coordinates (left, top)" with a width "of `radius` pixels" (manual 1716-1722), and Shoes 3 reads every art number as whole pixels (`shoes_place_exact`, `ATTR2(int, ...)`, `s3_ruby.c:385-392`). Two of the four wave-6 app lanes met the fraction reading on their own: Weather Window's rain streaks stretched across the glass whenever a drop passed x = 0.5, Aquarium's kelp drew a chevron into the castle, and a star of diameter 0.8 filled 80% of the slot; both apps carried a `px` helper to keep art off (0, 1]. C1 still rules every other element: `stack(width: 0.5)` is half its parent. **Spec:** `art.oval.positional__float_pixels` (native). **Native:** `shapes::coordinate` and `shapes::size`; `oval 0.5, 0.5, 12, center: true` lays out at (-5.5, -5.5), where it read (144, 94).
+
+### C16. A slot with no height reaches down to its row's bottom in a flow
+
+**Ruling: S3.** **Native change, done 28 Sep 2026** (the w9 polish lane). New row, from Hackety Hack.
+
+- **Manual:** silent on how tall a slot with no height is beyond "height goes on and on" (manual 1584-1587).
+- **Shoes 3:** a slot drawn on its parent's surface ends its draw with `self_t->fully = canvas->endy = max(canvas->endy, self_t->endy + bmargin)` and `place.h = canvas->endy - place.y` (`shoes_canvas_draw`, `s3_canvas.c:639-642`): its height runs to the parent's end so far, and in a flow that is the bottom of whatever came before it on its row. Its backgrounds fill that (a tile's height is `max(canvas->height, CPH(canvas))`, `s3_ruby.c:481-487`), and a child placed by `bottom:` sits against it (`PX2(..., canvas->fully)`, `s3_ruby.c:524-525`). In a stack each slot starts its own row, so nothing changes there.
+- **Examples:** Hackety Hack's window is a flow of its 549 px content flow and its lesson pane, `stack :width => 400` with no height, whose page is `background gray(0.1)`, a scrolling stack `:height => -32` and a nav bar `flow :height => 32, :bottom => 0` (`app/ui/lessons.rb:229-261`). The Mac 1.0 screenshot has the pane dark to y 549 with its arrows at rows 530 to 536; native stopped it at 518, its content, left a white strip under it and put the arrows at 498 to 505.
+- **Native:** since 28 Sep a slot with no `height` placed in a flow after something on its row is at least as tall as the row so far, margins aside (`layout::place_in_flow`, `Engine::row_floor`); the first on a row, and every slot in a stack, is as tall as its content, as before. **Test:** `layout::tests::a_slot_beside_a_taller_one_in_a_flow_reaches_down_to_its_bottom`.
 
 ## D. Colours and patterns
 
