@@ -52,6 +52,26 @@ class TestErrorReport < Minitest::Test
     end
   end
 
+  # "path" and "line" prefer the program's own frame, however its path is spelled. On a Mac
+  # /var and /tmp are links into /private, and Ruby names a loaded file by its real path.
+  def test_the_program_frame_is_found_through_a_link_in_its_path
+    Dir.mktmpdir do |real|
+      Dir.mktmpdir do |links|
+        File.write(File.join(real, "helper.rb"), "module ErrorReportLinkedHelper\n  def self.go\n    raise 'the helper broke'\n  end\nend\n")
+        File.write(File.join(real, "program.rb"), "require_relative 'helper'\nErrorReportLinkedHelper.go\n")
+        File.symlink(real, File.join(links, "linked"))
+        program = File.join(links, "linked", "program.rb")
+        error = begin
+          load program
+        rescue RuntimeError => e
+          e
+        end
+        err = Shoes::ErrorReport.from(error, during: "startup", program: program)
+        assert_equal [File.realpath(program), 2], [File.realpath(err["path"]), err["line"]], "the program's line, not its helper's"
+      end
+    end
+  end
+
   def test_an_error_with_no_backtrace_has_no_place
     err = Shoes::ErrorReport.from(RuntimeError.new("made, never raised"), during: "exit")
     assert_equal [nil, nil, []], err.values_at("path", "line", "backtrace")

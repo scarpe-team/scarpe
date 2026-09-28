@@ -71,9 +71,11 @@ class Shoes
         LIBRARY_DIRS.any? { |dir| File.expand_path(path).start_with?(dir) }
     end
 
+    # Ruby names a loaded file by its real path, and on a Mac /var and /tmp are links into
+    # /private, so two spellings of one file are compared by where they lead too.
     def same_file?(a, b)
-      File.expand_path(a) == File.expand_path(b)
-    rescue ArgumentError
+      File.expand_path(a) == File.expand_path(b) || File.realpath(a) == File.realpath(b)
+    rescue ArgumentError, SystemCallError
       false
     end
 
