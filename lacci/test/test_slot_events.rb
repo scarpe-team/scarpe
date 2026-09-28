@@ -52,6 +52,36 @@ class TestSlotEvents < NienteTest
     SHOES_SPEC
   end
 
+  # Ledger H6: a slot keeps one handler per event, as Shoes 3 does (EVENT_HANDLER stores
+  # one proc per slot per event, s3_canvas.c:934-955), so registering it again replaces the
+  # first. Hackety Hack's editor rebuilds its slot with clear and gives it a keypress each
+  # time; with both kept, every key was typed twice, then three times.
+  def test_registering_a_slot_event_again_replaces_the_first
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $seen = []
+        $editor = stack do
+          keypress { |k| $seen << [:first, k] }
+          click { $seen << [:click] }
+        end
+        $editor.clear do
+          keypress { |k| $seen << [:second, k] }
+        end
+      end
+    SHOES_APP
+      handlers = ->(name) { $editor.contents.select { |d| d.is_a?(Shoes::SubscriptionItem) && d.shoes_api_name == name } }
+      assert_equal 1, handlers.("keypress").size, "one keypress handler is left"
+      Shoes::DisplayService.dispatch_event("keypress", handlers.("keypress").first.linkable_id, "a")
+      assert_equal [[:second, "a"]], $seen
+
+      assert_equal 1, handlers.("click").size, "another event's handler is not touched"
+      $editor.click { $seen << [:click_again] }
+      assert_equal 1, handlers.("click").size
+      Shoes::DisplayService.dispatch_event("click", handlers.("click").first.linkable_id, 1, 0, 0)
+      assert_equal [:click_again], $seen.last
+    SHOES_SPEC
+  end
+
   # Visiting a page starts from nothing, handlers and timers included, as Shoes 3
   # resets the whole canvas on visit.
   def test_visiting_a_page_drops_the_old_pages_handlers

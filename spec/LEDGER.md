@@ -174,7 +174,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | H3 | Coordinate frame of mouse events | S3, ruled (Q4) | | |
 | H4 | The extra `mods` argument | MANUAL | | |
 | H5 | `hover`/`leave` get the slot | MANUAL | | |
-| H6 | Registering an event twice | BOTH | | |
+| H6 | Registering an event twice | S3 | | done 28 Sep |
 | H7 | `wheel` | EXT | | |
 | H8 | `start` and `finish` | MANUAL | | |
 | H9 | Slot event handlers survive `clear` | MANUAL | | |
@@ -1151,12 +1151,13 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### H6. Registering a slot event twice: replace or add?
 
-**Ruling: BOTH.** The spec does not register twice.
+**Ruling: S3, 28 Sep 2026 (w9).** A slot keeps one handler per event: a second `click`, `keypress`, `hover`, `leave`, `motion`, `release` or `wheel` block given to the same slot replaces the first, as in Shoes 3. The manual is silent. The ruling was BOTH while nothing depended on either; Hackety Hack does. **Lacci change, done 28 Sep 2026.**
 
 - **Shoes 3:** `EVENT_HANDLER` stores one proc per slot per event (`s3_canvas.c:934-955`), so the second replaces the first.
 - **Shoes 4:** `motion` appends; change listeners accumulate (`s4_dsl_interaction.rb:23-26`, `s4_common_changeable.rb:13-16`).
-- **Lacci today:** slot and app events make a new SubscriptionItem per call, so they accumulate (`app.rb:414-422`); element `click`/`change` replace `@block`.
-- **Spec:** nothing. **Native:** nothing; each SubscriptionItem is its own node.
+- **Examples:** Hackety Hack's editor rebuilds its slot with `clear` for every program it opens and calls `keypress` again (`app/ui/editor/editor.rb`, `on_keypress`). `clear` keeps the slot's handlers (H9), so with handlers adding up, each key was typed twice once a second program had opened, three times after a third. No example gives one slot the same event twice at once: `native/legendary/weather_window.rb` and `ledger.rb` give each page its own `keypress`, and `visit` starts every page from nothing.
+- **Lacci today:** slot and app events make a new SubscriptionItem per call (`app.rb:459-466`); element `click`/`change` replace `@block`. Since 28 Sep the new SubscriptionItem destroys any earlier one for the same event in its slot (`SubscriptionItem#replace_earlier_handlers`). Timers still add up: in Shoes 3 each is an object of its own, not a slot's style.
+- **Spec:** `events.keypress__again_replaces` (a slot rebuilt with `clear` and given another `keypress` hears a key once, in the new block) and `events.click__again_replaces` (native); `lacci/test/test_slot_events.rb` checks the handler left behind. **Native:** nothing; the replaced SubscriptionItem is destroyed like any drawable.
 
 ### H7. `wheel`
 
