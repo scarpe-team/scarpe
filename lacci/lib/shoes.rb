@@ -125,7 +125,9 @@ class Shoes
     #   In Scarpe, after the block is executed, the method will not return and Scarpe
     #   will retain control of execution until the window is closed and the app quits.
     #
-    # @incompatibility In Shoes3 the parameters were a hash of options, not keyword arguments.
+    # The styles come as keywords, or as one Hash, the way Ruby 1.9 programs passed them
+    # (Hackety Hack's turtle: Shoes.app opts), which Ruby 3 hands over as a positional
+    # argument (ledger A10). Keywords given beside a Hash win.
     #
     # @example Simple one-button app
     #   Shoes.app(title: "Button!", width: 200, height: 200) do
@@ -133,6 +135,7 @@ class Shoes
     #     button("clicky") { @p.replace("You pressed it! CELEBRATION!") }
     #   end
     #
+    # @param styles [Hash] the styles below, as a Hash
     # @param title [String] The new app window title
     # @param width [Integer] The new app window width
     # @param height [Integer] The new app window height
@@ -140,7 +143,17 @@ class Shoes
     # @param features [Symbol,Array<Symbol>] Additional Shoes extensions requested by the app
     # @return [Shoes::App] the new app (manual 859, ledger A3)
     # @see Shoes::App#new
-    def app(
+    def app(styles = {}, **keywords, &app_code_body)
+      unless styles.is_a?(Hash)
+        raise ArgumentError, "Shoes.app takes its styles as keywords or a Hash, not #{styles.inspect}"
+      end
+
+      open_app(**styles.transform_keys(&:to_sym), **keywords, &app_code_body)
+    end
+
+    private
+
+    def open_app(
       title: Shoes::App::DEFAULT_TITLE,
       width: Shoes::App::DEFAULT_WIDTH,
       height: Shoes::App::DEFAULT_HEIGHT,
@@ -198,6 +211,8 @@ class Shoes
       app.run
       app
     end
+
+    public
 
     # Load a Shoes app from a file. By default, this will load old-style Shoes apps
     # from a .rb file with all the appropriate libraries loaded. By setting one or
