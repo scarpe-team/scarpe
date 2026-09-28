@@ -52,6 +52,9 @@ module Scarpe::Native
 
     # What a handler may raise that ends the app instead of being logged.
     FATAL = [SystemExit, SignalException, NoMemoryError].freeze
+    # Places a handler's errors are counted at, for the log (report_handler_error); past this
+    # many the count starts again.
+    ERROR_PLACES = 1000
 
     class << self
       attr_accessor :instance
@@ -482,14 +485,35 @@ module Scarpe::Native
       @child_log.public_send(level, message)
     end
 
-    # Logged, listed in the Shoes console and handed to Shoes.on_error, as a Hash.
+    # Logged, listed in the Shoes console and handed to Shoes.on_error, as a Hash. A timer or an
+    # animation that raises raises each time it runs, often in words that change ("index 4",
+    # then "index 5"), and a line each time, at 30 frames a second, grows the log a packaged
+    # app keeps on disk by some 23 MB an hour. So the log says an error in full the first time
+    # it comes from a place (its class, the program's line, the kind of block), then only how
+    # often, as the count there reaches 10, 100, 1000 and so on. The console and
+    # Shoes.on_error still hear every one.
     def report_handler_error(error, context, during: "handler")
       app_frame = Array(error.backtrace).find do |frame|
         !frame.start_with?(*LIBRARY_DIRS) && !frame.include?("/gems/") && !frame.start_with?("<internal:")
       end
-      @log.error("#{error.class}: #{error.message} in the #{context}#{" (at #{app_frame})" if app_frame}", console: false)
-      @log.debug(Array(error.backtrace).join("\n"), console: false)
+      at = " (at #{app_frame})" if app_frame
+      message = Shoes::ErrorReport.message_of(error)
+      count = count_handler_error([error.class, app_frame || context, during])
+      if count == 1
+        @log.error("#{error.class}: #{message} in the #{context}#{at}", console: false)
+        @log.debug(Array(error.backtrace).join("\n"), console: false)
+      elsif count.to_s.match?(/\A10+\z/)
+        @log.error("#{error.class} in the #{context} again, #{count} times now#{at}; the latest: #{message[0, 200]}",
+          console: false)
+      end
       Shoes.report_error(error, during: during)
+    end
+
+    # How many times an error has come from this place, this one included.
+    def count_handler_error(place)
+      @handler_errors ||= Hash.new(0)
+      @handler_errors.clear if @handler_errors.size >= ERROR_PLACES && !@handler_errors.key?(place)
+      @handler_errors[place] += 1
     end
   end
 end

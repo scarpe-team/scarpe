@@ -26,7 +26,7 @@ straightforward as possible.
 - `Shoes.show_manual` opens the manual in a window of its own, drawn from `docs/static/manual.md` with its chapters down the left, as Shoes 3's did; it no longer opens a browser
 - Lacci: `Para#hit(x, y)` answers the character under a point, and `cursor_top` and the new `cursor_left` where the caret sits in the slot that scrolls it, asked of the native display; `Shoes.app`, `window` and `dialog` take their styles as a Hash too, as Ruby 1.9 programs pass them
 - A negative `left` or `top` puts anything past its slot's near edge, as Shoes 3 read it (Nick's ruling of Q10, ledger C18): Hackety Hack's hand drops in from above the window again, and Ready sweeps the intro away to the left
-- `Shoes.on_error { |err| }` hears every error a handler, a timer or the startup raises, as a Hash; the Shoes console lists them, newest first, with what `debug`, `info` and `error` said, and opens with Alt-/ (Cmd-/ on a Mac) or `Shoes.show_console`, never by itself
+- `Shoes.on_error { |err| }` hears every error a handler, a timer or the startup raises, as a Hash; the Shoes console lists them, newest first, with what `debug`, `info` and `error` said, and opens with Alt-/ (Cmd-/ on a Mac) or `Shoes.show_console`, never by itself; the log says an error a timer raises every frame once, then how often
 - `Shoes.run_program(path)` runs a Shoes program in a process of its own and returns a `Shoes::Program` (`stop`, `on_output`, `on_error`, `on_exit`), so a program that never stops freezes only itself; a packaged app's launcher runs `SCARPE_RUN_FILE` instead of the app
 ### Bugs Fixed
 - #569 link(click: "/path") now triggers internal navigation via visit(); paths like "/foo" also fall back to page(:foo) if no URL route matches

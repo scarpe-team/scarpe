@@ -213,8 +213,10 @@ the app too. DESIGN section 5.5 has the protocol.
 
 ## When something goes wrong: `Shoes.on_error` and the console
 
-An error in a click, a timer or an animation is logged, and the app goes on. `Shoes.on_error`
-hears each one too, and what stops the program loading:
+An error in a click, a timer or an animation is logged, and the app goes on. A timer that
+raises raises every frame, so the log says an error in full the first time it comes from a line,
+then only how often, as the count reaches 10, 100, 1000 and so on. `Shoes.on_error` hears each
+one, every time, and what stops the program loading:
 
 ```ruby
 Shoes.on_error do |err|

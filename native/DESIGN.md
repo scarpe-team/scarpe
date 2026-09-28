@@ -422,6 +422,11 @@ evaluated a child's program inside Hackety Hack, and `while true` took Hackety H
   on up), `"handler"` (an event, the heartbeat, a program's block), `"timer"` (`animate`,
   `every`, `timer`) or `"exit"` (only a program reports it, 5.5). Test code that clicks or
   advances still has its errors raised in the test instead (section 8).
+- **The log line.** A timer that raises raises every frame, often in words that change, so
+  the log says an error in full the first time it comes from a place (its class, the
+  program's line, the kind of block) and then once as the count there reaches 10, 100, 1000
+  and so on, with the latest words (`report_handler_error`, ledger K9). `Shoes.on_error` and
+  the console hear every one.
 - **The Shoes console** (`Shoes::Console`, `lacci/lib/shoes/console.rb`; ledger K8) is a Shoes
   window titled "Shoes Console" that lists, newest first, the program's `debug`, `info` and
   `error` lines (which still print as before), every error `Shoes.on_error` hears, with where it
