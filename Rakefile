@@ -70,16 +70,29 @@ Rake::TestTask.new(:component_test) do |t|
   t.test_files = FileList['scarpe-components/test/**/test_*.rb']
 end
 
+# WINDOWLESS=1 runs the fixture tasks' examples against tasks/windowless_webview, a stand-in for
+# the webview_ruby gem: Scarpe builds the same HTML and no window opens. CI checks with the real
+# webview. The stand-in is proven to load before any example runs, since the real one shows windows.
+def windowless_webview!
+  return unless ENV["WINDOWLESS"]
+
+  ENV["RUBYOPT"] = ["-I#{File.expand_path("tasks/windowless_webview", __dir__)}", ENV["RUBYOPT"]].compact.join(" ")
+  loaded = `bundle exec ruby -e 'require "webview_ruby"; print WebviewRuby::WINDOWLESS'`
+  abort "WINDOWLESS: the webview stand-in did not load, so stopping before a window opens" unless loaded == "true"
+end
+
 namespace :test do
-  desc 'Regenerate HTML fixtures'
+  desc 'Regenerate HTML fixtures (WINDOWLESS=1 opens no window)'
   task :regenerate_html_fixtures do |_t|
     ENV['SELECTED_FILE'] = ARGV[-1] if ARGV[-1].include?('.rb')
+    windowless_webview!
     load 'tasks/regenerate_html_fixtures.rb'
   end
 
-  desc 'Check HTML fixtures against latest output'
+  desc 'Check HTML fixtures against latest output (WINDOWLESS=1 opens no window)'
   task :check_html_fixtures do |_t|
     ENV['SELECTED_FILE'] = ARGV[-1] if ARGV[-1].include?('.rb')
+    windowless_webview!
     load 'tasks/check_html_fixtures.rb'
   end
 end

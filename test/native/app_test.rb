@@ -93,11 +93,14 @@ class AppTest < Minitest::Test
       end
     RUBY
     assert_clean_exit(run)
+    # Counted from 0, one at a time, on the real clock. How many fit in 0.4 s is how often the
+    # machine wakes a sleeping process: a macOS runner fired 4 frames where 16 were due, as this
+    # Mac does under `taskpolicy -c background`, and a late timer skips the frames it missed.
     frames, counts = run.stdout.lines.map { |line| JSON.parse(line) }
     assert_equal (0...frames.size).to_a, frames, "animate counts frames from 0, one at a time"
-    assert_operator frames.size, :>=, 5
+    assert_operator frames.size, :>=, 2, run.stdout
     assert_equal (0...counts.size).to_a, counts, "every counts from 0"
-    assert_operator counts.size, :>=, 3
+    assert_operator counts.size, :>=, 2, run.stdout
   end
 
   def test_a_raising_handler_is_logged_and_the_loop_keeps_going
@@ -433,9 +436,11 @@ class AppTest < Minitest::Test
       end
     RUBY
     assert_clean_exit(run)
+    # Frames moved on during the wait. How far is the machine's timer precision, not ours
+    # (test_ruby_timers_fire_at_the_right_counts_in_real_time): throttled, this Mac showed frame 1.
     frame = run.stdout[/"frame (\d+)"/, 1]
     assert frame, run.stdout
-    assert_operator frame.to_i, :>=, 3
+    assert_operator frame.to_i, :>=, 1, run.stdout
     resize = run.of_type("req").find { |req| req["op"] == "resize" }
     assert_equal({ "w" => 300, "h" => 200 }, resize.slice("w", "h"))
     assert_operator run.received.index(resize), :<, run.received.index(run.of_type("req").find { |req| req["op"] == "layout" })
