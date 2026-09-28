@@ -86,7 +86,7 @@ module Scarpe::Native
       automation.frames(1)
       automation.resize(*@size) if @size
       @steps.each { |action, value| send("do_#{action}", value) }
-    rescue StandardError => e
+    rescue StandardError, ScriptError => e # a handler's SyntaxError or LoadError fails the run too
       @failed = true
       $stderr.puts("peek: #{e.is_a?(Scarpe::Error) ? e.message : "#{e.class}: #{e.message}"}")
     ensure
