@@ -46,9 +46,9 @@ INK = "#3b2a22"
 # edge (room to wiggle, as a slot's position is never negative here).
 WINDOW_W, WINDOW_H, BASE, MOLE_X, SLIDE = 200, 246, 220, 94, 6
 # The trophy card, and its two buttons: left, top, width, height in the window.
-CARD = [W / 2 - 230, 90, 460, 470]
-AGAIN = [CARD[0] + 60, CARD[1] + 386, 150, 66]
-HOME = [CARD[0] + 250, CARD[1] + 386, 150, 66]
+CARD = [W / 2 - 230, 64, 460, 520]
+AGAIN = [CARD[0] + 60, CARD[1] + 430, 150, 66]
+HOME = [CARD[0] + 250, CARD[1] + 430, 150, 66]
 CONFETTI = %w[#ff8787 #ffc078 #ffe066 #8ce99a #74c0fc #b197fc]
 
 Mole = Struct.new(:x, :y, :scale, :note, :hat, :state, :time, :stay, :offset, :window, :slot, :hat_slot,
@@ -635,7 +635,7 @@ Shoes.app(title: "Peekaboo Moles", width: W, height: H, resizable: false) do
     case m.state
     when :rise
       m.offset = down * (1 - spring(m.time / 0.4))
-      boo(m) if m.time >= 0.75
+      boo(m) if m.time >= 0.9
     when :up
       m.offset = 0
       look_about(m)
@@ -658,8 +658,11 @@ Shoes.app(title: "Peekaboo Moles", width: W, height: H, resizable: false) do
       m.offset = down - 170 * s * Math.sin(Math::PI * [m.time / 1.6, 1].min)
       rest(m) if m.time >= 1.6
     when :dance
-      rising = [m.offset, down * (1 - spring(m.time / 0.4))].min if m.time < 0.4
-      m.offset = rising || (Math.sin(m.time * 9) * 0.5 + 0.5) * 22 * s if m.time >= 0
+      if m.time.between?(0, 0.4) # springing up out of the hole to join in
+        m.offset = [m.offset, down * (1 - spring(m.time / 0.4))].min
+      elsif m.time > 0.4 # and bouncing to the music
+        m.offset = (Math.sin(m.time * 9) * 0.5 + 0.5) * 22 * s
+      end
       if m.time >= 3.0
         m.state = :up
         m.stay = 0.6
@@ -675,6 +678,13 @@ Shoes.app(title: "Peekaboo Moles", width: W, height: H, resizable: false) do
     place(m.hat_slot, (MOLE_X - 60) * s, 16 * s - hop) unless hop == m.hat_shown
     m.hat_shown = hop
     spin_propeller(m)
+    shimmer(m) if m.golden && m.state != :down && @frame % 6 == 0
+  end
+
+  # The golden mole twinkles, so it is easy to spot.
+  def shimmer(m)
+    a = rand * 2 * Math::PI
+    spark(m.x + Math.cos(a) * 50 * m.scale, m.y - 110 * m.scale + Math.sin(a) * 60 * m.scale, 0, -20, 7, [255, 212, 59], life: 0.6)
   end
 
   def boo(m)
@@ -760,8 +770,8 @@ Shoes.app(title: "Peekaboo Moles", width: W, height: H, resizable: false) do
     end
   end
 
-  # Ten stars: every mole comes up to dance, confetti falls, and then they all
-  # go down and come back up in new hats.
+  # Ten stars: every mole comes up to dance, confetti falls, and halfway
+  # through, poof, everyone is in a new hat.
   def party
     @party = 0.0
     @new_hats = false
@@ -1022,25 +1032,38 @@ Shoes.app(title: "Peekaboo Moles", width: W, height: H, resizable: false) do
 
   # ---------------------------------------------------------------- the grown-up way out
 
-  # Held down, Escape repeats many times a second. After two seconds of it the
-  # game closes. A tap, or a small child's mashing, only shows the hint.
+  # Held down, Escape repeats many times a second (a held key repeats every
+  # thirtieth to tenth of a second, once the first half second or so has
+  # passed). Two seconds of that and the game closes. A tap, taps a little
+  # apart, or a small child mashing other keys too, only show the hint.
   def escape_pressed
-    @leave_since = @clock if @leave_since.nil? || @clock - @leave_last > 0.6
+    @leave_since = nil if @leave_since && @clock - @leave_last > leave_gap
+    @leave_since ||= @clock
     @leave_last = @clock
     @leave_card.show
   end
 
+  # How long Escape can go quiet and still count as held: longer while the
+  # key is waiting to start repeating.
+  def leave_gap
+    @clock - @leave_since < 0.8 ? 0.8 : 0.25
+  end
+
+  def not_leaving
+    @leave_since = nil
+    @leave_card.hide
+  end
+
   def watch_escape
     return unless @leave_since
+    return not_leaving if @clock - @leave_last > leave_gap
 
-    if @clock - @leave_last > 0.6
-      @leave_since = nil
-      @leave_card.hide
-      return
-    end
     held = @leave_last - @leave_since
     @leave_ring.style(angle2: -Math::PI / 2 + 2 * Math::PI * (held / 2.0).clamp(0.02, 1))
-    close if held >= 2
+    return if held < 2
+
+    @leaving = true
+    close
   end
 
   # ---------------------------------------------------------------- buttons
@@ -1091,7 +1114,6 @@ Shoes.app(title: "Peekaboo Moles", width: W, height: H, resizable: false) do
   end
 
   def press(x, y)
-    @quiet = 0.0
     return toggle_sound if x > W - 92 && y < 92
     return start_countdown if x < 92 && y < 92 && !@big_kid
     return card_press(x, y) if @card_time
@@ -1107,6 +1129,8 @@ Shoes.app(title: "Peekaboo Moles", width: W, height: H, resizable: false) do
   # A knock on a hole: its mole giggles if it is up, and pops up if it is not
   # (the little ones' game never says "missed").
   def knock(m)
+    return dirt(m) if @countdown # 3, 2, 1: the moles are getting ready
+
     if m.state == :down || m.state == :peek
       dirt(m) if m.state == :down
       pop_up(m, stay: 2.2) unless @big_kid
@@ -1132,9 +1156,10 @@ Shoes.app(title: "Peekaboo Moles", width: W, height: H, resizable: false) do
   end
 
   def key_down(key)
-    @quiet = 0.0
     name = key.to_s.sub(/\A(control_|shift_|alt_)+/, "").downcase
     return escape_pressed if name == "escape"
+
+    not_leaving if @leave_since
     return card_key(name) if @card_time
 
     case name
@@ -1164,7 +1189,8 @@ Shoes.app(title: "Peekaboo Moles", width: W, height: H, resizable: false) do
   def chorus
     return if @big_kid || @countdown || @party
 
-    @moles.each_with_index { |m, i| timer(i * 0.08) { pop_up(m, stay: 2.0) } }
+    # (a timer of 0 seconds would wait a whole second here, so the first one starts at once)
+    @moles.each_with_index { |m, i| i.zero? ? pop_up(m, stay: 2.0) : timer(i * 0.06) { pop_up(m, stay: 2.0) } }
   end
 
   def look_all(side)
@@ -1181,7 +1207,6 @@ Shoes.app(title: "Peekaboo Moles", width: W, height: H, resizable: false) do
     @pointer = [x, y]
     return if last.nil? || Math.hypot(x - last[0], y - last[1]) < 6
 
-    @quiet = 0.0
     spark(x + rand(-4..4), y + rand(-4..4), rand(-10..10), rand(-24..-8), rand(3.0..5.0), [255, 236, 153], life: 0.7)
     # a mole that is up turns to look at the pointer
     @moles.each do |m|
@@ -1251,7 +1276,6 @@ Shoes.app(title: "Peekaboo Moles", width: W, height: H, resizable: false) do
   @round_font = (ROUND_FONT_FILE && font(ROUND_FONT_FILE)&.first) || "Arial Rounded MT Bold"
   @frame = 0
   @clock = 0.0
-  @quiet = 0.0
   @next_pop = 1.0
   @stars = 0
   @hat_turn = 0
@@ -1316,10 +1340,11 @@ Shoes.app(title: "Peekaboo Moles", width: W, height: H, resizable: false) do
     shape { move_to 186, 72; curve_to 186, 110, 196, 140, 212, 154; curve_to 200, 130, 196, 100, 198, 72 }
     fill "#ffffff"
     shape { star_outline(230, 110, 22, 10) }
-    @medal_text = para "Gold!", font: @round_font, size: 26, weight: "bold", stroke: "#c77d00", align: "center", margin: [0, 226, 0, 0]
-    @trophy_stars = [-1, 0, 1].map { |i| star(230 + i * 44, 292, 5, 18, 8, fill: "#ffe066".."#fab005", stroke: "#e8a200", strokewidth: 1.5) }
-    @final_text = para "0", font: @round_font, size: 54, weight: "bold", stroke: "#5b4b8a", align: "center", margin: [0, 314, 0, 0]
-    @best_text = para "Best: 0", font: @round_font, size: 18, stroke: "#8a7aa8", align: "center", margin: [0, 380, 0, 0]
+    # (each text is placed where it goes: in a stack, paras otherwise follow one another down)
+    @medal_text = para "Gold!", font: @round_font, size: 26, weight: "bold", stroke: "#c77d00", align: "center", left: 0, top: 230, width: CARD[2]
+    @trophy_stars = [-1, 0, 1].map { |i| star(230 + i * 44, 298, 5, 18, 8, fill: "#ffe066".."#fab005", stroke: "#e8a200", strokewidth: 1.5) }
+    @final_text = para "0", font: @round_font, size: 54, weight: "bold", stroke: "#5b4b8a", align: "center", left: 0, top: 316, width: CARD[2]
+    @best_text = para "Best: 0", font: @round_font, size: 18, stroke: "#8a7aa8", align: "center", left: 0, top: 390, width: CARD[2]
     @again = stack(left: AGAIN[0] - CARD[0], top: AGAIN[1] - CARD[1], width: AGAIN[2], height: AGAIN[3]) do
       background "#7bd389", curve: 26
       stroke "#ffffff"
