@@ -11,9 +11,14 @@ module SpecSuite
   # `scarpe peek` under native, in order: [{click: "OK"}, {type: "hello"}, {key: "return"}].
   # Optional `dialogs:` answer dialogs on both displays: {confirm: true, ask_color: "#f80"}.
   # Optional `pixels:` are colours the native snapshot must show: [[26, 27, "#ac7672"]].
+  # Optional `ruby:` is the Ruby versions the status holds on (">= 4.0"); on any other Ruby the
+  # example must load. For a failure that comes from a library Ruby moved or removed, so CI's
+  # oldest and newest Rubies can both run the same list.
   class ExampleList
-    Example = Struct.new(:path, :category, :needs, :status, :reason, :steps, :wait, :dialogs, :pixels, keyword_init: true) do
-      def status_on(display)
+    Example = Struct.new(:path, :category, :needs, :status, :reason, :steps, :wait, :dialogs, :pixels, :ruby, keyword_init: true) do
+      def status_on(display, ruby_version: RUBY_VERSION)
+        return "loads" if ruby && !Gem::Requirement.new(ruby).satisfied_by?(Gem::Version.new(ruby_version))
+
         status.is_a?(Hash) ? status.fetch(display, "loads") : status
       end
 
@@ -36,7 +41,7 @@ module SpecSuite
         fields ||= {}
         Example.new(path:, category: fields["category"], needs: fields["needs"] || [], status: fields["status"] || "loads",
           reason: fields["reason"], steps: fields["steps"] || [], wait: fields["wait"], dialogs: fields["dialogs"],
-          pixels: fields["pixels"] || [])
+          pixels: fields["pixels"] || [], ruby: fields["ruby"])
       end
     end
 
@@ -51,8 +56,20 @@ module SpecSuite
     def problems
       @examples.flat_map do |example|
         statuses = example.status.is_a?(Hash) ? example.status.values : [example.status]
-        (statuses - STATUSES).map { |bad| "#{example.path}: status #{bad.inspect} is not one of #{STATUSES.join(", ")}" }
+        (statuses - STATUSES).map { |bad| "#{example.path}: status #{bad.inspect} is not one of #{STATUSES.join(", ")}" } +
+          ruby_problems(example)
       end
+    end
+
+    private
+
+    def ruby_problems(example)
+      return [] if example.ruby.nil?
+
+      Gem::Requirement.new(example.ruby)
+      []
+    rescue Gem::Requirement::BadRequirementError, TypeError
+      ["#{example.path}: ruby #{example.ruby.inspect} is not a version requirement like \">= 4.0\""]
     end
   end
 end
