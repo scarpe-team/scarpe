@@ -383,7 +383,7 @@ As of 27 Sep 2026. Each has more detail in the ledger or in DESIGN.
   parent's content origin. `font(url)` returns the file's name before the font is fetched.
   A slot's `start` fires on the first heartbeat after it appears. Image downloads happen at create
   time and hold up building the tree. `download` reads the whole body before its one `progress`.
-  Ledger rows B1 (a slot block's `self`) and K6 (`exit` at once) are still open.
+  Ledger row K6 (`exit` at once) is still open.
 - **Packaging.** No YJIT in the shipped Ruby yet. Bytecode only helps when the app runs from where it
   was compiled for. Other `.rb` files an app requires, and folders beyond `images`, `assets`,
   `fonts` and `sounds`, travel only when named with `--include`.

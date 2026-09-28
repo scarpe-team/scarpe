@@ -75,4 +75,58 @@ class Shoes::Widget < Shoes::Slot
     end
     @midway_through_adding_initialize = false
   end
+
+  # A widget's slot blocks keep the widget as self (ledger B1), so inside them its pens,
+  # start and finish, like its drawables, go to the slot being built (dsl_target).
+  (Shoes::DrawContext::SETTINGS.map(&:to_sym) + %i[nofill nostroke start finish]).each do |name|
+    define_method(name) do |*args, &blk|
+      target = dsl_target
+      if target.equal?(self) || !target.respond_to?(name)
+        super(*args, &blk)
+      else
+        target.public_send(name, *args, &blk)
+      end
+    end
+  end
+
+  # What a widget lacks, its app may have: the shape commands (move_to, line_to...), mouse,
+  # clipboard, window, visit. Shoes 3's widgets are canvases with the app's methods, and
+  # Shoes 4's send what they miss to their app (s4_widget.rb).
+  def method_missing(name, *args, **kwargs, &block)
+    return super unless reaches_app?(name)
+
+    @app.public_send(name, *args, **kwargs, &block)
+  end
+
+  def respond_to_missing?(name, include_private = false)
+    super || reaches_app?(name)
+  end
+
+  private
+
+  # Shoes 3 sends a widget's DSL calls to the slot being built while a slot block runs
+  # (FUNC_M, s3_ruby.h:195-213): a stack the widget is building inside itself, or another
+  # slot a widget method appends to, as Hackety Hack's turtle does. From the slot that holds
+  # the widget, and between events, they land in the widget itself, where Shoes 3 would send
+  # calls made during the app block to the app's top slot.
+  def dsl_target
+    slot = @app.current_slot
+    return self if @app.editing_depth.zero? || slot.nil? || slot.equal?(self) || inside?(slot)
+
+    slot
+  end
+
+  # Whether this widget sits somewhere in slot.
+  def inside?(slot)
+    holder = parent
+    holder = holder.parent until holder.nil? || holder.equal?(slot)
+    !holder.nil?
+  end
+
+  def reaches_app?(name)
+    return false if Shoes::Drawable.drawable_class_by_name(name)
+    return false if self.class.shoes_style_name?(name.to_s.delete_suffix("="))
+
+    @app ? @app.respond_to?(name) : false
+  end
 end

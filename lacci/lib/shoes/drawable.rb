@@ -484,17 +484,14 @@ class Shoes
 
     # Calling stack.app or drawable.app will execute the block
     # with the Shoes::App as self, and with that stack or
-    # flow as the current slot.
-    #
-    # @incompatibility In Shoes Classic this is the only way
-    #   to change self, while Scarpe will also change self
-    #   with the other Slot Manipulation methods: #clear,
-    #   #append, #prepend, #before and #after.
+    # flow as the current slot. Along with the app and window
+    # blocks, it is the one Shoes block that changes self
+    # (manual 297-326, ledger B1 and B2).
     #
     # @return [Shoes::App] the Shoes app
     # @yield the block to call with the Shoes App as self
     def app(&block)
-      @app.with_slot(self, &block) if block_given?
+      @app.with_slot(self) { @app.instance_eval(&block) } if block_given?
       @app
     end
 
