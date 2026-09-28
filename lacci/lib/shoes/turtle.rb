@@ -250,16 +250,14 @@ class Shoes::TurtleCanvas < Shoes::Widget
   def display_command
     return unless @next_command
 
+    # The turtle command the program called is the outermost method on the stack before the
+    # program's own block. Read from the frames, not the backtrace's text, which Ruby 3.4
+    # changed (it quotes 'Shoes::TurtleCanvas#forward' where it printed `forward').
     method = nil
-    bt = caller
-    1.upto(4) do |i|
-      break unless bt[i]
-      m = bt[i][/`([^']*)'/, 1]
-      if m.nil? || m =~ /^block /
-        break
-      else
-        method = m
-      end
+    Array(caller_locations(2, 4)).each do |frame|
+      break if frame.label.nil? || frame.label.start_with?("block ")
+
+      method = frame.base_label
     end
     @next_command.replace(method.to_s)
   end
@@ -328,7 +326,7 @@ module Turtle
         draw_controls
         @interactive_thread = Thread.new do
           sleep 0.1
-          @canvas.instance_eval(&blk)
+          @canvas.instance_eval(&blk) if blk
           @next_command&.replace("(END)")
         end
       end
@@ -339,8 +337,9 @@ module Turtle
 
   def execute_canvas_code(blk)
     # The turtle program's forward, turnleft and pencolor are the canvas's own methods, so it
-    # runs on the canvas, as Hackety Hack's turtle ran it.
-    @canvas.instance_eval(&blk)
+    # runs on the canvas, as Hackety Hack's turtle ran it. `Turtle.draw` alone has no program,
+    # and draws an empty canvas.
+    @canvas.instance_eval(&blk) if blk
   end
 
   def draw_controls
@@ -352,7 +351,9 @@ module Turtle
           @canvas.next_command = @next_command
         end
       end
-      button "execute", :width => 100 do
+      # execute and draw all sit at the right of their rows, as in Hackety Hack's turtle
+      # (:right => '-0px'), which leaves the window room for both rows of controls
+      button "execute", :width => 100, :right => 0 do
         @canvas.step
       end
     end
@@ -368,7 +369,7 @@ module Turtle
       button "faster", :width => 100 do
         @canvas.speed = (@canvas.speed || Shoes::TurtleCanvas::SPEED) * 2
       end
-      button "draw all", :width => 100 do
+      button "draw all", :width => 100, :right => 0 do
         @interactive_thread&.kill
         @canvas.reset
         @next_command.replace("(draw all)")
