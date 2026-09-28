@@ -398,20 +398,21 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
     end
   end
 
-  # One strike: a bolt that fades, and a soft brightening of the sky. The
-  # flash takes a tenth of a second to rise and almost a second to fade.
+  # One strike, far off beyond the tree and the pond: a bolt that fades, and a
+  # soft brightening of the sky. The flash takes a tenth of a second to rise and
+  # almost a second to fade.
   def strike
-    x = rand(90.0..380.0)
+    x = rand(50.0..190.0)
     y = -6.0
     points = [[x, y]]
-    while y < 176
-      y += rand(18.0..30.0)
-      x += rand(-20.0..20.0)
-      points << [x.round(1), y.round(1)]
+    while y < 160
+      y += rand(18.0..28.0)
+      x += rand(-18.0..18.0)
+      points << [x.round(1), [y, 176].min.round(1)]
     end
     nofill
     cap :curve
-    @bolt = [[7, rgb(200, 196, 255, 0.35)], [2.2, rgb(255, 255, 255)]].map do |width, color|
+    @bolt = [[8, rgb(200, 196, 255, 0.35)], [2.6, rgb(255, 255, 255)]].map do |width, color|
       strokewidth width
       stroke color
       shape do
@@ -685,9 +686,10 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
 
   # The room, the window, and what the weather does outside it. The block
   # draws the moving parts; `animate` then runs `tick` thirty times a second.
+  # Each page starts afresh: visit takes the last page's drawing and timers away.
   def room(name)
     w = WEATHERS[name]
-    @weather = name
+    @motes = @drops_on_glass = @struck = nil
     wall
     title_bar
     window_frame(w)
@@ -702,7 +704,7 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
       yield w, :weather
       @flash = rect(0, 0, GW, GH, fill: clear_paint) if name == "storm"
     end
-    @glass = stack(left: GX, top: GY, width: GW, height: GH) { glass_drops(name) }
+    stack(left: GX, top: GY, width: GW, height: GH) { glass_drops(name) }
     glazing(w)
     curtains
     sill
@@ -711,7 +713,6 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
     cat
     mug
     controls(name)
-    @start = Time.now
     @frame = 0
     animate(30) do
       @frame += 1
@@ -814,7 +815,6 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
 
   # Raindrops on the pane itself. Every so often one lets go and runs down.
   def glass_drops(name)
-    @drops_on_glass = nil
     return unless %w[rain storm].include?(name)
 
     count = name == "storm" ? 18 : 11
@@ -873,8 +873,6 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
   # ---- the postcards ----
 
   def postcards
-    @motes = nil
-    @drops_on_glass = nil
     wall
     flow left: 0, top: 96, width: WIDTH do
       para "Weather Window", align: "center", size: 34, weight: "light", stroke: INK,
