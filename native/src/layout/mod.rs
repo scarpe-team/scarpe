@@ -599,7 +599,7 @@ impl Engine<'_> {
     /// paint::shapes draws it; so the member boxes turn with the group.
     fn place_art(&mut self, node: &Node, content: Rect) {
         let Some(frame) = self.art_frame(node, content) else { return };
-        let transform = shapes::art_transform(&node.props, frame);
+        let transform = shapes::art_transform(node, frame);
         if !transform.is_identity() {
             self.turn_art(node.id, transform);
         }

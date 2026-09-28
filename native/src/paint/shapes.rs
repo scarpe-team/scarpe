@@ -35,7 +35,7 @@ pub fn art(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> Option<Art> {
     let origin = (origin.0 + tx, origin.1 + ty);
     let (frame, path, fillable) = geometry(node, origin, parent)?;
     let (frame, path) = hug_far_edges(node, origin, parent, frame, path)?;
-    let transform = art_transform(&node.props, frame);
+    let transform = art_transform(node, frame);
     Some(Art { bounds: transformed_box(frame, transform), frame, path, transform, fillable })
 }
 
@@ -317,7 +317,8 @@ pub fn shape(commands: Option<&Value>, dx: f32, dy: f32) -> Option<Path> {
 /// rotate/scale/skew from the draw context. They turn the shape about its corner,
 /// or about its centre after `transform :center` or with `center: true` (manual
 /// 1857-1860, 1115-1121; ledger E10). Shoes turns counter-clockwise for positive degrees.
-pub fn art_transform(props: &Props, frame: Rect) -> Transform {
+pub fn art_transform(node: &Node, frame: Rect) -> Transform {
+    let props = &node.props;
     let mut t = Transform::identity();
     let context = |key: &str| props.art(key).cloned();
     if let Some(deg) = context("rotate").and_then(|v| v.as_f64()) {
@@ -336,12 +337,17 @@ pub fn art_transform(props: &Props, frame: Rect) -> Transform {
     if t.is_identity() {
         return t;
     }
-    let (px, py) = if turns_about_centre(props) { frame.center() } else { (frame.x, frame.y) };
+    let (px, py) = if turns_about_centre(node) { frame.center() } else { (frame.x, frame.y) };
     Transform::from_translate(px, py).pre_concat(t).pre_concat(Transform::from_translate(-px, -py))
 }
 
-fn turns_about_centre(props: &Props) -> bool {
-    props.truthy("center") || props.art("transform").and_then(Value::as_str).map(|s| s.trim_start_matches(':')) == Some("center")
+/// The corner a turn keeps still is the point the shape's `left` and `top` name: a star's and
+/// an arrow's are their centre (ledger E4, E5), as `center: true` makes anything's.
+fn turns_about_centre(node: &Node) -> bool {
+    let props = &node.props;
+    matches!(node.kind, Kind::Star | Kind::Arrow)
+        || props.truthy("center")
+        || props.art("transform").and_then(Value::as_str).map(|s| s.trim_start_matches(':')) == Some("center")
 }
 
 /// `translate(left, top)` moves the pen for the rest of the slot (manual 1862-1868).
@@ -391,7 +397,7 @@ pub fn paint_art(canvas: &mut Canvas, doc: &Doc, boxes: &HashMap<Id, LBox>, node
         (art.path, art.frame, art.fillable)
     };
     let props = &node.props;
-    let transform = art_transform(props, frame);
+    let transform = art_transform(node, frame);
     if fillable {
         let fill = props.art_paint("fill").unwrap_or(Paint::Solid(Color::BLACK));
         if fill.is_visible() {
@@ -534,6 +540,19 @@ mod tests {
         .unwrap();
         assert_eq!(moved(a.transform, 130.0, 110.0), (130.0, 110.0));
         assert_eq!(a.bounds, Rect::new(120.0, 80.0, 20.0, 60.0));
+    }
+
+    /// A star's and an arrow's `left` and `top` are their centre (ledger E4, E5), so that is the
+    /// corner a turn keeps still, as `center: true` would: Hackety Hack's splash spins
+    /// `rotate 1; star 210, 210, 130, 500, 90` in place, one degree a frame. It turned about its
+    /// box's top-left corner and swung off across the window.
+    #[test]
+    fn a_star_and_an_arrow_turn_about_the_point_they_are_drawn_at() {
+        let star = art(&node("Star", json!({"left": 210, "top": 210, "points": 5, "outer": 100, "inner": 50, "draw_context": {"rotate": 30}})), (0.0, 0.0), (480.0, 420.0)).unwrap();
+        assert_eq!(moved(star.transform, 210.0, 210.0), (210.0, 210.0), "the star's centre stays put");
+        assert_eq!(star.bounds.center(), (210.0, 210.0));
+        let arrow = art(&node("Arrow", json!({"left": 100, "top": 100, "width": 40, "draw_context": {"rotate": 90}})), (0.0, 0.0), (480.0, 420.0)).unwrap();
+        assert_eq!(moved(arrow.transform, 100.0, 100.0), (100.0, 100.0), "so does the arrow's");
     }
 
     /// manual 1115-1121: `center: true` places by the centre, and turns about it too.

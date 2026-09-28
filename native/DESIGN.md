@@ -653,8 +653,10 @@ change the code and this list together.
   3 o'clock, and fills as a chord (`wedge: true` fills a pie). `rotate`, `scale` and `skew` from the
   draw context turn a shape about its top-left corner (manual 1857-1860, ledger E10, confirmed 27
   Sep 2026), or about its centre when the draw context says `transform: "center"` or the shape has
-  `center: true`; positive `rotate` turns counter-clockwise. The Shoes 3 source defaults to the
-  centre, so an example written for a centre pivot (`rotate_shapes.rb`) swings about its corner here.
+  `center: true`; a star and an arrow, whose left/top are their centre, turn about that centre
+  (28 Sep 2026); positive `rotate` turns counter-clockwise. The Shoes 3 source defaults to the
+  centre for every shape (ledger Q11), so an example written for a centre pivot
+  (`rotate_shapes.rb`) swings about its corner here.
   The draw context's `translate: [x, y]` (Lacci's running total) moves shapes before they turn.
   Turns add up: `rotate` in the draw context is Lacci's running total too (ledger E10).
   A shape's layout box is its transformed box, so hit-testing and the layout push follow.
