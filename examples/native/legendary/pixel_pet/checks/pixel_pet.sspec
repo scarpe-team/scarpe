@@ -37,6 +37,16 @@ assert_equal "Pip", JSON.parse(File.read(save_file))["name"], "it remembers the 
 refute stack("@panel").style[:hidden]
 advance 1.1
 
+# its eyes follow the pointer: the left eye sits two dots further right when you point right
+eye_dark = [45, 36, 51]
+left_eye = -> { (9..13).flat_map { |row| (6..12).select { |col| near.(pixel_at(*dot.call(col, row)), eye_dark) } }.min }
+move_mouse 30, 250
+advance 1 / 12.0
+looking_left = left_eye.call
+move_mouse 490, 250
+advance 1 / 12.0
+assert_equal 2, left_eye.call - looking_left, "its eyes follow the pointer"
+
 # feeding: an apple appears beside it, and the meal fills it up
 food = pet.call["food"]
 click_at(*knob[:feed])
