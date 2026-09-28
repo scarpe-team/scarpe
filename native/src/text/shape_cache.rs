@@ -345,7 +345,8 @@ fn indent_attrs<'a>(first: &'a super::rich::Run, indent: f32, rich: &RichText) -
 /// line makes room for itself, on both sides, since cosmic-text centres glyphs in a line.
 fn run_line_height(s: &super::rich::TextStyle, rich: &RichText) -> f32 {
     let own = s.size * super::rich::LINE_HEIGHT + (rich.line_height - rich.size * super::rich::LINE_HEIGHT);
-    (own.max(rich.line_height) + 2.0 * rise_overhang(s.size, s.rise, rich.size)).max(1.0)
+    let own = if rich.own_line_heights { own } else { own.max(rich.line_height) };
+    (own + 2.0 * rise_overhang(s.size, s.rise, rich.size)).max(1.0)
 }
 
 /// How far text of `size`, moved by `rise`, pokes out of a line of `line_size` text.

@@ -393,6 +393,8 @@ moved there the same day, so apps normally send it.
   would otherwise have, and "18px" (in `size` or a `font` string) stays pixels, as Pango reads
   a font string's px. A text block that names no face, or names one the machine lacks, gets Arial
   there, Shoes 3's default (s3_world.c:46-48). Controls, margins and leading keep their pixels.
+  Each line is then as tall as its own text, as Pango sets lines, where the default keeps every
+  line at least the block's line height (so a lone `sub` cannot shrink one).
   A para's `marker` range is then bright yellow behind the text and its caret black, as Shoes 3
   drew them (s3t_textblock.c:187-197, 479-483), where the default is a blue tint over the text
   and a caret in the text's colour.

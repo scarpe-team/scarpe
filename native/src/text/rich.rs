@@ -123,6 +123,10 @@ pub struct RichText {
     pub leading: f32,
     pub align: Align,
     pub wrap: WrapMode,
+    /// Each line as tall as its own text, as Pango sets lines (Shoes 3's text mode): a line of
+    /// small text under a big title is short. Otherwise a line is never shorter than the
+    /// block's own line height, so a lone `sub` cannot shrink it.
+    pub own_line_heights: bool,
 }
 
 impl RichText {
@@ -135,6 +139,7 @@ impl RichText {
             leading: 0.0,
             align: Align::Left,
             wrap: WrapMode::Word,
+            own_line_heights: false,
         }
     }
 
@@ -156,6 +161,7 @@ impl RichText {
         self.leading.to_bits().hash(&mut h);
         self.align.hash(&mut h);
         self.wrap.hash(&mut h);
+        self.own_line_heights.hash(&mut h);
         width.map(f32::to_bits).hash(&mut h);
         h.finish()
     }
@@ -199,6 +205,7 @@ pub fn resolve_block(doc: &Doc, fonts: &Fonts, id: Id) -> Option<RichText> {
         leading,
         align,
         wrap,
+        own_line_heights: fonts.text_mode == super::fonts::TextMode::Shoes3,
     })
 }
 
