@@ -1,0 +1,100 @@
+---
+display: native
+testability: interactive
+----------- app code
+# A small known board in the sandbox's home.
+require "json"
+require "fileutils"
+cards = [
+  ["Alpha", "todo", ["Design"]], ["Bravo", "todo", []], ["Charlie", "doing", ["Bug"]], ["Delta", "done", []],
+].each_with_index.map do |(title, column, labels), i|
+  { "id" => i + 1, "title" => title, "notes" => "", "labels" => labels, "column" => column }
+end
+file = File.join(Dir.home, "Library", "Application Support", "Kanban", "board.json")
+FileUtils.mkdir_p(File.dirname(file))
+File.write(file, JSON.generate("cards" => cards, "next_id" => 5))
+load File.join(Scarpe::Native::ROOT, "examples/native/legendary/kanban/kanban.rb")
+----------- test code
+require "json"
+file = File.join(Dir.home, "Library", "Application Support", "Kanban", "board.json")
+column = ->(key) { JSON.parse(File.read(file))["cards"].select { |c| c["column"] == key }.map { |c| c["title"] } }
+card = ->(title) { JSON.parse(File.read(file))["cards"].find { |c| c["title"] == title } }
+texts = -> { paras.map(&:text) }
+center = ->(title) { box = layout_of(para(title)); [box.x + 20, box.y + box.h / 2] }
+app = Shoes.APPS.first
+counts = -> { %w[todo doing done].map { |key| app.instance_variable_get(:@counts)[key].text } }
+sheet = app.instance_variable_get(:@sheet)
+in_sheet = ->(text) { paras(text).max_by { |p| layout_of(p).x } } # the sheet's copy sits furthest right
+
+assert_equal ["2", "1", "1"], counts.()
+assert_equal "4 cards, 1 done", para("@summary").text
+
+# Drag Alpha across into Doing, below Charlie
+x, y = center.("Alpha")
+drag [x, y], [x + 30, y + 10], [x + 200, y + 60], [520, 420]
+assert_equal ["Bravo"], column.("todo")
+assert_equal ["Charlie", "Alpha"], column.("doing"), "dropped at the end of Doing"
+assert_equal ["1", "2", "1"], counts.()
+
+# ...then back above Charlie in the same column
+x, y = center.("Alpha")
+top = layout_of(para("Charlie")).y
+drag [x, y], [x + 10, y - 20], [x + 20, top - 4]
+assert_equal ["Alpha", "Charlie"], column.("doing"), "dragged to the top"
+
+# A click without a drag opens the card
+click_on "Charlie"
+advance 0.5
+assert_equal "Charlie", edit_box("@title_box").text
+assert_equal 660, sheet.left, "the sheet has slid in"
+click_on in_sheet.("Launch")
+assert_equal ["Bug", "Launch"], card.("Charlie")["labels"], "labels stay in their order"
+assert_equal 3, paras("Launch").size, "the filter chip, the sheet chip and now the card on the board"
+click_on edit_box("@notes_box")
+type_text "Needs a repro"
+assert_equal "Needs a repro", card.("Charlie")["notes"]
+click_on in_sheet.("Done")
+assert_equal "done", card.("Charlie")["column"]
+assert_equal ["1", "1", "2"], counts.()
+press_key "escape"
+advance 0.5
+assert sheet.style[:hidden], "Escape puts the sheet away"
+
+# New cards: Return adds one and leaves the box open for the next
+click_on paras("+  Add a card").min_by { |p| layout_of(p).x }
+type_text "Buy stamps\n"
+assert_equal ["Bravo", "Buy stamps"], column.("todo")
+type_text "Post the parcel\n"
+assert_equal ["Bravo", "Buy stamps", "Post the parcel"], column.("todo")
+press_key "escape"
+assert_equal "6 cards, 2 done", para("@summary").text
+
+# Showing one label
+click_on "Bug"
+refute_includes texts.(), "Bravo"
+assert_includes texts.(), "Charlie"
+assert_equal "0 of 3", counts.().first
+click_on "Every card"
+assert_includes texts.(), "Bravo"
+
+# Deleting, and taking it back
+click_on "Bravo"
+advance 0.5
+click_on "Delete card"
+advance 0.5
+refute_includes column.("todo"), "Bravo"
+assert_match(/\ADeleted .Bravo.\. Undo\z/, para("@toast_text").text)
+click_on "Undo"
+assert_equal ["Bravo", "Buy stamps", "Post the parcel"], column.("todo"), "Undo puts it back where it was"
+
+# Clearing the done column
+click_on "Clear"
+assert_equal [], column.("done")
+click_on "Undo"
+assert_equal ["Delta", "Charlie"], column.("done")
+
+# Done cards wear a green tick
+tick = layout_tree.find { |node| node[:kind] == "Oval" && node[:w].round == 18 && node[:x] > 700 }
+refute_nil tick
+pixel = pixel_at(tick[:x] + 5, tick[:y] + 5)
+assert pixel.first(3).zip([48, 164, 108]).all? { |got, want| (got - want).abs <= 8 }, "green: #{pixel.inspect}"
