@@ -62,6 +62,11 @@ Starting the app: LaunchServices runs `scarpe-launcher`, which sets `RUBYLIB`, `
 `SCARPE_NATIVE_BIN` for the bundle and execs the bundled Ruby on `boot.rb`. Ruby loads Lacci and
 the shim, and the shim starts `scarpe-native` beside the launcher as its child, as in development.
 
+Finder, the Dock and `open` start the launcher under launchd with its output going to `/dev/null`.
+Then the launcher sends that output to `~/Library/Logs/<name>/launcher.log` instead, one line
+opening each start, with one older log kept once it passes 5 MB. Run from a terminal, the output
+stays on the terminal.
+
 ## Bytecode
 
 At package time the bundled Ruby compiles Lacci, the shim, scarpe-components, the app and every
@@ -172,7 +177,15 @@ ruby scripts/native_cold_start.rb myapp.rb --runs 1 --snapshot first_frame.png
 ```
 
 `rake package_test` builds one small app for real, checks its contents and signature, boots it
-headless from bytecode, and boots a moved copy from source.
+headless from bytecode, boots a moved copy from source, and checks that output sent to `/dev/null`
+lands in the log.
+
+Every recipe here passes the renderer a flag (`--headless`, `--ghost`, `--exit-after`), and a
+double-click passes none. That difference once hid a start that failed only from Finder: with no
+flags, Ruby handed the renderer's lone path to `/bin/sh`, and `ZARKING (Rust).app` was a syntax
+error there. The shim now starts the renderer without a shell, and `rake native_test` starts a
+stand-in from bundles named `ZARKING (Rust).app` and `For Noah.app` with no flags. The log above is
+where to look when a double-click shows nothing.
 
 ## Not done yet
 
