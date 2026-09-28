@@ -568,13 +568,15 @@ fn a_sized_line_too_wide_as_a_box_still_sits_beside_what_came_before() {
 
 #[test]
 fn right_and_bottom_place_from_the_far_edges() {
-    // Ledger C10 and M19: `right: 50` puts the right edge 50 px in from the slot's (manual 1356-1364).
+    // Ledger C10: `right: 50` puts the right edge 50 px in from the slot's (manual 1356-1364). A
+    // background with a width of its own is measured by its pattern's size instead, 1 px for a
+    // colour, as Shoes 3 places a tile (M19): the manual's column sits on the right-side.
     let mut s = Scene::new();
     let column = s.add("Background", ROOT, json!({"fill": "#000", "width": 50, "right": 50}));
     let slot = s.add("Stack", ROOT, json!({"width": 100, "height": 40, "right": 0, "bottom": 0}));
     let text = s.add("Para", ROOT, json!({"text_items": ["right"], "right": 20, "top": 100}));
     let l = s.layout(400.0, 300.0);
-    assert_eq!(r(&l, column), Rect::new(300.0, 0.0, 50.0, 300.0));
+    assert_eq!(r(&l, column), Rect::new(349.0, 0.0, 50.0, 300.0));
     assert_eq!(r(&l, slot), Rect::new(300.0, 260.0, 100.0, 40.0));
     let t = r(&l, text);
     assert!((t.right() + 4.0 - 380.0).abs() < 0.01 && (t.y - 104.0).abs() < 0.01, "a text's margin box ends 20 px in: {t:?}");
@@ -589,12 +591,32 @@ fn negative_right_and_bottom_place_past_the_far_edges() {
     let bar = s.add("Stack", ROOT, json!({"width": 182, "height": 40, "right": 0, "bottom": -3}));
     let tab = s.add("Stack", ROOT, json!({"width": 50, "height": 20, "right": -10, "top": 0}));
     let share = s.add("Stack", ROOT, json!({"width": 40, "height": 20, "right": "-10%", "top": 30}));
-    let band = s.add("Background", ROOT, json!({"fill": "#000", "height": 20, "bottom": -5}));
+    let band = s.add("Background", ROOT, json!({"fill": "#000", "bottom": -5}));
     let l = s.layout(400.0, 300.0);
     assert_eq!(r(&l, bar), Rect::new(218.0, 263.0, 182.0, 40.0));
     assert_eq!(r(&l, tab), Rect::new(360.0, 0.0, 50.0, 20.0), "right: -10 sits 10 px past the right edge");
     assert_eq!(r(&l, share), Rect::new(400.0, 30.0, 40.0, 20.0), "a negative share of the slot is past it too");
-    assert_eq!(r(&l, band), Rect::new(0.0, 285.0, 400.0, 20.0), "a background hangs the same way");
+    assert_eq!(r(&l, band), Rect::new(0.0, 0.0, 400.0, 305.0), "a background with no height reaches 5 px past the foot");
+}
+
+#[test]
+fn a_sized_colour_or_gradient_is_placed_from_the_far_edge_by_one_pixel() {
+    // Shoes 3 places a background or border with shoes_place_decide(REL_TILE), which measures a
+    // right or bottom offset against the pattern's own size, not the size given it: tw and th keep
+    // PATTERN_DIM, 1 for anything but a picture (s3_ruby.c:473-520, shoes/types/pattern.h). So
+    // Hackety Hack's `background "#e9efe0".."#c1c5d0", height: 150, bottom: 150` runs along the
+    // window's foot, as the Ubuntu 1.0.1 screenshot shows it; native hung it mid-window, with a
+    // hard edge at y 399. With no size, a far-edge offset still insets the box (kanban's cards).
+    let mut s = Scene::new();
+    let band = s.add("Background", ROOT, json!({"fill": {"gradient": [[233, 239, 224, 255], [193, 197, 208, 255]]}, "height": 150, "bottom": 150}));
+    let edge = s.add("Border", ROOT, json!({"stroke": [0, 0, 0, 255], "width": 20, "right": 10}));
+    let inset = s.add("Background", ROOT, json!({"fill": "#fff", "bottom": 2}));
+    let tile = s.add("Background", ROOT, json!({"fill": {"image": "/nonexistent/tile.png"}, "width": 55, "right": 0}));
+    let l = s.layout(790.0, 550.0);
+    assert_eq!(r(&l, band), Rect::new(0.0, 399.0, 790.0, 150.0), "the band's top is 151 px up");
+    assert_eq!(r(&l, edge), Rect::new(779.0, 0.0, 20.0, 550.0), "a border likewise, 11 px in");
+    assert_eq!(r(&l, inset), Rect::new(0.0, 0.0, 790.0, 548.0));
+    assert_eq!(r(&l, tile), Rect::new(735.0, 0.0, 55.0, 550.0), "a picture keeps its width as its measure");
 }
 
 #[test]

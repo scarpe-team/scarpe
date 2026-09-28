@@ -78,7 +78,9 @@ straightforward as possible.
 - Lacci: `para.cursor = :marker` drops the selection as Shoes 3.1 does (the caret goes to its start and the marker is cleared), and `cursor = nil` clears the marker too; it jumped to the marker and kept it, so in Hackety Hack's editor typing after Backspace or select-all came out backwards
 - Native: text that ends in a newline keeps the empty line under it, as Pango does: the caret after Return at the end of a program sits at the start of that line, where the next letter goes, instead of at the end of the line above, and the line counts in the text's height
 - `Shoes.text_mode = :shoes3` sets a program's text as Shoes 3 did: sizes are points at 96 dpi, so a para is 16 px tall, and text that names no face is Arial (ledger M14); the default stays pixels. For programs laid out for Shoes 3, such as Hackety Hack
+- Native: a slot with no height placed in a flow beside something taller reaches down to the bottom of that row, as Shoes 3 grows it (ledger C16), so its background fills the row
 ### Incompatibilities
+- A background or border given a size and placed by `right` or `bottom` is measured from that edge by its pattern's own size, 1 px for a colour or a gradient, as Shoes 3 places it (ledger M19): `background black, width: 50, right: 50` is the manual's column on the right-side, and `height: 150, bottom: 150` a band along the foot. Without a size, `right` and `bottom` still inset it
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
 - `oval(left, top, n)`: `n` is a diameter, as the manual says, not a radius
 - `rotate` adds to the slot's running turn, as in Shoes 3 (it set the angle outright); `scale` and `skew` still set theirs
