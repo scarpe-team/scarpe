@@ -358,7 +358,11 @@ moved there the same day, so apps normally send it.
   parent's inner width, like a flow's, so an unsized slot after anything else on a line starts a
   row (ledger C8: Shoes 3 s3_canvas.c:468 with s3_ruby.c:505-532, Shoes 4 s4_slot.rb:48). Widgets
   and masks lay their children out as flows and take the same default width.
-- Slot height = content height unless `height` given. A slot with a fixed `height` clips what
+- Slot height = content height unless `height` given. In a flow, a slot with no `height` placed
+  beside what came before it on the row reaches down at least to that row's bottom, as Shoes 3
+  grows a slot to its parent's end while drawing it (s3_canvas.c:639-642): its backgrounds fill
+  that height and `bottom:` places against it. The first on a row has nothing to reach down to.
+  (Hackety Hack's lesson pane beside its content flow is dark to the window's foot.) A slot with a fixed `height` clips what
   does not fit, scrolling or not (manual 345-352: it becomes a "nested window"; ledger C13); `scroll: true`
   with a height also scrolls. `scroll: true` without a height does nothing.
 - **Text blocks** (para and family) with no width: in a stack, full inner width. In a flow they
