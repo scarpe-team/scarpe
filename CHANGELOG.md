@@ -54,6 +54,7 @@ straightforward as possible.
 - Native: `timer(0)` runs on the next turn of the loop, and `every(0)` every millisecond, as in Shoes 3; both waited a whole second
 - Lacci: `style(scale:)`, `style(skew:)`, `style(translate:)` and `style(transform:)` reach the display, as `style(rotate:)` does; they only set an instance variable
 - Lacci: an app may name its own instance variables `@slots`, `@pages`, `@routes`, `@started` or `@location`; they had replaced the App's own, and the next `stack` died with NoMethodError. The App keeps its bookkeeping in `@_` names
+- Native: text whose stroke has no alpha prints nothing, so a fade ends clear; it was drawn in solid black
 
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
