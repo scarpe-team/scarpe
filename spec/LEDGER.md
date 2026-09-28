@@ -2,7 +2,7 @@
 
 Shoes-Spec was Noah Gibbs' idea: write down what Shoes *is* as tests that any display service can run. Wherever the sources disagree about what Shoes is, the argument happens on this page. Each row records one disagreement, the evidence on every side, the ruling, what `spec/` asserts, and what the native Rust backend does.
 
-Status: v1.7, 28 Sep 2026. Nick ruled Q10: a negative `left` or `top` is a plain coordinate on every element, as Shoes 3 reads it, and the w10 scarpe lane made native do so (new row C18, with C10 and C15 brought in line). v1.6, 28 Sep 2026. The Hackety Hack polish lane (w9) ruled M19 MANUAL, so a background or border with a size of its own is placed from the far edge by its pattern's size, as Shoes 3 places a tile; added C16 (a slot with no height reaches down to its row's bottom in a flow), C17 with Q13 (placement on one axis), and Q12 with an opt-in for Shoes 3's text (M14, `Shoes.text_mode = :shoes3`); and extended C10 (a bottom-placed slot with no height), F14 (`cursor = :marker`), I1 (`timer(0)` after layout), K7 and M38 (the manual's pictures and lists). v1.5, 28 Sep 2026. The Hackety Hack integrate lane (w9) ruled H6 S3, so a slot's second handler for an event replaces its first; made a closing window send its slots' `finish` (H8); let a sized or trimmed line sit beside what came before when its text fits (C7); kept the colon key a String (H1); and packaged apps carry the manual (K7). v1.4, 28 Sep 2026. The Hackety Hack lane (w9) moved B1 into Lacci, so slot blocks keep their caller's `self`; extended C5, C10, E8, E10 and F5 with what Hackety Hack met; added A10, F13, F14 and K7; and asked Q10 and Q11 under "Open questions". v1.3, 28 Sep 2026. The sixth build wave (the legendary apps) extended C15 to every number on art and added E12 and G16; its finishing lane fixed what the app builders met, each row saying so. v1.2, 27 Sep 2026: The orchestrator ruled the seven open questions (Q1 to Q7) that day, then Q8 and Q9 as the later build waves raised them, with two new rows (C15, G15) from the fifth wave's rulings; and the rows the first build wave asked for joined it (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20). v1 was seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`. When the build lanes merged the same day, every row whose Lacci behaviour changed gained a "Since 27 Sep" sentence naming the Lacci lane commit, and rows whose Lacci change landed say so in their ruling line.
+Status: v1.7, 28 Sep 2026. Nick ruled Q10: a negative `left` or `top` is a plain coordinate on every element, as Shoes 3 reads it, and the w10 scarpe lane made native do so (new row C18, with C10 and C15 brought in line). The same lane, on Nick's two other decisions that day, added K8 (the Shoes console, which Alt-/ opens: H10 now rules that key MANUAL) and K9 (`Shoes.on_error`), and routed the log built-ins to the console (K3). v1.6, 28 Sep 2026. The Hackety Hack polish lane (w9) ruled M19 MANUAL, so a background or border with a size of its own is placed from the far edge by its pattern's size, as Shoes 3 places a tile; added C16 (a slot with no height reaches down to its row's bottom in a flow), C17 with Q13 (placement on one axis), and Q12 with an opt-in for Shoes 3's text (M14, `Shoes.text_mode = :shoes3`); and extended C10 (a bottom-placed slot with no height), F14 (`cursor = :marker`), I1 (`timer(0)` after layout), K7 and M38 (the manual's pictures and lists). v1.5, 28 Sep 2026. The Hackety Hack integrate lane (w9) ruled H6 S3, so a slot's second handler for an event replaces its first; made a closing window send its slots' `finish` (H8); let a sized or trimmed line sit beside what came before when its text fits (C7); kept the colon key a String (H1); and packaged apps carry the manual (K7). v1.4, 28 Sep 2026. The Hackety Hack lane (w9) moved B1 into Lacci, so slot blocks keep their caller's `self`; extended C5, C10, E8, E10 and F5 with what Hackety Hack met; added A10, F13, F14 and K7; and asked Q10 and Q11 under "Open questions". v1.3, 28 Sep 2026. The sixth build wave (the legendary apps) extended C15 to every number on art and added E12 and G16; its finishing lane fixed what the app builders met, each row saying so. v1.2, 27 Sep 2026: The orchestrator ruled the seven open questions (Q1 to Q7) that day, then Q8 and Q9 as the later build waves raised them, with two new rows (C15, G15) from the fifth wave's rulings; and the rows the first build wave asked for joined it (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20). v1 was seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`. When the build lanes merged the same day, every row whose Lacci behaviour changed gained a "Since 27 Sep" sentence naming the Lacci lane commit, and rows whose Lacci change landed say so in their ruling line.
 
 ## How to read this
 
@@ -196,7 +196,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | H7 | `wheel` | EXT | | |
 | H8 | `start` and `finish` | MANUAL | | |
 | H9 | Slot event handlers survive `clear` | MANUAL | | |
-| H10 | Hotkeys the manual reserves for the console | OOS | | |
+| H10 | Hotkeys the manual reserves for the console | MANUAL for Alt-/; OOS for the rest | | 28 Sep |
 
 ### I to L. Timers, navigation, built-ins, loader
 
@@ -208,11 +208,13 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | J2 | `link(click: "/path")` visits | MANUAL | | |
 | K1 | `ask` on Cancel; its options | MANUAL, ruled (Q6) | 10.6 | |
 | K2 | Option hashes on dialogs | EXT | unsched. | |
-| K3 | `debug`, `info`, `warn`, `error` | MANUAL | unsched. | |
+| K3 | `debug`, `info`, `warn`, `error` | MANUAL | | 28 Sep |
 | K4 | `font(path)` returns family names | MANUAL | | |
 | K5 | `download` and its events | MANUAL | | |
 | K6 | `exit` stops the program at once | MANUAL | unsched. | |
 | K7 | `Shoes.show_manual` opens the manual in a window | S3 | | new 28 Sep |
+| K8 | The Shoes console | MANUAL; S3 for what it lists | | new 28 Sep |
+| K9 | `Shoes.on_error` | EXT | | new 28 Sep |
 | L1 | App code runs at top level | S3 | | |
 | L2 | Case-insensitive `require` | OOS | | |
 | L3 | Constants | MANUAL | | |
@@ -954,7 +956,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** "Edit boxes, edit lines, list boxes, window titles and text blocks all take UTF-8. If you give a string with bad characters in it, an error will show up in the console." (manual 482-485).
 - **Shoes 3:** not checked.
 - **Lacci today:** passes the bytes through without a word; neither display reports them. Since the wave-4 Lacci lane text blocks and text fragments print `[ERROR] para text is not valid UTF-8: ...` on stderr and replace the bad bytes with U+FFFD, so every display gets valid text and the app carries on. Edit lines, edit boxes, list boxes and window titles are not checked yet.
-- **Spec:** `rules.utf8_bad_chars_error`: a para made from a string with a stray Latin-1 byte puts a UTF-8 or encoding message on stdout or stderr, and the app carries on. Scarpe has no console window (H10), so the log stands in for it.
+- **Spec:** `rules.utf8_bad_chars_error`: a para made from a string with a stray Latin-1 byte puts a UTF-8 or encoding message on stdout or stderr, and the app carries on. Since 28 Sep (the w10 scarpe lane) the message reaches the Shoes console as well (K8), which the manual means (`lacci/test/test_console.rb`).
 - **Native:** the shim must not crash on such a string: JSON generation of invalid UTF-8 raises, so it should report and replace the bad bytes before the text crosses the wire.
 
 ### F13. A text fragment's parent is what holds it
@@ -1244,12 +1246,13 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### H10. Hotkeys the manual reserves for the console
 
-**Ruling: OOS.** New row, requested by the events and app writers.
+**Ruling: MANUAL for Alt-/, since 28 Sep 2026** (Nick asked for the console that day; K8): Alt-/ opens the Shoes console, and the app never hears it. **OOS** for Alt-. and Alt-?, which open Shoes 3's file selector and manual: they reach the app as before. New row, requested by the events and app writers.
 
 - **Manual:** "Alt-Period (`:alt_.`), Alt-Question (`:alt_?`) and Alt-Slash (`:alt_/`) are reserved for Shoes" (manual 2239-2240); Alt-/ (Cmd-/ on OS X) opens the Shoes console (manual 721-722, 843-844).
-- **Scarpe:** has no console window; the log built-ins go to the Shoes log (K3). Nothing reserves these keys, so an app receives them like any other.
-- **Spec:** no case. `events.keypress.reserved_hotkeys` and `builtins.console_hotkey` stay in their `UNTESTABLE.md`.
-- **Native:** sends them to `keypress` like any other key.
+- **Shoes 3:** `shoes_app_keypress` looks at the key before any app handler: `alt_/` runs `Shoes.show_log`, `alt_?` `Shoes.show_manual`, `alt_.` `Shoes.show_selector`, and only another key goes on to the app (`s3_app.c:773-783`).
+- **Scarpe until 28 Sep:** had no console window; nothing reserved these keys, so an app received them like any other.
+- **Native:** since 28 Sep (the w10 scarpe lane) Rust answers `:alt_/` (Cmd-/ on a Mac, Q5) with a `console` message before a focused field or a `keypress` block sees it (`input.rs` `key_input`, DESIGN 4.2 and 4.4), and the shim opens the console (`Shoes.show_console`). **Test:** `tests/protocol.rs` (`alt_slash_asks_for_the_console_and_the_app_never_hears_it`) and `test/native/errors_test.rb`.
+- **Spec:** no case; `events.keypress.reserved_hotkeys` stays in its `UNTESTABLE.md` (Alt-. and Alt-? are still out of scope), and `builtins.console_hotkey` is checked by `test/native/errors_test.rb`, since opening a second window is more than a spec case asserts.
 
 ## I. Timers
 
@@ -1316,7 +1319,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 **Ruling: MANUAL.** Route all four to the Shoes log. **Lacci change, unscheduled.**
 
 - **Manual:** loggers for the Shoes console; `error` accepts exceptions (manual 719-844).
-- **Lacci today:** `debug`/`info` print `[DEBUG]`/`[INFO]` (`builtins.rb:54-60`), and App aliases both to `puts` (`app.rb:546-547`); `warn` is Ruby's `Kernel#warn`; `error` is undefined, so it raises `NoMethodError` inside an app. Since the wave-4 Lacci lane `error` is a built-in: it prints `[ERROR]` and the message, or an exception's class and message, on stderr and returns nil. None of the four goes through `Shoes::Log` yet.
+- **Lacci today:** `debug`/`info` print `[DEBUG]`/`[INFO]` (`builtins.rb:54-60`), and App aliases both to `puts` (`app.rb:546-547`); `warn` is Ruby's `Kernel#warn`; `error` is undefined, so it raises `NoMethodError` inside an app. Since the wave-4 Lacci lane `error` is a built-in: it prints `[ERROR]` and the message, or an exception's class and message, on stderr and returns nil. None of the four goes through `Shoes::Log` yet. Since 28 Sep (the w10 scarpe lane) `debug`, `info` and `error`, the built-ins and an app's own `info` and `debug`, also go to the Shoes console (K8), an exception with where it came from, and still print as before. `warn` stays Ruby's own `Kernel#warn`, which prints to stderr as before and does not reach the console.
 - **Spec:** each call returns without raising, and the message reaches `Shoes::Log`. The app writer's cases look for the text on stdout or stderr, so they assume `debug` and `info` are not filtered by the log level; a level filter would turn them red.
 - **Native:** nothing; the log is Ruby-side, and Rust `log` messages join it (DESIGN 4.2).
 
@@ -1359,6 +1362,24 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Pictures and lists, 28 Sep 2026 (w9 polish):** the pictures do come with Scarpe: every one the manual names sits beside it in `docs/static`, so the page draws each under the words it closes ("On Linux, here's how this might look:" and the screenshot). Where the text holds `{COLORS}` and `{INDEX}`, the window draws what Shoes 3's did (`help.rb` `color_page` and `index_page`, the w9 fidelity lane's `web/shoes3_help.rb`): every named colour on a swatch of itself, three to a row, its name and its `rgb` numbers on it, and the drawables under the class they come from, each linking to its section. `{SAMPLES}` listed the samples Shoes 3 came with; no samples come with this manual, so it draws nothing. A native package carries the pictures with the manual. The learner lane found the braces printed, and Basic Programming 4.6 sends children to the colour list. **Test:** `lacci/test/test_manual.rb` (`test_the_manual_draws_its_colours_classes_and_pictures`) and `test/package/native_package_test.rb`.
 - **Spec:** `intro.manual_is_shoes_program` (both displays); `lacci/test/test_manual.rb` also turns a page.
 - **Native:** nothing; the window is an ordinary Shoes app.
+
+### K8. The Shoes console
+
+**Ruling: MANUAL:** Alt-/ opens the Shoes console, and `debug`, `info` and `error` log to it (manual 719-844). **S3** for what it lists and how: Shoes 3's log window. **Native and Lacci change, done 28 Sep 2026** (the w10 scarpe lane, from Nick's decision that errors inside a running program's blocks be seen). New row.
+
+- **Manual:** "Sends a debug message to the Shoes console. You can bring up the Shoes console by pressing `Alt-/` on any Shoes window (or `⌘-/` on OS X.)" (manual 719-722); "To view warnings and errors, open the Shoes console" (manual 843-844). Silent on what it looks like.
+- **Shoes 3:** `Alt-/` runs `Shoes.show_log` (`s3_app.c:773-776`), a window of the log's entries, and a handler that raises is logged there by `shoes_canvas_error`, the same function Kernel's `error` is (`s3_ruby.c:269, 887`). A file that fails to load is logged and the log window opened (`s3_world.c:150-157`). `Shoes.show_console` (3.2.23) opens a terminal instead (`s3_app.c:1059-1073`, `s3_ruby.c:862`).
+- **Scarpe until 28 Sep:** no console; `debug` and `info` printed, `error` printed to stderr, and a handler's error was a log line on stderr, which a packaged app double-clicked sends to a log file nobody reads.
+- **Now:** `Shoes::Console` (`lacci/lib/shoes/console.rb`) keeps the last 500 lines: the three log built-ins, every error `Shoes.on_error` hears (K9), with where it happened and the program's own backtrace frames, and on native Scarpe's log lines at its log level. `Shoes.show_console`, Shoes 3's `Shoes.show_log`, and Alt-/ (H10) open "Shoes Console" in a window of its own, newest first, with a Clear button; one console a process. Unlike Shoes 3's, it never opens by itself, even when a file fails to load: Nick asked that it not pop open for ordinary apps. On the webview, which opens one window, `Shoes.show_console` cannot open it.
+- **Spec:** none; opening a second window is checked by `lacci/test/test_console.rb` (Niente) and `test/native/errors_test.rb`.
+
+### K9. `Shoes.on_error`
+
+**Ruling: EXT** (`ext-scarpe`), a Scarpe addition, **done 28 Sep 2026** (the w10 scarpe lane). New row.
+
+- **Manual and Shoes 3:** silent; Shoes 3 sent every error to its console (K8), where only a person could read it.
+- **Scarpe:** `Shoes.on_error { |err| }` hands every block given it each error a handler, a timer or the startup raises, on the event loop, besides logging it; the app goes on, as with no block. `err` is a Hash with String keys (`Shoes::ErrorReport`): `class`, `message`, `backtrace`, `path` and `line` (the innermost frame outside Scarpe's code and Ruby's library, or where Ruby says a SyntaxError is), and `during`: `startup` (reported by `Shoes.run_app` before the error goes on up), `handler`, `timer`, or `exit` (an error that ended the program). Niente and the webview report startup errors only; their displays do not hand handler errors over. DESIGN 5.6.
+- **Test:** `lacci/test/test_error_report.rb`; `test/native/errors_test.rb` (`test_shoes_on_error_hears_handlers_timers_and_startup`).
 
 ## L. Loader and environment
 

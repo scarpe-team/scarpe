@@ -74,22 +74,31 @@ module Shoes::Builtins
     FastImage.size(path)
   end
 
-  # Shoes logging builtins — these output to the Shoes console/debug log.
-  # In Scarpe, they simply print to stdout since there's no Shoes console.
+  # The Shoes log built-ins (manual 719-844, ledger K3): each message goes to the Shoes console
+  # (Alt-/, Shoes.show_console) and is printed too, debug and info on stdout, error on stderr.
+  #
+  # @return [nil]
   def debug(msg)
+    Shoes::Console.log(:debug, msg)
     puts "[DEBUG] #{msg}"
   end
 
   def info(msg)
+    Shoes::Console.log(:info, msg)
     puts "[INFO] #{msg}"
   end
 
   # Reports an error on the console (manual 732-739). An exception comes out as its
-  # class and message.
+  # class and message, and the console shows where it came from.
   #
   # @return [nil]
   def error(message)
-    message = "#{message.class}: #{message.message}" if message.is_a?(Exception)
+    if message.is_a?(Exception)
+      Shoes::Console.exception(message)
+      message = "#{message.class}: #{message.message}"
+    else
+      Shoes::Console.log(:error, message)
+    end
     $stderr.puts "[ERROR] #{message}"
     nil
   end

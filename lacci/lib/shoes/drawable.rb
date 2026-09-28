@@ -789,7 +789,9 @@ class Shoes
     def utf8_text(text)
       return text if !text.is_a?(String) || text.valid_encoding?
 
-      $stderr.puts "[ERROR] #{self.class.dsl_name} text is not valid UTF-8: #{text.inspect}"
+      said = "#{self.class.dsl_name} text is not valid UTF-8: #{text.inspect}"
+      Shoes::Console.log(:error, said)
+      $stderr.puts "[ERROR] #{said}"
       text.scrub
     end
 

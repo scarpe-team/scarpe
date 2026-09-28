@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-# A Shoes::Log implementation that writes to stderr, so stdout stays the app's own.
+# A Shoes::Log implementation that writes to stderr, so stdout stays the app's own, and lists
+# every line it writes in the Shoes console (Shoes::Console) too.
 # Level: SCARPE_NATIVE_LOG_LEVEL (debug info warn error), else debug under SCARPE_DEBUG, else warn.
 class Scarpe::Native::LogImpl
   LEVELS = { "debug" => 0, "info" => 1, "warn" => 2, "error" => 3, "fatal" => 4 }.freeze
@@ -11,8 +12,9 @@ class Scarpe::Native::LogImpl
       @impl = impl
     end
 
+    # console: false keeps a line out of the Shoes console, for one it lists another way.
     LEVELS.each_key do |level|
-      define_method(level) { |msg| @impl.write(level, @component, msg) }
+      define_method(level) { |msg, console: true| @impl.write(level, @component, msg, console: console) }
     end
   end
 
@@ -30,7 +32,10 @@ class Scarpe::Native::LogImpl
   def configure_logger(_log_config)
   end
 
-  def write(level, component, msg)
-    $stderr.puts("[scarpe-native] #{component} #{level}: #{msg}") if LEVELS[level] >= @level
+  def write(level, component, msg, console: true)
+    return unless LEVELS[level] >= @level
+
+    $stderr.puts("[scarpe-native] #{component} #{level}: #{msg}")
+    Shoes::Console.log(level, "#{component}: #{msg}") if console && defined?(Shoes::Console)
   end
 end

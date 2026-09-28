@@ -36,3 +36,11 @@ Shoes.app do
   end
 end
 ```
+
+## `Shoes.on_error`
+
+`Shoes.on_error { |err| }` hears every error a handler, a timer or the program's startup raises,
+as a Hash with String keys (`class`, `message`, `backtrace`, `path`, `line`, `during`), besides
+the log line and the Shoes console's entry. The program goes on as before. Approved by Nick
+Schwaderer on 28 Sep 2026, so an app can show its own errors in its own words; Shoes 3 only put
+them in its console.

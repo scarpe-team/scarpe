@@ -38,6 +38,8 @@ require_relative 'shoes/color'
 require_relative 'shoes/colors'
 
 require_relative 'shoes/font_file'
+require_relative 'shoes/error_report'
+require_relative 'shoes/console'
 require_relative 'shoes/builtins'
 
 require_relative 'shoes/background'
@@ -241,31 +243,85 @@ class Shoes
     # more loaders, a Lacci-based display library can accept new file formats as
     # well, not just raw Shoes .rb files.
     #
+    # An error that stops the file loading reaches Shoes.on_error as "startup" first, then
+    # goes on up as before.
+    #
     # @param relative_path [String] The current-dir-relative path to the file
+    # @param dir [String, nil] the directory to run in; the file's own by default
     # @return [void]
     # @see Shoes.add_file_loader
-    def run_app(relative_path)
+    def run_app(relative_path, dir: nil)
       path = File.expand_path relative_path
-      dir = File.dirname(path)
+      file_dir = File.dirname(path)
 
       # Shoes assumes we're starting from the app code's path
-      Dir.chdir(dir)
+      Dir.chdir(dir || file_dir)
 
       # Shoes3 adds the app directory to the load path so that
       # require 'app/boot' style calls work from the app's directory
-      $LOAD_PATH.unshift(dir) unless $LOAD_PATH.include?(dir)
+      $LOAD_PATH.unshift(file_dir) unless $LOAD_PATH.include?(file_dir)
 
       loaded = false
-      file_loaders.each do |loader|
-        if loader.call(path)
-          loaded = true
-          break
+      begin
+        file_loaders.each do |loader|
+          if loader.call(path)
+            loaded = true
+            break
+          end
         end
+      rescue StandardError, ScriptError, SystemStackError => e
+        report_error(e, during: "startup", program: path)
+        raise
       end
       raise "Could not find a file loader for #{path.inspect}!" unless loaded
 
       nil
     end
+
+    # Hands every error a handler, a timer or the program's startup raises to the block, on
+    # the event loop, as a Hash (Shoes::ErrorReport): "class", "message", "backtrace",
+    # "path", "line" and "during". The error is still logged and the program keeps going,
+    # as it does with no block. Each call adds a block. A Scarpe extension (ledger K9).
+    #
+    # @return [Proc] the block
+    def on_error(&block)
+      raise ArgumentError, "Shoes.on_error needs a block" unless block
+
+      error_hooks << block
+      block
+    end
+
+    # The blocks Shoes.on_error was given.
+    def error_hooks
+      @error_hooks ||= []
+    end
+
+    # Display services call this when a handler, a timer or a startup raises: the console
+    # lists the error, and every Shoes.on_error block hears of it. A block that raises is
+    # logged and the others still run.
+    #
+    # @param during [String] "startup", "handler", "timer" or "exit"
+    # @param program [String, nil] the program's main file, for the report's path and line
+    # @return [Hash] the report
+    def report_error(error, during:, program: nil)
+      err = Shoes::ErrorReport.from(error, during: during, program: program)
+      Shoes::Console.report(err)
+      error_hooks.each do |hook|
+        hook.call(err)
+      rescue StandardError, ScriptError => e
+        said = "A Shoes.on_error block raised #{e.class}: #{e.message}"
+        Shoes::Log.instance ? Shoes::Log.logger("Shoes").error(said) : warn(said)
+      end
+      err
+    end
+
+    # Opens the Shoes console (Shoes::Console), which Alt-/ opens too (Cmd-/ on a Mac).
+    #
+    # @return [Shoes::App] its window
+    def show_console
+      Shoes::Console.show
+    end
+    alias_method :show_log, :show_console
 
     def default_file_loaders
       [
