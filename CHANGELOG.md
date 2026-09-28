@@ -10,7 +10,7 @@ straightforward as possible.
 - A native display service: `scarpe --native app.rb` draws with a Rust program (tiny-skia, cosmic-text, winit) instead of a webview, while Lacci and every block stay in Ruby. See docs/native.md and native/DESIGN.md. Dedicated to the late Noah Gibbs.
 - `scarpe peek APP.rb` runs an app headless on the native display, clicks, types, scrolls and saves pictures
 - `scarpe package --native` builds an ad-hoc signed macOS `.app` (and a `.dmg` with `--dmg`) with precompiled Ruby bytecode, no installed gems, and FastImage copied in for image sizes
-- The Shoes spec suite (`spec/run`): 1026 cases from the manual and Noah Gibbs' Shoes-Spec corpus, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree
+- The Shoes spec suite (`spec/run`): 1038 cases from the manual and Noah Gibbs' Shoes-Spec corpus, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree
 - Lacci: `animate`, `every` and `timer` return `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer`; `Shoes.app`, `window` and `dialog` return the App; methods the manual marks "» self" return self
 - Lacci: `left`, `top`, `width` and `height` read laid-out pixels when the display reports them; slots gain `before`, `after`, `scroll_height`, `scroll_max` and `gutter`; `font(path)` returns the family names in the file
 - Native text fields undo and redo (Cmd-Z or Control-Z, Cmd-Shift-Z or Control-Y) and take an input method's commit as one edit
@@ -22,6 +22,8 @@ straightforward as possible.
 - Lacci: `edit_line.finish = proc` runs when Return is pressed in the line, as Shoes 3.2.15 added; `arc` takes `wedge: true` for a pie slice, as in Shoes 4
 - Lacci: `download` takes `start:`, `progress:`, `finish:`, `headers:` and `body:` and no longer needs nokogiri; `Image#path`, `full_width` and `full_height` and the `imagesize` built-in; the `error` built-in; `rgb`, `gray` and the named colours return a `Shoes::Color`, an Array with `red`, `green`, `blue` and `alpha`; `banner`, `title` and the rest of that family are `Shoes::Para` subclasses
 
+- `Shoes.show_manual` opens the manual in a window of its own, drawn from `docs/static/manual.md` with its chapters down the left, as Shoes 3's did; it no longer opens a browser
+- Lacci: `Para#hit(x, y)` answers the character under a point, and `cursor_top` and the new `cursor_left` where the caret sits in the slot that scrolls it, asked of the native display; `Shoes.app`, `window` and `dialog` take their styles as a Hash too, as Ruby 1.9 programs pass them
 ### Bugs Fixed
 - #569 link(click: "/path") now triggers internal navigation via visit(); paths like "/foo" also fall back to page(:foo) if no URL route matches
 - Support for `class MyApp < Shoes` inheritance pattern with URL routing
@@ -52,12 +54,16 @@ straightforward as possible.
 - Lacci: `style` on an animated shape costs about half what it did: a class's style names are worked out once
 - Native: a packaged app whose name or folder holds a space or a parenthesis ("ZARKING (Rust)", "For Noah") starts when double-clicked; Ruby passed the renderer's path alone to /bin/sh, which only a start with no flags does. Opened from Finder, the Dock or `open`, a native package writes its output to `~/Library/Logs/<name>/launcher.log`
 
+- Lacci: a flow's `scroll_top` read nil until set; every slot has `scroll_top` and `scroll_top=` now. A text fragment's `parent` is the para or fragment holding it, as in Shoes 3, and spans keep `weight`, `family`, `emphasis` and `kerning`
+- Native: a click block on an image is heard through an empty slot laid over it, once, on the press, as a shape's is; a negative `right` or `bottom` puts an element past its slot's edge, as in Shoes 3; a star or an arrow turns about the centre its `left` and `top` name
+- Lacci: every drawable subscribed to its own hover, leave and motion as it was made; now only when given a block for one, so a text of a thousand spans remade on every key leaves nothing on the event bus
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
 - `oval(left, top, n)`: `n` is a diameter, as the manual says, not a radius
 - `rotate` adds to the slot's running turn, as in Shoes 3 (it set the angle outright); `scale` and `skew` still set theirs
 - `left`, `top`, `width` and `height` include the element's margins, as Shoes 3 reports them
 - `ins` is an underline fragment, no longer another name for `inscription`
+- Slot blocks (`stack`, `flow`, `append`, `clear`...) keep the self they were written with, as the manual and Shoes 3 have it (ledger B1); only the app block, `window`, `dialog` and `app { }` run on the App. Code that calls Shoes methods bare inside a slot block from a plain object needs a way to the app, its own `method_missing` or `app { }`, as in Shoes 3. A widget's calls inside its own slots land in them, and what a widget lacks it asks its app for
 - Gradients run top to bottom (angle 0) unless given an angle; they used to default to 45
 - `clear` keeps the slot's event handlers and the timers it started, as Shoes 3 does
 - A `list_box` starts with nothing chosen unless `choose:` names an item
