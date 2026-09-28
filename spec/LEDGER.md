@@ -1167,7 +1167,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Examples:** 23 files read `animate`'s frame. Two read `every`'s count (`examples/animate.rb:15`, `shoes3_only/switch/switch.rb:19`); neither depends on where it starts.
 - **Lacci / WV today:** WV defaults to 10 fps (`wv/subscription_item.rb:24`) but pre-increments, so the first frame and the first count are **1** (`:25-39`); Lacci calls the `timer` block with nothing (`subscription_item.rb:33-36`); every callback fires twice (X1).
 - **Spec:** the first `animate` frame is 0 and frames increase by 1; `animate` with no fps ticks about 10 times per `advance(1)`; the first `every` count is 0; `timer(0.1)` fires exactly once.
-- **Native:** the Ruby pump owns timers (DESIGN 5.4); since 27 Sep `every` counts from 0 there, as `animate` does.
+- **Native:** the Ruby pump owns timers (DESIGN 5.4); since 27 Sep `every` counts from 0 there, as `animate` does. Since 28 Sep (wave 8) a delay under a millisecond, `timer(0)` and `every(0)` included, is one millisecond, as Shoes 3 clamps it (`s3t_timerbase.c:72`); it had waited the default second, so the first of `5.times { |i| timer(i * 0.12) { } }` came last. **Spec:** `element.timer__zero_seconds`.
 - **Wire contract (f), 27 Sep 2026:** `every`'s count starts at 0, and `animate`'s first frame is 0. DESIGN 5.4 said "every (count starts at 1)" until the layout lane moved it to 0 on 27 Sep, with Shoes 3 and Shoes 4.
 
 ### I2. `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer`
