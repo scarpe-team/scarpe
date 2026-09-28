@@ -1,0 +1,179 @@
+---
+display: native
+testability: interactive
+timeout: 150
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/kids/balloon_pop/balloon_pop.rb")
+----------- test code
+srand(6)
+app = Shoes.APPS.first
+iv = ->(name) { app.instance_variable_get("@#{name}") }
+sounds = iv.(:sounds)
+balloons = -> { iv.(:balloons) }
+# What afplay was asked to play (the suite traps it, so nothing is heard), once the last one has run.
+trap_lines = lambda do
+  sounds.player&.join(5)
+  File.exist?(ENV.fetch("SPEC_TRAP_FILE")) ? File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true) : []
+end
+played = ->(name) { trap_lines.().grep(/afplay .*#{name}\.wav\z/) }
+flying = ->(pool) { iv.(pool).count { |bit| bit.age && bit.age < bit.life } }
+in_sight = -> { balloons.().select { |b| app.seen?(b) && b.y > 60 && !b.aimed } }
+closed = false
+app.define_singleton_method(:close) { closed = true }
+
+# Six kinds, each with its own picture and note, so colour is never the only difference.
+assert_equal 6, KINDS.map { |k| k[:name] }.uniq.size
+assert_equal 6, KINDS.map { |k| k[:note] }.uniq.size
+assert_equal "Fredoka", ROUND, "the Kids apps' round font is loaded"
+
+# Balloons are up and floating, drawn where the app says they are.
+assert_equal 6, balloons.().size
+b = balloons.().first
+before = b.y
+advance 1
+assert_operator b.y, :<, before - 30, "balloons rise"
+assert_in_delta b.x - b.w / 2, layout_of(b.parts.first[0]).x, 1.5, "and each is drawn where it floats"
+refute iv.(:counting)
+assert iv.(:bar).hidden, "no counting bar while just popping"
+
+# A tap right on a balloon pops it at once: confetti, a ring, a string that drops, and its note.
+b = in_sight.().first
+cx, cy = app.centre(b)
+click_at cx.round, cy.round
+refute_includes balloons.(), b, "popped"
+assert_operator flying.(:confetti), :>=, 14
+assert_equal 1, flying.(:rings)
+assert_equal 1, flying.(:strings)
+assert_match(/pop-#{b.kind[:note]}\.wav\z/, sounds.last_file)
+wav = File.binread(sounds.last_file)
+assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV file"
+assert_operator wav[44..].unpack("s<*").map(&:abs).max, :<=, 0.3 * 32_767 + 1, "no sound is ever loud"
+refute_empty played.("pop-#{b.kind[:note]}"), "afplay was asked to play it (the suite traps afplay, so nothing is heard)"
+
+# A tap in the open sky sends a star to pop the nearest balloon for you.
+advance 1
+far = [[480, 330], [300, 330], [660, 330], [480, 200]].find { |x, y| balloons.().none? { |bb| Math.hypot(app.centre(bb)[0] - x, app.centre(bb)[1] - y) < 90 } }
+refute_nil far
+target = in_sight.().min_by { |bb| Math.hypot(app.centre(bb)[0] - far[0], app.centre(bb)[1] - far[1]) }
+click_at(*far)
+assert target.aimed, "the nearest balloon is picked"
+assert_includes balloons.(), target, "not popped yet: the star is on its way"
+advance 0.3
+refute_includes balloons.(), target, "the star popped it"
+
+# Any key pops the balloon nearest the pointer.
+nearest, = app.balloon_near(*far)
+press_key "g"
+advance 0.3
+refute_includes balloons.(), nearest, "a key popped the nearest one"
+
+# A hand slid across the keyboard: six keys at once send six stars, and every star pops its
+# balloon, even when a star has to be sent again before it lands.
+advance 1
+before = balloons.().dup
+6.times { press_key "q" }
+advance 0.35
+assert_operator (before - balloons.()).size, :>=, 6, "six balloons popped"
+assert_empty balloons.().select(&:aimed), "none left waiting for a star"
+
+# Mashing: lots of keys, lots of pops, and the balloons never run out.
+40.times do |i|
+  press_key ["a", "k", " ", "\n", :tab, :left, :f5, "7"][i % 8]
+  advance 0.1
+end
+advance 2
+assert_operator balloons.().size, :>=, 3, "more balloons keep coming"
+spawned = 0
+sounds.define_singleton_method(:spawn) { |*_args, **_opts| spawned += 1; Process.spawn("sleep", "30") }
+20.times { press_key "p"; advance 0.25 }
+assert_equal 6, spawned, "no more than six sounds at the same moment"
+sounds.singleton_class.remove_method(:spawn)
+sounds.instance_variable_get(:@playing).each { |sleeper| Process.kill("TERM", sleeper.pid) rescue nil; sleeper.join(2) }
+
+# Left alone there is nothing to lose: balloons float off the top, and more come up.
+advance 40
+assert_operator balloons.().size, :>=, 6
+assert balloons.().all? { |bb| bb.y > -bb.h - 150 }, "the ones that floated away are gone"
+# One on its way out of the top is drawn above the window, not back at the bottom.
+leaving = balloons.().min_by(&:y)
+leaving.y = -60.0
+advance 1 / 30.0
+assert_operator layout_of(leaving.parts.first[0]).y, :<, -50, "a balloon floats right out of the top"
+
+# The sun watches the pointer.
+move_mouse 20, 150
+advance 0.1
+left_eye = layout_of(iv.(:sun_eyes).first).x
+move_mouse 940, 150
+advance 0.1
+assert_operator layout_of(iv.(:sun_eyes).first).x, :>, left_eye + 3, "its eyes follow the pointer"
+
+# A flower the pointer brushes gives a wiggle.
+flower = iv.(:flowers)[5]
+move_mouse flower[:x], flower[:y]
+advance 0.1
+refute_nil flower[:wiggle]
+
+# Counting: 123 turns it on, each pop counts, and the tenth starts a party.
+click_at 900, 50
+assert iv.(:counting)
+refute iv.(:bar).hidden, "the counting bar shows"
+assert_match(/up\.wav\z/, sounds.last_file)
+move_mouse 480, 300
+10.times do |i|
+  press_key "c"
+  advance 0.3
+  assert_equal i + 1, iv.(:count), "pop #{i + 1} counts" if i < 9
+end
+refute_nil iv.(:party), "ten: a party"
+assert_match(/party\.wav\z/, sounds.last_file)
+advance 1.2
+assert iv.(:places).all? { |place| place[:filled] }, "all ten places are filled, none skipped"
+refute iv.(:trophy)[:slot].hidden, "a big star says 10"
+assert_operator flying.(:confetti), :>=, 50, "confetti everywhere"
+advance 4
+assert_nil iv.(:party)
+assert_equal [0, 1], [iv.(:count), iv.(:round)], "back to zero, one round done"
+assert iv.(:places).none? { |place| place[:filled] }
+assert_equal 1, iv.(:shelf).contents.size, "a star for the shelf"
+assert_operator iv.(:pace), :>, 1.0, "and the balloons rise a little quicker"
+press_key "c"
+advance 0.3
+assert_equal 1, iv.(:count), "counting starts again at 1"
+# Mashing through a round: a key every tenth of a second keeps several stars and numbers in
+# the air at once, and still every pop counts, every place fills, and no balloon is left waiting.
+9.times do
+  press_key "v"
+  advance 0.1
+end
+advance 0.3
+refute_nil iv.(:party), "ten again: another party"
+advance 1.2
+assert iv.(:places).all? { |place| place[:filled] }, "every place filled, even in a rush"
+assert_empty balloons.().select(&:aimed), "no balloon left waiting for its star"
+advance 4
+assert_equal 2, iv.(:round)
+click_at 800, 50
+refute iv.(:counting)
+assert iv.(:bar).hidden
+
+# The speaker turns every sound off, and back on.
+click_at 50, 50
+assert sounds.muted
+assert iv.(:waves).all?(&:hidden)
+quiet = trap_lines.().size
+press_key "m"
+advance 0.3
+assert_equal quiet, trap_lines.().size, "nothing plays while muted"
+click_at 50, 50
+refute sounds.muted
+
+# One press of Escape does nothing; holding it (a key held down repeats) closes the window.
+press_key :escape
+advance 1
+refute closed, "a single Escape is nothing"
+44.times do
+  press_key :escape
+  advance 0.05
+end
+assert closed, "holding Escape for two seconds closes the window"

@@ -10,11 +10,13 @@ class NativePackageTest < Minitest::Test
   include PackageTestHelpers
 
   RED_PNG = File.join(ROOT, "spec", "support", "assets", "red-40x30.png")
+  PACIFICO = File.join(ROOT, "spec", "support", "assets", "Pacifico.ttf")
   APP = <<~RUBY
     Shoes.app(width: 240, height: 120) do
       background "#dde"
       button "Packaged"
       warn "scarpe-imagesize \#{imagesize(#{RED_PNG.inspect}).inspect}"
+      warn "scarpe-font \#{font(#{PACIFICO.inspect}).inspect}"
     end
   RUBY
 
@@ -69,6 +71,16 @@ class NativePackageTest < Minitest::Test
     run = launch(bundle)
 
     assert_includes run[:stderr], "scarpe-imagesize [40, 30]"
+  end
+
+  # font(path) reads the family names out of the file, which are UTF-16 text, and a native
+  # bundle's Ruby carries no encoding transcoders. It answered nil there, and a font it does
+  # not name is never handed to the renderer: the Kids apps drew their words without Fredoka.
+  def test_fonts_are_named_and_loaded_in_the_bundle
+    run = launch(bundle)
+
+    assert_includes run[:stderr], 'scarpe-font ["Pacifico"]'
+    refute_match(/failed to load encoding/, run[:stderr])
   end
 
   # A double-click sends the app's output to /dev/null, so the launcher writes it to

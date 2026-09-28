@@ -9,9 +9,9 @@
 //!
 //! The whole frame is painted whenever that cannot be trusted: the first frame, a new size or
 //! scale, anything that scrolls, a popup, modal or tooltip, nodes changing places in paint
-//! order, and art whose transform may take it outside its box. SCARPE_NATIVE_DAMAGE=off turns
-//! partial repaints off; SCARPE_NATIVE_DAMAGE=check paints every frame in full as well and
-//! reports any pixel the partial repaint got wrong.
+//! order, and a turned image. SCARPE_NATIVE_DAMAGE=off turns partial repaints off;
+//! SCARPE_NATIVE_DAMAGE=check paints every frame in full as well and reports any pixel the
+//! partial repaint got wrong.
 
 use super::{paint_nodes, Canvas, Scene};
 use crate::doc::{Doc, Kind, Node};
@@ -20,7 +20,6 @@ use crate::input::ViewState;
 use crate::layout::{LBox, Layout, Rect, TextBox};
 use crate::props::Id;
 use cosmic_text::{Affinity, Buffer, Cursor, Edit, Selection};
-use serde_json::Value;
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
@@ -29,7 +28,7 @@ use tiny_skia::Pixmap;
 
 /// More damage than this share of the frame is cheaper to paint in one go.
 const MOSTLY: f32 = 0.5;
-/// Scattered damage beyond this many rects paints their bounding box.
+/// Scattered damage beyond this many rects is joined into this many, the nearest first.
 const MAX_RECTS: usize = 8;
 /// Two rects merge when their union is at most this many pixels bigger than the pair.
 const NEAR: i64 = 64 * 64;
@@ -148,7 +147,7 @@ struct Frame {
 
 /// One node as it was painted.
 struct Look {
-    /// Where it can paint (logical px); None when a transform may take it anywhere.
+    /// Where it can paint (logical px); None for a turned image, which may be anywhere.
     bounds: Option<Rect>,
     fingerprint: u64,
     /// Its shaped text, compared by pointer and held so the allocation cannot be reused.
@@ -434,26 +433,28 @@ fn rect_bits(r: Rect) -> [u32; 4] {
 }
 
 /// Where a node can put pixels, in logical px: its box, grown by what it draws outside it
-/// (shadows and focus rings, strokes, glyphs past the line box), cut to its clip. None when
-/// a transform may take it anywhere.
+/// (shadows and focus rings, strokes, glyphs past the line box), cut to its clip. None for a
+/// turned image, which may be anywhere.
 pub fn paint_bounds(node: &Node, lbox: &LBox, text: Option<&TextBox>) -> Option<Rect> {
     let p = &node.props;
-    let slack = match &node.kind {
+    let (slack_x, slack_y) = match &node.kind {
         k if k.is_art() => {
-            if transformed(node) {
-                return None;
-            }
-            p.art_f32("strokewidth").unwrap_or(1.0).abs() + 2.0 + super::shapes::overhang(node)
+            // Layout has turned art's box already (layout::turn_art). A stroke or a star's
+            // points reach past it by `reach`, and turn, scale and skew with the art: along x
+            // by |sx| + |kx| of that, along y by |ky| + |sy|.
+            let reach = p.art_f32("strokewidth").unwrap_or(1.0).abs() + 2.0 + super::shapes::overhang(node);
+            let t = super::shapes::art_transform(node, lbox.rect);
+            (reach * (t.sx.abs() + t.kx.abs()), reach * (t.ky.abs() + t.sy.abs()))
         }
         Kind::Image if p.f32("rotate_angle").is_some_and(|deg| deg != 0.0) => return None,
-        Kind::Background | Kind::Border => 2.0,
-        _ => 10.0,
+        Kind::Background | Kind::Border => (2.0, 2.0),
+        _ => (10.0, 10.0),
     };
-    let mut bounds = grow(lbox.rect, slack);
+    let mut bounds = grow(lbox.rect, slack_x, slack_y);
     if let Some(tb) = text {
-        let reach = slack + tb.shaped.buffer.metrics().line_height * 0.5;
+        let reach = slack_x + tb.shaped.buffer.metrics().line_height * 0.5;
         let (left, right) = (tb.shaped.ink.0.min(0.0), tb.shaped.ink.1.max(tb.shaped.width));
-        bounds = union(bounds, grow(Rect::new(tb.x + left, tb.y, right - left, tb.shaped.height), reach));
+        bounds = union(bounds, grow(Rect::new(tb.x + left, tb.y, right - left, tb.shaped.height), reach, reach));
     }
     Some(match lbox.clip {
         Some(clip) => bounds.intersect(&clip).unwrap_or(Rect::new(clip.x, clip.y, 0.0, 0.0)),
@@ -466,19 +467,8 @@ pub fn may_touch(node: &Node, lbox: &LBox, text: Option<&TextBox>, region: Rect)
     paint_bounds(node, lbox, text).is_none_or(|b| b.x < region.right() && region.x < b.right() && b.y < region.bottom() && region.y < b.bottom())
 }
 
-/// Art moved by its draw context: rotated, scaled, skewed or translated.
-fn transformed(node: &Node) -> bool {
-    let moves = |key: &str, still: f64| match node.props.art(key) {
-        None | Some(Value::Null) => false,
-        Some(Value::Number(n)) => n.as_f64() != Some(still),
-        Some(Value::Array(values)) => values.iter().any(|v| v.as_f64() != Some(still)),
-        Some(_) => true,
-    };
-    moves("rotate", 0.0) || moves("scale", 1.0) || moves("skew", 0.0) || moves("translate", 0.0)
-}
-
-fn grow(r: Rect, by: f32) -> Rect {
-    Rect::new(r.x - by, r.y - by, r.w + 2.0 * by, r.h + 2.0 * by)
+fn grow(r: Rect, x: f32, y: f32) -> Rect {
+    Rect::new(r.x - x, r.y - y, r.w + 2.0 * x, r.h + 2.0 * y)
 }
 
 fn union(a: Rect, b: Rect) -> Rect {
@@ -495,18 +485,38 @@ fn to_pixels(r: Rect, scale: f32, frame: (u32, u32)) -> Option<PxRect> {
     (x1 > x0 && y1 > y0).then_some(PxRect { x: x0, y: y0, w: x1 - x0, h: y1 - y0 })
 }
 
-/// Joins rects that overlap (every pixel belongs to one rect, painted once) or nearly touch;
-/// scattered damage past MAX_RECTS paints its bounding box.
+/// Joins rects that overlap (every pixel belongs to one rect, painted once) or nearly touch.
+/// Past MAX_RECTS it joins the two whose union is the smallest box, by its width and height,
+/// again and again, so a dozen fireflies far apart stay a few small clusters rather than one
+/// box across the window. (Joining whatever adds the fewest pixels instead lines far dots up
+/// into long strips, which later joins widen into boxes as big as the window.)
 fn merge(mut rects: Vec<PxRect>) -> Vec<PxRect> {
-    while let Some((i, j)) = mergeable(&rects) {
+    loop {
+        while let Some((i, j)) = mergeable(&rects) {
+            rects[i] = rects[i].union(&rects[j]);
+            rects.swap_remove(j);
+        }
+        if rects.len() <= MAX_RECTS {
+            return rects;
+        }
+        let (i, j) = cheapest_pair(&rects);
         rects[i] = rects[i].union(&rects[j]);
         rects.swap_remove(j);
     }
-    if rects.len() > MAX_RECTS {
-        let first = rects[0];
-        return vec![rects.iter().fold(first, |all, r| all.union(r))];
+}
+
+/// The two rects whose union is the smallest box, measured by its width plus its height.
+fn cheapest_pair(rects: &[PxRect]) -> (usize, usize) {
+    let mut best = (0, 1, i32::MAX);
+    for i in 0..rects.len() {
+        for j in i + 1..rects.len() {
+            let both = rects[i].union(&rects[j]);
+            if both.w + both.h < best.2 {
+                best = (i, j, both.w + both.h);
+            }
+        }
     }
-    rects
+    (best.0, best.1)
 }
 
 fn mergeable(rects: &[PxRect]) -> Option<(usize, usize)> {
@@ -546,9 +556,24 @@ mod tests {
     }
 
     #[test]
-    fn scattered_damage_becomes_one_bounding_box() {
-        let many: Vec<PxRect> = (0..20).map(|i| px(i * 300, i * 300, 4, 4)).collect();
-        assert_eq!(merge(many), vec![px(0, 0, 5704, 5704)]);
+    fn scattered_damage_joins_its_nearest_rects_down_to_max_rects() {
+        // Twenty dots in four far corners: four clusters, not one box across everything.
+        let corners = [(0, 0), (5000, 0), (0, 5000), (5000, 5000)];
+        let many: Vec<PxRect> = (0..20).map(|i| {
+            let (x, y) = corners[i % 4];
+            px(x + (i as i32 / 4) * 200, y + (i as i32 / 4) * 150, 4, 4)
+        }).collect();
+        let merged = merge(many.clone());
+        assert!(merged.len() <= MAX_RECTS, "{merged:?}");
+        for r in &many {
+            assert!(merged.iter().any(|m| m.contains(r.x, r.y) && m.contains(r.x + r.w - 1, r.y + r.h - 1)), "{r:?} is covered");
+        }
+        let area: i64 = merged.iter().map(PxRect::area).sum();
+        assert!(area < 4 * 804 * 604, "{area} pixels for {merged:?}");
+        let overlap = |a: &PxRect, b: &PxRect| a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+        for (i, a) in merged.iter().enumerate() {
+            assert!(merged[i + 1..].iter().all(|b| !overlap(a, b)), "no pixel is painted twice: {merged:?}");
+        }
     }
 
     #[test]

@@ -182,8 +182,15 @@ ruby scripts/native_cold_start.rb myapp.rb --runs 1 --snapshot first_frame.png
 ```
 
 `rake package_test` builds one small app for real, checks its contents and signature, boots it
-headless from bytecode, boots a moved copy from source, and checks that output sent to `/dev/null`
-lands in the log.
+headless from bytecode, boots a moved copy from source, checks that output sent to `/dev/null`
+lands in the log, and that `font(path)` names and loads a font inside the bundle. The bundled Ruby
+carries no encoding transcoders, so Lacci reads a font's UTF-16 names by hand; with
+`String#encode`, `font` answered nil there and the font never reached the renderer.
+
+A file an app reads from outside its own folder travels with `--include`, landing beside the app
+under its own name: the Kids apps share `examples/native/kids/_fonts`, so they are packaged with
+`--include ../_fonts`, and each looks for Fredoka in `_fonts/` beside itself as well as in
+`../_fonts`.
 
 Every recipe here passes the renderer a flag (`--headless`, `--ghost`, `--exit-after`), and a
 double-click passes none. That difference once hid a start that failed only from Finder: with no

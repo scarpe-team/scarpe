@@ -484,6 +484,23 @@ fn cursor_of(node: &crate::doc::Node) -> Option<CursorShape> {
     }
 }
 
+/// How a press on a drawable of `kind` is taken, and whether it keeps it (DESIGN 4.3): a link,
+/// a button, check or radio, a text field or a list box keeps it; anything else, an image too,
+/// only passes it on, to the slots and drawables that listen.
+fn press_on(kind: &Kind, on_a_link: bool) -> (PressKind, bool) {
+    if on_a_link {
+        return (PressKind::Click, true);
+    }
+    match kind {
+        Kind::Button | Kind::Check | Kind::Radio => (PressKind::Click, true),
+        // An image's click block is heard like a shape's, through has_click on the press
+        // (ledger E8), so it is not also clicked on the release.
+        Kind::EditLine | Kind::EditBox => (PressKind::Field, true),
+        Kind::ListBox => (PressKind::Plain, true),
+        _ => (PressKind::Plain, false),
+    }
+}
+
 fn api(doc: &Doc, item: Id) -> Option<&str> {
     let node = doc.get(item)?;
     if node.props.truthy("stopped") {
@@ -724,26 +741,14 @@ impl Runtime {
         let shift = self.views[&app].ui.modifiers.shift;
         let clicks = self.views.get_mut(&app).expect("view").ui.click_count(x, y);
         let target = hit.link.unwrap_or(hit.node);
-        let (press_kind, consumed) = if hit.link.is_some() {
-            (PressKind::Click, true)
-        } else {
+        let (press_kind, consumed) = press_on(&kind, hit.link.is_some());
+        if hit.link.is_none() {
             match kind {
-                Kind::Button | Kind::Check | Kind::Radio => (PressKind::Click, true),
-                // An image's click block is heard like a shape's, through has_click on the
-                // press (ledger E8), so it is not also clicked on the release.
-                Kind::EditLine | Kind::EditBox => {
-                    self.focus_field_at(app, hit.node, x, y, clicks, shift);
-                    (PressKind::Field, true)
-                }
-                Kind::ListBox => {
-                    if button == 1 {
-                        self.open_popup(app, hit.node);
-                    }
-                    (PressKind::Plain, true)
-                }
-                _ => (PressKind::Plain, false),
+                Kind::EditLine | Kind::EditBox => self.focus_field_at(app, hit.node, x, y, clicks, shift),
+                Kind::ListBox if button == 1 => self.open_popup(app, hit.node),
+                _ => {}
             }
-        };
+        }
         if kind.is_focusable() {
             self.set_focus(app, Some(hit.node));
             self.views.get_mut(&app).expect("view").ui.focus_visible = false;
@@ -753,16 +758,46 @@ impl Runtime {
         self.views.get_mut(&app).expect("view").ui.pressed = Some(Press { target, button, kind: press_kind, consumed });
         if !consumed {
             let args = vec![json!(button), json!(x.round() as i64), json!(y.round() as i64)];
-            if let Some(owner) = self.pointer_owner(app, &hit, &chain, x, y, "has_click") {
-                self.out.event("click", Some(owner), args.clone());
-            }
-            for (item, parent) in self.subscriptions(app, "click") {
-                if Self::inside(&parent, x, y) {
-                    self.out.event("click", Some(item), args.clone());
-                }
+            for id in self.listeners(app, &hit, &chain, x, y, "click") {
+                self.out.event("click", Some(id), args.clone());
             }
         }
         self.request_redraw(app);
+    }
+
+    /// Who hears a press (`api` "click") or release ("release") that no control or link took, in
+    /// the order they hear it. First the slots whose `click` blocks run, the window's first, then
+    /// inner slots, the topmost of two side by side first; then the drawable with a click block
+    /// of its own (pointer_owner). Shoes 3 runs a slot's block as the press walks down the canvas
+    /// and the block of the shape it lands on after that (shoes_canvas_send_click2), so a card's
+    /// click runs before a backdrop's under it that closes the card.
+    pub(crate) fn listeners(&self, app: Id, hit: &Hit, chain: &[Id], x: f32, y: f32, api: &str) -> Vec<Id> {
+        let mut slots: Vec<(Vec<usize>, Id)> = self
+            .subscriptions(app, api)
+            .into_iter()
+            .filter(|(_, parent)| Self::inside(parent, x, y))
+            .map(|(item, _)| (self.doc.get(item).and_then(|n| n.parent).map(|slot| self.walk_down_to(slot)).unwrap_or_default(), item))
+            .collect();
+        // Stable, so two blocks on one slot run in the order they were given.
+        slots.sort_by(|a, b| a.0.cmp(&b.0));
+        let block = if api == "release" { "has_release" } else { "has_click" };
+        let owner = self.pointer_owner(app, hit, chain, x, y, block);
+        slots.into_iter().map(|(_, item)| item).chain(owner).collect()
+    }
+
+    /// The way down to `slot` from the window's root, as a sort key: each step's place among
+    /// its siblings counted from the top of the paint order, so a slot sorts after its
+    /// ancestors and before a slot drawn under it.
+    fn walk_down_to(&self, slot: Id) -> Vec<usize> {
+        let mut path = vec![slot];
+        path.extend(self.doc.ancestors(slot));
+        path.windows(2)
+            .rev()
+            .map(|pair| {
+                let siblings = self.doc.children(pair[1]);
+                siblings.len() - siblings.iter().position(|c| *c == pair[0]).unwrap_or(0)
+            })
+            .collect()
     }
 
     /// Who hears a press or release that no control took (`block` is `has_click` or
@@ -779,6 +814,16 @@ impl Runtime {
             _ => Vec::new(),
         };
         hit.spans.iter().chain(&beneath).chain(chain).copied().find(listens)
+    }
+
+    /// Whether a press on `hit` is one a control or link keeps to itself (press_on).
+    pub(crate) fn press_consumed(&self, hit: &Hit) -> bool {
+        let kind = match self.doc.get(hit.node) {
+            Some(n) if crate::elements::disabled(n) => Kind::Unknown("disabled".into()),
+            Some(n) => n.kind.clone(),
+            None => Kind::Unknown(String::new()),
+        };
+        press_on(&kind, hit.link.is_some()).1
     }
 
     pub fn pointer_up(&mut self, app: Id, button: u8) {
@@ -804,13 +849,12 @@ impl Runtime {
         }
         if !press.as_ref().is_some_and(|p| p.consumed) {
             let args = vec![json!(button), json!(x.round() as i64), json!(y.round() as i64)];
-            if let Some(owner) = hit.as_ref().and_then(|hit| self.pointer_owner(app, hit, &chain, x, y, "has_release")) {
-                self.out.event("release", Some(owner), args.clone());
-            }
-            for (item, parent) in self.subscriptions(app, "release") {
-                if Self::inside(&parent, x, y) {
-                    self.out.event("release", Some(item), args.clone());
-                }
+            let listeners = match &hit {
+                Some(hit) => self.listeners(app, hit, &chain, x, y, "release"),
+                None => Vec::new(),
+            };
+            for id in listeners {
+                self.out.event("release", Some(id), args.clone());
             }
         }
         self.request_redraw(app);

@@ -1,0 +1,28 @@
+---
+manual: slot.left
+lines: [2421, 2423]
+testability: visual
+display: native
+ledger: A4
+----------- app code
+# A slot the app placed answers the numbers it was given, from its own slot's corner, as
+# Shoes 3 does (s3_ruby.h:376-399), so `left += 5` never drifts. A drawable its slot flowed
+# answers where the layout put it, in window coordinates, where Shoes 3 answers from the
+# slot's corner (ledger A4). Inside a slot away from the window's corner the two differ.
+Shoes.app width: 400, height: 300 do
+  @outer = stack(left: 100, top: 50, width: 200, height: 200) do
+    @inner = stack(left: 60, top: 40, width: 80, height: 50) { background red }
+    @word = para "flowed"
+  end
+end
+----------- test code
+inner = stack("@inner")
+assert_equal [160, 90], [layout_of(inner).x, layout_of(inner).y].map(&:round), "laid out 60, 40 in from the outer slot's corner"
+assert_equal [60, 40], [inner.left, inner.top], "placed: the numbers it was given"
+
+word = para("@word")
+assert_equal [100, 50], [word.left, word.top], "flowed: window coordinates, its margins included"
+
+inner.left += 5
+wait_frames
+assert_equal 165, layout_of(inner).x.round, "so left += 5 moves it 5"

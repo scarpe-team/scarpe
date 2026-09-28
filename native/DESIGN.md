@@ -120,7 +120,7 @@ that last ran or had input, else the first running one.
 | `dialog` | `kind` (alert confirm ask ask_color ask_open_file ask_save_file ask_open_folder ask_save_folder), `message`, `default`; for `ask`, optional `title` (a heading, and the title of a window of its own) and `secret` (typed as bullets), sent when the app gives them (ledger K1) | alert: null; confirm: bool; ask: String, or null on Cancel in a window (headless: `""`); ask_color: [r,g,b,a] or null; file/folder: path or null. `cancelled` bool alongside. The shim hands Lacci `""` for a cancelled ask either way (ledger K1, Q6) |
 | `layout` | `app` | array of `{id, kind, x, y, w, h, visible, text?}` in window coordinates, rounded to 1/100, paint order; text fragments follow their para |
 | `snapshot` | `path`, `app`, `scale` (default: the app's scale) | writes a PNG; value = `{path, w, h}` in pixels |
-| `click` | `target`: `{id}` or `{text}` or `{x,y}`, `button` (1 default), `app` | synthesises press+release at the target's centre through the real input path. value = `{hit: id or null, x, y}`. Error if the target is not visible or something else is on top (the value says what was hit). `{id}` goes to the drawable's own window whatever `app` says. `{text}` matches exact text first, then text that contains it, links included, and also picks an item of an open list_box popup |
+| `click` | `target`: `{id}` or `{text}` or `{x,y}`, `button` (1 default), `app` | synthesises press+release at the target's centre through the real input path. value = `{hit: id or null, x, y}`, `hit` being the drawable whose click block the press runs (the one with a block of its own, else the innermost slot whose `click` runs), or else what was hit. Error if the target is not visible, or a real press there would not reach it: a control or link on top, or above it a drawable that takes the press itself (a control, or one with a click block); an empty slot on top lets it through, as it lets a real press through (the value says what was hit). `{id}` goes to the drawable's own window whatever `app` says. `{text}` matches exact text first, then text that contains it, links included, and also picks an item of an open list_box popup |
 | `mouse` | `action` (move down up), `x`, `y`, `button` | low-level pointer event through the real path |
 | `type` | `text` | inserts text into the focused input as real key events, one character at a time |
 | `key` | `key` (a Shoes name, e.g. "left", "\n", "a", ":control_a"; also `command_`, `cmd_`, `super_`, `ctrl_`, `option_` prefixes) | synthesises a key press |
@@ -165,7 +165,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 | pick in ListBox (popup, or Up/Down while focused) | `change` | that id | `[item_string]` |
 | pointer enters / leaves a drawable | `hover` / `leave` | that id | `[]`, on transitions only, for every drawable in the hovered chain |
 | press / release on a drawable that has `has_click` / `has_release` true | `click` / `release` | the innermost such id under the pointer: a text fragment's first, then the topmost drawable under the pointer that has one, so a label or icon with no block passes the press to a clickable shape beneath it (Shoes 3's `shoes_canvas_send_click2`, ledger E8). An image with a click block is heard this way too, and an empty slot over it passes the press on. A control on top keeps the press | `[button, x, y]` window coordinates, Integers |
-| SubscriptionItem `click`/`release` | same | item id | `[button, x, y]` in window coordinates, like drawable clicks (ledger H3, Q4, contract g). Fires for presses inside the parent slot unless a control, text field or link consumed the press |
+| SubscriptionItem `click`/`release` | same | item id | `[button, x, y]` in window coordinates, like drawable clicks (ledger H3, Q4, contract g). Fires for presses inside the parent slot unless a control, text field or link consumed the press. Slots' events come before the drawable's own: the window's first, then inner slots, the topmost of two side by side first, as Shoes 3 runs a slot's block while the press walks down the canvas to what it lands on (ledger E8) |
 | SubscriptionItem `motion` | `motion` | item id | `[x, y, ctrl, shift]` (booleans) in window coordinates, on pointer move inside the parent slot |
 | SubscriptionItem `hover`/`leave` | same | item id | `[]` on entering/leaving the parent slot box |
 | SubscriptionItem `keypress` | `keypress` | item id | `[key]`, see 4.4. Not sent while a text input has focus, except escape and modified keys; not sent for keys a focused control used |
@@ -299,7 +299,8 @@ loop until no app is open or the child's stdout ended:
     (Automation#advance and other callers of Pump#step wait at most 50 ms)
   dispatch every complete message
   tick due timers: animate (frame starts at 0), every (count starts at 0, ledger I1), timer (one shot);
-    honour `stopped` and destroyed items; timers can be created at any time
+    honour `stopped` and destroyed items; timers can be created at any time; an `every` or `timer`
+    shorter than a millisecond (0 included) waits one, as Shoes 3 clamps it
   dispatch "heartbeat" (nil target) at most every 50 ms; Shoes-Spec tests and peek's steps start
     once the first one's handlers are done, so the slot start blocks Lacci hangs on it have run
   flush
@@ -478,7 +479,9 @@ Hard-won API notes (from research 07):
 Default background white, text #1d1d1f, system sans (San Francisco on macOS) at the Shoes sizes
 (banner 48, title 34, subtitle 26, tagline 18, caption 14, para 12, inscription 10). Buttons: rounded
 6 px, subtle vertical gradient, 1 px border, soft shadow, pressed and hover states. Inputs: white,
-1 px #c7c7cc border, 6 px radius, blue focus ring. Check/radio: drawn, accent blue (#0a84ff) when on.
+1 px #c7c7cc border, 6 px radius, blue focus ring and caret; `fill:` and `border_color:` repaint the
+box and its edge, and a `stroke:` that colours the text colours the caret and focus ring too
+(ledger G17). Check/radio: drawn, accent blue (#0a84ff) when on.
 Links: #0066ee, underline, #003399 on hover, pointer cursor. Buttons, checks, radios and list boxes
 also show the pointing hand and text fields an I-beam; a drawable's own `cursor` style
 (`:hand_cursor`, `:text_cursor`, `:watch_cursor`, `:arrow_cursor`) wins, and the App's `cursor`
@@ -566,11 +569,12 @@ used, so any Scarpe display service can run them. `spec/README.md` is the writer
   kept in a file), writes `spec/results/<display>.json` and prints a scoreboard. Exit code
   non-zero on failures.
 
-At the sixth build wave's merge (`399068e`, 28 Sep 2026) the suite holds 1026 cases: native 1010
+With the eighth build wave's Kids apps (28 Sep 2026) the suite holds 1042 cases: native 1026
 pass, 0 fail, 1 skip and 15 expected failures, each citing its ledger row; niente 540 pass and 12
-expected failures (473 need layout or input and are n/a there). The twelve checks beside the apps
-in `examples/native/legendary` run only when named, and pass 12 of 12. Examples on native, on
-Ruby 4.0: 340 pass, 0 fail, 90 skipped, and 23 that `spec/examples.yml` expects to fail there,
+expected failures (489 need layout or input and are n/a there). The ten Kids checks run with the
+suite from `spec/kids`; the twelve checks beside the apps in `examples/native/legendary` run only
+when named, and pass 12 of 12. Examples on native, on
+Ruby 4.0: 360 pass, 0 fail, 90 skipped, and 23 that `spec/examples.yml` expects to fail there,
 each with its reason (dialog-only apps, scripts that never start an app or stop on a missing
 library, apps that only log or paint one flat colour, and `colours.rb`, whose colours `flatten`
 dissolves, ledger D1). Two of the 23 name Ruby 4.0 in a `ruby:` field and load on Ruby 3.2.
@@ -685,7 +689,9 @@ change the code and this list together.
 - **Image files** are decoded once and read again when the file changes (its modification time
   or length, looked at once a batch), so an app that rewrites a picture and sets its path again
   shows the new one, and a file that was not there yet shows once it is. Pictures no drawable
-  shows any more are let go at the next flush.
+  shows any more are let go at the next flush. A picture drawn at another size than its own is
+  resampled once for that size in device pixels and the copy kept with it (four sizes at most,
+  none past 16 M pixels), and an unturned picture lands on whole device pixels.
 - **Gradients** follow Shoes 3: angle 0 runs top to bottom, 90 left to right, across the shape's
   box. A wire gradient without `angle` gets 0. Radial gradients are not drawn (Lacci's `gradient()`
   cannot ask for one).
@@ -768,8 +774,10 @@ change the code and this list together.
 - **Partial repaints.** A window keeps its last frame and repaints only the rects of nodes whose box,
   props, text or widget state changed (`paint::damage`). Anything it cannot bound repaints the whole
   frame: the first frame, a new size or scale, scrolling, a popup, modal or tooltip, a change of
-  paint order, and art under rotate, scale, skew or translate. Headless pictures and snapshots are
-  always painted whole. A node must never paint outside `paint::damage::paint_bounds`: code that
+  paint order, and a turned image. Art under rotate, scale or skew is bounded by its turned box,
+  grown by its stroke and points as the transform stretches them. Past eight damaged rects, the
+  two whose union is the smallest box are joined, again and again, until eight remain; more than
+  half the frame repaints it whole. Headless pictures and snapshots are always painted whole. A node must never paint outside `paint::damage::paint_bounds`: code that
   makes a node draw further (a new transform, a bigger shadow) grows that function too, or
   `SCARPE_NATIVE_DAMAGE=check` will say so. A masked slot's layers cover only the repainted rect,
   so masks repaint in part like anything else.

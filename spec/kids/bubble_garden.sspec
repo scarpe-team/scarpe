@@ -1,0 +1,149 @@
+---
+display: native
+testability: interactive
+----------- app code
+srand(4)
+load File.join(Scarpe::Native::ROOT, "examples/native/kids/bubble_garden/bubble_garden.rb")
+----------- test code
+app = Shoes.APPS.first
+ivar = ->(name) { app.instance_variable_get(name) }
+bubbles, flowers, sounds = ivar.(:@bubbles), ivar.(:@flowers), ivar.(:@sounds)
+trapped = -> { File.exist?(ENV.fetch("SPEC_TRAP_FILE")) ? File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true) : [] }
+pinkish = ->(pixel) { r, g, b = pixel; r > 230 && b > g && g < 215 }
+auto = Scarpe::Native::DisplayService.instance.automation
+
+# three flowers are out already, smiling, and nothing is floating yet
+assert_equal 3, flowers.size
+assert_equal 0, bubbles.size
+pink = flowers.find { |flower| flower.note.start_with?("c") }
+x, y = pink.shown || [pink.x, pink.base - pink.height]
+assert pinkish.(pixel_at(x.round, (y - pink.radius * 0.7).round)), "the pink blossom's top petal is pink: #{pixel_at(x.round, (y - pink.radius * 0.7).round).inspect}"
+refute pinkish.(pixel_at(x.round, (pink.base + 20).round)), "the grass below it is not"
+
+# a key on the left blows a big low bubble on the left, with a sound made in Ruby
+press_key "q"
+assert_equal 1, bubbles.size
+low = bubbles.last
+assert_operator low.x, :<, 320, "q is on the left of the keyboard"
+assert_match(/blow-[cde]4\.wav\z/, sounds.last_file)
+wav = File.binread(sounds.last_file)
+assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV file"
+sounds.player.join(10)
+assert_includes trapped.call, "afplay #{sounds.last_file}", "handed to afplay (trapped here, so nothing is heard)"
+
+# a key on the right blows a smaller, higher one on the right
+press_key "p"
+high = bubbles.last
+assert_operator high.x, :>, 640
+assert_operator NOTES.index(high.note), :>, NOTES.index(low.note), "higher up the scale"
+assert_operator high.size, :<, low.size, "and smaller"
+
+# Return blows a fan of five bubbles up the scale, the first straight away
+fan = bubbles.size
+press_key "\n"
+advance 0.01
+assert_equal fan + 1, bubbles.size, "the first bubble of the fan comes straight away (timer(0))"
+advance 0.6
+assert_equal fan + 5, bubbles.size, "and four more follow"
+assert_equal %w[c5 d5 e5 g5 a5], bubbles.last(5).map(&:note)
+
+# a scrolling trackpad blows the bubbles along, with one breath of wind at a time
+advance 1.2
+heard = trapped.call.size
+12.times { wheel(40); advance(1 / 30.0) }
+assert_equal 1, ivar.(:@wind).round, "scrolling down blows a gust to the right"
+assert_equal 1, trapped.call.size - heard, "twelve scrolls, one whoosh"
+
+# no sound is ever loud: every one of them peaks at a quarter of full scale or less
+%i[blow pop bloom hop giggle whoosh].each do |name|
+  peak = sounds.samples(name, "c4").map(&:abs).max
+  assert_operator peak, :<=, 0.2501, "#{name} stays soft"
+  assert_operator peak, :>, 0.05, "#{name} makes a sound"
+end
+
+# poke a bubble: it pops, a seed falls, and a flower of the bubble's note grows where it lands
+advance 0.2
+click_at low.x.round, low.y.round
+refute_includes bubbles, low, "a poked bubble pops"
+assert_equal 1, ivar.(:@seeds).size, "and lets a seed go"
+advance 3
+grown = flowers.find { |flower| flower.note == low.note && flower.grow >= 1 && !pink.equal?(flower) }
+assert grown, "a #{low.note} flower grew from the seed"
+assert_equal false, grown.eyes.first.hidden, "and opened its eyes"
+
+# a toddler mashes a dozen keys as fast as they come: bubbles, but never too many, and no errors
+keys = %w[a s d f g h j k l ; z x c v b n m 1 2 3] + [" ", "\n", :left, :up, :down, :tab, :backspace, :alt_a]
+rng = Random.new(9)
+40.times { press_key(keys[rng.rand(keys.size)]) }
+assert_operator bubbles.size, :>, 8, "mashing blows bubbles"
+assert_operator bubbles.size, :<=, MOST_BUBBLES, "but never more than the garden can hold"
+mashed = bubbles.dup
+advance 8
+assert_empty bubbles & mashed, "they all pop in the end"
+assert_operator flowers.count { |flower| flower.grow >= 1 }, :>=, 12, "and the garden fills"
+assert_equal 1.0, ivar.(:@rainbow_goal), "a dozen flowers bring out the rainbow"
+refute ivar.(:@rainbow).first.hidden
+assert_operator ivar.(:@butterflies).size, :>=, 1, "and butterflies come to visit"
+assert flowers.all? { |flower| flower.spot[:flower].equal?(flower) }, "one flower to a spot"
+
+# a wiggle of the mouse leaves golden pollen, and a flower it brushes through wiggles and chimes
+advance 1.3 # past the eight-a-second limit on sounds, so the chime is heard
+flower = flowers.find { |f| f.grow >= 1 && f.shown && f.stir.zero? }
+sparks = ivar.(:@bits).size
+move_mouse flower.shown[0] - 60, flower.shown[1]
+move_mouse flower.shown[0] - 20, flower.shown[1]
+move_mouse flower.shown[0], flower.shown[1]
+assert_operator ivar.(:@bits).size, :>, sparks, "pollen"
+assert_equal 1.0, flower.stir, "the flower wiggles"
+assert_match(/hop-#{flower.note}\.wav\z/, sounds.last_file, "and chimes its note")
+
+# holding the button down is a bubble wand: it keeps blowing, and stops when you let go
+before = bubbles.size
+auto.mouse(:move, 480, 300)
+auto.mouse(:down, 480, 300)
+advance 1
+refute ivar.(:@wand).hidden, "the wand shows while the button is held"
+assert_operator bubbles.size - before, :>=, 5, "a stream of bubbles"
+assert bubbles.last(3).all? { |bubble| (bubble.x - 480).abs < 60 }, "from the wand"
+auto.mouse(:up, 480, 300)
+advance 0.1
+assert ivar.(:@wand).hidden
+held = bubbles.size
+advance 0.5
+assert_operator bubbles.size, :<=, held, "no more once the button is up"
+
+# the speaker in the corner turns the sound off, and on again
+click_at 924, 52
+assert sounds.muted
+heard = trapped.call.size
+press_key "k"
+advance 0.5
+assert_equal heard, trapped.call.size, "nothing played while the sound is off"
+click_at 924, 52
+refute sounds.muted
+
+# a tap of Escape only shows the grown-up hint; it goes away, and the garden stays open
+press_key :escape
+refute ivar.(:@leave_card).hidden, "Escape shows the hint"
+10.times { press_key(:escape); advance(1 / 30.0) }
+refute ivar.(:@leaving), "a short hold does not close the garden"
+advance 1
+assert ivar.(:@leave_card).hidden, "and the hint goes when the key is let go"
+12.times { press_key(:escape); advance(0.3) }
+refute ivar.(:@leaving), "nor does tapping it over and over, a little apart"
+90.times { |i| press_key(i.even? ? :escape : "q"); advance(1 / 30.0) }
+refute ivar.(:@leaving), "nor mashing it along with other keys"
+advance 1
+
+# nobody touches anything: the garden blows bubbles of its own
+advance 6
+assert_operator bubbles.size, :>=, 1, "the garden daydreams"
+
+# held down for two seconds (a held key repeats every thirtieth of a second), Escape leaves
+70.times do
+  break if ivar.(:@leaving)
+
+  press_key :escape
+  advance 1 / 30.0
+end
+assert ivar.(:@leaving), "a grown-up can leave"
