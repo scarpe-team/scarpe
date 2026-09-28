@@ -46,6 +46,13 @@ advance 0.6
 assert_equal fan + 5, bubbles.size, "and four more follow"
 assert_equal %w[c5 d5 e5 g5 a5], bubbles.last(5).map(&:note)
 
+# a scrolling trackpad blows the bubbles along, with one breath of wind at a time
+advance 1.2
+heard = trapped.call.size
+12.times { wheel(40); advance(1 / 30.0) }
+assert_equal 1, ivar.(:@wind).round, "scrolling down blows a gust to the right"
+assert_equal 1, trapped.call.size - heard, "twelve scrolls, one whoosh"
+
 # no sound is ever loud: every one of them peaks at a quarter of full scale or less
 %i[blow pop bloom hop giggle whoosh].each do |name|
   peak = sounds.samples(name, "c4").map(&:abs).max

@@ -1001,12 +1001,21 @@ Shoes.app(title: "Bubble Garden", width: W, height: H, resizable: false) do
 
   def gust(side)
     @wind = side * 1.0
-    sound(:whoosh)
+    whoosh
   end
 
   # Up sends every bubble higher, faster.
   def lift
     @bubbles.each { |bubble| bubble.vy -= 40 }
+    whoosh
+  end
+
+  # A scrolling trackpad or a held arrow key sends many gusts; one breath of
+  # wind at a time is plenty.
+  def whoosh
+    return if @clock - @whooshed < 0.8
+
+    @whooshed = @clock
     sound(:whoosh)
   end
 
@@ -1152,6 +1161,7 @@ Shoes.app(title: "Bubble Garden", width: W, height: H, resizable: false) do
   @butterflies = []
   @holding = false
   @blown_at = 0.0
+  @whooshed = -1.0
 
   sky
   land
