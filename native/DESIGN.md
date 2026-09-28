@@ -674,7 +674,9 @@ change the code and this list together.
 - **Image files** are decoded once and read again when the file changes (its modification time
   or length, looked at once a batch), so an app that rewrites a picture and sets its path again
   shows the new one, and a file that was not there yet shows once it is. Pictures no drawable
-  shows any more are let go at the next flush.
+  shows any more are let go at the next flush. A picture drawn at another size than its own is
+  resampled once for that size in device pixels and the copy kept with it (four sizes at most,
+  none past 16 M pixels), and an unturned picture lands on whole device pixels.
 - **Gradients** follow Shoes 3: angle 0 runs top to bottom, 90 left to right, across the shape's
   box. A wire gradient without `angle` gets 0. Radial gradients are not drawn (Lacci's `gradient()`
   cannot ask for one).
@@ -757,8 +759,10 @@ change the code and this list together.
 - **Partial repaints.** A window keeps its last frame and repaints only the rects of nodes whose box,
   props, text or widget state changed (`paint::damage`). Anything it cannot bound repaints the whole
   frame: the first frame, a new size or scale, scrolling, a popup, modal or tooltip, a change of
-  paint order, and art under rotate, scale, skew or translate. Headless pictures and snapshots are
-  always painted whole. A node must never paint outside `paint::damage::paint_bounds`: code that
+  paint order, and a turned image. Art under rotate, scale or skew is bounded by its turned box,
+  grown by its stroke and points as the transform stretches them. Past eight damaged rects, the
+  two whose union is the smallest box are joined, again and again, until eight remain; more than
+  half the frame repaints it whole. Headless pictures and snapshots are always painted whole. A node must never paint outside `paint::damage::paint_bounds`: code that
   makes a node draw further (a new transform, a bigger shadow) grows that function too, or
   `SCARPE_NATIVE_DAMAGE=check` will say so. A masked slot's layers cover only the repainted rect,
   so masks repaint in part like anything else.
