@@ -102,4 +102,32 @@ class ErrorsTest < Minitest::Test
     refute run.status.success?, "a startup error still ends the app"
     assert_includes run.stdout, 'ON_ERROR {"class":"NameError","line":4,"during":"startup"}'
   end
+
+  # An animation that raises raises every frame, in words that may change each time. The log,
+  # which a packaged app keeps on disk, says it once, then how often, as the count reaches 10,
+  # 100 and so on; Shoes.on_error and the console still hear every one.
+  def test_an_error_raised_again_and_again_is_logged_once_then_counted
+    run = run_real(<<~APP, timeout: 30)
+      $heard = 0
+      Shoes.on_error { |err| $heard += 1 }
+      Shoes.app do
+        animate(100) { |i| [1, 2, 3].fetch(i + 3) }
+        timer(1.5) do
+          listed = Shoes::Console.entries.count { |entry| entry.message.start_with?("IndexError") }
+          $stdout.puts "HEARD \#{$heard} LISTED \#{listed}"
+          Shoes.quit
+        end
+      end
+    APP
+    assert_clean_exit(run)
+    said = run.stdout.match(/HEARD (\d+) LISTED (\d+)/)
+    refute_nil said, "the app said how many it heard\n#{run.stdout}"
+    heard, listed = said.captures.map(&:to_i)
+    assert_operator heard, :>=, 20, "Shoes.on_error hears every frame's error"
+    assert_equal heard, listed, "and the console lists every one"
+    logged = run.stderr.lines.grep(/IndexError/)
+    assert_match(/IndexError: index 3 outside of array bounds.* in the .*app\.rb:4/, logged.first, "the first is logged in full")
+    assert_includes logged[1].to_s, "10 times now", "then the count at 10"
+    assert_operator logged.size, :<=, 3, "and no line a frame:\n#{logged.first(6).join}"
+  end
 end
