@@ -54,6 +54,12 @@ Shoes.app(title: "Constellations", width: W, height: H, resizable: false) do
     File.write(data_file, "[\n" + @named.map { |c| "  #{JSON.generate(c)}" }.join(",\n") + "\n]\n")
   end
 
+  # Shoes reads a Float from 0 to 1 as a fraction of the slot (0.5 is halfway across),
+  # so anything that moves through there is placed on a whole pixel instead.
+  def px(v)
+    v > 0 && v <= 1 ? v.round : v
+  end
+
   # ---------------------------------------------------------------- the sky, grown from its seed
 
   def grow_sky
@@ -179,7 +185,7 @@ Shoes.app(title: "Constellations", width: W, height: H, resizable: false) do
 
     @glows = @bright.map do |x, y, size|
       oval x, y, size * 5.5, center: true, fill: rgb(200, 215, 255, 0.04)
-      oval x, y, size * 2.8, center: true, fill: rgb(200, 215, 255, 0.1)
+      oval x, y, size * 2.8, center: true, fill: rgb(200, 215, 255, 0.1) # the inner glow breathes
     end
     @bright.each do |x, y, size|
       oval x, y, size, center: true, fill: white
@@ -339,7 +345,7 @@ Shoes.app(title: "Constellations", width: W, height: H, resizable: false) do
 
     from = @bright[@draft[:last]]
     to = star ? @bright[star] : [x, y]
-    @band.style(left: from[0], top: from[1], x2: to[0], y2: to[1], hidden: false)
+    @band.style(left: from[0], top: from[1], x2: px(to[0]), y2: px(to[1]), hidden: false)
   end
 
   def show_status(note = nil)
@@ -349,8 +355,7 @@ Shoes.app(title: "Constellations", width: W, height: H, resizable: false) do
       if @naming
         flow(margin: [20, 8, 0, 0]) do
           para "Name it", size: 13, stroke: MUTED, margin: [0, 10, 10, 0]
-          @name_field = edit_line width: 250, margin: [0, 4, 0, 0]
-          stack(width: 10, height: 1) {}
+          @name_field = edit_line width: 250, margin: [0, 4, 10, 0]
           pill("Save", 76, gold: true) { save_draft }
           para link("Let it go", click: proc { let_go }, stroke: MUTED), size: 12, margin: [4, 10, 0, 0]
         end
@@ -385,18 +390,19 @@ Shoes.app(title: "Constellations", width: W, height: H, resizable: false) do
     k = @falling[:age] / 10.0
     x = @falling[:x] - 260 * k
     y = @falling[:y] + 110 * k
-    @meteor.style(left: x, top: y, x2: x + 60, y2: y - 25, stroke: rgb(255, 255, 255, 0.8 * (1 - k)), hidden: k >= 1)
+    @meteor.style(left: px(x), top: px(y), x2: px(x + 60), y2: px(y - 25), stroke: rgb(255, 255, 255, 0.8 * (1 - k)), hidden: k >= 1)
     @falling = nil if k >= 1
   end
 
   # A constellation you just saved, or asked to see, pulses for a few seconds.
   def pulse(frame)
-    return unless @focus && @focus_frames
+    lines = @focus && @focus_frames && @saved_lines[@focus]
+    return @focus = nil unless lines
 
     @focus_frames -= 1
     glow = @focus_frames.positive? ? (1 - Math.cos(frame / 2.0)) / 2 : 0
     alpha = 0.62 + 0.38 * glow
-    @saved_lines[@focus].each_slice(2) do |under, over|
+    lines.each_slice(2) do |under, over|
       under.stroke = rgb(*GOLD, alpha * 0.22)
       over.stroke = rgb(*GOLD, alpha)
     end
@@ -409,10 +415,14 @@ Shoes.app(title: "Constellations", width: W, height: H, resizable: false) do
     night_background
     nav "/catalog"
     stars = @named.sum { |c| c["edges"].flatten.uniq.size }
+    summary = if @named.empty?
+                "Nothing here yet."
+              else
+                "#{@named.size} #{@named.size == 1 ? "constellation" : "constellations"}, #{stars} stars. Click one to see it up close."
+              end
     stack(left: 40, top: 80, width: W - 80) do
       title "Your catalog", family: SERIF, size: 34, stroke: INK, margin: [0, 0, 0, 4]
-      para @named.empty? ? "Nothing here yet." : "#{@named.size} #{@named.size == 1 ? "constellation" : "constellations"}, #{stars} stars. Click one to see it up close.",
-        size: 13, stroke: MUTED
+      para summary, size: 13, stroke: MUTED
     end
     if @named.empty?
       stack(left: 40, top: 200, width: 400) do
@@ -463,6 +473,7 @@ Shoes.app(title: "Constellations", width: W, height: H, resizable: false) do
       end
       pill("Forget it", 110) do
         @named.delete_at(n.to_i)
+        @focus = nil
         save_catalog
         visit "/catalog"
       end
@@ -493,7 +504,7 @@ Shoes.app(title: "Constellations", width: W, height: H, resizable: false) do
       background rgb(0, 0, 0, 0.25), curve: 18
     end
     cap :curve
-    boot.each_cons(2).to_a.push([boot.last, boot.first]).each do |(ax, ay), (bx, by)|
+    boot.zip(boot.rotate).each do |(ax, ay), (bx, by)| # each star to the next, and round again
       strokewidth 6
       stroke rgb(*GOLD, 0.14)
       line ax, ay, bx, by
