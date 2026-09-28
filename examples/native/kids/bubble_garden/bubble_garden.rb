@@ -224,7 +224,17 @@ Shoes.app(title: "Bubble Garden", width: W, height: H, resizable: false) do
 
   # Moves a drawable in one message (move sends its left and its top separately).
   def place(drawable, x, y)
-    drawable.style(left: x.round(1), top: y.round(1))
+    drawable.style(left: px(x), top: px(y))
+  end
+
+  # A slot reads a number between -1 and 1 as a share of its parent, and a
+  # negative whole number as a distance back from its far edge (as Shoes 3
+  # does), so a slot's position goes as a decimal outside -1..1, or 0 or 1.
+  def px(v)
+    v = v.to_f.round(1)
+    return v if v <= -1 || v > 1
+
+    v < 0.5 ? 0 : 1
   end
 
   # Shows or hides a drawable, and says nothing when it is already that way.
