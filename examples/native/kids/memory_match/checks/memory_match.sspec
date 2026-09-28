@@ -133,14 +133,16 @@ assert_equal "Moves: 4", para("@moves_label").text
 assert para("4 moves")
 assert_equal 2, app.send(:stars_earned), "two stars for four moves on two pairs"
 assert_equal 4, JSON.parse(File.read(save_file))["best"]["Tiny"]
+click_at 482, 400 # Home, on the win card
+advance 0.3
+assert para("2 pairs, best 4 moves"), "the Tiny tile shows the best to beat"
+click_on "Tiny"
+advance 1.2
 
 # the speaker: quiet, and remembered
-advance 0.6
 voices.instance_variable_set(:@last_file, nil)
 click_at W - 52, 46
 assert voices.muted
-click_at 350, 400 # Again
-advance 1.0
 click_at(*middle.(cards.()[0]))
 assert_nil voices.last_file, "not a sound"
 assert JSON.parse(File.read(save_file))["muted"]
