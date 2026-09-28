@@ -48,6 +48,7 @@ impl Runtime {
         *dirty = false;
         self.stats.since(Phase::Paint, started);
         self.stats.mark("first_paint");
+        self.count_resampled_images();
         self.count_repaint(&plan, (frame.width(), frame.height()));
         if self.damage == DamageMode::Check {
             self.check_repaint(app, &plan, frame, scale);
