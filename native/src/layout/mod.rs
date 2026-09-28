@@ -706,7 +706,12 @@ impl Engine<'_> {
         let h = self.place_box(node, x, y, w, (frame.w, avail_h), &m);
         if top.is_none() {
             if let Some(bottom) = p.position("bottom", frame.h) {
-                let dy = frame.bottom() - bottom - h - m.bottom - y;
+                // A slot with no height of its own is placed by its margins alone, its top
+                // `bottom` and its margins above the slot's foot, as Shoes 3 places a canvas
+                // whose height it does not know yet (shoes_place_decide: dh is the margins, and
+                // th = place->h, s3_ruby.c:434-436, 511-525; ledger C10).
+                let measured = if node.kind.is_slot() && !p.has("height") { 0.0 } else { h };
+                let dy = frame.bottom() - bottom - measured - m.bottom - y;
                 self.translate_subtree(node.id, 0.0, dy);
             }
         }
