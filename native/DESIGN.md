@@ -561,11 +561,12 @@ used, so any Scarpe display service can run them. `spec/README.md` is the writer
   kept in a file), writes `spec/results/<display>.json` and prints a scoreboard. Exit code
   non-zero on failures.
 
-At the sixth build wave's merge (`399068e`, 28 Sep 2026) the suite holds 1026 cases: native 1010
+With the eighth build wave's Kids apps (28 Sep 2026) the suite holds 1042 cases: native 1026
 pass, 0 fail, 1 skip and 15 expected failures, each citing its ledger row; niente 540 pass and 12
-expected failures (473 need layout or input and are n/a there). The twelve checks beside the apps
-in `examples/native/legendary` run only when named, and pass 12 of 12. Examples on native, on
-Ruby 4.0: 340 pass, 0 fail, 90 skipped, and 23 that `spec/examples.yml` expects to fail there,
+expected failures (489 need layout or input and are n/a there). The ten Kids checks run with the
+suite from `spec/kids`; the twelve checks beside the apps in `examples/native/legendary` run only
+when named, and pass 12 of 12. Examples on native, on
+Ruby 4.0: 360 pass, 0 fail, 90 skipped, and 23 that `spec/examples.yml` expects to fail there,
 each with its reason (dialog-only apps, scripts that never start an app or stop on a missing
 library, apps that only log or paint one flat colour, and `colours.rb`, whose colours `flatten`
 dissolves, ledger D1). Two of the 23 name Ruby 4.0 in a `ruby:` field and load on Ruby 3.2.

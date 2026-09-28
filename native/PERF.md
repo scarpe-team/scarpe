@@ -335,6 +335,30 @@ Creating each window's adapter costs nothing measurable. From `run` to the first
 29.3 to 34.2 ms with the adapter, median 30.0, and 29.4 to 50.3 ms at 98ad233 without it, median
 31.7. The release binary grew from 7.65 MB to 8.08 MB.
 
+## Wave 8 (28 Sep, the Kids apps)
+
+The Kids apps are scenes full of small scattered life (fireflies, bubbles, confetti, twinkling
+stars), and their builders met three repaint costs, each now a bench in `examples/native/bench`.
+Measured on the M5, quiet, in ghost windows at 2x for 5 s, each before and after run back to
+back against a binary built from the tree before the fixes:
+
+| change | bench | before | after |
+|---|---|---|---|
+| past 8 damaged rects, join the nearest (smallest union box) until 8 remain, not all into one box (`paint::damage::merge`) | `scattered_damage.rb`: twelve 8 px dots drifting | 150 full repaints, 4.5 ms a paint | 1 full, 148 partial, 0.45 ms |
+| turned, scaled or skewed art is bounded by its turned box, grown by its stroke and points as stretched (`paint_bounds`) | `turned_star.rb`: a 12 px star turned 20 degrees, twinkling | 150 full, 5.6 ms | 1 full, 149 partial, 0.12 ms |
+| a picture shown at another size is resampled once and kept (`ImageCache::at_size`) | `stretched_picture.rb`, every frame painted whole: a 211 px glow drawn 844 device px | 15.1 ms a paint (the same glow from an 844 px file: 5.8) | 5.8 ms |
+
+The join rule was picked on a simulation of 300 random frames of twelve scattered 22 px changes
+in a 1920 x 1280 frame: the smallest-union-box rule repaints 2.8% of the frame on average and
+7.1% at worst, joining whatever adds the fewest pixels 2.8% and 30.2% (it lines far dots up into
+long strips that later joins widen), and the old bounding box 69.5%, over the whole-frame line.
+With thirty such changes every rule lands near a quarter of the frame, so crowds still pay.
+
+`damage.rs` has 23 tests; its random walk now also turns, scales and skews art. Check mode, run
+through a wrapper that sets `SCARPE_NATIVE_DAMAGE=check` for every renderer `spec/run` starts
+(`SCARPE_NATIVE_BIN` pointing at it), verified 3808 repaints over the Kids, showcase and
+legendary checks (2112 of them partial) and 784 over all 473 examples (72 partial): no mismatch.
+
 ## Running the benchmarks
 
 ```
