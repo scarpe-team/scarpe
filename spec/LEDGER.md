@@ -65,7 +65,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
-| B1 | Slot blocks keep the caller's `self` | MANUAL | unsched. | |
+| B1 | Slot blocks keep the caller's `self` | MANUAL | | done 28 Sep |
 | B2 | `app { }` changes `self`; the manual's fix fails | ERRATA | | |
 | B3 | Elements created in handlers land in the app's top slot | MANUAL | | |
 | B4 | `prepend`/`before`/`after` keep the written order | MANUAL | 10.3 | |
@@ -300,13 +300,15 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### B1. Slot blocks keep the caller's `self`
 
-**Ruling: MANUAL.** **Lacci change, unscheduled** (large).
+**Ruling: MANUAL.** **Lacci change, done 28 Sep 2026** (the w9 Hackety Hack lane), with one reading of our own for widgets, below.
 
 - **Manual:** "The stack block ... does NOT change self" (manual 198); rule 2: blocks attached to stacks, flows or manipulation methods "do not change self. Instead, they pop the slot on to the app's editing stack" (manual 322-324).
-- **Shoes 3:** slot blocks run with a plain `rb_funcall(block, s_call, 0)` inside `DRAW(...)` (`s3_canvas.c:650-653`, insert path `:713-729`); only `app { }` does an `instance_eval` (`:864-874`).
-- **Lacci today:** `App#with_slot` does `instance_eval(&block)` on the App (`app.rb:200-207`), used by Stack, Flow, Mask and Shape. `append`/`prepend` special-case non-Drawable callers with `block.call` plus an "external self" fallback (`slot.rb:288-352`). `clear` is annotated `@incompatibility ... Scarpe uses the Shoes::App as self` (`slot.rb:255`). Inside a `Shoes::Widget#initialize`, `stack { self }` is the App and the widget's `@label` is nil.
-- **Examples:** identical inside a plain `Shoes.app` block, where `self` is the App either way. Diverges in Widgets and user classes (8 examples use `Shoes::Widget`).
-- **Spec:** inside a `Shoes::Widget` method, `stack { @label }` sees the widget's ivar, and the `para` created in that block is a child of the stack.
+- **Shoes 3:** slot blocks run with a plain `rb_funcall(block, s_call, 0)` inside `DRAW(...)` (`s3_canvas.c:650-653`, insert path `:713-729`); only `app { }` does an `instance_eval` (`:864-874`). Every canvas method is a `FUNC_M` redirect (`s3_ruby.h:195-229`): the App's always act on the top of the app's nesting stack, and a widget's do too whenever that stack is not empty (a widget is pushed while its `initialize` runs, `s3_canvas.c:835-846`). So a widget's `para` inside its own `stack do ... end` lands in the stack, and so does one inside another slot's `append`: Hackety Hack's turtle draws its pen swatch that way (`lib/art/turtle.rb`, `update_pen_info`).
+- **Shoes 4:** slot blocks are called with `eval_block`, `self` unchanged (`s4_slot.rb`), and a widget sends what it lacks to its app (`s4_widget.rb`).
+- **Lacci until 28 Sep:** `App#with_slot` did `instance_eval(&block)` on the App, used by Stack, Flow, Mask, Shape and image canvases. `append`/`prepend` special-cased non-Drawable callers with `block.call` plus an "external self" fallback on the App. Inside a `Shoes::Widget#initialize`, `stack { self }` was the App and the widget's `@label` was nil. Hackety Hack's editor failed at `editor.rb:90` (`undefined method 'name' for nil`): its `stack do @code_editor.name ... end` read the App's ivar.
+- **Lacci since 28 Sep:** `with_slot` pushes the slot and calls the block, which keeps its self. Only the app block (`init`), `window`, `dialog` and `app { }` are `instance_eval`'d on the App, the blocks the manual says change self (manual 318-321). The external-self fallback is gone: a plain object's own methods are in reach because self is the object. `start` and `finish` blocks keep their self too, where they ran on the App (H8). A widget sends its DSL calls (drawables, `background`, events, timers, pens, `start`, `finish`) to the slot being built while a slot block runs (`Widget#dsl_target`), unless that slot holds the widget: a call made from the slot around the widget, or between events, lands in the widget itself. Shoes 3 would send a call made during the app block to the app's top slot instead; nothing found depends on that. What a widget lacks and the App has (`move_to`, `line_to`, `mouse`, `window`, `visit`) goes to the App, as in Shoes 4. Slot manipulation (`clear`, `append`, `contents`) is never redirected.
+- **Examples:** identical inside a plain `Shoes.app` block, where `self` is the App either way. Lacci's own turtle leaned on the old behaviour in `update_pen_info` and now calls the slot's own `background` by its other name, as Hackety Hack's turtle does. `skip_ci/guitar_fretboard.rb` (skipped, it needs the bloops gem) calls `app.flow do flow ... end` from a plain class, and now raises `NoMethodError` as it would in Shoes 3 and 4. `expert/tooltips.rb`'s `start { @menu.show }` inside a widget method now reads the widget's `@menu`. On 28 Sep every example that loaded before still loads on both displays (453 examples: niente 356, native 340).
+- **Spec:** `rules.blocks.stack_block_keeps_self__in_widget` (no longer `expect: fail`): inside a widget's stack block `self` is the widget, `@tag` is the widget's, and the para is a child of the stack. `rules.blocks.stack_block_keeps_self__plain_object`: a class shaped like Hackety Hack's side tabs keeps its self and ivars through `append`, `flow` and `stack` blocks. `lacci/test/test_block_self.rb` checks the redirects, a widget reaching App methods, a widget method drawing into another slot, and that `app { }` still changes self.
 - **Native:** nothing; this is Ruby-side.
 
 ### B2. `app { }` changes `self`, and the manual's fix does not work

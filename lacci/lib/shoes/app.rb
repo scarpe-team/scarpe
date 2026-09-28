@@ -137,7 +137,8 @@ class Shoes
       send_shoes_event(event_name: 'init')
       return if @do_shutdown
 
-      with_slot(@document_root, &@app_code_body)
+      # The app block is the one that changes self (manual 208-214); slot blocks keep it (B1).
+      with_slot(@document_root) { instance_eval(&@app_code_body) } if @app_code_body
       show_root_route_on_first_boot
 
       # Fire any registered start callbacks after the app code has run
@@ -193,45 +194,36 @@ class Shoes
     # Shoes3 compatibility: app.slot returns the current slot
     alias_method :slot, :current_slot
 
-    # Track external (non-Shoes) callers from Slot#append so that
-    # method_missing can fall back to them. This enables Shoes3-compatible
-    # patterns like HH::SideTab where methods defined on the caller
-    # (e.g. `content`) need to be reachable from inside instance_eval'd blocks.
-    def push_external_self(obj)
-      @external_self_stack ||= []
-      @external_self_stack.push(obj)
-    end
-
-    def pop_external_self
-      @external_self_stack&.pop
-    end
-
-    def external_self
-      @external_self_stack&.last
-    end
-
-    def with_slot(slot_item, &block)
+    # Runs a slot's block with that slot pushed on the app's editing stack (manual 322-324).
+    # The block keeps its own self, as Shoes 3 calls it plainly (s3_canvas.c:650-653, ledger
+    # B1): a widget or a plain object keeps its instance variables and methods inside its
+    # stacks, and the DSL calls it sends to the App, or to a widget, land in the slot.
+    def with_slot(slot_item)
       return unless block_given?
 
       push_slot(slot_item)
-      instance_eval(&block)
-    ensure
-      pop_slot
+      @__editing_depth = editing_depth + 1
+      begin
+        yield
+      ensure
+        @__editing_depth -= 1
+        pop_slot
+      end
+    end
+
+    # How many slot blocks are running: none between events, one or more while an app, a slot
+    # or an append builds something, as Shoes 3's nesting stack is empty or not. (The app's
+    # own instance variables are its user's, hence the underscores.)
+    def editing_depth
+      @__editing_depth || 0
     end
 
     # We use method_missing for drawable-creating methods like "button".
     # The parent's method_missing will auto-create Shoes style getters and setters.
     # This is similar to the method_missing in Shoes::Slot, but different in
     # where the new drawable appears.
-    #
-    # When an external_self is active (from Slot#append), unknown methods are
-    # delegated to that external object. This provides Shoes3-compatible
-    # method dispatch for non-Shoes callers.
     def method_missing(name, *args, **kwargs, &block)
       klass = ::Shoes::Drawable.drawable_class_by_name(name)
-      if !klass && external_self && external_self.respond_to?(name)
-        return external_self.send(name, *args, **kwargs, &block)
-      end
       return super unless klass
 
       ::Shoes::App.define_method(name) do |*args, **kwargs, &block|

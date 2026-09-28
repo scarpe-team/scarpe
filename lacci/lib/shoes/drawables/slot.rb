@@ -81,7 +81,7 @@ class Shoes::Slot < Shoes::Drawable
   # We use method_missing for drawable-creating methods like "button".
   # The parent's method_missing will auto-create Shoes style getters and setters.
   # This is similar to the method_missing in Shoes::App, but differs in where
-  # the new drawable will appear.
+  # the new drawable will appear: in this slot, or where a widget sends it (dsl_target).
   def method_missing(name, *args, **kwargs, &block)
     klass = ::Shoes::Drawable.drawable_class_by_name(name)
     return super unless klass
@@ -96,9 +96,9 @@ class Shoes::Slot < Shoes::Drawable
       end
 
       # Look up the Shoes drawable and create it. But first set
-      # this slot as the current one so that draw context
+      # its slot as the current one so that draw context
       # is handled properly.
-      @app.with_slot(self) do
+      @app.with_slot(dsl_target) do
         Shoes::Drawable.with_current_app(self.app) do
           instance = klass.new(*args, **kwargs, &block)
         end
@@ -120,8 +120,8 @@ class Shoes::Slot < Shoes::Drawable
 
   # Run the block, handed this slot, the first time the slot is drawn (manual
   # 2286-2289, ledger H8). The display draws before its first heartbeat, so the
-  # first heartbeat after this call is the moment. Blocks run with the App as self,
-  # as finish blocks do.
+  # first heartbeat after this call is the moment. Like every Shoes block but the
+  # app's, it keeps the self it was written with (ledger B1), as finish blocks do.
   #
   # @yield [slot] this slot
   # @return [self]
@@ -147,7 +147,7 @@ class Shoes::Slot < Shoes::Drawable
   def fire_finish_callbacks
     return unless @finish_callbacks
 
-    @finish_callbacks.each { |cb| @app.instance_exec(self, &cb) }
+    @finish_callbacks.each { |cb| cb.call(self) }
   end
 
   # Override destroy to fire finish callbacks before actual destruction.
@@ -173,7 +173,13 @@ class Shoes::Slot < Shoes::Drawable
     unsub_shoes_event(@waiting_to_start) if @waiting_to_start
     @waiting_to_start = nil
     callbacks, @start_callbacks = @start_callbacks, []
-    callbacks&.each { |cb| @app.instance_exec(self, &cb) }
+    callbacks&.each { |cb| cb.call(self) }
+  end
+
+  # Where this slot's DSL calls put what they make: here. A widget sends them to the slot
+  # it is building instead (Shoes::Widget#dsl_target).
+  def dsl_target
+    self
   end
 
   public
@@ -199,9 +205,7 @@ class Shoes::Slot < Shoes::Drawable
   # clears the slot from inside those handlers.
   #
   # Should only be called on Slots, which can
-  # have children.
-  #
-  # @incompatibility Shoes Classic calls the clear block with current self, while Scarpe uses the Shoes::App as self
+  # have children. The block keeps its self, as append's does.
   #
   # @yield The block to call to replace the contents of the drawable (optional)
   # @return [self]
@@ -221,15 +225,10 @@ class Shoes::Slot < Shoes::Drawable
   #
   # Should only be called on a Slot, since only Slots can have children.
   #
-  # In Shoes3 (Classic), append preserves the caller's self — the block
-  # is called with block.call, NOT instance_eval. This matters for
-  # non-Shoes callers (like HH::SideTab) that define methods and instance
-  # variables that need to be reachable inside the block.
-  #
-  # When the caller is NOT a Shoes drawable, we use block.call to preserve
-  # the original self and register the caller as an "external self" on the
-  # App so that nested instance_eval'd blocks (inside flow/stack/etc.) can
-  # fall back to the caller for unknown methods.
+  # The block keeps the caller's self, as in Shoes 3 (manual 322-324, ledger B1),
+  # so a class like Hackety Hack's side tabs reaches its own methods and instance
+  # variables inside it. A plain object's bare para then needs a way to the app
+  # (manual 271-295): its own method_missing, or app { }.
   #
   # @yield the block to call to append children to this Slot
   # @return [self]
@@ -298,26 +297,6 @@ class Shoes::Slot < Shoes::Drawable
   end
 
   def fill_with(block)
-    # Detect if the caller is external (non-Shoes) by checking the block's binding
-    caller_self = begin
-      eval("self", block.binding)
-    rescue StandardError
-      nil
-    end
-
-    if caller_self && !caller_self.is_a?(Shoes::Drawable)
-      # Shoes3-compatible: preserve the caller's self and register as external
-      @app.push_external_self(caller_self)
-      @app.push_slot(self)
-      begin
-        block.call
-      ensure
-        @app.pop_slot
-        @app.pop_external_self
-      end
-    else
-      # Normal Shoes context: use instance_eval as before
-      @app.with_slot(self, &block)
-    end
+    @app.with_slot(self, &block)
   end
 end

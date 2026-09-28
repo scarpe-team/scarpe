@@ -1,0 +1,43 @@
+---
+manual: rules.blocks.stack_block_keeps_self
+lines: [198, 198]
+testability: api
+display: any
+ledger: B1
+----------- app code
+# A plain class that sends Shoes calls on to the app, as Hackety Hack's side tabs do.
+class Tab
+  def initialize(slot)
+    @slot = slot
+    @name = "Editor"
+    slot.append do
+      flow do
+        stack do
+          $stack_self = self
+          @title = para @name
+        end
+      end
+    end
+    $title = @title
+  end
+
+  def method_missing(name, *args, &blk)
+    @slot.app.send(name, *args, &blk)
+  end
+
+  def respond_to_missing?(name, include_private = false)
+    @slot.app.respond_to?(name, include_private) || super
+  end
+end
+
+Shoes.app do
+  @column = stack
+  $tab = Tab.new(@column)
+end
+----------- test code
+assert_same $tab, $stack_self, "a stack block nested in a flow block keeps the object as self"
+assert_equal "Editor", para.text, "so the para reads the object's own @name"
+assert_same $title, para.obj, "and @title is set on the object, not on the App"
+tab = stack("@column").contents.first
+assert_kind_of Shoes::Flow, tab, "the flow lands in the slot being appended to"
+assert_equal [para.obj], tab.contents.first.contents, "and the para in the stack inside it"

@@ -271,12 +271,12 @@ class Shoes::TurtleCanvas < Shoes::Widget
   def update_pen_info
     return unless @pen_info
 
-    bg_color = @bg_color
-    fg_color = @fg_color
-    pen_size = @pen_size
+    # The block keeps the canvas as self (ledger B1), and the canvas's own drawing calls land
+    # in the slot being appended to, as in Hackety Hack's turtle. background is the turtle
+    # command here, so the slot's own goes by its other name.
     @pen_info.append do
-      background bg_color
-      line 5, 10, 35, 10, :stroke => fg_color, :strokewidth => pen_size
+      background_internal @bg_color
+      line 5, 10, 35, 10, :stroke => @fg_color, :strokewidth => @pen_size
     end
   end
 end
@@ -338,8 +338,8 @@ module Turtle
   private
 
   def execute_canvas_code(blk)
-    # In Shoes3, shape preserves self context. In Scarpe, shape changes self to App.
-    # Evaluate directly on canvas — the Widget itself serves as the drawing container.
+    # The turtle program's forward, turnleft and pencolor are the canvas's own methods, so it
+    # runs on the canvas, as Hackety Hack's turtle ran it.
     @canvas.instance_eval(&blk)
   end
 
