@@ -59,6 +59,8 @@ class NativePackageTest < Minitest::Test
     assert_operator run[:probe]["frames"], :>=, 1
     assert_operator run[:probe]["bytecode_hits"], :>, 50, "Lacci, the shim and the app should load from bytecode"
     assert_equal "\x89PNG".b, File.binread(snapshot, 4)
+    # Started with no LANG, as Finder starts it, Ruby would read files as US-ASCII.
+    assert_equal "UTF-8", run[:probe]["encoding"], "files read as UTF-8"
   end
 
   # Image#size, full_width and imagesize read files through FastImage, a gem, and a native

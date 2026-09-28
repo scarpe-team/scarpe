@@ -64,6 +64,8 @@ minimal app.
 Starting the app: LaunchServices runs `scarpe-launcher`, which sets `RUBYLIB`, `GEM_HOME` and
 `SCARPE_NATIVE_BIN` for the bundle and execs the bundled Ruby on `boot.rb`. Ruby loads Lacci and
 the shim, and the shim starts `scarpe-native` beside the launcher as its child, as in development.
+Started from Finder, the Dock or `open`, an app gets no `LANG`, and Ruby would read every file as
+US-ASCII, so `boot.rb` makes UTF-8 the default then, as a Mac terminal has it.
 
 Finder, the Dock and `open` start the launcher under launchd with its output going to `/dev/null`.
 Then the launcher sends that output to `~/Library/Logs/<name>/launcher.log` instead, one line

@@ -17,8 +17,9 @@ class Shoes
     INLINE = /(`'.+?`'|`[^`]+`|__.+?__|\*\*.+?\*\*|\[\[[^\]]+\]\]|!\[[^\]]*\]\([^)]*\))/
 
     class << self
-      # The manual cut into sections, in order, without the page's front matter.
-      def sections(text = File.read(FILE))
+      # The manual cut into sections, in order, without the page's front matter. It is UTF-8,
+      # whatever the locale says: an app started from Finder has none, and reads US-ASCII.
+      def sections(text = File.read(FILE, encoding: Encoding::UTF_8))
         text.sub(/\A---\n.*?\n---\n/m, "").each_line(chomp: true).each_with_object([]) do |line, sections|
           if (chapter = line[/\A# (.+)/, 1])
             sections << Section.new(chapter, chapter, [])

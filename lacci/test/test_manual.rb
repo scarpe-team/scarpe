@@ -15,6 +15,22 @@ class TestManual < NienteTest
     refute sections.flat_map(&:lines).any? { |line| line.start_with?("layout: default") }, "without the page's front matter"
   end
 
+  # A Mac app started from Finder gets no LANG, so Ruby reads files as US-ASCII. The manual is
+  # UTF-8, and in a packaged app Help raised "invalid byte sequence in US-ASCII".
+  def test_the_manual_reads_as_utf8_whatever_the_locale
+    require "shoes/manual"
+    was = Encoding.default_external
+    silence_warnings = $VERBOSE
+    $VERBOSE = nil
+    Encoding.default_external = Encoding::US_ASCII
+    sections = Shoes::Manual.sections
+    assert_equal "Hello!", sections.first.title
+    assert sections.flat_map(&:lines).any? { |line| !line.ascii_only? }, "its non-ASCII text comes through"
+  ensure
+    Encoding.default_external = was
+    $VERBOSE = silence_warnings
+  end
+
   def test_show_manual_opens_a_window_that_turns_pages
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
