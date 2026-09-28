@@ -94,6 +94,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | C14 | An explicit width or height includes the margins | S3, ruled (Q9) | | |
 | C15 | A number on art is a plain coordinate, negative or under 1 | S3; MANUAL for Floats | | |
 | C16 | A slot with no height reaches down to its row's bottom in a flow | S3 | | new 28 Sep |
+| C17 | An element placed on one axis keeps the flow's place on the other | open (Q13) | | new 28 Sep |
 
 ### D. Colours and patterns
 
@@ -573,6 +574,15 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Shoes 3:** a slot drawn on its parent's surface ends its draw with `self_t->fully = canvas->endy = max(canvas->endy, self_t->endy + bmargin)` and `place.h = canvas->endy - place.y` (`shoes_canvas_draw`, `s3_canvas.c:639-642`): its height runs to the parent's end so far, and in a flow that is the bottom of whatever came before it on its row. Its backgrounds fill that (a tile's height is `max(canvas->height, CPH(canvas))`, `s3_ruby.c:481-487`), and a child placed by `bottom:` sits against it (`PX2(..., canvas->fully)`, `s3_ruby.c:524-525`). In a stack each slot starts its own row, so nothing changes there.
 - **Examples:** Hackety Hack's window is a flow of its 549 px content flow and its lesson pane, `stack :width => 400` with no height, whose page is `background gray(0.1)`, a scrolling stack `:height => -32` and a nav bar `flow :height => 32, :bottom => 0` (`app/ui/lessons.rb:229-261`). The Mac 1.0 screenshot has the pane dark to y 549 with its arrows at rows 530 to 536; native stopped it at 518, its content, left a white strip under it and put the arrows at 498 to 505.
 - **Native:** since 28 Sep a slot with no `height` placed in a flow after something on its row is at least as tall as the row so far, margins aside (`layout::place_in_flow`, `Engine::row_floor`); the first on a row, and every slot in a stack, is as tall as its content, as before. **Test:** `layout::tests::a_slot_beside_a_taller_one_in_a_flow_reaches_down_to_its_bottom`.
+
+### C17. An element placed on one axis keeps the flow's place on the other
+
+**Ruling: open, Q13 (28 Sep 2026).** New row, from Hackety Hack's turtle (the w9 learner lane).
+
+- **Manual:** `:left` "places the object's left edge ten pixels away from the left edge of the slot" (manual 1288-1294), and `:top` likewise; silent on the axis not given.
+- **Shoes 3:** `shoes_place_decide` takes `x = PX2(left, right, cx, ...) + ox` and `y = PX2(top, bottom, cy, ...) + oy`, where `ox` and `oy` are the canvas's cursor (`s3_ruby.c:463-470, 521-525`), so an element given only `top` or `bottom` keeps the x the flow stood at, and one given only `left` or `right` keeps its y. Only the vertical keys make it absolute for the flow: `FINISH` moves the cursor on for anything not `ABSY` (`s3_ruby.h:246-255`), so a `left`-only element still takes its place in the line.
+- **Examples:** Hackety Hack's turtle, and Lacci's port of it, put the pen swatch after its label with `para "pen: "; stack :top => 5, :width => 40, :height => 20` (`lib/art/turtle.rb` on Hackety Hack's master).
+- **Native:** any of `left`, `top`, `right`, `bottom` takes an element out of the flow, placed from the slot's corner on an axis it was not given (`layout::place_positioned`). So the swatch covered the label. Since 28 Sep Lacci's turtle places the swatch in the flow, 5 px down (`lacci/test/test_turtle.rb`); the rule itself waits on Q13.
 
 ## D. Colours and patterns
 
@@ -1634,6 +1644,10 @@ Raised by the Hackety Hack lane (w9). Each is asked the way the questions above 
 - **Q12 (M14).** Should a text size be points at 96 dpi by default, as Shoes 3 drew it (`s3t_textblock.c:293`), rather than pixels, as the manual says ("pixel size", manual 1398)? Every Shoes 3 program, the examples under `legacy/` among them, was laid out for text a third bigger than native draws; every app built on native (the showcase, the legendary and Kids apps) was laid out for pixels, and would grow a third. Since 28 Sep a program can ask for Shoes 3's text with `Shoes.text_mode = :shoes3`, and Hackety Hack does.
 
   **Meanwhile:** pixels, as M14 ruled; a program asks for points with `Shoes.text_mode = :shoes3`.
+
+- **Q13 (C17).** Should an element given only `top` or `bottom` keep the x its flow stood at, and one given only `left` or `right` keep the flow's y and take its place in the line, as Shoes 3 places them (`s3_ruby.c:521-525`, `s3_ruby.h:246-255`)? Today any one of the four takes an element out of the flow, placed from its slot's corner on the other axis. Programs written for Shoes 3 that place something by one axis after other content, such as Hackety Hack's turtle, would read as their authors saw them; nobody has counted the examples that lean on today's reading, and a `left`-only element that took a place in the line would move whatever follows it.
+
+  **Meanwhile:** out of the flow, from the slot's corner.
 
 ## Citation check
 
