@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require_relative "helper"
+require "fileutils"
+require "shellwords"
 
 # Shoes.run_program (DESIGN 5.5): a Shoes program in a process of its own, on the same Ruby and
 # Scarpe, reporting its output and errors to the app that started it, headless like its parent.
@@ -167,6 +169,23 @@ class ProgramTest < Minitest::Test
     assert_spec_passed(run)
   end
 
+  # A packaged app starts its own launcher again for a program, and a Mac app's name often has
+  # a space in it ("Hackety Hack.app"). The launcher's path is one word, spaces and all.
+  def test_a_launcher_whose_path_has_a_space_starts_the_program
+    run = run_parent(<<~PROGRAM, <<~TEST) { |dir| write_launcher(File.join(dir, "Hackety Hack.app", "Contents", "MacOS")) }
+      puts "started by \#{File.basename(ENV.fetch("LAUNCHED_BY", "nobody"))}"
+    PROGRAM
+      ENV["SCARPE_LAUNCHER"] = File.join(Dir.pwd, "Hackety Hack.app", "Contents", "MacOS", "scarpe-launcher")
+      program = Shoes.run_program(File.join(Dir.pwd, "program.rb"))
+      lines = []
+      program.on_output { |_stream, line| lines << line }
+      wait_until(30) { !program.running? }
+      assert_equal ["started by scarpe-launcher"], lines
+      assert_equal 0, program.status.exitstatus
+    TEST
+    assert_spec_passed(run)
+  end
+
   # No window outlives the program that opened it: the program reads the end of the pipe its
   # parent holds, and stops, and its renderer with it. Here the parent dies of KILL.
   def test_killing_the_parent_ends_the_program_and_its_renderer
@@ -226,6 +245,20 @@ class ProgramTest < Minitest::Test
   end
 
   private
+
+  # A stand-in for a packaged app's launcher (templates/package/native_launcher.sh.erb): it runs
+  # SCARPE_RUN_FILE on this Ruby and Scarpe, as the real one does on the bundled ones.
+  def write_launcher(dir)
+    FileUtils.mkdir_p(dir)
+    path = File.join(dir, "scarpe-launcher")
+    libs = %w[lib lacci/lib scarpe-components/lib].map { |lib| "-I #{Shellwords.escape(File.join(ROOT, lib))}" }
+    File.write(path, <<~SH)
+      #!/bin/sh
+      export LAUNCHED_BY="$0"
+      exec #{Shellwords.escape(RbConfig.ruby)} #{libs.join(" ")} #{Shellwords.escape(SCARPE)} --native "$SCARPE_RUN_FILE"
+    SH
+    File.chmod(0o755, path)
+  end
 
   def until_true(seconds)
     deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + seconds
