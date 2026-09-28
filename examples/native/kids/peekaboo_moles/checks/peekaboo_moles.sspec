@@ -29,7 +29,7 @@ advance 0.1 until moles.any? { |m| m.state == :rise } || ivar.(:@clock) > 12
 risen = moles.find { |m| m.state == :rise }
 assert risen, "a mole comes out to play"
 assert_equal :peek, sounds.last_name
-advance 0.9
+advance 1.0
 assert_equal :up, risen.state
 assert_equal :boo, sounds.last_name, "peekaboo!"
 assert brown.(pixel_at(*body.(risen))), "and it is drawn in its hole: #{pixel_at(*body.(risen)).inspect}"
@@ -40,7 +40,7 @@ empty = moles.find { |m| m.state == :down }
 click_at(*middle.(empty))
 assert_equal :rise, empty.state, "an empty hole's mole pops up"
 assert_equal :peek, sounds.last_name
-advance 0.9
+advance 1.0
 assert_equal :up, empty.state, "peekaboo!"
 assert brown.(pixel_at(*body.(empty))), "there it is"
 
@@ -63,13 +63,20 @@ refute ivar.(:@star_spots).first[:gold].hidden
   assert_operator peak, :>, 0.05, "#{name} makes a sound"
 end
 
+# Space: every mole plays peekaboo at once
+advance 0.2 until moles.all? { |m| m.state == :down } || ivar.(:@clock) > 60
+press_key " "
+advance 0.4
+assert moles.all? { |m| m.state == :rise }, "all seven come up together: #{moles.map(&:state).inspect}"
+advance 3
+
 # the keys knock on the holes: the left of the keyboard is the moles on the left
 advance 0.2 until [moles[0], moles[5]].all? { |m| m.state == :down } || ivar.(:@clock) > 60
 press_key "z"
 assert_equal :rise, moles[0].state, "z knocks on the front left hole"
 press_key "p"
 assert_equal :rise, moles[5].state, "p knocks on the back right hole"
-advance 0.9
+advance 1.0
 press_key "c"
 assert_equal :giggle, moles[0].state, "and c, beside z, tickles the same mole"
 
@@ -131,6 +138,10 @@ assert_operator points, :>=, taps, "every tap scored (a golden mole scores three
 assert_operator points, :>, 10
 refute ivar.(:@card).hidden, "a trophy for everyone"
 assert_equal points.to_s, para("@final_text").text
+%w[@medal_text @final_text @best_text].each do |name|
+  box = layout_of(para(name))
+  assert box.y > CARD[1] && box.y + box.h < CARD[1] + CARD[3], "#{name} is on the card: #{box.inspect}"
+end
 assert_includes %w[Gold! Silver! Bronze!], para("@medal_text").text
 assert_equal points, JSON.parse(File.read(save_file))["best"], "the best score is kept"
 
@@ -156,9 +167,19 @@ assert_equal heard, trapped.call.size, "nothing played while the sound is off"
 click_at 924, 52
 refute sounds.muted
 
-# a tap of Escape only shows the grown-up hint
+# a tap of Escape only shows the grown-up hint; holding it for two seconds leaves
 press_key :escape
 refute ivar.(:@leave_card).hidden
 advance 1
 assert ivar.(:@leave_card).hidden
-assert Shoes.APPS.include?(app), "still open"
+refute ivar.(:@leaving), "still open"
+30.times { press_key(:escape); advance(1 / 30.0) }
+refute ivar.(:@leaving), "one second is not enough"
+refute ivar.(:@leave_card).hidden, "but the hint is filling up"
+40.times do
+  break if ivar.(:@leaving)
+
+  press_key :escape
+  advance 1 / 30.0
+end
+assert ivar.(:@leaving), "a grown-up can leave"

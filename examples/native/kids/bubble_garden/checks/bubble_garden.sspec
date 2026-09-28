@@ -38,6 +38,14 @@ assert_operator high.x, :>, 640
 assert_operator NOTES.index(high.note), :>, NOTES.index(low.note), "higher up the scale"
 assert_operator high.size, :<, low.size, "and smaller"
 
+# Return blows a fan of five bubbles up the scale, the first straight away
+fan = bubbles.size
+press_key "\n"
+assert_equal fan + 1, bubbles.size, "the first bubble of the fan comes at once"
+advance 0.6
+assert_equal fan + 5, bubbles.size, "and four more follow"
+assert_equal %w[c5 d5 e5 g5 a5], bubbles.last(5).map(&:note)
+
 # no sound is ever loud: every one of them peaks at a quarter of full scale or less
 %i[blow pop bloom hop giggle whoosh].each do |name|
   peak = sounds.samples(name, "c4").map(&:abs).max
@@ -99,10 +107,24 @@ refute sounds.muted
 press_key :escape
 refute ivar.(:@leave_card).hidden, "Escape shows the hint"
 10.times { press_key(:escape); advance(1 / 30.0) }
-assert Shoes.APPS.include?(app), "a short hold does not close the garden"
+refute ivar.(:@leaving), "a short hold does not close the garden"
 advance 1
 assert ivar.(:@leave_card).hidden, "and the hint goes when the key is let go"
+12.times { press_key(:escape); advance(0.3) }
+refute ivar.(:@leaving), "nor does tapping it over and over, a little apart"
+90.times { |i| press_key(i.even? ? :escape : "q"); advance(1 / 30.0) }
+refute ivar.(:@leaving), "nor mashing it along with other keys"
+advance 1
 
 # nobody touches anything: the garden blows bubbles of its own
 advance 6
 assert_operator bubbles.size, :>=, 1, "the garden daydreams"
+
+# held down for two seconds (a held key repeats every thirtieth of a second), Escape leaves
+70.times do
+  break if ivar.(:@leaving)
+
+  press_key :escape
+  advance 1 / 30.0
+end
+assert ivar.(:@leaving), "a grown-up can leave"

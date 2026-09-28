@@ -20,7 +20,7 @@ require "tmpdir"
 
 W, H = 960, 640
 FPS = 30
-MOST_BUBBLES = 36 # any more and the oldest pops early, so mashing never slows the garden down
+MOST_BUBBLES = 30 # any more and the oldest pops early, so mashing never slows the garden down
 
 # The notes, low to high: C major pentatonic, which has no wrong notes in it.
 NOTES = %w[c4 d4 e4 g4 a4 c5 d5 e5 g5 a5 c6]
@@ -895,25 +895,38 @@ Shoes.app(title: "Bubble Garden", width: W, height: H, resizable: false) do
 
   # ---------------------------------------------------------------- the grown-up way out
 
-  # Held down, Escape repeats many times a second. After two seconds of it the
-  # garden closes. A tap, or a small child's mashing, only shows the hint.
+  # Held down, Escape repeats many times a second (a held key repeats every
+  # thirtieth to tenth of a second, once the first half second or so has
+  # passed). Two seconds of that and the garden closes. A tap, taps a little
+  # apart, or a small child mashing other keys too, only show the hint.
   def escape_pressed
-    @leave_since = @clock if @leave_since.nil? || @clock - @leave_last > 0.6
+    @leave_since = nil if @leave_since && @clock - @leave_last > leave_gap
+    @leave_since ||= @clock
     @leave_last = @clock
     @leave_card.show
   end
 
+  # How long Escape can go quiet and still count as held: longer while the
+  # key is waiting to start repeating.
+  def leave_gap
+    @clock - @leave_since < 0.8 ? 0.8 : 0.25
+  end
+
+  def not_leaving
+    @leave_since = nil
+    @leave_card.hide
+  end
+
   def watch_escape
     return unless @leave_since
+    return not_leaving if @clock - @leave_last > leave_gap
 
-    if @clock - @leave_last > 0.6
-      @leave_since = nil
-      @leave_card.hide
-      return
-    end
     held = @leave_last - @leave_since
     @leave_ring.style(angle2: -Math::PI / 2 + 2 * Math::PI * (held / 2.0).clamp(0.02, 1))
-    close if held >= 2
+    return if held < 2
+
+    @leaving = true
+    close
   end
 
   # ---------------------------------------------------------------- the speaker button
@@ -956,8 +969,10 @@ Shoes.app(title: "Bubble Garden", width: W, height: H, resizable: false) do
   def key_down(key)
     @quiet = 0.0
     name = key.to_s.sub(/\A(control_|shift_|alt_)+/, "")
+    return escape_pressed if name == "escape"
+
+    not_leaving if @leave_since
     case name
-    when "escape" then return escape_pressed
     when " " then return blow_bubble(W / 2 + rand(-80..80), 540, "c4", size: 112, vy: -30.0)
     when "\n", "enter" then return fanfare
     when "left", "right" then return gust(name == "left" ? -1 : 1)
@@ -969,14 +984,16 @@ Shoes.app(title: "Bubble Garden", width: W, height: H, resizable: false) do
 
     @last_key = [name, (@clock * 7).floor]
     row = KEY_ROWS.index { |keys| keys.include?(name.downcase) }
-    x = row ? (KEY_ROWS[row].index(name.downcase) + row * 0.4 + 0.5) / 12.6 * W : rand(60..W - 60)
+    x = row ? 50 + (KEY_ROWS[row].index(name.downcase) + 0.5) / KEY_ROWS[row].size * (W - 100) : rand(60..W - 60)
     blow_bubble(x, 505 + (row || 2) * 12, note_at(x))
   end
 
-  # Return blows five bubbles in a fan, singing up the scale.
+  # Return blows five bubbles in a fan, singing up the scale. (The first goes at
+  # once: a timer of 0 seconds would wait a whole second here.)
   def fanfare
     %w[c5 d5 e5 g5 a5].each_with_index do |note, i|
-      timer(i * 0.12) { blow_bubble(W / 2 + (i - 2) * 70, 560, note, vx: (i - 2) * 16.0) }
+      puff = -> { blow_bubble(W / 2 + (i - 2) * 70, 560, note, vx: (i - 2) * 16.0) }
+      i.zero? ? puff.call : timer(i * 0.12, &puff)
     end
   end
 
