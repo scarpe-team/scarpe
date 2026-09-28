@@ -240,7 +240,7 @@ directories add up to one picture. `spec/results/examples-<display>.json` holds 
 
 ## Examples
 
-`spec/examples.yml` lists all 430 examples under `examples/` with a `status`: `loads`,
+`spec/examples.yml` lists all 453 examples under `examples/` with a `status`: `loads`,
 `fails` (known broken, with a `reason`) or `skip` (Shoes 3 only, missing gems, the network,
 side effects). `spec/run --examples` smoke-runs every non-skipped one:
 
@@ -254,6 +254,8 @@ side effects). `spec/run --examples` smoke-runs every non-skipped one:
   matter does, so an app that asks before it draws (`if confirm(...)`) shows what it draws.
   `pixels:` lists `[x, y, "#rrggbb"]` the snapshot must show, for an example that draws
   something, just not the right thing (`expert/colours.rb`).
+  `ruby:` names the Rubies a status holds on (`">= 4.0"`); on any other Ruby the example must
+  load, so CI's oldest and newest Rubies run the same list.
 
 Every `--examples` run also writes `spec/results/gallery/index.html`: one card per example with
 its native snapshot, its path, and each display's status and error line, broken examples

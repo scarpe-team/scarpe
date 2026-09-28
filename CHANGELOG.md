@@ -10,7 +10,7 @@ straightforward as possible.
 - A native display service: `scarpe --native app.rb` draws with a Rust program (tiny-skia, cosmic-text, winit) instead of a webview, while Lacci and every block stay in Ruby. See docs/native.md and native/DESIGN.md. Dedicated to the late Noah Gibbs.
 - `scarpe peek APP.rb` runs an app headless on the native display, clicks, types, scrolls and saves pictures
 - `scarpe package --native` builds an ad-hoc signed macOS `.app` (and a `.dmg` with `--dmg`) with precompiled Ruby bytecode, no installed gems, and FastImage copied in for image sizes
-- The Shoes spec suite (`spec/run`): 1019 cases from the manual and Noah Gibbs' Shoes-Spec corpus, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree
+- The Shoes spec suite (`spec/run`): 1026 cases from the manual and Noah Gibbs' Shoes-Spec corpus, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree
 - Lacci: `animate`, `every` and `timer` return `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer`; `Shoes.app`, `window` and `dialog` return the App; methods the manual marks "» self" return self
 - Lacci: `left`, `top`, `width` and `height` read laid-out pixels when the display reports them; slots gain `before`, `after`, `scroll_height`, `scroll_max` and `gutter`; `font(path)` returns the family names in the file
 - Native text fields undo and redo (Cmd-Z or Control-Z, Cmd-Shift-Z or Control-Y) and take an input method's commit as one edit
@@ -18,6 +18,7 @@ straightforward as possible.
 - Ghost windows (`--ghost`, or `SCARPE_NATIVE_GHOST=1`): real windows that present frames nobody can see or click; every automated windowed run opens them
 - `scarpe peek --drag X,Y,X,Y...`, and `drag` in Shoes-Spec test code
 - `scarpe package --include PATH` carries any other file or folder an app reads (repeatable); a native package keeps its `--name` as written, spaces and all
+- CI for the native display service: `.github/workflows/native.yml` runs clippy and `cargo test` on Rust 1.89 (macOS, Linux and, not yet required, Windows) and the shim, Lacci, spec, example and package suites on Ruby 3.2 and 4.0 (macOS and Linux); `rake ci_native` runs the same steps headless on your machine, and `rake ci_test` no longer runs `brew install` or `git checkout main`
 - Lacci: `edit_line.finish = proc` runs when Return is pressed in the line, as Shoes 3.2.15 added; `arc` takes `wedge: true` for a pie slice, as in Shoes 4
 - Lacci: `download` takes `start:`, `progress:`, `finish:`, `headers:` and `body:` and no longer needs nokogiri; `Image#path`, `full_width` and `full_height` and the `imagesize` built-in; the `error` built-in; `rgb`, `gray` and the named colours return a `Shoes::Color`, an Array with `red`, `green`, `blue` and `alpha`; `banner`, `title` and the rest of that family are `Shoes::Para` subclasses
 
