@@ -256,18 +256,28 @@ pub fn selection_rects(buffer: &Buffer, start: Cursor, end: Cursor) -> Vec<Rect>
     out
 }
 
-/// Para#cursor= and #marker=: a caret and a marked range. A negative index counts
+/// The character a para's `text_cursor` or `text_marker` names. A negative index counts
 /// from the end, so Shoes 3 editors' `cursor = -1` sits after the last character.
+pub fn para_index(node: &Node, tb: &TextBox, key: &str) -> Option<usize> {
+    let len = tb.shaped.text().chars().count() as i64;
+    let index = node.props.get(key)?.as_i64()?;
+    Some(if index < 0 { (len + 1 + index).max(0) } else { index } as usize)
+}
+
+/// Where a para's caret sits, `(x, top, height)` in window coordinates, or None with no caret.
+pub fn para_caret(node: &Node, tb: &TextBox) -> Option<(f32, f32, f32)> {
+    let index = para_index(node, tb, "text_cursor")?;
+    let (cx, top, h) = caret_position(&tb.shaped.buffer, tb.shaped.cursor_at(index))?;
+    let (top, h) = tb.shaped.line_box(top, h);
+    Some((tb.x + cx, tb.y + top, h))
+}
+
+/// Para#cursor= and #marker=: a caret and a marked range.
 pub fn draw_para_cursor(canvas: &mut Canvas, node: &Node, tb: &TextBox, clip: Option<Rect>) {
     let buffer = &tb.shaped.buffer;
-    let len = tb.shaped.text().chars().count() as i64;
-    let char_index = |key: &str| {
-        let index = node.props.get(key)?.as_i64()?;
-        Some(if index < 0 { (len + 1 + index).max(0) } else { index } as usize)
-    };
-    let Some(index) = char_index("text_cursor") else { return };
+    let Some(index) = para_index(node, tb, "text_cursor") else { return };
     let cursor = tb.shaped.cursor_at(index);
-    if let Some(marker) = char_index("text_marker") {
+    if let Some(marker) = para_index(node, tb, "text_marker") {
         let other = tb.shaped.cursor_at(marker);
         let (a, b) = if (other.line, other.index) < (cursor.line, cursor.index) { (other, cursor) } else { (cursor, other) };
         for r in selection_rects(buffer, a, b) {
@@ -275,10 +285,9 @@ pub fn draw_para_cursor(canvas: &mut Canvas, node: &Node, tb: &TextBox, clip: Op
             canvas.fill_rect(Rect::new(tb.x + r.x, tb.y + top, r.w, h), SELECTION, clip);
         }
     }
-    if let Some((cx, top, h)) = caret_position(buffer, cursor) {
+    if let Some((x, top, h)) = para_caret(node, tb) {
         let s = canvas.scale;
-        let (top, h) = tb.shaped.line_box(top, h);
-        let rect = Rect::new(((tb.x + cx) * s).round() / s, tb.y + top, 1.0_f32.max(1.0 / s), h);
+        let rect = Rect::new((x * s).round() / s, top, 1.0_f32.max(1.0 / s), h);
         // In the text's own colour, so the caret shows on dark backgrounds too.
         let color = tb.shaped.metas.first().map_or(INK, |m| m.color);
         canvas.fill_rect(rect, color, clip);

@@ -141,6 +141,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | F11 | `para` with non-String arguments | BOTH | | |
 | F12 | Text with invalid UTF-8 is reported | MANUAL | | |
 | F13 | A text fragment's parent is what holds it | S3 | | new 28 Sep |
+| F14 | A text block's `hit`, `cursor_top` and `cursor_left` | EXT | | new 28 Sep |
 
 ### G. Native controls
 
@@ -914,6 +915,17 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci until 28 Sep:** a fragment has no slot parent, and `parent` answered nil. Since 28 Sep a para or a fragment that takes a fragment as text sets its `parent`; a fragment nothing has taken still answers nil. The slot bookkeeping (`remove_child`, margins) keeps to the slot parent.
 - **Spec:** `common.parent__text_fragment`.
 - **Native:** nothing.
+
+### F14. A text block's `hit`, `cursor_top` and `cursor_left`
+
+**Ruling: EXT** (Shoes 3.1). **Lacci and native change, done 28 Sep 2026.** New row, from the Hackety Hack lane (w9).
+
+- **Manual:** silent; the text cursor (`cursor`, `marker`, `highlight`, `hit`, `cursor_left`, `cursor_top`) came with Shoes 3.1, for editors, after the manual.
+- **Shoes 3:** `hit(x, y)` measures from the block's inner corner and asks Pango's `xy_to_index` for the character under the point, nil off the block (`s3t_textblock.c:713-722`); `cursor_left` and `cursor_top` are where the caret was drawn, in the block's own surface (`:173-181`, `:629-638`).
+- **Examples:** Hackety Hack's editor puts its caret where the pointer is with `hit_sloppy`, one right of `hit`, or `hit(48, y)` from the gutter, and scrolls the caret into view by comparing `cursor_top` with its flow's `scroll_top` (`app/ui/editor/editor.rb:101-112, 334-340`). `examples/para_cursor_demo.rb` uses `hit` too.
+- **Lacci until 28 Sep:** `hit` ignored its arguments and gave back the index the pointer last hovered (H3), and on native `cursor_top` was always 0: nothing filled its cache. Since 28 Sep both ask the display when it can answer, as native does through `para_hit` and `para_caret` requests (DESIGN 4.1). `hit` takes window coordinates, as every click hands them out (H3). `cursor_top` and the new `cursor_left` are measured from the content origin of the slot that scrolls the para, or the window's, so they compare with that slot's `scroll_top` however far it is scrolled. Other displays keep the old caches.
+- **Spec:** `textblock.types__hit` and `textblock.types__cursor_top` (native).
+- **Native:** `input::char_under` and `Runtime::para_caret`; the caret is drawn from the same position (`paint::text::para_caret`).
 
 ## G. Native controls
 

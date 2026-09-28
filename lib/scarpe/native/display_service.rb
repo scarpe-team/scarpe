@@ -110,6 +110,17 @@ module Scarpe::Native
       Shoes::DisplayService.set_builtin_response(value)
     end
 
+    # Para#hit and #cursor_top ask Rust, which has the text laid out (ledger F14). A request sends
+    # whatever is pending first, so the answer counts the latest text and cursor.
+    def para_hit(id, x, y)
+      answer(:para_hit, id: id, x: x.to_f, y: y.to_f)
+    end
+
+    # The caret's {"left", "top", "height"}, or nil when the para has none.
+    def para_caret(id)
+      answer(:para_caret, id: id)
+    end
+
     def register_font(font)
       path = Normalize.font_path(font)
       child.post(t: "font", path: path) if path
@@ -204,6 +215,12 @@ module Scarpe::Native
     end
 
     private
+
+    # A question for Rust asked from app code: the answer, or nil when Rust cannot give one.
+    def answer(op, **fields)
+      reply = child.request(op, **fields)
+      reply["error"] ? nil : reply["value"]
+    end
 
     def start_child
       started = Child.start(headless: @headless, ghost: @ghost)

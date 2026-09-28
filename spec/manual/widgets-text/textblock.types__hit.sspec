@@ -1,0 +1,22 @@
+---
+manual: textblock.types
+lines: [3370, 3376]
+testability: interactive
+display: native
+ledger: F14
+----------- app code
+# An ext pin: Shoes 3.1's Para#hit(x, y) is the index of the character under a point, or nil
+# off the text block, as Pango's xy_to_index gives it (s3t_textblock.c:713-722). Hackety
+# Hack's editor puts its caret where the pointer is with it, one to the right of that index.
+Shoes.app width: 300, height: 200 do
+  stack width: 280 do
+    @line = para "Hackety Hack", size: 20
+  end
+end
+----------- test code
+text = para("@line")
+box = layout_of(text)
+middle = box.y + box.h / 2
+assert_equal 0, text.hit(box.x + 1, middle), "a point on the first letter is character 0"
+assert_equal 11, text.hit(box.x + box.w - 2, middle), "a point past the end of the line, inside the block, is the last letter"
+assert_nil text.hit(box.x + 1, box.y + box.h + 30), "a point below the block is nil"
