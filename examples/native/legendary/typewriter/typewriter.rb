@@ -75,11 +75,13 @@ class Clatter
     Math.sin(2 * Math::PI * hz * t)
   end
 
-  # A key: a sharp crack of noise, a wooden knock under it, and a metal click.
+  # A key: the typebar cracks against the platen over a wooden knock and a
+  # bright click, then taps once more, softly, as it falls back.
   def strike(knock, click, loud)
-    sound(0.09) do |t|
-      loud * (0.5 * noise * Math.exp(-t * 400) + 0.45 * ring(knock, t) * Math.exp(-t * 60) +
-        0.25 * ring(click, t) * Math.exp(-t * 250))
+    sound(0.1) do |t|
+      back = t - 0.012
+      loud * (0.7 * noise * Math.exp(-t * 170) + 0.5 * ring(knock, t) * Math.exp(-t * 50) +
+        0.35 * ring(click, t) * Math.exp(-t * 125) + (back > 0 ? 0.25 * noise * Math.exp(-back * 300) : 0))
     end
   end
 
@@ -90,7 +92,7 @@ class Clatter
       clicks = [0.0, 0.05].sum { |at| t < at ? 0 : 0.5 * ring(3000, t - at) * Math.exp(-(t - at) * 300) }
       hiss = t.between?(0.05, 0.33) ? 0.1 * noise * Math.sin(Math::PI * (t - 0.05) / 0.28) : 0
       thump = t < 0.33 ? 0 : 0.8 * ring(90, t - 0.33) * Math.exp(-(t - 0.33) * 30)
-      bell = t < 0.35 ? 0 : [[1760, 0.4, 3], [4858, 0.18, 6], [9504, 0.06, 10]].sum do |hz, amp, fade|
+      bell = t < 0.35 ? 0 : [[1760, 0.3, 3], [4858, 0.13, 6], [9504, 0.05, 10]].sum do |hz, amp, fade|
         amp * ring(hz, t - 0.35) * Math.exp(-(t - 0.35) * fade)
       end
       clicks + hiss + thump + bell
@@ -274,8 +276,8 @@ Shoes.app(title: "Typewriter", width: 720, height: 680, resizable: false) do
   # a dark desk under a warm lamp: light fading out from a centre, in circles
   background "#3a2b23".."#1f1712"
   nostroke
-  fill rgb(255, 214, 160, 0.014)
-  16.times { |i| oval 330, 30, 640 * (1 - i / 16.0), center: true }
+  fill rgb(255, 180, 120, 0.016)
+  18.times { |i| oval 330, 30, 640 * (1 - i / 18.0), center: true }
   @hint = stack left: 0, top: 120, width: 720 do
     para "Start typing.", align: "center", size: 22, family: "Iowan Old Style, Georgia, serif",
       emphasis: "italic", stroke: rgb(255, 236, 214, 0.6)
