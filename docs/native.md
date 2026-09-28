@@ -116,14 +116,16 @@ picture comes out the same on every machine.
 
 ## Where a number puts a slot
 
-Slots, text and images read `left`, `top`, `width` and `height` the way Shoes 3 does, which can
-surprise an app that moves them. A negative whole number counts in from the parent's far edge,
-so `stack(left: -40)` sits 40 px in from the right, and a Float between -1 and 1 is a share of
-the parent, so `left: 0.5` is halfway across. A slot animated through the corner jumps to the far
-side or across the parent. Give a moving slot whole pixels of 0 or more, and draw anything that
-drifts over an edge as art (`rect`, `oval`, `shape` and the rest): art takes every number as
-pixels and goes off the left and top edges as you would expect. DESIGN section 6 has the whole
-rule, and ledger C1 and C15 say why.
+Slots, text and images read `left`, `top`, `width` and `height` the way Shoes 3 does. A position
+is a plain number, negative ones too: `stack(top: -400)` starts 400 px above its slot, and a slot
+moved to `left: -40` slides 40 px off the left edge, so Hackety Hack's hand drops in from the top
+of the window and its Ready button sweeps the intro away to the left, as in 2010. `right` and
+`bottom` count from the far edges, and a negative one lies past them. A size is different: a
+negative width or height counts back from the parent, so `stack(width: -400)` is the parent less
+400 px. A Float between -1 and 1 is a share of the parent for both, so `left: 0.5` is halfway
+across and `width: 0.5` half as wide. Art (`rect`, `oval`, `shape` and the rest) takes every
+number as pixels, Floats included. DESIGN section 6 has the whole rule, and ledger C1, C10, C15
+and C18 say why.
 
 ## Text sizes, and Shoes 3's text
 
@@ -174,6 +176,64 @@ a11y_action check("@keep"), :click
 The cases in `spec/accessibility/` show the rest, and DESIGN section 12 lists exactly what each
 drawable becomes.
 
+## Running a program in a process of its own
+
+`Shoes.run_program` starts another Shoes program, in a process of its own on the same Ruby and
+Scarpe, and gives back a `Shoes::Program` to follow it with. A program that never stops then
+freezes only itself, and `stop` ends it. Hackety Hack's Run button is built on it.
+
+```ruby
+Shoes.app do
+  @said = para ""
+  button "Run it" do
+    @game = Shoes.run_program("game.rb", args: ["easy"])
+    @game.on_output { |stream, line| @said.text += "#{line}\n" }
+    @game.on_error { |err| alert "#{err["message"]} (line #{err["line"]})" }
+    @game.on_exit { |status| @said.text += "It stopped.\n" }
+  end
+  button("Stop it") { @game&.stop }
+end
+```
+
+The program runs in its file's directory unless `dir:` says otherwise, with `args:` as its
+`ARGV`, and headless or as a ghost when its parent is. What it writes to `$stdout` and `$stderr`
+arrives a line at a time in `on_output`, as `"stdout"` or `"stderr"` and the line. `on_error`
+hears every error it runs into, as the Hash `Shoes.on_error` hands over (below), with `"during"`
+saying when: `"startup"` for one that stopped it loading (a syntax error, say), `"handler"` or
+`"timer"` for one in its blocks (it keeps running), or `"exit"` for one that ended it. `on_exit`
+gets its `Process::Status`. `stop` sends TERM and then, a second later, KILL, and the program's
+window goes with it. `pid` and `running?` say the rest. Every block runs in the app's event
+loop, like a click's, and one added late still hears the errors so far and the end.
+
+No window outlives the app that started it: when the app ends, even killed outright, the
+program notices and stops. A packaged app runs programs with its own Ruby and Scarpe, through its
+launcher. Niente and the webview display cannot start a process, so there `run_program` runs the
+program inside the app, as Shoes 3 did, and logs a warning that an endless loop in it will stop
+the app too. DESIGN section 5.5 has the protocol.
+
+## When something goes wrong: `Shoes.on_error` and the console
+
+An error in a click, a timer or an animation is logged, and the app goes on. A timer that
+raises raises every frame, so the log says an error in full the first time it comes from a line,
+then only how often, as the count reaches 10, 100, 1000 and so on. `Shoes.on_error` hears each
+one, every time, and what stops the program loading:
+
+```ruby
+Shoes.on_error do |err|
+  File.write("problems.log", "#{err["during"]}: #{err["class"]}: #{err["message"]} " \
+    "at #{err["path"]}:#{err["line"]}\n", mode: "a")
+end
+```
+
+`err` is a Hash with String keys: `"class"`, `"message"`, `"backtrace"` (an Array of Strings),
+`"path"` and `"line"` (where in your code it happened, nil when Ruby does not say) and
+`"during"` (`"startup"`, `"handler"`, `"timer"` or `"exit"`).
+
+The Shoes console lists the same errors, newest first, with where each happened, beside what your
+program said with `debug`, `info` and `error` and Scarpe's own warnings. Press Alt-/ in any window
+(Cmd-/ on a Mac) to open it, or call `Shoes.show_console`. It never opens by itself, and Alt-/
+never reaches your `keypress` block, as the manual reserves it for Shoes.
+
 ## Tests, the spec suite and the ledger
 
 There are four kinds of test. All of them run headless.
@@ -220,9 +280,9 @@ the case says why in its `reason:`. When someone fixes it, the case reports `xpa
 until the mark comes off, so a fix can never go unnoticed. `n/a` is a case that needs layout or real
 input, run on Niente, which has neither. `spec/README.md` explains how to write a case.
 
-On 28 Sep 2026, with the ten Kids apps in (the eighth build wave) and the Hackety Hack lanes (w9),
-the suite has 1060 cases. On the native display 1045 pass, 14 are expected failures, each pointing
-at its ledger row, and one is skipped; none fail. On Niente 545 pass. The Kids apps' ten checks are among them, in `spec/kids`, as the
+On 28 Sep 2026, with the ten Kids apps in (the eighth build wave), the Hackety Hack lanes (w9) and
+the w10 scarpe lane, the suite has 1062 cases. On the native display 1047 pass, 14 are expected
+failures, each pointing at its ledger row, and one is skipped; none fail. On Niente 545 pass. The Kids apps' ten checks are among them, in `spec/kids`, as the
 showcase's six are in `spec/showcase`. The eleven apps in `examples/native/legendary` keep their
 twelve checks beside them, where a plain `spec/run` does not look:
 `spec/run --display native examples/native/legendary` runs them, and all 12 pass.
@@ -300,6 +360,7 @@ and the numbers.
 | `SCARPE_NATIVE_STATS=DIR` | each process writes where its time went (`ruby.json`, `rust.json`) when it exits |
 | `SCARPE_NATIVE_DAMAGE` | `off` repaints every frame whole; `check` verifies every partial repaint pixel by pixel |
 | `SCARPE_NATIVE_WINDOWED_TESTS=1` | let `rake native_test` open real windows, as ghosts |
+| `SCARPE_RUN_FILE` | run this file as a program `Shoes.run_program` started (a packaged app's launcher runs it instead of the app); with `SCARPE_RUN_DIR`, `SCARPE_RUN_ARGS`, `SCARPE_REPORT_FD` and `SCARPE_PARENT_FD`, set by `run_program` (DESIGN 5.5) |
 | `SCARPE_BYTECODE=0` | a packaged app loads source instead of bytecode |
 | `RUBY_YJIT_ENABLE=0` | a packaged app leaves YJIT off |
 
@@ -391,7 +452,7 @@ The smallest real one to copy is `progress`, and its trail is below.
 
 ## Known gaps
 
-As of 27 Sep 2026. Each has more detail in the ledger or in DESIGN.
+As of 28 Sep 2026. Each has more detail in the ledger or in DESIGN.
 
 - **Windows on screen.** The spec suite and peek never open a window. The windowed tests and
   benches open ghosts, which present real frames nobody can see, so nothing has been checked by
@@ -422,6 +483,14 @@ As of 27 Sep 2026. Each has more detail in the ledger or in DESIGN.
   VoiceOver on. A field reads whole: its caret and selection are not exposed, so a screen reader
   cannot move through its text a letter at a time. Click handlers on slots and shapes, radio
   groups and scrolling a node into view are not exposed either.
+- **Programs.** `on_output` hears what a program writes through Ruby's `$stdout` and `$stderr`;
+  a command it runs, or C code writing to the descriptors, writes to the app's own output
+  instead. A program starts in Scarpe's own text sizes, so one written for Shoes 3's asks for
+  them itself (`Shoes.text_mode = :shoes3`). A packaged app draws its program's window with a
+  second copy of its renderer, which may put a second icon in the Dock; nobody has looked. A
+  program's window and the console have only been drawn headless.
+- **The console.** The webview display opens one window, so `Shoes.show_console` cannot open the
+  console there. Alt-. and Alt-?, which the manual also reserves, still reach the app.
 - **Examples.** The ones marked failing on native in `spec/examples.yml` each say why (see above),
   and `rotate_shapes.rb` turns its shapes about their corners, as the manual says, where it was
   written for the centre.

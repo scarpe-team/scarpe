@@ -1,6 +1,8 @@
 # Scarpe Native: design
 
-Status: v1.1, 27 Sep 2026, after the fourth build wave merged and the orchestrator ruled Q1 to Q8
+Status: v1.2, 28 Sep 2026: the w10 scarpe lane added programs in a process of their own
+(`Shoes.run_program`, 5.5), `Shoes.on_error` and the Shoes console (5.6), and Nick's Q10 ruling
+(section 6). v1.1, 27 Sep 2026, after the fourth build wave merged and the orchestrator ruled Q1 to Q8
 (under "Rulings on the questions" in `spec/LEDGER.md`, Q8 on `clear` and timers also in 5.4; Nick
 may overrule any of them). This document is the contract every builder codes against. If the
 code and this document disagree, fix one of them in the same change. The user guide is
@@ -79,7 +81,9 @@ lib/scarpe/native/              the Ruby shim
   automation.rb                 look-and-click requests shared by Shoes-Spec and peek
   shoes_spec.rb                 Shoes::Spec implementation + native test API (section 8)
   peek.rb                       `scarpe peek` driver
-  log.rb                        Shoes::Log to stderr
+  programs.rb                   Shoes.run_program's side in the app that runs a program (5.5)
+  program_child.rb              and in the program: reports to the parent, stops when it goes
+  log.rb                        Shoes::Log to stderr and the Shoes console
 lib/scarpe/package/native.rb    `scarpe package --native` (section 11), with bytecode.rb and yjit.rb
 templates/package/              the packaged app's launcher and boot.rb
 exe/scarpe                      gains `--native` and the `peek` subcommand
@@ -153,6 +157,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 | `scroll` | `id`, `top` (Integer) | set the slot's `@scroll_top` directly |
 | `layout` | `app`, `rects`: `[[id, x, y, w, h, scroll_h], ...]` | `Shoes::DisplayService.layout_cache[id] = [x, y, w, h, scroll_h]` (Integer keys; the shim defines the accessor if Lacci lacks it and deletes ids on destroy). Sent after every layout pass, before its frame is presented and before the reply of any request that caused it: every laid-out node on an app's first layout, then only those whose rect changed, sorted by id. Window logical px, rounded to 1/100; `scroll_h` is a slot's content height, padding included, else `h`. Art reports its transformed box. Destroyed ids are simply not sent again (contract a; ledger A4, C5) |
 | `closed` | `app` | user closed a window: close that app, as `App#close` does (`quit {app}`, and it leaves `Shoes.APPS`), or every app if it was the last |
+| `console` | `app` | Alt-/ was pressed in that app's window (Cmd-/ on a Mac, 4.4): `Shoes.show_console` (5.6). The app hears no keypress for it |
 | `reply` | `req`, `value`, `error` (null or String), plus op extras like `cancelled` | answers a `req` |
 | `log` | `level`, `msg` | forwarded to Shoes::Log (`scarpe-native` component) |
 
@@ -188,6 +193,9 @@ not true. Mouse buttons are 1 = left, 2 = middle, 3 = right (manual numbering).
   like Control (copy, paste, select all, line ends, undo and redo); Option moves by words. The default app menu
   still quits on Cmd-Q before the app sees the key; Rust then reports every open window `closed`.
   The `key` op accepts `command_` (or `cmd_`, `super_`) for Cmd.
+- `:alt_/` is Shoes' own (manual 2239-2240, ledger H10): Rust sends `console` for it (4.2) and
+  neither a focused field nor a `keypress` block hears it, as Shoes 3's `shoes_app_keypress` opens
+  its console for it first (`s3_app.c:773-776`). Alt-. and Alt-? still reach the app.
 
 ### 4.5 Wire contracts settled on 27 Sep 2026
 
@@ -299,6 +307,7 @@ loop until no app is open or the child's stdout ended:
   wait for input, at most until the next timer deadline, and at most 1 s when idle
     (Automation#advance and other callers of Pump#step wait at most 50 ms)
   dispatch every complete message
+  hand what programs Shoes.run_program started said to their blocks (5.5), at most 500 items
   tick due timers: animate (frame starts at 0), every (count starts at 0, ledger I1), timer (one shot);
     honour `stopped` and destroyed items; timers can be created at any time; an `every` or `timer`
     shorter than a millisecond (0 included) waits one, as Shoes 3 clamps it; before such a
@@ -309,9 +318,10 @@ loop until no app is open or the child's stdout ended:
   flush
 ```
 
-Handler exceptions are rescued per dispatch, logged with the app file/line, and the loop continues.
-That covers a failed `require` (ScriptError) and a runaway recursion (SystemStackError) as well
-as StandardError; only `exit` (SystemExit), a signal and NoMemoryError end the app.
+Handler exceptions are rescued per dispatch (`DisplayService#guarded`), logged with the app
+file/line, handed to `Shoes.on_error` (5.6) and the Shoes console, and the loop continues. That
+covers a failed `require` (ScriptError) and a runaway recursion (SystemStackError) as well as
+StandardError; only `exit` (SystemExit), a signal and NoMemoryError end the app.
 
 Deadlines are `origin + n * interval`, so ten 0.1 s frames land on one second instead of drifting.
 A timer that fell behind skips the deadlines it missed rather than firing a burst, and a restarted
@@ -333,23 +343,121 @@ never reads that EOF and a harness that follows TERM with KILL never waits out t
 child runs, `SCARPE_NATIVE_PID_FILE` (when set) holds its pid, so a harness that had to kill Ruby
 can kill the child's group too: `spec/run` and `rake native_test` do.
 
+### 5.5 Programs in a process of their own (`Shoes.run_program`)
+
+`Shoes.run_program(path, dir: File.dirname(path), args: [])` returns a `Shoes::Program` (Lacci,
+`lacci/lib/shoes/program.rb`; ledger K10). The native display runs the program in a new process
+on the Ruby and Scarpe it runs on (`Programs`, `lib/scarpe/native/programs.rb`), so an endless
+loop freezes only the program, and `stop` ends it. Hackety Hack's Run needs exactly that: Shoes 3
+evaluated a child's program inside Hackety Hack, and `while true` took Hackety Hack with it.
+
+- **The handle:** `pid`, `running?`, `status` (a `Process::Status` once it has ended), `stop`
+  (TERM to the program's process group, KILL a second later if it is still there; its renderer
+  goes with it), `on_exit { |status| }`, `on_error { |err| }` (err is the Hash of 5.6) and
+  `on_output { |stream, line| }` (stream `"stdout"` or `"stderr"`, the line without its
+  newline). Every block runs on the pump, never on a thread. A block added late still hears the
+  errors reported so far (the last 100) and, once the program has ended, its status.
+- **The command.** From a checkout: `ruby -I lib -I lacci/lib -I scarpe-components/lib
+  exe/scarpe --native PATH` on `RbConfig.ruby`, in `dir`, with this process's environment
+  (Bundler's included), so headless and ghost modes carry over to the program. From a packaged
+  app: its own launcher again (`SCARPE_LAUNCHER`, which the launcher exports), which runs
+  `SCARPE_RUN_FILE` with the bundled Ruby and Scarpe instead of the app (section 11). The
+  command's first word goes to `spawn` as `[name, argv0]`, so a lone launcher is never read as
+  a command line and split at the space in `Hackety Hack.app`. The program runs in its own
+  process group, with stdin `/dev/null` and this process's stdout and stderr.
+  A spec run's settings stay the parent's: `SHOES_SPEC_TEST`, the minitest exports,
+  `SCARPE_NATIVE_PID_FILE` and `SCARPE_NATIVE_STATS` are unset for it.
+- **The settings** (read once by `ProgramChild.run` and taken out of its ENV, so a program it
+  starts gets its own): `SCARPE_RUN_FILE` (the file), `SCARPE_RUN_DIR` (the directory it runs
+  in), `SCARPE_RUN_ARGS` (its ARGV, JSON), `SCARPE_REPORT_FD` and `SCARPE_PARENT_FD`.
+  `exe/scarpe` and a packaged app's `boot.rb` hand the file to `ProgramChild.run` instead of
+  `Shoes.run_app` when `SCARPE_RUN_FILE` is set; without `SCARPE_REPORT_FD` it simply runs.
+- **The report pipe** is fd 3 (`SCARPE_REPORT_FD`), one JSON object a line, in the order the
+  program did things:
+
+  | t | fields | parent does |
+  |---|---|---|
+  | `renderer` | `pid` (Integer, or null once it has gone) | keeps it, to end a renderer its program could not |
+  | `output` | `stream` (`stdout` or `stderr`), `line` | `on_output` |
+  | `error` | `error` (the 5.6 Hash) | `on_error` |
+
+  The program's `$stdout` and `$stderr` become line forwarders (`ProgramChild::Output`, a
+  StringIO whose `write` sends each whole line; every String is made valid UTF-8, bytes that are
+  not become `?`). Scarpe's own lines, and its renderer's stderr, go to the real stderr instead
+  (`Scarpe::Native.diagnostics`), so `on_output` hears only the program. Both descriptors are
+  close-on-exec in the program, so neither its renderer nor what it starts holds them open.
+- **Errors.** The program's `Shoes.on_error` block sends every report: its startup (`Shoes.run_app`
+  reports what stops the file loading, then the program exits 1 without printing it again), its
+  handlers and timers (5.4), and `exit` for an error that escapes its event loop (its renderer
+  died, say), after which it exits 1.
+- **The parent's side.** Two threads a program: one reads the report pipe into the inbox, one
+  waits for the process, then for the last report, then posts the exit, so a final error comes
+  before `on_exit`. The pump hands out at most 500 items a turn and does not sleep while any
+  wait; more than 10,000 lines of output waiting are dropped and counted, and the count arrives
+  as one last `stderr` line before the exit. `on_exit` comes once, with the `Process::Status`.
+- **No orphans.** The program holds the read end of a pipe (fd 4, `SCARPE_PARENT_FD`) whose other
+  end only the parent has. When the parent ends, however it ends (KILL included), the program
+  reads the end of it and sends itself TERM, which ends its renderer first (5.4); one that
+  ignores TERM ends its renderer and exits a second later. A renderer whose Ruby has gone reads
+  the end of its stdin and exits, and the parent KILLs one the program said it started and never
+  said had gone. When the parent's own event loop ends it stops its programs (TERM, a second, KILL).
+- **Other displays.** Niente and the webview cannot start a process, so `Shoes.run_program` runs
+  the program inside the app (`Shoes::Program::InProcess`), as Shoes 3 did, and logs a warning
+  saying an endless loop will stop the app too: its windows open in this process and stay, a
+  startup error reaches `on_error`, `on_exit` hears nil at once, `on_output` hears nothing (its
+  output is the app's), errors in its handlers go to `Shoes.on_error`, and `stop` closes the
+  windows it opened.
+
+### 5.6 Errors and the Shoes console
+
+- **`Shoes.on_error { |err| }`** (Lacci, ledger K9): every block given it hears each error a
+  handler, a timer or the startup raises, on the pump, besides the log line; with no block the
+  error is logged and the app goes on, as before. A block that raises is logged and the others
+  still run. `err` is `Shoes::ErrorReport`'s Hash with String keys: `"class"`, `"message"`,
+  `"backtrace"` (Strings), `"path"` and `"line"` (the innermost frame outside Scarpe's own code
+  and Ruby's library, or for a SyntaxError the place Ruby names; nil when there is none; for a
+  startup error, a frame in the program's own file first, its path compared through links, as
+  Ruby names a loaded file by its real path), and
+  `"during"`: `"startup"` (`Shoes.run_app` reports what stops the file loading, then lets it go
+  on up), `"handler"` (an event, the heartbeat, a program's block), `"timer"` (`animate`,
+  `every`, `timer`) or `"exit"` (only a program reports it, 5.5). Test code that clicks or
+  advances still has its errors raised in the test instead (section 8).
+- **The log line.** A timer that raises raises every frame, often in words that change, so
+  the log says an error in full the first time it comes from a place (its class, the
+  program's line, the kind of block) and then once as the count there reaches 10, 100, 1000
+  and so on, with the latest words (`report_handler_error`, ledger K9). `Shoes.on_error` and
+  the console hear every one.
+- **The Shoes console** (`Shoes::Console`, `lacci/lib/shoes/console.rb`; ledger K8) is a Shoes
+  window titled "Shoes Console" that lists, newest first, the program's `debug`, `info` and
+  `error` lines (which still print as before), every error `Shoes.on_error` hears, with where it
+  happened and the program's own backtrace frames, and Scarpe's log lines at its log level
+  (Rust's included). Alt-/ opens it (Cmd-/ on a Mac, 4.4), and so does `Shoes.show_console`
+  (Shoes 3's `Shoes.show_log` is the same); it never opens by itself. Lines wait in a queue any
+  thread or signal trap may add to, and the window, one per process, draws them on the pump
+  (a 0.25 s timer). It keeps the last 500. A program `run_program` started has a console of its
+  own, which Cmd-/ in its window opens.
+
 ## 6. Layout rules (canonical)
 
 Units are logical pixels (f32). Window content size = App `width` x `height`; an App that sends
 neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1, Q1). Lacci's own default
 moved there the same day, so apps normally send it.
 
-- **Dimensions** for width/height/left/top/margins: Integer = px; negative Integer = parent inner
+- **Dimensions** for width/height/margins: Integer = px; negative Integer = parent inner
   size minus |v|; Float in (0, 1] = fraction of parent inner size (1.0 = 100%); Float in (-1, 0) =
   the parent less that fraction; any other Float is px, because Ruby code often computes widths like
   `w / 2.0`. String `"N%"` = percent (negative: 100% less N%); `"Npx"` or a numeric String = px.
   Shoes 3 treats every Float as a fraction, 1.5 included (ledger C1); native keeps the Floats
-  above 1 as pixels. On art (`rect`, `oval`, `line`, `star`, `arrow`, `arc`, `shape`) every number
-  is pixels, as the manual's "pixel coordinates" and Shoes 3 (`shoes_place_exact`,
-  s3_ruby.c:385-392) have it: a negative `left`, `top` or line end moves art off the left and top
-  edges (ruled 27 Sep 2026), and a Float up to 1 is a coordinate or size in pixels, not a share of
-  the slot (28 Sep 2026, ledger C15), so art animated through a slot's corner never jumps across
-  it. Only a percentage String is of the slot on art, and a negative size keeps the rule above.
+  above 1 as pixels. **Positions** (`left`, `top`, `right`, `bottom`) read the same forms but keep
+  their sign, as Shoes 3's `shoes_px2` reads them (`nv` 0, s3_ruby.c:298-337; ledger C10, C18,
+  ruled by Nick 28 Sep 2026): a negative number or share lies past the edge the position counts
+  from, so `top: -400` is 400 px above the slot and `left: -0.25` a quarter of it to the left.
+  On art (`rect`, `oval`, `line`, `star`, `arrow`, `arc`, `shape`) every number is pixels, as the
+  manual's "pixel coordinates" and Shoes 3 (`shoes_place_exact`, s3_ruby.c:385-392) have it: a
+  negative `left`, `top` or line end moves art off the left and top edges (ruled 27 Sep 2026), and
+  a Float up to 1 is a coordinate or size in pixels, not a share of the slot (28 Sep 2026, ledger
+  C15), so art animated through a slot's corner never jumps across it. Only a percentage String
+  is of the slot on art, and a negative size keeps the rule above.
 - **DocumentRoot** is a flow filling the window. If content is taller than the window, the root
   scrolls vertically (wheel + a thin overlay scrollbar), and the window's own backgrounds scroll
   with it.
@@ -414,9 +522,9 @@ moved there the same day, so apps normally send it.
   art shape, and every background and border is out of flow: placed relative to its slot's content
   origin, it does not affect siblings or slot height. `right: n` puts the element's right margin
   edge n px in from the slot's right edge, `bottom: n` likewise from the bottom (manual 1100-1106,
-  1356-1364, ledger C10); `left` and `top` win when both are given. A negative `right` or `bottom`
-  lies past that edge, as Shoes 3 reads positions (`shoes_px2`, s3_ruby.c:327-337): `bottom: -3`
-  hangs the element 3 px below the slot. A slot with no `height` placed by `bottom` is measured
+  1356-1364, ledger C10); `left` and `top` win when both are given. A negative position lies past
+  the edge it counts from, as Shoes 3 reads positions (`shoes_px2`, s3_ruby.c:327-337): `top: -400`
+  starts the element 400 px above the slot and `bottom: -3` hangs it 3 px below (ledger C10, C18). A slot with no `height` placed by `bottom` is measured
   by its margins alone, its top `bottom` and its margins above the foot, as Shoes 3 places a
   canvas it has not drawn yet (ledger C10). Backgrounds and borders read them the same way, but for
   one case: one with a size of its own along the axis is measured from the far edge by its
@@ -552,6 +660,7 @@ on top of the Niente-compatible finders and proxies (`button`, `para`, `edit_lin
 | `a11y_tree(platform: false)`, `a11y_nodes` | the `a11y` op's tree with Symbol keys, or every node of it in a flat list, window first |
 | `a11y_action(target, action, value = nil, platform: false)` | a screen reader's act on a drawable, an id or a tree node (with `platform: true`, on the element with that title, through AppKit) |
 | `stub_dialog(kind, value)`, `dialogs_seen` | answer the next `kind` builtin with `value`; every `[kind, message]` asked for |
+| `wait_until(timeout = 10) { cond }` | turn the loop in real time until the block is true, else fail: for news from outside the app, such as a program `Shoes.run_program` started (5.5) |
 
 A handler that raises while test code is clicking or advancing fails the test instead of being logged.
 
@@ -608,6 +717,11 @@ After the Hackety Hack lane (w9, 28 Sep 2026) the suite holds 1038 cases: native
 1 skip and 14 expected failures; niente 545 pass and 11 expected failures (481 n/a). The legendary
 checks and the examples on both displays pass as before.
 
+After the w10 scarpe lane (28 Sep 2026, Q10's two cases) the suite holds 1062 cases: native
+1047 pass, 0 fail, 1 skip and 14 expected failures; niente 545 pass and 11 expected failures
+(505 n/a). The legendary checks (the Typewriter's check moved to where its lever is in reach,
+ledger C18) and the examples on both displays pass.
+
 ## 10. Lacci fixes this work depends on (each has a LEDGER row and a test)
 
 All ten landed on 27 Sep 2026; `native/research/09_lacci_fixes.md` records each defect, ruling,
@@ -638,6 +752,12 @@ release binary stripped into `Contents/MacOS` and signed explicitly, a boot scri
 `scarpe/wv` and sets `SCARPE_DISPLAY_SERVICE=native`, and an ad-hoc signature on the whole bundle.
 A button app is 32.4 MB (13.4 MB as a `.dmg`), or 17.7 MB with `--minimal`. Linux, Windows and
 universal native packages are not built yet, and nothing is notarised.
+
+The launcher exports `SCARPE_LAUNCHER` (its own path), and `boot.rb` runs `SCARPE_RUN_FILE`
+instead of the app when that is set, with the bundled Ruby and Scarpe: a packaged app's
+`Shoes.run_program` starts the launcher again that way (5.5), double-clicked or not. Traveling
+Ruby hands a process the environment it started with (`RUBYLIB`, `RUBYOPT` and two more), so
+going back through the launcher is what gives the program the bundle's load path.
 
 Ruby speed in packaged apps (Nick's call, 27 Sep 2026). Two cheap wins, both measured before and after:
 
@@ -897,5 +1017,8 @@ change the code and this list together.
 | `SCARPE_NATIVE_STATS` | a directory: each process writes where its time went (`ruby.json`, `rust.json`) as it exits (native/PERF.md) |
 | `SCARPE_NATIVE_DAMAGE` | `off` repaints every window frame whole; `check` also paints each one whole and reports any pixel a partial repaint got wrong (headless too) |
 | `CARGO` | the cargo that builds a stale dev binary (default: on `PATH`, else `~/.cargo/bin/cargo`) |
+| `SCARPE_RUN_FILE`, `SCARPE_RUN_DIR`, `SCARPE_RUN_ARGS` | run this file (in this directory, with this JSON ARGV) as a program `Shoes.run_program` started: `exe/scarpe` and a packaged app's launcher both honour it (5.5) |
+| `SCARPE_REPORT_FD`, `SCARPE_PARENT_FD` | the program's report pipe and its parent's lifeline, inherited descriptors (5.5) |
+| `SCARPE_LAUNCHER` | set by a packaged app's launcher to its own path, for `Shoes.run_program` |
 | `SCARPE_BYTECODE=0` | a packaged app loads source instead of its precompiled bytecode |
 | `RUBY_YJIT_ENABLE=0` | a packaged app leaves YJIT off (it turns it on after the first frame when the Ruby has it) |

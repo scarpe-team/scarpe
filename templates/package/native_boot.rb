@@ -21,4 +21,10 @@ require "scarpe"
 require "scarpe/package/yjit"
 Scarpe::Package::YJIT.enable_after_first_frame
 
-Shoes.run_app(File.join(__dir__, "app", ARGV.fetch(0)))
+# SCARPE_RUN_FILE runs that file with this app's Ruby and Scarpe instead of the app's own: how a
+# packaged app's Shoes.run_program starts a program (native/DESIGN.md 5.5).
+if (run_file = ENV["SCARPE_RUN_FILE"])
+  Scarpe::Native::ProgramChild.run(run_file)
+else
+  Shoes.run_app(File.join(__dir__, "app", ARGV.fetch(0)))
+end

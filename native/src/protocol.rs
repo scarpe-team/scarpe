@@ -301,6 +301,8 @@ pub enum Outgoing {
     /// after an app's first layout, then those whose rect changed (cross-lane contract a).
     Layout { app: Id, rects: Vec<(Id, f64, f64, f64, f64, f64)> },
     Closed { app: Id },
+    /// Alt-/ (Cmd-/ on a Mac) in one of the app's windows: open the Shoes console (ledger H10).
+    Console { app: Id },
     Reply {
         req: u64,
         value: Value,
@@ -510,5 +512,6 @@ mod tests {
         );
         assert_eq!(v(Outgoing::error(8, "nope", Value::Null)), json!({"t":"reply","req":8,"value":null,"error":"nope"}));
         assert_eq!(v(Outgoing::Log { level: "warn".into(), msg: "m".into() }), json!({"t":"log","level":"warn","msg":"m"}));
+        assert_eq!(v(Outgoing::Console { app: 1 }), json!({"t":"console","app":1}));
     }
 }

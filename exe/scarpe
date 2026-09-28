@@ -106,8 +106,13 @@ when "-v"
   puts "Scarpe-Components #{Scarpe::Components::VERSION}"
   puts "Lacci #{Lacci::VERSION}"
 when "run"
-  # Run the Scarpe app file
-  Shoes.run_app verb_target
+  # Run the Scarpe app file. A program Shoes.run_program started (SCARPE_RUN_FILE) reports to
+  # the process that started it (native/DESIGN.md 5.5).
+  if ENV["SCARPE_RUN_FILE"] && defined?(Scarpe::Native::ProgramChild)
+    Scarpe::Native::ProgramChild.run(ENV["SCARPE_RUN_FILE"])
+  else
+    Shoes.run_app verb_target
+  end
 when "env"
   print_env
 when "peek"

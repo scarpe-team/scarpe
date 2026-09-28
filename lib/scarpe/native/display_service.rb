@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "rbconfig"
+
 # Lacci keeps the rects the display pushes back (cross-lane contract a) in a class-level Hash,
 # as it keeps para_hit_cache. A Lacci without that accessor gets this one.
 unless Shoes::DisplayService.respond_to?(:layout_cache)
@@ -45,15 +47,20 @@ module Scarpe::Native
     include Shoes::Log
 
     LIBRARY_DIRS = %w[lacci lib scarpe-components].map { |dir| File.join(ROOT, dir) + "/" }.freeze
+    # An error report names the program's line, not Scarpe's or Ruby's own (Shoes::ErrorReport).
+    Shoes::ErrorReport::LIBRARY_DIRS.concat(LIBRARY_DIRS, [RbConfig::CONFIG["rubylibdir"] + "/"])
 
     # What a handler may raise that ends the app instead of being logged.
     FATAL = [SystemExit, SignalException, NoMemoryError].freeze
+    # Places a handler's errors are counted at, for the log (report_handler_error); past this
+    # many the count starts again.
+    ERROR_PLACES = 1000
 
     class << self
       attr_accessor :instance
     end
 
-    attr_reader :clock, :timers, :builtins, :automation, :pump
+    attr_reader :clock, :timers, :builtins, :automation, :pump, :programs
 
     def initialize
       super()
@@ -67,6 +74,7 @@ module Scarpe::Native
       @builtins = Builtins.new(self, interactive: !@headless && !@ghost)
       @automation = Automation.new(self)
       @pump = Pump.new(self)
+      @programs = Programs.new(self)
       @open_apps = {} # every app that has run => whether its window is still open
       @child_log = Shoes::Log.logger("scarpe-native")
 
@@ -78,6 +86,11 @@ module Scarpe::Native
 
     def child
       @child ||= start_child
+    end
+
+    # The renderer, if one has started: unlike child, never starts one.
+    def started_child
+      @child
     end
 
     # Lacci -> Rust
@@ -130,6 +143,16 @@ module Scarpe::Native
       child.post(t: "font", path: path) if path
     end
 
+    # Shoes.run_program: the program runs in a process of its own (Programs, DESIGN 5.5).
+    def run_program(path, dir:, args:)
+      programs.start(path, dir: dir, args: args)
+    end
+
+    # Ends a wait of the pump's early, from any thread.
+    def wake!
+      @child&.wake!
+    end
+
     # Rust -> Lacci
 
     def receive(message)
@@ -142,21 +165,31 @@ module Scarpe::Native
       when "scroll" then lacci_drawable(message["id"])&.instance_variable_set(:@scroll_top, message["top"])
       when "closed" then closed(message["app"])
       when "log" then log_from_child(message["level"].to_s, message["msg"])
+      when "console" then guarded("console key") { Shoes.show_console }
       else @log.warn("Unknown message from scarpe-native: #{message.inspect[0, 200]}")
       end
     end
 
-    # A handler that raises is logged and forgotten, so one bad block never takes the window down:
-    # a failed require (ScriptError) or a runaway recursion (SystemStackError) as much as a
-    # StandardError. Only exit, signals and running out of memory end the app.
-    # Inside surfacing_handler_errors (test code clicking things) it is kept to raise afterwards.
-    def dispatch_from_child(name, target, args)
-      Shoes::DisplayService.dispatch_event(name, target, *decode_args(name, target, args))
+    # during: "handler", or "timer" for a timer's tick (Shoes::ErrorReport).
+    def dispatch_from_child(name, target, args, during: "handler")
+      guarded("#{name} handler for #{target.inspect}", during: during) do
+        Shoes::DisplayService.dispatch_event(name, target, *decode_args(name, target, args))
+      end
+    end
+
+    # Runs one of the app's blocks. One that raises is logged, handed to Shoes.on_error and
+    # forgotten, so one bad block never takes the window down: a failed require (ScriptError) or
+    # a runaway recursion (SystemStackError) as much as a StandardError. Only exit, signals and
+    # running out of memory end the app. Inside surfacing_handler_errors (test code clicking
+    # things) it is kept to raise afterwards.
+    def guarded(context, during: "handler")
+      yield
     rescue *FATAL
       raise
     rescue Exception => e
       drop_unstarted_apps
-      @surfaced_errors ? @surfaced_errors << e : report_handler_error(e, "#{name} handler for #{target.inspect}")
+      @surfaced_errors ? @surfaced_errors << e : report_handler_error(e, context, during: during)
+      nil
     end
 
     # Test code wants to see what its clicks broke, as an error in the test, not a log line.
@@ -174,7 +207,7 @@ module Scarpe::Native
     def fire_timers
       now = clock.now
       settle_layout if @layout_owed && timers.next_turn_due?(now)
-      timers.fire_due(now) { |event, id, args| dispatch_from_child(event, id, args) }
+      timers.fire_due(now) { |event, id, args| dispatch_from_child(event, id, args, during: "timer") }
     end
 
     # A timer(0) runs once what was made before it is laid out, as Shoes 3 draws before it
@@ -197,6 +230,11 @@ module Scarpe::Native
     rescue Exception => e
       drop_unstarted_apps
       report_handler_error(e, "heartbeat handler")
+    end
+
+    # Programs Shoes.run_program started, and anything they said, handed to their blocks.
+    def dispatch_programs
+      programs.dispatch
     end
 
     # Lifecycle
@@ -224,7 +262,9 @@ module Scarpe::Native
       quit_all
     end
 
+    # Programs Shoes.run_program started go first (their windows with them), then our renderer.
     def shutdown
+      programs.stop_all
       return unless @child
 
       @child.post(t: "quit", app: nil)
@@ -445,12 +485,35 @@ module Scarpe::Native
       @child_log.public_send(level, message)
     end
 
-    def report_handler_error(error, context)
+    # Logged, listed in the Shoes console and handed to Shoes.on_error, as a Hash. A timer or an
+    # animation that raises raises each time it runs, often in words that change ("index 4",
+    # then "index 5"), and a line each time, at 30 frames a second, grows the log a packaged
+    # app keeps on disk by some 23 MB an hour. So the log says an error in full the first time
+    # it comes from a place (its class, the program's line, the kind of block), then only how
+    # often, as the count there reaches 10, 100, 1000 and so on. The console and
+    # Shoes.on_error still hear every one.
+    def report_handler_error(error, context, during: "handler")
       app_frame = Array(error.backtrace).find do |frame|
         !frame.start_with?(*LIBRARY_DIRS) && !frame.include?("/gems/") && !frame.start_with?("<internal:")
       end
-      @log.error("#{error.class}: #{error.message} in the #{context}#{" (at #{app_frame})" if app_frame}")
-      @log.debug(Array(error.backtrace).join("\n"))
+      at = " (at #{app_frame})" if app_frame
+      message = Shoes::ErrorReport.message_of(error)
+      count = count_handler_error([error.class, app_frame || context, during])
+      if count == 1
+        @log.error("#{error.class}: #{message} in the #{context}#{at}", console: false)
+        @log.debug(Array(error.backtrace).join("\n"), console: false)
+      elsif count.to_s.match?(/\A10+\z/)
+        @log.error("#{error.class} in the #{context} again, #{count} times now#{at}; the latest: #{message[0, 200]}",
+          console: false)
+      end
+      Shoes.report_error(error, during: during)
+    end
+
+    # How many times an error has come from this place, this one included.
+    def count_handler_error(place)
+      @handler_errors ||= Hash.new(0)
+      @handler_errors.clear if @handler_errors.size >= ERROR_PLACES && !@handler_errors.key?(place)
+      @handler_errors[place] += 1
     end
   end
 end

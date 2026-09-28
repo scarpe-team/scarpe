@@ -6,7 +6,8 @@ module Scarpe::Native
   #
   #   until no apps remain or the child exited:
   #     wait for input, at most until the next timer deadline (or a second, idle)
-  #     dispatch every complete message; fire due timers; heartbeat (throttled); flush
+  #     dispatch every complete message; what programs Shoes.run_program started said;
+  #     fire due timers; heartbeat (throttled); flush
   #
   # An idle app sleeps: Rust's messages, a post from another thread and Ctrl-C all wake the wait
   # (Child#wake!), so the idle wait only bounds how late anything else could be noticed.
@@ -52,6 +53,7 @@ module Scarpe::Native
       @service.child.check_started!
       Stats.time(:wait) { @service.child.wait_for_input(wait_time(longest)) }
       Stats.time(:drain) { drain }
+      Stats.time(:programs) { @service.dispatch_programs }
       Stats.time(:timers) { @service.fire_timers }
       Stats.time(:heartbeat) { heartbeat }
       Stats.time(:flush) { @service.child.flush }
@@ -84,6 +86,8 @@ module Scarpe::Native
     private
 
     def wait_time(longest)
+      return 0 if @service.programs.waiting?
+
       due = @service.timers.next_due_at
       return longest unless due
 
