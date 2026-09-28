@@ -77,6 +77,7 @@ straightforward as possible.
 - Native packages read files as UTF-8 when started with no `LANG`, as Finder, the Dock and `open` start them, and the manual reads as UTF-8 anywhere: in a packaged app Help raised "invalid byte sequence in US-ASCII", and a saved program with an accented letter could not be read back
 - Lacci: `para.cursor = :marker` drops the selection as Shoes 3.1 does (the caret goes to its start and the marker is cleared), and `cursor = nil` clears the marker too; it jumped to the marker and kept it, so in Hackety Hack's editor typing after Backspace or select-all came out backwards
 - Native: text that ends in a newline keeps the empty line under it, as Pango does: the caret after Return at the end of a program sits at the start of that line, where the next letter goes, instead of at the end of the line above, and the line counts in the text's height
+- `Shoes.text_mode = :shoes3` sets a program's text as Shoes 3 did: sizes are points at 96 dpi, so a para is 16 px tall, and text that names no face is Arial (ledger M14); the default stays pixels. For programs laid out for Shoes 3, such as Hackety Hack
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
 - `oval(left, top, n)`: `n` is a diameter, as the manual says, not a radius

@@ -787,6 +787,23 @@ fn a_paras_caret_is_measured_in_the_slot_that_scrolls_it() {
     assert_eq!(h.value(json!({"op": "para_caret", "id": 4}))["top"].as_i64().unwrap(), lower, "scrolling does not move it");
 }
 
+/// `Shoes.text_mode = :shoes3` (ledger M14) arrives as `text_mode`: from then on text is sized
+/// in points at 96 dpi, so a para of the default size draws 16 px tall where it drew 12, and the
+/// window is laid out again with it.
+#[test]
+fn text_mode_shoes3_sizes_text_in_points() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(3, "Para", 2, json!({"text_items": ["Hackety Hack"], "margin": 0}))]));
+    let (w, hgt) = { let p = h.node(|n| n["id"] == 3); (p["w"].as_f64().unwrap(), p["h"].as_f64().unwrap()) };
+    h.feed(&json!({"t": "text_mode", "mode": "shoes3"}).to_string());
+    let p = h.node(|n| n["id"] == 3);
+    let (w3, h3) = (p["w"].as_f64().unwrap(), p["h"].as_f64().unwrap());
+    assert!((w3 / w - 4.0 / 3.0).abs() < 0.05, "a third wider: {w} then {w3}");
+    assert!((h3 / hgt - 4.0 / 3.0).abs() < 0.05, "and a third taller: {hgt} then {h3}");
+    h.feed(&json!({"t": "text_mode", "mode": "scarpe"}).to_string());
+    assert_eq!(h.node(|n| n["id"] == 3)["w"].as_f64().unwrap(), w, "and back");
+}
+
 /// After Return at the end of the text the caret sits at the start of the new, empty line under
 /// it, where Pango puts it and where the next letter goes (Hackety Hack's editor, the fidelity
 /// lane's caret strip). cosmic-text keeps no line for a closing newline, so the caret was drawn

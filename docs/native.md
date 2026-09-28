@@ -125,6 +125,20 @@ drifts over an edge as art (`rect`, `oval`, `shape` and the rest): art takes eve
 pixels and goes off the left and top edges as you would expect. DESIGN section 6 has the whole
 rule, and ledger C1 and C15 say why.
 
+## Text sizes, and Shoes 3's text
+
+A text size is pixels: `para` is 12 px tall and `title` 34, as the manual says (ledger M14).
+Shoes 3 read the same numbers as points at 96 dpi, so its paras were 16 px and its titles 45,
+and a program written for it was laid out for text a third bigger. Such a program can ask for
+Shoes 3's text before its first window:
+
+```ruby
+Shoes.text_mode = :shoes3
+```
+
+Sizes are then points (`"18px"` stays pixels), and text that names no face is set in Arial, as
+Shoes 3 set it. Every window the program opens follows it. Hackety Hack asks for it.
+
 ## Screen readers
 
 Scarpe draws its own buttons, fields and text, so no control of the operating system is there to

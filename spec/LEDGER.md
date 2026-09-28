@@ -1451,7 +1451,9 @@ A border's width is its own, 1 unless given: Shoes 3 strokes it with `ATTR2(dbl,
 
 ### M14. Font sizes: pixels or points?
 
-**Ruling: MANUAL:** pixels. `:size` is a "pixel size" (manual 1398) and the text blocks are "N pixels high" (manual 1923-2129, 3378-3384); the `:font` string's size is "in points" unless suffixed `px` (manual 1221-1223), which is Pango's convention leaking through. Shoes 3's own handling is not checked. **Spec:** relative sizes only (a `title` is taller than a `para`; `font: "Arial 20px"` and `size: 20` lay out the same height). **Native:** treats every size as logical pixels.
+**Ruling: MANUAL:** pixels. `:size` is a "pixel size" (manual 1398) and the text blocks are "N pixels high" (manual 1923-2129, 3378-3384); the `:font` string's size is "in points" unless suffixed `px` (manual 1221-1223), which is Pango's convention leaking through. **Spec:** relative sizes only (a `title` is taller than a `para`; `font: "Arial 20px"` and `size: 20` lay out the same height). **Native:** treats every size as logical pixels.
+
+**Shoes 3, checked 28 Sep 2026 (w9 polish):** Shoes 3 read every text size as points at 96 dpi. A numeric `:size` becomes `pango_attr_size_new_absolute(ROUND(i * PANGO_SCALE * (96./72.)))` (`s3t_textblock.c:288-293`), a String's number is taken with `to_i` first, and the default font is Arial at 14 points the same way (`s3_world.c:46-48`); the class sizes (para 12, title 34) go through the same line. So a Shoes 3 para was 16 px tall and a title 45. The fidelity lane measured it on screenshots of Hackety Hack 1.0 and 1.0.1: the editor's line pitch is 19 to 20 px there against 16 on native, and "Last saved less than a minute ago." is 245 px wide against 180. Every program written for Shoes 3 was laid out for text a third bigger than native draws it. **Extension, 28 Sep 2026: EXT** (`ext-scarpe`). A program can ask for Shoes 3's text before its first window with `Shoes.text_mode = :shoes3`: sizes are then points at 96 dpi, "px" stays pixels, and a text block that names no face gets Arial (DESIGN 4.1 `text_mode`, DESIGN 6). Hackety Hack asks for it. The default stays pixels, which every app built on native was laid out for; whether Shoes 3's reading should become the default is Q12. **Spec:** `styles.size__shoes3_text_mode` (native). **Test:** `text::rich::tests::shoes3_text_is_sized_in_points`, the protocol test `text_mode_shoes3_sizes_text_in_points`, and `lacci/test/test_app.rb`.
 
 ### M15. Style "For:" lists
 
@@ -1614,6 +1616,10 @@ Raised by the Hackety Hack lane (w9). Each is asked the way the questions above 
 - **Q11 (E10).** Should every shape turn about its own centre by default, as Shoes 3.3's source does (`shoes_transform_new` starts in `s_center`, and `shoes_apply_transformation` turns about the shape's middle, `s3_canvas.c:31-41, 192-205`), making the manual's "Shoes defaults to `:corner`" (manual 1857-1860) ERRATA? Since 28 Sep a star and an arrow turn about the centre their `left` and `top` name. Rects, ovals, arcs and shape blocks still turn about their corner, which Scarpe's `rotate_shapes.rb` and the `art.rotate` cases are written against; `shoes-contrib/animation/rotating-star.rb` spins in place only about the centre, and `for_playtest/simple/path-animation.rb` asks for it with `center: true`.
 
   **Meanwhile:** the corner, as E10 ruled, with stars and arrows turning about their centre.
+
+- **Q12 (M14).** Should a text size be points at 96 dpi by default, as Shoes 3 drew it (`s3t_textblock.c:293`), rather than pixels, as the manual says ("pixel size", manual 1398)? Every Shoes 3 program, the examples under `legacy/` among them, was laid out for text a third bigger than native draws; every app built on native (the showcase, the legendary and Kids apps) was laid out for pixels, and would grow a third. Since 28 Sep a program can ask for Shoes 3's text with `Shoes.text_mode = :shoes3`, and Hackety Hack does.
+
+  **Meanwhile:** pixels, as M14 ruled; a program asks for points with `Shoes.text_mode = :shoes3`.
 
 ## Citation check
 
