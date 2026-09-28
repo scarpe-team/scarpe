@@ -25,11 +25,8 @@ class Shoes
 
       create_display_drawable
 
-      # Bind event handlers for click/hover/leave (like Button)
-      bind_self_event("click") do
-        @click&.call
-      end
-
+      # A click block is heard like a shape's (Drawable#click, ledger E8): the display is
+      # told has_click, so a press on an empty slot over the picture reaches it too.
       bind_self_event("hover") do
         @hover_handler&.call(self)
       end
@@ -67,12 +64,6 @@ class Shoes
     def destroy
       children.dup.each(&:destroy)
       super
-    end
-
-    # Set the click handler. Returns self for method chaining (Shoes3 convention).
-    def click(&block)
-      @click = block
-      self
     end
 
     # Set the hover handler. Returns self for method chaining.
