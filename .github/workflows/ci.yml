@@ -14,6 +14,10 @@ on:
     paths-ignore:
       - "docs/**"
       - "**.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 # Cancel in-progress runs on same branch
 concurrency:
@@ -25,11 +29,12 @@ jobs:
     # Skip push runs if PR exists
     if: github.event_name != 'push' || github.event.pull_request == null
     name: Tests
-    runs-on: macos-latest
+    # Pinned: macos-latest moves to each new macOS a few months after release.
+    runs-on: macos-26
     timeout-minutes: 30
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setup Ruby and install gems
         uses: ruby/setup-ruby@v1
         with:
@@ -45,7 +50,8 @@ jobs:
         run: CI_RUN='true' bundle exec rake test
       - name: upload test-fail logs
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test failure logs
           path: logger/test_failure*.out.log
+          if-no-files-found: ignore
