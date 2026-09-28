@@ -161,6 +161,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | G14 | A radio unmarked by its sibling: does its block run? | BOTH | | |
 | G15 | Scarpe draws its own controls | EXT | | |
 | G16 | `edit_line.finish = proc` runs on Return | EXT | | |
+| G17 | Colours on edit lines and edit boxes | EXT | | |
 
 ### H. Events
 
@@ -1045,6 +1046,16 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** until 28 Sep EditLine had no `finish=`, and Return in a focused line reached no Shoes code at all, since `keypress` skips unmodified keys while a field has focus (DESIGN 4.3). Kanban typed new cards into an edit box to hear the newline, and Ledger took Cmd-Return. Now `finish=` stores a proc, called with the line.
 - **Spec:** `element.edit_line__finish` (native): typing does not run it, Return does, with the line holding its text.
 - **Native:** Return, with no Control, Option, Command or Shift, in a focused edit line sends `finish` (DESIGN 4.3). An edit box takes Return as a new line. Webview sends nothing yet.
+
+### G17. Colours on edit lines and edit boxes
+
+**Ruling: EXT** (`ext-scarpe`). New row, 28 Sep 2026, from the wave-7 ZARKING lane: an app drawn on warm paper had one white box with a blue ring in it, whatever its palette.
+
+- **Manual:** silent on a field's colours; its look is the platform's (manual 73-79, see G15).
+- **Shoes 3:** GTK and Cocoa draw the field; no style reaches its colours (`s3t_edit_line.c`, `s3t_edit_box.c`).
+- **Lacci today:** until 28 Sep EditLine and EditBox declared `stroke` (the text's colour) but not `fill` or `border_color`, which were dropped as unknown keywords. Now both are styles of their own on both.
+- **Spec:** `element.edit_line__colors` (native): `fill:` paints the box and `border_color:` its edge, on an edit line and an edit box; a field given no colours stays white with a blue halo; once `stroke:` colours the text, the focus halo and the caret take that colour instead of blue. Lacci's `test_fields_keep_their_colours` pins the styles.
+- **Native:** `edit_line::Colors` reads `fill` (default white), `border_color` (default #c7c7cc) and `stroke` (default the accent blue) for the box, its edge, and the focused edge, halo and caret, as CSS's caret-color follows currentColor. The windowed `ask` dialog keeps the plain field. Webview ignores them.
 
 ## H. Events
 
