@@ -176,13 +176,6 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
     rgb(*color, alpha.to_f.clamp(0.0, 1.0).round(3))
   end
 
-  # For text: a stroke with an alpha of exactly 0 is drawn black by the native
-  # display (examples/native/kids/_repros/key_splash_2.rb), so a fading letter
-  # stops at 1/255, which is just as invisible.
-  def text_tint(color, alpha)
-    tint(color, [alpha, 0.004].max)
-  end
-
   # Like clamp, but a window squeezed too small to fit both limits just gets
   # the middle (clamp itself would stop the app with an error).
   def within(value, low, high)
@@ -339,7 +332,7 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
     @zeds.each_with_index do |z, i|
       k = (@clock * 0.4 + i / 3.0) % 1
       z.style(left: (150 + 44 * k).round(1), top: (78 - 56 * k).round(1), size: (14 + 14 * k).round(1),
-        stroke: text_tint([96, 112, 176], 0.85 * Math.sin(Math::PI * k)))
+        stroke: tint([96, 112, 176], 0.85 * Math.sin(Math::PI * k)))
     end
   end
 
@@ -460,7 +453,7 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
         art = if what == :star
                 star(x, y, 5, 2, 1, fill: tint(color, 0))
               else
-                para(what, font: FONT, weight: "bold", size: 2, stroke: text_tint(color, 0), align: "center", margin: 0,
+                para(what, font: FONT, weight: "bold", size: 2, stroke: tint(color, 0), align: "center", margin: 0,
                   left: x - box / 2, top: y, width: box)
               end
         [art, color, strength, dx, dy]
@@ -519,7 +512,7 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
           top: (b.y + dy * size - rise).round(1), rotate: 180, fill: tint(color, strength * alpha))
       else
         art.style(size: size.round(1), left: (b.x - b.box / 2 + dx * size).round(1),
-          top: (b.y - 0.62 * size + dy * size - rise).round(1), stroke: text_tint(color, strength * alpha))
+          top: (b.y - 0.62 * size + dy * size - rise).round(1), stroke: tint(color, strength * alpha))
       end
     end
     show_face(b.face, b.x, b.y - rise, size * 0.5, alpha) if b.face
@@ -982,7 +975,7 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
   @clouds = clouds.map { |left, top, scale| draw_cloud(left, top, scale) }
   draw_sun
   @zeds = Array.new(3) do
-    para "z", font: FONT, weight: "bold", size: 14, stroke: text_tint([96, 112, 176], 0), left: 150, top: 78, margin: 0,
+    para "z", font: FONT, weight: "bold", size: 14, stroke: tint([96, 112, 176], 0), left: 150, top: 78, margin: 0,
       hidden: true
   end
   @far_hill = stack(left: 0, top: 0, width: 1.0, height: 1.0) {}

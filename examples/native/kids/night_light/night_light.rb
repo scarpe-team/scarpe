@@ -225,9 +225,7 @@ Shoes.app(title: "Night Light", width: W, height: H, resizable: false) do
     end
   end
 
-  # A five-pointed star, turned a little by `angle` (in degrees). The turn is part of
-  # its outline, so the star is never a rotated shape, and the window can repaint a
-  # star alone when it twinkles instead of everything.
+  # A five-pointed star, turned a little by `angle` (in degrees), drawn as its outline.
   def pointy(x, y, r, angle)
     points = Array.new(10) do |i|
       a = (angle - 90 + i * 36) * Math::PI / 180

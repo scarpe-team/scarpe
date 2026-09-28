@@ -10,7 +10,8 @@ ivar = ->(name) { app.instance_variable_get(name) }
 chimes = ivar.(:@chimes)
 save_file = File.join(Dir.home, "Library", "Application Support", "Rainbow Lab", "shelf.json")
 trapped = -> { File.exist?(ENV.fetch("SPEC_TRAP_FILE")) ? File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true) : [] }
-pot_at = ->(name) { [POTS.find { |pot| pot[:name] == name }[:x], 650] }
+# a pot's slot: click_on reaches it through the empty layer drops fly in, as a press does
+pot = ->(name) { POTS.find { |each| each[:name] == name }[:slot] }
 # the name of the shelf colour a pixel looks most like
 looks = ->(x, y) { Paint::LOOKS.min_by { |_, lab| Paint.lab(pixel_at(x, y).first(3)).zip(lab).sum { |a, b| (a - b)**2 } }.first }
 settle = -> { advance 2.2 }
@@ -23,7 +24,7 @@ assert_empty ivar.(:@found)
 refute File.exist?(save_file)
 
 # a tap on the red pot sends a drop flying into the bowl
-click_at(*pot_at.(:red))
+click_on pot.(:red)
 assert_equal 1, ivar.(:@drops_flying).size, "a drop is in the air"
 settle.call
 assert_equal [1, 0, 0, 0], ivar.(:@drops), "and it landed in the bowl"
@@ -41,7 +42,7 @@ loudest = wav[44..].unpack("s<*").map(&:abs).max / 32_767.0
 assert_operator loudest, :<=, 0.26, "never louder than a quarter of full scale"
 
 # red and blue make purple, and a new colour gets a jar
-click_at(*pot_at.(:blue))
+click_on pot.(:blue)
 settle.call
 assert_equal "Purple", para("@chip_name").text
 assert_equal %w[Red Purple], ivar.(:@found)
@@ -95,7 +96,7 @@ assert_empty ivar.(:@recipe_shown), "and the hint goes away again"
 click_at 906, 668
 assert chimes.muted
 heard = trapped.call.size
-click_at(*pot_at.(:yellow))
+click_on pot.(:yellow)
 settle.call
 assert_equal heard, trapped.call.size, "silence"
 click_at 906, 668
