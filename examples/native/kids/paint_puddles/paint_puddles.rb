@@ -57,14 +57,18 @@ FISH_FIN = [[:move_to, -6, -24], [:curve_to, 0, -38, 14, -40, 22, -30], [:line_t
 FISH_BODY = [[:move_to, -36, 0], [:curve_to, -24, -32, 26, -36, 44, -6], [:curve_to, 47, -2, 47, 4, 44, 8],
   [:curve_to, 26, 34, -24, 32, -36, 0]]
 
-# All the sounds. Nothing is louder than LOUDEST (about a third of full volume),
-# nothing starts with a click, and at most AT_ONCE ring together, however fast
-# the keys are mashed. The notes come from the pentatonic scale, five notes to
-# an octave that sound lovely in any order.
+# All the sounds. No sound is louder than LOUDEST (about a quarter of full
+# volume) and nothing starts with a click. While sounds are still ringing, a new
+# one plays more softly, so all of them together stay under ROOM: a hand
+# mashing the keys makes a gentle patter, never a din. The notes come from the
+# pentatonic scale, five notes to an octave that sound lovely in any order.
 class Music
   RATE = 22_050
   LOUDEST = 0.28
+  ROOM = 0.42
   AT_ONCE = 5
+  SOFTER = [1.0, 0.75, 0.55, 0.4, 0.3, 0.2] # the volumes a sound can be played at
+  BLOCK = 0.02 # how finely we remember how loud each sound is as it plays, in seconds
   PENTATONIC = [0, 2, 4, 7, 9]
   TAU = 2 * Math::PI
 
@@ -74,27 +78,50 @@ class Music
   def initialize
     @dir = Dir.mktmpdir("paint-puddles")
     at_exit { FileUtils.remove_entry(@dir, true) } # the little WAV files go when the app does
-    @files = {}
-    @lengths = {}
-    @ringing = [] # when each sound now playing ends, on the app's clock
-    @started = {} # when each sound last started
+    @files = {}     # [name, volume] => its WAV file
+    @shapes = {}    # name => its samples, worked out once
+    @envelopes = {} # name => how loud it will still get, BLOCK by BLOCK
+    @ringing = []   # the sounds playing now: when each started and ends, and how loud it was played
   end
 
   # Plays the sound called `name` (see #samples). `now` is the app's clock in seconds.
   def play(name, now)
     return false if muted
 
-    @ringing.reject! { |ends| ends <= now }
+    @ringing.reject! { |sound| sound[:ends] <= now }
     return false if @ringing.size >= AT_ONCE
-    return false if @started[name] && now - @started[name] < 0.05 # the same sound twice at once is just louder
+    return false if @ringing.any? { |sound| sound[:name] == name && now - sound[:start] < 0.05 } # twice at once is just louder
 
-    @last_file = @files[name] ||= write(name, samples(name))
-    @ringing << now + @lengths[name]
-    @started[name] = now
+    samples = shape(name)
+    room = (ROOM - @ringing.sum { |sound| loudness(sound, now) }) / LOUDEST
+    volume = SOFTER.find { |v| v <= room }
+    return false unless volume # the room is full: this one waits
+
+    @last_file = @files[[name, volume]] ||= write("#{name}-#{(volume * 100).round}", samples, volume)
+    @ringing << { name: name, start: now, ends: now + samples.size.fdiv(RATE), volume: volume }
     @player = Process.detach(spawn("afplay", @last_file, out: File::NULL, err: File::NULL))
     true
   rescue SystemCallError
     false # no afplay here (not a Mac): paint in silence
+  end
+
+  # A sound's samples, scaled so its loudest moment is LOUDEST, and, for every
+  # moment as it plays, the loudest it will still get from there on.
+  def shape(name)
+    @shapes[name] ||= begin
+      raw = samples(name)
+      peak = raw.map(&:abs).max
+      scaled = raw.map { |sample| sample * LOUDEST / peak }
+      blocks = scaled.each_slice((RATE * BLOCK).round).map { |block| block.map(&:abs).max }
+      still_to_come = 0
+      @envelopes[name] = blocks.reverse.map { |loud| still_to_come = [still_to_come, loud].max }.reverse
+      scaled
+    end
+  end
+
+  # How loud a sound that is still playing will get from this moment on.
+  def loudness(sound, now)
+    @envelopes[sound[:name]][((now - sound[:start]) / BLOCK).floor].to_f * sound[:volume]
   end
 
   # Note 0 is middle C, and each step up is the next note of the pentatonic scale.
@@ -176,8 +203,7 @@ class Music
     end
   end
 
-  # Lays sounds over each other, each starting a moment in, and scales the
-  # whole so its loudest moment is LOUDEST.
+  # Lays sounds over each other, each starting a moment in.
   def mix(*parts)
     length = parts.map { |start, samples| (start * RATE).round + samples.size }.max
     out = Array.new(length, 0.0)
@@ -189,14 +215,11 @@ class Music
   end
 
   # A WAV file is a 44-byte header, then every sample as a 16-bit number.
-  def write(name, samples)
-    peak = samples.map(&:abs).max
-    scale = peak.zero? ? 0 : LOUDEST / peak
-    data = samples.map { |sample| (sample * scale * 32_767).round }.pack("s<*")
+  def write(name, samples, volume)
+    data = samples.map { |sample| (sample * volume * 32_767).round }.pack("s<*")
     header = ["RIFF", 36 + data.bytesize, "WAVE", "fmt ", 16, 1, 1, RATE, RATE * 2, 2, 16, "data", data.bytesize]
     path = File.join(@dir, "#{name}.wav")
     File.binwrite(path, header.pack("a4Va4a4VvvVVvva4V") + data)
-    @lengths[name] = samples.size.fdiv(RATE)
     path
   end
 end
@@ -291,11 +314,10 @@ Shoes.app(title: "Paint Puddles", width: W, height: H, resizable: false) do
   end
 
   # Draws a path of [:command, x, y, ...] steps, `k` times as big, moved to (x, y).
-  # `flip` mirrors it left to right.
-  def path(steps, x, y, k, flip: 1)
+  def path(steps, x, y, k)
     shape do
       steps.each do |command, *xy|
-        send(command, *xy.each_slice(2).flat_map { |px, py| [x + px * k * flip, y + py * k] })
+        send(command, *xy.each_slice(2).flat_map { |px, py| [x + px * k, y + py * k] })
       end
     end
   end
@@ -541,7 +563,8 @@ Shoes.app(title: "Paint Puddles", width: W, height: H, resizable: false) do
 
     stroke_now = @stroke
     @stroke = nil
-    if stroke_now[:length] > 0
+    # the last little piece reaches the pointer, unless a puddle already covers it
+    if stroke_now[:length] > 0 && !stroke_now[:puddle]
       bend(stroke_now[:mid], stroke_now[:pen], stroke_now[:mouse], rainbow(@hue))
     end
     if stroke_now[:puddle]
@@ -575,8 +598,11 @@ Shoes.app(title: "Paint Puddles", width: W, height: H, resizable: false) do
     puddle = stroke_now[:puddle]
     if puddle.nil? || puddle[:done]
       x, y = stroke_now[:still_at]
-      # a puddle grows as big as it can without running off the paper
-      room = [(([x - PAPER_LEFT, PAPER_RIGHT - x].min - 6) * 2 / 1.1), (([y - PAPER_TOP, PAPER_BOTTOM - y].min - 6) * 2 / 0.92)].min
+      # a puddle grows only as big as the paper around it allows (it is a little
+      # wider than it is tall, like paint lying on a table)
+      across = [x - PAPER_LEFT, PAPER_RIGHT - x].min - 6
+      down = [y - PAPER_TOP, PAPER_BOTTOM - y].min - 6
+      room = [across * 2 / 1.1, down * 2 / 0.92].min
       puddle = stroke_now[:puddle] = { x: x, y: y, rings: [], age: 0.0, done: false, room: room }
       puddle[:mark] = put_on_page(x - 95, 16) {}
     end
@@ -998,6 +1024,10 @@ Shoes.app(title: "Paint Puddles", width: W, height: H, resizable: false) do
         @stamped_at = [x, y]
         stamp(@tool, x, y)
       end
+    else
+      # a click on the wall around the paper twinkles and sings a little
+      3.times { sparkle(x + @luck.rand(-24..24), y + @luck.rand(-24..24), 10) }
+      sing(y)
     end
   end
 

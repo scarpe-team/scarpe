@@ -53,14 +53,18 @@ HEART = [[:move_to, 0, 0.88], [:curve_to, -0.24, 0.66, -1, 0.2, -1, -0.28], [:cu
   [:curve_to, -0.24, -0.88, -0.06, -0.72, 0, -0.52], [:curve_to, 0.06, -0.72, 0.24, -0.88, 0.48, -0.88],
   [:curve_to, 0.72, -0.88, 1, -0.68, 1, -0.28], [:curve_to, 1, 0.2, 0.24, 0.66, 0, 0.88]]
 
-# All the sounds. Nothing is louder than LOUDEST (about a third of full volume),
-# nothing starts with a click, and at most AT_ONCE ring together, however fast
-# the keys are mashed. The notes come from the pentatonic scale, five notes to
-# an octave that sound lovely in any order.
+# All the sounds. No sound is louder than LOUDEST (about a quarter of full
+# volume) and nothing starts with a click. While sounds are still ringing, a new
+# one plays more softly, so all of them together stay under ROOM: a hand
+# mashing the keys makes a gentle patter, never a din. The notes come from the
+# pentatonic scale, five notes to an octave that sound lovely in any order.
 class Music
   RATE = 22_050
   LOUDEST = 0.28
+  ROOM = 0.42
   AT_ONCE = 5
+  SOFTER = [1.0, 0.75, 0.55, 0.4, 0.3, 0.2] # the volumes a sound can be played at
+  BLOCK = 0.02 # how finely we remember how loud each sound is as it plays, in seconds
   PENTATONIC = [0, 2, 4, 7, 9]
   TAU = 2 * Math::PI
 
@@ -70,27 +74,50 @@ class Music
   def initialize
     @dir = Dir.mktmpdir("shape-sorter")
     at_exit { FileUtils.remove_entry(@dir, true) } # the little WAV files go when the app does
-    @files = {}
-    @lengths = {}
-    @ringing = [] # when each sound now playing ends, on the app's clock
-    @started = {} # when each sound last started
+    @files = {}     # [name, volume] => its WAV file
+    @shapes = {}    # name => its samples, worked out once
+    @envelopes = {} # name => how loud it will still get, BLOCK by BLOCK
+    @ringing = []   # the sounds playing now: when each started and ends, and how loud it was played
   end
 
   # Plays the sound called `name` (see #samples). `now` is the app's clock in seconds.
   def play(name, now)
     return false if muted
 
-    @ringing.reject! { |ends| ends <= now }
+    @ringing.reject! { |sound| sound[:ends] <= now }
     return false if @ringing.size >= AT_ONCE
-    return false if @started[name] && now - @started[name] < 0.05 # the same sound twice at once is just louder
+    return false if @ringing.any? { |sound| sound[:name] == name && now - sound[:start] < 0.05 } # twice at once is just louder
 
-    @last_file = @files[name] ||= write(name, samples(name))
-    @ringing << now + @lengths[name]
-    @started[name] = now
+    samples = shape(name)
+    room = (ROOM - @ringing.sum { |sound| loudness(sound, now) }) / LOUDEST
+    volume = SOFTER.find { |v| v <= room }
+    return false unless volume # the room is full: this one waits
+
+    @last_file = @files[[name, volume]] ||= write("#{name}-#{(volume * 100).round}", samples, volume)
+    @ringing << { name: name, start: now, ends: now + samples.size.fdiv(RATE), volume: volume }
     @player = Process.detach(spawn("afplay", @last_file, out: File::NULL, err: File::NULL))
     true
   rescue SystemCallError
     false # no afplay here (not a Mac): sort in silence
+  end
+
+  # A sound's samples, scaled so its loudest moment is LOUDEST, and, for every
+  # moment as it plays, the loudest it will still get from there on.
+  def shape(name)
+    @shapes[name] ||= begin
+      raw = samples(name)
+      peak = raw.map(&:abs).max
+      scaled = raw.map { |sample| sample * LOUDEST / peak }
+      blocks = scaled.each_slice((RATE * BLOCK).round).map { |block| block.map(&:abs).max }
+      still_to_come = 0
+      @envelopes[name] = blocks.reverse.map { |loud| still_to_come = [still_to_come, loud].max }.reverse
+      scaled
+    end
+  end
+
+  # How loud a sound that is still playing will get from this moment on.
+  def loudness(sound, now)
+    @envelopes[sound[:name]][((now - sound[:start]) / BLOCK).floor].to_f * sound[:volume]
   end
 
   # Note 0 is middle C, and each step up is the next note of the pentatonic scale.
@@ -195,16 +222,12 @@ class Music
     out
   end
 
-  # A WAV file is a 44-byte header, then every sample as a 16-bit number,
-  # scaled so the loudest moment is LOUDEST.
-  def write(name, samples)
-    peak = samples.map(&:abs).max
-    scale = peak.zero? ? 0 : LOUDEST / peak
-    data = samples.map { |sample| (sample * scale * 32_767).round }.pack("s<*")
+  # A WAV file is a 44-byte header, then every sample as a 16-bit number.
+  def write(name, samples, volume)
+    data = samples.map { |sample| (sample * volume * 32_767).round }.pack("s<*")
     header = ["RIFF", 36 + data.bytesize, "WAVE", "fmt ", 16, 1, 1, RATE, RATE * 2, 2, 16, "data", data.bytesize]
     path = File.join(@dir, "#{name}.wav")
     File.binwrite(path, header.pack("a4Va4a4VvvVVvva4V") + data)
-    @lengths[name] = samples.size.fdiv(RATE)
     path
   end
 end
@@ -538,7 +561,10 @@ Shoes.app(title: "Shape Sorter", width: W, height: H, resizable: false) do
   def start_round
     @round += 1
     @badge.replace @round.to_s
-    tween(0.5) { |k| @badge_disc.style(width: (56 * (0.8 + 0.2 * springy(k))).round(1), height: (56 * (0.8 + 0.2 * springy(k))).round(1)) }
+    tween(0.5) do |k|
+      size = (56 * (0.8 + 0.2 * springy(k))).round(1)
+      @badge_disc.style(width: size, height: size)
+    end
     @pieces.each { |piece| piece.slot.remove }
     @held = nil
     wanted = round_pieces(@round)
@@ -736,6 +762,7 @@ Shoes.app(title: "Shape Sorter", width: W, height: H, resizable: false) do
   # at the top, one for every round done.
   def fly_star
     goal = [112 + [@stars_earned, 8].min * 30, 42]
+    @star_flying = true
     @prize.show
     tween(2.0) do |k|
       if k < 0.55
@@ -747,11 +774,16 @@ Shoes.app(title: "Shape Sorter", width: W, height: H, resizable: false) do
       @prize.clear { star_friend(x, y, size) }
       next if k < 1
 
-      @prize.clear
-      @prize.hide
-      @stars_earned += 1
-      draw_stars
+      land_star
     end
+  end
+
+  def land_star
+    @star_flying = false
+    @prize.clear
+    @prize.hide
+    @stars_earned += 1
+    draw_stars
   end
 
   # A star with a smiling face.
@@ -874,6 +906,7 @@ Shoes.app(title: "Shape Sorter", width: W, height: H, resizable: false) do
     @switch_track.fill = @big_kid ? "#8fd18a" : "#e6d8c8"
     draw_holes
     @tweens.clear
+    land_star if @star_flying
     @box.move(BOX_X, BOX_Y)
     @box_shadow.style(width: 540)
     @round = 0
@@ -932,9 +965,9 @@ Shoes.app(title: "Shape Sorter", width: W, height: H, resizable: false) do
     return if @clock - @last_key < 0.07
 
     @last_key = @clock
-    if key == " "
-      @hint_asked = true if @held
-      sound "hint" if @held
+    if key == " " && @held
+      @hint_asked = true
+      sound "hint"
       return
     end
     resting = @pieces.select { |piece| piece.state == :table }
@@ -1077,7 +1110,7 @@ Shoes.app(title: "Shape Sorter", width: W, height: H, resizable: false) do
       giggle
     elsif @held
       let_go_of(@held)
-    elsif y > TABLE_TOP
+    else
       sound "tap"
       burst(x, y, 5, 0.3)
     end
