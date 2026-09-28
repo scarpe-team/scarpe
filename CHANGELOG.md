@@ -17,6 +17,7 @@ straightforward as possible.
 - Native windows describe themselves to screen readers through AccessKit: VoiceOver reads and works buttons, checks, radios, fields, list boxes, text, headings, links, progress bars and images. `image(path, alt: "...")` names a picture, and Shoes-Spec gains `a11y_tree`, `a11y_nodes` and `a11y_action`
 - Ghost windows (`--ghost`, or `SCARPE_NATIVE_GHOST=1`): real windows that present frames nobody can see or click; every automated windowed run opens them
 - `scarpe peek --drag X,Y,X,Y...`, and `drag` in Shoes-Spec test code
+- `scarpe package --include PATH` carries any other file or folder an app reads (repeatable); a native package keeps its `--name` as written, spaces and all
 - Lacci: `download` takes `start:`, `progress:`, `finish:`, `headers:` and `body:` and no longer needs nokogiri; `Image#path`, `full_width` and `full_height` and the `imagesize` built-in; the `error` built-in; `rgb`, `gray` and the named colours return a `Shoes::Color`, an Array with `red`, `green`, `blue` and `alpha`; `banner`, `title` and the rest of that family are `Shoes::Para` subclasses
 
 ### Bugs Fixed
@@ -28,6 +29,7 @@ straightforward as possible.
 - Lacci: `"#abc"` expanded by 16 instead of 17, and `rgb()` now reads each component as Integer or Float on its own
 - Lacci: clearing a slot of 2000 paras took 10 s of unsubscribing; it takes 0.05 s
 - Lacci: a download that got an error response raised ArgumentError instead of logging the response code
+- `scarpe package --dmg` builds running side by side no longer empty each other's staging folder (a fixed `dmg-staging` in the shared cache), and neither do PNG icons' iconsets
 - `scarpe package` took scarpe-components for scarpe, and the webview packager set an environment variable nothing reads
 - Lacci: a `stroke` or `fill` set inside a `shape` block never reached that shape
 - Native: nothing on stdin (huge sizes, deep nesting, reparenting loops, lines that are not UTF-8) can crash the renderer or make it allocate without bound
