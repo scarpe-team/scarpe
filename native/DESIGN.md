@@ -391,6 +391,9 @@ moved there the same day, so apps normally send it.
   would otherwise have, and "18px" (in `size` or a `font` string) stays pixels, as Pango reads
   a font string's px. A text block that names no face, or names one the machine lacks, gets Arial
   there, Shoes 3's default (s3_world.c:46-48). Controls, margins and leading keep their pixels.
+  A para's `marker` range is then bright yellow behind the text and its caret black, as Shoes 3
+  drew them (s3t_textblock.c:187-197, 479-483), where the default is a blue tint over the text
+  and a caret in the text's colour.
 - **Widgets** have intrinsic sizes (research 02 section 13): button = its label's width plus 14 px
   each side by its line height plus 12 px, at least 28 px each way (more with an icon); edit_line 200x28, edit_box 200x108,
   list_box 200x28, progress 200x14 (manual sizes, ledger C4), check/radio 18x18, slider 160x20,
