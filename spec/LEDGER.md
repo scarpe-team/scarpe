@@ -140,6 +140,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | F10 | `:leading` defaults to 4 px | MANUAL | | |
 | F11 | `para` with non-String arguments | BOTH | | |
 | F12 | Text with invalid UTF-8 is reported | MANUAL | | |
+| F13 | A text fragment's parent is what holds it | S3 | | new 28 Sep |
 
 ### G. Native controls
 
@@ -901,6 +902,17 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** passes the bytes through without a word; neither display reports them. Since the wave-4 Lacci lane text blocks and text fragments print `[ERROR] para text is not valid UTF-8: ...` on stderr and replace the bad bytes with U+FFFD, so every display gets valid text and the app carries on. Edit lines, edit boxes, list boxes and window titles are not checked yet.
 - **Spec:** `rules.utf8_bad_chars_error`: a para made from a string with a stray Latin-1 byte puts a UTF-8 or encoding message on stdout or stderr, and the app carries on. Scarpe has no console window (H10), so the log stands in for it.
 - **Native:** the shim must not crash on such a string: JSON generation of invalid UTF-8 raises, so it should report and replace the bad bytes before the text crosses the wire.
+
+### F13. A text fragment's parent is what holds it
+
+**Ruling: S3.** **Lacci change, done 28 Sep 2026.** New row, from the Hackety Hack lane (w9).
+
+- **Manual:** `parent` "Gets the object for this element's container" (manual 2676-2679), among the common methods; silent on text fragments.
+- **Shoes 3:** a text block or fragment sets the parent of each fragment it takes as text to itself (`shoes_text_check`, `s3t_text.c:72-83`), so a link in a para answers the para, and a fragment inside a `strong` answers the `strong`.
+- **Examples:** Hackety Hack's `britelink` recolours a whole line on hover through `p1.parent.stroke = white` (`app/ui/widgets.rb:274-283`).
+- **Lacci until 28 Sep:** a fragment has no slot parent, and `parent` answered nil. Since 28 Sep a para or a fragment that takes a fragment as text sets its `parent`; a fragment nothing has taken still answers nil. The slot bookkeeping (`remove_child`, margins) keeps to the slot parent.
+- **Spec:** `common.parent__text_fragment`.
+- **Native:** nothing.
 
 ## G. Native controls
 
