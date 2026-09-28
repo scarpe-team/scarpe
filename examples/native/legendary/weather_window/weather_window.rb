@@ -8,6 +8,7 @@
 WIDTH, HEIGHT = 860, 640
 GX, GY, GW, GH = 196, 104, 468, 336 # the glass, where the world outside shows
 POND = [190, 298, 88, 15]           # the pond: centre and half its width and height
+PUDDLES = [[343, 256, 7, 2], [301, 298, 10, 2.5]] # on the path, when it rains
 CHIMNEY = [372, 168]                # where the smoke comes out
 INK = "#3d2f25"
 MUTED = "#8d7b6a"
@@ -197,6 +198,10 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
       curve_to 342, 318, 312, 306, 318, 290
       curve_to 326, 272, 360, 262, 358, 240
     end
+    return unless %w[Rain Storm].include?(w[:name]) # puddles only when it rains
+
+    fill gradient(*w[:water])
+    PUDDLES.each { |px, py, a, b| oval px, py, a * 2, b * 2, center: true }
   end
 
   def snowman
@@ -266,6 +271,7 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
     end
     @ripples = Array.new(24) { oval(0, 0, 4, 2, center: true, fill: clear_paint, stroke: clear_paint, strokewidth: 1) }
     @ripple_ages = Array.new(24, 99)
+    @ripple_reach = Array.new(24, 29)
     @next_ripple = 0
   end
 
@@ -284,17 +290,19 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
     spread_ripples
   end
 
-  def in_pond?(x, y)
-    px, py, a, b = POND
-    ((x - px) / a)**2 + ((y - py) / b)**2 < 0.8
+  # The pond or puddle a drop landing at (x, y) falls in, if any.
+  def water_at(x, y)
+    [POND, *PUDDLES].find { |px, py, a, b| ((x - px) / a)**2 + ((y - py) / b)**2 < 0.8 }
   end
 
+  # A ring spreads where a drop lands in water, as wide as the water allows.
   def splash(x, y)
-    return unless in_pond?(x, y)
+    water = water_at(x, y) or return
 
     ring = @next_ripple
     @next_ripple = (@next_ripple + 1) % @ripples.size
     @ripple_ages[ring] = 0
+    @ripple_reach[ring] = water == POND ? 29 : water[2] * 1.4
     @ripples[ring].style(left: x.round(1), top: y.round(1))
   end
 
@@ -304,7 +312,7 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
       next if age > 18
 
       @ripple_ages[i] = age + 1
-      size = 4 + age * 1.4
+      size = 4 + age * (@ripple_reach[i] - 4) / 18.0
       fade = age == 18 ? 0 : 0.55 * (1 - age / 18.0)
       ring.style(width: size.round(1), height: (size * 0.32).round(1), stroke: rgb(235, 242, 248, fade))
     end

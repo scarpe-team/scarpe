@@ -47,7 +47,7 @@ frames.(30)
 assert clouds.each_with_index.all? { |(slot, _, _), i| slot.displace_left > drift[i] || slot.displace_left < -100 }, "the clouds drift"
 
 # Drops that land in the pond leave rings.
-assert state.(:ripple_ages).any? { |age| age <= 18 }, "the pond ripples"
+assert state.(:ripple_ages).any? { |age| age <= 18 }, "the pond and the puddles ripple"
 x, y = 196 + 190, 104 + 298
 pond = pixel_at(x, y)
 assert pond.first(3).sum.between?(250, 600), "the pond is grey-blue water: #{pond.inspect}"
