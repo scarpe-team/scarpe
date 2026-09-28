@@ -10,7 +10,7 @@ straightforward as possible.
 - A native display service: `scarpe --native app.rb` draws with a Rust program (tiny-skia, cosmic-text, winit) instead of a webview, while Lacci and every block stay in Ruby. See docs/native.md and native/DESIGN.md. Dedicated to the late Noah Gibbs.
 - `scarpe peek APP.rb` runs an app headless on the native display, clicks, types, scrolls and saves pictures
 - `scarpe package --native` builds an ad-hoc signed macOS `.app` (and a `.dmg` with `--dmg`) with precompiled Ruby bytecode, no installed gems, and FastImage copied in for image sizes
-- The Shoes spec suite (`spec/run`): 1060 cases from the manual, Noah Gibbs' Shoes-Spec corpus and the native example apps' checks, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree
+- The Shoes spec suite (`spec/run`): 1062 cases from the manual, Noah Gibbs' Shoes-Spec corpus and the native example apps' checks, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree
 - Lacci: `animate`, `every` and `timer` return `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer`; `Shoes.app`, `window` and `dialog` return the App; methods the manual marks "» self" return self
 - Lacci: `left`, `top`, `width` and `height` read laid-out pixels when the display reports them; slots gain `before`, `after`, `scroll_height`, `scroll_max` and `gutter`; `font(path)` returns the family names in the file
 - Native text fields undo and redo (Cmd-Z or Control-Z, Cmd-Shift-Z or Control-Y) and take an input method's commit as one edit
@@ -25,6 +25,9 @@ straightforward as possible.
 
 - `Shoes.show_manual` opens the manual in a window of its own, drawn from `docs/static/manual.md` with its chapters down the left, as Shoes 3's did; it no longer opens a browser
 - Lacci: `Para#hit(x, y)` answers the character under a point, and `cursor_top` and the new `cursor_left` where the caret sits in the slot that scrolls it, asked of the native display; `Shoes.app`, `window` and `dialog` take their styles as a Hash too, as Ruby 1.9 programs pass them
+- A negative `left` or `top` puts anything past its slot's near edge, as Shoes 3 read it (Nick's ruling of Q10, ledger C18): Hackety Hack's hand drops in from above the window again, and Ready sweeps the intro away to the left
+- `Shoes.on_error { |err| }` hears every error a handler, a timer or the startup raises, as a Hash; the Shoes console lists them, newest first, with what `debug`, `info` and `error` said, and opens with Alt-/ (Cmd-/ on a Mac) or `Shoes.show_console`, never by itself; the log says an error a timer raises every frame once, then how often
+- `Shoes.run_program(path)` runs a Shoes program in a process of its own and returns a `Shoes::Program` (`stop`, `on_output`, `on_error`, `on_exit`), so a program that never stops freezes only itself; a packaged app's launcher runs `SCARPE_RUN_FILE` instead of the app
 ### Bugs Fixed
 - #569 link(click: "/path") now triggers internal navigation via visit(); paths like "/foo" also fall back to page(:foo) if no URL route matches
 - Support for `class MyApp < Shoes` inheritance pattern with URL routing

@@ -210,6 +210,31 @@ fn keypress_names_follow_the_manual() {
     assert_eq!(typed, vec![json!("H"), json!("i")]);
 }
 
+/// Alt-/ (Cmd-/ on a Mac, which Shoes names alt_/, ledger Q5) opens the Shoes console, and the
+/// app never hears the key: Shoes 3's shoes_app_keypress runs Shoes.show_log for it before any
+/// keypress block (s3_app.c:773-776; manual 721-722, 2239-2240; ledger H10).
+#[test]
+fn alt_slash_asks_for_the_console_and_the_app_never_hears_it() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 100, &[
+        create(3, "EditLine", 2, json!({"text": ""})),
+        json!({"t": "create", "id": 4, "kind": "SubscriptionItem", "parent": 2, "props": {"shoes_api_name": "keypress"}}),
+    ]));
+    let console = |msgs: &[Value]| msgs.iter().filter(|m| m["t"] == "console").map(|m| m["app"].clone()).collect::<Vec<_>>();
+    for key in [":alt_/", ":command_/"] {
+        let (msgs, _) = h.req(json!({"op": "key", "key": key}));
+        assert_eq!(console(&msgs), vec![json!(1)], "{key} asks for the console: {msgs:?}");
+        assert!(named(&events(&msgs), "keypress").is_empty(), "{key} never reaches the app: {msgs:?}");
+    }
+    h.value(json!({"op": "click", "target": {"id": 3}}));
+    let (msgs, _) = h.req(json!({"op": "key", "key": ":alt_/"}));
+    assert_eq!(console(&msgs), vec![json!(1)], "a focused field does not keep it");
+    assert!(named(&events(&msgs), "change").is_empty(), "or type it");
+    let (msgs, _) = h.req(json!({"op": "key", "key": ":alt_q"}));
+    assert!(console(&msgs).is_empty());
+    assert_eq!(named(&events(&msgs), "keypress").len(), 1, "other Alt keys reach the app as before");
+}
+
 /// A list box or button the mouse pressed takes focus without a ring, and so leaves Space,
 /// Return and the arrows to the app, as a Mac's pop-up buttons and push buttons do. Space
 /// reopened the popup and the app's keypress never heard it (Bloop Sequencer met this).

@@ -619,8 +619,17 @@ class Shoes::App < Shoes::Drawable
     current_slot.add_shape_command(['curve_to', cx1, cy1, cx2, cy2, x, y])
   end
 
-  alias info puts
-  alias debug puts
+  # In an app's blocks info and debug print as puts does, as they did in Shoes 3's apps, and
+  # reach the Shoes console too (ledger K3).
+  def info(*messages)
+    messages.each { |message| Shoes::Console.log(:info, message) }
+    puts(*messages)
+  end
+
+  def debug(*messages)
+    messages.each { |message| Shoes::Console.log(:debug, message) }
+    puts(*messages)
+  end
 
   # Image effects (Shoes 3's blur, glow and shadow on image(w, h) { } canvases) are an
   # extension no display draws yet (ledger E9); they must not stop the app.
