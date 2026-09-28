@@ -23,11 +23,21 @@ LCD_X, LCD_Y, LCD_COLS, LCD_ROWS = 130, 150, 26, 20
 PET_COL, PET_ROW = 5, 3 # where the pet stands on the screen, in dots
 DAY, NIGHT = [223, 233, 207], [47, 52, 82]
 
-# What each letter in the pictures below is painted with. A dot is see-through.
+# Every picture below is lines of letters, one letter to a dot of the screen.
+# This is what each letter is painted with; a full stop is see-through.
 PAINT = {
-  "o" => [74, 59, 82], "#" => [255, 246, 238], "s" => [241, 217, 203], "p" => [255, 158, 187],
-  "e" => [45, 36, 51], "w" => [255, 255, 255], "m" => [138, 40, 70], "t" => [255, 111, 145],
-  "r" => [239, 71, 111], "g" => [82, 183, 136], "h" => [255, 93, 143], "y" => [255, 209, 102],
+  "o" => [74, 59, 82],    # outline
+  "#" => [255, 246, 238], # fur
+  "s" => [241, 217, 203], # the shade under its tummy
+  "p" => [255, 158, 187], # pink: ears, cheeks and the egg's spots
+  "e" => [45, 36, 51],    # eyes
+  "w" => [255, 255, 255], # the light in its eyes
+  "m" => [138, 40, 70],   # mouth
+  "t" => [255, 111, 145], # tongue
+  "r" => [239, 71, 111],  # apple
+  "g" => [82, 183, 136],  # leaf
+  "h" => [255, 93, 143],  # heart
+  "y" => [255, 209, 102], # sleepy Zs and the lightning bolt
 }
 
 def art(text) = text.lines(chomp: true)
@@ -219,7 +229,8 @@ class Chirps
     # no afplay here (not a Mac): the pet chirps in silence
   end
 
-  # Each chirp is a few notes: [start pitch, end pitch, seconds], sung in order.
+  # Each chirp is a few notes, [start pitch, end pitch, seconds], sung in order;
+  # a pitch of 0 is a little rest.
   def samples(name)
     notes = {
       hello: [[520, 780, 0.09], [780, 1040, 0.12]],
@@ -311,7 +322,11 @@ Shoes.app(title: "Pixel Pet", width: 520, height: 680, resizable: false) do
     rgb(*color, alpha)
   end
 
+  # Moves a grid to a dot on the screen, and does nothing if it is already there.
   def place(grid, col, row)
+    return if grid[:at] == [col, row]
+
+    grid[:at] = [col, row]
     grid[:slot].move(LCD_X + col * DOT, LCD_Y + row * DOT)
   end
 
@@ -342,6 +357,8 @@ Shoes.app(title: "Pixel Pet", width: 520, height: 680, resizable: false) do
     @pet["seen"] = Time.now.to_i
     FileUtils.mkdir_p(File.dirname(SAVE_FILE))
     File.write(SAVE_FILE, JSON.pretty_generate(@pet))
+  rescue SystemCallError
+    # somewhere read-only: the pet lives on, it just won't remember this visit
   end
 
   # Time passed while the app was closed: gently, and never all the way down.
@@ -409,7 +426,8 @@ Shoes.app(title: "Pixel Pet", width: 520, height: 680, resizable: false) do
     return unless @meters
 
     @meters.each do |stat, bar|
-      bar.style(width: [58 * @pet[stat] / 100.0, 6].max)
+      width = [58 * @pet[stat] / 100, 6].max.round
+      bar.width = @bar_widths[stat] = width unless @bar_widths[stat] == width
     end
   end
 
@@ -640,6 +658,7 @@ Shoes.app(title: "Pixel Pet", width: 520, height: 680, resizable: false) do
   @voice = defined?(Bloops) ? BloopsChirps.new : Chirps.new
   @pet = load_pet
   @meters = {}
+  @bar_widths = {}
 
   background "#fde7ef".."#e8e2ff"
   nostroke

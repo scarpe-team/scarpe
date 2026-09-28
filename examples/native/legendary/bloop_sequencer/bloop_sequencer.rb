@@ -298,7 +298,7 @@ Shoes.app(title: "Bloop Sequencer", width: 720, height: 590, resizable: false) d
     @glow[row] = 1.0
     ring = @rings[row].rotate!.first
     ring[:age] = 0.0
-    @motion.start
+    @lights.start
   end
 
   # Sixty times a second: orbs settle, rings spread and fade, lit pads cool down.
@@ -324,11 +324,12 @@ Shoes.app(title: "Bloop Sequencer", width: 720, height: 590, resizable: false) d
     @flashes.each_key { |row, step| paint_pad(row, step) }
     @flashes.delete_if { |_, heat| heat < 0.02 }
     still = @glow.all? { |glow| glow < 0.01 } && @rings.flatten.all? { |ring| ring[:age] > 1 } && @flashes.empty?
-    @motion.stop if still && !@playing
+    @lights.stop if still && !@playing
   end
 
   # A rounded button: a background, an icon drawn by the block, and a label.
-  # Returns the label. The icon is inside the button, so pressing it presses the button.
+  # Returns the button and its label. The icon is drawn inside the button, so
+  # pressing the icon presses the button.
   def pill(left, width, label, look: glass(0.08), text: INK, indent: 0, &icon)
     words = nil
     button = stack(left: left, top: 490, width: width, height: 46, cursor: :hand_cursor) do
@@ -434,6 +435,7 @@ Shoes.app(title: "Bloop Sequencer", width: 720, height: 590, resizable: false) d
   clear_button.click { load_pattern("Empty page") }
   dice_button, = pill(264, 104, "Dice", indent: 22) { die 22, 15 }
   dice_button.click { roll_dice }
+
   # the pattern: its name, with an arrow each side to step through the others
   name_plate, @pattern_name = pill(460, 184, "")
   name_plate.click { next_pattern(1) }
@@ -465,6 +467,6 @@ Shoes.app(title: "Bloop Sequencer", width: 720, height: 590, resizable: false) d
   end
   release { @painting = nil }
 
-  @motion = animate(60) { settle }
+  @lights = animate(60) { settle }
   load_pattern "Four on the floor"
 end
