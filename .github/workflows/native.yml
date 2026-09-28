@@ -100,6 +100,11 @@ jobs:
           printf '%s\n' 'Name: webkit2gtk-4.0' 'Description: webkit2gtk-4.1 under its old name' \
             'Version: 2.0' 'Requires: webkit2gtk-4.1' > "$RUNNER_TEMP/pkgconfig/webkit2gtk-4.0.pc"
           echo "PKG_CONFIG_PATH=$RUNNER_TEMP/pkgconfig" >> "$GITHUB_ENV"
+      # The lockfile builds nokogiri from source, and its libxml2 comes as a .tar.xz. The macOS
+      # image has xzcat today only because Homebrew's zstd depends on xz.
+      - name: xzcat for nokogiri's source build
+        if: runner.os == 'macOS'
+        run: command -v xzcat || brew install xz
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
