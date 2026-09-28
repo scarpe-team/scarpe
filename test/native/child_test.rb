@@ -17,10 +17,10 @@ class ChildTest < Minitest::Test
     FileUtils.rm_rf(@dir)
   end
 
-  def start(script = [])
+  def start(script = [], binary: FAKE_CHILD)
     File.write(File.join(@dir, "script.json"), JSON.generate(script))
     with_env("FAKE_CHILD_LOG" => @log, "FAKE_CHILD_SCRIPT" => File.join(@dir, "script.json")) do
-      @child = Child.new([FAKE_CHILD])
+      @child = Child.new([binary])
     end
   end
 
@@ -81,6 +81,21 @@ class ChildTest < Minitest::Test
 
   def test_a_missing_binary_is_reported
     assert_raises(Scarpe::Native::ChildNotFound) { Child.new([File.join(@dir, "nope")]) }
+  end
+
+  # A double-click passes no flags, so the command is the binary's path alone. Ruby runs a lone
+  # string through /bin/sh when it holds a parenthesis ("(Rust)" is a syntax error there) and
+  # splits it at spaces otherwise ("For Noah.app" becomes a missing ".../For").
+  def test_a_bundle_named_with_spaces_and_parentheses_starts_it_with_no_flags
+    ["ZARKING (Rust).app", "For Noah.app"].each do |bundle|
+      binary = File.join(@dir, bundle, "Contents", "MacOS", "scarpe-native")
+      FileUtils.mkdir_p(File.dirname(binary))
+      FileUtils.cp(FAKE_CHILD, binary, preserve: true)
+
+      start([], binary: binary)
+      assert_equal "fake", @child.version, bundle
+      @child.close
+    end
   end
 
   def test_close_ends_the_child

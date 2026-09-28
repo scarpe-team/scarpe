@@ -342,10 +342,13 @@ module Scarpe::Native
     end
 
     # Its own process group, so a terminal Ctrl-C reaches Ruby (which quits the child) and not the child.
+    # The [path, argv0] form never goes through /bin/sh: a lone path would when it holds a parenthesis,
+    # and a double-click passes no flags, so "ZARKING (Rust).app" died there. An env hash may lead.
     def spawn(command)
-      Open3.popen3(*command, pgroup: true)
+      env, (program, *args) = command.partition { |part| part.is_a?(Hash) }
+      Open3.popen3(*env, [program, program], *args, pgroup: true)
     rescue SystemCallError => e
-      raise ChildNotFound, "Can't start #{command.first}: #{e.message}"
+      raise ChildNotFound, "Can't start #{program}: #{e.message}"
     end
 
     # Hello goes out without waiting for the answer, so Ruby builds the app while Rust starts up
