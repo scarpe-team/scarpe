@@ -28,7 +28,9 @@ require "tmpdir"
 W, H = 960, 720
 INK = [61, 52, 86]
 SAVE_FILE = File.join(Dir.home, "Library", "Application Support", "Rainbow Lab", "shelf.json")
-FREDOKA = %w[fonts ../_fonts].map { |dir| File.expand_path("#{dir}/Fredoka.ttf", __dir__) }.find { |path| File.exist?(path) }
+# Fredoka, the round font the Kids apps share: in fonts or beside the app once it is packaged,
+# and in the _fonts folder next door in a Scarpe checkout. Without it the words still show.
+FREDOKA = %w[fonts . _fonts ../_fonts].map { |dir| File.expand_path("#{dir}/Fredoka.ttf", __dir__) }.find { |path| File.exist?(path) }
 
 BOWL_X, RIM_Y = 450, 300    # the middle of the bowl's rim
 BOWL_RX, BOWL_RY = 190, 172 # the bowl is the bottom half of an oval this wide and this deep
