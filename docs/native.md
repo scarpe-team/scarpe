@@ -116,14 +116,16 @@ picture comes out the same on every machine.
 
 ## Where a number puts a slot
 
-Slots, text and images read `left`, `top`, `width` and `height` the way Shoes 3 does, which can
-surprise an app that moves them. A negative whole number counts in from the parent's far edge,
-so `stack(left: -40)` sits 40 px in from the right, and a Float between -1 and 1 is a share of
-the parent, so `left: 0.5` is halfway across. A slot animated through the corner jumps to the far
-side or across the parent. Give a moving slot whole pixels of 0 or more, and draw anything that
-drifts over an edge as art (`rect`, `oval`, `shape` and the rest): art takes every number as
-pixels and goes off the left and top edges as you would expect. DESIGN section 6 has the whole
-rule, and ledger C1 and C15 say why.
+Slots, text and images read `left`, `top`, `width` and `height` the way Shoes 3 does. A position
+is a plain number, negative ones too: `stack(top: -400)` starts 400 px above its slot, and a slot
+moved to `left: -40` slides 40 px off the left edge, so Hackety Hack's hand drops in from the top
+of the window and its Ready button sweeps the intro away to the left, as in 2010. `right` and
+`bottom` count from the far edges, and a negative one lies past them. A size is different: a
+negative width or height counts back from the parent, so `stack(width: -400)` is the parent less
+400 px. A Float between -1 and 1 is a share of the parent for both, so `left: 0.5` is halfway
+across and `width: 0.5` half as wide. Art (`rect`, `oval`, `shape` and the rest) takes every
+number as pixels, Floats included. DESIGN section 6 has the whole rule, and ledger C1, C10, C15
+and C18 say why.
 
 ## Text sizes, and Shoes 3's text
 

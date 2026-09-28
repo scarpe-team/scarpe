@@ -600,6 +600,29 @@ fn negative_right_and_bottom_place_past_the_far_edges() {
 }
 
 #[test]
+fn negative_left_and_top_place_past_the_near_edges() {
+    // Shoes 3 reads every position as a plain number (shoes_px2 passes nv 0 to shoes_px,
+    // s3_ruby.c:298-337), for slots, controls, images and tiles alike (shoes_place_decide,
+    // s3_ruby.c:518-520; ledger C18, Q10). Hackety Hack's intro starts its hand at top: -400,
+    // above the window, and Ready sweeps the intro off to the left with move(-40, 0) and on;
+    // native read both as the slot less that much, so the hand rose from the bottom.
+    let mut s = Scene::new();
+    let hand = s.add("Stack", ROOT, json!({"width": 370, "height": 370, "left": 100, "top": -400}));
+    let swept = s.add("Stack", ROOT, json!({"width": 1.0, "height": 1.0, "left": -40, "top": 0}));
+    let undo = s.add("Button", ROOT, json!({"text": "Undo", "width": 144, "height": 28, "left": -150, "top": 0}));
+    let share = s.add("Stack", ROOT, json!({"width": 40, "height": 20, "left": -0.25, "top": "-10%"}));
+    let px = s.add("Stack", ROOT, json!({"width": 40, "height": 20, "left": "-12px", "top": 50}));
+    let band = s.add("Background", ROOT, json!({"fill": "#000", "left": -5, "top": -5}));
+    let l = s.layout(400.0, 300.0);
+    assert_eq!(r(&l, hand), Rect::new(100.0, -400.0, 370.0, 370.0), "top: -400 is 400 px above the slot");
+    assert_eq!(r(&l, swept), Rect::new(-40.0, 0.0, 400.0, 300.0), "left: -40 is 40 px past the left edge");
+    assert_eq!(r(&l, undo).x, -150.0, "a control too");
+    assert_eq!(r(&l, share), Rect::new(-100.0, -30.0, 40.0, 20.0), "a negative share of the slot is past it");
+    assert_eq!(r(&l, px).x, -12.0);
+    assert_eq!(r(&l, band), Rect::new(-5.0, -5.0, 405.0, 305.0), "a background runs from past the corner to the far edges");
+}
+
+#[test]
 fn a_sized_colour_or_gradient_is_placed_from_the_far_edge_by_one_pixel() {
     // Shoes 3 places a background or border with shoes_place_decide(REL_TILE), which measures a
     // right or bottom offset against the pattern's own size, not the size given it: tw and th keep

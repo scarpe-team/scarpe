@@ -691,17 +691,19 @@ impl Engine<'_> {
     fn place_positioned(&mut self, node: &Node, frame: Rect, avail_h: f32) {
         let p = &node.props;
         let m = margins_of(node, frame.w);
-        let dim = |key: &str, basis: f32| p.dim(key).map(|d| d.resolve(basis));
+        // Every position is a plain number, as Shoes 3 reads one (dim::position): a negative
+        // left or top lies past the slot's left or top edge, a negative right or bottom past
+        // its far edge (ledger Q10, C10).
+        let left = p.position("left", frame.w);
         // Positioned text shrinks to fit what is left of the slot, like CSS absolute.
-        let remaining = frame.w - dim("left", frame.w).unwrap_or(0.0);
+        let remaining = frame.w - left.unwrap_or(0.0);
         let w = self.width_for(node, true, (frame.w, avail_h), remaining, &m);
-        // A negative right or bottom lies past the slot's edge, as in Shoes 3 (dim::position).
-        let x = match (dim("left", frame.w), p.position("right", frame.w)) {
+        let x = match (left, p.position("right", frame.w)) {
             (Some(left), _) => frame.x + left + m.left,
             (None, Some(right)) => frame.right() - right - w - m.right,
             (None, None) => frame.x + m.left,
         };
-        let top = dim("top", frame.h);
+        let top = p.position("top", frame.h);
         let y = frame.y + top.unwrap_or(0.0) + m.top;
         let h = self.place_box(node, x, y, w, (frame.w, avail_h), &m);
         if top.is_none() {
@@ -877,8 +879,9 @@ fn decor_box(node: &Node, slot: Rect) -> Rect {
     let m = p.margins(slot.w);
     let area = Rect::new(slot.x + m.left, slot.y + m.top, (slot.w - m.horizontal()).max(0.0), (slot.h - m.vertical()).max(0.0));
     let edge = |key: &str, basis: f32| p.dim(key).map(|d| d.resolve(basis));
-    let (left, right) = (edge("left", area.w), p.position("right", area.w));
-    let (top, bottom) = (edge("top", area.h), p.position("bottom", area.h));
+    // Positions are plain numbers, a negative one past the edge it counts from (ledger Q10).
+    let (left, right) = (p.position("left", area.w), p.position("right", area.w));
+    let (top, bottom) = (p.position("top", area.h), p.position("bottom", area.h));
     let (given_w, given_h) = (edge("width", area.w), edge("height", area.h));
     let w = given_w.unwrap_or(area.w - left.unwrap_or(0.0) - right.unwrap_or(0.0)).max(0.0);
     let h = given_h.unwrap_or(area.h - top.unwrap_or(0.0) - bottom.unwrap_or(0.0)).max(0.0);
