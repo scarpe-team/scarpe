@@ -381,7 +381,6 @@ Shoes.app(title: "Maze Mouse", width: W, height: H, resizable: false) do
       art = star(x, y, 5, @cell * 0.26, @cell * 0.12, fill: paint([255, 200, 40]), stroke: paint([220, 150, 20]), strokewidth: 2, hidden: true)
       { room: room, art: art, glow: glow, turn: rand * 360 }
     end
-    @stars_wanted = @stars.size
   end
 
   # ---- the mouse ----
@@ -420,7 +419,7 @@ Shoes.app(title: "Maze Mouse", width: W, height: H, resizable: false) do
       curve_to(*at.(79, 42), *at.(85, 42), *at.(87, 48))
     end
     strokewidth [1.2 * k, 1].max
-    [[48], [56], [64]].each { |(y)| line mx.(94), 57 * k, mx.(110), (y + 2) * k, stroke: paint([122, 112, 140], 0.8) }
+    [50, 58, 66].each { |y| line mx.(94), 57 * k, mx.(110), y * k, stroke: paint([122, 112, 140], 0.8) }
     { eye: eye, happy: happy }
   end
 
@@ -470,11 +469,17 @@ Shoes.app(title: "Maze Mouse", width: W, height: H, resizable: false) do
       @at = @maze.next_room(@at, way)
       @moving = { from: from, to: @at, way: way, age: 0.0 }
       @paws.append { paw_prints(from, @at, way) }
-      @chimes.tune(NOTES[(NOTES.size - 1) * (@maze.longest_walk - @maze.steps_to_cheese(@at)) / [@maze.longest_walk, 1].max], voice: :pip, level: 0.6)
+      @chimes.tune(footstep(@at), voice: :pip, level: 0.6)
     else
       @moving = { from: @at, to: @at, way: way, age: 0.0, bump: true }
       @chimes.tune("e3", voice: :boop, level: 0.7)
     end
+  end
+
+  # Each footstep is a note, climbing the scale as the cheese gets near.
+  def footstep(room)
+    near = 1 - @maze.steps_to_cheese(room).fdiv([@maze.longest_walk, 1].max)
+    NOTES[(near * (NOTES.size - 1)).round]
   end
 
   def walk(dt)
@@ -553,7 +558,8 @@ Shoes.app(title: "Maze Mouse", width: W, height: H, resizable: false) do
     @banner.show
     @banner_spring.kick(-500)
     @cheese_art.hide
-    timer(2.6) { next_maze }
+    eaten = @maze
+    timer(2.6) { next_maze if @maze.equal?(eaten) } # unless big kid mode has already made a new one
   end
 
   def next_maze
@@ -693,8 +699,9 @@ Shoes.app(title: "Maze Mouse", width: W, height: H, resizable: false) do
     @stars.each_with_index do |one, i|
       next if one[:taken] || frame.odd?
 
-      one[:art].style(rotate: ((@t * 40 + one[:turn]) % 72).round(1))
-      one[:glow].style(width: (@cell * (0.58 + 0.08 * Math.sin(@t * 2.4 + i))).round(1), height: (@cell * (0.58 + 0.08 * Math.sin(@t * 2.4 + i))).round(1))
+      one[:art].style(rotate: ((@t * 40 + one[:turn]) % 72).round(1)) # a five-pointed star looks the same every 72 degrees
+      glow = (@cell * (0.58 + 0.08 * Math.sin(@t * 2.4 + i))).round(1)
+      one[:glow].style(width: glow, height: glow)
     end
     return unless @state == :playing
 
@@ -718,7 +725,7 @@ Shoes.app(title: "Maze Mouse", width: W, height: H, resizable: false) do
 
   def squeak
     @hop.kick(-200) if @state == :playing && !@moving
-    @chimes.tune(%w[e6 g6 a6 c7].sample, voice: :squeak, level: 0.45)
+    @chimes.tune(%w[c6 e6 g6 a6].sample, voice: :squeak, level: 0.45)
   end
 
   # ---- the side panel: sound, big kid mode, cheese eaten, stars, and the arrows ----

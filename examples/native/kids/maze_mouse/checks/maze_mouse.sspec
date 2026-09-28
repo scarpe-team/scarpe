@@ -108,10 +108,24 @@ stars = ivar.(:@stars)
 assert_operator stars.size, :>=, 3
 refute stack("@star_counter").style[:hidden]
 assert_equal "0/#{stars.size}", para("@star_count").text
-walk.(route.(stars.first[:room]))
+nearest = stars.min_by { |one| route.(one[:room]).size } # a shortest walk there crosses no other star
+walk.(route.(nearest[:room]))
 advance 0.3
-assert stars.first[:taken], "walked onto a star, and picked it up"
+assert nearest[:taken], "walked onto a star, and picked it up"
 assert_equal "1/#{stars.size}", para("@star_count").text
+
+# switching modes during the party makes one new maze, and the party's timer leaves it alone
+walk.(route.(big.cheese))
+assert_equal :celebrating, ivar.(:@state)
+level = ivar.(:@level)
+click_at 820, 124
+fresh = ivar.(:@maze)
+refute ivar.(:@big_kid)
+advance 3.5
+assert_same fresh, ivar.(:@maze), "still the maze the switch made"
+assert_equal level, ivar.(:@level)
+assert_equal :playing, ivar.(:@state)
+big = fresh
 
 # the sound switch: nothing reaches afplay while it is off
 click_at 912, 38
