@@ -59,6 +59,7 @@ straightforward as possible.
 - Native: turned, scaled or skewed art repaints only its own corner of the window; any transform had repainted the whole window on every change to that shape
 - Native: a dozen small things moving far apart (fireflies, confetti) repaint in a few small patches; past eight they were joined into one box across the window and repainted whole
 - Native: a picture shown bigger or smaller than its pixels is resampled once for that size and kept, not on every paint; a 211 px glow stretched to 844 device pixels cost 15 ms a paint and now costs what the same glow drawn from an 844 px file does, 5.8 ms
+- Lacci: `move` and `displace` tell the display in one message, not one for each coordinate
 
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
