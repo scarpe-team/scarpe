@@ -7,8 +7,9 @@ title: CI for the native display service
 
 This page says what our GitHub Actions workflows run, which of those steps have been run for
 real and where, and which have not. It was written on 28 Sep 2026 on the `w6/ci` branch, which
-holds the workflows and the fixes CI needed. Nothing on this branch has run on GitHub yet: the
-first push will be the first real run, and the last sections say how to make it.
+holds the workflows and the fixes CI needed, and that branch merged into `native-rust` the same
+morning with the other wave-6 branches ("After the merge", below). Nothing has run on GitHub
+yet: the first push will be the first real run, and the last sections say how to make it.
 
 ## What runs where
 
@@ -149,6 +150,21 @@ splitting); before this branch it also had `label "macos-13" is unknown`.
 `aarch64-apple-darwin`, `x86_64-unknown-linux-gnu`, `aarch64-unknown-linux-gnu` and
 `x86_64-pc-windows-msvc`.
 
+**After the merge.** `w6/zarking`, `w6/apps` and `w6/ci` merged into `native-rust` on 28 Sep
+2026. The merged branch failed its first `rake ci_native` at clippy: one line from the apps
+lane, a double negative that `nonminimal_bool` rejects, fixed in `399068e`. After that fix,
+`bundle exec rake ci_native` ran every step green on this Mac on Ruby 4.0.1 in 257 s: clippy
+clean; `cargo test` 311 pass, 8 ignored; `native_test` 177 runs, 8 skips; `lacci_test` 210;
+`component_test` 126; `spec:selftest` 16 runs; `spec/run --check` 1026/1026 valid; Niente 540
+pass, 12 xfail, 473 n/a, 1 skip; native 1010 pass, 15 xfail, 1 skip; examples on native 340
+pass, 23 xfail, 90 skip of 453; `Button.app` packaged; `package_test` 37 runs, 0 skips. Rust
+1.89 from a scratch rustup gave clippy clean and 311 passed. `package_test` also ran on Linux
+(`ruby:4.0.1-slim`, arm64, with minitest 5.27.0): 37 runs, 0 failures, 5 skips, after the
+merge made the packager tests from `w6/zarking` ask for a macOS package by name as this
+branch's do. On Ruby 3.2.2, with a small bundle of Lacci and pure-Ruby gems (nokogiri 1.15.7
+does not build there), Lacci's tests passed 210 of 210, and every Ruby file the merge changed
+parses. The Linux legs as a whole, and the rest of the Ruby 3.2 leg, were not run again.
+
 ## What was not run
 
 1. **Windows.** There is no Windows machine here, so no test has ever run on Windows. The crate
@@ -168,7 +184,8 @@ splitting); before this branch it also had `label "macos-13" is unknown`.
    fixtures in `test/wv/html_fixtures` no longer match the HTML Calzini writes, and upstream
    [#589](https://github.com/scarpe-team/scarpe/pull/589) regenerates 67 of the 71. This branch
    also changes Lacci in ways the webview HTML can show (DESIGN section 10), and `rake test`
-   smoke-runs every example on webview, now including the 16 new ones under `examples/native/`.
+   smoke-runs every example on webview, now including the 40 under `examples/native/` (the
+   showcase, the benches and the eleven legendary apps with their icons).
    What it needs: on a Mac with a screen, `bundle exec rake test:regenerate_html_fixtures`, read
    the diff, commit it, then `bundle exec rake test` for the rest of the webview suite.
 4. **`build-docs.yml` and `build-webview-extensions.yml` on GitHub.** The docs job's apt,
@@ -197,30 +214,19 @@ macOS legs make 6, and one job waits its turn.
 
 ## Pushing the branch and opening the pull request
 
-`w6/ci` sits on `native-rust` (`55c76f5`), which is not on GitHub yet, so a pull request from
-either branch carries the whole native branch. Two ways, both leaving the merge to you.
-
-**One pull request for everything**, the way the earlier waves landed:
+`w6/ci` is merged into `native-rust`, and its worktree and branch are gone. `native-rust` is not
+on GitHub yet, so one draft pull request carries the whole native branch, CI included, the way
+the earlier waves landed. The merge stays with you.
 
 ```sh
 cd ~/Progrumms/scarpe-native          # native-rust is checked out here
-git merge --no-ff w6/ci               # and the other wave-6 branches you want in
 git push -u origin native-rust
 gh pr create --repo scarpe-team/scarpe --base main --head native-rust --draft \
   --title "Scarpe native: a Rust display service" --body "<your description>"
 ```
 
-**CI on its own first**, to watch the workflows before anyone reviews:
-
-```sh
-cd ~/Progrumms/scarpe-native-wt/ci
-git push -u origin w6/ci
-gh pr create --repo scarpe-team/scarpe --base main --head w6/ci --draft \
-  --title "CI for the native display service" --body "See docs/native_ci.md"
-```
-
 A draft pull request runs `native.yml` and `ci.yml`; neither needs to be on `main` first.
-Pushing either branch can also start `build-webview-extensions.yml` once, since this branch
+Pushing the branch can also start `build-webview-extensions.yml` once, since the branch
 changes that file, and its Linux arm64 leg builds under QEMU, which takes a while.
 `build-docs.yml` runs only on `main`.
 
