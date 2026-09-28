@@ -75,12 +75,17 @@ class Voices
     # no afplay here (not a Mac): the animals dance in silence
   end
 
-  # A sound's samples, gently scaled so that none of them goes past 0.9:
-  # a soft voice stays round instead of turning into a buzz.
+  # A sound's samples, gently scaled. Every animal comes out about as loud
+  # as the others (a frog's buzz is spikier than an owl's hoot, so each is
+  # measured while it sounds), and nothing goes far past 1, so a voice stays
+  # round instead of turning into a buzz.
   def samples(name)
     raw = recipe(name)
     peak = raw.map(&:abs).max.to_f
-    peak > 0.9 ? raw.map { |sample| sample * 0.9 / peak } : raw
+    sounding = raw.select { |sample| sample.abs > 0.02 }
+    loudness = Math.sqrt(sounding.sum { |sample| sample * sample } / [sounding.size, 1].max)
+    scale = ANIMALS.include?(name) ? [0.3 / loudness, 1.2 / peak].min : [0.9 / peak, 1.0].min
+    raw.map { |sample| sample * scale }
   end
 
   def recipe(name)
@@ -137,8 +142,8 @@ class Voices
 
   # A frog's croak is a low buzz that trembles quickly.
   def croak(seconds)
-    voice(seconds, ->(k) { 190 - 30 * k }, ->(_) { 700 }, harmonics: 12, width: 300).each_with_index.map do |s, i|
-      s * (0.6 + 0.4 * Math.sin(TAU * 32 * i / RATE))
+    voice(seconds, ->(k) { 190 - 30 * k }, ->(_) { 640 }, harmonics: 7, width: 420).each_with_index.map do |s, i|
+      s * (0.75 + 0.25 * Math.sin(TAU * 32 * i / RATE))
     end
   end
 
@@ -457,9 +462,11 @@ Shoes.app(title: "Memory Match", width: W, height: H, resizable: false) do
   # ---- a card ----
 
   # Draws a card from scratch: its shadow, and the back or the face. While
-  # it turns, it is squeezed from the sides, and it lifts a little.
+  # it is dealt it grows up out of its place; while it turns it is squeezed
+  # from the sides, and it lifts a little.
   def paint(card)
-    s = card.size
+    s = card.size * (card.deal ? pop(card.deal) : 1.0)
+    o = (card.size - s) / 2.0 # the card stays centred in its place as it grows
     squeeze, lift = 1.0, 0.0
     if card.turn
       angle = Math::PI * smooth(card.turn[:t] / FLIP)
@@ -469,19 +476,27 @@ Shoes.app(title: "Memory Match", width: W, height: H, resizable: false) do
     dy, stretch_x, stretch_y = card.dance ? dance_pose(card.dance) : [0, 1, 1]
     cw = s * squeeze
     card.slot.clear do
+      next if s < 2 # not dealt yet
+
       nostroke
-      rect (s - cw) / 2 + 2, 6 + lift * 0.4, [cw - 4, 1].max, s - 2, curve: 18, fill: rgb(60, 40, 90, 0.16 + lift * 0.004)
-      top = -lift
+      rect o + (s - cw) / 2 + 2, o + 6 + lift * 0.4, [cw - 4, 1].max, s - 2, curve: 18,
+        fill: rgb(60, 40, 90, 0.16 + lift * 0.004)
+      top = o - lift
       if card.side == :back
-        card_back(s, cw, top, card)
+        card_back(s, cw, o, top, card)
       else
-        card_face(card, s, cw, top, squeeze, dy, stretch_x, stretch_y)
+        card_face(card, s, cw, o, top, squeeze, dy, stretch_x, stretch_y)
       end
     end
   end
 
-  def card_back(s, cw, top, card)
-    left = (s - cw) / 2
+  # How big a card is while it is dealt: nothing, then up past full size and back.
+  def pop(t)
+    t < 0 ? 0.0 : overshoot(t / 0.4)
+  end
+
+  def card_back(s, cw, o, top, card)
+    left = o + (s - cw) / 2
     fill card.hover ? "#8b7dff".."#6a5cf0" : "#7c6cff".."#5a4ae0"
     rect left, top, cw, s, curve: 18
     nofill
@@ -489,13 +504,13 @@ Shoes.app(title: "Memory Match", width: W, height: H, resizable: false) do
     strokewidth 3
     rect left + 8 * cw / s, top + 8, [cw - 16 * cw / s, 1].max, s - 16, curve: 12
     # a paw print in the middle
-    @cx, @cy, @k, @sx, @sy = s / 2.0, top + s / 2.0, s / 100.0, cw / s, 1.0
+    @cx, @cy, @k, @sx, @sy = o + s / 2.0, top + s / 2.0, s / 100.0, cw / s, 1.0
     blob(50, 58, 30, 24, WHITE, line: false)
     [[32, 40], [44, 32], [56, 32], [68, 40]].each { |x, y| blob(x, y, 12, 14, WHITE, line: false) }
   end
 
-  def card_face(card, s, cw, top, squeeze, dy, stretch_x, stretch_y)
-    left = (s - cw) / 2
+  def card_face(card, s, cw, o, top, squeeze, dy, stretch_x, stretch_y)
+    left = o + (s - cw) / 2
     matched = card.state == :matched
     fill "#fffdf7".."#fff5e6"
     stroke matched ? tint(GOLD) : rgb(200, 180, 150, 0.6)
@@ -503,8 +518,8 @@ Shoes.app(title: "Memory Match", width: W, height: H, resizable: false) do
     rect left, top, cw, s, curve: 18
     nostroke
     fill tint(BACKDROPS[card.animal])
-    oval s / 2.0, top + s / 2.0, s * 0.8 * squeeze, s * 0.8, center: true
-    animal(card.animal, s / 2.0, top + s * 0.52 + dy, s * 0.74, sx: squeeze * stretch_x, sy: stretch_y)
+    oval o + s / 2.0, top + s / 2.0, s * 0.8 * squeeze, s * 0.8, center: true
+    animal(card.animal, o + s / 2.0, top + s * 0.52 + dy, s * 0.74, sx: squeeze * stretch_x, sy: stretch_y)
     return unless matched && squeeze > 0.9
 
     # a gold star in the corner: this pair is done
@@ -512,7 +527,7 @@ Shoes.app(title: "Memory Match", width: W, height: H, resizable: false) do
     stroke tint(darker(GOLD, 0.25))
     strokewidth 1.5
     transform :center
-    star(s - 18, top + 18, 5, 11, 5.5).style(rotate: 180)
+    star(o + s - 18, top + 18, 5, 11, 5.5).style(rotate: 180)
   end
 
   # A hop, a squash and a stretch: three little jumps in a second.
@@ -554,10 +569,10 @@ Shoes.app(title: "Memory Match", width: W, height: H, resizable: false) do
     deck = (animals + animals).shuffle
     @cards = deck.each_with_index.map do |kind, i|
       card = Card.new(animal: kind, size: lv[:card], home: home_of(i), side: :back, state: :down)
-      card.at = [W / 2.0 - lv[:card] / 2.0, H + 40.0]
-      card.deal = -i * 0.06
+      card.at = card.home
+      card.deal = -0.2 - (i % lv[:cols] + i / lv[:cols]) * 0.08 # a wave from the top left
       @board.append do
-        card.slot = stack(left: card.at[0].round, top: card.at[1].round, width: lv[:card], height: lv[:card] + 12)
+        card.slot = stack(left: card.home[0], top: card.home[1], width: lv[:card], height: lv[:card] + 12)
       end
       card.slot.click { tap(card) }
       card.slot.hover { hover(card, true) }
@@ -575,7 +590,7 @@ Shoes.app(title: "Memory Match", width: W, height: H, resizable: false) do
     @on_home = false
     @home.hide
     @game.show
-    @peek_at = @clock + 0.6 + @cards.size * 0.06 if lv[:peek] && !@big_kid
+    @peek_at = @clock + 1.2 if lv[:peek] && !@big_kid
   end
 
   def hover(card, over)
@@ -583,17 +598,13 @@ Shoes.app(title: "Memory Match", width: W, height: H, resizable: false) do
     paint(card) if card.side == :back && !card.turn
   end
 
-  # Cards fly in from under the table, one after another.
+  # Cards pop up in their own places, one after another in a wave. (Flying in
+  # from one spot would send a dozen cards across the same patch of table in
+  # a second: a flicker. Growing in place, each spot changes just once.)
   def deal_tick(card, dt)
     card.deal += dt
-    t = card.deal / 0.5
-    return if t < 0
-
-    from = [W / 2.0 - card.size / 2.0, H + 40.0]
-    k = overshoot(t)
-    card.at = [from[0] + (card.home[0] - from[0]) * k, from[1] + (card.home[1] - from[1]) * k]
-    card.slot.move(card.at[0].round, card.at[1].round)
-    card.deal = nil if t >= 1
+    card.deal = nil if card.deal >= 0.4
+    paint(card) if card.deal.nil? || card.deal >= 0
   end
 
   def turn(card, side)
@@ -609,14 +620,21 @@ Shoes.app(title: "Memory Match", width: W, height: H, resizable: false) do
 
   # ---- playing ----
 
+  # A tap turns a card over. While two that don't match are showing, the
+  # other cards only give a little wiggle: the two turn back by themselves in
+  # a second. (Turning them back at once on the next tap would let quick
+  # little hands blink cards up and down several times a second.)
   def tap(card)
-    return if card.state != :down || card.deal || @peek_at || @won
+    return if card.state != :down || card.turn || card.deal || @peek_at || @won
 
-    turn_back if @open.size == 2 # the last two did not match: put them back now
+    if @open.size == 2
+      card.shake ||= 0.0 # just a wiggle: wait a moment
+      return
+    end
+
     card.state = :up
     card.hover = false
-    # a card still turning back over just turns round again, from where it is
-    card.turn ? card.turn = { t: FLIP - card.turn[:t], to: :face } : turn(card, :face)
+    turn(card, :face)
     @voices.play(:flip)
     @open << card
     return if @open.size < 2
@@ -627,7 +645,7 @@ Shoes.app(title: "Memory Match", width: W, height: H, resizable: false) do
       @open = []
       timer(FLIP) { found(first, second) }
     else
-      @back_at = @clock + 1.3
+      @back_at = @clock + FLIP + 1.0
       timer(FLIP + 0.05) do
         next unless @open.include?(second)
 

@@ -28,12 +28,15 @@ wav = File.binread(voices.last_file)
 assert_equal ["RIFF", "WAVE"], [wav[0, 4], wav[8, 4]]
 assert_operator wav[44..].unpack("s<*").map(&:abs).max, :<=, 32_767 / 4 + 1, "never above a quarter of full volume"
 
-# Tiny: two pairs, dealt from under the table, with a peek at the start
+# Tiny: two pairs, each growing up in its own place (nothing flies across the table), with a peek
 click_on "Tiny"
 assert_equal 4, cards.().size
 assert cards.().group_by(&:animal).values.all? { |pair| pair.size == 2 }, "every animal twice"
-advance 0.9
-assert cards.().all? { |card| layout_of(card.slot).x.round == card.home[0] }, "dealt to their places"
+advance 0.1
+assert cards.().all? { |card| layout_of(card.slot).x.round == card.home[0] }, "each in its own place from the start"
+assert cards.().all?(&:deal), "still being dealt"
+advance 0.8
+assert cards.().none?(&:deal), "all dealt"
 advance 0.5
 assert cards.().all? { |card| card.side == :face }, "a peek at every animal"
 click_at(*middle.(cards.()[0]))
@@ -58,15 +61,20 @@ advance 1.4
 assert_equal [:down, :down], [first.state, miss.state], "back over, try again"
 assert_equal :back, first.side
 
-# a card tapped while it is still turning back just turns round again
+# while two that don't match are showing, a third card only wiggles; then taps work again
 click_at(*middle.(first))
 advance 0.4
 click_at(*middle.(miss))
-advance 1.35
-assert first.turn, "turning back over"
+advance 0.4
+third = cards.().find { |card| card != first && card != miss && card.state == :down }
+click_at(*middle.(third))
+assert_equal :down, third.state, "no third card while two are showing"
+assert third.shake, "it wiggles instead"
+advance 1.3
+assert_equal [:down, :down], [first.state, miss.state]
 click_at(*middle.(first))
 advance 0.4
-assert_equal [:up, :face], [first.state, first.side], "the tap was not lost"
+assert_equal [:up, :face], [first.state, first.side], "and now it turns"
 advance 1.4
 
 # a match: the pair stays up, the animals dance and sing, and the row at the top fills
@@ -109,11 +117,13 @@ click_on "Tiny"
 advance 1.2
 assert_nil ivar.(:@peek_at), "big kids get no peek"
 a, b = cards.().group_by(&:animal).values
-[a[0], b[0], a[1], b[1], a[0], a[1], b[0], b[1]].each do |card| # two misses, then both pairs
-  click_at(*middle.(card))
+[[a[0], b[0]], [a[1], b[1]], [a[0], a[1]], [b[0], b[1]]].each do |one, two| # two misses, then both pairs
+  click_at(*middle.(one))
   advance 0.4
+  click_at(*middle.(two))
+  advance 1.5 # a miss turns back by itself
 end
-advance 1.6
+advance 0.5
 assert_equal :done, ivar.(:@won)
 assert_equal 4, ivar.(:@moves)
 assert_equal "Moves: 4", para("@moves_label").text
