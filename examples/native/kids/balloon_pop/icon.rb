@@ -46,7 +46,7 @@ Shoes.app(title: "Balloon Pop icon", width: 256, height: 256, resizable: false) 
     balloon 72, 58, 64, "#8cc8ff", "#2f86e8"
     fill rgb(255, 255, 255, 0.88)
     shape { move_to 76, 82; curve_to 58, 84, 58, 110, 76, 112; curve_to 67, 106, 67, 88, 76, 82 }
-    balloon 146, 46, 66, "#ffe98a", "#f7c21e"
+    balloon 146, 46, 66, "#fff59a", "#f2d50f"
     fill rgb(255, 255, 255, 0.9)
     star 146, 84, 5, 15, 6.6
     balloon 106, 74, 78, "#ff8f8a", "#ec3f45"
