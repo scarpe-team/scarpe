@@ -174,6 +174,13 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
     rgb(*color, alpha.to_f.clamp(0.0, 1.0).round(3))
   end
 
+  # For text: a stroke with an alpha of exactly 0 is drawn black by the native
+  # display (examples/native/kids/_repros/key_splash_2.rb), so a fading letter
+  # stops at 1/255, which is just as invisible.
+  def text_tint(color, alpha)
+    tint(color, [alpha, 0.004].max)
+  end
+
   # The same colour, `amount` of the way to white.
   def lighter(color, amount)
     color.map { |part| (part + (255 - part) * amount).round }
@@ -427,7 +434,7 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
         art = if what == :star
                 star(x, y, 5, 2, 1, fill: tint(color, 0))
               else
-                para(what, font: FONT, weight: "bold", size: 2, stroke: tint(color, 0), align: "center", margin: 0,
+                para(what, font: FONT, weight: "bold", size: 2, stroke: text_tint(color, 0), align: "center", margin: 0,
                   left: x - box / 2, top: y, width: box)
               end
         [art, color, strength, dx, dy]
@@ -486,7 +493,7 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
           top: (b.y + dy * size - rise).round(1), rotate: 180, fill: tint(color, strength * alpha))
       else
         art.style(size: size.round(1), left: (b.x - b.box / 2 + dx * size).round(1),
-          top: (b.y - 0.62 * size + dy * size - rise).round(1), stroke: tint(color, strength * alpha))
+          top: (b.y - 0.62 * size + dy * size - rise).round(1), stroke: text_tint(color, strength * alpha))
       end
     end
     show_face(b.face, b.x, b.y - rise, size * 0.5, alpha) if b.face
@@ -966,7 +973,7 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
     cap :curve
     @sound_on = [arc(32, 22, 14, 20, -1.0, 1.0), arc(30, 16, 24, 32, -1.0, 1.0)]
     @sound_off = [line(40, 26, 50, 38), line(50, 26, 40, 38)]
-    @sound_label = para "Sound on", size: 10, stroke: "#4b4a7a", align: "center", margin: [0, 68, 0, 0]
+    @sound_label = para "Sound on", size: 10, stroke: "#4b4a7a", align: "center", left: 0, top: 68, width: 64, margin: 0
   end
   sound.click { toggle_sound }
   name_button = stack(right: 20, top: 18, width: 64, height: 84, cursor: :hand_cursor) do
@@ -976,8 +983,8 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
     strokewidth 5
     cap :curve
     @name_ring = arc(2, 2, 60, 60, -Math::PI / 2, -Math::PI / 2, hidden: true)
-    para "Aa", font: FONT, weight: "bold", size: 20, stroke: "#4b4a7a", align: "center", margin: [0, 16, 0, 0]
-    para "Name", size: 10, stroke: "#4b4a7a", align: "center", margin: [0, 18, 0, 0]
+    para "Aa", font: FONT, weight: "bold", size: 20, stroke: "#4b4a7a", align: "center", left: 0, top: 18, width: 64, margin: 0
+    para "Name", size: 10, stroke: "#4b4a7a", align: "center", left: 0, top: 68, width: 64, margin: 0
   end
   name_button.click { @name_hold = @clock }
   @name_hint = stack(right: 12, top: 108, width: 150, height: 30, hidden: true) do
