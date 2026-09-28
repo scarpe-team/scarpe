@@ -282,16 +282,54 @@ impl Runtime {
         };
         let hit_id = hit.as_ref().map(|h| h.link.unwrap_or(h.node));
         if let Some(expected) = expected {
-            let chain = hit.as_ref().map(|h| input::chain(&self.doc, h)).unwrap_or_default();
-            if !chain.contains(&expected) {
-                let on_top = hit_id.and_then(|id| self.doc.get(id)).map(|n| format!("{} {}", n.class, n.id)).unwrap_or("nothing".into());
+            if let Err(on_top) = self.press_reaches(app, hit.as_ref(), expected, x, y) {
+                let on_top = on_top.and_then(|id| self.doc.get(id)).map(|n| format!("{} {}", n.class, n.id)).unwrap_or("nothing".into());
                 return Err((format!("{expected} is covered by {on_top}"), json!({"hit": hit_id, "x": x, "y": y})));
             }
         }
+        let heard = self.heard_by(app, hit.as_ref(), x, y).or(hit_id);
         self.pointer_move(app, x, y);
         self.pointer_down(app, button);
         self.pointer_up(app, button);
-        Ok(json!({"hit": hit_id, "x": round(x), "y": round(y)}))
+        Ok(json!({"hit": heard, "x": round(x), "y": round(y)}))
+    }
+
+    /// Whether a real press at (x, y) reaches `target` (input::pointer_down), or else what keeps
+    /// it: what was hit, when the target is a control (a control takes a press only when it is
+    /// on top), or the first drawable above the target that takes the press itself: a control,
+    /// a link, or a drawable with a click block. An empty slot laid over the target lets the
+    /// press through, as it does a real one (ledger E8).
+    fn press_reaches(&self, app: Id, hit: Option<&input::Hit>, target: Id, x: f32, y: f32) -> Result<(), Option<Id>> {
+        let Some(hit) = hit else { return Err(None) };
+        let hit_id = hit.link.unwrap_or(hit.node);
+        if input::chain(&self.doc, hit).contains(&target) {
+            return Ok(());
+        }
+        if hit.link.is_some() || self.doc.get(target).is_some_and(|n| n.kind.consumes_press()) {
+            return Err(Some(hit_id));
+        }
+        let layout = self.views[&app].layout.as_ref().expect("layout");
+        for id in input::under(&self.doc, layout, x, y) {
+            if id == target || self.doc.ancestors(id).contains(&target) {
+                return Ok(());
+            }
+            let takes_press = self.doc.get(id).is_some_and(|n| (n.kind.consumes_press() && !crate::elements::disabled(n)) || n.props.truthy("has_click"));
+            if takes_press {
+                return Err(Some(id));
+            }
+        }
+        Err(Some(hit_id))
+    }
+
+    /// The drawable whose click block a press at (x, y) runs, for the reply: the drawable with a
+    /// click block of its own, else the innermost slot whose `click` runs. None when a control or
+    /// link keeps the press, or nothing listens.
+    fn heard_by(&self, app: Id, hit: Option<&input::Hit>, x: f32, y: f32) -> Option<Id> {
+        let hit = hit.filter(|hit| !self.press_consumed(hit))?;
+        let listeners = self.listeners(app, hit, &input::chain(&self.doc, hit), x, y, "click");
+        let slot_of = |id: &Id| self.doc.get(*id).filter(|n| n.kind == Kind::SubscriptionItem).and_then(|n| n.parent);
+        let (slots, drawables): (Vec<Id>, Vec<Id>) = listeners.iter().partition(|id| slot_of(id).is_some());
+        drawables.last().copied().or_else(|| slots.last().and_then(slot_of))
     }
 
     /// The open app a drawable is drawn in: up its parents, or for a text fragment
