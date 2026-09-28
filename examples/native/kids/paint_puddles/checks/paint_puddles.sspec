@@ -31,11 +31,17 @@ assert_includes heard, "note6", "the stroke sang: #{heard.inspect}"
 # high on the page sings high: a stroke up the page climbs the scale
 advance 1 # let the first stroke's notes ring out: at most five sounds play at once
 heard.clear
-drag(*(0..40).map { |i| [900, 600 - i * 12] })
+mouse.mouse(:move, 900, 600)
+mouse.mouse(:down, 900, 600)
+40.times do |i|
+  mouse.mouse(:move, 900, 588 - i * 12)
+  advance 0.05
+end
+mouse.mouse(:up, 900, 120)
 steps = heard.grep(/\Anote/).map { |name| name[/\d+/].to_i }
 assert_operator steps.size, :>=, 4, "a note every little way: #{heard.inspect}"
 assert_equal steps.sort, steps, "each note higher than the last"
-wav = File.binread(File.join(File.dirname(music.last_file), "note#{steps.last}.wav"))
+wav = File.binread(music.last_file)
 assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV file"
 loudest = wav[44..].unpack("s<*").map(&:abs).max
 assert_operator loudest, :<=, 0.3 * 32_767, "and never loud"
@@ -98,6 +104,17 @@ assert_equal before + 6, marks.call.size, "six keys, six splats"
 before = marks.call.size
 %w[a s d f j k l e r t].each { |key| press_key key }
 assert_equal before + 1, marks.call.size, "ten keys in the same instant make one splat"
+
+# however fast the keys come, everything playing together stays soft
+ringing = -> { music.instance_variable_get(:@ringing).sum { |sound| music.loudness(sound, app.instance_variable_get(:@clock)) } }
+loudest = 0
+%w[z x c v b n m a s d f g h j k l].each do |key|
+  press_key key
+  advance 0.07
+  loudest = [loudest, ringing.call].max
+end
+assert_operator loudest, :>, 0.2, "the keys do make sounds"
+assert_operator loudest, :<=, Music::ROOM + 0.01, "but never more than ROOM all together"
 advance 0.1
 press_key "1"
 assert_equal "star", heard.last, "the number keys stamp friends"

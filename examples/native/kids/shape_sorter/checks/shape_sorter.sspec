@@ -101,6 +101,15 @@ press_key "a"
 advance 0.15
 assert pieces.call.any? { |piece| piece.hop > 5 }, "a shape hops"
 %w[q w e r t y u i o p].each { |key| press_key key }
+ringing = -> { music.instance_variable_get(:@ringing).sum { |sound| music.loudness(sound, app.instance_variable_get(:@clock)) } }
+loudest = 0
+%w[z x c v b n m a s d f g h j k l].each do |key|
+  press_key key
+  advance 0.08
+  loudest = [loudest, ringing.call].max
+end
+assert_operator loudest, :>, 0.2, "the keys make the shapes sing as they hop"
+assert_operator loudest, :<=, Music::ROOM + 0.01, "but everything together stays soft"
 [:left, :tab, "\n", :control_a].each { |key| press_key key }
 advance 0.6
 assert pieces.call.all? { |piece| piece.state == :table }, "mashing keys moves nothing out of place"
@@ -137,6 +146,20 @@ assert glow.call.hidden, "big kids get no glow unless they ask"
 click_at hole_for.(piece).x, hole_for.(piece).y
 advance 0.8
 assert_equal :sorted, piece.state
+
+# switching back to the little holes while the round's star is still flying lands it at once
+pieces.call.reject { |p| p.state == :sorted }.each do |rest|
+  click_at rest.x, rest.y
+  click_at hole_for.(rest).x, hole_for.(rest).y
+  advance 0.8
+end
+advance 1.3
+assert app.instance_variable_get(:@star_flying), "the round's star is on its way up"
+click_at 830, 44
+refute app.instance_variable_get(:@big_kid)
+assert_equal 2, app.instance_variable_get(:@stars_earned), "and it still counts"
+assert app.instance_variable_get(:@prize).hidden, "nothing is left hanging in the air"
+advance 2
 
 # the speaker turns the sound off and on
 click_at 952, 44
