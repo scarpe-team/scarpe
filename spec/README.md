@@ -13,6 +13,7 @@ spec/
   manual/_examples/       three worked cases to copy from
   shoes_spec/             cases imported from Noah's Shoes-Spec corpus (generated)
   showcase/               a native check per app in examples/native/showcase
+  kids/                   a native check per app in examples/native/kids
   accessibility/          what a screen reader meets and does (ledger N1, native only)
   harness/                self-tests for spec/run
   examples.yml            every example under examples/ and what we expect of it
@@ -240,7 +241,7 @@ directories add up to one picture. `spec/results/examples-<display>.json` holds 
 
 ## Examples
 
-`spec/examples.yml` lists all 453 examples under `examples/` with a `status`: `loads`,
+`spec/examples.yml` lists all 473 examples under `examples/` with a `status`: `loads`,
 `fails` (known broken, with a `reason`) or `skip` (Shoes 3 only, missing gems, the network,
 side effects). `spec/run --examples` smoke-runs every non-skipped one:
 
