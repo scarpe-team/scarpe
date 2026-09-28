@@ -229,7 +229,8 @@ Shoes.app(title: "Kanban", width: 1040, height: 680, resizable: false) do
         unless card["labels"].empty?
           flow(margin_bottom: 3) { card["labels"].each { |name| pill(name, LABELS[name]) } }
         end
-        para card["title"], size: 13.5, weight: "semibold", stroke: card["column"] == "done" ? MUTED : INK, margin: [0, 0, 18, 0]
+        title = card["title"].to_s.strip.empty? ? "Untitled card" : card["title"]
+        para title, size: 13.5, weight: "semibold", stroke: card["column"] == "done" ? MUTED : INK, margin: [0, 0, 18, 0]
         notes = card["notes"].to_s.strip
         para notes.lines.first.to_s.strip, size: 12, stroke: MUTED, wrap: "trim", margin: [0, 5, 0, 0] unless notes.empty?
       end
