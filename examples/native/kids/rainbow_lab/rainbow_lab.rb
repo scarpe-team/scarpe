@@ -133,6 +133,37 @@ module Paint
     [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)]
   end
 
+  # Blends two colours the long way round the colour wheel's edge rather than straight
+  # across it, so purple turning green passes through blue instead of grey.
+  def around(from, to, amount)
+    (h1, s1, l1), (h2, s2, l2) = hsl(from), hsl(to)
+    h1 = h2 if s1 < 0.05 # a grey has no hue of its own to start from
+    h2 = h1 if s2 < 0.05
+    turn = (h2 - h1 + 540) % 360 - 180
+    from_hsl((h1 + turn * amount) % 360, s1 + (s2 - s1) * amount, l1 + (l2 - l1) * amount)
+  end
+
+  # Hue (0 to 360), saturation and lightness (0 to 1), and back.
+  def hsl(color)
+    r, g, b = color.map { |c| c / 255.0 }
+    high, low = [r, g, b].max, [r, g, b].min
+    light = (high + low) / 2
+    return [0.0, 0.0, light] if high == low
+
+    spread = high - low
+    sat = light > 0.5 ? spread / (2 - high - low) : spread / (high + low)
+    hue = if high == r then (g - b) / spread % 6 elsif high == g then (b - r) / spread + 2 else (r - g) / spread + 4 end
+    [hue * 60, sat, light]
+  end
+
+  def from_hsl(hue, sat, light)
+    chroma = (1 - (2 * light - 1).abs) * sat
+    x = chroma * (1 - (hue / 60 % 2 - 1).abs)
+    r, g, b = [[chroma, x, 0], [x, chroma, 0], [0, chroma, x], [0, x, chroma], [x, 0, chroma], [chroma, 0, x]][(hue / 60).floor % 6]
+    m = light - chroma / 2
+    [r, g, b].map { |c| (c + m) * 255 }
+  end
+
   # True when dark writing reads better on this colour than white writing does.
   def light?(color) = lab(color).first > 66
 
@@ -545,6 +576,9 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
       spot.click { tickle }
     end
   end
+
+  # The whirlpool and the sound switch have their own jobs, so taps on them make no sparkles.
+  def on_button?(x, y) = Math.hypot(x - 140, y - 386) < 50 || Math.hypot(x - 906, y - 668) < 34
 
   def on_lizard?(x, y)
     x -= LIZARD_X
@@ -1007,7 +1041,7 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
       color = Paint.blend(hue[at.floor % hue.size], hue[(at.floor + 1) % hue.size], at % 1)
       @rainbow_skin = nil if @rainbow_skin >= 1
     end
-    @lizard_color = Paint.blend(@lizard_color, color, 1 - Math.exp(-dt * 4))
+    @lizard_color = Paint.around(@lizard_color, color, 1 - Math.exp(-dt * 4))
     @lizard_frame = !@lizard_frame # recolouring every other frame is plenty for the eye
     if @lizard_frame && @lizard_color.zip(@painted_lizard).any? { |now, was| (now - was).abs > 1.5 }
       paint_lizard(@lizard_color)
@@ -1172,7 +1206,7 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
       nil # it has its own tickle
     elsif (x - BOWL_X)**2 / BOWL_RX.to_f**2 + (y - RIM_Y)**2 / BOWL_RY.to_f**2 <= 1 && y > RIM_Y - RIM_RY
       stir
-    elsif y > 130 && !POTS.any? { |pot| (x - pot[:x]).abs < 66 && y > POT_Y }
+    elsif y > 130 && !on_button?(x, y) && !POTS.any? { |pot| (x - pot[:x]).abs < 66 && y > POT_Y }
       5.times { sparkle(x, y) }
       @chimes.tune(%w[c5 d5 e5 g5 a5 c6].sample, level: 0.35)
     end
