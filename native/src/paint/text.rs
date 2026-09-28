@@ -267,7 +267,12 @@ pub fn para_index(node: &Node, tb: &TextBox, key: &str) -> Option<usize> {
 /// Where a para's caret sits, `(x, top, height)` in window coordinates, or None with no caret.
 pub fn para_caret(node: &Node, tb: &TextBox) -> Option<(f32, f32, f32)> {
     let index = para_index(node, tb, "text_cursor")?;
-    let (cx, top, h) = caret_position(&tb.shaped.buffer, tb.shaped.cursor_at(index))?;
+    // After a closing newline: the start of the empty line under the text, as Pango has it.
+    let after_end = tb.shaped.line_after_end().filter(|_| index >= tb.shaped.text().chars().count());
+    let (cx, top, h) = match after_end {
+        Some((top, h)) => (0.0, top, h),
+        None => caret_position(&tb.shaped.buffer, tb.shaped.cursor_at(index))?,
+    };
     let (top, h) = tb.shaped.line_box(top, h);
     Some((tb.x + cx, tb.y + top, h))
 }

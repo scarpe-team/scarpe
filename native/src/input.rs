@@ -454,6 +454,10 @@ pub fn char_under(tb: &TextBox, bounds: crate::layout::Rect, x: f32, y: f32) -> 
     }
     let (lx, ly) = (x - tb.x, y - tb.y);
     let runs: Vec<_> = tb.shaped.buffer.layout_runs().collect();
+    // Under the last line of text that ends in a newline is the empty line after it.
+    if tb.shaped.line_after_end().is_some_and(|(top, _)| ly >= top) {
+        return Some(tb.shaped.text().chars().count() as i64);
+    }
     let run = runs.iter().find(|r| ly < r.line_top + r.line_height).or(runs.last())?;
     let glyphs: Vec<_> = run.glyphs.iter().filter(|g| g.metadata != crate::text::shape_cache::INDENT_META).collect();
     let start = glyphs.iter().find(|g| lx < g.x + g.w).or(glyphs.last()).map_or(0, |g| g.start);

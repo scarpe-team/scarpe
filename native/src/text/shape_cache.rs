@@ -56,6 +56,9 @@ pub struct ShapedText {
     /// The app's own text, when the buffer shapes other letters for it (synthesised small
     /// capitals shape capitals for lower-case letters, one for one).
     written: Option<Rc<str>>,
+    /// The text ends in a newline that cosmic-text keeps no line for. Pango lays out an empty
+    /// line under it, and a caret after it sits at that line's start (s3t_textblock.c:217-228).
+    pub closing_newline: bool,
 }
 
 /// The metadata of the blank that makes a first-line indent. It maps to no SpanMeta, so the
@@ -89,7 +92,21 @@ impl ShapedText {
             return written.to_string();
         }
         let text = self.buffer.lines.iter().map(|l| l.text()).collect::<Vec<_>>().join("\n");
-        text.chars().skip(self.lead()).collect()
+        let mut text: String = text.chars().skip(self.lead()).collect();
+        if self.closing_newline {
+            text.push('\n');
+        }
+        text
+    }
+
+    /// The empty line under a closing newline, `(top, height)` in buffer coordinates.
+    pub fn line_after_end(&self) -> Option<(f32, f32)> {
+        if !self.closing_newline {
+            return None;
+        }
+        let line_height = self.buffer.metrics().line_height;
+        let top = self.buffer.layout_runs().last().map_or(0.0, |run| run.line_top + run.line_height);
+        Some((top, line_height))
     }
 
     /// A buffer position as an index into `text()`, in characters.
@@ -258,8 +275,14 @@ fn shape(fs: &mut FontSystem, rich: &RichText, width: Option<f32>, indent: f32, 
     if h == 0.0 {
         h = rich.line_height;
     }
+    let newlines: usize = rich.runs.iter().map(|run| run.text.matches('\n').count()).sum();
+    let closing_newline = rich.runs.last().is_some_and(|run| run.text.ends_with('\n')) && buffer.lines.len() <= newlines;
+    if closing_newline {
+        // The empty line Pango keeps under a closing newline is part of the text's height.
+        h += rich.line_height;
+    }
     let height = (h - rich.leading).max(1.0);
-    ShapedText { buffer: Rc::new(buffer), width: w, height, top: -rich.leading / 2.0, metas: Rc::new(metas), indent, ink, written }
+    ShapedText { buffer: Rc::new(buffer), width: w, height, top: -rich.leading / 2.0, metas: Rc::new(metas), indent, ink, written, closing_newline }
 }
 
 /// A run in small capitals (`variant: "smallcaps"`, manual 1511-1519): the face's own when it has
