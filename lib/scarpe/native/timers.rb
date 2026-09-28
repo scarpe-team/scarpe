@@ -115,14 +115,23 @@ module Scarpe::Native
     def schedule_for(api_name, arg)
       case api_name
       when "animate" then [1.0 / positive(arg, DEFAULT_FPS), 0]
-      when "every" then [[positive(arg, DEFAULT_SECONDS), SHORTEST_INTERVAL].max, 0]
-      when "timer" then [[positive(arg, DEFAULT_SECONDS), SHORTEST_INTERVAL].max, nil]
+      when "every" then [seconds(arg), 0]
+      when "timer" then [seconds(arg), nil]
       end
     end
 
     def positive(value, default)
       number = value.respond_to?(:to_f) ? value.to_f : 0.0
       number.positive? ? number : default
+    end
+
+    # No number waits the default second. Anything shorter than a millisecond, zero and
+    # below included, is a millisecond, as in Shoes 3 (s3t_timerbase.c:72): timer(0) fires
+    # on the next turn of the loop.
+    def seconds(value)
+      return DEFAULT_SECONDS if value.nil? || !value.respond_to?(:to_f)
+
+      [value.to_f, SHORTEST_INTERVAL].max
     end
   end
 end

@@ -297,7 +297,8 @@ loop until no app is open or the child's stdout ended:
     (Automation#advance and other callers of Pump#step wait at most 50 ms)
   dispatch every complete message
   tick due timers: animate (frame starts at 0), every (count starts at 0, ledger I1), timer (one shot);
-    honour `stopped` and destroyed items; timers can be created at any time
+    honour `stopped` and destroyed items; timers can be created at any time; an `every` or `timer`
+    shorter than a millisecond (0 included) waits one, as Shoes 3 clamps it
   dispatch "heartbeat" (nil target) at most every 50 ms; Shoes-Spec tests and peek's steps start
     once the first one's handlers are done, so the slot start blocks Lacci hangs on it have run
   flush
