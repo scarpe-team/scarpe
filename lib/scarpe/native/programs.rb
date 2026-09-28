@@ -156,10 +156,13 @@ module Scarpe::Native
 
     # Its own process group, so stop reaches whatever the program started too; stdin is
     # /dev/null, and stdout and stderr are this process's, for what Scarpe itself says there.
+    # The command's first word goes as [name, argv0], so Ruby never reads a lone launcher as a
+    # command line and splits it at the space in "Hackety Hack.app".
     def spawn(command, env, dir)
       report_read, report_write = IO.pipe
       parent_read, @parent_write = IO.pipe
-      @pid = Process.spawn(env, *command, Programs::REPORT_FD => report_write, Programs::PARENT_FD => parent_read,
+      name, *args = command
+      @pid = Process.spawn(env, [name, name], *args, Programs::REPORT_FD => report_write, Programs::PARENT_FD => parent_read,
         in: File::NULL, pgroup: true, chdir: dir)
       [report_write, parent_read].each(&:close)
       @programs.track(self)
