@@ -111,14 +111,16 @@ module Scarpe::Native
     end
 
     # Para#hit and #cursor_top ask Rust, which has the text laid out (ledger F14). A request sends
-    # whatever is pending first, so the answer counts the latest text and cursor.
+    # whatever is pending first, so the answer counts the latest text and cursor. A renderer that
+    # cannot answer (an older one, or a test double) leaves it to the hover cache, as before.
     def para_hit(id, x, y)
-      answer(:para_hit, id: id, x: x.to_f, y: y.to_f)
+      answered, value = answer(:para_hit, id: id, x: x.to_f, y: y.to_f)
+      answered ? value : Shoes::DisplayService.para_hit_cache[id]
     end
 
     # The caret's {"left", "top", "height"}, or nil when the para has none.
     def para_caret(id)
-      answer(:para_caret, id: id)
+      answer(:para_caret, id: id).last
     end
 
     def register_font(font)
@@ -216,10 +218,11 @@ module Scarpe::Native
 
     private
 
-    # A question for Rust asked from app code: the answer, or nil when Rust cannot give one.
+    # A question for Rust asked from app code: [true, the answer], or [false, nil] when Rust
+    # cannot give one.
     def answer(op, **fields)
       reply = child.request(op, **fields)
-      reply["error"] ? nil : reply["value"]
+      reply["error"] ? [false, nil] : [true, reply["value"]]
     end
 
     def start_child
