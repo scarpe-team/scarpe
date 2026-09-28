@@ -14,12 +14,10 @@
 
 require "thread"
 
-# A tiny 32x32 turtle SVG encoded as a data URI (green triangle pointing up)
-TURTLE_DATA_URI = "data:image/svg+xml;base64," + [
-  '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">' \
-  '<polygon points="16,2 28,28 16,22 4,28" fill="#2a2" stroke="#060" stroke-width="1.5"/>' \
-  '</svg>'
-].pack("m0")
+# Hackety Hack's little green turtle (its static/turtle.png), 32x32, beside this file so a
+# packaged app carries it. It was an SVG data URI, which the native display cannot draw, so no
+# turtle showed while it stepped.
+TURTLE_IMAGE = File.join(__dir__, "turtle.png")
 
 class Shoes::TurtleCanvas < Shoes::Widget
   WIDTH = 500
@@ -38,7 +36,7 @@ class Shoes::TurtleCanvas < Shoes::Widget
     @height = HEIGHT
     style :width => @width, :height => @height
     @queue = Queue.new
-    @image = image TURTLE_DATA_URI
+    @image = image TURTLE_IMAGE
     @image.transform :center
     @speed = SPEED
     @paused = true
@@ -230,7 +228,7 @@ class Shoes::TurtleCanvas < Shoes::Widget
     [:left, :top, :width, :height, :rotate].each do |k|
       image_styles[k] = old_style[k.to_s] if old_style.key?(k.to_s)
     end
-    @image = image TURTLE_DATA_URI
+    @image = image TURTLE_IMAGE
     @image.style(**image_styles) unless image_styles.empty?
     @image.transform :center
   end
@@ -297,8 +295,11 @@ module Turtle
       @block = blk
 
       unless is_draw
+        # Hackety Hack's turtle placed the swatch with :top => 5 alone, and Shoes 3 kept its x
+        # where the flow stood, after the label; native puts it at the slot's left edge, over the
+        # label (ledger C17), so it sits in the flow instead, 5 px down.
         para "pen: "
-        @pen_info = stack :top => 5, :width => 40, :height => 20 do
+        @pen_info = stack :margin_top => 5, :width => 40, :height => 25 do
           background white
           line 5, 10, 35, 10
         end

@@ -72,6 +72,7 @@ straightforward as possible.
 - Lacci: a closing window sends every slot in it its `finish`, the window's own slot first, as Shoes 3 does (ledger H8), so an app can save its work as it goes; closing Hackety Hack with its red button used to lose the child's program
 - Lacci: the colon key reaches `keypress` as the String `":"`; it arrived as `:""`
 - Lacci's turtle: `Turtle.draw` with no program draws an empty canvas instead of raising; step mode shows the next command again on Ruby 3.4 and later; `execute` and `draw all` sit at the right of their rows, as in Hackety Hack's turtle, so both rows of controls fit the window
+- Lacci's turtle is Hackety Hack's little green PNG, which the native display draws (it was an SVG nothing drew), and `Turtle.start`'s pen swatch sits after its label instead of over it
 - Native: a sized or trimmed text too wide as a box for the rest of a line, whose text fits there on one line, sits on that line, as Shoes 3 draws it (ledger C7): Hackety Hack's lists put each name beside its icon
 - Native packages carry `docs/static/manual.md`, so `Shoes.show_manual` opens the manual in a packaged app too
 - The manual window shows the manual's pictures, draws its Colors List as named swatches with their numbers and its Classes List as the tree of drawables, as Shoes 3's did; it printed `{COLORS}` and `{INDEX}`. Native packages carry the pictures
