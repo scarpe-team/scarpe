@@ -1104,6 +1104,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci / WV today:** WV maps Enter to `:return` (`wv/subscription_item.rb:127`); prefixes are `alt_`, then `control_`, then `shift_` (`:147-158`); Cmd (Meta) is ignored; a modified special key loses its `:` and arrives as the String `"alt_left"` (`:158`); a modified character arrives as the String `"alt_q"` because Lacci only symbolises values that start with `:` (`subscription_item.rb:67-77`). Plus the double fire (X1).
 - **Spec:** `press_key "a"` gives `"a"`; Shift-a gives `"A"`; F1 gives `:f1`; Return gives `"\n"`; Control-Return gives `:control_enter`; Control-Shift-Alt-PageUp gives `:control_shift_alt_page_up`; Alt-q gives `:alt_q`. `press_key` takes Shoes key names, so no case can press Cmd; the Cmd mapping (Cmd-q gives `:alt_q`) is checked in the native backend's own tests (`window.rs`, `command_is_named_alt`).
 - **Native:** DESIGN 4.4. Since 27 Sep Cmd is named `alt_` (and still edits like Control in text fields), and Shift folds into characters with a US map, so `:shift_7` is `"&"` and `:shift_alt_7` is `:alt_&`. DESIGN 4.4 said Cmd maps to `control_` until then.
+- **The colon key, 28 Sep 2026 (w9):** special keys cross the wire with a leading colon (`":left"`), and Lacci made a Symbol of any key name that starts with one, so the colon key's own `":"` arrived as `:""` and Hackety Hack's editor could not type `:width` or `b: 2`. Now a lone `":"` stays the String `":"`. **Spec:** `events.keypress.colon`.
 
 ### H2. Mouse button numbers
 
