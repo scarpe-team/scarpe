@@ -28,7 +28,9 @@ PAPER = [24, 88, 724, 612] # the sheet of paper the maze is drawn on: left, top,
 ROOM = [52, 116, 668, 556] # the part of the paper a maze may fill
 INK = [61, 52, 86]
 PENCIL = [96, 76, 64]
-FREDOKA = %w[fonts ../_fonts].map { |dir| File.expand_path("#{dir}/Fredoka.ttf", __dir__) }.find { |path| File.exist?(path) }
+# Fredoka, the round font the Kids apps share: in fonts or beside the app once it is packaged,
+# and in the _fonts folder next door in a Scarpe checkout. Without it the words still show.
+FREDOKA = %w[fonts . _fonts ../_fonts].map { |dir| File.expand_path("#{dir}/Fredoka.ttf", __dir__) }.find { |path| File.exist?(path) }
 
 STEPS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }
 BACK = { up: :down, down: :up, left: :right, right: :left }
