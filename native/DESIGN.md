@@ -161,7 +161,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 | edit EditLine / EditBox | `change` | that id | `[new_text]` on every edit. Lacci echoes `props {text}`: apply idempotently, keep caret. Echoes can trail later edits, so any text the field reported and has not seen echoed yet counts as an echo |
 | pick in ListBox (popup, or Up/Down while focused) | `change` | that id | `[item_string]` |
 | pointer enters / leaves a drawable | `hover` / `leave` | that id | `[]`, on transitions only, for every drawable in the hovered chain |
-| press / release on a drawable that has `has_click` / `has_release` true | `click` / `release` | the innermost such id under the pointer | `[button, x, y]` window coordinates, Integers |
+| press / release on a drawable that has `has_click` / `has_release` true | `click` / `release` | the innermost such id under the pointer: a text fragment's first, then the topmost drawable under the pointer that has one, so a label or icon with no block passes the press to a clickable shape beneath it (Shoes 3's `shoes_canvas_send_click2`, ledger E8). A control on top keeps the press | `[button, x, y]` window coordinates, Integers |
 | SubscriptionItem `click`/`release` | same | item id | `[button, x, y]` in window coordinates, like drawable clicks (ledger H3, Q4, contract g). Fires for presses inside the parent slot unless a control, text field or link consumed the press |
 | SubscriptionItem `motion` | `motion` | item id | `[x, y, ctrl, shift]` (booleans) in window coordinates, on pointer move inside the parent slot |
 | SubscriptionItem `hover`/`leave` | same | item id | `[]` on entering/leaving the parent slot box |
@@ -695,7 +695,8 @@ change the code and this list together.
 - **`layout`** lists every laid-out node in paint order; each text fragment (Link, Strong, Em...)
   follows its Para as its own entry, with the box of its first line of glyphs and its text, and
   `click {id}` on a fragment clicks there. Fragments are hit-tested like drawables: a press inside
-  one walks fragment, para, slots for `has_click`, and hover/leave include the fragments. **`frames`** replies with the number
+  one walks fragment, then whatever lies under the pointer, topmost first, for `has_click`, then
+  the para's slots, and hover/leave include the fragments. **`frames`** replies with the number
   of frames painted so far. **`snapshot`** defaults to the app's scale (the window's, or `--scale`
   headless, else 1). **`click {text}`** also picks an item of an open list_box popup.
 - **`para_hit {id, value}`** is sent while the pointer moves over a para (the character index), and
