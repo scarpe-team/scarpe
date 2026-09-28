@@ -19,6 +19,8 @@ pub enum Incoming {
     Focus { id: Id },
     ScrollTo { id: Id, top: f32 },
     Font { path: String },
+    /// How text is sized and set from now on (Lacci's `Shoes.text_mode`): "scarpe" or "shoes3".
+    TextMode { mode: String },
     Flush,
     Req { req: u64, op: Op },
 }
@@ -194,6 +196,7 @@ pub fn parse_line(line: &str) -> Result<Incoming, ParseError> {
         "focus" => Incoming::Focus { id: required(id(&obj, "id"), "id")? },
         "scroll_to" => Incoming::ScrollTo { id: required(id(&obj, "id"), "id")?, top: f(&obj, "top").unwrap_or(0.0) },
         "font" => Incoming::Font { path: required(s(&obj, "path"), "path")? },
+        "text_mode" => Incoming::TextMode { mode: required(s(&obj, "mode"), "mode")? },
         "flush" => Incoming::Flush,
         "req" => {
             let req = required(obj.get("req").and_then(Value::as_u64), "req")?;
@@ -422,6 +425,7 @@ mod tests {
         assert_eq!(parse_line(r#"{"t":"focus","id":9}"#).unwrap(), Incoming::Focus { id: 9 });
         assert_eq!(parse_line(r#"{"t":"scroll_to","id":9,"top":40}"#).unwrap(), Incoming::ScrollTo { id: 9, top: 40.0 });
         assert_eq!(parse_line(r#"{"t":"font","path":"/a/b.ttf"}"#).unwrap(), Incoming::Font { path: "/a/b.ttf".into() });
+        assert_eq!(parse_line(r#"{"t":"text_mode","mode":"shoes3"}"#).unwrap(), Incoming::TextMode { mode: "shoes3".into() });
         assert_eq!(parse_line(r#"{"t":"flush"}"#).unwrap(), Incoming::Flush);
     }
 

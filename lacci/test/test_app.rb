@@ -14,6 +14,23 @@ class TestApp < NienteTest
     SHOES_SPEC
   end
 
+  # Ledger M14: text is sized in pixels unless a program asks for Shoes 3's text, points at
+  # 96 dpi; the display hears of it as a text_mode event.
+  def test_text_mode_is_scarpe_unless_a_program_asks_for_shoes3
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      $modes = []
+      Shoes::DisplayService.subscribe_to_event("text_mode", nil) { |mode| $modes << mode }
+      $before = Shoes.text_mode
+      Shoes.text_mode = :shoes3
+      Shoes.app { para "Hackety" }
+    SHOES_APP
+      assert_equal [:scarpe, :shoes3, ["shoes3"]], [$before, Shoes.text_mode, $modes]
+      error = assert_raises(ArgumentError) { Shoes.text_mode = :points }
+      assert_match(/:scarpe or :shoes3/, error.message)
+      assert_equal :shoes3, Shoes.text_mode, "a wrong mode changes nothing"
+    SHOES_SPEC
+  end
+
   # Ledger A3: Shoes.app, window and dialog return the new Shoes::App (manual 859,
   # 1958-1961), where Shoes.app ended with nil.
   def test_shoes_app_window_and_dialog_return_the_app

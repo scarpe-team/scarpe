@@ -72,6 +72,7 @@ module Scarpe::Native
 
       on_bus("run", nil) { run_latest_app }
       on_bus("destroy", nil) { quit_all }
+      on_bus("text_mode", nil) { |mode| @child&.post(t: "text_mode", mode: mode) }
       listen_to_drawables
     end
 
@@ -229,6 +230,8 @@ module Scarpe::Native
       started = Child.start(headless: @headless, ghost: @ghost)
       at_exit { started.close }
       kill_on_term(started)
+      # Shoes.text_mode set before the first window (ledger M14); a later change is sent as made.
+      started.post(t: "text_mode", mode: Shoes.text_mode.to_s) unless Shoes.text_mode == :scarpe
       started
     end
 

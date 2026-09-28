@@ -5,7 +5,7 @@ pub mod raster;
 pub mod rich;
 pub mod shape_cache;
 
-pub use fonts::{FamilyName, FontMode, Fonts};
+pub use fonts::{FamilyName, FontMode, Fonts, TextMode};
 pub use rich::{RichText, TextStyle};
 pub use shape_cache::{ShapedText, SpanMeta};
 

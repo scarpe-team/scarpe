@@ -109,6 +109,7 @@ A line Rust cannot parse is answered with a `log` warning and otherwise ignored.
 | `focus` | `id` | give keyboard focus to a control, with a visible focus ring |
 | `scroll_to` | `id`, `top` | set a scrollable slot's scroll offset (clamped at the next layout) |
 | `font` | `path` (absolute) | register a font file; family name(s) become usable |
+| `text_mode` | `mode` (`scarpe` or `shoes3`) | how text is sized and set from now on (Lacci's `Shoes.text_mode`, ledger M14): `shoes3` reads text sizes as points at 96 dpi and gives text blocks that name no face Arial; every window is laid out again. The shim sends it after `hello` when a program set it before its first window, and again whenever it changes |
 | `flush` | | end of a batch: Rust applies everything received, relayouts, redraws once |
 | `req` | `req` (int), `op`, op fields | request that must get exactly one `reply` with the same `req` |
 
@@ -379,6 +380,13 @@ moved there the same day, so apps normally send it.
   line by line (manual 1208-1210; Shoes 3's Pango background), not paint over its box.
   Line height = 1.2 x size. `leading` (default 4 px, manual 1286, ledger F10) goes between lines
   only, as Pango's spacing does: one line is 1.2 x size tall, two are 2.4 x size + 4.
+- **Text sizes** are logical pixels (ledger M14): a para is 12 px, a title 34. Under the `shoes3`
+  text mode (`text_mode`, section 4.1) a size is points at 96 dpi, as Shoes 3 hands Pango
+  `size * 96/72` (s3t_textblock.c:293): a para is 16 px and a title 45.3. That covers the size
+  names, numeric sizes and a `font` string's size; a relative size word still scales the size it
+  would otherwise have, and "18px" (in `size` or a `font` string) stays pixels, as Pango reads
+  a font string's px. A text block that names no face, or names one the machine lacks, gets Arial
+  there, Shoes 3's default (s3_world.c:46-48). Controls, margins and leading keep their pixels.
 - **Widgets** have intrinsic sizes (research 02 section 13): button = its label's width plus 14 px
   each side by its line height plus 12 px, at least 28 px each way (more with an icon); edit_line 200x28, edit_box 200x108,
   list_box 200x28, progress 200x14 (manual sizes, ledger C4), check/radio 18x18, slider 160x20,
