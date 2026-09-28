@@ -17,6 +17,7 @@
 # own sound player.
 
 require "tmpdir"
+require "fileutils"
 
 W, H = 1000, 700
 PAPER_LEFT, PAPER_TOP, PAPER_RIGHT, PAPER_BOTTOM = 144, 20, 980, 660
@@ -72,6 +73,7 @@ class Music
 
   def initialize
     @dir = Dir.mktmpdir("paint-puddles")
+    at_exit { FileUtils.remove_entry(@dir, true) } # the little WAV files go when the app does
     @files = {}
     @lengths = {}
     @ringing = [] # when each sound now playing ends, on the app's clock
@@ -686,6 +688,14 @@ Shoes.app(title: "Paint Puddles", width: W, height: H, resizable: false) do
     spark[:dot].style(left: x.round(1), top: y.round(1), width: 1, height: 1, hidden: false)
   end
 
+  # While nobody is painting, the paper twinkles now and then, to invite a first touch.
+  def invite
+    return if @clock - @busy_at < 5 || @clock < @next_invite
+
+    @next_invite = @clock + 1.4
+    sparkle(@luck.rand(PAPER_LEFT + 60..PAPER_RIGHT - 60), @luck.rand(PAPER_TOP + 60..PAPER_BOTTOM - 60), 14)
+  end
+
   def twinkle(dt)
     @twinkles.each do |t|
       next if t[:age] >= t[:life]
@@ -872,6 +882,8 @@ Shoes.app(title: "Paint Puddles", width: W, height: H, resizable: false) do
   @last_key = -1.0
   @escape_last = -9.0
   @escape_repeats = 0
+  @busy_at = 0.0
+  @next_invite = 0.0
   font_file = [File.join(__dir__, "fonts", "Fredoka.ttf"), File.join(__dir__, "..", "_fonts", "Fredoka.ttf")]
     .find { |file| File.exist?(file) }
   rounded = font_file && font(font_file) ? "Fredoka" : "Avenir Next, Helvetica Neue, sans-serif"
@@ -969,6 +981,7 @@ Shoes.app(title: "Paint Puddles", width: W, height: H, resizable: false) do
   # ---------------------------------------------------------------- hands on
 
   click do |_button, x, y|
+    @busy_at = @clock
     button = tray_button(x, y)
     if button == :wave
       wash
@@ -1018,7 +1031,10 @@ Shoes.app(title: "Paint Puddles", width: W, height: H, resizable: false) do
     end_stroke
   end
 
-  keypress { |key| press(key) }
+  keypress do |key|
+    @busy_at = @clock
+    press(key)
+  end
 
   animate(FPS) do |frame|
     dt = 1.0 / FPS
@@ -1026,6 +1042,7 @@ Shoes.app(title: "Paint Puddles", width: W, height: H, resizable: false) do
     pool(dt)
     run_tweens(dt)
     twinkle(dt)
+    invite
     roll_wave(dt)
     swell(dt)
     watch_escape
