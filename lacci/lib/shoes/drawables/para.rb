@@ -220,23 +220,44 @@ class Shoes
       [start, len]
     end
 
-    # Hit-test: given pixel coordinates, return the character index at that position.
-    # The display service pre-computes this on mouse events for paras with cursor mode.
+    # The index of the character under (x, y), window coordinates as every click hands them
+    # out (ledger H3), or nil off the text block: Shoes 3.1's TextBlock#hit (ledger F14).
+    # A display that lays text out answers; others give the last index the pointer was over.
     #
-    # @param x [Integer] the x coordinate (page-relative)
-    # @param y [Integer] the y coordinate (page-relative)
-    # @return [Integer, nil] the character index, or nil if not over text
+    # @param x [Integer] the x coordinate
+    # @param y [Integer] the y coordinate
+    # @return [Integer, nil] the character index, or nil if not over the text block
     def hit(x, y)
+      display = Shoes::DisplayService.display_service
+      return display.para_hit(linkable_id, x, y) if display.respond_to?(:para_hit)
+
       Shoes::DisplayService.para_hit_cache[linkable_id]
     end
 
-    # Return the vertical position (top) of the cursor in the para.
-    # Useful for scroll tracking in editors.
+    # The top of the caret's line, measured in the slot that scrolls the para, so it compares
+    # with that slot's scroll_top: Shoes 3.1's TextBlock#cursor_top, which editors keep their
+    # caret in view with (ledger F14). 0 when the display cannot say.
     #
     # @return [Integer] the y-coordinate of the cursor position
     def cursor_top
-      Shoes::DisplayService.para_cursor_top_cache[linkable_id] || 0
+      caret("top") || Shoes::DisplayService.para_cursor_top_cache[linkable_id] || 0
     end
+
+    # The caret's left edge, measured as cursor_top is.
+    #
+    # @return [Integer, nil]
+    def cursor_left
+      caret("left")
+    end
+
+    private
+
+    def caret(edge)
+      display = Shoes::DisplayService.display_service
+      display.para_caret(linkable_id)&.fetch(edge, nil) if display.respond_to?(:para_caret)
+    end
+
+    public
 
     protected
 

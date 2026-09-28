@@ -83,6 +83,12 @@ pub enum Op {
     Pixel { x: f32, y: f32, app: Option<Id> },
     Frames { n: u32, app: Option<Id> },
     Focused { app: Option<Id> },
+    /// Para#hit(x, y): the index of the character of para `id` under window point (x, y), or
+    /// null off its box, as Shoes 3's Pango xy_to_index gives it (ledger F14).
+    ParaHit { id: Id, x: f32, y: f32 },
+    /// Para#cursor_top and #cursor_left: where para `id`'s caret sits, in the frame of the slot
+    /// that scrolls it, or null when it has no caret (ledger F14).
+    ParaCaret { id: Id },
     /// The accessibility tree, as a screen reader meets it (a11y.rs). `platform`: as AppKit hands
     /// it to VoiceOver, read from the window itself (macOS windows only).
     A11y { app: Option<Id>, platform: bool },
@@ -237,6 +243,8 @@ fn op_fields(obj: &Map<String, Value>) -> Result<Op, ParseError> {
         "pixel" => Op::Pixel { x: required(f(obj, "x"), "x")?, y: required(f(obj, "y"), "y")?, app },
         "frames" => Op::Frames { n: obj.get("n").and_then(Value::as_u64).unwrap_or(1).min(u32::MAX as u64) as u32, app },
         "focused" => Op::Focused { app },
+        "para_hit" => Op::ParaHit { id: required(id(obj, "id"), "id")?, x: required(f(obj, "x"), "x")?, y: required(f(obj, "y"), "y")? },
+        "para_caret" => Op::ParaCaret { id: required(id(obj, "id"), "id")? },
         "a11y" => Op::A11y { app, platform: platform(obj) },
         "a11y_action" => Op::A11yAction {
             target: if platform(obj) {
@@ -456,6 +464,8 @@ mod tests {
         assert_eq!(op(r#"{"t":"req","req":1,"op":"pixel","x":1,"y":2}"#), Op::Pixel { x: 1.0, y: 2.0, app: None });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"frames","n":3}"#), Op::Frames { n: 3, app: None });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"focused"}"#), Op::Focused { app: None });
+        assert_eq!(op(r#"{"t":"req","req":1,"op":"para_hit","id":7,"x":3,"y":4.5}"#), Op::ParaHit { id: 7, x: 3.0, y: 4.5 });
+        assert_eq!(op(r#"{"t":"req","req":1,"op":"para_caret","id":7}"#), Op::ParaCaret { id: 7 });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"a11y","app":1}"#), Op::A11y { app: Some(1), platform: false });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"a11y","platform":true}"#), Op::A11y { app: None, platform: true });
         assert_eq!(

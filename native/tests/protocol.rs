@@ -749,6 +749,44 @@ fn an_image_hears_its_press_once_even_under_an_empty_slot() {
     assert_eq!(clicks(&evs), vec![(json!(4), json!([1, 140, 35]))], "and it hears one click, not two");
 }
 
+/// Para#hit (ledger F14): the character under a point, as Pango's xy_to_index gives it to
+/// Shoes 3, past the end of a line the last one, and nil off the text block.
+#[test]
+fn a_para_answers_which_character_is_under_a_point() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "Stack", 2, json!({"width": 280})),
+        create(4, "Para", 3, json!({"text_items": ["Hackety Hack"], "size": 20})),
+    ]));
+    let para = h.node(|n| n["id"] == 4);
+    let (x, y, w) = (para["x"].as_f64().unwrap(), para["y"].as_f64().unwrap(), para["w"].as_f64().unwrap());
+    let mut hit = |x: f64, y: f64| h.value(json!({"op": "para_hit", "id": 4, "x": x, "y": y}));
+    assert_eq!(hit(x + 1.0, y + 10.0), json!(0), "the first letter");
+    assert_eq!(hit(x + w - 2.0, y + 10.0), json!(11), "past the end of the line: the last letter");
+    assert_eq!(hit(x + 1.0, y + 200.0), Value::Null, "below the block");
+}
+
+/// Para#cursor_top (ledger F14): the caret's top in the frame of the slot that scrolls the
+/// para, so scrolling leaves it where it is, as Hackety Hack's editor needs.
+#[test]
+fn a_paras_caret_is_measured_in_the_slot_that_scrolls_it() {
+    let mut h = Harness::new();
+    let lines: Vec<String> = (1..=20).map(|n| format!("line {n}")).collect();
+    h.feed(&app(300, 200, &[
+        create(3, "Flow", 2, json!({"width": 280, "height": 80, "scroll": true})),
+        create(4, "Para", 3, json!({"text_items": [lines.join("\n")], "size": 10})),
+    ]));
+    assert_eq!(h.value(json!({"op": "para_caret", "id": 4})), Value::Null, "no caret, no answer");
+    h.feed(&json!({"t": "props", "id": 4, "props": {"text_cursor": 0}}).to_string());
+    let first = h.value(json!({"op": "para_caret", "id": 4}))["top"].as_i64().unwrap();
+    let tenth = "line 1\n".len() + (2..10).map(|n| format!("line {n}\n").len()).sum::<usize>();
+    h.feed(&json!({"t": "props", "id": 4, "props": {"text_cursor": tenth}}).to_string());
+    let lower = h.value(json!({"op": "para_caret", "id": 4}))["top"].as_i64().unwrap();
+    assert!(lower - first > 9 * 10, "nine lines down: {first} then {lower}");
+    h.feed(&json!({"t": "scroll_to", "id": 3, "top": 40}).to_string());
+    assert_eq!(h.value(json!({"op": "para_caret", "id": 4}))["top"].as_i64().unwrap(), lower, "scrolling does not move it");
+}
+
 #[test]
 fn fragments_appear_in_the_layout_and_take_clicks_by_id() {
     let mut h = Harness::new();

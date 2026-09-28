@@ -444,6 +444,22 @@ pub fn char_at(tb: &TextBox, x: f32, y: f32) -> Option<i64> {
     Some(tb.shaped.char_index(cursor) as i64)
 }
 
+/// The character under (x, y) in a text block, as Shoes 3's Para#hit answers it from Pango's
+/// xy_to_index (s3t_textblock.c:713-722, ledger F14): the one whose glyph the point is over,
+/// the first on its line for a point left of the text, the last for one past the line's end,
+/// and the nearest line for a point above or below the lines. None off `bounds`, the block.
+pub fn char_under(tb: &TextBox, bounds: crate::layout::Rect, x: f32, y: f32) -> Option<i64> {
+    if x < bounds.x || x > bounds.right() || y < bounds.y || y > bounds.bottom() {
+        return None;
+    }
+    let (lx, ly) = (x - tb.x, y - tb.y);
+    let runs: Vec<_> = tb.shaped.buffer.layout_runs().collect();
+    let run = runs.iter().find(|r| ly < r.line_top + r.line_height).or(runs.last())?;
+    let glyphs: Vec<_> = run.glyphs.iter().filter(|g| g.metadata != crate::text::shape_cache::INDENT_META).collect();
+    let start = glyphs.iter().find(|g| lx < g.x + g.w).or(glyphs.last()).map_or(0, |g| g.start);
+    Some(tb.shaped.char_index(cosmic_text::Cursor::new(run.line_i, start)) as i64)
+}
+
 pub fn chain(doc: &Doc, hit: &Hit) -> Vec<Id> {
     let mut chain = hit.spans.clone();
     if let Some(link) = hit.link.filter(|l| !chain.contains(l)) {
