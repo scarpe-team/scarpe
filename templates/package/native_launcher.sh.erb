@@ -4,6 +4,19 @@
 # Rust display service (Contents/MacOS/scarpe-native) as its child.
 set -e
 
+# Finder, the Dock and `open` start an app under launchd with its output going nowhere, so a start
+# that fails would fail in silence. Then its output goes to ~/Library/Logs/<%= @name %>/launcher.log,
+# with one older log kept past 5 MB. From a terminal it stays on the terminal.
+if [ "$PPID" = 1 ] || [ /dev/fd/2 -ef /dev/null ]; then
+  LOG_DIR="$HOME/Library/Logs/"<%= Shellwords.escape(@name) %>
+  if mkdir -p "$LOG_DIR" 2>/dev/null; then
+    LOG="$LOG_DIR/launcher.log"
+    if [ "$(stat -f %z "$LOG" 2>/dev/null || echo 0)" -gt 5242880 ]; then mv -f "$LOG" "$LOG.1"; fi
+    exec >>"$LOG" 2>&1
+    echo "==== $(date '+%Y-%m-%d %H:%M:%S') pid $$: $0"
+  fi
+fi
+
 # Physical paths (pwd -P), so the paths Ruby loads match the ones the bytecode was compiled for.
 MACOS="$(cd "$(dirname "$0")" && pwd -P)"
 RES="$(cd "$MACOS/../Resources" && pwd -P)"

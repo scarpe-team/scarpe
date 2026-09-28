@@ -50,6 +50,7 @@ straightforward as possible.
 - Native: `font: "bold 16px"` (and `italic`) on an edit line or edit box draws bold (or slanted), as it does on a para
 - Lacci: `line.move` moves both ends of the line, not only its start; a border's `strokewidth` is its own, 1 unless given, and no longer the pen's
 - Lacci: `style` on an animated shape costs about half what it did: a class's style names are worked out once
+- Native: a packaged app whose name or folder holds a space or a parenthesis ("ZARKING (Rust)", "For Noah") starts when double-clicked; Ruby passed the renderer's path alone to /bin/sh, which only a start with no flags does. Opened from Finder, the Dock or `open`, a native package writes its output to `~/Library/Logs/<name>/launcher.log`
 
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")

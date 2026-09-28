@@ -68,6 +68,23 @@ class NativePackageTest < Minitest::Test
     assert_includes run[:stderr], "scarpe-imagesize [40, 30]"
   end
 
+  # A double-click sends the app's output to /dev/null, so the launcher writes it to
+  # ~/Library/Logs/<name>/launcher.log; a terminal (here, a pipe) still gets it directly.
+  def test_output_nobody_can_read_goes_to_the_log
+    home = scratch_dir
+    log = File.join(home, "Library", "Logs", "PackagedApp", "launcher.log")
+    env = { "HOME" => home, "PATH" => "/usr/bin:/bin", "SCARPE_NATIVE_HEADLESS" => "1", "SCARPE_NATIVE_GHOST" => "1" }
+    launcher = File.join(bundle, "Contents", "MacOS", "scarpe-launcher")
+
+    launch(bundle, "HOME" => home)
+    refute File.exist?(log), "output someone reads stays out of the log"
+
+    finder_like = { unsetenv_others: true, chdir: "/", out: File::NULL, err: File::NULL }
+    assert system(env, launcher, **finder_like), "the launcher failed"
+    assert_match(/^==== .* pid \d+: /, File.read(log))
+    assert_match(/^scarpe-probe /, File.read(log))
+  end
+
   def test_a_moved_app_boots_from_source
     moved = File.join(scratch_dir, "PackagedApp.app")
     assert system("ditto", bundle, moved)
