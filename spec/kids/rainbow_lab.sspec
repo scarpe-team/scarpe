@@ -1,0 +1,113 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/kids/rainbow_lab/rainbow_lab.rb")
+----------- test code
+require "json"
+app = Shoes.APPS.first
+ivar = ->(name) { app.instance_variable_get(name) }
+chimes = ivar.(:@chimes)
+save_file = File.join(Dir.home, "Library", "Application Support", "Rainbow Lab", "shelf.json")
+trapped = -> { File.exist?(ENV.fetch("SPEC_TRAP_FILE")) ? File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true) : [] }
+# a pot's slot: click_on reaches it through the empty layer drops fly in, as a press does
+pot = ->(name) { POTS.find { |each| each[:name] == name }[:slot] }
+# the name of the shelf colour a pixel looks most like
+looks = ->(x, y) { Paint::LOOKS.min_by { |_, lab| Paint.lab(pixel_at(x, y).first(3)).zip(lab).sum { |a, b| (a - b)**2 } }.first }
+settle = -> { advance 2.2 }
+chip = stack("@chip")
+
+# an empty bowl, an empty shelf, and nothing saved yet
+assert_equal [0, 0, 0, 0], ivar.(:@drops)
+assert chip.style[:hidden], "no colour to name yet"
+assert_empty ivar.(:@found)
+refute File.exist?(save_file)
+
+# a tap on the red pot sends a drop flying into the bowl
+click_on pot.(:red)
+assert_equal 1, ivar.(:@drops_flying).size, "a drop is in the air"
+settle.call
+assert_equal [1, 0, 0, 0], ivar.(:@drops), "and it landed in the bowl"
+assert_equal "Red", para("@chip_name").text
+refute chip.style[:hidden]
+assert_equal [:red], ivar.(:@recipe_shown), "the card shows the drop that made it"
+assert_equal "Red", looks.(450, 462), "the paint in the bowl is red"
+assert_equal ["Red"], JSON.parse(File.read(save_file))["found"], "Red is on the shelf, and remembered"
+chimes.player.join(10)
+tune = trapped.call.grep(/afplay .*bell-g4-c5-e5-g5/).first
+assert tune, "Red's own tune went to afplay (the suite traps afplay, so nothing is heard)"
+wav = File.binread(tune.split(" ", 2).last)
+assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV file"
+loudest = wav[44..].unpack("s<*").map(&:abs).max / 32_767.0
+assert_operator loudest, :<=, 0.26, "never louder than a quarter of full scale"
+
+# red and blue make purple, and a new colour gets a jar
+click_on pot.(:blue)
+settle.call
+assert_equal "Purple", para("@chip_name").text
+assert_equal %w[Red Purple], ivar.(:@found)
+assert_equal "Purple", looks.(450, 455), "red and blue paint make purple paint"
+advance 1
+assert_equal "Purple", looks.(ivar.(:@jars)["Purple"][:x], 80), "the Purple jar on the shelf is full"
+assert ivar.(:@lizard_color).zip(Paint.mix([1, 0, 1, 0])).all? { |got, want| (got - want).abs < 3 }, "the chameleon turned purple too"
+
+# the keys pour: w for white makes Lilac, y for yellow makes the muddy Biscuit
+press_key "w"
+settle.call
+assert_equal "Lilac", para("@chip_name").text
+press_key "y"
+settle.call
+assert_equal [1, 1, 1, 1], ivar.(:@drops)
+assert_equal "Biscuit", para("@chip_name").text
+
+# a full bowl swirls itself clean as the next drop lands, so there is always room
+2.times { press_key "r"; advance 0.2 }
+settle.call
+assert_equal 6, ivar.(:@drops).sum
+press_key "b"
+settle.call
+assert_equal [0, 0, 1, 0], ivar.(:@drops), "the seventh drop starts a fresh bowl"
+assert_equal "Blue", para("@chip_name").text
+
+# a toddler at the keyboard: forty keys at once pour one drop, and nothing breaks
+before = ivar.(:@drops).sum
+40.times { |i| press_key %w[a s d f j k l ; q z x 7 8 9].at(i % 14) }
+settle.call
+assert_equal before + 1, ivar.(:@drops).sum, "the pots hop for every key, but a drop leaves at most every tenth of a second"
+10.times { |i| press_key "gqzxmv,./1"[i]; advance 0.05 }
+settle.call
+assert_operator ivar.(:@drops).sum, :<=, FULL
+assert_empty ivar.(:@drops_flying)
+
+# the whirlpool empties the bowl
+click_at 140, 386
+assert_equal [0, 0, 0, 0], ivar.(:@drops)
+assert chip.style[:hidden]
+settle.call
+assert_operator ivar.(:@level), :<, 0.01, "all gone"
+
+# tapping a jar not found yet shows which drops make it
+click_at ivar.(:@jars)["Teal"][:x], 80
+assert_equal %i[yellow blue blue], ivar.(:@recipe_shown)
+advance 4.2
+assert_empty ivar.(:@recipe_shown), "and the hint goes away again"
+
+# the sound switch: nothing reaches afplay while it is off
+click_at 906, 668
+assert chimes.muted
+heard = trapped.call.size
+click_on pot.(:yellow)
+settle.call
+assert_equal heard, trapped.call.size, "silence"
+click_at 906, 668
+refute chimes.muted
+
+# a grown-up holds Escape for two seconds to leave; a quick tap does nothing
+$goodbye = false
+app.define_singleton_method(:say_goodbye) { $goodbye = true }
+press_key :escape
+advance 1.2
+refute $goodbye, "one tap is not enough"
+assert_equal "hold esc to leave", para("@hint").text
+44.times { press_key :escape; advance 0.05 }
+assert $goodbye, "held for two seconds, the lab closes"

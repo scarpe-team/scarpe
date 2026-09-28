@@ -590,9 +590,8 @@ class Shoes
       elsif args.empty?
         # This is called to set one or more Shoes styles.
         # Shoes3 was lenient — unknown styles were silently accepted and stored.
-        # We accept known styles AND draw context properties (fill, stroke, strokewidth, rotate).
+        # We accept known styles AND draw context settings (fill, stroke, rotate, scale...).
         prop_names = self.class.shoes_style_names
-        draw_context_props = %w[fill stroke strokewidth rotate]
 
         changes = {}
         kwargs.each do |name, val|
@@ -600,8 +599,9 @@ class Shoes
           if prop_names.include?(name_s)
             instance_variable_set("@#{name}", val)
             changes[name_s] = val
-          elsif draw_context_props.include?(name_s)
+          elsif Shoes::DrawContext::SETTINGS.include?(name_s)
             # Set draw context property on the drawable (Shoes3 supports this)
+            val = draw_context_pair(name_s, val)
             instance_variable_set("@#{name}", val)
             changes[name_s] = val
           else
@@ -682,9 +682,7 @@ class Shoes
     # @param top [Integer] the new top/y coordinate
     # @return [self]
     def move(left, top)
-      self.left = left
-      self.top = top
-      self
+      set_styles(left:, top:)
     end
 
     # Displace the drawable visually by the given amount.
@@ -696,10 +694,23 @@ class Shoes
     # @param top [Integer] the vertical displacement in pixels
     # @return [self]
     def displace(left, top)
-      self.displace_left = left
-      self.displace_top = top
+      set_styles(displace_left: left, displace_top: top)
+    end
+
+    private
+
+    # Sets styles the way their setters do, and tells the display in one prop_change, so it
+    # never lays out a drawable moved across but not yet down.
+    def set_styles(**styles)
+      raise(Shoes::Errors::NoSuchLinkableIdError, "Trying to set Shoes styles in a #{self.class} with no linkable ID!") unless linkable_id
+
+      changes = styles.to_h { |name, value| [name.to_s, self.class.validate_as(name, value)] }
+      changes.each { |name, value| instance_variable_set("@#{name}", value) }
+      send_shoes_event(changes, event_name: "prop_change", target: linkable_id)
       self
     end
+
+    public
 
     # The width in pixels (manual 2511-2513: "returns an exact pixel size").
     # A pixel width the app gave is the truth. Anything else (unset, "50%", 0.5, -100)
@@ -801,6 +812,18 @@ class Shoes
 
       $stderr.puts "[ERROR] #{self.class.dsl_name} text is not valid UTF-8: #{text.inspect}"
       text.scrub
+    end
+
+    # style(scale: 2) scales both ways and style(skew: 10) leans along x, as the scale and
+    # skew methods read one number (DrawContext); the display takes them as pairs.
+    def draw_context_pair(name, value)
+      return value unless value.is_a?(Numeric)
+
+      case name
+      when "scale" then [value, value]
+      when "skew" then [value, 0]
+      else value
+      end
     end
 
     # One margin, read as the display reads dimensions (dim.rs), against the parent's width.

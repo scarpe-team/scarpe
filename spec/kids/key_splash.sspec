@@ -1,0 +1,192 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/kids/key_splash/key_splash.rb")
+----------- test code
+require "json"
+app = Shoes.APPS.first
+ivar = ->(name) { app.instance_variable_get(name) }
+chimes = ivar.(:@chimes)
+fresh = -> { ivar.(:@blooms).reject(&:fading) }
+near = ->(pixel, color) { pixel.first(3).zip(color).all? { |got, want| (got - want).abs <= 14 } }
+settings_file = File.join(Dir.home, "Library", "Application Support", "Key Splash", "settings.json")
+heard = lambda do |file|
+  chimes.player.join(10)
+  File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true).include?("afplay #{file}")
+end
+
+# every note is on the pentatonic scale, so anything mashed together sounds right
+assert LADDER.all? { |note| note.match?(/\A[cdega]\d\z/) }, "only C, D, E, G and A"
+refute File.exist?(settings_file), "nothing saved until a grown-up changes something"
+
+# a letter key blooms that letter, huge, in its colour, with its own note
+press_key "i"
+b = ivar.(:@blooms).last
+assert_equal "I", b.what
+advance 0.7
+letter = b.parts.last[0]
+assert_in_delta b.size, letter.size, b.size * 0.05, "grown to full size"
+assert_operator b.size, :>=, 200, "big enough for a two-year-old"
+box = layout_of(letter)
+assert box.x >= 0 && box.x + box.w <= app.width && box.y >= 0, "and on the page"
+assert near.(pixel_at(b.x, b.y), b.paint[0]), "drawn in its colour"
+assert_match(/bell-g5\.wav\z/, chimes.last_file, "i sits high on the top row: g5")
+wav = File.binread(chimes.last_file)
+assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV file"
+loudest = wav[44..].unpack("s<*").map(&:abs).max
+assert_operator loudest, :<=, 32_767 / 4 + 1, "never above a quarter of full volume"
+assert heard.(chimes.last_file), "handed to afplay (the suite traps it, so nothing is heard)"
+assert ivar.(:@bits).any? { |bit| bit.motion == :spark }, "sparks fly out of it"
+
+# the very last frame of its fade is invisible, never a black flash (a see-through stroke prints nothing)
+b.fading = b.age - FADE
+app.send(:grow, b, 0.0)
+pixel = pixel_at(b.x, b.y - 36)
+assert pixel.first(3).sum > 500, "faded away to the sky, not to black: #{pixel.inspect}"
+b.fading = nil
+
+# a number brings that many stars, one at a time, to count
+press_key "4"
+four = ivar.(:@blooms).last
+assert_equal "4", four.what
+advance 1.2
+assert_equal 4, four.stars.count { |star| star[:art] }, "four stars"
+assert four.stars.all? { |star| star[:y] > four.y }, "under the number"
+assert_match(/pop-d5\.wav\z/, chimes.last_file, "the fourth star sings the fourth note of the count")
+
+# a key with no letter on it blooms a smiling star
+press_key ","
+assert_equal :star, ivar.(:@blooms).last.what
+advance 0.6
+face = ivar.(:@blooms).last.face
+assert_operator layout_of(face[:smile]).w, :>, 10, "with a smile"
+
+# a click tosses balls, stars and hearts that bounce on the hills and never fall through
+before = ivar.(:@bits).size
+click_at 500, 300
+tossed = ivar.(:@bits).last(7)
+assert_operator ivar.(:@bits).size, :>=, before + 7
+assert_equal %i[ball heart star], tossed.map(&:kind).uniq.sort
+advance 1.5
+assert tossed.all? { |bit| bit.y <= app.send(:ground, bit.x) - bit.size / 2.0 + 0.5 }, "they land on the hills"
+assert tossed.any? { |bit| bit.y > 400 }, "after falling down to them"
+
+# Return paints a rainbow, and pressing it again keeps the same one
+press_key "\n"
+rainbow = ivar.(:@rainbow)
+assert_equal 7, rainbow.size, "seven bands"
+advance 0.4
+press_key "\n"
+assert_same rainbow, ivar.(:@rainbow), "one rainbow, however often Return is pressed"
+
+# a wiggle leaves bubbles
+bubbles = ivar.(:@bits).count { |bit| bit.kind == :bubble }
+20.times { |i| move_mouse 200 + i * 20, 250 + 40 * Math.sin(i) }
+assert_operator ivar.(:@bits).count { |bit| bit.kind == :bubble }, :>=, bubbles + 8
+
+# a key held down repeats thirty times a second: it blooms now and then, not thirty times
+count_k = -> { ivar.(:@blooms).count { |bloom| bloom.what == "K" } }
+30.times { press_key "k"; advance 1 / 30.0 }
+assert_includes 2..4, count_k.call
+
+# toddler mashing: every key, clicks everywhere, and nothing breaks or piles up
+srand 3
+keys = ("a".."z").to_a + ("0".."9").to_a + [" ", "\n", "left", "up", "tab", "backspace", "/", "f5", "home"]
+80.times do |i|
+  press_key keys.sample
+  click_at rand(40..960), rand(130..600) if i % 4 == 0
+  move_mouse rand(0..1000), rand(0..660)
+  advance 1 / 14.0
+end
+assert_operator fresh.call.size, :<=, MOST_BLOOMS, "the oldest blooms make way"
+assert_operator ivar.(:@bits).size, :<=, MOST_BITS
+advance 5
+assert_empty ivar.(:@blooms), "and it all fades away"
+assert_nil ivar.(:@rainbow)
+
+# the speaker turns the sound off, and remembers
+click_at 872, 50
+assert chimes.muted
+assert_equal "Sound off", para("@sound_label").text
+assert_equal false, ivar.(:@sound_off).first.hidden
+chimes.instance_variable_set(:@last_file, nil)
+press_key "m"
+assert_nil chimes.last_file, "a quiet key"
+assert_equal true, JSON.parse(File.read(settings_file))["muted"]
+click_at 872, 50
+refute chimes.muted
+
+# a quick click on Name only says to hold it; holding it opens the name card
+click_at 948, 50
+refute ivar.(:@card)
+assert_equal false, ivar.(:@name_hint).hidden
+automation.mouse(:move, 948, 50)
+automation.mouse(:down, 948, 50)
+advance 1.0
+refute ivar.(:@card), "not yet"
+advance 0.6
+assert ivar.(:@card), "held long enough"
+automation.mouse(:up, 948, 50)
+type_text "Lu"
+press_key "\n"
+assert_nil ivar.(:@card)
+assert_equal "Lu", ivar.(:@name)
+assert_equal "Lu", JSON.parse(File.read(settings_file))["name"]
+
+# now every key spells the name, in order, and the whole name gets a cheer
+advance 0.2
+press_key "q"
+assert_equal "L", ivar.(:@blooms).last.what
+press_key "p"
+assert_equal "u", ivar.(:@blooms).last.what
+assert ivar.(:@spelling).all?(&:hop), "L and u both hop"
+advance 0.5
+press_key "z"
+assert_equal "L", ivar.(:@blooms).last.what, "and round again"
+assert_equal 1, ivar.(:@spelling).size
+
+# No name goes back to letters
+automation.mouse(:down, 948, 50)
+advance 1.6
+automation.mouse(:up, 948, 50)
+click_on "No name"
+assert_nil ivar.(:@name)
+press_key "r"
+assert_equal "R", ivar.(:@blooms).last.what
+
+# a grown-up squeezes the window small and a toddler goes on mashing: nothing breaks
+resize_window 200, 150
+advance 0.3
+("a".."z").each_with_index do |k, i|
+  press_key k
+  click_at 20 + i * 6, 40 + i * 3 if i.even?
+  advance 1 / 15.0
+end
+press_key "\n"
+press_key "7"
+advance 1.0
+assert_operator fresh.call.size, :>, 0, "still blooming in a small window"
+resize_window 1000, 660
+advance 3.5
+
+# left alone for a while, the sun nods off; any key wakes it
+advance 21
+assert ivar.(:@dozing), "asleep after twenty seconds of nobody playing"
+assert ivar.(:@zeds).all? { |z| z.hidden == false }, "with its z's"
+press_key "h"
+advance 0.1
+refute ivar.(:@dozing), "a key wakes it"
+
+# a tap on Escape is just another key; holding it for two seconds leaves
+press_key :escape
+advance 1.5
+refute ivar.(:@leaving)
+assert_equal true, ivar.(:@leave_ring).hidden
+press_key :escape
+advance 0.5
+press_key :escape
+assert_equal "Keep holding to leave", para("@leave_label").text
+20.times { advance 0.08; press_key :escape }
+assert ivar.(:@leaving), "two seconds of Escape"
+assert_equal "Bye bye!", para("@leave_label").text

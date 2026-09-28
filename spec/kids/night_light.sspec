@@ -1,0 +1,197 @@
+---
+display: native
+testability: interactive
+timeout: 150
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/kids/night_light/night_light.rb")
+----------- test code
+srand(4)
+app = Shoes.APPS.first
+iv = ->(name) { app.instance_variable_get("@#{name}") }
+sounds = iv.(:sounds)
+# What afplay was asked to play (the suite traps it, so nothing is heard), once the last one has run.
+trap_lines = lambda do
+  sounds.player&.join(5)
+  File.exist?(ENV.fetch("SPEC_TRAP_FILE")) ? File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true) : []
+end
+played = ->(name) { trap_lines.().grep(/afplay .*#{name}\.wav\z/) }
+bright = ->(x, y) { pixel_at(x, y).first(3).sum }
+cream = ->(x, y) { r, g, b = pixel_at(x, y); r > 230 && g > 200 && b > 120 && b < 235 }
+closed = false
+app.define_singleton_method(:close) { closed = true }
+# Clouds drift over everything; for a pixel check they go and wait off to the left.
+park_clouds = lambda do
+  iv.(:clouds).each { |cloud| cloud.x = -400.0 }
+  advance 1 / 30.0
+end
+clear_of_stars = ->(x, y, room) { iv.(:stars).all? { |s| Math.hypot(s.x - x, s.y - y) > room } }
+
+# The scene: thirty stars to sing, fireflies, three sheep and four clouds.
+assert_equal [30, 14, 3, 4], [iv.(:stars).size, iv.(:fireflies).size, iv.(:sheep).size, iv.(:clouds).size]
+assert_equal "Fredoka", ROUND, "the Kids apps' round font is loaded"
+
+# The music box starts by itself, one tine at a time, through a WAV the app wrote.
+refute iv.(:music_on)
+advance 1.3
+assert iv.(:music_on), "the lullaby starts after a moment"
+assert_match(/tine-g4\.wav\z/, sounds.last_file)
+wav = File.binread(sounds.last_file)
+assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV file"
+loudest = wav[44..].unpack("s<*").map(&:abs).max
+assert_operator loudest, :<=, 0.3 * 32_767, "no sound is ever loud"
+refute_empty played.("tine-g4"), "afplay was asked to play it (the suite traps afplay, so nothing is heard)"
+advance 5
+assert_operator iv.(:note), :>=, 4, "and the tune goes on"
+
+# Tapping the moon turns it to its next phase: the right edge falls into shadow and it says "oh".
+park_clouds.()
+assert cream.(790, 196), "a full moon is lit to its right edge"
+click_at 712, 196
+assert_equal 5, iv.(:phase_to)
+refute iv.(:lit_face)[:oh].hidden, "the moon says oh"
+refute_empty played.("bong-g4"), "a bong for the fifth phase"
+advance 1.3
+refute cream.(790, 196), "the right edge is in shadow now: #{pixel_at(790, 196).inspect}"
+assert cream.(650, 196), "and the left is still lit"
+assert iv.(:lit_face)[:oh].hidden, "back to a smile"
+
+# A star sings its note and lights up.
+star = iv.(:stars).max_by(&:size)
+click_at star.x, star.y
+assert_in_delta 1.0, star.lit, 0.01
+assert_match(/twinkle-#{star.note}\.wav\z/, sounds.last_file)
+
+# The empty sky grows a new star where it was tapped.
+moon_x, moon_y = 712, 196
+open_sky = (40..920).step(20).to_a.product((150..380).step(20).to_a).find do |x, y|
+  iv.(:stars).all? { |s| Math.hypot(s.x - x, s.y - y) > 60 } && !app.cloud_at(x, y) && Math.hypot(x - moon_x, y - moon_y) > 130 && y < app.far_hill(x) - 40
+end
+refute_nil open_sky, "somewhere to tap"
+dark = bright.(*open_sky)
+click_at(*open_sky)
+advance 0.6
+assert_equal 1, iv.(:new_stars).count { |s| s.life > 0 }, "one new star"
+assert_operator bright.(*open_sky), :>, dark + 150, "shining where the sky was tapped"
+
+# The grass sends up a firefly, which rises.
+click_at 120, 600
+assert_equal 15, iv.(:fireflies).size
+riser = iv.(:fireflies).last
+advance 0.5
+assert_operator riser.y, :<, 580, "a firefly rises from the grass"
+
+# A firefly the pointer touches chimes, and darts away.
+fly = iv.(:fireflies).first
+fly.vx = fly.vy = fly.rest = 0.0
+move_mouse fly.x.round, fly.y.round
+advance 1 / 30.0
+assert_operator fly.lit, :>, 0.9
+assert_operator fly.rest, :>, 1, "and rests before it chimes again"
+refute_empty played.("chime-#{fly.note}")
+
+# A sheep hops, eyes open, and lands again.
+sheep = iv.(:sheep)[1]
+rest_y = layout_of(sheep.slot).y
+click_at sheep.x + 54, sheep.y + 48
+advance 0.3
+assert_operator layout_of(sheep.slot).y, :<, rest_y - 30, "up it goes"
+refute sheep.awake.first.hidden, "eyes open for the hop"
+advance 1.2
+assert_in_delta rest_y, layout_of(sheep.slot).y, 1, "and down again"
+assert sheep.awake.first.hidden
+
+# The cottage light clicks off and on.
+left, top, right, bottom = iv.(:cottage_box)
+window = [left + 50, bottom - 29] # one pane, clear of the cross bars
+lamp = bright.(*window)
+click_at(*window)
+refute iv.(:window_on)
+assert_operator bright.(*window), :<, lamp - 200, "the window goes dark"
+click_at(*window)
+assert iv.(:window_on)
+
+# A cloud drifting back in from the left hangs off the edge, rather than jumping to the right.
+drifter = iv.(:clouds)[0]
+drifter.x = -120.0
+advance 1 / 30.0
+assert_operator layout_of(drifter.art).x, :<, -100, "a cloud comes back in from the left edge"
+
+# A cloud wobbles and sighs.
+cloud = iv.(:clouds)[1]
+cloud.x = 60.0
+advance 1 / 30.0
+spot = (cloud.x + 20..cloud.x + cloud.width - 10).step(10).to_a.product([cloud.y + 50, cloud.y + 70]).find { |x, y| clear_of_stars.(x, y, 40) }
+click_at(*spot)
+refute_nil cloud.wobble
+assert_match(/sigh-d4\.wav\z/, sounds.last_file)
+
+# Keys: every letter has its own star, space sends a shooting star, Return turns the moon.
+press_key "a"
+assert_in_delta 1.0, iv.(:stars)["a".sum % 30].lit, 0.01, "a key makes its star sing"
+press_key " "
+refute_nil iv.(:shooting), "a shooting star"
+advance 1.8
+assert_nil iv.(:shooting), "and it is gone"
+press_key "\n"
+assert_equal 6, iv.(:phase_to)
+
+# Mashing: dozens of keys at once never break anything, and never pile up sounds.
+keys = ("a".."z").to_a + %w[1 2 3 ; ,] + [:left, :up, :tab, :f5]
+before = trap_lines.().size
+60.times { |i| press_key keys[i % keys.size] }
+assert_operator trap_lines.().size - before, :<=, 60, "at most one sound a key"
+advance 0.5
+assert_operator iv.(:stars).count { |s| s.lit > 0 }, :>, 10, "stars all over the sky are singing"
+# While six sounds are still ringing, a seventh waits its turn (here each "sound" is a long sleep,
+# stopped straight after, so the test doesn't depend on how fast the machine is).
+spawned = 0
+sounds.define_singleton_method(:spawn) { |*_args, **_opts| spawned += 1; Process.spawn("sleep", "30") }
+20.times { |i| press_key keys[i] }
+assert_equal 6, spawned, "no more than six sounds at the same moment"
+sounds.singleton_class.remove_method(:spawn)
+sounds.instance_variable_get(:@playing).each { |sleeper| Process.kill("TERM", sleeper.pid) rescue nil; sleeper.join(2) }
+
+# The speaker turns every sound off, and back on.
+click_at 170, 74
+assert sounds.muted
+assert iv.(:waves).all?(&:hidden), "the speaker shows no waves when quiet"
+refute iv.(:hush).first.hidden
+quiet = trap_lines.().size
+click_at star.x, star.y
+assert_equal quiet, trap_lines.().size, "nothing plays while muted"
+click_at 170, 74
+refute sounds.muted
+
+# The star button pauses the lullaby and plays it again.
+click_at 74, 74
+refute iv.(:music_on)
+refute iv.(:play_icon).hidden
+held = iv.(:note)
+advance 3
+assert_equal held, iv.(:note), "paused"
+click_at 74, 74
+assert iv.(:music_on)
+
+# One press of Escape does nothing; holding it (a key held down repeats) closes the window.
+press_key :escape
+advance 1
+refute closed, "a single Escape is nothing"
+44.times do
+  press_key :escape
+  advance 0.05
+end
+assert closed, "holding Escape for two seconds closes the window"
+
+# Left alone, the sky softens: darker, the cottage light out, the moon asleep, the music box wound down.
+move_mouse 480, 20
+park_clouds.()
+samples = (300..580).step(20).to_a.product([60, 220, 360]).select { |x, y| clear_of_stars.(x, y, 30) }.first(4)
+sky = samples.sum { |x, y| bright.(x, y) }
+advance 250
+park_clouds.()
+assert_in_delta 1.0, iv.(:sleepy), 0.001
+assert_operator samples.sum { |x, y| bright.(x, y) }, :<, sky * 0.7, "the sky is softer"
+refute iv.(:window_on), "the cottage light went out"
+assert iv.(:lit_face)[:eyes].all?(&:hidden), "the moon is asleep"
+refute iv.(:music_on), "the music box wound down"
+assert cream.(650, 196), "and the moon still glows"

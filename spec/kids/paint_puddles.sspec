@@ -1,0 +1,177 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/kids/paint_puddles/paint_puddles.rb")
+----------- test code
+app = Shoes.APPS.first
+marks = -> { app.instance_variable_get(:@marks) }
+music = app.instance_variable_get(:@music)
+mouse = Scarpe::Native::DisplayService.instance.automation
+near = ->(pixel, color, by = 14) { pixel.first(3).zip(color).all? { |got, want| (got - want).abs <= by } }
+paper = [255, 253, 248]
+heard = [] # every sound the app plays, by name
+music.define_singleton_method(:play) { |name, now| super(name, now).tap { |played| heard << name if played } }
+tray = { brush: [72, 70], star: [72, 160], heart: [72, 250], sun: [72, 340], fish: [72, 430], wave: [72, 542], sound: [72, 618] }
+
+# a clean page, with the brush in hand
+assert_empty marks.call
+assert_equal :brush, app.instance_variable_get(:@tool)
+assert near.(pixel_at(560, 340), paper), "the paper starts blank"
+
+# a stroke lays paint that runs through the rainbow, and sings through afplay
+drag(*(0..40).map { |i| [220 + i * 12, 340] })
+assert_operator marks.call.size, :>, 30, "a stroke is many pieces of paint"
+first, last = pixel_at(236, 340), pixel_at(680, 340)
+refute near.(first, paper), "paint where the stroke began"
+refute near.(last, paper), "and where it ended"
+refute near.(first, last, 40), "the brush changed colour along the way: #{first.inspect} then #{last.inspect}"
+assert_includes heard, "note6", "the stroke sang: #{heard.inspect}"
+
+# high on the page sings high: a stroke up the page climbs the scale
+advance 1 # let the first stroke's notes ring out: at most five sounds play at once
+heard.clear
+mouse.mouse(:move, 900, 600)
+mouse.mouse(:down, 900, 600)
+40.times do |i|
+  mouse.mouse(:move, 900, 588 - i * 12)
+  advance 0.05
+end
+mouse.mouse(:up, 900, 120)
+steps = heard.grep(/\Anote/).map { |name| name[/\d+/].to_i }
+assert_operator steps.size, :>=, 4, "a note every little way: #{heard.inspect}"
+assert_equal steps.sort, steps, "each note higher than the last"
+wav = File.binread(music.last_file)
+assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV file"
+loudest = wav[44..].unpack("s<*").map(&:abs).max
+assert_operator loudest, :<=, 0.3 * 32_767, "and never loud"
+music.player.join(10)
+assert_includes File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true), "afplay #{music.last_file}",
+  "afplay was asked to play it (the suite traps afplay, so nothing is heard)"
+
+# holding still pools the paint into rainbow rings, and a big puddle drips when let go
+advance 1
+mouse.mouse(:move, 460, 500)
+mouse.mouse(:down, 460, 500)
+advance 3
+puddle = app.instance_variable_get(:@stroke)[:puddle]
+refute_nil puddle, "holding still makes a puddle"
+assert_operator puddle[:rings].size, :>=, 5, "ring after ring of colour"
+assert_operator heard.grep(/\Aring/).size, :>=, 5, "each ring bloops"
+mouse.mouse(:up, 460, 500)
+advance 2
+refute near.(pixel_at(460 + 50, 500), paper), "the puddle is wide"
+assert marks.call.any? { |mark| mark.pieces == 2 }, "and it dripped"
+
+# a puddle pressed against the edge of the paper stays on the paper
+advance 1
+mouse.mouse(:move, 600, 26)
+mouse.mouse(:down, 600, 26)
+advance 2.5
+edge = app.instance_variable_get(:@stroke)[:puddle]
+mouse.mouse(:up, 600, 26)
+advance 0.2
+edge[:rings].each do |ring|
+  box = layout_of(ring[:oval])
+  assert_operator box.y, :>=, 20, "the puddle's rings stay below the top of the paper"
+end
+
+# a stamp bounces in: small at first, then full size
+click_at(*tray[:star])
+assert_equal :star, app.instance_variable_get(:@tool)
+click_at 820, 190
+advance 0.1
+early = layout_tree.count { |node| node[:kind] == "Shape" }
+advance 0.6
+star_body = pixel_at(820, 160)
+assert star_body[0] > 235 && star_body[1] > 170 && star_body[2] < 150, "a yellow star where we clicked: #{star_body.inspect}"
+assert_equal "star", heard.last
+assert_operator layout_tree.count { |node| node[:kind] == "Shape" }, :>=, early, "the star is still there once it lands"
+
+# dragging with a stamp leaves a trail of friends
+click_at(*tray[:heart])
+before = marks.call.size
+drag(*(0..30).map { |i| [300 + i * 16, 150] })
+assert_operator marks.call.size - before, :>=, 4, "a trail of hearts"
+
+# every key splats, where it sits on the keyboard; a mash of keys at once makes one splat
+before = marks.call.size
+%w[q p z m a l].each do |key|
+  press_key key
+  advance 0.1
+end
+assert_equal before + 6, marks.call.size, "six keys, six splats"
+before = marks.call.size
+%w[a s d f j k l e r t].each { |key| press_key key }
+assert_equal before + 1, marks.call.size, "ten keys in the same instant make one splat"
+
+# however fast the keys come, everything playing together stays soft
+ringing = -> { music.instance_variable_get(:@ringing).sum { |sound| music.loudness(sound, app.instance_variable_get(:@clock)) } }
+loudest = 0
+%w[z x c v b n m a s d f g h j k l].each do |key|
+  press_key key
+  advance 0.07
+  loudest = [loudest, ringing.call].max
+end
+assert_operator loudest, :>, 0.2, "the keys do make sounds"
+assert_operator loudest, :<=, Music::ROOM + 0.01, "but never more than ROOM all together"
+advance 0.1
+press_key "1"
+assert_equal "star", heard.last, "the number keys stamp friends"
+advance 0.1
+[:left, " ", "\n", :control_a].each do |key|
+  press_key key
+  advance 0.1
+end
+
+# the tray buttons swell under the pointer
+move_mouse(*tray[:sun])
+advance 0.4
+assert_operator app.instance_variable_get(:@disc_sizes)[:sun], :>, 80, "the sun button swells"
+
+# the wave washes the page clean
+refute_empty marks.call
+click_at(*tray[:wave])
+advance 0.7
+assert app.instance_variable_get(:@washing), "the wave is rolling"
+refute_empty marks.call, "halfway, some paint is still ahead of the wave"
+advance 1.6
+assert_empty marks.call, "the wave took everything"
+assert_empty app.instance_variable_get(:@paint).contents, "nothing left on the page"
+assert near.(pixel_at(560, 340), paper), "clean paper again"
+assert near.(pixel_at(820, 160), paper), "the star went too"
+assert_nil app.instance_variable_get(:@washing), "and the water has gone"
+
+# the speaker button turns the sound off and on
+click_at(*tray[:brush])
+click_at(*tray[:sound])
+assert music.muted
+quiet = heard.size
+drag([300, 300], [400, 320], [500, 300])
+press_key "q"
+advance 0.5
+assert_equal quiet, heard.size, "no sound while it is off: #{heard.last(3).inspect}"
+click_at(*tray[:sound])
+refute music.muted
+assert_equal "hello", heard.last, "and a little hello when it comes back on"
+
+# hold Esc for two seconds to close; a tap or a small hand mashing it does not
+closed = false
+app.define_singleton_method(:close) { closed = true }
+press_key :escape
+advance 1.5
+refute closed, "one tap does not close"
+assert_nil app.instance_variable_get(:@escape_since), "and it stops counting"
+8.times do
+  press_key :escape
+  advance 0.4
+end
+refute closed, "mashing Esc does not close"
+advance 1.5
+press_key :escape
+advance 0.45
+26.times do
+  press_key :escape
+  advance 0.08
+end
+assert closed, "holding it down, as the Mac repeats it, closes the app"

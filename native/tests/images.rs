@@ -75,3 +75,34 @@ fn pictures_nothing_shows_any_more_are_let_go() {
     }
     assert!(h.rt.images.len() <= 1, "{} pictures kept for no image", h.rt.images.len());
 }
+
+/// A picture shown bigger or smaller than its pixels is resampled once for the size it is shown
+/// at, and that copy is kept, not resampled on every paint: a 211 px glow stretched to 422
+/// points at 2x cost 21 ms a paint, where the same glow drawn from an 844 px file cost 4
+/// (_repros/night_light_3.rb). At its own size a picture needs no copy at all.
+#[test]
+fn a_stretched_picture_is_resampled_once_not_every_paint() {
+    let path = scratch("stretched").join("glow.png");
+    png(&path, 20, [255, 0, 0]);
+    let url = path.display().to_string();
+    let mut h = Harness::new();
+    h.feed(&app(200, 100, &[
+        create(3, "Image", 2, json!({"url": url, "left": 0, "top": 0, "width": 80, "height": 80})),
+        create(4, "Oval", 2, json!({"left": 150, "top": 10, "width": 10})),
+    ]));
+    let resampled = |h: &Harness| h.rt.stats.counter("images_resampled");
+    for x in [150, 160, 170] {
+        h.feed(&format!("{}\n{{\"t\":\"flush\"}}\n", json!({"t": "props", "id": 4, "props": {"left": x}})));
+        assert_eq!(pixel(&mut h, 40.0, 40.0), json!([255, 0, 0, 255]));
+    }
+    assert_eq!(resampled(&h), 1, "three paints, one copy at 80 px");
+
+    h.feed(&format!("{}\n{{\"t\":\"flush\"}}\n", json!({"t": "props", "id": 3, "props": {"width": 20, "height": 20}})));
+    assert_eq!(pixel(&mut h, 10.0, 10.0), json!([255, 0, 0, 255]));
+    assert_eq!(resampled(&h), 1, "at its own size it is drawn as it is");
+
+    h.feed(&format!("{}\n{{\"t\":\"flush\"}}\n", json!({"t": "props", "id": 3, "props": {"width": 60, "height": 30}})));
+    pixel(&mut h, 30.0, 15.0);
+    pixel(&mut h, 30.0, 15.0);
+    assert_eq!(resampled(&h), 2, "a new size makes one more copy");
+}

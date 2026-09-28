@@ -294,11 +294,10 @@ pub fn apply_text_props(style: &mut TextStyle, props: &Props, fonts: &Fonts) {
         Some("normal") => style.italic = false,
         _ => {}
     }
+    // A see-through stroke is the end of a fade: the text goes, it does not fall back to black.
     if let Some(color) = props.color("stroke") {
-        if !color.is_invisible() {
-            style.color = color;
-            style.explicit_color = true;
-        }
+        style.color = color;
+        style.explicit_color = true;
     }
     if let Some(underline) = props.get("underline") {
         style.underline = match underline {
@@ -405,6 +404,22 @@ mod tests {
         assert_eq!(rich.runs[0].style.underline, Underline::None);
         assert!(!rich.runs[1].style.strike);
         assert_eq!(rich.runs[2].style.underline, Underline::Single, "a link keeps its underline otherwise");
+    }
+
+    #[test]
+    fn a_see_through_stroke_stays_see_through() {
+        // The last frame of a fade out is a stroke with alpha 0. It fell back to the default
+        // black ink, which flashed the whole word black (_repros/key_splash_2.rb).
+        let fonts = Fonts::new(FontMode::Bundled);
+        let mut doc = Doc::default();
+        node(&mut doc, 2, "DocumentRoot", None, json!({}));
+        node(&mut doc, 3, "Para", Some(2), json!({"text_items": ["B"], "stroke": [255, 152, 48, 0]}));
+        node(&mut doc, 4, "Em", None, json!({"text_items": ["i"], "stroke": [255, 152, 48, 0]}));
+        node(&mut doc, 5, "Para", Some(2), json!({"text_items": [4], "stroke": [0, 0, 255, 255]}));
+        let faded = resolve_block(&doc, &fonts, 3).unwrap();
+        assert_eq!(faded.runs[0].style.color.a, 0, "{:?}", faded.runs[0].style.color);
+        let span = resolve_block(&doc, &fonts, 5).unwrap();
+        assert_eq!(span.runs[0].style.color.a, 0, "a see-through span inside blue text");
     }
 
     #[test]

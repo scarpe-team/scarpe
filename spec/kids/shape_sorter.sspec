@@ -1,0 +1,195 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/kids/shape_sorter/shape_sorter.rb")
+----------- test code
+app = Shoes.APPS.first
+music = app.instance_variable_get(:@music)
+heard = [] # every sound the app plays, by name
+music.define_singleton_method(:play) { |name, now| super(name, now).tap { |played| heard << name if played } }
+pieces = -> { app.instance_variable_get(:@pieces) }
+holes = -> { app.instance_variable_get(:@holes) }
+glow = -> { app.instance_variable_get(:@glow) }
+piece_of = ->(kind) { pieces.call.find { |piece| piece.kind == kind } }
+hole_for = ->(piece) { holes.call.find { |hole| hole.kind == piece.kind && hole.team == piece.team } }
+hole_of = ->(kind) { holes.call.find { |hole| hole.kind == kind } }
+sorted = -> { pieces.call.count { |piece| piece.state == :sorted } }
+
+# round one: the circle, the square and the triangle pop out onto the table
+advance 1.2
+assert_equal 1, app.instance_variable_get(:@round)
+assert_equal %i[circle square triangle], pieces.call.map(&:kind).sort_by { |kind| KINDS.index(kind) }
+assert pieces.call.all? { |piece| piece.state == :table }, "all three are on the table"
+assert_equal 5, holes.call.size, "five holes in the lid"
+assert_equal "1", para("@badge").text
+inside = pixel_at(hole_of.(:circle).x, hole_of.(:circle).y + 10)
+assert_operator inside.first(3).sum, :<, 200, "the holes are dark inside: #{inside.inspect}"
+circle = piece_of.(:circle)
+body = pixel_at(circle.x.round, circle.y.round)
+assert body.first(3).zip(circle.color).all? { |got, want| (got - want).abs < 70 }, "the circle is drawn in its colour: #{body.inspect}"
+
+# a click picks a shape up
+click_at circle.x, circle.y
+assert_equal circle, app.instance_variable_get(:@held)
+assert_equal "pick", heard.last
+advance 0.4
+assert_operator circle.lift, :>, 15, "it lifts off the table"
+
+# the wrong hole boings it gently home, and nothing is lost
+click_at hole_of.(:square).x, hole_of.(:square).y
+advance 0.5
+assert_includes heard, "boing"
+assert_equal :oh, app.instance_variable_get(:@face), "the box says oh"
+advance 1
+assert_equal :table, circle.state, "back on the table"
+assert_in_delta circle.home[0], circle.x, 1
+assert_equal 0, sorted.call
+
+# the right hole swallows it, with a clunk and a cheer
+click_at circle.x, circle.y
+click_at hole_for.(circle).x, hole_for.(circle).y
+advance 0.8
+assert_equal :sorted, circle.state
+assert_includes heard, "clunk"
+assert_includes heard, "cheer"
+assert_equal :happy, app.instance_variable_get(:@face)
+assert_equal 1, sorted.call
+
+# dragging works too
+square = piece_of.(:square)
+goal = hole_for.(square)
+drag([square.x, square.y], *(1..12).map { |i| [square.x + (goal.x - square.x) * i / 12.0, square.y + (goal.y - square.y) * i / 12.0] })
+advance 0.8
+assert_equal :sorted, square.state, "dropped in by dragging"
+
+# a drag that ends on the table puts the shape back where it lives
+triangle = piece_of.(:triangle)
+drag([triangle.x, triangle.y], [triangle.x + 60, triangle.y - 40], [triangle.x + 130, triangle.y - 20])
+advance 0.8
+assert_equal :table, triangle.state
+assert_in_delta triangle.home[0], triangle.x, 1
+
+# clicking a hole with empty hands makes the shapes that fit it wiggle
+click_at hole_of.(:triangle).x, hole_of.(:triangle).y
+assert_operator triangle.wiggle, :>, 1, "the triangle wiggles: pick me"
+assert_includes heard, "ooh"
+
+# holding a shape a while makes the right hole glow, for the little ones
+click_at triangle.x, triangle.y
+advance 2
+assert glow.call.hidden, "no glow straight away"
+advance 3.5
+refute glow.call.hidden, "then the right hole glows"
+click_at hole_for.(triangle).x, hole_for.(triangle).y
+advance 0.8
+assert_equal 3, sorted.call
+
+# all three in: a star for the round, and round two brings the star shape too
+advance 4
+assert_includes heard, "hooray"
+assert_equal 2, app.instance_variable_get(:@round)
+assert_equal 1, app.instance_variable_get(:@stars_earned)
+assert_equal "2", para("@badge").text
+advance 1
+assert_equal 4, pieces.call.size
+assert_includes pieces.call.map(&:kind), :star
+assert pieces.call.all? { |piece| piece.state == :table }
+
+# any key makes a shape hop, and a mash of keys is fine
+press_key "a"
+advance 0.15
+assert pieces.call.any? { |piece| piece.hop > 5 }, "a shape hops"
+%w[q w e r t y u i o p].each { |key| press_key key }
+ringing = -> { music.instance_variable_get(:@ringing).sum { |sound| music.loudness(sound, app.instance_variable_get(:@clock)) } }
+loudest = 0
+%w[z x c v b n m a s d f g h j k l].each do |key|
+  press_key key
+  advance 0.08
+  loudest = [loudest, ringing.call].max
+end
+assert_operator loudest, :>, 0.2, "the keys make the shapes sing as they hop"
+assert_operator loudest, :<=, Music::ROOM + 0.01, "but everything together stays soft"
+[:left, :tab, "\n", :control_a].each { |key| press_key key }
+advance 0.6
+assert pieces.call.all? { |piece| piece.state == :table }, "mashing keys moves nothing out of place"
+
+# the space bar shows where the shape in hand goes, at once
+star = piece_of.(:star)
+click_at star.x, star.y
+advance 0.1
+assert glow.call.hidden
+press_key " "
+advance 0.1
+refute glow.call.hidden, "space shows the hole"
+click_at star.x, star.y
+advance 0.8
+assert_equal :table, star.state, "clicking the shape in hand puts it down"
+
+# big kid mode: ten holes in two colours, and a shape must match its colour too
+click_at 830, 44
+advance 2
+assert app.instance_variable_get(:@big_kid)
+assert_equal 10, holes.call.size
+assert_equal 1, app.instance_variable_get(:@round)
+assert_equal 4, pieces.call.size
+assert_equal 2, TEAMS.values.map { |team| team[:mark] }.uniq.size, "each colour has its own mark too"
+piece = pieces.call.first
+wrong_colour = holes.call.find { |hole| hole.kind == piece.kind && hole.team != piece.team }
+click_at piece.x, piece.y
+click_at wrong_colour.x, wrong_colour.y
+advance 1.6
+assert_equal :table, piece.state, "the right shape in the wrong colour boings home"
+click_at piece.x, piece.y
+advance 6
+assert glow.call.hidden, "big kids get no glow unless they ask"
+click_at hole_for.(piece).x, hole_for.(piece).y
+advance 0.8
+assert_equal :sorted, piece.state
+
+# switching back to the little holes while the round's star is still flying lands it at once
+pieces.call.reject { |p| p.state == :sorted }.each do |rest|
+  click_at rest.x, rest.y
+  click_at hole_for.(rest).x, hole_for.(rest).y
+  advance 0.8
+end
+advance 1.3
+assert app.instance_variable_get(:@star_flying), "the round's star is on its way up"
+click_at 830, 44
+refute app.instance_variable_get(:@big_kid)
+assert_equal 2, app.instance_variable_get(:@stars_earned), "and it still counts"
+assert app.instance_variable_get(:@prize).hidden, "nothing is left hanging in the air"
+advance 2
+
+# the speaker turns the sound off and on
+click_at 952, 44
+assert music.muted
+quiet = heard.size
+other = pieces.call.find { |p| p.state == :table }
+click_at other.x, other.y
+press_key "k"
+advance 0.5
+assert_equal quiet, heard.size, "no sound while it is off: #{heard.last(3).inspect}"
+click_at 952, 44
+refute music.muted
+assert_equal "hello", heard.last
+
+# hold Esc for two seconds to close; a tap or a small hand mashing it does not
+closed = false
+app.define_singleton_method(:close) { closed = true }
+press_key :escape
+advance 1.5
+refute closed, "one tap does not close"
+8.times do
+  press_key :escape
+  advance 0.4
+end
+refute closed, "mashing Esc does not close"
+advance 1.5
+press_key :escape
+advance 0.45
+26.times do
+  press_key :escape
+  advance 0.08
+end
+assert closed, "holding it down, as the Mac repeats it, closes the app"
