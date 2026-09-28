@@ -75,6 +75,7 @@ class Chimes
 
   def initialize
     @dir = Dir.mktmpdir("key-splash")
+    at_exit { FileUtils.rm_rf(@dir) } # the notes are only kept while the app runs
     @files = {}
     @players = []
     @muted = false

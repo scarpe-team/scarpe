@@ -62,6 +62,7 @@ class Voices
 
   def initialize
     @dir = Dir.mktmpdir("memory-match")
+    at_exit { FileUtils.rm_rf(@dir) } # the notes are only kept while the app runs
     @files = {}
     @noise = Random.new(4)
     @muted = false
