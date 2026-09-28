@@ -7,7 +7,7 @@ use crate::layout::Rect;
 use crate::paint::text::{caret_position, selection_rects};
 use crate::style::Color;
 use crate::text::FamilyName;
-use cosmic_text::{Action, Attrs, Buffer, Cursor, Edit, Editor, FontSystem, Metrics, Motion, Selection, Shaping, Wrap};
+use cosmic_text::{Action, Attrs, Buffer, Cursor, Edit, Editor, FontSystem, Metrics, Motion, Selection, Shaping, Style, Weight, Wrap};
 use std::collections::VecDeque;
 
 pub const BULLET: char = '\u{2022}';
@@ -74,13 +74,33 @@ pub struct TextField {
     pub inner: Rect,
     pub size: f32,
     pub color: Color,
-    family: FamilyName,
+    face: Face,
     bullet_w: f32,
     history: History,
     /// Texts sent in `change` events that Lacci has not echoed back yet. Echoes can trail
     /// the keys (a `type` request types a whole word before Ruby sees its first change), so
     /// an older one must not be mistaken for text the app set.
     unechoed: VecDeque<String>,
+}
+
+/// The face a field's text is set in: a family, and the weight and slant its `font:` names
+/// ("bold 16px", "Georgia italic"), as a para with the same string would draw them.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Face {
+    pub family: FamilyName,
+    pub weight: u16,
+    pub italic: bool,
+}
+
+impl Face {
+    pub fn plain(family: FamilyName) -> Face {
+        Face { family, weight: 400, italic: false }
+    }
+
+    fn attrs(&self) -> Attrs<'_> {
+        let style = if self.italic { Style::Italic } else { Style::Normal };
+        Attrs::new().family(self.family.as_family()).weight(Weight(self.weight)).style(style)
+    }
 }
 
 /// What a key did to a field.
@@ -91,13 +111,13 @@ pub struct Edited {
 }
 
 impl TextField {
-    pub fn new(fs: &mut FontSystem, text: &str, multiline: bool, secret: bool, family: FamilyName, size: f32, color: Color) -> Self {
+    pub fn new(fs: &mut FontSystem, text: &str, multiline: bool, secret: bool, face: Face, size: f32, color: Color) -> Self {
         let mut buffer = Buffer::new(fs, Metrics::new(size, line_height(size)));
         buffer.set_wrap(if multiline { Wrap::WordOrGlyph } else { Wrap::None });
         buffer.set_size(None, None);
-        buffer.set_text(text, &Attrs::new().family(family.as_family()).color(color.to_cosmic()), Shaping::Advanced, None);
+        buffer.set_text(text, &face.attrs().color(color.to_cosmic()), Shaping::Advanced, None);
         let mut bullet = Buffer::new(fs, Metrics::new(size, line_height(size)));
-        bullet.set_text(&BULLET.to_string(), &Attrs::new().family(family.as_family()), Shaping::Advanced, None);
+        bullet.set_text(&BULLET.to_string(), &face.attrs(), Shaping::Advanced, None);
         bullet.shape_until_scroll(fs, false);
         let bullet_w = bullet.layout_runs().map(|r| r.line_w).fold(0.0, f32::max).max(size * 0.5);
         let mut field = TextField {
@@ -108,7 +128,7 @@ impl TextField {
             inner: Rect::default(),
             size,
             color,
-            family,
+            face,
             bullet_w,
             history: History::default(),
             unechoed: VecDeque::new(),
@@ -161,7 +181,7 @@ impl TextField {
     }
 
     fn replace_text(&mut self, text: &str) {
-        let attrs = Attrs::new().family(self.family.as_family()).color(self.color.to_cosmic());
+        let attrs = self.face.attrs().color(self.color.to_cosmic());
         self.editor.with_buffer_mut(|b| b.set_text(text, &attrs, Shaping::Advanced, None));
     }
 
@@ -597,13 +617,15 @@ pub fn ensure<'v>(
 ) -> &'v mut TextField {
     fields.entry(node.id).or_insert_with(|| {
         let p = &node.props;
-        let mut family = FamilyName::Sans;
+        let mut face = Face::plain(FamilyName::Sans);
         let mut size = super::CONTROL_TEXT_SIZE;
         if let Some(font) = p.str("font") {
             let spec = crate::style::font::parse_font(font);
             if let Some(f) = spec.family {
-                family = fonts.resolve_family(&f);
+                face.family = fonts.resolve_family(&f);
             }
+            face.weight = spec.weight.unwrap_or(face.weight);
+            face.italic = spec.italic;
             if let Some(s) = spec.size {
                 size = s;
             }
@@ -611,6 +633,6 @@ pub fn ensure<'v>(
         let color = p.color("stroke").filter(|c| !c.is_invisible()).unwrap_or(crate::text::rich::INK);
         let multiline = node.kind == crate::doc::Kind::EditBox;
         let text = p.text("text").unwrap_or_default();
-        TextField::new(&mut fonts.system, &text, multiline, p.truthy("secret"), family, size, color)
+        TextField::new(&mut fonts.system, &text, multiline, p.truthy("secret"), face, size, color)
     })
 }

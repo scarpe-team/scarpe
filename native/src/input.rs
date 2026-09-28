@@ -386,24 +386,36 @@ pub fn hit_test(doc: &Doc, layout: &Layout, x: f32, y: f32) -> Option<Hit> {
     if x < 0.0 || y < 0.0 || x >= layout.size.0 || y >= layout.size.1 {
         return None;
     }
-    for &id in layout.order.iter().rev() {
-        let Some(node) = doc.get(id) else { continue };
-        if node.kind.is_decor() || id == layout.root {
-            continue;
-        }
-        let Some(b) = layout.boxes.get(&id) else { continue };
-        if !b.rect.contains(x, y) || b.clip.is_some_and(|c| !c.contains(x, y)) {
-            continue;
-        }
-        // A paragraph's first-line indent belongs to what came before it on the line.
-        if layout.texts.get(&id).is_some_and(|tb| !tb.owns(x, y)) {
-            continue;
-        }
+    if let Some(id) = layout.order.iter().rev().copied().find(|&id| covers(doc, layout, id, x, y)) {
+        let node = doc.get(id)?;
         let fragment = layout.texts.get(&id).filter(|_| matches!(node.kind, Kind::Para | Kind::TextDrawable)).and_then(|tb| span_at(tb, x, y));
         let (link, spans) = fragment.map(|m| (m.link, m.spans.clone())).unwrap_or_default();
         return Some(Hit { node: id, link, spans });
     }
     layout.boxes.contains_key(&layout.root).then_some(Hit { node: layout.root, link: None, spans: Vec::new() })
+}
+
+/// Every drawable under (x, y) that can catch the pointer, topmost first.
+pub fn under(doc: &Doc, layout: &Layout, x: f32, y: f32) -> Vec<Id> {
+    if x < 0.0 || y < 0.0 || x >= layout.size.0 || y >= layout.size.1 {
+        return Vec::new();
+    }
+    layout.order.iter().rev().copied().filter(|&id| covers(doc, layout, id, x, y)).collect()
+}
+
+/// Whether the pointer at (x, y) is over drawable `id`. Backgrounds, borders and the window's
+/// root never catch it, and a paragraph's first-line indent belongs to what came before it
+/// on the line.
+fn covers(doc: &Doc, layout: &Layout, id: Id, x: f32, y: f32) -> bool {
+    let Some(node) = doc.get(id) else { return false };
+    if node.kind.is_decor() || id == layout.root {
+        return false;
+    }
+    let Some(b) = layout.boxes.get(&id) else { return false };
+    if !b.rect.contains(x, y) || b.clip.is_some_and(|c| !c.contains(x, y)) {
+        return false;
+    }
+    !layout.texts.get(&id).is_some_and(|tb| !tb.owns(x, y))
 }
 
 /// The styled run whose glyphs are under (x, y), if any.
@@ -724,8 +736,8 @@ impl Runtime {
         self.views.get_mut(&app).expect("view").ui.pressed = Some(Press { target, button, kind: press_kind, consumed });
         if !consumed {
             let args = vec![json!(button), json!(x.round() as i64), json!(y.round() as i64)];
-            if let Some(owner) = chain.iter().find(|id| self.doc.get(**id).is_some_and(|n| n.props.truthy("has_click"))) {
-                self.out.event("click", Some(*owner), args.clone());
+            if let Some(owner) = self.pointer_owner(app, &hit, &chain, x, y, "has_click") {
+                self.out.event("click", Some(owner), args.clone());
             }
             for (item, parent) in self.subscriptions(app, "click") {
                 if Self::inside(&parent, x, y) {
@@ -734,6 +746,22 @@ impl Runtime {
             }
         }
         self.request_redraw(app);
+    }
+
+    /// Who hears a press or release that no control took (`block` is `has_click` or
+    /// `has_release`): a text fragment under the pointer with a block for it, else the topmost
+    /// drawable under the pointer that has one (DESIGN 4.3, ledger E8), so a label or an icon
+    /// drawn over a clickable shape passes the press on, as Shoes 3's shoes_canvas_send_click2
+    /// skips what has no click block. A control on top keeps the press to itself and its slots.
+    /// Last come the ancestors of what was hit, for a drawable that spills out of its slot.
+    fn pointer_owner(&self, app: Id, hit: &Hit, chain: &[Id], x: f32, y: f32, block: &str) -> Option<Id> {
+        let listens = |id: &Id| self.doc.get(*id).is_some_and(|n| n.props.truthy(block));
+        let on_a_control = self.doc.get(hit.node).is_some_and(|n| n.kind.consumes_press());
+        let beneath = match self.views.get(&app).and_then(|v| v.layout.as_ref()) {
+            Some(layout) if !on_a_control => under(&self.doc, layout, x, y),
+            _ => Vec::new(),
+        };
+        hit.spans.iter().chain(&beneath).chain(chain).copied().find(listens)
     }
 
     pub fn pointer_up(&mut self, app: Id, button: u8) {
@@ -759,8 +787,8 @@ impl Runtime {
         }
         if !press.as_ref().is_some_and(|p| p.consumed) {
             let args = vec![json!(button), json!(x.round() as i64), json!(y.round() as i64)];
-            if let Some(owner) = chain.iter().find(|id| self.doc.get(**id).is_some_and(|n| n.props.truthy("has_release"))) {
-                self.out.event("release", Some(*owner), args.clone());
+            if let Some(owner) = hit.as_ref().and_then(|hit| self.pointer_owner(app, hit, &chain, x, y, "has_release")) {
+                self.out.event("release", Some(owner), args.clone());
             }
             for (item, parent) in self.subscriptions(app, "release") {
                 if Self::inside(&parent, x, y) {
@@ -938,6 +966,10 @@ impl Runtime {
         let focus = self.views[&app].ui.focus.filter(|id| self.doc.get(*id).is_some_and(|n| !crate::elements::disabled(n)));
         let focus_kind = focus.and_then(|id| self.doc.get(id)).map(|n| n.kind.clone());
         let tab = key.key == Key::Named(Named::Tab) && !key.modified();
+        // A button, check, radio or list box takes keys only while it shows its focus ring,
+        // that is when focus came from the keyboard (tab, or the app's `focus`). One the mouse
+        // pressed leaves Space, Return and the arrows to the app, as a Mac's controls do.
+        let keyboard_focus = self.views[&app].ui.focus_visible;
         let mut send_keypress = true;
         match (focus, focus_kind) {
             (Some(id), Some(Kind::EditLine)) | (Some(id), Some(Kind::EditBox)) => {
@@ -961,24 +993,29 @@ impl Runtime {
                 if edited.0.changed {
                     self.out.event("change", Some(id), vec![Value::String(edited.1)]);
                 }
+                // Return in a one-line field runs its `finish` block (Shoes 3.2.15's
+                // `edit_line.finish = proc`, ledger G16).
+                if self.doc.get(id).is_some_and(|n| n.kind == Kind::EditLine) && key.key == Key::Named(Named::Enter) && !(key.modified() || key.shift) {
+                    self.out.event("finish", Some(id), vec![]);
+                }
                 self.request_redraw(app);
                 send_keypress = key.key == Key::Named(Named::Escape) || key.modified();
             }
-            (Some(id), Some(Kind::Button)) if button::activates(&key) => {
+            (Some(id), Some(Kind::Button)) if keyboard_focus && button::activates(&key) => {
                 self.out.event("click", Some(id), vec![]);
                 send_keypress = false;
             }
-            (Some(id), Some(Kind::Check)) | (Some(id), Some(Kind::Radio)) if check::activates(&key) => {
+            (Some(id), Some(Kind::Check)) | (Some(id), Some(Kind::Radio)) if keyboard_focus && check::activates(&key) => {
                 self.out.event("click", Some(id), vec![]);
                 send_keypress = false;
             }
-            (Some(id), Some(Kind::ListBox)) if matches!(key.key, Key::Named(Named::Up) | Key::Named(Named::Down)) && !key.modified() => {
+            (Some(id), Some(Kind::ListBox)) if keyboard_focus && matches!(key.key, Key::Named(Named::Up) | Key::Named(Named::Down)) && !key.modified() => {
                 if let Some(item) = self.doc.get(id).and_then(|n| list_box::stepped(n, &key)) {
                     self.choose(id, &item);
                 }
                 send_keypress = false;
             }
-            (Some(id), Some(Kind::ListBox)) if list_box::opens(&key) => {
+            (Some(id), Some(Kind::ListBox)) if keyboard_focus && list_box::opens(&key) => {
                 self.open_popup(app, id);
                 send_keypress = false;
             }

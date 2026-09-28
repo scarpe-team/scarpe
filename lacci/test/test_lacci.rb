@@ -448,4 +448,29 @@ class TestLacci < NienteTest
       assert true
     SHOES_SPEC
   end
+
+  # `style` looks up a class's style names on every change an animation makes, so each
+  # class keeps its list; a style declared later, even on a parent, is still found.
+  def test_style_names_are_kept_and_still_follow_new_styles
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      class Shoes
+        class CacheParent < Shoes::Drawable
+          shoes_style :first
+        end
+
+        class CacheChild < CacheParent
+          shoes_style :second
+        end
+      end
+      Shoes.app {}
+    SHOES_APP
+      names = Shoes::CacheChild.shoes_style_names
+      assert_same names, Shoes::CacheChild.shoes_style_names, "worked out once"
+      assert names.frozen?, "and kept safe from its callers"
+      assert_includes names, "first"
+      Shoes::CacheParent.shoes_style :third
+      assert_includes Shoes::CacheChild.shoes_style_names, "third", "a parent's new style reaches the child"
+      assert_includes Shoes::CacheChild.shoes_style_names(with_features: :all), "third"
+    SHOES_SPEC
+  end
 end

@@ -7,7 +7,7 @@ class Shoes
     shoes_styles :text, :width, :font, :tooltip, :stroke, :secret
     shoes_style :change # the handler (manual 1123-1128, ledger G10)
     shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
-    shoes_events :change
+    shoes_events :change, :finish
 
     # text "returns a string of characters", empty ones included (ledger M5)
     Shoes::Drawable.drawable_default_styles[Shoes::EditLine][:text] = ""
@@ -26,6 +26,10 @@ class Shoes
         @change&.call(self)
       end
 
+      bind_self_event("finish") do
+        @finish&.call(self)
+      end
+
       create_display_drawable
     end
 
@@ -36,6 +40,14 @@ class Shoes
     def change(&block)
       @change = block
       self
+    end
+
+    # Run a proc when Return is pressed in the line, so a one-line form can be sent from
+    # the keyboard. Shoes 3.2.15 added it (s3t_edit_line.c:15, 42-49; ledger G16).
+    #
+    # @param handler [Proc, nil] called with the edit line, holding its text
+    def finish=(handler)
+      @finish = handler
     end
 
     # Override the auto-generated text= to fire the change callback. Firing change

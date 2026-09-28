@@ -1,0 +1,80 @@
+---
+display: native
+testability: interactive
+----------- app code
+# spec/run gives every case its own HOME, so this catalog is the case's own.
+require "fileutils"
+base = if RUBY_PLATFORM.include?("darwin")
+         File.join(Dir.home, "Library", "Application Support")
+       else
+         ENV.fetch("XDG_DATA_HOME", File.join(Dir.home, ".local", "share"))
+       end
+$catalog_file = File.join(base, "Constellations", "constellations.json")
+FileUtils.mkdir_p(File.dirname($catalog_file))
+File.write($catalog_file, '[{"name":"The Kite","edges":[[54,20],[20,0],[0,33]],"made":"21 Sep 2026"}]')
+load File.join(Scarpe::Native::ROOT, "examples/native/legendary/constellations/constellations.rb")
+----------- test code
+app = Shoes.APPS.first
+bright = app.instance_variable_get(:@bright)
+named = -> { app.instance_variable_get(:@named) }
+saved = -> { JSON.parse(File.read($catalog_file)) }
+star = ->(i) { click_at(*bright[i].first(2)) }
+middle = ->(a, b) { [((bright[a][0] + bright[b][0]) / 2.0).round, ((bright[a][1] + bright[b][1]) / 2.0).round] }
+gold = ->(xy) { r, g, b = pixel_at(*xy); r > b + 40 && g > b }
+cyan = ->(xy) { r, g, b = pixel_at(*xy); b > r + 60 && g > r }
+status = -> { app.instance_variable_get(:@status).children.grep(Shoes::Para).map(&:text).join }
+texts = -> { paras.map(&:text) }
+
+assert_equal "/", app.location
+assert_equal 64, bright.size, "the same 64 bright stars every time"
+assert_equal ["The Kite"], named.().map { |c| c["name"] }, "the catalog comes back from its file"
+assert gold.(middle.(54, 20)), "a saved constellation is drawn in gold"
+assert_includes texts.(), "THE KITE", "with its name under it"
+assert_match(/Click a star to begin/, status.())
+
+# Click three stars: two lines. Backspace takes one back; Escape lets it all go.
+[56, 49, 20].each { |i| star.(i) }
+assert_equal [[56, 49], [49, 20]], app.instance_variable_get(:@draft)[:edges]
+assert cyan.(middle.(56, 49)), "the new line is drawn in blue"
+assert_match(/Keep clicking/, status.())
+press_key :backspace
+assert_equal [[56, 49]], app.instance_variable_get(:@draft)[:edges]
+press_key :escape
+assert_nil app.instance_variable_get(:@draft)
+refute cyan.(middle.(56, 49)), "escape clears the lines"
+
+# Draw it again, click the last star a second time, and name it.
+[56, 49, 20].each { |i| star.(i) }
+star.(20)
+assert_equal edit_line.linkable_id, focused_drawable&.linkable_id, "the name field is ready for typing"
+type_text "Test Sky"
+click_on "Save"
+assert_equal ["The Kite", "Test Sky"], saved.().map { |c| c["name"] }, "saved to the file"
+assert_equal [[56, 49], [49, 20]], saved.().last["edges"]
+assert_match(/Saved Test Sky/, status.())
+assert_includes texts.(), "TEST SKY"
+assert gold.(middle.(56, 49)), "and it turns gold"
+
+# The catalog, one constellation's own page, and back to the sky.
+click_on "Catalog"
+assert_equal "/catalog", app.location
+assert_includes texts.(), "2 constellations, 7 stars. Click one to see it up close."
+click_on "Test Sky"
+assert_equal "/catalog/1", app.location
+assert_includes texts.(), "3 stars joined by 2 lines."
+click_on "Show in the sky"
+assert_equal "/", app.location
+assert_equal 1, app.instance_variable_get(:@focus), "the sky shows the one you asked for"
+advance 7
+assert_nil app.instance_variable_get(:@focus), "then settles down"
+
+click_on "About"
+assert_equal "/about", app.location
+assert texts.().any? { |t| t.include?("the number 1609") }
+
+# Forgetting one takes it out of the file.
+click_on "Catalog"
+click_on "The Kite"
+click_on "Forget it"
+assert_equal "/catalog", app.location
+assert_equal ["Test Sky"], saved.().map { |c| c["name"] }

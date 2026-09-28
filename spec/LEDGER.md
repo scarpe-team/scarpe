@@ -2,7 +2,7 @@
 
 Shoes-Spec was Noah Gibbs' idea: write down what Shoes *is* as tests that any display service can run. Wherever the sources disagree about what Shoes is, the argument happens on this page. Each row records one disagreement, the evidence on every side, the ruling, what `spec/` asserts, and what the native Rust backend does.
 
-Status: v1.2, 27 Sep 2026. The orchestrator ruled the seven open questions (Q1 to Q7) that day, then Q8 and Q9 as the later build waves raised them, with two new rows (C15, G15) from the fifth wave's rulings; and the rows the first build wave asked for joined it (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20). v1 was seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`. When the build lanes merged the same day, every row whose Lacci behaviour changed gained a "Since 27 Sep" sentence naming the Lacci lane commit, and rows whose Lacci change landed say so in their ruling line.
+Status: v1.3, 28 Sep 2026. The sixth build wave (the legendary apps) extended C15 to every number on art and added E12 and G16; its finishing lane fixed what the app builders met, each row saying so. v1.2, 27 Sep 2026: The orchestrator ruled the seven open questions (Q1 to Q7) that day, then Q8 and Q9 as the later build waves raised them, with two new rows (C15, G15) from the fifth wave's rulings; and the rows the first build wave asked for joined it (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20). v1 was seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`. When the build lanes merged the same day, every row whose Lacci behaviour changed gained a "Since 27 Sep" sentence naming the Lacci lane commit, and rows whose Lacci change landed say so in their ruling line.
 
 ## How to read this
 
@@ -91,7 +91,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | C12 | Paint order: backgrounds are layered elements | MANUAL | | |
 | C13 | A fixed height clips the slot | MANUAL | | |
 | C14 | An explicit width or height includes the margins | S3, ruled (Q9) | | |
-| C15 | A negative `left` or `top` on art is a plain coordinate | S3 | | |
+| C15 | A number on art is a plain coordinate, negative or under 1 | S3; MANUAL for Floats | | |
 
 ### D. Colours and patterns
 
@@ -122,6 +122,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | E9 | `image(w, h) { }` is a canvas | MANUAL | | |
 | E10 | Transforms; turns add up | MANUAL; S3 for turns | | |
 | E11 | Art methods return `Shoes::Shape` | MANUAL | | |
+| E12 | `arc(..., wedge: true)` fills a pie slice | EXT | | |
 
 ### F. Text
 
@@ -159,6 +160,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | G13 | Up and Down on a focused list box select | MANUAL | | |
 | G14 | A radio unmarked by its sibling: does its block run? | BOTH | | |
 | G15 | Scarpe draws its own controls | EXT | | |
+| G16 | `edit_line.finish = proc` runs on Return | EXT | | |
 
 ### H. Events
 
@@ -539,6 +541,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** passes the number through. Oval, arc and arrow declare clamping validators for `left`, `top`, `width` and `height`, but none of them runs: `validate_as` takes the base Drawable's declaration of those names first, so `Shoes::Oval.validate_as(:left, -30)` is -30.
 - **Spec:** `styles.left__art_negative` (both displays): an oval, arc, arrow and rect keep a negative `left` and `top` as given. `styles.left__art_negative__drawn` (native): `oval -30, 50, 100` has its box at x = -30 and shows its right half at the window's left edge.
 - **Native:** since wave 5 (`b52957b`, `shapes::coordinate`) art's `left` and `top`, a line's ends and a shape block's origin read a negative number as a plain coordinate: the example above lays out at `#3 Oval -30,50`. Before, it read as that far in from the slot's far edge (`#3 Oval 270,50`), the dimension rule every other element keeps. Fractions and percentages stay relative to the slot.
+- **Extended 28 Sep 2026 (wave 6), ruling MANUAL for Floats:** every number on art is pixels, Floats between 0 and 1 included, and a size too (`width`, `height`); only a percentage String is of the slot, and a negative size keeps the dimension rule. The manual draws an oval "at pixel coordinates (left, top)" with a width "of `radius` pixels" (manual 1716-1722), and Shoes 3 reads every art number as whole pixels (`shoes_place_exact`, `ATTR2(int, ...)`, `s3_ruby.c:385-392`). Two of the four wave-6 app lanes met the fraction reading on their own: Weather Window's rain streaks stretched across the glass whenever a drop passed x = 0.5, Aquarium's kelp drew a chevron into the castle, and a star of diameter 0.8 filled 80% of the slot; both apps carried a `px` helper to keep art off (0, 1]. C1 still rules every other element: `stack(width: 0.5)` is half its parent. **Spec:** `art.oval.positional__float_pixels` (native). **Native:** `shapes::coordinate` and `shapes::size`; `oval 0.5, 0.5, 12, center: true` lays out at (-5.5, -5.5), where it read (144, 94).
 
 ## D. Colours and patterns
 
@@ -701,6 +704,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci / WV today:** `init_args :left, :top, :x2, :y2` (`line.rb:8`); Calzini offsets the start twice and sizes the SVG `x2 × y2`, so a horizontal line gets a zero-height SVG (`art_drawables.rb:50-58`).
 - **Spec:** `line(10, 150, 200, 150)` strokes pixel (100, 150) and nothing at (20, 300).
 - **Native:** strokes from (left, top) to (x2, y2).
+- **`move`, 28 Sep 2026 (wave 6):** Shoes 3 draws a line across its place box (`s3t_shape.c:127-132`) and `move` shifts the box, so the whole line moves. Lacci's `move` set only `left` and `top`, and Ledger's vertical hover guide became a diagonal from its new start back to its old end. `Line#move` now shifts `x2` and `y2` by as much, in one `prop_change`. **Spec:** `common.move__line` (native).
 
 ### E7. `shape { move_to; line_to; curve_to; arc_to }` is one path
 
@@ -724,7 +728,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Examples:** `for_playtest/expert/curve-control-point.rb:22-30` (drag with oval `click`/`release`), `expert/colours.rb:70`.
 - **Lacci today:** `Drawable#click`/`#release` store `@block`/`@release` (`drawable.rb:784-802`), but only Button, Check, Radio, Link, Image and SubscriptionItem bind a `click` event; art classes declare no events, so the handler never fires (X9). Fix 10.9 bound the `click` and `release` methods; since the wave-4 Lacci lane a `click:` proc given as a style binds the same way (G10), so `styles.click__para` passes.
 - **Spec:** `oval(...).click { }` fires on `click_at` the oval's centre and not on a click outside it.
-- **Native:** routes a press to the topmost drawable with `has_click` (DESIGN 4.3).
+- **Native:** routes a press to the topmost drawable with `has_click` (DESIGN 4.3). Until 28 Sep 2026 it looked only at the topmost drawable and its slots, so a label or icon drawn over a clickable shape swallowed the press; Shoes 3's `shoes_canvas_send_click2` skips elements with no click block and asks the next one down. Now a press no control takes goes to the topmost drawable under the pointer with `has_click` (`input::pointer_owner`), and a release likewise. A control on top still keeps its press. **Spec:** `events.click__through_a_label` (native).
 
 ### E9. `image(w, h) { drawing }` is a canvas
 
@@ -761,6 +765,17 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** `Shoes::Oval`, `Shoes::Rect` and the rest inherit from `Shoes::Drawable`; `Shoes::Shape` exists only as the `shape { }` slot (`drawables/shape.rb`). Since the wave-4 Lacci lane the six art classes include `Shoes::Art` (`art.rb`) and answer `is_a?(Shoes::Shape)` and `kind_of?(Shoes::Shape)` with true, as `ActiveSupport::Duration` answers `is_a?`. They keep their classes, so the display is still told `Oval` or `Rect`, and `Shoes::Shape` stays the `shape { }` slot, so shape blocks work as before. `Shoes::Shape === oval` is still false, on purpose: the spec finders match with `===`, and the `shape` finder should keep meaning shape blocks. Making the art real subclasses would need `Shoes::Shape` to stop being a slot.
 - **Spec:** `shape.element`: every art method's result `is_a?(Shoes::Shape)` and answers the Common methods.
 - **Native:** nothing; the `kind` on the wire stays the concrete class name (DESIGN 4.1).
+
+### E12. `arc(..., wedge: true)` fills a pie slice
+
+**Ruling: EXT** (Shoes 4). New row, 28 Sep 2026, from the wave-6 toys lane.
+
+- **Manual:** silent; `arc` draws "a section of an oval" (manual 1665-1670).
+- **Shoes 3:** no `wedge`: an arc is its curve alone (`shoes_cairo_arc`, `s3_ruby.c:613-617`), filled as a chord.
+- **Shoes 4:** `style_with ... :wedge`, default `false` (`s4_arc.rb:14-15`, `s4_dsl_art.rb:47`).
+- **Lacci today:** until 28 Sep Arc declared no `wedge`, so `arc ..., wedge: true` logged "Unexpected non-style keyword(s)" and dropped it, though DESIGN 12 and the renderer already drew a pie for it. Marble Machine drew its rainbow swatch from `shape` slices instead. Arc now declares it.
+- **Spec:** `art.arc__wedge` (native): the pie is filled to its centre and the chord is not.
+- **Native:** `wedge: true` closes the arc through its centre (`shapes.rs`, DESIGN 12).
 
 ## F. Text
 
@@ -961,7 +976,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** button `focus`: "The button will be highlighted and, if the user hits Enter, the button will be clicked." (manual 2923-2926); radio `focus`, Enter toggles (manual 3356-3359).
 - **Lacci today:** Button has no `focus` (report 03 probe); ListBox, EditBox and EditLine do. Since 27 Sep (`c91ffd6`) Button, Check and Radio have `focus` too, shared with the other controls through `Shoes::Focusable`.
 - **Spec:** `button.focus`, then `press_key "\n"`, fires the click block once.
-- **Native:** accepts `focus` for buttons, checks and radios; Enter or Space on a focused button, check or radio sends `click` (since wave 5, 27 Sep 2026; the manual's Enter toggles them, manual 3356-3359), so `check.focus` and `radio.focus` pass on native.
+- **Native:** accepts `focus` for buttons, checks and radios; Enter or Space on a focused button, check or radio sends `click` (since wave 5, 27 Sep 2026; the manual's Enter toggles them, manual 3356-3359), so `check.focus` and `radio.focus` pass on native. Since 28 Sep 2026 only focus that shows its ring takes those keys: focus from `focus` or the Tab key. A control the mouse pressed has focus without a ring and leaves Space, Return and the arrows to the app's `keypress`, as a Mac's push buttons and pop-up buttons do; Bloop Sequencer lost its Space-to-play to a list box it had just used.
 
 ### G10. `click:` and `change:` styles are the handlers
 
@@ -980,7 +995,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** "in current versions of Shoes, the font for edit lines and edit boxes cannot be altered anyway" (manual 3078-3079): a limitation of that release, not a promise.
 - **Lacci today:** EditLine and EditBox declare `:font` (`drawables/edit_line.rb:5`, `drawables/edit_box.rb:5`), and the native backend honours it.
 - **Spec:** `core` asserts nothing; `edit_line.font_fixed` stays in `UNTESTABLE.md`. A case under `ext-scarpe` may assert that `font:` changes an input's text.
-- **Native:** honours `font:` on inputs.
+- **Native:** honours `font:` on inputs: family and size, and since 28 Sep 2026 weight and slant too (`"bold 16px"`, `"Georgia italic"`), which the fields dropped while a para with the same string drew them.
 
 ### G12. New inputs read `""`, new progress bars `0.0`
 
@@ -999,7 +1014,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** focus on a list box: "if the user hits the up and down arrow keys, other options in the list will be selected" (manual 3221-3224).
 - **Shoes 3:** a native combo box; not traced.
 - **Spec:** `list_box.focus`: after `focus`, Down selects the next item and sends `change`, with no popup opened.
-- **Native:** opens the popup on Up/Down (`native/src/input.rs`, around lines 777-781); the case fails until arrows select in place.
+- **Native:** after `focus`, Up and Down choose in place and Return and Space open the popup (DESIGN 12, "Focus"). A list box the mouse opened keeps focus without a ring and, since 28 Sep 2026, leaves those keys to the app (G9). **Spec:** `list_box.focus__mouse_leaves_keys` (native).
 
 ### G14. A radio unmarked by its sibling: does its click block run?
 
@@ -1020,6 +1035,16 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci / WV today:** Webview uses HTML form controls, which the browser engine draws.
 - **Spec:** `elements.native_controls__drawn_by_scarpe` (native): in a headless run, where no OS widget exists, a button, edit line, edit box, list box, progress bar, check and radio each paint their own pixels. The manual's claim is not transcribed as an expectation. Sizes still follow C4.
 - **Native:** every control is drawn by the renderer (DESIGN 7, "Look and feel"). `alert`, `confirm` and the file and folder choosers are the platform's (rfd); `ask` and `ask_color` are drawn in the window (DESIGN 12, "Windowed dialogs").
+
+### G16. `edit_line.finish = proc` runs on Return
+
+**Ruling: EXT** (Shoes 3.2.15). New row, 28 Sep 2026, from the wave-6 business lane.
+
+- **Manual:** silent; an edit line has `change`, `focus`, `text` and `text=` (manual 3057-3104).
+- **Shoes 3:** `rb_define_method(cEditLine, "finish=", ..., 1)` stores the proc as the field's `donekey` attribute, run when Return is pressed (`s3t_edit_line.c:15, 42-49`, "added in Shoes 3.2.15").
+- **Lacci today:** until 28 Sep EditLine had no `finish=`, and Return in a focused line reached no Shoes code at all, since `keypress` skips unmodified keys while a field has focus (DESIGN 4.3). Kanban typed new cards into an edit box to hear the newline, and Ledger took Cmd-Return. Now `finish=` stores a proc, called with the line.
+- **Spec:** `element.edit_line__finish` (native): typing does not run it, Return does, with the line holding its text.
+- **Native:** Return, with no Control, Option, Command or Shift, in a focused edit line sends `finish` (DESIGN 4.3). An edit box takes Return as a new line. Webview sends nothing yet.
 
 ## H. Events
 
@@ -1314,6 +1339,8 @@ M1 to M37 carry the numbers of the contradictions in `native/research/03_manual_
 ### M4. `border`'s first argument is a pattern
 
 **Ruling: ERRATA.** The heading says `border(text, strokewidth: a number)` (manual 1925); the prose (manual 1927) and every example (manual 2826, 2839) pass a colour or pattern. **Spec:** `border red, strokewidth: 2` strokes 2 px of red inside the slot box. **Native:** DESIGN 6 strokes borders inside the box.
+
+A border's width is its own, 1 unless given: Shoes 3 strokes it with `ATTR2(dbl, attr, strokewidth, 1.)` (`s3t_pattern.c:219`) and never reads the pen. Until 28 Sep 2026 Lacci's Border took an unset `strokewidth` from the draw context, so Weather Window's hairline chips came out 4 px wide after its mug handle set `strokewidth 4`. **Spec:** `element.border__own_strokewidth` (native).
 
 ### M5. `EditBox#text` and `EditLine#text` return a String
 

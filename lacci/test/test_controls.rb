@@ -124,4 +124,23 @@ class TestControls < NienteTest
       assert_equal "disabled", button.display.instance_variable_get(:@data)["state"], "and the display is told"
     SHOES_SPEC
   end
+
+  # Shoes 3.2.15 added `edit_line.finish = proc`, run when Return is pressed in the field
+  # (s3t_edit_line.c:15, 42-49; ledger G16), so a one-line form can be sent from the
+  # keyboard. The display sends `finish`; the proc gets the line, holding its text.
+  def test_an_edit_lines_finish_runs_on_return
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $sent = []
+        @line = edit_line
+        @line.finish = proc { |line| $sent << line.text }
+      end
+    SHOES_APP
+      line = edit_line
+      Shoes::DisplayService.dispatch_event("change", line.linkable_id, "tea for two")
+      assert_empty $sent, "typing is not finishing"
+      Shoes::DisplayService.dispatch_event("finish", line.linkable_id)
+      assert_equal ["tea for two"], $sent
+    SHOES_SPEC
+  end
 end
