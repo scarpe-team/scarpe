@@ -532,6 +532,41 @@ fn text_that_cannot_share_the_line_starts_a_row() {
 }
 
 #[test]
+fn a_sized_line_too_wide_as_a_box_still_sits_beside_what_came_before() {
+    // Ledger C7, from Hackety Hack's britelink: an icon, then its name in a para 280 wide and
+    // trimmed, in a flow 300 wide, then the date. Shoes 3 starts a sized text block at the left
+    // edge with its first line indented past what came before (s3t_textblock.c:125-145), and
+    // one line shrinks to its text (:207-210), so the name sits beside the icon and the date
+    // carries on after it. As a box, 280 did not fit beside the icon and took a row of its own.
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"width": 300, "margin": 4}));
+    // the 16 px icon with its margins of 3, and 6 on the right
+    let icon = s.add("Button", flow, json!({"text": "", "width": 25, "height": 22}));
+    let name = s.add("Para", flow, json!({"text_items": ["Hello World"], "width": 280, "wrap": "trim", "margin": 0, "size": 13}));
+    let date = s.add("Para", flow, json!({"text_items": ["Sep 28"], "size": 9, "margin": 4, "margin_bottom": 0}));
+    let l = s.layout(480.0, 420.0);
+    let (i, n, d) = (r(&l, icon), r(&l, name), r(&l, date));
+    assert!((n.y - i.y).abs() < 0.01, "the name shares the icon's row: {i:?} {n:?}");
+    assert!((n.x - i.right()).abs() < 0.01, "and starts after it: {i:?} {n:?}");
+    assert!(n.w < 280.0 && (n.w - s.text.max_content(&rich::resolve_block(&s.doc, &s.text.fonts, name).unwrap())).abs() < 0.01, "one line is as wide as its text: {n:?}");
+    let glyphs: usize = l.texts[&name].shaped.buffer.layout_runs().map(|run| run.glyphs.len()).sum();
+    assert_eq!(glyphs, "Hello World".len(), "all of it, with no ellipsis");
+    assert!((d.y - (n.y + 4.0)).abs() < 0.01 && (d.x - (n.right() + 4.0)).abs() < 0.01, "the date carries on after the name: {n:?} {d:?}");
+
+    // A sized box that fits beside keeps its box, and a line too long for the rest of the row
+    // (or for its own width after the indent) still starts a row.
+    let flow2 = s.add("Flow", ROOT, json!({"width": 300}));
+    s.add("Button", flow2, json!({"text": "", "width": 100, "height": 16}));
+    let fits = s.add("Para", flow2, json!({"text_items": ["fits"], "width": 150}));
+    let flow3 = s.add("Flow", ROOT, json!({"width": 300}));
+    s.add("Button", flow3, json!({"text": "", "width": 100, "height": 16}));
+    let long = s.add("Para", flow3, json!({"text_items": ["a line far too long for what is left of this row"], "width": 280, "wrap": "trim"}));
+    let l = s.layout(480.0, 420.0);
+    assert_eq!(r(&l, fits).w, 150.0 - 8.0, "a box that fits beside is still its own width, less its margins");
+    assert!(r(&l, long).x <= 4.0 + 0.01, "a line that does not fit takes a row: {:?}", r(&l, long));
+}
+
+#[test]
 fn right_and_bottom_place_from_the_far_edges() {
     // Ledger C10 and M19: `right: 50` puts the right edge 50 px in from the slot's (manual 1356-1364).
     let mut s = Scene::new();
