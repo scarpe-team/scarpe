@@ -84,9 +84,10 @@ class Shoes::SubscriptionItem < Shoes::Drawable
     when "keypress"
       # Keypress passes the key string or symbol to the handler.
       # The display service sends special keys prefixed with ":" (e.g. ":left"),
-      # which we convert to Ruby symbols (:left). Regular characters stay as strings.
+      # which we convert to Ruby symbols (:left). Regular characters stay as strings,
+      # the colon key's own ":" among them.
       @unsub_id = bind_self_event("keypress") do |key|
-        if key.is_a?(String) && key.start_with?(":")
+        if key.is_a?(String) && key.start_with?(":") && key.length > 1
           @callback&.call(key[1..].to_sym)
         else
           @callback&.call(key)
