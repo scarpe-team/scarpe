@@ -348,6 +348,22 @@ class EndToEndTest < Minitest::Test
     assert_match(/^#\d+ Para [\d.]+,[\d.]+ [\d.]+x[\d.]+ "Gone"$/, run.stdout)
   end
 
+  # Hackety Hack's turtle put "execute" and "draw all" at the right of their rows, so both rows
+  # of step-mode controls fit the window it opens (Turtle Stars and Turtle Barbwire use them).
+  def test_the_step_mode_turtle_fits_its_controls_in_its_window
+    run = run_real(<<~APP, test_code: <<~TEST)
+      require "scarpe/turtle"
+      Turtle.start { forward 10 }
+    APP
+      window = Shoes.APPS.first
+      lowest = buttons.map { |b| layout_of(b) }.map { |r| r.y + r.h }.max
+      assert_operator lowest, :<=, window.height, "every button is inside the window"
+      execute = layout_of(find_button("execute"))
+      assert_in_delta window.width - execute.w, execute.x, 1, "execute sits at the right of the next-command row"
+    TEST
+    assert_spec_passed(run)
+  end
+
   private
 
   def skip_unless_windowed_tests

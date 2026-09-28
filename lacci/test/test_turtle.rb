@@ -114,6 +114,43 @@ class TestTurtle < NienteTest
     SHOES_SPEC
   end
 
+  # Hackety Hack's Basic Programming lesson (4.3, "Type it in!") has a child run `Turtle.draw`
+  # on its own: an empty canvas, "you won't even see him". With no block, drawing raised.
+  def test_turtle_draw_without_a_block_draws_an_empty_canvas
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      require 'scarpe/turtle'
+      Turtle.draw
+    SHOES_APP
+      drawing = Shoes.APPS.first.all_drawables.find { |d| d.is_a?(Shoes::Timer) }
+      refute_nil drawing, "draw mode draws from a timer"
+      Shoes::DisplayService.dispatch_event("timer", drawing.linkable_id)
+      assert Shoes.APPS.first.all_drawables.any? { |d| d.is_a?(Shoes::TurtleCanvas) }
+    SHOES_SPEC
+  end
+
+  # Stepping through a turtle program shows each command as it comes ("next command:
+  # forward"). The name was matched from a backtick in the backtrace, which Ruby 3.4 no
+  # longer prints, so the line stayed blank.
+  def test_turtle_play_shows_the_next_command
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      require 'scarpe/turtle'
+      Shoes.app do
+        @tc = turtle_canvas
+        $shown = para "start"
+        @tc.next_command = $shown
+        @tc.toggle_pause
+        @tc.speed = 10_000
+        @tc.forward(10)
+        $after_forward = $shown.text
+        @tc.turnright(90)
+        $after_turn = $shown.text
+      end
+    SHOES_APP
+      assert_equal "forward", $after_forward
+      assert_equal "turnright", $after_turn
+    SHOES_SPEC
+  end
+
   def test_turtle_draw_module
     # Test that Turtle module exists and has draw/start methods
     assert_respond_to Turtle, :draw
