@@ -8,19 +8,22 @@ title: CI for the native display service
 This page says what our GitHub Actions workflows run, which of those steps have been run for
 real and where, and which have not. It was written on 28 Sep 2026 on the `w6/ci` branch, which
 holds the workflows and the fixes CI needed, and that branch merged into `native-rust` the same
-morning with the other wave-6 branches ("After the merge", below). Nothing has run on GitHub
-yet: the first push will be the first real run, and the last sections say how to make it.
+morning with the other wave-6 branches ("After the merge", below). The same day `native-rust`
+went up as draft pull request [#591](https://github.com/scarpe-team/scarpe/pull/591), and its
+first runs on GitHub turned up two things no local run could: "The first runs on GitHub", below.
 
 ## What runs where
 
 `.github/workflows/native.yml` is new. It runs on every pull request and every push to `main`,
-except for changes that touch only `docs/` or Markdown files.
+except for changes that touch only `docs/` or Markdown files. So a push of only those leaves the
+pull request's newest commit with no checks at all, and the last results stay on the commit
+before it, as they did after this page's own update on #591.
 
 | job | runner | what it runs |
 |---|---|---|
 | Rust on macOS | `macos-26` | in `native/`: `cargo clippy --all-targets --release --locked -- -D warnings`, then `cargo test --release --locked`, on Rust 1.89 |
 | Rust on Linux | `ubuntu-24.04` | the same |
-| Rust on Windows | `windows-2025` | the same, but a failure does not fail the run (`continue-on-error`) until it has passed there once |
+| Rust on Windows | `windows-2025` | the same, but a failure does not fail the run (`continue-on-error`). It first passed on 28 Sep 2026; making it count is one line (below) |
 | Ruby 3.2 on macOS, Ruby 4.0 on macOS | `macos-26` | builds the renderer; `rake native_test`, `lacci_test`, `component_test`, `spec:selftest`; `spec/run --check`; the spec suite on Niente and on native; `spec/run --examples --display native`; packages `examples/button.rb`; `rake package_test` |
 | Ruby 3.2 on Linux, Ruby 4.0 on Linux | `ubuntu-24.04` | the same, less packaging an app (native packages are macOS apps; `package_test` runs its other tests) |
 
@@ -91,6 +94,8 @@ Each of these failed, or would have, the first time the steps ran somewhere new.
 | Make sure macOS has xzcat before the bundle installs | `xzcat not found` building nokogiri | this Mac, without Homebrew on PATH |
 | Give the webview job a Ruby 3.2 that builds nokogiri | `'nokogiri_gumbo.h' file not found`, after `-Wdefault-const-init-field-unsafe` | this Mac, Ruby 3.2.2 |
 | Mend the webview and docs workflows for today's runners | `libwebkit2gtk-4.0-dev` is gone from Ubuntu 24.04; setup-ruby v1.146.0 predates 24.04; `macos-13` was retired in December 2025 | GitHub, on `main` |
+| Rename the three spec cases whose names held a question mark | checkout: `invalid path 'spec/manual/app-builtins-rules/app.started?.sspec'`; NTFS keeps no `?` | GitHub, `windows-2025` |
+| Ask the real-clock animate test for movement, not a frame rate | `Expected 2 to be >= 3.`: the runner fired 3 frames of `animate(20)` in a 0.3 s peek where this Mac fires 6 | GitHub, `macos-26` |
 
 ## What was run, and how
 
@@ -165,20 +170,71 @@ branch's do. On Ruby 3.2.2, with a small bundle of Lacci and pure-Ruby gems (nok
 does not build there), Lacci's tests passed 210 of 210, and every Ruby file the merge changed
 parses. The Linux legs as a whole, and the rest of the Ruby 3.2 leg, were not run again.
 
+## The first runs on GitHub
+
+Three runs of `native.yml` on pull request #591, all on 28 Sep 2026.
+
+**Run 1, [36407505591](https://github.com/scarpe-team/scarpe/actions/runs/36407505591), at
+`178d93e`.** Windows stopped at checkout after 23 s:
+
+```
+invalid path 'spec/manual/app-builtins-rules/app.started?.sspec'
+The process 'C:\Program Files\Git\bin\git.exe' failed with exit code 128
+```
+
+NTFS keeps no `?` in a file name, and three cases were named after manual ids that end in one.
+Nothing on this Mac or in the Linux containers could have caught it: both keep `?` happily, and
+the clippy cross-check never checks anything out. The cases became `app.started_p`,
+`check.checked_p` and `radio.checked_p` (`d6f0431`), and `spec/README.md` now says how to spell a
+`?`, before `video.playing?` gets a case. The next push cancelled this run.
+
+**Run 2, [36408153897](https://github.com/scarpe-team/scarpe/actions/runs/36408153897), at
+`d6f0431`.** Windows passed on a cold cache in 6.4 min: clippy clean in 63 s, then 310 tests
+passed and 8 ignored in 245 s. That is Unix's 311, less `a_finished_opener_is_reaped`, which is
+`cfg(unix)`. Both macOS Ruby jobs failed `rake native_test` on one test, as the 4.0 job had in
+run 1:
+
+```
+EndToEndTest#test_animate_runs_on_the_real_clock_too [test/native/end_to_end_test.rb:165]:
+Expected 2 to be >= 3.
+```
+
+The test peeks at an `animate(20)` app after 0.3 s and wanted frame 3 or later. This Mac shows
+frame 5, then 12, every time. By the first look the 3-core runner had fired 3 frames where this
+Mac fires 6, and a late timer skips the deadlines it missed, so the count measured the runner.
+The test now asks only that frames move on during each wait (`866e824`). It failed on macOS in
+three of four runs and on Linux in none. Whether that gap is the runner's speed or something
+macOS does to a background process's timers is not known.
+
+**Run 3, [36409323983](https://github.com/scarpe-team/scarpe/actions/runs/36409323983), at
+`866e824`.** Every native job passed, with warm caches, on setup-ruby's own 3.2.11 and 4.0.7:
+
+| job | time | what it reported |
+|---|---|---|
+| Rust on Linux, macOS, Windows | 1.3, 1.6, 2.3 min | clippy clean; `cargo test` 311, 311, 310 pass, 8 ignored |
+| Ruby 3.2 on macOS | 9.5 min | `native_test` 178 runs, 8 skips; Niente 540 pass, 12 xfail, 473 n/a, 1 skip; native 1010 pass, 15 xfail, 1 skip; examples 342 pass, 21 xfail, 90 skip; `package_test` 38 runs, 0 skips |
+| Ruby 4.0 on macOS | 11 min | as Ruby 3.2 on macOS, but examples 340 pass, 23 xfail |
+| Ruby 3.2 on Linux | 9.7 min | as Ruby 3.2 on macOS, but `package_test` 38 runs, 6 skips |
+| Ruby 4.0 on Linux | 9.6 min | as Ruby 4.0 on macOS, but `package_test` 38 runs, 6 skips |
+
+The spec steps ran 3 cases at once on macOS and 4 on Linux, and the slowest step was examples on
+native, 230 s on macOS Ruby 3.2. The webview job stopped at "Check HTML output" each time, as it
+does on `main`.
+
+**`continue-on-error`.** In run 1 the pull request listed "Rust on Windows" as failed, while the
+other jobs ran on. `continue-on-error` on a job keeps it from failing the workflow run; it does
+not turn the job's own check grey, so a Windows failure still shows red on the pull request. The
+run was cancelled before it concluded, so the run-level half was not seen. Windows has now
+passed twice. To make it count, delete `experimental: true` from its matrix row; to keep it a
+report, leave it, and do not make it a required check.
+
 ## What was not run
 
-1. **Windows.** There is no Windows machine here, so no test has ever run on Windows. The crate
-   compiles for it (the clippy check above), and the Rust job on `windows-2025` will be the first
-   run of its tests. It cannot fail the workflow until it has passed once; then remove
-   `experimental: true` from its matrix row. The Ruby side is Unix-only today: the shim starts
-   the renderer in a process group of its own (`pgroup: true`) and signals the group, which Ruby
-   on Windows does not offer, so there is no Windows Ruby job.
-2. **GitHub's runners themselves.** A `macos-26` runner has 3 cores and a Linux runner 4, and
-   `spec/run` runs one case per core (up to 8), so the macOS spec steps run 3 cases at once where
-   this Mac ran 8. setup-ruby's own prebuilt Rubies were not run: they only work
-   installed under `/Users/runner/hostedtoolcache`, so the macOS legs used a Ruby 3.2.11 built
-   here and mise's 4.0.1.
-3. **The webview job on this branch.** It opens real webview windows, which nothing in this work
+1. **Windows, here.** There is no Windows machine here. The crate's tests have run on Windows
+   only on GitHub's `windows-2025` ("The first runs on GitHub"). The Ruby side is Unix-only
+   today: the shim starts the renderer in a process group of its own (`pgroup: true`) and
+   signals the group, which Ruby on Windows does not offer, so there is no Windows Ruby job.
+2. **The webview job on this branch.** It opens real webview windows, which nothing in this work
    may do on this Mac. On `main` it has stopped at "Check HTML output" since at least 29 June
    2026 ([run 28374518146](https://github.com/scarpe-team/scarpe/actions/runs/28374518146)): the
    fixtures in `test/wv/html_fixtures` no longer match the HTML Calzini writes, and upstream
@@ -188,7 +244,7 @@ parses. The Linux legs as a whole, and the rest of the Ruby 3.2 leg, were not ru
    showcase, the benches and the eleven legendary apps with their icons).
    What it needs: on a Mac with a screen, `bundle exec rake test:regenerate_html_fixtures`, read
    the diff, commit it, then `bundle exec rake test` for the rest of the webview suite.
-4. **`build-docs.yml` and `build-webview-extensions.yml` on GitHub.** The docs job's apt,
+3. **`build-docs.yml` and `build-webview-extensions.yml` on GitHub.** The docs job's apt,
    setup-ruby and `yardoc` steps ran in the Linux container; pushing to the `pages` branch did
    not. The extension build did not run; actionlint accepts `macos-15-intel`.
 
@@ -212,11 +268,16 @@ organisation runs at most 5 macOS jobs at once, and one push starts 4 (the Rust 
 jobs and the webview job). If the first push also starts `build-webview-extensions.yml`, its two
 macOS legs make 6, and one job waits its turn.
 
+Measured on 28 Sep, run 3 with warm caches: Rust 1.3 to 2.3 min a job, Ruby 9.5 to 11 min, the
+webview job 3.4 min. That is about 49 runner minutes and 11 minutes of waiting, well under
+the estimates. The one cold Rust job seen, Windows in run 2, took 6.4 min. No Ruby job has been
+timed on a cold cache.
+
 ## Pushing the branch and opening the pull request
 
-`w6/ci` is merged into `native-rust`, and its worktree and branch are gone. `native-rust` is not
-on GitHub yet, so one draft pull request carries the whole native branch, CI included, the way
-the earlier waves landed. The merge stays with you.
+`w6/ci` is merged into `native-rust`, and its worktree and branch are gone. One draft pull
+request carries the whole native branch, CI included, the way the earlier waves landed. It was
+opened like this, and the merge stays with you.
 
 ```sh
 cd ~/Progrumms/scarpe-native          # native-rust is checked out here
@@ -230,14 +291,12 @@ Pushing the branch can also start `build-webview-extensions.yml` once, since the
 changes that file, and its Linux arm64 leg builds under QEMU, which takes a while.
 `build-docs.yml` runs only on `main`.
 
-On the first run, look at:
+The branch went up as draft pull request #591 on 28 Sep, and "The first runs on GitHub" says what
+its first three runs found. The webview job will stop at "Check HTML output" until the fixtures
+are regenerated.
 
-- the Windows Rust job, the only one never run anywhere;
-- the webview job, which will stop at "Check HTML output" until the fixtures are regenerated;
-- how long each Ruby job takes on a cold cache, against the estimates above.
-
-Once the native jobs are green, make the two Rust jobs on macOS and Linux and the four Ruby jobs
-required checks in the branch protection for `main`.
+The native jobs have been green since run 3. Next, make the two Rust jobs on macOS and Linux
+and the four Ruby jobs required checks in the branch protection for `main`.
 
 ## Later
 
