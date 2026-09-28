@@ -83,6 +83,7 @@ straightforward as possible.
 - `Shoes.text_mode = :shoes3` sets a program's text as Shoes 3 did: sizes are points at 96 dpi, so a para is 16 px tall, and text that names no face is Arial (ledger M14); the default stays pixels. For programs laid out for Shoes 3, such as Hackety Hack
 - Native: a slot with no height placed in a flow beside something taller reaches down to the bottom of that row, as Shoes 3 grows it (ledger C16), so its background fills the row
 - Native: a slot with no height placed by `bottom` is measured by its margins alone, as Shoes 3 places it, so its contents sit just above the slot's foot (Hackety Hack's Prefs and Quit tabs)
+- Native: a `timer(0)` runs once what was made before it is laid out, as in Shoes 3, so it can measure it: Hackety Hack's tooltips size their background in one, and raised a TypeError on a width still nil
 ### Incompatibilities
 - A background or border given a size and placed by `right` or `bottom` is measured from that edge by its pattern's own size, 1 px for a colour or a gradient, as Shoes 3 places it (ledger M19): `background black, width: 50, right: 50` is the manual's column on the right-side, and `height: 150, bottom: 150` a band along the foot. Without a size, `right` and `bottom` still inset it
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
