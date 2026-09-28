@@ -280,31 +280,11 @@ class Shoes
     end
     alias_method :exit, :quit
 
-    # Opens the Shoes manual. In Shoes3, this showed an interactive built-in manual.
-    # In Scarpe, we open the online Scarpe documentation in the default browser.
-    #
-    # @param section [String, nil] An optional section to navigate to (ignored for now)
-    # @return [void]
+    # Opens the manual in a window of its own, as Shoes 3 did, at `section` when one is
+    # named (ledger K7). It never opens a browser.
     def show_manual(section = nil)
-      require 'uri'
-      manual_url = 'https://github.com/scarpe-team/scarpe/wiki'
-
-      # Try to open in the system browser
-      case RUBY_PLATFORM
-      when /darwin/
-        system('open', manual_url)
-      when /linux/
-        system('xdg-open', manual_url)
-      when /mingw|mswin/
-        system('start', manual_url)
-      else
-        # Fallback: show an alert with the URL
-        if Shoes.APPS.first
-          Shoes.APPS.first.alert("Manual available at:\n#{manual_url}")
-        else
-          warn "Shoes manual: #{manual_url}"
-        end
-      end
+      require_relative "shoes/manual"
+      Shoes::Manual.show(section)
     end
   end
 

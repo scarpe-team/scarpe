@@ -194,6 +194,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | K4 | `font(path)` returns family names | MANUAL | | |
 | K5 | `download` and its events | MANUAL | | |
 | K6 | `exit` stops the program at once | MANUAL | unsched. | |
+| K7 | `Shoes.show_manual` opens the manual in a window | S3 | | new 28 Sep |
 | L1 | App code runs at top level | S3 | | |
 | L2 | Case-insensitive `require` | OOS | | |
 | L3 | Constants | MANUAL | | |
@@ -1294,6 +1295,17 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** `exit` is an alias of `Shoes.quit` (`lacci/lib/shoes.rb:258-261`, `app.rb:597-602`), which destroys every app and returns, so the rest of the block and the file keep running.
 - **Spec:** `builtins.exit`: in a child program, nothing after `exit` runs, not even the rest of the block, and the program ends cleanly.
 - **Native:** the pump must let a `SystemExit` end the process after telling Rust to `quit`.
+
+### K7. `Shoes.show_manual` opens the manual in a window
+
+**Ruling: S3.** **Lacci change, done 28 Sep 2026.** New row, from the Hackety Hack lane (w9).
+
+- **Manual:** "welcome to Shoes' built-in manual. This manual is a Shoes program itself!" (manual 31). `Shoes.show_manual` is not documented; it is how Shoes 3's own console and Hackety Hack open it.
+- **Shoes 3:** the manual is a Shoes app shipped with Shoes (`lib/shoes/help.rb`, not fetched), opened in a window of its own: the chapters and their sections down the left, the page on the right.
+- **Examples:** Hackety Hack's Help tab calls `Shoes.show_manual` (`app/ui/mainwindow.rb:76-78`). An app for children should not send them to a browser: the Shoes Store's Kids shelf promises no links out.
+- **Lacci until 28 Sep:** `show_manual` ran `open https://github.com/scarpe-team/scarpe/wiki`, which a test sandbox traps. Since 28 Sep it opens "The Shoes Manual" beside the app that asked (or as the app, with none running), drawn from `docs/static/manual.md` by `Shoes::Manual`: the index of chapters and sections as links, the page with its headings, paragraphs, code, lists, inline code and emphasis, and its `[[links]]` turning to the section they name. The pictures do not come with the manual, so they are left out. A copy of Scarpe without `docs/` (a packaged app, which carries `lacci/lib` only) says so in an alert rather than opening a browser.
+- **Spec:** `intro.manual_is_shoes_program` (both displays); `lacci/test/test_manual.rb` also turns a page.
+- **Native:** nothing; the window is an ordinary Shoes app.
 
 ## L. Loader and environment
 
