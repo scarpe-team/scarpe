@@ -59,6 +59,7 @@ MOST_BITS = 150    # balls, stars, hearts, bubbles and sparks, all together
 GRAVITY = 1150     # pixels per second, per second
 HOLD_TO_LEAVE = 2.0
 HOLD_FOR_NAME = 1.5
+DOZE = 20 # seconds with nobody playing before the sun nods off
 
 # A tiny synthesizer. Each sound is worked out once, written to a WAV file,
 # and played in the background with afplay while the app carries on.
@@ -289,8 +290,8 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
     end
   end
 
-  # The sun watches whatever just happened, blinks now and then, and giggles
-  # when something new blooms.
+  # The sun watches whatever just happened, blinks now and then, giggles
+  # when something new blooms, and dozes off when nobody is playing.
   def draw_sun
     @sun = stack(left: 20, top: 16, width: 150, height: 150) do
       nostroke
@@ -326,6 +327,21 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
     @giggle = 0.45
   end
 
+  # Asleep, the sun's z's drift up and away from it, one after another.
+  def doze(dozing)
+    unless dozing == @dozing
+      @dozing = dozing
+      @zeds.each { |z| z.hidden = !dozing }
+    end
+    return unless dozing
+
+    @zeds.each_with_index do |z, i|
+      k = (@clock * 0.4 + i / 3.0) % 1
+      z.style(left: (150 + 44 * k).round(1), top: (78 - 56 * k).round(1), size: (14 + 14 * k).round(1),
+        stroke: text_tint([96, 112, 176], 0.85 * Math.sin(Math::PI * k)))
+    end
+  end
+
   def sun_tick
     @rays.style(rotate: (@clock * 6) % 360) if @frame % 4 == 0
     # the eyes look towards the last thing that happened
@@ -337,7 +353,9 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
       @eyes.each_with_index { |eye, i| eye.style(left: 59 + i * 32 + look[0], top: 68 + look[1]) }
       @glints.each_with_index { |glint, i| glint.style(left: 61 + i * 32 + look[0], top: 64 + look[1]) }
     end
-    blink = (@clock % 4.2) < 0.13
+    dozing = @clock - @last_input > DOZE
+    doze(dozing)
+    blink = dozing || (@clock % 4.2) < 0.13
     unless blink == @blinking
       @blinking = blink
       (@eyes + @glints).each { |part| part.hidden = blink }
@@ -358,6 +376,7 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
   # ---- keys ----
 
   def press(key)
+    @last_input = @clock
     return close_card if @card && key == :escape
     return if @card
 
@@ -953,6 +972,7 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
   @giggle = 0.0
   @last_key_at = -1.0
   @idle_since = 0.0
+  @last_input = 0.0
   font FONT_FILE if FONT_FILE
 
   background "#9fd8ff".."#fff0de"
@@ -960,6 +980,10 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
   @cloud_x = clouds.map(&:first)
   @clouds = clouds.map { |left, top, scale| draw_cloud(left, top, scale) }
   draw_sun
+  @zeds = Array.new(3) do
+    para "z", font: FONT, weight: "bold", size: 14, stroke: text_tint([96, 112, 176], 0), left: 150, top: 78, margin: 0,
+      hidden: true
+  end
   @far_hill = stack(left: 0, top: 0, width: 1.0, height: 1.0) {}
   @rainbow_layer = stack(left: 0, top: 0, width: 1.0, height: 1.0) {}
   @land = stack(left: 0, top: 0, width: 1.0, height: 1.0) {}
@@ -1017,6 +1041,7 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
   keypress { |key| press(key) }
 
   click do |_button, x, y|
+    @last_input = @clock
     next close_card if @card && outside_card?(x, y)
     next if @card || (x > width - 180 && y < 110) # the grown-up corner
 
@@ -1029,6 +1054,7 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
   # A wiggle leaves bubbles behind the pointer, with a quiet twinkle now and then.
   motion do |x, y|
     @look_at = [x, y]
+    @last_input = @clock
     @wiggle_from ||= [x, y]
     next if @card || Math.hypot(x - @wiggle_from[0], y - @wiggle_from[1]) < 36
 
@@ -1040,7 +1066,10 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
     @chimes.play(:twinkle, LADDER[(12 - y / height.to_f * 9).round.clamp(0, LADDER.size - 1)])
   end
 
-  wheel { |_delta, x, y| bubble(x + rand(-20..20), y + rand(-20..20)) unless @card }
+  wheel do |_delta, x, y|
+    @last_input = @clock
+    bubble(x + rand(-20..20), y + rand(-20..20)) unless @card
+  end
 
   animate(60) { tick }
 end
