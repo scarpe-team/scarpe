@@ -721,11 +721,72 @@ fn a_press_passes_through_what_has_no_click_block() {
     ]));
     let ids = |evs: &[Value], name: &str| named(&events(evs), name).iter().map(|e| e.1.clone()).collect::<Vec<_>>();
     let (evs, reply) = h.req(json!({"op": "click", "target": {"x": 100, "y": 58}}));
-    assert_eq!(reply["value"]["hit"], json!(5), "the label is on top");
+    assert_eq!(reply["value"]["hit"], json!(3), "the reply names the oval, whose block runs, not the label on top");
     assert_eq!(ids(&evs, "click"), vec![json!(3)], "the label passes the press to the oval");
     assert_eq!(ids(&evs, "release"), vec![json!(3)], "and the release");
     let (evs, _) = h.req(json!({"op": "click", "target": {"id": 6}}));
     assert_eq!(ids(&evs, "click"), vec![json!(6)], "a button on the oval keeps its press");
+}
+
+/// Shoes 3 runs a slot's click block as the press walks down the canvas to what it lands on,
+/// and the block of the shape that takes the press after that (shoes_canvas_send_click2): a
+/// press on a clickable stack over a clickable rect runs the stack's, then the rect's. Rust
+/// sent the rect's first, so a backdrop that closed a card on click left the card's own click
+/// unheard (_repros/key_splash_1.rb). Releases go the same way.
+#[test]
+fn a_slots_click_comes_before_the_shape_beneath_it() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "Rect", 2, json!({"left": 0, "top": 0, "width": 300, "height": 200, "has_click": true, "has_release": true})),
+        create(4, "Stack", 2, json!({"left": 50, "top": 40, "width": 200, "height": 80})),
+        create(5, "Para", 4, json!({"text_items": ["Click me"], "margin": 0})),
+        create(6, "SubscriptionItem", 4, json!({"shoes_api_name": "click"})),
+        create(7, "SubscriptionItem", 4, json!({"shoes_api_name": "release"})),
+        create(8, "SubscriptionItem", 2, json!({"shoes_api_name": "click"})),
+    ]));
+    let ids = |evs: &[Value], name: &str| named(&events(evs), name).iter().map(|e| e.1.clone()).collect::<Vec<_>>();
+    let (evs, _) = h.req(json!({"op": "click", "target": {"x": 150, "y": 80}}));
+    assert_eq!(ids(&evs, "click"), vec![json!(8), json!(6), json!(3)], "the window's, the stack's, then the rect's");
+    assert_eq!(ids(&evs, "release"), vec![json!(7), json!(3)]);
+    let (evs, _) = h.req(json!({"op": "click", "target": {"x": 20, "y": 180}}));
+    assert_eq!(ids(&evs, "click"), vec![json!(8), json!(3)], "off the stack, only the window's and the rect's");
+}
+
+/// An automated click goes where a real press would (DESIGN 4, ledger E8): through an empty
+/// slot laid over a clickable one. It asked hit_test for the topmost node of any kind, so
+/// `peek --click-at` named the empty layer while the box's block ran, and a click by id or
+/// text refused as "covered" what a real press reaches (_repros/rainbow_lab_1.rb).
+#[test]
+fn an_automated_click_goes_where_a_real_press_would() {
+    let mut h = Harness::new();
+    h.feed(&app(240, 130, &[
+        create(3, "Stack", 2, json!({"left": 20, "top": 20, "width": 90, "height": 90})),
+        create(4, "Para", 3, json!({"text_items": ["Tap me"], "margin": [14, 34, 0, 0]})),
+        create(5, "SubscriptionItem", 3, json!({"shoes_api_name": "click"})),
+        create(6, "Oval", 2, json!({"left": 130, "top": 20, "width": 60, "height": 60, "has_click": true})),
+        create(8, "Button", 2, json!({"text": "Under", "left": 150, "top": 95})),
+        create(7, "Stack", 2, json!({"left": 0, "top": 0, "width": 240, "height": 130})),
+    ]));
+    let ids = |evs: &[Value]| named(&events(evs), "click").iter().map(|e| e.1.clone()).collect::<Vec<_>>();
+
+    let (evs, reply) = h.req(json!({"op": "click", "target": {"x": 60, "y": 60}}));
+    assert_eq!(ids(&evs), vec![json!(5)], "the box's click block runs");
+    assert_eq!(reply["value"]["hit"], json!(3), "and the reply names the box, not the empty layer");
+
+    let (evs, reply) = h.req(json!({"op": "click", "target": {"id": 3}}));
+    assert!(reply["error"].is_null(), "the box is reachable through the empty layer: {reply}");
+    assert_eq!(ids(&evs), vec![json!(5)]);
+    let (evs, reply) = h.req(json!({"op": "click", "target": {"text": "Tap me"}}));
+    assert!(reply["error"].is_null(), "and so is its text: {reply}");
+    assert_eq!(ids(&evs), vec![json!(5)]);
+
+    let (evs, reply) = h.req(json!({"op": "click", "target": {"id": 6}}));
+    assert!(reply["error"].is_null(), "{reply}");
+    assert_eq!((ids(&evs), &reply["value"]["hit"]), (vec![json!(6)], &json!(6)), "a clickable oval under it too");
+
+    let (evs, reply) = h.req(json!({"op": "click", "target": {"id": 8}}));
+    assert!(reply["error"].as_str().unwrap().contains("covered by Stack 7"), "a real press never reaches a button under it: {reply}");
+    assert!(ids(&evs).is_empty());
 }
 
 #[test]
