@@ -237,6 +237,16 @@ impl Runtime {
                 self.revisions.touch_everything();
                 self.invalidate();
             }
+            Incoming::TextMode { mode } => match crate::text::TextMode::parse(&mode) {
+                Some(mode) if mode != self.text.fonts.text_mode => {
+                    self.fonts_ready();
+                    self.text.fonts.text_mode = mode;
+                    self.revisions.touch_everything();
+                    self.invalidate();
+                }
+                Some(_) => {}
+                None => self.out.send(Outgoing::Log { level: "warn".into(), msg: format!("unknown text_mode {mode:?}; it is scarpe or shoes3") }),
+            },
             Incoming::Flush => self.flush(),
             Incoming::Req { req, op } => {
                 self.flush();

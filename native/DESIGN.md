@@ -109,6 +109,7 @@ A line Rust cannot parse is answered with a `log` warning and otherwise ignored.
 | `focus` | `id` | give keyboard focus to a control, with a visible focus ring |
 | `scroll_to` | `id`, `top` | set a scrollable slot's scroll offset (clamped at the next layout) |
 | `font` | `path` (absolute) | register a font file; family name(s) become usable |
+| `text_mode` | `mode` (`scarpe` or `shoes3`) | how text is sized and set from now on (Lacci's `Shoes.text_mode`, ledger M14): `shoes3` reads text sizes as points at 96 dpi and gives text blocks that name no face Arial; every window is laid out again. The shim sends it after `hello` when a program set it before its first window, and again whenever it changes |
 | `flush` | | end of a batch: Rust applies everything received, relayouts, redraws once |
 | `req` | `req` (int), `op`, op fields | request that must get exactly one `reply` with the same `req` |
 
@@ -129,6 +130,8 @@ that last ran or had input, else the first running one.
 | `pixel` | `x`, `y` | `[r,g,b,a]` at logical point; error outside the window |
 | `frames` | `n` | reply after n frames have been laid out and painted (sync point); value = frames painted so far |
 | `focused` | | id of the focused input or null |
+| `para_hit` | `id` (a para's), `x`, `y` (window coordinates) | the index of the character under the point, as Pango's `xy_to_index` gives Shoes 3's `Para#hit`: the first of the line left of the text, the last past its end; null off the para's box (ledger F14) |
+| `para_caret` | `id` (a para's) | `{left, top, height}` of the para's caret in whole pixels, measured from the content origin of the slot that scrolls the para (the window's when none does), so `top` compares with that slot's `scroll_top`; null when the para has no `text_cursor` (ledger F14) |
 | `a11y` | `app`, `platform` (default false) | the accessibility tree as a screen reader meets it (section 12, "Screen readers"): the window's node with its `children`. Each node has `id` and `role` (AccessKit's, snake_case: `button`, `check_box`, `label`...) and, when set, `name`, `value`, `description`, `toggled`, `numeric` `{value, min, max}`, `expanded`, `selected`, `url`, `level`, `focused`, `disabled`, `read_only`, `modal`, `actions`, `bounds` `[x, y, w, h]` (window coordinates). `platform: true` in a macOS window reads what AppKit hands VoiceOver instead: `role`, `subrole`, `title`, `value`, `help`; elsewhere it is an error |
 | `a11y_action` | `id` (a node's), `action` (click focus set_value expand collapse), `value` (for set_value), `app`; or `platform: true` with `name` (an element's title) | acts on the node as a screen reader does, through the path a click or key takes; the events it causes come first. Error when the node cannot do it (disabled, readonly, no such item). `platform: true` acts through AppKit in a macOS window |
 | `ping` | | `"pong"` |
@@ -144,7 +147,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 |---|---|---|
 | `ready` | `v`, `version` | handshake done |
 | `event` | `name`, `target` (id or null), `args` (array) | `Shoes::DisplayService.dispatch_event(name, target, *args)`; a ListBox `change` gets back the item whose `to_s` Rust sent |
-| `mouse` | `state` [held, x, y] (held is 1 while the left button is down; window px, rounded) | `Shoes::DisplayService.mouse_state = state` |
+| `mouse` | `app`, `state` [held, x, y] (held is 1 while the left button is down; window px, rounded) | `Shoes::DisplayService.mouse_state = state`, and the app's own in `app_mouse_states`: each app's `mouse` reads the pointer as it was last over its window, [0, 0, 0] before it ever was, as Shoes 3 keeps `app->mousex` |
 | `para_hit` | `id`, `value` | `para_hit_cache[id] = value` (Integer keys) |
 | `resize` | `app`, `w`, `h` (Integers) | set the App's `@width`/`@height` ivars directly (no prop_change echo) |
 | `scroll` | `id`, `top` (Integer) | set the slot's `@scroll_top` directly |
@@ -157,12 +160,12 @@ Rust processes `req`s after an implicit flush of everything received before them
 
 | user action | event | target | args |
 |---|---|---|---|
-| click Button, Check, Radio, Image, Link | `click` | that id | `[]`, on release over the same drawable (Check/Radio: Lacci toggles and echoes `checked`; Rust shows the echo, it does not toggle on its own). Return or Space on a focused button, check or radio clicks it too (ledger G9) |
+| click Button, Check, Radio, Link | `click` | that id | `[]`, on release over the same drawable (Check/Radio: Lacci toggles and echoes `checked`; Rust shows the echo, it does not toggle on its own). Return or Space on a focused button, check or radio clicks it too (ledger G9) |
 | edit EditLine / EditBox | `change` | that id | `[new_text]` on every edit. Lacci echoes `props {text}`: apply idempotently, keep caret. Echoes can trail later edits, so any text the field reported and has not seen echoed yet counts as an echo |
 | Return in a focused EditLine (no Control, Option, Command or Shift) | `finish` | that id | `[]`, for `edit_line.finish = proc` (Shoes 3.2.15, ledger G16). An EditBox takes Return as a new line |
 | pick in ListBox (popup, or Up/Down while focused) | `change` | that id | `[item_string]` |
 | pointer enters / leaves a drawable | `hover` / `leave` | that id | `[]`, on transitions only, for every drawable in the hovered chain |
-| press / release on a drawable that has `has_click` / `has_release` true | `click` / `release` | the innermost such id under the pointer: a text fragment's first, then the topmost drawable under the pointer that has one, so a label or icon with no block passes the press to a clickable shape beneath it (Shoes 3's `shoes_canvas_send_click2`, ledger E8). A control on top keeps the press | `[button, x, y]` window coordinates, Integers |
+| press / release on a drawable that has `has_click` / `has_release` true | `click` / `release` | the innermost such id under the pointer: a text fragment's first, then the topmost drawable under the pointer that has one, so a label or icon with no block passes the press to a clickable shape beneath it (Shoes 3's `shoes_canvas_send_click2`, ledger E8). An image with a click block is heard this way too, and an empty slot over it passes the press on. A control on top keeps the press | `[button, x, y]` window coordinates, Integers |
 | SubscriptionItem `click`/`release` | same | item id | `[button, x, y]` in window coordinates, like drawable clicks (ledger H3, Q4, contract g). Fires for presses inside the parent slot unless a control, text field or link consumed the press. Slots' events come before the drawable's own: the window's first, then inner slots, the topmost of two side by side first, as Shoes 3 runs a slot's block while the press walks down the canvas to what it lands on (ledger E8) |
 | SubscriptionItem `motion` | `motion` | item id | `[x, y, ctrl, shift]` (booleans) in window coordinates, on pointer move inside the parent slot |
 | SubscriptionItem `hover`/`leave` | same | item id | `[]` on entering/leaving the parent slot box |
@@ -179,7 +182,7 @@ not true. Mouse buttons are 1 = left, 2 = middle, 3 = right (manual numbering).
 - Modifiers prefix in the order `control_`, `shift_`, `alt_` (shift only for non-printables). A modified printable key is a Symbol: `:control_a`, `:alt_q`. Modified return: `:control_enter`, `:shift_enter`.
 - Shift folds into characters the way a US keyboard types them (manual 2223-2227): Shift-7 is `"&"`,
   Shift-Alt-7 is `:alt_&`, Control-Shift-a is `:control_A`. Automation's `key` op folds `shift_7` the same way.
-- On the wire a Symbol travels as a String starting with `":"` (`":left"`); Lacci's SubscriptionItem turns it back into a Symbol. Plain printable keys travel as themselves.
+- On the wire a Symbol travels as a String starting with `":"` (`":left"`); Lacci's SubscriptionItem turns it back into a Symbol. Plain printable keys travel as themselves, the colon key as `":"` (ledger H1).
 - On macOS, Cmd is named `alt_`, as Shoes 3's Cocoa backend did (ledger H1, Q5 ruled 27 Sep 2026):
   Cmd-q arrives as `:alt_q`, which is what the example editors bind. In text fields Cmd still works
   like Control (copy, paste, select all, line ends, undo and redo); Option moves by words. The default app menu
@@ -298,7 +301,9 @@ loop until no app is open or the child's stdout ended:
   dispatch every complete message
   tick due timers: animate (frame starts at 0), every (count starts at 0, ledger I1), timer (one shot);
     honour `stopped` and destroyed items; timers can be created at any time; an `every` or `timer`
-    shorter than a millisecond (0 included) waits one, as Shoes 3 clamps it
+    shorter than a millisecond (0 included) waits one, as Shoes 3 clamps it; before such a
+    next-turn timer runs, if changes went to Rust since, a `ping` settles the layout (Rust lays
+    out and pushes the rects before it answers), so it measures what was just made (ledger I1)
   dispatch "heartbeat" (nil target) at most every 50 ms; Shoes-Spec tests and peek's steps start
     once the first one's handlers are done, so the slot start blocks Lacci hangs on it have run
   flush
@@ -355,7 +360,11 @@ moved there the same day, so apps normally send it.
   parent's inner width, like a flow's, so an unsized slot after anything else on a line starts a
   row (ledger C8: Shoes 3 s3_canvas.c:468 with s3_ruby.c:505-532, Shoes 4 s4_slot.rb:48). Widgets
   and masks lay their children out as flows and take the same default width.
-- Slot height = content height unless `height` given. A slot with a fixed `height` clips what
+- Slot height = content height unless `height` given. In a flow, a slot with no `height` placed
+  beside what came before it on the row reaches down at least to that row's bottom, as Shoes 3
+  grows a slot to its parent's end while drawing it (s3_canvas.c:639-642): its backgrounds fill
+  that height and `bottom:` places against it. The first on a row has nothing to reach down to.
+  (Hackety Hack's lesson pane beside its content flow is dark to the window's foot.) A slot with a fixed `height` clips what
   does not fit, scrolling or not (manual 345-352: it becomes a "nested window"; ledger C13); `scroll: true`
   with a height also scrolls. `scroll: true` without a height does nothing.
 - **Text blocks** (para and family) with no width: in a stack, full inner width. In a flow they
@@ -371,10 +380,24 @@ moved there the same day, so apps normally send it.
   line (a picture, a title), where Shoes 3 would wrap lines under it. The indent is a blank
   wide as the indent at the head of the cosmic-text buffer; hit-testing and a para's `fill`
   leave its corner to what came before. Centred, right-aligned, justified, trimmed and sized
-  text keeps the box rule of section 12. A text block's `fill` is a highlighter over its text,
+  text keeps the box rule of section 12, but for one case Shoes 3 draws otherwise: sized or
+  trimmed left-aligned text too wide as a box for the rest of the line, whose text fits there on
+  one line and inside its own width, sits on that line as wide as its text (ledger C7). A text block's `fill` is a highlighter over its text,
   line by line (manual 1208-1210; Shoes 3's Pango background), not paint over its box.
   Line height = 1.2 x size. `leading` (default 4 px, manual 1286, ledger F10) goes between lines
   only, as Pango's spacing does: one line is 1.2 x size tall, two are 2.4 x size + 4.
+- **Text sizes** are logical pixels (ledger M14): a para is 12 px, a title 34. Under the `shoes3`
+  text mode (`text_mode`, section 4.1) a size is points at 96 dpi, as Shoes 3 hands Pango
+  `size * 96/72` (s3t_textblock.c:293): a para is 16 px and a title 45.3. That covers the size
+  names, numeric sizes and a `font` string's size; a relative size word still scales the size it
+  would otherwise have, and "18px" (in `size` or a `font` string) stays pixels, as Pango reads
+  a font string's px. A text block that names no face, or names one the machine lacks, gets Arial
+  there, Shoes 3's default (s3_world.c:46-48). Controls, margins and leading keep their pixels.
+  Each line is then as tall as its own text, as Pango sets lines, where the default keeps every
+  line at least the block's line height (so a lone `sub` cannot shrink one).
+  A para's `marker` range is then bright yellow behind the text and its caret black, as Shoes 3
+  drew them (s3t_textblock.c:187-197, 479-483), where the default is a blue tint over the text
+  and a caret in the text's colour.
 - **Widgets** have intrinsic sizes (research 02 section 13): button = its label's width plus 14 px
   each side by its line height plus 12 px, at least 28 px each way (more with an icon); edit_line 200x28, edit_box 200x108,
   list_box 200x28, progress 200x14 (manual sizes, ledger C4), check/radio 18x18, slider 160x20,
@@ -391,7 +414,15 @@ moved there the same day, so apps normally send it.
   art shape, and every background and border is out of flow: placed relative to its slot's content
   origin, it does not affect siblings or slot height. `right: n` puts the element's right margin
   edge n px in from the slot's right edge, `bottom: n` likewise from the bottom (manual 1100-1106,
-  1356-1364, ledger C10); `left` and `top` win when both are given.
+  1356-1364, ledger C10); `left` and `top` win when both are given. A negative `right` or `bottom`
+  lies past that edge, as Shoes 3 reads positions (`shoes_px2`, s3_ruby.c:327-337): `bottom: -3`
+  hangs the element 3 px below the slot. A slot with no `height` placed by `bottom` is measured
+  by its margins alone, its top `bottom` and its margins above the foot, as Shoes 3 places a
+  canvas it has not drawn yet (ledger C10). Backgrounds and borders read them the same way, but for
+  one case: one with a size of its own along the axis is measured from the far edge by its
+  pattern's size, 1 px for a colour or a gradient, as Shoes 3 places a tile (PATTERN_DIM, ledger
+  M19), so `background ..., height: 150, bottom: 150` runs along the slot's foot with its top
+  151 px up, and a picture keeps the size it is given as its measure.
   `displace_left/top` shifts a laid-out element (and what it holds) visually without affecting others.
 - `hidden: true` removes the element from layout and painting.
 - `attach: "window"` positions relative to the window instead of the slot; `attach` with a
@@ -573,6 +604,10 @@ each with its reason (dialog-only apps, scripts that never start an app or stop 
 library, apps that only log or paint one flat colour, and `colours.rb`, whose colours `flatten`
 dissolves, ledger D1). Two of the 23 name Ruby 4.0 in a `ruby:` field and load on Ruby 3.2.
 
+After the Hackety Hack lane (w9, 28 Sep 2026) the suite holds 1038 cases: native 1023 pass, 0 fail,
+1 skip and 14 expected failures; niente 545 pass and 11 expected failures (481 n/a). The legendary
+checks and the examples on both displays pass as before.
+
 ## 10. Lacci fixes this work depends on (each has a LEDGER row and a test)
 
 All ten landed on 27 Sep 2026; `native/research/09_lacci_fixes.md` records each defect, ruling,
@@ -639,7 +674,8 @@ change the code and this list together.
 - **Text in a flow** flows as a paragraph (section 6). Text that does not (centred, right-aligned,
   justified, trimmed, or given a width or height) is a box: as wide as its longest line
   (max-content) if that fits in the rest of the row, else it starts a new row and wraps at the
-  full width there. Text with `align: center/right` fills the rest of the row so the alignment
+  full width there. Sized or trimmed left-aligned text whose one line fits on the rest of the row
+  and inside its own width sits there instead, as wide as its text (section 6, ledger C7). Text with `align: center/right` fills the rest of the row so the alignment
   shows. Positioned text (`left`/`top`) shrinks to fit the same way. `right:` and `bottom:`
   place from the far edges.
 - **Widget** (a `Shoes::Widget` subclass) lays its children out as a flow; its default width is
@@ -653,8 +689,10 @@ change the code and this list together.
   3 o'clock, and fills as a chord (`wedge: true` fills a pie). `rotate`, `scale` and `skew` from the
   draw context turn a shape about its top-left corner (manual 1857-1860, ledger E10, confirmed 27
   Sep 2026), or about its centre when the draw context says `transform: "center"` or the shape has
-  `center: true`; positive `rotate` turns counter-clockwise. The Shoes 3 source defaults to the
-  centre, so an example written for a centre pivot (`rotate_shapes.rb`) swings about its corner here.
+  `center: true`; a star and an arrow, whose left/top are their centre, turn about that centre
+  (28 Sep 2026); positive `rotate` turns counter-clockwise. The Shoes 3 source defaults to the
+  centre for every shape (ledger Q11), so an example written for a centre pivot
+  (`rotate_shapes.rb`) swings about its corner here.
   The draw context's `translate: [x, y]` (Lacci's running total) moves shapes before they turn.
   Turns add up: `rotate` in the draw context is Lacci's running total too (ledger E10).
   A shape's layout box is its transformed box, so hit-testing and the layout push follow.
@@ -804,7 +842,10 @@ change the code and this list together.
   `strong(Time.now)` every tick stays bounded, and `@p.replace(@bold)` still finds `@bold`.
 - **Para `cursor` and `marker`** count from the end when negative (`-1` sits after the last
   character, as Shoes 3 editors use it). The caret takes the text's colour, so it shows on dark
-  backgrounds.
+  backgrounds. Text that ends in a newline has an empty line under it, as Pango lays it out: it
+  counts in the text's height, a caret after the newline sits at that line's start, and
+  `para_hit` on it names the place after the newline (cosmic-text keeps no line there, so
+  `ShapedText::closing_newline` stands in for it).
 - **Screen readers** (`src/a11y.rs`, ledger N1). Scarpe draws its own controls (Nick, 27 Sep 2026:
   "our buttons are OUR buttons"), so it tells screen readers what they are, through AccessKit. The
   tree follows the document: the window (named by the App's title) holds the laid-out slots as

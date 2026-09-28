@@ -2,7 +2,7 @@
 
 Shoes-Spec was Noah Gibbs' idea: write down what Shoes *is* as tests that any display service can run. Wherever the sources disagree about what Shoes is, the argument happens on this page. Each row records one disagreement, the evidence on every side, the ruling, what `spec/` asserts, and what the native Rust backend does.
 
-Status: v1.3, 28 Sep 2026. The sixth build wave (the legendary apps) extended C15 to every number on art and added E12 and G16; its finishing lane fixed what the app builders met, each row saying so. v1.2, 27 Sep 2026: The orchestrator ruled the seven open questions (Q1 to Q7) that day, then Q8 and Q9 as the later build waves raised them, with two new rows (C15, G15) from the fifth wave's rulings; and the rows the first build wave asked for joined it (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20). v1 was seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`. When the build lanes merged the same day, every row whose Lacci behaviour changed gained a "Since 27 Sep" sentence naming the Lacci lane commit, and rows whose Lacci change landed say so in their ruling line.
+Status: v1.6, 28 Sep 2026. The Hackety Hack polish lane (w9) ruled M19 MANUAL, so a background or border with a size of its own is placed from the far edge by its pattern's size, as Shoes 3 places a tile; added C16 (a slot with no height reaches down to its row's bottom in a flow), C17 with Q13 (placement on one axis), and Q12 with an opt-in for Shoes 3's text (M14, `Shoes.text_mode = :shoes3`); and extended C10 (a bottom-placed slot with no height), F14 (`cursor = :marker`), I1 (`timer(0)` after layout), K7 and M38 (the manual's pictures and lists). v1.5, 28 Sep 2026. The Hackety Hack integrate lane (w9) ruled H6 S3, so a slot's second handler for an event replaces its first; made a closing window send its slots' `finish` (H8); let a sized or trimmed line sit beside what came before when its text fits (C7); kept the colon key a String (H1); and packaged apps carry the manual (K7). v1.4, 28 Sep 2026. The Hackety Hack lane (w9) moved B1 into Lacci, so slot blocks keep their caller's `self`; extended C5, C10, E8, E10 and F5 with what Hackety Hack met; added A10, F13, F14 and K7; and asked Q10 and Q11 under "Open questions". v1.3, 28 Sep 2026. The sixth build wave (the legendary apps) extended C15 to every number on art and added E12 and G16; its finishing lane fixed what the app builders met, each row saying so. v1.2, 27 Sep 2026: The orchestrator ruled the seven open questions (Q1 to Q7) that day, then Q8 and Q9 as the later build waves raised them, with two new rows (C15, G15) from the fifth wave's rulings; and the rows the first build wave asked for joined it (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20). v1 was seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`. When the build lanes merged the same day, every row whose Lacci behaviour changed gained a "Since 27 Sep" sentence naming the Lacci lane commit, and rows whose Lacci change landed say so in their ruling line.
 
 ## How to read this
 
@@ -60,12 +60,13 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | A7 | Shoes 3.3 app styles | OOS | | |
 | A8 | `close` closes one window | MANUAL | | |
 | A9 | `Shoes.app`, `window` and `dialog` return the App | MANUAL | | |
+| A10 | `Shoes.app`, `window` and `dialog` take their styles as a Hash | S3 | | new 28 Sep |
 
 ### B. Blocks, `self` and slot manipulation
 
 | Row | Behaviour | Ruling | Fix | Note |
 |---|---|---|---|---|
-| B1 | Slot blocks keep the caller's `self` | MANUAL | unsched. | |
+| B1 | Slot blocks keep the caller's `self` | MANUAL | | done 28 Sep |
 | B2 | `app { }` changes `self`; the manual's fix fails | ERRATA | | |
 | B3 | Elements created in handlers land in the app's top slot | MANUAL | | |
 | B4 | `prepend`/`before`/`after` keep the written order | MANUAL | 10.3 | |
@@ -92,6 +93,8 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | C13 | A fixed height clips the slot | MANUAL | | |
 | C14 | An explicit width or height includes the margins | S3, ruled (Q9) | | |
 | C15 | A number on art is a plain coordinate, negative or under 1 | S3; MANUAL for Floats | | |
+| C16 | A slot with no height reaches down to its row's bottom in a flow | S3 | | new 28 Sep |
+| C17 | An element placed on one axis keeps the flow's place on the other | open (Q13) | | new 28 Sep |
 
 ### D. Colours and patterns
 
@@ -140,6 +143,8 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | F10 | `:leading` defaults to 4 px | MANUAL | | |
 | F11 | `para` with non-String arguments | BOTH | | |
 | F12 | Text with invalid UTF-8 is reported | MANUAL | | |
+| F13 | A text fragment's parent is what holds it | S3 | | new 28 Sep |
+| F14 | A text block's `hit`, `cursor_top` and `cursor_left` | EXT | | new 28 Sep |
 
 ### G. Native controls
 
@@ -172,7 +177,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | H3 | Coordinate frame of mouse events | S3, ruled (Q4) | | |
 | H4 | The extra `mods` argument | MANUAL | | |
 | H5 | `hover`/`leave` get the slot | MANUAL | | |
-| H6 | Registering an event twice | BOTH | | |
+| H6 | Registering an event twice | S3 | | done 28 Sep |
 | H7 | `wheel` | EXT | | |
 | H8 | `start` and `finish` | MANUAL | | |
 | H9 | Slot event handlers survive `clear` | MANUAL | | |
@@ -192,6 +197,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | K4 | `font(path)` returns family names | MANUAL | | |
 | K5 | `download` and its events | MANUAL | | |
 | K6 | `exit` stops the program at once | MANUAL | unsched. | |
+| K7 | `Shoes.show_manual` opens the manual in a window | S3 | | new 28 Sep |
 | L1 | App code runs at top level | S3 | | |
 | L2 | Case-insensitive `require` | OOS | | |
 | L3 | Constants | MANUAL | | |
@@ -298,17 +304,30 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Spec:** `app.shoes_app`, `element.window__returns_app`, `element.dialog__returns_app`: each returns a `Shoes::App`, the very one in `Shoes.APPS`.
 - **Native:** nothing; the return value is Ruby-side.
 
+### A10. `Shoes.app`, `window` and `dialog` take their styles as a Hash
+
+**Ruling: S3.** **Lacci change, done 28 Sep 2026.** New row, from the Hackety Hack lane (w9).
+
+- **Manual:** `Shoes.app(styles) { ... }` (manual 859-865), written for Ruby 1.8, where a Hash and keywords were one thing.
+- **Shoes 3:** `Shoes.app` reads its argument as a Hash of styles.
+- **Examples:** Ruby 1.9 programs build the styles first and pass them on: Hackety Hack's `lib/art/turtle.rb` calls `Shoes.app opts`, so its Fractal and both Turtle samples stopped at once.
+- **Lacci until 28 Sep:** keywords only, so a Hash, which Ruby 3 hands over as a positional argument, raised `ArgumentError: wrong number of arguments (given 1, expected 0)`. Since 28 Sep `Shoes.app`, `window` and `dialog` take a Hash as well, and keywords given beside it win. Anything else still raises.
+- **Spec:** `app.shoes_app__styles_hash`: styles built as a Hash open that window and run its block.
+- **Native:** nothing.
+
 ## B. Blocks, `self` and slot manipulation
 
 ### B1. Slot blocks keep the caller's `self`
 
-**Ruling: MANUAL.** **Lacci change, unscheduled** (large).
+**Ruling: MANUAL.** **Lacci change, done 28 Sep 2026** (the w9 Hackety Hack lane), with one reading of our own for widgets, below.
 
 - **Manual:** "The stack block ... does NOT change self" (manual 198); rule 2: blocks attached to stacks, flows or manipulation methods "do not change self. Instead, they pop the slot on to the app's editing stack" (manual 322-324).
-- **Shoes 3:** slot blocks run with a plain `rb_funcall(block, s_call, 0)` inside `DRAW(...)` (`s3_canvas.c:650-653`, insert path `:713-729`); only `app { }` does an `instance_eval` (`:864-874`).
-- **Lacci today:** `App#with_slot` does `instance_eval(&block)` on the App (`app.rb:200-207`), used by Stack, Flow, Mask and Shape. `append`/`prepend` special-case non-Drawable callers with `block.call` plus an "external self" fallback (`slot.rb:288-352`). `clear` is annotated `@incompatibility ... Scarpe uses the Shoes::App as self` (`slot.rb:255`). Inside a `Shoes::Widget#initialize`, `stack { self }` is the App and the widget's `@label` is nil.
-- **Examples:** identical inside a plain `Shoes.app` block, where `self` is the App either way. Diverges in Widgets and user classes (8 examples use `Shoes::Widget`).
-- **Spec:** inside a `Shoes::Widget` method, `stack { @label }` sees the widget's ivar, and the `para` created in that block is a child of the stack.
+- **Shoes 3:** slot blocks run with a plain `rb_funcall(block, s_call, 0)` inside `DRAW(...)` (`s3_canvas.c:650-653`, insert path `:713-729`); only `app { }` does an `instance_eval` (`:864-874`). Every canvas method is a `FUNC_M` redirect (`s3_ruby.h:195-229`): the App's always act on the top of the app's nesting stack, and a widget's do too whenever that stack is not empty (a widget is pushed while its `initialize` runs, `s3_canvas.c:835-846`). So a widget's `para` inside its own `stack do ... end` lands in the stack, and so does one inside another slot's `append`: Hackety Hack's turtle draws its pen swatch that way (`lib/art/turtle.rb`, `update_pen_info`).
+- **Shoes 4:** slot blocks are called with `eval_block`, `self` unchanged (`s4_slot.rb`), and a widget sends what it lacks to its app (`s4_widget.rb`).
+- **Lacci until 28 Sep:** `App#with_slot` did `instance_eval(&block)` on the App, used by Stack, Flow, Mask, Shape and image canvases. `append`/`prepend` special-cased non-Drawable callers with `block.call` plus an "external self" fallback on the App. Inside a `Shoes::Widget#initialize`, `stack { self }` was the App and the widget's `@label` was nil. Hackety Hack's editor failed at `editor.rb:90` (`undefined method 'name' for nil`): its `stack do @code_editor.name ... end` read the App's ivar.
+- **Lacci since 28 Sep:** `with_slot` pushes the slot and calls the block, which keeps its self. Only the app block (`init`), `window`, `dialog` and `app { }` are `instance_eval`'d on the App, the blocks the manual says change self (manual 318-321). The external-self fallback is gone: a plain object's own methods are in reach because self is the object. `start` and `finish` blocks keep their self too, where they ran on the App (H8). A widget sends its DSL calls (drawables, `background`, events, timers, pens, `start`, `finish`) to the slot being built while a slot block runs (`Widget#dsl_target`), unless that slot holds the widget: a call made from the slot around the widget, or between events, lands in the widget itself. Shoes 3 would send a call made during the app block to the app's top slot instead; nothing found depends on that. What a widget lacks and the App has (`move_to`, `line_to`, `mouse`, `window`, `visit`) goes to the App, as in Shoes 4. Slot manipulation (`clear`, `append`, `contents`) is never redirected.
+- **Examples:** identical inside a plain `Shoes.app` block, where `self` is the App either way. Lacci's own turtle leaned on the old behaviour in `update_pen_info` and now calls the slot's own `background` by its other name, as Hackety Hack's turtle does. `skip_ci/guitar_fretboard.rb` (skipped, it needs the bloops gem) calls `app.flow do flow ... end` from a plain class, and now raises `NoMethodError` as it would in Shoes 3 and 4. `expert/tooltips.rb`'s `start { @menu.show }` inside a widget method now reads the widget's `@menu`. On 28 Sep every example that loaded before still loads on both displays (453 examples: niente 356, native 340).
+- **Spec:** `rules.blocks.stack_block_keeps_self__in_widget` (no longer `expect: fail`): inside a widget's stack block `self` is the widget, `@tag` is the widget's, and the para is a child of the stack. `rules.blocks.stack_block_keeps_self__plain_object`: a class shaped like Hackety Hack's side tabs keeps its self and ivars through `append`, `flow` and `stack` blocks. `lacci/test/test_block_self.rb` checks the redirects, a widget reaching App methods, a widget method drawing into another slot, and that `app { }` still changes self.
 - **Native:** nothing; this is Ruby-side.
 
 ### B2. `app { }` changes `self`, and the manual's fix does not work
@@ -437,6 +456,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** none of `before`, `after`, `scroll_max`, `scroll_height`, `location`, `started?`, `imagesize` exist; Image uses a `url` style (`image.rb:5`); `gutter` is App-only and a constant 28 (`app.rb:551-553`). Since 27 Sep slots have `scroll_height`, `scroll_max` and a `gutter` of their own (`32ebbf3`), and apps `location` and `started?` (`8e5a4cf`); `before` and `after` came with fix 10.3 (`e75b5a0`). Since the wave-4 Lacci lane Image has `path` (its `url`), `path=` (swaps the picture), `full_width` and `full_height` (read from the file with FastImage, as `Image#size` already was), and `imagesize(path)` is a built-in. FastImage is a gem, and `scarpe package --native` ships none, so those four raise `LoadError` in a packaged app.
 - **Spec:** each method exists and returns a plausible value (for example `scroll_max == scroll_height - height` on a scrolling stack with overflowing content).
 - **Native:** `scroll_height` and `scroll_max` need the content height from Rust. Wire contract (a) (see A4) carries it as each slot's `scroll_h`, which Rust pushes after every layout pass since 27 Sep (DESIGN 4.2) and the shim keeps in `Shoes::DisplayService.layout_cache`: Lacci reads `scroll_height = scroll_h` and `scroll_max = max(0, scroll_h - h)` from it.
+- **Flows, 28 Sep 2026 (w9):** only Stack had `scroll_top` and `scroll_top=`; a flow's `scroll_top` was its raw style, nil until set, so Hackety Hack's editor, which scrolls a flow, compared a number with nil on its first key. Both now live on every slot. **Spec:** `slot.scroll_top__flow` (native).
 
 ### C6. The window scrolls, and `gutter` says by how much
 
@@ -457,7 +477,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Examples:** every app that puts two `para`s at the top level relies on this, since the top slot is a flow. Single-line paras look the same under every model. Multi-line paras differ.
 - **Lacci / WV today:** each para is its own flex item: shrink-to-fit, packed side by side, and a long para wraps onto a new row as its own box (report 02, 4.1).
 - **Spec:** two single-line paras in a flow share a row (`slots.flow.adjacent_text_one_paragraph`, all models agree). The multi-line case is `slots.flow.adjacent_text_one_paragraph__wraps_to_left_edge`: the second para carries on from the end of the first, on the same line, and its later lines wrap back to the flow's left edge, 4 px in for the para's margin (C9). It passes on native since the layout lane landed the paragraph model. Many style cases put one para alone in a flow and read `layout_of(para).w` as the text's width. That matches Shoes 3, where a one-line text block shrinks to its line (`s3t_textblock.c:207-210`), so a single-line para's box stays as wide as its text under the paragraph model.
-- **Native:** since 27 Sep, as Shoes 3 (DESIGN 6): text that fits on the rest of the line sits there; longer text indents its first line to where the line stands and wraps the rest to the left edge, and the next element carries on from its last line. Two paras sit one margin apart. Where Shoes 3 would wrap lines under something taller earlier on the line (a picture, a title), or not even the first word fits, the text starts a new row instead. Centred, right-aligned, justified, trimmed and sized text stays a box. Since wave 4 a text that ends in a newline ends its line: Pango keeps an empty last line under it ("newlines have an empty size", `s3t_textblock.c:217-228`), so the next element starts the following line at the flow's left edge. The manual's radio example relies on it (manual 3285-3289, `radio; para strong(...), "...\n"`), as do 11 example files in all; before, the radios ran on after the text.
+- **Native:** since 27 Sep, as Shoes 3 (DESIGN 6): text that fits on the rest of the line sits there; longer text indents its first line to where the line stands and wraps the rest to the left edge, and the next element carries on from its last line. Two paras sit one margin apart. Where Shoes 3 would wrap lines under something taller earlier on the line (a picture, a title), or not even the first word fits, the text starts a new row instead. Centred, right-aligned, justified, trimmed and sized text stays a box. Since wave 4 a text that ends in a newline ends its line: Pango keeps an empty last line under it ("newlines have an empty size", `s3t_textblock.c:217-228`), so the next element starts the following line at the flow's left edge. The manual's radio example relies on it (manual 3285-3289, `radio; para strong(...), "...\n"`), as do 11 example files in all; before, the radios ran on after the text. Since 28 Sep (the w9 integrate lane) a text with a width of its own, or trimmed, that is too wide as a box for the rest of the line but whose text fits there on one line, inside its own width after what came before, sits on that line as wide as its text, and what follows carries on after it: Shoes 3 starts a sized text block at the left edge with its first line indented past what came before (`s3t_textblock.c:125-145`) and shrinks one line to its text (`:207-210`). Hackety Hack's program and lesson lists put each name (280 px, trimmed) beside its 16 px icon this way; as a box it took a row under the icon. A sized box that fits beside keeps its own width, and sized text that wraps is still a box. **Test:** `layout::tests::a_sized_line_too_wide_as_a_box_still_sits_beside_what_came_before`.
 
 ### C8. Default width of a slot
 
@@ -488,8 +508,10 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** `right: 0` aligns the element's right edge with its slot's right edge; `right: 20` puts it 20 px in (manual 1356-1364). `bottom` is the same for the lower edge (manual 1100-1106).
 - **Shoes 3:** `shoes_px2` computes `(parent - dr) - px` when the right/bottom key is present (`s3_ruby.c:327-337`); art shapes read `right`/`bottom` as absolute coordinates instead (`s3_ruby.c:396-399`, see E6).
 - **Lacci / WV today:** declared as styles (`drawable.rb:264`) and never rendered (report 02, 4.2).
-- **Spec:** `background black, width: 50, right: 50` paints a 50 px column whose right edge is 50 px in from the window's right edge (see M19).
+- **Spec:** `background black, width: 50, right: 50` paints the manual's "fifty pixel column on the right-side", its left edge 51 px in from the window's right edge: a background or border with a size of its own is measured from the far edge by its pattern's size, 1 px for a colour or gradient, as Shoes 3 places it (M19, since 28 Sep 2026).
 - **Native:** an element with `right` or `bottom` is out of flow and placed from the slot's right or bottom edge; backgrounds and borders too (DESIGN 6 and 12, 27 Sep). Art follows the same ruling since wave 4 (DESIGN 12): its far edge sits `right` px in from the slot's right edge, art that names both edges and no size runs between them, and `left`/`top` win when given; Shoes 3 instead read them on art as absolute far-edge coordinates that size the shape (`s3_ruby.c:396-399`), and no example uses either. **Lacci** gave art no way to reach this until wave 5: `rect` defaulted `left` and `top` to 0 and every art class required `left`, `top` and a size (`rect.rb:18-21`, `oval.rb`, `drawable.rb:343-349`), so `right`/`bottom` arrived only beside a `left` that won. Now `right` stands in for `left` and `bottom` for `top` on art, and naming both edges of an axis stands in for the size along it (`Shoes::Art.placed_by_edges`); an oval still defaults to a circle unless it spans both edges of an axis. **Lacci change, done 27 Sep 2026.** **Spec:** `styles.right__art` (native) places a rect, an oval and a star by their far edges and stretches a rect between both edges.
+- **Negative `right` and `bottom`, 28 Sep 2026 (w9):** Shoes 3 reads a position as a plain number, negative ones too: `shoes_px2` passes `nv` 0 to `shoes_px` (`s3_ruby.c:298-337`), so `bottom: -3` hangs an element 3 px below its slot's lower edge. Native read a negative `right` or `bottom` by the dimension rule, as the slot less that much, so Hackety Hack's editor button bar (`stack height: 40, width: 182, bottom: -3, right: 0`) landed at y = -37, above the window. Now a negative `right` or `bottom` on an element, a background or a border lies past the slot's edge, and a Float up to 1 or a percentage is still a share of the slot, a negative share past the edge too (`style::dim::position`). `left` and `top` keep the dimension rule on everything that is not art (C15), though Shoes 3 reads them the same way; that is Q10. **Spec:** `styles.bottom__negative` (native).
+- **A slot with no height, 28 Sep 2026 (w9 polish):** Shoes 3 places a canvas it has not drawn yet with the margins as its height (`dh += tmargin + bmargin` when `dh` is 0, then `th = place->h`, `s3_ruby.c:434-436, 511-525`), so `stack :bottom => 26, :margin => 4` has its top 26 px plus its margins above the slot's foot and its contents below that. Hackety Hack's bottom side tabs (Prefs and Quit, `stack pos => pixelpos, :margin => 4`, `app/ui/tabs/sidetabs.rb`) sat 24 px higher on native than in the Mac 1.0 and Ubuntu 1.0.1 screenshots (icons at 473 and 499 against 497 and 523), and so did their tips. Now a slot with no `height` placed by `bottom` is measured by its margins alone; one with a height, and every other element, stands on the line as before. No example places a slot with no height by `bottom`. **Test:** `layout::tests::a_slot_with_no_height_placed_by_bottom_is_measured_by_its_margins`.
 
 ### C11. `attach: Window`
 
@@ -544,6 +566,24 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Spec:** `styles.left__art_negative` (both displays): an oval, arc, arrow and rect keep a negative `left` and `top` as given. `styles.left__art_negative__drawn` (native): `oval -30, 50, 100` has its box at x = -30 and shows its right half at the window's left edge.
 - **Native:** since wave 5 (`b52957b`, `shapes::coordinate`) art's `left` and `top`, a line's ends and a shape block's origin read a negative number as a plain coordinate: the example above lays out at `#3 Oval -30,50`. Before, it read as that far in from the slot's far edge (`#3 Oval 270,50`), the dimension rule every other element keeps. Fractions and percentages stay relative to the slot.
 - **Extended 28 Sep 2026 (wave 6), ruling MANUAL for Floats:** every number on art is pixels, Floats between 0 and 1 included, and a size too (`width`, `height`); only a percentage String is of the slot, and a negative size keeps the dimension rule. The manual draws an oval "at pixel coordinates (left, top)" with a width "of `radius` pixels" (manual 1716-1722), and Shoes 3 reads every art number as whole pixels (`shoes_place_exact`, `ATTR2(int, ...)`, `s3_ruby.c:385-392`). Two of the four wave-6 app lanes met the fraction reading on their own: Weather Window's rain streaks stretched across the glass whenever a drop passed x = 0.5, Aquarium's kelp drew a chevron into the castle, and a star of diameter 0.8 filled 80% of the slot; both apps carried a `px` helper to keep art off (0, 1]. C1 still rules every other element: `stack(width: 0.5)` is half its parent. **Spec:** `art.oval.positional__float_pixels` (native). **Native:** `shapes::coordinate` and `shapes::size`; `oval 0.5, 0.5, 12, center: true` lays out at (-5.5, -5.5), where it read (144, 94).
+
+### C16. A slot with no height reaches down to its row's bottom in a flow
+
+**Ruling: S3.** **Native change, done 28 Sep 2026** (the w9 polish lane). New row, from Hackety Hack.
+
+- **Manual:** silent on how tall a slot with no height is beyond "height goes on and on" (manual 1584-1587).
+- **Shoes 3:** a slot drawn on its parent's surface ends its draw with `self_t->fully = canvas->endy = max(canvas->endy, self_t->endy + bmargin)` and `place.h = canvas->endy - place.y` (`shoes_canvas_draw`, `s3_canvas.c:639-642`): its height runs to the parent's end so far, and in a flow that is the bottom of whatever came before it on its row. Its backgrounds fill that (a tile's height is `max(canvas->height, CPH(canvas))`, `s3_ruby.c:481-487`), and a child placed by `bottom:` sits against it (`PX2(..., canvas->fully)`, `s3_ruby.c:524-525`). In a stack each slot starts its own row, so nothing changes there.
+- **Examples:** Hackety Hack's window is a flow of its 549 px content flow and its lesson pane, `stack :width => 400` with no height, whose page is `background gray(0.1)`, a scrolling stack `:height => -32` and a nav bar `flow :height => 32, :bottom => 0` (`app/ui/lessons.rb:229-261`). The Mac 1.0 screenshot has the pane dark to y 549 with its arrows at rows 530 to 536; native stopped it at 518, its content, left a white strip under it and put the arrows at 498 to 505.
+- **Native:** since 28 Sep a slot with no `height` placed in a flow after something on its row is at least as tall as the row so far, margins aside (`layout::place_in_flow`, `Engine::row_floor`); the first on a row, and every slot in a stack, is as tall as its content, as before. **Test:** `layout::tests::a_slot_beside_a_taller_one_in_a_flow_reaches_down_to_its_bottom`.
+
+### C17. An element placed on one axis keeps the flow's place on the other
+
+**Ruling: open, Q13 (28 Sep 2026).** New row, from Hackety Hack's turtle (the w9 learner lane).
+
+- **Manual:** `:left` "places the object's left edge ten pixels away from the left edge of the slot" (manual 1288-1294), and `:top` likewise; silent on the axis not given.
+- **Shoes 3:** `shoes_place_decide` takes `x = PX2(left, right, cx, ...) + ox` and `y = PX2(top, bottom, cy, ...) + oy`, where `ox` and `oy` are the canvas's cursor (`s3_ruby.c:463-470, 521-525`), so an element given only `top` or `bottom` keeps the x the flow stood at, and one given only `left` or `right` keeps its y. Only the vertical keys make it absolute for the flow: `FINISH` moves the cursor on for anything not `ABSY` (`s3_ruby.h:246-255`), so a `left`-only element still takes its place in the line.
+- **Examples:** Hackety Hack's turtle, and Lacci's port of it, put the pen swatch after its label with `para "pen: "; stack :top => 5, :width => 40, :height => 20` (`lib/art/turtle.rb` on Hackety Hack's master).
+- **Native:** any of `left`, `top`, `right`, `bottom` takes an element out of the flow, placed from the slot's corner on an axis it was not given (`layout::place_positioned`). So the swatch covered the label. Since 28 Sep Lacci's turtle places the swatch in the flow, 5 px down (`lacci/test/test_turtle.rb`); the rule itself waits on Q13.
 
 ## D. Colours and patterns
 
@@ -731,6 +771,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** `Drawable#click`/`#release` store `@block`/`@release` (`drawable.rb:784-802`), but only Button, Check, Radio, Link, Image and SubscriptionItem bind a `click` event; art classes declare no events, so the handler never fires (X9). Fix 10.9 bound the `click` and `release` methods; since the wave-4 Lacci lane a `click:` proc given as a style binds the same way (G10), so `styles.click__para` passes.
 - **Spec:** `oval(...).click { }` fires on `click_at` the oval's centre and not on a click outside it.
 - **Native:** routes a press to the topmost drawable with `has_click` (DESIGN 4.3). Until 28 Sep 2026 it looked only at the topmost drawable and its slots, so a label or icon drawn over a clickable shape swallowed the press; Shoes 3's `shoes_canvas_send_click2` skips elements with no click block and asks the next one down. Now a press no control takes goes to the topmost drawable under the pointer with `has_click` (`input::pointer_owner`), and a release likewise. A control on top still keeps its press. **Spec:** `events.click__through_a_label` (native). Since 28 Sep (wave 8) the slots' `click` blocks run first and that drawable's after, as Shoes 3's walk runs each canvas's block on the way down and the shape's once the walk stops on it (`s3_canvas.c:1038-1102`; a canvas's own send_click answers nil, so the walk goes on past it): a card over a clickable backdrop that took the card away had lost its own click (`events.click__slot_before_shape`). Where Shoes 3 stops the walk at a shape drawn over a slot, and that slot's block never runs, native still runs it. Automation's `click` and `click_on` go where a real press goes, through an empty slot on top (`events.click__through_an_empty_slot`).
+- **Images, 28 Sep 2026 (w9):** Lacci's `Image#click` kept its block without telling the display, and native clicked an image only when the image itself was topmost, on the release, like a button (DESIGN 4.3). Hackety Hack leaves an empty, window-sized stack over its side-tab icons once its intro is skipped, so no tab opened. An image's click block is now heard like a shape's: Lacci sends `has_click` (`Drawable#click`), and a press reaches the picture through an empty slot over it, once, on the press, with `[button, x, y]` in window coordinates. **Spec:** `events.click__image_under_an_empty_slot` and `events.click__image_once` (native).
 
 ### E9. `image(w, h) { drawing }` is a canvas
 
@@ -757,6 +798,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Spec:** `rotate 45; rect 100, 100, 50, 10` paints a pixel off the unrotated rect's box. `art.rotate__adds_up`: `rotate 45; rotate 45` stands a bar on end, as `rotate 90` does.
 - **Lacci, turns:** since 27 Sep (this ledger's wave-4 Lacci lane) `rotate` adds to the slot's running total, which a child slot inherits and `clear` keeps; `rotate nil` drops the slot's own. `scale` and `skew` still set their value outright, where Shoes 3 multiplies them in too; no example found depends on either (under Shoes 3 `rotating-star.rb`'s random `scale` would wander rather than pulse). Since 28 Sep (wave 8) `style` sends every draw-context setting to the display, `scale`, `skew`, `translate` and `transform` as well as `fill`, `stroke`, `strokewidth` and `rotate`: `shape.style(scale: [2, 2])` had only set an instance variable. A bare number scales both ways and skews along x, as the `scale` and `skew` methods read one. **Spec:** `styles.style_method__scale`.
 - **Native:** applies the draw context's transforms to every shape, rotating about the shape's top-left corner unless `transform: "center"` (or `center: true`); `translate` moves the shape and its layout box; caps are round, flat or square (DESIGN 12). **Wire contract (b), 27 Sep 2026:** Lacci sends `"translate": [x, y]` (cumulative), `"transform": "center" | "corner"` (the rotate and scale pivot, default corner) and `"cap": "curve" | "rect" | "project"` (round, butt, square) in the draw context, and Rust renders them.
+- **Stars and arrows, 28 Sep 2026 (w9):** a star's and an arrow's `left` and `top` are their centre (E4, E5), and native turned them about their box's top-left corner, so Hackety Hack's splash, which turns `rotate 1; star 210, 210, 130, 500, 90` inside a mask every frame, swung its star window off the hand. Now the point a turn keeps still is the one the shape's `left` and `top` name: the corner of a rect, an oval, an arc or a shape block, the centre of a star or an arrow, as `center: true` makes it for anything (manual 1115-1121). Shoes 3.3 goes further and turns every shape about its centre unless `transform :corner` was called (`shoes_transform_new` starts in `s_center`, `s3_canvas.c:31-41, 192-205`), against the manual's "Shoes defaults to `:corner`"; that is Q11. Whether `rotate` adds up across `clear`, the splash's other question, was settled by the turns ruling above. **Spec:** `art.rotate__star_in_place` (native).
 
 ### E11. Art methods return `Shoes::Shape`
 
@@ -829,6 +871,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci / WV today:** none are Para styles (`para.rb:6-36`); they hit the "Unexpected non-style keyword" warning (`drawable.rb:385-388`). TextDrawable has `:undercolor` (`text_drawable.rb:15`). Calzini already renders `rise`, `strikecolor` and `undercolor` when present (`calzini/para.rb:43-50, 79-82`). Since the wave-4 Lacci lane Para declares all six (colours through `to_rgb`, as its stroke), and text fragments `justify`, `rise`, `stretch` and `strikecolor` besides their `undercolor`. The native display draws all but `stretch`, so the four `styles.stretch` visual cases stay `expect: fail` on native: cosmic-text varies only a font's weight axis, not its width, and the bundled fonts have no condensed or expanded faces (checked in wave 5).
 - **Spec:** each style is accepted without a warning and reads back through `style`; `leading` and `rise` change layout.
 - **Native:** honours them once Lacci sends them.
+- **Fragments, 28 Sep 2026 (w9):** the manual lists span and the other fragments for `weight`, `family`, `emphasis` and `kerning` too (manual 1181-1283, 1521-1537), and native already drew them on spans, but Lacci dropped them with a warning. Hackety Hack colours its method names with bold spans. Fragments now keep all four. **Spec:** `styles.weight__span` (native).
 
 ### F6. `underline` and `strikethrough` value types
 
@@ -898,6 +941,29 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** passes the bytes through without a word; neither display reports them. Since the wave-4 Lacci lane text blocks and text fragments print `[ERROR] para text is not valid UTF-8: ...` on stderr and replace the bad bytes with U+FFFD, so every display gets valid text and the app carries on. Edit lines, edit boxes, list boxes and window titles are not checked yet.
 - **Spec:** `rules.utf8_bad_chars_error`: a para made from a string with a stray Latin-1 byte puts a UTF-8 or encoding message on stdout or stderr, and the app carries on. Scarpe has no console window (H10), so the log stands in for it.
 - **Native:** the shim must not crash on such a string: JSON generation of invalid UTF-8 raises, so it should report and replace the bad bytes before the text crosses the wire.
+
+### F13. A text fragment's parent is what holds it
+
+**Ruling: S3.** **Lacci change, done 28 Sep 2026.** New row, from the Hackety Hack lane (w9).
+
+- **Manual:** `parent` "Gets the object for this element's container" (manual 2676-2679), among the common methods; silent on text fragments.
+- **Shoes 3:** a text block or fragment sets the parent of each fragment it takes as text to itself (`shoes_text_check`, `s3t_text.c:72-83`), so a link in a para answers the para, and a fragment inside a `strong` answers the `strong`.
+- **Examples:** Hackety Hack's `britelink` recolours a whole line on hover through `p1.parent.stroke = white` (`app/ui/widgets.rb:274-283`).
+- **Lacci until 28 Sep:** a fragment has no slot parent, and `parent` answered nil. Since 28 Sep a para or a fragment that takes a fragment as text sets its `parent`; a fragment nothing has taken still answers nil. The slot bookkeeping (`remove_child`, margins) keeps to the slot parent.
+- **Spec:** `common.parent__text_fragment`.
+- **Native:** nothing.
+
+### F14. A text block's `hit`, `cursor_top` and `cursor_left`
+
+**Ruling: EXT** (Shoes 3.1). **Lacci and native change, done 28 Sep 2026.** New row, from the Hackety Hack lane (w9).
+
+- **Manual:** silent; the text cursor (`cursor`, `marker`, `highlight`, `hit`, `cursor_left`, `cursor_top`) came with Shoes 3.1, for editors, after the manual.
+- **Shoes 3:** `hit(x, y)` measures from the block's inner corner and asks Pango's `xy_to_index` for the character under the point, nil off the block (`s3t_textblock.c:713-722`); `cursor_left` and `cursor_top` are where the caret was drawn, in the block's own surface (`:173-181`, `:629-638`).
+- **Examples:** Hackety Hack's editor puts its caret where the pointer is with `hit_sloppy`, one right of `hit`, or `hit(48, y)` from the gutter, and scrolls the caret into view by comparing `cursor_top` with its flow's `scroll_top` (`app/ui/editor/editor.rb:101-112, 334-340`). `examples/para_cursor_demo.rb` uses `hit` too.
+- **Lacci until 28 Sep:** `hit` ignored its arguments and gave back the index the pointer last hovered (H3), and on native `cursor_top` was always 0: nothing filled its cache. Since 28 Sep both ask the display when it can answer, as native does through `para_hit` and `para_caret` requests (DESIGN 4.1). `hit` takes window coordinates, as every click hands them out (H3). `cursor_top` and the new `cursor_left` are measured from the content origin of the slot that scrolls the para, or the window's, so they compare with that slot's `scroll_top` however far it is scrolled. Other displays keep the old caches.
+- **Spec:** `textblock.types__hit` and `textblock.types__cursor_top` (native).
+- **Native:** `input::char_under` and `Runtime::para_caret`; the caret is drawn from the same position (`paint::text::para_caret`).
+- **`cursor = :marker`, 28 Sep 2026 (w9 polish):** Shoes 3.1 reads it as "drop the selection": with a marker set, the caret goes to the start of the selection and the marker is cleared, and with none nothing changes; `cursor = nil` clears both (`shoes_textblock_set_cursor`, `s3t_textblock.c:602-616`). Lacci jumped the caret to the marker and kept the marker. Hackety Hack's editor says `cursor = :marker` after every edit (`app/ui/editor/editor.rb:291-301`), and its Backspace sets the marker, so after one Backspace the next did nothing and typed letters came out backwards at a stuck caret, and after select-all a whole line came out reversed (the learner lane's `alert "hello"` with two Backspaces and `p!"` read `alert "hello"!p`). **Test:** `lacci/test/test_lacci.rb` (`test_para_cursor_marker_drops_the_selection`, `test_para_typing_after_a_backspace_goes_forward`), failing before and passing after.
 
 ## G. Native controls
 
@@ -1072,6 +1138,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci / WV today:** WV maps Enter to `:return` (`wv/subscription_item.rb:127`); prefixes are `alt_`, then `control_`, then `shift_` (`:147-158`); Cmd (Meta) is ignored; a modified special key loses its `:` and arrives as the String `"alt_left"` (`:158`); a modified character arrives as the String `"alt_q"` because Lacci only symbolises values that start with `:` (`subscription_item.rb:67-77`). Plus the double fire (X1).
 - **Spec:** `press_key "a"` gives `"a"`; Shift-a gives `"A"`; F1 gives `:f1`; Return gives `"\n"`; Control-Return gives `:control_enter`; Control-Shift-Alt-PageUp gives `:control_shift_alt_page_up`; Alt-q gives `:alt_q`. `press_key` takes Shoes key names, so no case can press Cmd; the Cmd mapping (Cmd-q gives `:alt_q`) is checked in the native backend's own tests (`window.rs`, `command_is_named_alt`).
 - **Native:** DESIGN 4.4. Since 27 Sep Cmd is named `alt_` (and still edits like Control in text fields), and Shift folds into characters with a US map, so `:shift_7` is `"&"` and `:shift_alt_7` is `:alt_&`. DESIGN 4.4 said Cmd maps to `control_` until then.
+- **The colon key, 28 Sep 2026 (w9):** special keys cross the wire with a leading colon (`":left"`), and Lacci made a Symbol of any key name that starts with one, so the colon key's own `":"` arrived as `:""` and Hackety Hack's editor could not type `:width` or `b: 2`. Now a lone `":"` stays the String `":"`. **Spec:** `events.keypress.colon`.
 
 ### H2. Mouse button numbers
 
@@ -1119,12 +1186,13 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 
 ### H6. Registering a slot event twice: replace or add?
 
-**Ruling: BOTH.** The spec does not register twice.
+**Ruling: S3, 28 Sep 2026 (w9).** A slot keeps one handler per event: a second `click`, `keypress`, `hover`, `leave`, `motion`, `release` or `wheel` block given to the same slot replaces the first, as in Shoes 3. The manual is silent. The ruling was BOTH while nothing depended on either; Hackety Hack does. **Lacci change, done 28 Sep 2026.**
 
 - **Shoes 3:** `EVENT_HANDLER` stores one proc per slot per event (`s3_canvas.c:934-955`), so the second replaces the first.
 - **Shoes 4:** `motion` appends; change listeners accumulate (`s4_dsl_interaction.rb:23-26`, `s4_common_changeable.rb:13-16`).
-- **Lacci today:** slot and app events make a new SubscriptionItem per call, so they accumulate (`app.rb:414-422`); element `click`/`change` replace `@block`.
-- **Spec:** nothing. **Native:** nothing; each SubscriptionItem is its own node.
+- **Examples:** Hackety Hack's editor rebuilds its slot with `clear` for every program it opens and calls `keypress` again (`app/ui/editor/editor.rb`, `on_keypress`). `clear` keeps the slot's handlers (H9), so with handlers adding up, each key was typed twice once a second program had opened, three times after a third. No example gives one slot the same event twice at once: `native/legendary/weather_window.rb` and `ledger.rb` give each page its own `keypress`, and `visit` starts every page from nothing.
+- **Lacci today:** slot and app events make a new SubscriptionItem per call (`app.rb:459-466`); element `click`/`change` replace `@block`. Since 28 Sep the new SubscriptionItem destroys any earlier one for the same event in its slot (`SubscriptionItem#replace_earlier_handlers`). Timers still add up: in Shoes 3 each is an object of its own, not a slot's style.
+- **Spec:** `events.keypress__again_replaces` (a slot rebuilt with `clear` and given another `keypress` hears a key once, in the new block) and `events.click__again_replaces` (native); `lacci/test/test_slot_events.rb` checks the handler left behind. **Native:** nothing; the replaced SubscriptionItem is destroyed like any drawable.
 
 ### H7. `wheel`
 
@@ -1146,6 +1214,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Shoes 4:** adds `keyrelease` and `resize` (`s4_dsl_interaction.rb:32-35, 78-81`).
 - **Lacci today:** `start` exists only on App and runs after the body with no argument (`app.rb:146-159`); `finish` on Slot fires on destroy with no argument (`slot.rb:209-219`, commit `1ce13b0`). No `keydown`, `keyup`, `keyrelease`, `resize`. Worse than a missing argument: `finish { }` written inside a slot's block runs against the App (B1) and raises `NoMethodError` at load time (the events writer's report). Since 27 Sep (`8d4e3ef`) slots have `start { |slot| }`, run once on the first heartbeat after it is registered (the display draws before that), and `finish` hands over the slot; written inside a slot's block, both belong to that slot. App-level `start` keeps its old timing.
 - **Spec:** `stack { start { |s| $started = s } }` sets `$started` to the stack after the first frame; `finish { |s| }` gets the slot on `clear`.
+- **A window closing, 28 Sep 2026 (w9):** Shoes 3 sends `finish` to every slot as its window closes: the window's own slot first (`shoes_app_remove`, `s3_app.c:107-114`), then each slot as `shoes_canvas_clear` removes it, after the slots inside it (`s3_canvas.c:282-308, 481-495`, `s3_ruby.c:599-608`), hidden slots too. Lacci's `App#destroy`, which every way a window closes goes through (its own close button, `close`, `quit`, Ctrl-C), now does the same, once per app, and logs a `finish` block that raises instead of keeping the window open. Hackety Hack saves the child's program and its window size from its lesson stack's `finish`, so closing it with the red button lost both. **Test:** `test/native/app_test.rb`, where the fake renderer closes the window.
 - **Native:** the pump dispatches the first `heartbeat` after the first frame; `start` hangs off that point (DESIGN 5.4). Since the wave-5 shim lane, Shoes-Spec test code and `scarpe peek`'s steps run once every handler of that first heartbeat has run (`Scarpe::Native.after_first_heartbeat`), so the slots have started, and `wait_frames` beats the heart as the pump does, so a slot made by test code starts by the next frame. `events.start` passes; before, test code ran inside that heartbeat, ahead of the slot's own subscriber.
 
 ### H9. Slot event handlers survive `clear`
@@ -1179,7 +1248,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Examples:** 23 files read `animate`'s frame. Two read `every`'s count (`examples/animate.rb:15`, `shoes3_only/switch/switch.rb:19`); neither depends on where it starts.
 - **Lacci / WV today:** WV defaults to 10 fps (`wv/subscription_item.rb:24`) but pre-increments, so the first frame and the first count are **1** (`:25-39`); Lacci calls the `timer` block with nothing (`subscription_item.rb:33-36`); every callback fires twice (X1).
 - **Spec:** the first `animate` frame is 0 and frames increase by 1; `animate` with no fps ticks about 10 times per `advance(1)`; the first `every` count is 0; `timer(0.1)` fires exactly once.
-- **Native:** the Ruby pump owns timers (DESIGN 5.4); since 27 Sep `every` counts from 0 there, as `animate` does. Since 28 Sep (wave 8) a delay under a millisecond, `timer(0)` and `every(0)` included, is one millisecond, as Shoes 3 clamps it (`s3t_timerbase.c:72`); it had waited the default second, so the first of `5.times { |i| timer(i * 0.12) { } }` came last. **Spec:** `element.timer__zero_seconds`.
+- **Native:** the Ruby pump owns timers (DESIGN 5.4); since 27 Sep `every` counts from 0 there, as `animate` does. Since 28 Sep (wave 8) a delay under a millisecond, `timer(0)` and `every(0)` included, is one millisecond, as Shoes 3 clamps it (`s3t_timerbase.c:72`); it had waited the default second, so the first of `5.times { |i| timer(i * 0.12) { } }` came last. **Spec:** `element.timer__zero_seconds`. Since 28 Sep (the w9 polish lane) a `timer(0)` runs once what was made before it is laid out, as Shoes 3 draws a canvas before it fires a timer: when one is due and the shim has sent Rust changes since, it pings Rust, which lays out what it was sent and pushes the rects before it answers, and reads them. Hackety Hack's tooltips make a para and size their background to it in a `timer(0)` (`app/ui/widgets.rb:141-146`); the timer used to run before Rust had the para, read its width as nil and raised `TypeError: nil can't be coerced into Integer`. **Spec:** `timers.classes__zero_after_layout` (native).
 - **Wire contract (f), 27 Sep 2026:** `every`'s count starts at 0, and `animate`'s first frame is 0. DESIGN 5.4 said "every (count starts at 1)" until the layout lane moved it to 0 on 27 Sep, with Shoes 3 and Shoes 4.
 
 ### I2. `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer`
@@ -1263,6 +1332,18 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** `exit` is an alias of `Shoes.quit` (`lacci/lib/shoes.rb:258-261`, `app.rb:597-602`), which destroys every app and returns, so the rest of the block and the file keep running.
 - **Spec:** `builtins.exit`: in a child program, nothing after `exit` runs, not even the rest of the block, and the program ends cleanly.
 - **Native:** the pump must let a `SystemExit` end the process after telling Rust to `quit`.
+
+### K7. `Shoes.show_manual` opens the manual in a window
+
+**Ruling: S3.** **Lacci change, done 28 Sep 2026.** New row, from the Hackety Hack lane (w9).
+
+- **Manual:** "welcome to Shoes' built-in manual. This manual is a Shoes program itself!" (manual 31). `Shoes.show_manual` is not documented; it is how Shoes 3's own console and Hackety Hack open it.
+- **Shoes 3:** the manual is a Shoes app shipped with Shoes (`lib/shoes/help.rb`, not fetched), opened in a window of its own: the chapters and their sections down the left, the page on the right.
+- **Examples:** Hackety Hack's Help tab calls `Shoes.show_manual` (`app/ui/mainwindow.rb:76-78`). An app for children should not send them to a browser: the Shoes Store's Kids shelf promises no links out.
+- **Lacci until 28 Sep:** `show_manual` ran `open https://github.com/scarpe-team/scarpe/wiki`, which a test sandbox traps. Since 28 Sep it opens "The Shoes Manual" beside the app that asked (or as the app, with none running), drawn from `docs/static/manual.md` by `Shoes::Manual`: the index of chapters and sections as links, the page with its headings, paragraphs, code, lists, inline code and emphasis, and its `[[links]]` turning to the section they name. The pictures do not come with the manual, so they are left out. A copy of Scarpe without `docs/` says so in an alert rather than opening a browser. Since 28 Sep (the w9 integrate lane) a native package carries `docs/static/manual.md` beside Lacci, at the path `Shoes::Manual` reads, so a packaged app opens the manual too (`test/package/native_package_test.rb`), and reads it as UTF-8 whatever the locale: started from Finder, a packaged app has none, and read it as US-ASCII (`lacci/test/test_manual.rb`).
+- **Pictures and lists, 28 Sep 2026 (w9 polish):** the pictures do come with Scarpe: every one the manual names sits beside it in `docs/static`, so the page draws each under the words it closes ("On Linux, here's how this might look:" and the screenshot). Where the text holds `{COLORS}` and `{INDEX}`, the window draws what Shoes 3's did (`help.rb` `color_page` and `index_page`, the w9 fidelity lane's `web/shoes3_help.rb`): every named colour on a swatch of itself, three to a row, its name and its `rgb` numbers on it, and the drawables under the class they come from, each linking to its section. `{SAMPLES}` listed the samples Shoes 3 came with; no samples come with this manual, so it draws nothing. A native package carries the pictures with the manual. The learner lane found the braces printed, and Basic Programming 4.6 sends children to the colour list. **Test:** `lacci/test/test_manual.rb` (`test_the_manual_draws_its_colours_classes_and_pictures`) and `test/package/native_package_test.rb`.
+- **Spec:** `intro.manual_is_shoes_program` (both displays); `lacci/test/test_manual.rb` also turns a page.
+- **Native:** nothing; the window is an ordinary Shoes app.
 
 ## L. Loader and environment
 
@@ -1392,7 +1473,9 @@ A border's width is its own, 1 unless given: Shoes 3 strokes it with `ATTR2(dbl,
 
 ### M14. Font sizes: pixels or points?
 
-**Ruling: MANUAL:** pixels. `:size` is a "pixel size" (manual 1398) and the text blocks are "N pixels high" (manual 1923-2129, 3378-3384); the `:font` string's size is "in points" unless suffixed `px` (manual 1221-1223), which is Pango's convention leaking through. Shoes 3's own handling is not checked. **Spec:** relative sizes only (a `title` is taller than a `para`; `font: "Arial 20px"` and `size: 20` lay out the same height). **Native:** treats every size as logical pixels.
+**Ruling: MANUAL:** pixels. `:size` is a "pixel size" (manual 1398) and the text blocks are "N pixels high" (manual 1923-2129, 3378-3384); the `:font` string's size is "in points" unless suffixed `px` (manual 1221-1223), which is Pango's convention leaking through. **Spec:** relative sizes only (a `title` is taller than a `para`; `font: "Arial 20px"` and `size: 20` lay out the same height). **Native:** treats every size as logical pixels.
+
+**Shoes 3, checked 28 Sep 2026 (w9 polish):** Shoes 3 read every text size as points at 96 dpi. A numeric `:size` becomes `pango_attr_size_new_absolute(ROUND(i * PANGO_SCALE * (96./72.)))` (`s3t_textblock.c:288-293`), a String's number is taken with `to_i` first, and the default font is Arial at 14 points the same way (`s3_world.c:46-48`); the class sizes (para 12, title 34) go through the same line. So a Shoes 3 para was 16 px tall and a title 45. The fidelity lane measured it on screenshots of Hackety Hack 1.0 and 1.0.1: the editor's line pitch is 19 to 20 px there against 16 on native, and "Last saved less than a minute ago." is 245 px wide against 180. Every program written for Shoes 3 was laid out for text a third bigger than native draws it. **Extension, 28 Sep 2026: EXT** (`ext-scarpe`). A program can ask for Shoes 3's text before its first window with `Shoes.text_mode = :shoes3`: sizes are then points at 96 dpi, "px" stays pixels, a text block that names no face gets Arial, each line is as tall as its own text, as Pango sets lines (Hackety Hack's intro title is a 15 point " Welcome to" line over a 34 point "Hackety Hack"), and a para's marked range is yellow behind its text under a black caret, as Shoes 3 drew them (`s3t_textblock.c:187-197, 479-483`; DESIGN 4.1 `text_mode`, DESIGN 6). Hackety Hack asks for it. The default stays pixels, which every app built on native was laid out for; whether Shoes 3's reading should become the default is Q12. **Spec:** `styles.size__shoes3_text_mode` (native). **Test:** `text::rich::tests::shoes3_text_is_sized_in_points`, the protocol test `text_mode_shoes3_sizes_text_in_points`, and `lacci/test/test_app.rb`.
 
 ### M15. Style "For:" lists
 
@@ -1410,9 +1493,12 @@ A border's width is its own, 1 unless given: Shoes 3 strokes it with `ATTR2(dbl,
 
 **Ruling: S3.** A String that parses as a colour (hex, a named colour, `rgb(...)`) is a colour; anything else is an image path. The manual uses both (`fill "static/avatar.png"`, manual 1693; `"#DFA"`, 118; `"#333"`, 1793) with no rule. Shoes 3 tries `shoes_color_parse` first (`s3t_pattern.c:91-94`). **Native:** DESIGN 5.3 turns image paths and URLs into `{"image": path}` after colour parsing fails.
 
-### M19. `background ... right: 50` is not "on the right-side"
+### M19. `background ... right: 50` is "on the right-side"
 
-**Ruling: ERRATA** for the description. `background black, width: 50, right: 50` (manual 2792) is described as "a fifty pixel column on the right-side of the window", but `:right` puts the right edge 50 px in from the slot's edge (manual 1356-1364). **Spec:** the column's right edge sits 50 px in from the window's right edge. See C10.
+**Ruling: MANUAL, 28 Sep 2026 (w9 polish);** it was ERRATA; Nick may overrule. `background black, width: 50, right: 50` (manual 2792) is described as "a fifty pixel column on the right-side of the window", and that is how Shoes 3 draws it. A background or border is placed with `shoes_place_decide(..., REL_TILE)`, which measures a `right` or `bottom` offset against the pattern's own size, not the size given it: `tw` and `th` start as the `dw` and `dh` the pattern passes and are not replaced for REL_TILE (`s3_ruby.c:473-520`), and those are `PATTERN_DIM(self_t, width)` and `(..., height)` (`s3t_pattern.c:175, 217`), which is `self_t->cached != NULL ? self_t->cached->x : 1` (`shoes/types/pattern.h`, fetched 28 Sep 2026 as `native/research/sources/s3t_pattern.h`). So a colour or a gradient counts as 1 px: the column's left edge sits 51 px in from the window's right edge, and it runs to 1 px short of it. The v1 ruling read `:right` as it reads for elements (manual 1356-1364, C10), which put the column 50 to 100 px in.
+
+- **Examples:** Hackety Hack draws the gradient at the foot of its window with `background "#e9efe0".."#c1c5d0", :height => 150, :bottom => 150` (`app/ui/mainwindow.rb:63`); the Ubuntu 1.0.1 screenshot shows it along the bottom 150 px, where native hung it at y 249 to 399 with a hard edge across Home, the Editor and the Lessons list (the w9 fidelity lane). `shoes-contrib/elements/background-column.rb` draws the manual's column. A background or border given a far-edge offset and no size keeps the inset reading, which Shoes 3 would have put almost wholly past the slot: nothing written for Shoes 3 does that, and the legendary kanban's cards (`background white, curve: 10, bottom: 2`) lean on it. A picture keeps its own size as its measure, which in every example is the width given it (form.rb's 55 px `menu-right.png`).
+- **Spec:** `background.right_column`: the column covers x (width - 51) to (width - 2). **Native:** `layout::decor_box`; tests `a_sized_colour_or_gradient_is_placed_from_the_far_edge_by_one_pixel` and `right_and_bottom_place_from_the_far_edges`. See C10.
 
 ### M20. "Colors ... will tile across the background"
 
@@ -1488,7 +1574,7 @@ A border's width is its own, 1 unless given: Shoes 3 strokes it with `ATTR2(dbl,
 
 ### M38. Unexpanded placeholders
 
-**Ruling: ERRATA.** `{INDEX}`, `{COLORS}` and `{SAMPLES}` (manual 1564, 1576, 3525) were never expanded. The colour list comes from Shoes 3's colour table and Lacci's `Shoes::COLORS`.
+**Ruling: ERRATA.** `{INDEX}`, `{COLORS}` and `{SAMPLES}` (manual 1564, 1576, 3525) were never expanded in the text: Shoes 3's built-in manual drew them when it showed the page (`help.rb` `index_page`, `color_page`, `sample_page`). The colour list comes from Shoes 3's colour table and Lacci's `Shoes::COLORS`. Since 28 Sep Scarpe's manual window draws the first two the same way (K7).
 
 ### M39. The Messenger fix
 
@@ -1543,6 +1629,26 @@ The evidence was balanced on each of these, so v1 asked Nick. The orchestrator r
 - **Q9 (C14), found in wave 4.** Is an explicit `width` (or `height`) the element's **margin box**, margins inside it, as Shoes 3 does for slots and text blocks (`s3_ruby.c:506, 537`, `s3t_textblock.c:125-126`), or its **border box**, margins added outside, as DESIGN 12 and Webview do? The manual is silent. `menu1.rb`'s panels fit a row only under Shoes 3's rule; changing the rule moves every element that has both a px size and a margin.
 
   **Ruled:** the margin box (S3), so `menu1.rb` and `simple-control-sizes.rb` lay out as written (C14). The same day: a negative `left` or `top` on art is a plain coordinate (C15), and Scarpe's controls are its own (G15, Nick).
+
+## Open questions (28 Sep 2026)
+
+Raised by the Hackety Hack lane (w9). Each is asked the way the questions above were, with what Scarpe does until someone rules.
+
+- **Q10 (C10, C15).** Should a negative `left` or `top` on an element that is not art be a plain coordinate, past the slot's left or top edge, as Shoes 3 reads every position (`shoes_px2` with `nv` 0, `s3_ruby.c:298-337`), or stay the slot less that much, as DESIGN 6 and C15 have it? Since 28 Sep a negative `right` or `bottom` follows Shoes 3 (C10). Hackety Hack's splash starts its hand at `top: -400`, above the window, and slides it down into view; native shows it 150 px down a 550 px window at once. `legacy/for_playtest/expert/othello.rb` puts its Undo button at `left: -150` and relies on today's reading to show it at the right; under Shoes 3 it would sit off the window.
+
+  **Meanwhile:** the dimension rule, as C15 ruled.
+
+- **Q11 (E10).** Should every shape turn about its own centre by default, as Shoes 3.3's source does (`shoes_transform_new` starts in `s_center`, and `shoes_apply_transformation` turns about the shape's middle, `s3_canvas.c:31-41, 192-205`), making the manual's "Shoes defaults to `:corner`" (manual 1857-1860) ERRATA? Since 28 Sep a star and an arrow turn about the centre their `left` and `top` name. Rects, ovals, arcs and shape blocks still turn about their corner, which Scarpe's `rotate_shapes.rb` and the `art.rotate` cases are written against; `shoes-contrib/animation/rotating-star.rb` spins in place only about the centre, and `for_playtest/simple/path-animation.rb` asks for it with `center: true`.
+
+  **Meanwhile:** the corner, as E10 ruled, with stars and arrows turning about their centre.
+
+- **Q12 (M14).** Should a text size be points at 96 dpi by default, as Shoes 3 drew it (`s3t_textblock.c:293`), rather than pixels, as the manual says ("pixel size", manual 1398)? Every Shoes 3 program, the examples under `legacy/` among them, was laid out for text a third bigger than native draws; every app built on native (the showcase, the legendary and Kids apps) was laid out for pixels, and would grow a third. Since 28 Sep a program can ask for Shoes 3's text with `Shoes.text_mode = :shoes3`, and Hackety Hack does.
+
+  **Meanwhile:** pixels, as M14 ruled; a program asks for points with `Shoes.text_mode = :shoes3`.
+
+- **Q13 (C17).** Should an element given only `top` or `bottom` keep the x its flow stood at, and one given only `left` or `right` keep the flow's y and take its place in the line, as Shoes 3 places them (`s3_ruby.c:521-525`, `s3_ruby.h:246-255`)? Today any one of the four takes an element out of the flow, placed from its slot's corner on the other axis. Programs written for Shoes 3 that place something by one axis after other content, such as Hackety Hack's turtle, would read as their authors saw them; nobody has counted the examples that lean on today's reading, and a `left`-only element that took a place in the line would move whatever follows it.
+
+  **Meanwhile:** out of the flow, from the slot's corner.
 
 ## Citation check
 

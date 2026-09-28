@@ -728,6 +728,131 @@ fn a_press_passes_through_what_has_no_click_block() {
     assert_eq!(ids(&evs, "click"), vec![json!(6)], "a button on the oval keeps its press");
 }
 
+/// An image with a click block is heard like a shape (ledger E8): on the press, once, with the
+/// button and the window coordinates, and through an empty slot laid over it, as Hackety
+/// Hack's side tabs sit under a window-sized stack. Images took a button's release-time click
+/// as well, so one on top heard two.
+#[test]
+fn an_image_hears_its_press_once_even_under_an_empty_slot() {
+    let mut h = Harness::new();
+    h.feed(&app(200, 120, &[
+        create(3, "Image", 2, json!({"url": "", "left": 20, "top": 20, "width": 40, "height": 30, "has_click": true})),
+        create(4, "Image", 2, json!({"url": "", "left": 120, "top": 20, "width": 40, "height": 30, "has_click": true})),
+        create(5, "Stack", 2, json!({"left": 0, "top": 0, "width": 100, "height": 120})),
+    ]));
+    let clicks = |evs: &[Value]| named(&events(evs), "click").iter().map(|e| (e.1.clone(), e.2.clone())).collect::<Vec<_>>();
+    let (evs, reply) = h.req(json!({"op": "click", "target": {"x": 40, "y": 35}}));
+    assert_eq!(reply["value"]["hit"], json!(3), "the press goes through the empty stack on top");
+    assert_eq!(clicks(&evs), vec![(json!(3), json!([1, 40, 35]))], "and the image beneath hears it");
+    let (evs, reply) = h.req(json!({"op": "click", "target": {"x": 140, "y": 35}}));
+    assert_eq!(reply["value"]["hit"], json!(4), "nothing covers the second image");
+    assert_eq!(clicks(&evs), vec![(json!(4), json!([1, 140, 35]))], "and it hears one click, not two");
+}
+
+/// Para#hit (ledger F14): the character under a point, as Pango's xy_to_index gives it to
+/// Shoes 3, past the end of a line the last one, and nil off the text block.
+#[test]
+fn a_para_answers_which_character_is_under_a_point() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "Stack", 2, json!({"width": 280})),
+        create(4, "Para", 3, json!({"text_items": ["Hackety Hack"], "size": 20})),
+    ]));
+    let para = h.node(|n| n["id"] == 4);
+    let (x, y, w) = (para["x"].as_f64().unwrap(), para["y"].as_f64().unwrap(), para["w"].as_f64().unwrap());
+    let mut hit = |x: f64, y: f64| h.value(json!({"op": "para_hit", "id": 4, "x": x, "y": y}));
+    assert_eq!(hit(x + 1.0, y + 10.0), json!(0), "the first letter");
+    assert_eq!(hit(x + w - 2.0, y + 10.0), json!(11), "past the end of the line: the last letter");
+    assert_eq!(hit(x + 1.0, y + 200.0), Value::Null, "below the block");
+}
+
+/// Para#cursor_top (ledger F14): the caret's top in the frame of the slot that scrolls the
+/// para, so scrolling leaves it where it is, as Hackety Hack's editor needs.
+#[test]
+fn a_paras_caret_is_measured_in_the_slot_that_scrolls_it() {
+    let mut h = Harness::new();
+    let lines: Vec<String> = (1..=20).map(|n| format!("line {n}")).collect();
+    h.feed(&app(300, 200, &[
+        create(3, "Flow", 2, json!({"width": 280, "height": 80, "scroll": true})),
+        create(4, "Para", 3, json!({"text_items": [lines.join("\n")], "size": 10})),
+    ]));
+    assert_eq!(h.value(json!({"op": "para_caret", "id": 4})), Value::Null, "no caret, no answer");
+    h.feed(&json!({"t": "props", "id": 4, "props": {"text_cursor": 0}}).to_string());
+    let first = h.value(json!({"op": "para_caret", "id": 4}))["top"].as_i64().unwrap();
+    let tenth = "line 1\n".len() + (2..10).map(|n| format!("line {n}\n").len()).sum::<usize>();
+    h.feed(&json!({"t": "props", "id": 4, "props": {"text_cursor": tenth}}).to_string());
+    let lower = h.value(json!({"op": "para_caret", "id": 4}))["top"].as_i64().unwrap();
+    assert!(lower - first > 9 * 10, "nine lines down: {first} then {lower}");
+    h.feed(&json!({"t": "scroll_to", "id": 3, "top": 40}).to_string());
+    assert_eq!(h.value(json!({"op": "para_caret", "id": 4}))["top"].as_i64().unwrap(), lower, "scrolling does not move it");
+}
+
+/// `Shoes.text_mode = :shoes3` (ledger M14) arrives as `text_mode`: from then on text is sized
+/// in points at 96 dpi, so a para of the default size draws 16 px tall where it drew 12, and the
+/// window is laid out again with it.
+#[test]
+fn text_mode_shoes3_sizes_text_in_points() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(3, "Para", 2, json!({"text_items": ["Hackety Hack"], "margin": 0}))]));
+    let (w, hgt) = { let p = h.node(|n| n["id"] == 3); (p["w"].as_f64().unwrap(), p["h"].as_f64().unwrap()) };
+    h.feed(&json!({"t": "text_mode", "mode": "shoes3"}).to_string());
+    let p = h.node(|n| n["id"] == 3);
+    let (w3, h3) = (p["w"].as_f64().unwrap(), p["h"].as_f64().unwrap());
+    assert!((w3 / w - 4.0 / 3.0).abs() < 0.05, "a third wider: {w} then {w3}");
+    assert!((h3 / hgt - 4.0 / 3.0).abs() < 0.05, "and a third taller: {hgt} then {h3}");
+    h.feed(&json!({"t": "text_mode", "mode": "scarpe"}).to_string());
+    assert_eq!(h.node(|n| n["id"] == 3)["w"].as_f64().unwrap(), w, "and back");
+}
+
+/// Pango makes each line as tall as its own text, so Hackety Hack's intro title, a 15 point
+/// " Welcome to" line over a 34 point "Hackety Hack", keeps its small line short and the Ready
+/// button under it clear. Shoes 3's text mode sets lines that way; otherwise every line of a
+/// block is at least the block's line height.
+#[test]
+fn shoes3_text_keeps_a_line_of_small_text_short() {
+    let mut h = Harness::new();
+    h.feed(&app(400, 300, &[
+        create(3, "Span", 0, json!({"text_items": [" Welcome to\n"], "size": 15})),
+        create(4, "Para", 2, json!({"text_items": [3, "Hackety Hack"], "size": "title", "margin": 0})),
+    ]));
+    let tall = h.node(|n| n["id"] == 4)["h"].as_f64().unwrap();
+    h.feed(&json!({"t": "text_mode", "mode": "shoes3"}).to_string());
+    let para = h.node(|n| n["id"] == 4)["h"].as_f64().unwrap();
+    let (small, big) = (15.0 * 4.0 / 3.0, 34.0 * 4.0 / 3.0);
+    assert!((para - (small * 1.2 + 4.0 + big * 1.2)).abs() < 1.5, "one short line and one tall: {para}");
+    assert!(tall > 2.0 * 34.0 * 1.2, "without the mode both lines are title lines: {tall}");
+}
+
+/// After Return at the end of the text the caret sits at the start of the new, empty line under
+/// it, where Pango puts it and where the next letter goes (Hackety Hack's editor, the fidelity
+/// lane's caret strip). cosmic-text keeps no line for a closing newline, so the caret was drawn
+/// at the end of the line above.
+#[test]
+fn a_caret_after_a_closing_newline_sits_at_the_start_of_the_next_line() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "Stack", 2, json!({"width": 280})),
+        create(4, "Para", 3, json!({"text_items": ["x = [1, 2]\n"], "size": 10, "text_cursor": 0})),
+    ]));
+    let at = |h: &mut Harness| {
+        let c = h.value(json!({"op": "para_caret", "id": 4}));
+        (c["left"].as_i64().unwrap(), c["top"].as_i64().unwrap(), c["height"].as_i64().unwrap())
+    };
+    let (left, top, height) = at(&mut h);
+    h.feed(&json!({"t": "props", "id": 4, "props": {"text_cursor": 10}}).to_string());
+    let (end_left, end_top, _) = at(&mut h);
+    assert!(end_left > left + 30 && end_top == top, "before the newline, the end of the first line: {end_left},{end_top}");
+    h.feed(&json!({"t": "props", "id": 4, "props": {"text_cursor": 11}}).to_string());
+    let (next_left, next_top, next_height) = at(&mut h);
+    assert_eq!(next_left, left, "after it, back at the start of a line");
+    assert!(next_top >= top + height, "on the line below: {next_top} under {top}+{height}");
+    assert_eq!(next_height, height, "a line as tall as the first");
+    let para = h.node(|n| n["id"] == 4);
+    let (x, y) = (para["x"].as_f64().unwrap(), para["y"].as_f64().unwrap());
+    let hit = h.value(json!({"op": "para_hit", "id": 4, "x": x + 2.0, "y": y + height as f64 + 4.0}));
+    assert_eq!(hit, json!(11), "and a point on that empty line names the place after the newline");
+}
+
 /// Shoes 3 runs a slot's click block as the press walks down the canvas to what it lands on,
 /// and the block of the shape that takes the press after that (shoes_canvas_send_click2): a
 /// press on a clickable stack over a clickable rect runs the stack's, then the rect's. Rust

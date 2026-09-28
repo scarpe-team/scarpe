@@ -1,0 +1,22 @@
+---
+manual: slot.scroll_top
+lines: [2455, 2463]
+testability: visual
+display: native
+ledger: C5
+----------- app code
+# Hackety Hack's editor keeps its caret in view by reading and setting scroll_top on a
+# scrolling flow, as a stack does.
+Shoes.app width: 200, height: 200 do
+  @box = flow width: 1.0, height: 100, scroll: true do
+    @first = para "line 0", margin: 0
+    39.times { |i| para "line #{i + 1}", margin: 0, width: 1.0 }
+  end
+end
+----------- test code
+box = flow("@box")
+assert_equal 0, box.scroll_top, "a flow that has not scrolled reads 0"
+before = layout_of(para("@first")).y
+box.scroll_top = 60
+assert_equal 60, box.scroll_top, "and reads back what it was set to"
+assert_in_delta before - 60, layout_of(para("@first")).y, 1, "setting it scrolls the flow"

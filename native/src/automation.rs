@@ -145,6 +145,18 @@ impl Runtime {
                 let app = self.app_for(app).ok_or_else(no_app)?;
                 Ok(Some(self.views[&app].ui.focus.map(Value::from).unwrap_or(Value::Null)))
             }
+            Op::ParaHit { id, x, y } => {
+                let app = self.owner_app(id).ok_or_else(no_app)?;
+                self.ensure_layout(app);
+                let layout = self.views.get(&app).and_then(|v| v.layout.as_ref());
+                let under = layout.and_then(|l| crate::input::char_under(l.texts.get(&id)?, l.rect(id)?, x, y));
+                Ok(Some(under.map_or(Value::Null, Value::from)))
+            }
+            Op::ParaCaret { id } => {
+                let app = self.owner_app(id).ok_or_else(no_app)?;
+                self.ensure_layout(app);
+                Ok(Some(self.para_caret(app, id).unwrap_or(Value::Null)))
+            }
             Op::A11y { app, platform } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;
                 if platform {
@@ -330,6 +342,18 @@ impl Runtime {
         let slot_of = |id: &Id| self.doc.get(*id).filter(|n| n.kind == Kind::SubscriptionItem).and_then(|n| n.parent);
         let (slots, drawables): (Vec<Id>, Vec<Id>) = listeners.iter().partition(|id| slot_of(id).is_some());
         drawables.last().copied().or_else(|| slots.last().and_then(slot_of))
+    }
+
+    /// Where para `id`'s caret sits, as Shoes 3 measures a text block's cursor
+    /// (s3t_textblock.c:173-181): from the content origin of the slot that scrolls the para,
+    /// or the window's when none does, so `cursor_top` compares with that slot's `scroll_top`
+    /// whatever it is scrolled to. Whole pixels, as Shoes 3 gives them.
+    fn para_caret(&self, app: Id, id: Id) -> Option<Value> {
+        let layout = self.views.get(&app)?.layout.as_ref()?;
+        let (x, top, h) = crate::paint::text::para_caret(self.doc.get(id)?, layout.texts.get(&id)?)?;
+        let scroller = self.doc.ancestors(id).into_iter().find_map(|a| layout.scrollers.get(&a));
+        let (dx, dy) = scroller.map_or((0.0, 0.0), |s| (s.viewport.x, s.viewport.y - s.top));
+        Some(json!({"left": (x - dx).round() as i64, "top": (top - dy).round() as i64, "height": h.round() as i64}))
     }
 
     /// The open app a drawable is drawn in: up its parents, or for a text fragment

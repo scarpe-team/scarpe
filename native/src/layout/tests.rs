@@ -532,17 +532,91 @@ fn text_that_cannot_share_the_line_starts_a_row() {
 }
 
 #[test]
+fn a_sized_line_too_wide_as_a_box_still_sits_beside_what_came_before() {
+    // Ledger C7, from Hackety Hack's britelink: an icon, then its name in a para 280 wide and
+    // trimmed, in a flow 300 wide, then the date. Shoes 3 starts a sized text block at the left
+    // edge with its first line indented past what came before (s3t_textblock.c:125-145), and
+    // one line shrinks to its text (:207-210), so the name sits beside the icon and the date
+    // carries on after it. As a box, 280 did not fit beside the icon and took a row of its own.
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"width": 300, "margin": 4}));
+    // the 16 px icon with its margins of 3, and 6 on the right
+    let icon = s.add("Button", flow, json!({"text": "", "width": 25, "height": 22}));
+    let name = s.add("Para", flow, json!({"text_items": ["Hello World"], "width": 280, "wrap": "trim", "margin": 0, "size": 13}));
+    let date = s.add("Para", flow, json!({"text_items": ["Sep 28"], "size": 9, "margin": 4, "margin_bottom": 0}));
+    let l = s.layout(480.0, 420.0);
+    let (i, n, d) = (r(&l, icon), r(&l, name), r(&l, date));
+    assert!((n.y - i.y).abs() < 0.01, "the name shares the icon's row: {i:?} {n:?}");
+    assert!((n.x - i.right()).abs() < 0.01, "and starts after it: {i:?} {n:?}");
+    assert!(n.w < 280.0 && (n.w - s.text.max_content(&rich::resolve_block(&s.doc, &s.text.fonts, name).unwrap())).abs() < 0.01, "one line is as wide as its text: {n:?}");
+    let glyphs: usize = l.texts[&name].shaped.buffer.layout_runs().map(|run| run.glyphs.len()).sum();
+    assert_eq!(glyphs, "Hello World".len(), "all of it, with no ellipsis");
+    assert!((d.y - (n.y + 4.0)).abs() < 0.01 && (d.x - (n.right() + 4.0)).abs() < 0.01, "the date carries on after the name: {n:?} {d:?}");
+
+    // A sized box that fits beside keeps its box, and a line too long for the rest of the row
+    // (or for its own width after the indent) still starts a row.
+    let flow2 = s.add("Flow", ROOT, json!({"width": 300}));
+    s.add("Button", flow2, json!({"text": "", "width": 100, "height": 16}));
+    let fits = s.add("Para", flow2, json!({"text_items": ["fits"], "width": 150}));
+    let flow3 = s.add("Flow", ROOT, json!({"width": 300}));
+    s.add("Button", flow3, json!({"text": "", "width": 100, "height": 16}));
+    let long = s.add("Para", flow3, json!({"text_items": ["a line far too long for what is left of this row"], "width": 280, "wrap": "trim"}));
+    let l = s.layout(480.0, 420.0);
+    assert_eq!(r(&l, fits).w, 150.0 - 8.0, "a box that fits beside is still its own width, less its margins");
+    assert!(r(&l, long).x <= 4.0 + 0.01, "a line that does not fit takes a row: {:?}", r(&l, long));
+}
+
+#[test]
 fn right_and_bottom_place_from_the_far_edges() {
-    // Ledger C10 and M19: `right: 50` puts the right edge 50 px in from the slot's (manual 1356-1364).
+    // Ledger C10: `right: 50` puts the right edge 50 px in from the slot's (manual 1356-1364). A
+    // background with a width of its own is measured by its pattern's size instead, 1 px for a
+    // colour, as Shoes 3 places a tile (M19): the manual's column sits on the right-side.
     let mut s = Scene::new();
     let column = s.add("Background", ROOT, json!({"fill": "#000", "width": 50, "right": 50}));
     let slot = s.add("Stack", ROOT, json!({"width": 100, "height": 40, "right": 0, "bottom": 0}));
     let text = s.add("Para", ROOT, json!({"text_items": ["right"], "right": 20, "top": 100}));
     let l = s.layout(400.0, 300.0);
-    assert_eq!(r(&l, column), Rect::new(300.0, 0.0, 50.0, 300.0));
+    assert_eq!(r(&l, column), Rect::new(349.0, 0.0, 50.0, 300.0));
     assert_eq!(r(&l, slot), Rect::new(300.0, 260.0, 100.0, 40.0));
     let t = r(&l, text);
     assert!((t.right() + 4.0 - 380.0).abs() < 0.01 && (t.y - 104.0).abs() < 0.01, "a text's margin box ends 20 px in: {t:?}");
+}
+
+#[test]
+fn negative_right_and_bottom_place_past_the_far_edges() {
+    // Shoes 3 reads a position as a plain number, negative too (shoes_px2 passes nv 0 to
+    // shoes_px, s3_ruby.c:327-337): bottom: -3 hangs an element 3 px below its slot's lower
+    // edge. Hackety Hack's editor hangs its button bar so. Native read it as the slot less 3.
+    let mut s = Scene::new();
+    let bar = s.add("Stack", ROOT, json!({"width": 182, "height": 40, "right": 0, "bottom": -3}));
+    let tab = s.add("Stack", ROOT, json!({"width": 50, "height": 20, "right": -10, "top": 0}));
+    let share = s.add("Stack", ROOT, json!({"width": 40, "height": 20, "right": "-10%", "top": 30}));
+    let band = s.add("Background", ROOT, json!({"fill": "#000", "bottom": -5}));
+    let l = s.layout(400.0, 300.0);
+    assert_eq!(r(&l, bar), Rect::new(218.0, 263.0, 182.0, 40.0));
+    assert_eq!(r(&l, tab), Rect::new(360.0, 0.0, 50.0, 20.0), "right: -10 sits 10 px past the right edge");
+    assert_eq!(r(&l, share), Rect::new(400.0, 30.0, 40.0, 20.0), "a negative share of the slot is past it too");
+    assert_eq!(r(&l, band), Rect::new(0.0, 0.0, 400.0, 305.0), "a background with no height reaches 5 px past the foot");
+}
+
+#[test]
+fn a_sized_colour_or_gradient_is_placed_from_the_far_edge_by_one_pixel() {
+    // Shoes 3 places a background or border with shoes_place_decide(REL_TILE), which measures a
+    // right or bottom offset against the pattern's own size, not the size given it: tw and th keep
+    // PATTERN_DIM, 1 for anything but a picture (s3_ruby.c:473-520, shoes/types/pattern.h). So
+    // Hackety Hack's `background "#e9efe0".."#c1c5d0", height: 150, bottom: 150` runs along the
+    // window's foot, as the Ubuntu 1.0.1 screenshot shows it; native hung it mid-window, with a
+    // hard edge at y 399. With no size, a far-edge offset still insets the box (kanban's cards).
+    let mut s = Scene::new();
+    let band = s.add("Background", ROOT, json!({"fill": {"gradient": [[233, 239, 224, 255], [193, 197, 208, 255]]}, "height": 150, "bottom": 150}));
+    let edge = s.add("Border", ROOT, json!({"stroke": [0, 0, 0, 255], "width": 20, "right": 10}));
+    let inset = s.add("Background", ROOT, json!({"fill": "#fff", "bottom": 2}));
+    let tile = s.add("Background", ROOT, json!({"fill": {"image": "/nonexistent/tile.png"}, "width": 55, "right": 0}));
+    let l = s.layout(790.0, 550.0);
+    assert_eq!(r(&l, band), Rect::new(0.0, 399.0, 790.0, 150.0), "the band's top is 151 px up");
+    assert_eq!(r(&l, edge), Rect::new(779.0, 0.0, 20.0, 550.0), "a border likewise, 11 px in");
+    assert_eq!(r(&l, inset), Rect::new(0.0, 0.0, 790.0, 548.0));
+    assert_eq!(r(&l, tile), Rect::new(735.0, 0.0, 55.0, 550.0), "a picture keeps its width as its measure");
 }
 
 #[test]
@@ -579,4 +653,47 @@ fn an_indented_paragraph_counts_characters_from_its_own_text() {
     assert_eq!(hit, Some(0), "Para#hit on the first letter is character 0");
     let end = tb.shaped.cursor_at(LONG.chars().count());
     assert_eq!(tb.shaped.char_index(end), LONG.chars().count());
+}
+
+#[test]
+fn a_slot_beside_a_taller_one_in_a_flow_reaches_down_to_its_bottom() {
+    // Shoes 3 grows a slot with no height of its own to its parent's end as it draws it
+    // (shoes_canvas_draw: fully = canvas->endy = max(canvas->endy, endy + bmargin), and
+    // place.h = canvas->endy - place.y, s3_canvas.c:639-642), and the parent's end is already the
+    // bottom of what came before on the row. So Hackety Hack's lesson pane, beside its 549 px
+    // content flow, is dark to the window's foot with its buttons along it; native stopped it at
+    // its own content and left a white strip under it.
+    let mut s = Scene::new();
+    let tall = s.add("Flow", ROOT, json!({"width": 200, "height": 300}));
+    let pane = s.add("Stack", ROOT, json!({"width": 150}));
+    let back = s.add("Background", pane, json!({"fill": "#111"}));
+    let words = s.add("Stack", pane, json!({"height": 100}));
+    let bar = s.add("Flow", pane, json!({"height": 32, "bottom": 0}));
+    let under = s.add("Stack", ROOT, json!({"width": 400}));
+    let short = s.add("Stack", under, json!({"width": 100}));
+    s.add("Stack", short, json!({"height": 40}));
+    let l = s.layout(400.0, 400.0);
+    assert_eq!(r(&l, tall), Rect::new(0.0, 0.0, 200.0, 300.0));
+    assert_eq!(r(&l, pane), Rect::new(200.0, 0.0, 150.0, 300.0), "as tall as the flow before it");
+    assert_eq!(r(&l, back), Rect::new(200.0, 0.0, 150.0, 300.0), "and its background with it");
+    assert_eq!(r(&l, words), Rect::new(200.0, 0.0, 150.0, 100.0));
+    assert_eq!(r(&l, bar), Rect::new(200.0, 268.0, 150.0, 32.0), "bottom: 0 is at the stretched foot");
+    assert_eq!(r(&l, short).h, 40.0, "the first on its row has nothing to reach down to");
+    let _ = under;
+}
+
+#[test]
+fn a_slot_with_no_height_placed_by_bottom_is_measured_by_its_margins() {
+    // Shoes 3 places a canvas it has not drawn yet with dh = its margins (shoes_place_decide,
+    // s3_ruby.c:434-436), so `stack bottom: 26, margin: 4` has its top 26 + 8 px above the foot
+    // and its contents below that: Hackety Hack's Quit tab icon sits at y 524 of 550, as the Mac
+    // 1.0 screenshot has it (523), where native stood the stack on the 26 px line, 24 px higher.
+    let mut s = Scene::new();
+    let tab = s.add("Stack", ROOT, json!({"bottom": 26, "left": 0, "width": 38, "margin": 4}));
+    let icon = s.add("Image", tab, json!({"url": "", "width": 16, "height": 16, "margin": 4}));
+    let sized = s.add("Stack", ROOT, json!({"bottom": 26, "left": 100, "width": 38, "height": 32}));
+    let l = s.layout(790.0, 550.0);
+    assert_eq!(r(&l, tab).y, 550.0 - 26.0 - 8.0 + 4.0, "the stack's box starts inside its margin");
+    assert_eq!(r(&l, icon).y, 524.0, "and its icon four more px down");
+    assert_eq!(r(&l, sized), Rect::new(100.0, 492.0, 38.0, 32.0), "a slot with a height of its own stands on the line");
 }

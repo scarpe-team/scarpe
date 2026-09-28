@@ -38,6 +38,16 @@ pub fn parse_size(value: &Value, present: f32) -> Option<f32> {
     size_of(value, present).filter(|v| v.is_finite()).map(|v| v.min(1000.0))
 }
 
+/// A text block's `size` in pixels, as the app's text mode reads it: a relative word is a
+/// share of the present size (already pixels), "18px" is pixels, and any other size is in the
+/// mode's units. Lacci hands a `font` string's size over as `size` too, and Pango reads a
+/// font string's "px" as pixels.
+pub fn text_size(value: &Value, present: f32, mode: crate::text::TextMode) -> Option<f32> {
+    let fixed = value.as_str().is_some_and(|s| relative_size(s.trim()).is_some() || s.trim().ends_with("px"));
+    let size = parse_size(value, present)?;
+    Some(if fixed { size } else { mode.px(size).min(1000.0) })
+}
+
 fn size_of(value: &Value, present: f32) -> Option<f32> {
     match value {
         Value::Number(n) => n.as_f64().map(|v| v as f32).filter(|v| *v > 0.0),
@@ -83,6 +93,8 @@ pub struct FontSpec {
     pub weight: Option<u16>,
     pub italic: bool,
     pub size: Option<f32>,
+    /// The size was written in `px`, which Pango reads as pixels whatever else is points.
+    pub size_px: bool,
 }
 
 /// "[FAMILY-LIST] [STYLE-OPTIONS] [SIZE]", e.g. "Helvetica bold 18px", "Monospace 14".
@@ -98,6 +110,7 @@ pub fn parse_font(s: &str) -> FontSpec {
                     spec.weight = Some(v as u16);
                 } else if v.is_finite() && v > 0.0 {
                     spec.size = Some(v.min(1000.0));
+                    spec.size_px = lower.ends_with("px");
                 }
                 continue;
             }

@@ -8,6 +8,11 @@
 # A packaged app knows its display service, whatever the environment it was started from says.
 ENV["SCARPE_DISPLAY_SERVICE"] = "native"
 
+# Finder, the Dock and `open` start an app with no LANG, so Ruby would read every file as US-ASCII
+# and choke on a program with an accented letter in it, or on the manual. It reads UTF-8, as a Mac
+# terminal does.
+Encoding.default_external = Encoding::UTF_8 if Encoding.default_external == Encoding::US_ASCII
+
 # Precompiled Ruby, when it was compiled for this place and this Ruby. SCARPE_BYTECODE=0 skips it.
 require "scarpe/package/bytecode"
 Scarpe::Package::Bytecode.install(__dir__) unless ENV["SCARPE_BYTECODE"] == "0"

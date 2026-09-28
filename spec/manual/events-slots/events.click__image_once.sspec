@@ -1,0 +1,17 @@
+---
+manual: events.click
+lines: [2187, 2193]
+testability: interactive
+display: native
+ledger: E8
+----------- app code
+# An image's click block runs once per click, on the press, as every drawable's does.
+$clicks = []
+Shoes.app width: 200, height: 120 do
+  image "assets/red-40x30.png", left: 20, top: 20 do |button, left, top|
+    $clicks << [button, left, top]
+  end
+end
+----------- test code
+click_at 30, 30
+assert_equal [[1, 30, 30]], $clicks, "one click, one run of the image's block"

@@ -125,6 +125,20 @@ drifts over an edge as art (`rect`, `oval`, `shape` and the rest): art takes eve
 pixels and goes off the left and top edges as you would expect. DESIGN section 6 has the whole
 rule, and ledger C1 and C15 say why.
 
+## Text sizes, and Shoes 3's text
+
+A text size is pixels: `para` is 12 px tall and `title` 34, as the manual says (ledger M14).
+Shoes 3 read the same numbers as points at 96 dpi, so its paras were 16 px and its titles 45,
+and a program written for it was laid out for text a third bigger. Such a program can ask for
+Shoes 3's text before its first window:
+
+```ruby
+Shoes.text_mode = :shoes3
+```
+
+Sizes are then points (`"18px"` stays pixels), and text that names no face is set in Arial, as
+Shoes 3 set it. Every window the program opens follows it. Hackety Hack asks for it.
+
 ## Screen readers
 
 Scarpe draws its own buttons, fields and text, so no control of the operating system is there to
@@ -206,9 +220,9 @@ the case says why in its `reason:`. When someone fixes it, the case reports `xpa
 until the mark comes off, so a fix can never go unnoticed. `n/a` is a case that needs layout or real
 input, run on Niente, which has neither. `spec/README.md` explains how to write a case.
 
-On 28 Sep 2026, with the ten Kids apps in (the eighth build wave), the suite has 1042 cases. On the
-native display 1026 pass and 15 are expected failures, each pointing at its ledger row; none
-fail. On Niente 540 pass. The Kids apps' ten checks are among them, in `spec/kids`, as the
+On 28 Sep 2026, with the ten Kids apps in (the eighth build wave) and the Hackety Hack lanes (w9),
+the suite has 1060 cases. On the native display 1045 pass, 14 are expected failures, each pointing
+at its ledger row, and one is skipped; none fail. On Niente 545 pass. The Kids apps' ten checks are among them, in `spec/kids`, as the
 showcase's six are in `spec/showcase`. The eleven apps in `examples/native/legendary` keep their
 twelve checks beside them, where a plain `spec/run` does not look:
 `spec/run --display native examples/native/legendary` runs them, and all 12 pass.
@@ -398,7 +412,7 @@ As of 27 Sep 2026. Each has more detail in the ledger or in DESIGN.
   kinds differ (ledger A4). `font(url)` returns the file's name before the font is fetched.
   A slot's `start` fires on the first heartbeat after it appears. Image downloads happen at create
   time and hold up building the tree. `download` reads the whole body before its one `progress`.
-  Ledger rows B1 (a slot block's `self`) and K6 (`exit` at once) are still open.
+  Ledger row K6 (`exit` at once) is still open.
 - **Packaging.** No YJIT in the shipped Ruby yet. Bytecode only helps when the app runs from where it
   was compiled for. Other `.rb` files an app requires, and folders beyond `images`, `assets`,
   `fonts` and `sounds`, travel only when named with `--include`.

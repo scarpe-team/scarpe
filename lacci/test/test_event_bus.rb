@@ -76,4 +76,25 @@ class TestEventBusAfterClear < NienteTest
       assert_empty leftovers, "destroyed paras keep nothing on the bus, in Lacci or in Niente"
     SHOES_SPEC
   end
+
+  # A drawable subscribes to its hover, leave and motion only once given a block for them.
+  # Hackety Hack's editor makes about a thousand spans on every key, and each left three
+  # subscriptions behind.
+  def test_drawables_subscribe_to_pointer_events_only_when_given_a_block
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        handlers = Shoes::DisplayService.class_variable_get(:@@display_event_handlers)
+        pointer = -> { %w[hover leave motion].sum { |name| (handlers[name] || {}).values.sum(&:size) } }
+        before = pointer.call
+        200.times { span("token") }
+        $grew = pointer.call - before
+        @word = para "hover me"
+        @word.hover { $hovered = true }
+      end
+    SHOES_APP
+      assert_equal 0, $grew, "two hundred spans subscribe to no pointer events"
+      Shoes::DisplayService.dispatch_event("hover", para("@word").linkable_id)
+      assert $hovered, "and a hover block given later is heard"
+    SHOES_SPEC
+  end
 end

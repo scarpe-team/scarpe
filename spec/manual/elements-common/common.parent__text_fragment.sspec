@@ -1,0 +1,19 @@
+---
+manual: common.parent
+lines: [2676, 2679]
+testability: api
+display: any
+ledger: F13
+----------- app code
+# A fragment's parent is what holds it, as Shoes 3's cText#parent is (s3t_text.c:72-83):
+# Hackety Hack's links recolour their para through it on hover.
+Shoes.app do
+  $link = link("home") {}
+  $em = em("deep")
+  $strong = strong("bold ", $em)
+  @line = para "go ", $link, " or ", $strong
+end
+----------- test code
+assert_same para("@line").obj, $link.parent, "a link's parent is the para it sits in"
+assert_same $strong, $em.parent, "a fragment inside a fragment has that fragment as its parent"
+assert_same para("@line").obj, $strong.parent

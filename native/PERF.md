@@ -335,6 +335,33 @@ Creating each window's adapter costs nothing measurable. From `run` to the first
 29.3 to 34.2 ms with the adapter, median 30.0, and 29.4 to 50.3 ms at 98ad233 without it, median
 31.7. The release binary grew from 7.65 MB to 8.08 MB.
 
+## Typing in Hackety Hack's editor (28 Sep, w9)
+
+Hackety Hack's editor draws a program as one para and, on every key, tokenises the whole
+program again and replaces the para's text with a fresh span for each coloured token. Measured
+headless against Hackety Hack's own editor with a 303-line program (its samples, one after
+another), at load 40 to 55 from other work on the machine, so the Ruby times wander by half:
+
+| measure | time |
+|---|---|
+| pieces in the code para | 2709, of them 976 spans |
+| Ruby's key handler (`onkey`), per key | a run's median 87 to 208 ms over eleven runs, once 434 ms at the busiest |
+| of which tokenising and making the spans | 55 to 150 ms (tokenising alone about 14 ms) |
+| of which `para.replace` | 22 to 80 ms |
+| making 1000 bare spans | 51 to 140 ms |
+| key to the next frame, 20 keys through Rust (`peek --type`) | 5.8 s, about 290 ms a key |
+
+Typing in a short program feels immediate; in a 300-line one it lags. The cost is in making
+about a thousand drawables a key, each with its create message, and in reshaping a para of
+2709 pieces, more than in any one step. One step also leaked: every drawable subscribed to its
+own `hover`, `leave` and `motion` events when it was made, so each key left 2928 subscriptions
+behind (3451 to 32731 over ten keys). Since 28 Sep a drawable subscribes to one of those only
+when given a block for it, and ten keys leave the bus as they found it (74 subscriptions). The
+old spans themselves still stay in `Shoes::Drawable`'s id registry, 976 a key: a para that drops
+a fragment cannot tell whether another para still shows it (Glossb puts one link in two). Making
+a span cheaper, or tokenising only the lines a key changed (Hackety Hack's side), is what is
+left.
+
 ## Wave 8 (28 Sep, the Kids apps)
 
 The Kids apps are scenes full of small scattered life (fireflies, bubbles, confetti, twinkling

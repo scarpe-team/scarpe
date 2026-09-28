@@ -19,6 +19,8 @@ pub enum Incoming {
     Focus { id: Id },
     ScrollTo { id: Id, top: f32 },
     Font { path: String },
+    /// How text is sized and set from now on (Lacci's `Shoes.text_mode`): "scarpe" or "shoes3".
+    TextMode { mode: String },
     Flush,
     Req { req: u64, op: Op },
 }
@@ -83,6 +85,12 @@ pub enum Op {
     Pixel { x: f32, y: f32, app: Option<Id> },
     Frames { n: u32, app: Option<Id> },
     Focused { app: Option<Id> },
+    /// Para#hit(x, y): the index of the character of para `id` under window point (x, y), or
+    /// null off its box, as Shoes 3's Pango xy_to_index gives it (ledger F14).
+    ParaHit { id: Id, x: f32, y: f32 },
+    /// Para#cursor_top and #cursor_left: where para `id`'s caret sits, in the frame of the slot
+    /// that scrolls it, or null when it has no caret (ledger F14).
+    ParaCaret { id: Id },
     /// The accessibility tree, as a screen reader meets it (a11y.rs). `platform`: as AppKit hands
     /// it to VoiceOver, read from the window itself (macOS windows only).
     A11y { app: Option<Id>, platform: bool },
@@ -188,6 +196,7 @@ pub fn parse_line(line: &str) -> Result<Incoming, ParseError> {
         "focus" => Incoming::Focus { id: required(id(&obj, "id"), "id")? },
         "scroll_to" => Incoming::ScrollTo { id: required(id(&obj, "id"), "id")?, top: f(&obj, "top").unwrap_or(0.0) },
         "font" => Incoming::Font { path: required(s(&obj, "path"), "path")? },
+        "text_mode" => Incoming::TextMode { mode: required(s(&obj, "mode"), "mode")? },
         "flush" => Incoming::Flush,
         "req" => {
             let req = required(obj.get("req").and_then(Value::as_u64), "req")?;
@@ -237,6 +246,8 @@ fn op_fields(obj: &Map<String, Value>) -> Result<Op, ParseError> {
         "pixel" => Op::Pixel { x: required(f(obj, "x"), "x")?, y: required(f(obj, "y"), "y")?, app },
         "frames" => Op::Frames { n: obj.get("n").and_then(Value::as_u64).unwrap_or(1).min(u32::MAX as u64) as u32, app },
         "focused" => Op::Focused { app },
+        "para_hit" => Op::ParaHit { id: required(id(obj, "id"), "id")?, x: required(f(obj, "x"), "x")?, y: required(f(obj, "y"), "y")? },
+        "para_caret" => Op::ParaCaret { id: required(id(obj, "id"), "id")? },
         "a11y" => Op::A11y { app, platform: platform(obj) },
         "a11y_action" => Op::A11yAction {
             target: if platform(obj) {
@@ -280,7 +291,9 @@ fn target(v: Option<&Value>) -> Result<Target, ParseError> {
 pub enum Outgoing {
     Ready { v: u32, version: String },
     Event { name: String, target: Option<Id>, args: Vec<Value> },
-    Mouse { state: [i64; 3] },
+    /// The pointer over one app's window: `[button held, x, y]`. Each app keeps its own, as
+    /// Shoes 3's `mouse` answers from app->mousex (s3_canvas.c).
+    Mouse { app: Id, state: [i64; 3] },
     ParaHit { id: Id, value: Option<i64> },
     Resize { app: Id, w: i64, h: i64 },
     Scroll { id: Id, top: i64 },
@@ -414,6 +427,7 @@ mod tests {
         assert_eq!(parse_line(r#"{"t":"focus","id":9}"#).unwrap(), Incoming::Focus { id: 9 });
         assert_eq!(parse_line(r#"{"t":"scroll_to","id":9,"top":40}"#).unwrap(), Incoming::ScrollTo { id: 9, top: 40.0 });
         assert_eq!(parse_line(r#"{"t":"font","path":"/a/b.ttf"}"#).unwrap(), Incoming::Font { path: "/a/b.ttf".into() });
+        assert_eq!(parse_line(r#"{"t":"text_mode","mode":"shoes3"}"#).unwrap(), Incoming::TextMode { mode: "shoes3".into() });
         assert_eq!(parse_line(r#"{"t":"flush"}"#).unwrap(), Incoming::Flush);
     }
 
@@ -456,6 +470,8 @@ mod tests {
         assert_eq!(op(r#"{"t":"req","req":1,"op":"pixel","x":1,"y":2}"#), Op::Pixel { x: 1.0, y: 2.0, app: None });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"frames","n":3}"#), Op::Frames { n: 3, app: None });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"focused"}"#), Op::Focused { app: None });
+        assert_eq!(op(r#"{"t":"req","req":1,"op":"para_hit","id":7,"x":3,"y":4.5}"#), Op::ParaHit { id: 7, x: 3.0, y: 4.5 });
+        assert_eq!(op(r#"{"t":"req","req":1,"op":"para_caret","id":7}"#), Op::ParaCaret { id: 7 });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"a11y","app":1}"#), Op::A11y { app: Some(1), platform: false });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"a11y","platform":true}"#), Op::A11y { app: None, platform: true });
         assert_eq!(
@@ -477,7 +493,7 @@ mod tests {
         let v = |m: Outgoing| serde_json::to_value(m).unwrap();
         assert_eq!(v(Outgoing::ready())["t"], "ready");
         assert_eq!(v(Outgoing::event("click", Some(4), vec![])), json!({"t":"event","name":"click","target":4,"args":[]}));
-        assert_eq!(v(Outgoing::Mouse { state: [1, 20, 30] }), json!({"t":"mouse","state":[1,20,30]}));
+        assert_eq!(v(Outgoing::Mouse { app: 1, state: [1, 20, 30] }), json!({"t":"mouse","app":1,"state":[1,20,30]}));
         assert_eq!(v(Outgoing::ParaHit { id: 3, value: None }), json!({"t":"para_hit","id":3,"value":null}));
         assert_eq!(v(Outgoing::Resize { app: 1, w: 500, h: 400 }), json!({"t":"resize","app":1,"w":500,"h":400}));
         assert_eq!(v(Outgoing::Scroll { id: 2, top: 40 }), json!({"t":"scroll","id":2,"top":40}));

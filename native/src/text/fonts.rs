@@ -10,6 +10,37 @@ pub enum FontMode {
     Bundled,
 }
 
+/// How an app's text is sized and set: Lacci's `Shoes.text_mode`, sent as `text_mode` (ledger
+/// M14, DESIGN 4.1).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum TextMode {
+    /// Scarpe's own: a size is pixels, and text is set in the system's sans.
+    #[default]
+    Scarpe,
+    /// Shoes 3's: a size is points at 96 dpi, so a para's 12 is 16 px (s3t_textblock.c:293),
+    /// and a text block names Arial when it names no face (s3_world.c:46-48), for programs laid
+    /// out for Shoes 3, such as Hackety Hack.
+    Shoes3,
+}
+
+impl TextMode {
+    pub fn parse(name: &str) -> Option<TextMode> {
+        match name.trim_start_matches(':') {
+            "scarpe" => Some(TextMode::Scarpe),
+            "shoes3" => Some(TextMode::Shoes3),
+            _ => None,
+        }
+    }
+
+    /// A size as the app wrote it, in pixels.
+    pub fn px(self, size: f32) -> f32 {
+        match self {
+            TextMode::Scarpe => size,
+            TextMode::Shoes3 => size * 96.0 / 72.0,
+        }
+    }
+}
+
 const INTER: &[u8] = include_bytes!("../../assets/fonts/InterVariable.ttf");
 const INTER_ITALIC: &[u8] = include_bytes!("../../assets/fonts/InterVariable-Italic.ttf");
 const FIRA_MONO: &[u8] = include_bytes!("../../assets/fonts/FiraMono-Medium.ttf");
@@ -31,6 +62,7 @@ pub struct Fonts {
     pub sans: String,
     pub serif: String,
     pub mono: String,
+    pub text_mode: TextMode,
 }
 
 impl Fonts {
@@ -53,6 +85,7 @@ impl Fonts {
             sans: BUNDLED_SANS.into(),
             serif: BUNDLED_SANS.into(),
             mono: BUNDLED_MONO.into(),
+            text_mode: TextMode::Scarpe,
         };
         fonts.refresh_families();
         if mode == FontMode::System {
@@ -102,6 +135,15 @@ impl Fonts {
         }
         self.refresh_families();
         added
+    }
+
+    /// The face a text block that names none is set in: Shoes 3's Arial in its text mode, when
+    /// the machine has it; the sans otherwise.
+    pub fn text_face(&self) -> FamilyName {
+        match self.text_mode {
+            TextMode::Shoes3 if self.families.contains("arial") => FamilyName::Named("Arial".into()),
+            _ => FamilyName::Sans,
+        }
     }
 
     /// Maps a Shoes family string (maybe a comma list, maybe a generic name) to a

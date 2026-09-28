@@ -85,6 +85,28 @@ class Shoes
       super
     end
 
+    TEXT_MODES = %i[scarpe shoes3].freeze
+
+    # How text is sized and set, for every window the program opens. :scarpe, the default,
+    # reads a text size as pixels and sets text in the system's sans (ledger M14). :shoes3 sets
+    # it as Shoes 3 did: a size is points at 96 dpi, so a para's 12 draws 16 px tall, and a text
+    # block that names no face gets Arial (s3t_textblock.c:293, s3_world.c:46-48). It is for
+    # programs laid out for Shoes 3's text, such as Hackety Hack; set it before the first window.
+    #
+    # @return [Symbol] :scarpe or :shoes3
+    def text_mode
+      @text_mode || :scarpe
+    end
+
+    # @param mode [Symbol, String] :scarpe or :shoes3
+    def text_mode=(mode)
+      mode = mode.to_s.delete_prefix(":").to_sym
+      raise ArgumentError, "Shoes.text_mode is :scarpe or :shoes3, not #{mode.inspect}" unless TEXT_MODES.include?(mode)
+
+      @text_mode = mode
+      Shoes::DisplayService.dispatch_event("text_mode", nil, mode.to_s) if defined?(Shoes::DisplayService)
+    end
+
     # In Shoes3, Shoes.setup installs gems. In Scarpe, this is a no-op stub
     # since gems are managed via Bundler. The block is simply yielded for compatibility.
     def setup(&block)
@@ -125,7 +147,9 @@ class Shoes
     #   In Scarpe, after the block is executed, the method will not return and Scarpe
     #   will retain control of execution until the window is closed and the app quits.
     #
-    # @incompatibility In Shoes3 the parameters were a hash of options, not keyword arguments.
+    # The styles come as keywords, or as one Hash, the way Ruby 1.9 programs passed them
+    # (Hackety Hack's turtle: Shoes.app opts), which Ruby 3 hands over as a positional
+    # argument (ledger A10). Keywords given beside a Hash win.
     #
     # @example Simple one-button app
     #   Shoes.app(title: "Button!", width: 200, height: 200) do
@@ -133,6 +157,7 @@ class Shoes
     #     button("clicky") { @p.replace("You pressed it! CELEBRATION!") }
     #   end
     #
+    # @param styles [Hash] the styles below, as a Hash
     # @param title [String] The new app window title
     # @param width [Integer] The new app window width
     # @param height [Integer] The new app window height
@@ -140,7 +165,17 @@ class Shoes
     # @param features [Symbol,Array<Symbol>] Additional Shoes extensions requested by the app
     # @return [Shoes::App] the new app (manual 859, ledger A3)
     # @see Shoes::App#new
-    def app(
+    def app(styles = {}, **keywords, &app_code_body)
+      unless styles.is_a?(Hash)
+        raise ArgumentError, "Shoes.app takes its styles as keywords or a Hash, not #{styles.inspect}"
+      end
+
+      open_app(**styles.transform_keys(&:to_sym), **keywords, &app_code_body)
+    end
+
+    private
+
+    def open_app(
       title: Shoes::App::DEFAULT_TITLE,
       width: Shoes::App::DEFAULT_WIDTH,
       height: Shoes::App::DEFAULT_HEIGHT,
@@ -198,6 +233,8 @@ class Shoes
       app.run
       app
     end
+
+    public
 
     # Load a Shoes app from a file. By default, this will load old-style Shoes apps
     # from a .rb file with all the appropriate libraries loaded. By setting one or
@@ -265,31 +302,11 @@ class Shoes
     end
     alias_method :exit, :quit
 
-    # Opens the Shoes manual. In Shoes3, this showed an interactive built-in manual.
-    # In Scarpe, we open the online Scarpe documentation in the default browser.
-    #
-    # @param section [String, nil] An optional section to navigate to (ignored for now)
-    # @return [void]
+    # Opens the manual in a window of its own, as Shoes 3 did, at `section` when one is
+    # named (ledger K7). It never opens a browser.
     def show_manual(section = nil)
-      require 'uri'
-      manual_url = 'https://github.com/scarpe-team/scarpe/wiki'
-
-      # Try to open in the system browser
-      case RUBY_PLATFORM
-      when /darwin/
-        system('open', manual_url)
-      when /linux/
-        system('xdg-open', manual_url)
-      when /mingw|mswin/
-        system('start', manual_url)
-      else
-        # Fallback: show an alert with the URL
-        if Shoes.APPS.first
-          Shoes.APPS.first.alert("Manual available at:\n#{manual_url}")
-        else
-          warn "Shoes manual: #{manual_url}"
-        end
-      end
+      require_relative "shoes/manual"
+      Shoes::Manual.show(section)
     end
   end
 

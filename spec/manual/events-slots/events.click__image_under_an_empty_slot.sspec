@@ -1,0 +1,21 @@
+---
+manual: events.click
+lines: [2187, 2193]
+testability: interactive
+display: native
+ledger: E8
+----------- app code
+# Hackety Hack's side tabs are images with click blocks, and an empty stack the size of the
+# window lies over them once the intro is skipped. A press the stack does not want goes on to
+# the picture beneath, as it does to a shape (Shoes 3's shoes_canvas_send_click2).
+$clicks = []
+Shoes.app width: 200, height: 120 do
+  @icon = image "assets/red-40x30.png", left: 20, top: 20
+  @icon.click { |button, left, top| $clicks << [button, left, top] }
+  stack left: 0, top: 0, width: 1.0, height: 1.0
+end
+----------- test code
+click_at 40, 35
+assert_equal [[1, 40, 35]], $clicks, "the image hears the press, with the button and where it landed"
+click_at 150, 100
+assert_equal 1, $clicks.size, "and a press beside it reaches nothing"

@@ -1,0 +1,19 @@
+---
+manual: intro.manual_is_shoes_program
+lines: [31, 31]
+testability: api
+display: any
+ledger: K7
+----------- app code
+# Shoes 3's manual was a Shoes program in a window of its own, and Hackety Hack's Help tab
+# opens it with Shoes.show_manual. Scarpe opened a web page instead.
+Shoes.app do
+  button("Help") { Shoes.show_manual }
+end
+----------- test code
+find_button("Help").trigger_click
+assert_equal 2, Shoes.APPS.size, "the manual opens in a window of its own"
+manual = Shoes.APPS.last
+assert_equal "The Shoes Manual", manual.style[:title]
+texts = manual.all_drawables.grep(Shoes::Para).map(&:text)
+assert texts.any? { |t| t.include?("This manual is a Shoes program itself!") }, "and it is drawn with Shoes"
