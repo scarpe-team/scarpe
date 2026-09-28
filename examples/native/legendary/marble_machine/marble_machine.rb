@@ -2,11 +2,11 @@
 #
 # Click anywhere above the tubes to drop a marble there, or hold the button
 # down and sweep to pour a stream. Space pours forty from the hopper, E empties
-# the tubes, and the swatches choose a colour (the striped one takes turns).
+# the tubes, and the swatches choose a colour (the rainbow one takes turns).
 #
 # Pour enough from the middle and the tubes draw a bell curve: every pin sends
 # a marble left or right more or less at random, and most of them end up
-# somewhere near where they started. The corner counts the frames.
+# somewhere near where they started. The card on the right counts the frames.
 
 WIDTH, HEIGHT = 900, 640
 
@@ -22,7 +22,7 @@ RADIUS = 6
 PIN_RADIUS = 4
 GRAVITY = 1500.0                     # pixels a second, every second
 BOUNCE = 0.3                         # how much speed survives a knock
-GRIP = 0.85                          # how much sideways spin survives it
+GRIP = 0.85                          # how much speed along a pin's edge survives it
 NUDGE = 30.0                         # the little bit of chance in every knock
 STEP = 1 / 120.0                     # two small physics steps a frame
 LAYER = 10.4                         # how far apart the rows of a pile sit
@@ -360,7 +360,7 @@ Shoes.app(title: "Marble Machine", width: WIDTH, height: HEIGHT, resizable: fals
       return
     end
 
-    marble.path.unshift([x, y])
+    marble.path.unshift([x, y]) # the road behind it, fourteen frames long
     marble.path.pop if marble.path.size > 14
     draw_tail(marble)
   end
@@ -389,7 +389,7 @@ Shoes.app(title: "Marble Machine", width: WIDTH, height: HEIGHT, resizable: fals
 
   # The two halves of the floor slide into the walls, a little every frame,
   # and slide back once the last marble has fallen out.
-  def swing_doors
+  def slide_doors
     @door_goal = 0 if @door_goal == 1 && @marbles.none? { |m| m.state == :dropping }
     return if @door == @door_goal
 
@@ -527,7 +527,7 @@ Shoes.app(title: "Marble Machine", width: WIDTH, height: HEIGHT, resizable: fals
 
   build_pins
   @hint = para "click anywhere up here to drop a marble", size: 11, stroke: rgb(255, 255, 255, 0.3),
-    align: "center", left: LEFT_WALL, top: 88, width: RIGHT_WALL - LEFT_WALL
+    left: LEFT_WALL + 12, top: 88, width: 230
   # marbles live on two layers: every comet tail under every marble
   @tails = stack(left: 0, top: 0, width: WIDTH, height: HEIGHT) {}
   @glass = stack(left: 0, top: 0, width: WIDTH, height: HEIGHT) {}
@@ -606,7 +606,7 @@ Shoes.app(title: "Marble Machine", width: WIDTH, height: HEIGHT, resizable: fals
     pour_tick
     step_world
     @marbles.each { |marble| draw(marble) }
-    swing_doors
+    slide_doors
     spread_ripples
     cool_pins
     show_counts
