@@ -546,6 +546,23 @@ fn right_and_bottom_place_from_the_far_edges() {
 }
 
 #[test]
+fn negative_right_and_bottom_place_past_the_far_edges() {
+    // Shoes 3 reads a position as a plain number, negative too (shoes_px2 passes nv 0 to
+    // shoes_px, s3_ruby.c:327-337): bottom: -3 hangs an element 3 px below its slot's lower
+    // edge. Hackety Hack's editor hangs its button bar so. Native read it as the slot less 3.
+    let mut s = Scene::new();
+    let bar = s.add("Stack", ROOT, json!({"width": 182, "height": 40, "right": 0, "bottom": -3}));
+    let tab = s.add("Stack", ROOT, json!({"width": 50, "height": 20, "right": -10, "top": 0}));
+    let share = s.add("Stack", ROOT, json!({"width": 40, "height": 20, "right": "-10%", "top": 30}));
+    let band = s.add("Background", ROOT, json!({"fill": "#000", "height": 20, "bottom": -5}));
+    let l = s.layout(400.0, 300.0);
+    assert_eq!(r(&l, bar), Rect::new(218.0, 263.0, 182.0, 40.0));
+    assert_eq!(r(&l, tab), Rect::new(360.0, 0.0, 50.0, 20.0), "right: -10 sits 10 px past the right edge");
+    assert_eq!(r(&l, share), Rect::new(400.0, 30.0, 40.0, 20.0), "a negative share of the slot is past it too");
+    assert_eq!(r(&l, band), Rect::new(0.0, 285.0, 400.0, 20.0), "a background hangs the same way");
+}
+
+#[test]
 fn word_wrap_never_breaks_a_word() {
     // Manual 1552-1556: "word" breaks lines at word breaks; only "char" breaks words.
     // Shoes 3 leaves Pango's PANGO_WRAP_WORD, which lets a word too long for the line overflow.
