@@ -210,6 +210,38 @@ fn keypress_names_follow_the_manual() {
     assert_eq!(typed, vec![json!("H"), json!("i")]);
 }
 
+/// A list box or button the mouse pressed takes focus without a ring, and so leaves Space,
+/// Return and the arrows to the app, as a Mac's pop-up buttons and push buttons do. Space
+/// reopened the popup and the app's keypress never heard it (Bloop Sequencer met this).
+/// Focus from the keyboard or the app's `focus` still takes them (ledger G9, G13).
+#[test]
+fn a_control_the_mouse_pressed_leaves_keys_to_the_app() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "ListBox", 2, json!({"items": ["One", "Two", "Three"], "chosen": "Two"})),
+        create(4, "Button", 2, json!({"text": "Go"})),
+        json!({"t": "create", "id": 5, "kind": "SubscriptionItem", "parent": 2, "props": {"shoes_api_name": "keypress"}}),
+    ]));
+    let keyed = |h: &mut Harness, key: &str| {
+        let (evs, _) = h.req(json!({"op": "key", "key": key}));
+        let evs = events(&evs);
+        let names = |name: &str| named(&evs, name).iter().map(|e| e.1.clone()).collect::<Vec<_>>();
+        (names("keypress"), names("change"), names("click"))
+    };
+    h.value(json!({"op": "click", "target": {"id": 3}}));
+    h.value(json!({"op": "click", "target": {"text": "Three"}}));
+    assert_eq!(h.value(json!({"op": "focused"})), json!(3), "the list box has focus");
+    assert_eq!(keyed(&mut h, " "), (vec![json!(5)], vec![], vec![]), "Space reaches the app");
+    assert_eq!(keyed(&mut h, "down"), (vec![json!(5)], vec![], vec![]), "and so does Down");
+    h.value(json!({"op": "key", "key": "escape"}));
+    h.value(json!({"op": "click", "target": {"id": 4}}));
+    assert_eq!(keyed(&mut h, " "), (vec![json!(5)], vec![], vec![]), "a pressed button leaves Space too");
+    h.feed(&json!({"t": "focus", "id": 3}).to_string());
+    assert_eq!(keyed(&mut h, "down").1, vec![json!(3)], "focus from the app takes the arrows");
+    h.feed(&json!({"t": "focus", "id": 4}).to_string());
+    assert_eq!(keyed(&mut h, " ").2, vec![json!(4)], "and Space presses the focused button");
+}
+
 #[test]
 fn a_focused_text_input_keeps_plain_keys_to_itself() {
     let mut h = Harness::new();

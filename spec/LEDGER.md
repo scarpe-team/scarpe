@@ -962,7 +962,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** button `focus`: "The button will be highlighted and, if the user hits Enter, the button will be clicked." (manual 2923-2926); radio `focus`, Enter toggles (manual 3356-3359).
 - **Lacci today:** Button has no `focus` (report 03 probe); ListBox, EditBox and EditLine do. Since 27 Sep (`c91ffd6`) Button, Check and Radio have `focus` too, shared with the other controls through `Shoes::Focusable`.
 - **Spec:** `button.focus`, then `press_key "\n"`, fires the click block once.
-- **Native:** accepts `focus` for buttons, checks and radios; Enter or Space on a focused button, check or radio sends `click` (since wave 5, 27 Sep 2026; the manual's Enter toggles them, manual 3356-3359), so `check.focus` and `radio.focus` pass on native.
+- **Native:** accepts `focus` for buttons, checks and radios; Enter or Space on a focused button, check or radio sends `click` (since wave 5, 27 Sep 2026; the manual's Enter toggles them, manual 3356-3359), so `check.focus` and `radio.focus` pass on native. Since 28 Sep 2026 only focus that shows its ring takes those keys: focus from `focus` or the Tab key. A control the mouse pressed has focus without a ring and leaves Space, Return and the arrows to the app's `keypress`, as a Mac's push buttons and pop-up buttons do; Bloop Sequencer lost its Space-to-play to a list box it had just used.
 
 ### G10. `click:` and `change:` styles are the handlers
 
@@ -1000,7 +1000,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** focus on a list box: "if the user hits the up and down arrow keys, other options in the list will be selected" (manual 3221-3224).
 - **Shoes 3:** a native combo box; not traced.
 - **Spec:** `list_box.focus`: after `focus`, Down selects the next item and sends `change`, with no popup opened.
-- **Native:** opens the popup on Up/Down (`native/src/input.rs`, around lines 777-781); the case fails until arrows select in place.
+- **Native:** after `focus`, Up and Down choose in place and Return and Space open the popup (DESIGN 12, "Focus"). A list box the mouse opened keeps focus without a ring and, since 28 Sep 2026, leaves those keys to the app (G9). **Spec:** `list_box.focus__mouse_leaves_keys` (native).
 
 ### G14. A radio unmarked by its sibling: does its click block run?
 

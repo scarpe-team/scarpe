@@ -44,6 +44,7 @@ straightforward as possible.
 - Native: Shoes-Spec test code and `scarpe peek` steps start after the slots' `start` blocks, and `wait_frames` starts a slot made since
 - Native: an installed gem never runs cargo, and downloaded images are cached in a private per-user directory that refuses planted links, stale junk and https-to-http redirects
 - Native: a press on a label or icon with no click block goes on to the clickable shape beneath it, as Shoes 3 skips what has no click; before, the label swallowed it
+- Native: a button, check, radio or list box the mouse pressed leaves Space, Return and the arrows to the app's `keypress`; only focus from the keyboard or `focus` takes them
 - Native: `font: "bold 16px"` (and `italic`) on an edit line or edit box draws bold (or slanted), as it does on a para
 
 ### Incompatibilities

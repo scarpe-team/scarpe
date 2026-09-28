@@ -966,6 +966,10 @@ impl Runtime {
         let focus = self.views[&app].ui.focus.filter(|id| self.doc.get(*id).is_some_and(|n| !crate::elements::disabled(n)));
         let focus_kind = focus.and_then(|id| self.doc.get(id)).map(|n| n.kind.clone());
         let tab = key.key == Key::Named(Named::Tab) && !key.modified();
+        // A button, check, radio or list box takes keys only while it shows its focus ring,
+        // that is when focus came from the keyboard (tab, or the app's `focus`). One the mouse
+        // pressed leaves Space, Return and the arrows to the app, as a Mac's controls do.
+        let keyboard_focus = self.views[&app].ui.focus_visible;
         let mut send_keypress = true;
         match (focus, focus_kind) {
             (Some(id), Some(Kind::EditLine)) | (Some(id), Some(Kind::EditBox)) => {
@@ -992,21 +996,21 @@ impl Runtime {
                 self.request_redraw(app);
                 send_keypress = key.key == Key::Named(Named::Escape) || key.modified();
             }
-            (Some(id), Some(Kind::Button)) if button::activates(&key) => {
+            (Some(id), Some(Kind::Button)) if keyboard_focus && button::activates(&key) => {
                 self.out.event("click", Some(id), vec![]);
                 send_keypress = false;
             }
-            (Some(id), Some(Kind::Check)) | (Some(id), Some(Kind::Radio)) if check::activates(&key) => {
+            (Some(id), Some(Kind::Check)) | (Some(id), Some(Kind::Radio)) if keyboard_focus && check::activates(&key) => {
                 self.out.event("click", Some(id), vec![]);
                 send_keypress = false;
             }
-            (Some(id), Some(Kind::ListBox)) if matches!(key.key, Key::Named(Named::Up) | Key::Named(Named::Down)) && !key.modified() => {
+            (Some(id), Some(Kind::ListBox)) if keyboard_focus && matches!(key.key, Key::Named(Named::Up) | Key::Named(Named::Down)) && !key.modified() => {
                 if let Some(item) = self.doc.get(id).and_then(|n| list_box::stepped(n, &key)) {
                     self.choose(id, &item);
                 }
                 send_keypress = false;
             }
-            (Some(id), Some(Kind::ListBox)) if list_box::opens(&key) => {
+            (Some(id), Some(Kind::ListBox)) if keyboard_focus && list_box::opens(&key) => {
                 self.open_popup(app, id);
                 send_keypress = false;
             }
