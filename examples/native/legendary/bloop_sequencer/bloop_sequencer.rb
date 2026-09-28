@@ -319,18 +319,20 @@ Shoes.app(title: "Bloop Sequencer", width: 720, height: 590, resizable: false) d
     @motion.stop if still && !@playing
   end
 
-  # A rounded button made of a background and a label; returns the label.
-  def pill(left, width, label, look: glass(0.08), text: INK, &on_click)
+  # A rounded button: a background, an icon drawn by the block, and a label.
+  # Returns the label. The icon is inside the button, so pressing it presses the button.
+  def pill(left, width, label, look: glass(0.08), text: INK, indent: 0, &icon)
     words = nil
     button = stack(left: left, top: 490, width: width, height: 46, cursor: :hand_cursor) do
       background look, curve: 23
-      words = para label, align: "center", size: 14, weight: "semibold", stroke: text, margin_top: 14
+      nostroke
+      icon&.call
+      words = para label, align: "center", size: 14, weight: "semibold", stroke: text, margin: [indent, 14, 0, 0]
     end
-    button.click(&on_click)
-    words
+    [button, words]
   end
 
-  # Five pips on a tilted die, for the Dice button.
+  # Five pips on a die, for the Dice button.
   def die(x, y)
     fill glass(0.85)
     rect x, y, 16, 16, curve: 4
@@ -409,18 +411,21 @@ Shoes.app(title: "Bloop Sequencer", width: 720, height: 590, resizable: false) d
   @marker = rect pad_left(0) + 9, row_top(4) - 2, 12, 3, curve: 1.5, fill: glass(0.85)
 
   # the controls
-  @play_label = pill(24, 128, "Play", look: "#a9bcff".."#c7b3ff", text: "#1d1838") { @playing ? stop : play }
-  fill "#1d1838"
-  @play_icon = shape do
-    move_to 52, 505
-    line_to 52, 521
-    line_to 65, 513
-    line_to 52, 505
+  play_button, @play_label = pill(24, 128, "Play", look: "#a9bcff".."#c7b3ff", text: "#1d1838") do
+    fill "#1d1838"
+    @play_icon = shape do
+      move_to 28, 15
+      line_to 28, 31
+      line_to 41, 23
+      line_to 28, 15
+    end
+    @stop_icon = rect 27, 17, 12, 12, curve: 2, hidden: true
   end
-  @stop_icon = rect 51, 507, 12, 12, curve: 2, hidden: true
-  pill(164, 92, "Clear") { load_pattern("Empty page") }
-  pill(264, 104, "Dice", text: INK) { roll_dice }.style(margin_left: 22)
-  die 286, 505
+  play_button.click { @playing ? stop : play }
+  clear_button, = pill(164, 92, "Clear")
+  clear_button.click { load_pattern("Empty page") }
+  dice_button, = pill(264, 104, "Dice", indent: 22) { die 22, 15 }
+  dice_button.click { roll_dice }
   stack left: 496, top: 499, width: 200 do
     @patterns = list_box(items: PATTERNS.keys, choose: "Four on the floor", width: 200) do |box|
       load_pattern(box.text)
