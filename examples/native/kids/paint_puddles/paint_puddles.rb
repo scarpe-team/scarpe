@@ -910,8 +910,10 @@ Shoes.app(title: "Paint Puddles", width: W, height: H, resizable: false) do
   @escape_repeats = 0
   @busy_at = 0.0
   @next_invite = 0.0
-  font_file = [File.join(__dir__, "fonts", "Fredoka.ttf"), File.join(__dir__, "..", "_fonts", "Fredoka.ttf")]
-    .find { |file| File.exist?(file) }
+  # Fredoka beside the app, in fonts/ or _fonts/ (where a packaged app carries it), or in the
+  # Kids folder's shared _fonts, as the other Kids apps look.
+  font_file = [["Fredoka.ttf"], ["fonts", "Fredoka.ttf"], ["_fonts", "Fredoka.ttf"], ["..", "_fonts", "Fredoka.ttf"]]
+    .map { |parts| File.join(__dir__, *parts) }.find { |file| File.exist?(file) }
   rounded = font_file && font(font_file) ? "Fredoka" : "Avenir Next, Helvetica Neue, sans-serif"
 
   background WALL.."#ffe2ec"
