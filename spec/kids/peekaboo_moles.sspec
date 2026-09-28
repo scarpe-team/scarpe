@@ -1,0 +1,201 @@
+---
+display: native
+testability: interactive
+timeout: 90
+----------- app code
+srand(6)
+load File.join(Scarpe::Native::ROOT, "examples/native/kids/peekaboo_moles/peekaboo_moles.rb")
+----------- test code
+require "json"
+app = Shoes.APPS.first
+ivar = ->(name) { app.instance_variable_get(name) }
+moles, sounds = ivar.(:@moles), ivar.(:@sounds)
+trapped = -> { File.exist?(ENV.fetch("SPEC_TRAP_FILE")) ? File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true) : [] }
+save_file = File.join(Dir.home, "Library", "Application Support", "Peekaboo Moles", "best.json")
+middle = ->(m) { [m.x, (m.y - 70 * m.scale).round] }
+body = ->(m) { [(m.x + 46 * m.scale).round, (m.y - 40 * m.scale).round] }
+brown = ->(pixel) { r, g, b = pixel; r.between?(110, 190) && g.between?(80, 150) && b < 120 && r > g && g > b }
+up = -> { moles.select { |m| %i[rise up].include?(m.state) } }
+
+# seven moles in seven holes, every one in a different hat, all hiding at first
+assert_equal 7, moles.size
+assert_equal 7, moles.map(&:hat).uniq.size, "each mole has its own hat, so they can be told apart without colour"
+assert moles.all? { |m| m.state == :down }
+refute brown.(pixel_at(*body.(moles[2]))), "nobody in the hole yet"
+assert_equal 0, ivar.(:@stars)
+
+# after a moment a mole comes up by itself, paws over its eyes, then peekaboo
+120.times { break if moles.any? { |m| m.state == :rise }; advance 0.1 }
+risen = moles.find { |m| m.state == :rise }
+assert risen, "a mole comes out to play"
+assert_equal :peek, sounds.last_name
+advance 1.0
+assert_equal :up, risen.state
+assert_equal :boo, sounds.last_name, "peekaboo!"
+assert brown.(pixel_at(*body.(risen))), "and it is drawn in its hole: #{pixel_at(*body.(risen)).inspect}"
+advance 5
+
+# knock on an empty hole: its mole pops up to see who it was (no "miss" for little ones)
+empty = moles.find { |m| m.state == :down }
+click_at(*middle.(empty))
+assert_equal :rise, empty.state, "an empty hole's mole pops up"
+assert_equal :peek, sounds.last_name
+advance 1.0
+assert_equal :up, empty.state, "peekaboo!"
+assert brown.(pixel_at(*body.(empty))), "there it is"
+
+# tap it: a giggle in its own note, and a star flies up to the row
+click_at(*middle.(empty))
+assert_equal :giggle, empty.state
+assert_match(/giggle-#{empty.note}\.wav\z/, sounds.last_file)
+wav = File.binread(sounds.last_file)
+assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV file"
+sounds.player.join(10)
+assert_includes trapped.call, "afplay #{sounds.last_file}", "handed to afplay (trapped here, so nothing is heard)"
+advance 1
+assert_equal 1, ivar.(:@stars), "one star in the row"
+refute ivar.(:@star_spots).first[:gold].hidden
+
+# no sound is ever loud: every one peaks at a quarter of full scale or less
+%i[peek boo giggle ting thup duck fanfare blip poof].each do |name|
+  peak = sounds.samples(name, "c4").map(&:abs).max
+  assert_operator peak, :<=, 0.2501, "#{name} stays soft"
+  assert_operator peak, :>, 0.05, "#{name} makes a sound"
+end
+
+# Space: every mole plays peekaboo at once (the game's own moles wait a moment, so all start in their holes)
+app.instance_variable_set(:@next_pop, 30)
+100.times { break if moles.all? { |m| m.state == :down }; advance 0.2 }
+assert moles.all? { |m| m.state == :down }
+press_key " "
+advance 0.4
+assert moles.all? { |m| m.state == :rise }, "all seven come up together: #{moles.map(&:state).inspect}"
+advance 3
+
+# a mole that is up looks at the pointer as it goes by
+watcher = moles[3]
+60.times { break if watcher.state == :down; advance 0.1 }
+click_at(*middle.(watcher))
+advance 1.0
+assert_equal :up, watcher.state
+left, right = [watcher.x - 150, 12].max, [watcher.x + 150, W - 12].min
+move_mouse left + 10, 600
+move_mouse left, 610
+assert_equal(-1, watcher.look, "it looks left")
+move_mouse right, 610
+assert_equal 1, watcher.look, "and right"
+advance 3
+
+# the keys knock on the holes: the left of the keyboard is the moles on the left
+100.times { break if [moles[0], moles[5]].all? { |m| m.state == :down }; advance 0.2 }
+press_key "z"
+assert_equal :rise, moles[0].state, "z knocks on the front left hole"
+press_key "p"
+assert_equal :rise, moles[5].state, "p knocks on the back right hole"
+advance 1.0
+press_key "c"
+assert_equal :giggle, moles[0].state, "and c, beside z, tickles the same mole"
+
+# ten stars: the moles all come up to dance, then put on new hats, and the row starts again
+hats = moles.map(&:hat)
+80.times do
+  break if ivar.(:@party)
+
+  m = up.call.first
+  m ? click_at(*middle.(m)) : press_key(%w[a s d f q w e].sample)
+  advance 0.3
+end
+assert ivar.(:@party), "ten stars start a party"
+assert moles.all? { |m| m.state == :dance }, "everybody dances"
+advance 2
+refute_equal hats, moles.map(&:hat), "new hats!"
+assert_equal 7, moles.map(&:hat).uniq.size, "still all different"
+assert_equal 0, ivar.(:@stars), "and the row is ready to fill again"
+advance 3
+
+# a toddler mashes keys and clicks everywhere: moles giggle and pop, nothing breaks
+rng = Random.new(2)
+keys = %w[a s d f g h j k l q w e r t y u i o p 1 2 3 z x c v b n m] + [" ", "\n", :left, :right, :up, :down, :tab, :backspace, :alt_q]
+30.times do
+  press_key keys[rng.rand(keys.size)]
+  click_at rng.rand(20..940), rng.rand(100..630)
+  advance 0.05
+end
+advance 1
+assert_operator ivar.(:@bits).size, :<=, 121, "a pile of sparkles, but never too many"
+assert Shoes.APPS.include?(app)
+
+# Big kid mode: the stopwatch starts a countdown, then a sixty-second round with a score
+advance 5
+click_at 52, 52
+refute ivar.(:@count_box).hidden, "3, 2, 1"
+assert_equal "3", para("@count_text").text
+advance 3.1
+assert ivar.(:@big_kid), "go!"
+refute ivar.(:@score_box).hidden
+assert ivar.(:@stars_box).hidden, "the score takes the stars' place"
+sun_start = layout_of(ivar.(:@sun)).x
+taps = 0
+58.times do
+  m = up.call.first
+  if m
+    click_at(*middle.(m))
+    taps += 1
+  else
+    click_at 480, 600 # the grass: never a penalty
+  end
+  advance 1
+end
+assert_operator layout_of(ivar.(:@sun)).x, :>, sun_start + 400, "the sun crosses the sky as the round goes"
+advance 2.5
+refute ivar.(:@big_kid), "the round ends after sixty seconds"
+points = ivar.(:@points)
+assert_operator points, :>=, taps, "every tap scored (a golden mole scores three)"
+assert_operator points, :>, 10
+refute ivar.(:@card).hidden, "a trophy for everyone"
+assert_equal points.to_s, para("@final_text").text
+%w[@medal_text @final_text @best_text].each do |name|
+  box = layout_of(para(name))
+  assert box.y > CARD[1] && box.y + box.h < CARD[1] + CARD[3], "#{name} is on the card: #{box.inspect}"
+end
+assert_includes %w[Gold! Silver! Bronze!], para("@medal_text").text
+assert_equal points, JSON.parse(File.read(save_file))["best"], "the best score is kept"
+
+# Again starts another countdown; Moles goes back to the little ones' game
+again = layout_of(ivar.(:@again))
+click_at again.x + again.w / 2, again.y + again.h / 2
+assert ivar.(:@card).hidden
+refute ivar.(:@count_box).hidden, "a new countdown"
+advance 3.2
+advance 61
+home = layout_of(ivar.(:@home))
+click_at home.x + home.w / 2, home.y + home.h / 2
+assert ivar.(:@card).hidden
+refute ivar.(:@stars_box).hidden, "back to peekaboo"
+
+# the speaker in the corner turns the sound off, and on again
+click_at 924, 52
+assert sounds.muted
+heard = trapped.call.size
+press_key "k"
+advance 1
+assert_equal heard, trapped.call.size, "nothing played while the sound is off"
+click_at 924, 52
+refute sounds.muted
+
+# a tap of Escape only shows the grown-up hint; holding it for two seconds leaves
+press_key :escape
+refute ivar.(:@leave_card).hidden
+advance 1
+assert ivar.(:@leave_card).hidden
+refute ivar.(:@leaving), "still open"
+30.times { press_key(:escape); advance(1 / 30.0) }
+refute ivar.(:@leaving), "one second is not enough"
+refute ivar.(:@leave_card).hidden, "but the hint is filling up"
+40.times do
+  break if ivar.(:@leaving)
+
+  press_key :escape
+  advance 1 / 30.0
+end
+assert ivar.(:@leaving), "a grown-up can leave"

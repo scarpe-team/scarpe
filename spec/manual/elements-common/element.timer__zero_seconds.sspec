@@ -1,0 +1,22 @@
+---
+manual: element.timer
+lines: [2111, 2125]
+testability: api
+display: native
+ledger: I1
+----------- app code
+# Shoes 3 turns any rate under a millisecond into one millisecond (s3t_timerbase.c:72), so
+# timer(0) runs on the next turn of the loop, before a timer asked for later.
+$fired = []
+Shoes.app do
+  timer(0.12) { $fired << :later }
+  timer(0) { $fired << :now }
+end
+----------- test code
+assert_empty $fired, "nothing runs inside the app block"
+
+advance(0.05)
+assert_equal [:now], $fired, "timer(0) has run, and timer(0.12) has not"
+
+advance(0.1)
+assert_equal [:now, :later], $fired, "then the later one, and each only once"

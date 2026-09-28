@@ -114,6 +114,17 @@ a step failed (a click on something covered, say) or the script never started an
 `--fonts bundled` swaps the system fonts for Inter and Fira Mono, which ship with Scarpe, so a
 picture comes out the same on every machine.
 
+## Where a number puts a slot
+
+Slots, text and images read `left`, `top`, `width` and `height` the way Shoes 3 does, which can
+surprise an app that moves them. A negative whole number counts in from the parent's far edge,
+so `stack(left: -40)` sits 40 px in from the right, and a Float between -1 and 1 is a share of
+the parent, so `left: 0.5` is halfway across. A slot animated through the corner jumps to the far
+side or across the parent. Give a moving slot whole pixels of 0 or more, and draw anything that
+drifts over an edge as art (`rect`, `oval`, `shape` and the rest): art takes every number as
+pixels and goes off the left and top edges as you would expect. DESIGN section 6 has the whole
+rule, and ledger C1 and C15 say why.
+
 ## Screen readers
 
 Scarpe draws its own buttons, fields and text, so no control of the operating system is there to
@@ -195,14 +206,15 @@ the case says why in its `reason:`. When someone fixes it, the case reports `xpa
 until the mark comes off, so a fix can never go unnoticed. `n/a` is a case that needs layout or real
 input, run on Niente, which has neither. `spec/README.md` explains how to write a case.
 
-On 28 Sep 2026, after the Hackety Hack lanes (w9), the suite had 1041 cases. On the native display
-1026 pass and 14 are expected failures, each pointing at its ledger row; none fail. On Niente 545
-pass. The eleven apps in `examples/native/legendary` keep their twelve checks beside them, where a
-plain `spec/run` does not look: `spec/run --display native examples/native/legendary` runs them,
-and all 12 pass.
+On 28 Sep 2026, with the ten Kids apps in (the eighth build wave) and the Hackety Hack lanes (w9),
+the suite has 1058 cases. On the native display 1043 pass, 14 are expected failures, each pointing
+at its ledger row, and one is skipped; none fail. On Niente 545 pass. The Kids apps' ten checks are among them, in `spec/kids`, as the
+showcase's six are in `spec/showcase`. The eleven apps in `examples/native/legendary` keep their
+twelve checks beside them, where a plain `spec/run` does not look:
+`spec/run --display native examples/native/legendary` runs them, and all 12 pass.
 
 `spec/run --examples --display native` smoke-runs every example under `examples/`: it loads, it
-draws something that is not one flat colour, and neither side crashes. On Ruby 4.0, 340 pass and
+draws something that is not one flat colour, and neither side crashes. On Ruby 4.0, 360 pass and
 none fail unexpectedly; 90 are skipped (the network, mostly) and 23 are marked as failing on
 native, each with its reason in `spec/examples.yml`: dialog-only scripts, scripts that never open
 an app or stop on a missing library, apps that only log or paint one flat colour, and `colours.rb`,
@@ -379,8 +391,11 @@ As of 27 Sep 2026. Each has more detail in the ledger or in DESIGN.
 - **Art.** Pens set inside a `shape` block style that shape only, where Shoes 3 carries them on to the
   shapes after it (E7). `scale` and `skew` set their value outright, where Shoes 3 multiplies
   them into what came before; only `rotate` adds up (E10).
-- **Lacci.** `left` and `top` answer in window coordinates, where Shoes 3 answers from the
-  parent's content origin. `font(url)` returns the file's name before the font is fetched.
+- **Lacci.** `left` and `top` of a drawable its slot flowed answer where the layout put it, in
+  window coordinates, where Shoes 3 answers from the slot's corner. One the app placed with
+  `left:`, `top:` or `move` answers the numbers it was given, which are from its slot's corner,
+  as in Shoes 3, so `left += 5` never drifts. In a slot away from the window's corner the two
+  kinds differ (ledger A4). `font(url)` returns the file's name before the font is fetched.
   A slot's `start` fires on the first heartbeat after it appears. Image downloads happen at create
   time and hold up building the tree. `download` reads the whole body before its one `progress`.
   Ledger row K6 (`exit` at once) is still open.

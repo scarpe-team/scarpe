@@ -1,0 +1,147 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/kids/maze_mouse/maze_mouse.rb")
+----------- test code
+app = Shoes.APPS.first
+ivar = ->(name) { app.instance_variable_get(name) }
+chimes = ivar.(:@chimes)
+trapped = -> { File.exist?(ENV.fetch("SPEC_TRAP_FILE")) ? File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true) : [] }
+pads = { up: [853, 485], left: [785, 565], right: [921, 565], down: [853, 645] }
+
+# the shortest way from the mouse to a room, as a list of arrow keys
+route = lambda do |goal|
+  maze, start = ivar.(:@maze), ivar.(:@at)
+  came = { start => nil }
+  queue = [start]
+  until queue.empty?
+    room = queue.shift
+    maze.ways_out(room).each do |way|
+      nxt = maze.next_room(room, way)
+      next if came.key?(nxt)
+
+      came[nxt] = [room, way]
+      queue << nxt
+    end
+  end
+  ways = []
+  room = goal
+  while came[room]
+    room, way = came[room]
+    ways.unshift(way)
+  end
+  ways
+end
+walk = ->(ways) { ways.each { |way| press_key way; advance 0.17 } }
+
+# every maze has exactly one way between any two rooms, so there is always a way through
+maze = ivar.(:@maze)
+assert_equal [4, 3], [maze.cols, maze.rows], "the first maze is small"
+assert_equal maze.rooms.size - 1, maze.rooms.sum { |room| maze.ways_out(room).size } / 2, "one passage fewer than rooms"
+assert maze.rooms.all? { |room| room == [0, 0] || route.(room).any? }, "and every room can be reached"
+refute_equal [0, 0], maze.cheese, "the cheese is somewhere else"
+assert_equal :drawing, ivar.(:@state), "the maze draws itself first"
+advance 1
+assert_equal :playing, ivar.(:@state)
+
+# a wall stops the mouse, with a soft boop and nothing worse
+wall = %i[up left].first
+press_key wall
+advance 0.2
+assert_equal [0, 0], ivar.(:@at)
+chimes.player.join(10)
+assert trapped.call.any? { |line| line.include?("boop-e3") }, "the boop went to afplay (trapped, so nothing is heard)"
+
+# stuck? after ten quiet seconds, golden prints show the next three steps towards the cheese
+advance 10.5
+assert ivar.(:@helping)
+home = maze.steps_to_cheese([0, 0])
+assert_equal [home - 1, home - 2, home - 3], maze.way_to_cheese([0, 0], 3).map { |room| maze.steps_to_cheese(room) }
+
+# the arrow pads move it, and so does a tap on the maze beside it
+way = route.(maze.cheese).first
+click_at(*pads.fetch(way))
+advance 0.2
+assert_equal maze.next_room([0, 0], way), ivar.(:@at), "the #{way} pad moved the mouse"
+refute ivar.(:@helping), "and the golden prints went"
+cell = ivar.(:@cell)
+mx, my = ivar.(:@left) + (ivar.(:@at)[0] + 0.5) * cell, ivar.(:@top) + (ivar.(:@at)[1] + 0.5) * cell
+dx, dy = STEPS[BACK[way]]
+click_at mx + dx * cell * 0.8, my + dy * cell * 0.8
+advance 0.2
+assert_equal [0, 0], ivar.(:@at), "a tap beside the mouse walked it back"
+
+# the footsteps sing: each step is a note, higher as the cheese gets near
+steps = trapped.call.grep(/pip-[a-g]\d/)
+refute_empty steps
+
+# all the way to the cheese: a nibble, confetti, and a bigger maze after
+walk.(route.(maze.cheese))
+assert_equal 1, ivar.(:@eaten)
+assert_equal "1", para("@cheese_count").text
+refute stack("@banner").style[:hidden], "Yum!"
+assert ivar.(:@confetti).any? { |bit| bit[:age] < 1 }, "confetti in the air"
+advance 3.5
+assert_equal 2, ivar.(:@level)
+assert_equal "Maze 2", para("@level_label").text
+assert_equal [5, 3], [ivar.(:@maze).cols, ivar.(:@maze).rows], "a little bigger"
+assert_equal [0, 0], ivar.(:@at), "the mouse is home again"
+assert stack("@banner").style[:hidden]
+
+# a child at the keyboard: forty keys at once, then a burst, and the mouse is fine
+40.times { |i| press_key [:up, :down, :left, :right, "q", " ", "7", "\n"][i % 8] }
+advance 0.1
+assert_operator ivar.(:@queue).size, :<=, 2, "only two steps wait their turn"
+10.times { |i| press_key "zxcvbnm,./"[i]; advance 0.03 }
+advance 2
+assert ivar.(:@maze).rooms.include?(ivar.(:@at)), "still inside the maze"
+assert_equal :playing, ivar.(:@state)
+
+# big kid mode: a bigger maze with stars to collect
+click_at 820, 124
+advance 1
+assert ivar.(:@big_kid)
+big = ivar.(:@maze)
+assert_operator big.cols * big.rows, :>, 5 * 3, "bigger than a little kid's maze"
+stars = ivar.(:@stars)
+assert_operator stars.size, :>=, 3
+refute stack("@star_counter").style[:hidden]
+assert_equal "0/#{stars.size}", para("@star_count").text
+nearest = stars.min_by { |one| route.(one[:room]).size } # a shortest walk there crosses no other star
+walk.(route.(nearest[:room]))
+advance 0.3
+assert nearest[:taken], "walked onto a star, and picked it up"
+assert_equal "1/#{stars.size}", para("@star_count").text
+
+# switching modes during the party makes one new maze, and the party's timer leaves it alone
+walk.(route.(big.cheese))
+assert_equal :celebrating, ivar.(:@state)
+level = ivar.(:@level)
+click_at 820, 124
+fresh = ivar.(:@maze)
+refute ivar.(:@big_kid)
+advance 3.5
+assert_same fresh, ivar.(:@maze), "still the maze the switch made"
+assert_equal level, ivar.(:@level)
+assert_equal :playing, ivar.(:@state)
+big = fresh
+
+# the sound switch: nothing reaches afplay while it is off
+click_at 912, 38
+assert chimes.muted
+heard = trapped.call.size
+press_key "q"
+walk.(route.(big.cheese).first(2))
+assert_equal heard, trapped.call.size, "silence"
+click_at 912, 38
+refute chimes.muted
+
+# a grown-up holds Escape for two seconds to leave; a quick tap does nothing
+$goodbye = false
+app.define_singleton_method(:say_goodbye) { $goodbye = true }
+press_key :escape
+advance 1.2
+refute $goodbye, "one tap is not enough"
+44.times { press_key :escape; advance 0.05 }
+assert $goodbye, "held for two seconds, the game closes"
