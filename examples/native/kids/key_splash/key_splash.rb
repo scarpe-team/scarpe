@@ -181,6 +181,12 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
     tint(color, [alpha, 0.004].max)
   end
 
+  # Like clamp, but a window squeezed too small to fit both limits just gets
+  # the middle (clamp itself would stop the app with an error).
+  def within(value, low, high)
+    low > high ? (low + high) / 2.0 : value.clamp(low, high)
+  end
+
   # The same colour, `amount` of the way to white.
   def lighter(color, amount)
     color.map { |part| (part + (255 - part) * amount).round }
@@ -399,7 +405,7 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
     cw, ch = (width - 160) / cols.to_f, (bottom - top_space) / rows.to_f
     x = 80 + cw * (col + 0.5 + rand(-0.25..0.25))
     y = top_space + ch * (row + 0.5 + rand(-0.2..0.2))
-    [x, y.clamp(size * 0.5, bottom - size * 0.3)]
+    [x, within(y, size * 0.5, bottom - size * 0.3)]
   end
 
   def bloom_size
@@ -414,9 +420,9 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
     y = [y, ground(x) - size * 0.62 - rows * size * 0.2 - 12].min if stars > 0
     # Text is placed by its left and top, and Shoes reads a negative one as
     # "from the far edge", so a bloom keeps a little way in from the edges.
-    x = x.clamp(size * 0.56, width - size * 0.56)
+    x = within(x, size * 0.56, width - size * 0.56)
     y = [y, size * 0.62 + 70].max
-    box = 2 * [size, x - size * 0.05, width - x - size * 0.05].min
+    box = [2 * [size, x - size * 0.05, width - x - size * 0.05].min, 20].max
     parts = face = glow = nil
     @glow_layer.append do
       nostroke
@@ -690,7 +696,7 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
     return @rainbow.each { |band| band[:age] = [band[:age], 0.4].min } if @rainbow
 
     @rainbow = PAINTS.first(7).each_with_index.map do |(color, _), i|
-      d = (height * 1.05 - i * 34).round
+      d = [(height * 1.05 - i * 34).round, 40].max
       band = nil
       @rainbow_layer.append do
         nofill
@@ -767,7 +773,7 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
 
     done = @spelling.size
     w = @name.size * 22 + 48
-    @ribbon = stack(left: ((width - w) / 2.0).round, bottom: 8, width: w, height: 44) do
+    @ribbon = stack(left: [((width - w) / 2.0).round, 1].max, bottom: 8, width: w, height: 44) do
       background tint(WHITE, 0.78), curve: 22
       letters = @name.chars.each_with_index.map do |char, i|
         span(char, stroke: i < done ? tint(PAINTS[i % PAINTS.size][0]) : tint([176, 170, 208]))
@@ -828,7 +834,7 @@ Shoes.app(title: "Key Splash", width: 1000, height: 660) do
     return if @card
 
     w, h = 440, 210
-    left, top = (width - w) / 2, (height - h) / 2 - 30
+    left, top = [(width - w) / 2, 1].max, [(height - h) / 2 - 30, 1].max
     @card_box = [left, top, w, h] # a click outside it closes the card
     @card = stack(left: 0, top: 0, width: width, height: height) do
       rect(0, 0, width, height, fill: rgb(40, 50, 90, 0.35))

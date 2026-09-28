@@ -155,6 +155,21 @@ assert_nil ivar.(:@name)
 press_key "r"
 assert_equal "R", ivar.(:@blooms).last.what
 
+# a grown-up squeezes the window small and a toddler goes on mashing: nothing breaks
+resize_window 200, 150
+advance 0.3
+("a".."z").each_with_index do |k, i|
+  press_key k
+  click_at 20 + i * 6, 40 + i * 3 if i.even?
+  advance 1 / 15.0
+end
+press_key "\n"
+press_key "7"
+advance 1.0
+assert_operator fresh.call.size, :>, 0, "still blooming in a small window"
+resize_window 1000, 660
+advance 3.5
+
 # a tap on Escape is just another key; holding it for two seconds leaves
 press_key :escape
 advance 1.5
