@@ -1,0 +1,157 @@
+# The native display service: the Rust renderer in native/ and the Ruby side that drives it
+# (docs/native.md). docs/native_ci.md says what runs where, what has been run on a real machine
+# and what has not. `bundle exec rake ci_native` runs the same steps locally, headless.
+name: Native
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: "1"
+  NIENTE_LOG_LEVEL: warn
+
+jobs:
+  rust:
+    name: Rust on ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    # Windows has never run the renderer's tests, so its leg reports without blocking until it
+    # has passed here (docs/native_ci.md).
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: macOS, os: macos-26, experimental: false }
+          - { name: Linux, os: ubuntu-24.04, experimental: false }
+          - { name: Windows, os: windows-2025, experimental: true }
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Keep line endings as committed
+        if: runner.os == 'Windows'
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v7
+      # native/Cargo.toml's rust-version: the oldest Rust the crate promises to build on.
+      - uses: dtolnay/rust-toolchain@1.89
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: native
+          shared-key: native
+      - name: Clippy
+        working-directory: native
+        run: cargo clippy --all-targets --release --locked -- -D warnings
+      - name: Tests
+        working-directory: native
+        run: cargo test --release --locked
+      - name: Keep the pictures a golden test failed on
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: golden-actual-${{ matrix.name }}
+          path: native/target/tmp/golden-actual/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  ruby:
+    name: Ruby ${{ matrix.ruby }} on ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [macOS, Linux]
+        # The gemspec's floor, and the newest Ruby.
+        ruby: ["3.2", "4.0"]
+        include:
+          - { name: macOS, os: macos-26 }
+          - { name: Linux, os: ubuntu-24.04 }
+    steps:
+      - uses: actions/checkout@v7
+      - name: Linux packages
+        if: runner.os == 'Linux'
+        run: |
+          # webview_ruby, a dependency of the scarpe gem, compiles against GTK and WebKitGTK
+          # while the bundle installs. It asks pkg-config for webkit2gtk-4.0, which Ubuntu no
+          # longer ships; 4.1 is the same API on libsoup 3, so it answers to the old name.
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgtk-3-dev libwebkit2gtk-4.1-dev
+          mkdir -p "$RUNNER_TEMP/pkgconfig"
+          printf '%s\n' 'Name: webkit2gtk-4.0' 'Description: webkit2gtk-4.1 under its old name' \
+            'Version: 2.0' 'Requires: webkit2gtk-4.1' > "$RUNNER_TEMP/pkgconfig/webkit2gtk-4.0.pc"
+          echo "PKG_CONFIG_PATH=$RUNNER_TEMP/pkgconfig" >> "$GITHUB_ENV"
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - uses: dtolnay/rust-toolchain@1.89
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: native
+          shared-key: native
+          save-if: false
+      # The spec suite's stand-ins for osascript, say, afplay, open and the clipboard, first on
+      # PATH for every step, so nothing a test runs can reach the runner's desktop.
+      - name: Stub dialogs, sounds and the clipboard
+        run: echo "$GITHUB_WORKSPACE/spec/support/fakebin" >> "$GITHUB_PATH"
+      - name: Build the renderer
+        working-directory: native
+        run: cargo build --release --locked
+      - name: Shim tests
+        run: bundle exec rake native_test
+      - name: Lacci tests
+        run: bundle exec rake lacci_test
+      - name: Component tests
+        run: bundle exec rake component_test
+      - name: Spec runner and front matter
+        run: |
+          bundle exec rake spec:selftest
+          spec/run --check
+      - name: Spec suite on Niente
+        run: spec/run --display niente
+      - name: Spec suite on native
+        run: spec/run --display native --no-build
+      - name: Examples on native
+        run: spec/run --examples --display native --no-build
+      - name: Cache Traveling Ruby
+        if: runner.os == 'macOS'
+        uses: actions/cache@v6
+        with:
+          path: ~/.scarpe/packager-cache
+          key: traveling-ruby-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lib/scarpe/package.rb') }}
+      # Also fetches the Traveling Ruby that the package tests build with, on a cold cache.
+      - name: Package an app
+        if: runner.os == 'macOS'
+        run: bundle exec ruby exe/scarpe package --native examples/button.rb --output "$RUNNER_TEMP/packaged"
+      - name: Package tests
+        run: bundle exec rake package_test
+      - name: Keep the results and the example gallery
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: native-results-ruby${{ matrix.ruby }}-${{ matrix.name }}
+          path: |
+            spec/results/
+            logger/*.log
+          if-no-files-found: ignore
+          retention-days: 14
