@@ -632,15 +632,16 @@ class Shoes::App < Shoes::Drawable
   end
 
   # Open a new app window. In classic Shoes, `window` is like `Shoes.app` but
-  # sets the child window's `owner` to the launching app.
-  def window(**opts, &block)
-    Shoes.app(**opts.merge(owner: self), &block)
+  # sets the child window's `owner` to the launching app. Its styles may come as
+  # a Hash too, as Shoes.app's may (ledger A10).
+  def window(styles = {}, **opts, &block)
+    Shoes.app(styles, **opts, owner: self, &block)
   end
 
   # Open a dialog-style window. In classic Shoes, this is like `window` but
   # with dialog box styling. Sets the owner like `window`.
-  def dialog(**opts, &block)
-    Shoes.app(**opts.merge(owner: self), &block)
+  def dialog(styles = {}, **opts, &block)
+    Shoes.app(styles, **opts, owner: self, &block)
   end
 
   # Quit the application. This is an App-level alias for Shoes.quit

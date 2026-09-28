@@ -60,6 +60,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | A7 | Shoes 3.3 app styles | OOS | | |
 | A8 | `close` closes one window | MANUAL | | |
 | A9 | `Shoes.app`, `window` and `dialog` return the App | MANUAL | | |
+| A10 | `Shoes.app`, `window` and `dialog` take their styles as a Hash | S3 | | new 28 Sep |
 
 ### B. Blocks, `self` and slot manipulation
 
@@ -297,6 +298,17 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** `Shoes.app` ends `app.init; app.run; nil` (`lacci/lib/shoes.rb:192-194`), and `App#window`/`#dialog` return what `Shoes.app` returns (`app.rb:585-593`), so all three give nil. Since 27 Sep (`41a9811`) `Shoes.app` returns the App it made, and `window` and `dialog` with it.
 - **Spec:** `app.shoes_app`, `element.window__returns_app`, `element.dialog__returns_app`: each returns a `Shoes::App`, the very one in `Shoes.APPS`.
 - **Native:** nothing; the return value is Ruby-side.
+
+### A10. `Shoes.app`, `window` and `dialog` take their styles as a Hash
+
+**Ruling: S3.** **Lacci change, done 28 Sep 2026.** New row, from the Hackety Hack lane (w9).
+
+- **Manual:** `Shoes.app(styles) { ... }` (manual 859-865), written for Ruby 1.8, where a Hash and keywords were one thing.
+- **Shoes 3:** `Shoes.app` reads its argument as a Hash of styles.
+- **Examples:** Ruby 1.9 programs build the styles first and pass them on: Hackety Hack's `lib/art/turtle.rb` calls `Shoes.app opts`, so its Fractal and both Turtle samples stopped at once.
+- **Lacci until 28 Sep:** keywords only, so a Hash, which Ruby 3 hands over as a positional argument, raised `ArgumentError: wrong number of arguments (given 1, expected 0)`. Since 28 Sep `Shoes.app`, `window` and `dialog` take a Hash as well, and keywords given beside it win. Anything else still raises.
+- **Spec:** `app.shoes_app__styles_hash`: styles built as a Hash open that window and run its block.
+- **Native:** nothing.
 
 ## B. Blocks, `self` and slot manipulation
 
