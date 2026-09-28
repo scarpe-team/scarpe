@@ -1,0 +1,23 @@
+---
+manual: slot.scroll_top
+lines: [2455, 2458]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @list = stack width: 200, height: 100, scroll: true do
+    @first = stack height: 40
+    4.times { stack height: 40 }
+  end
+end
+----------- test code
+list = stack("@list")
+assert_equal 0, list.scroll_top, "not scrolled yet"
+first_top = layout_of(stack("@first")).y
+
+box = layout_of(list)
+wheel(20, x: box.x + 100, y: box.y + 50)
+
+scrolled = first_top - layout_of(stack("@first")).y
+assert_operator scrolled, :>, 0, "the wheel scrolled the slot down"
+assert_in_delta scrolled, list.scroll_top, 0.5, "scroll_top says how far"

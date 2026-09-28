@@ -1,0 +1,13 @@
+---
+manual: element.subtitle
+lines: [2098, 2098]
+testability: api
+display: any
+ledger: F2
+----------- app code
+Shoes.app do
+  $block = subtitle "Shoes"
+end
+----------- test code
+assert Shoes.const_defined?(:Subtitle), "Shoes::Subtitle exists"
+assert_kind_of Shoes::Subtitle, $block, "subtitle returns a Shoes::Subtitle"

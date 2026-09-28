@@ -1,0 +1,21 @@
+---
+manual: art.arc
+lines: [1665, 1670]
+testability: visual
+display: native
+ledger: E12
+----------- app code
+# An ext pin: Shoes 4's arc takes wedge: true for a pie slice filled to the centre
+# (DESIGN 12). Without it an arc fills as a chord.
+Shoes.app width: 320, height: 180 do
+  nostroke
+  fill red
+  @pie = arc 20, 20, 140, 140, 0, Math::PI / 2, wedge: true
+  @chord = arc 170, 20, 140, 140, 0, Math::PI / 2
+end
+----------- test code
+# Each arc's quarter runs from 3 o'clock to 6 o'clock about its box's centre. A point just
+# below and right of the centre is inside the pie and outside the chord.
+assert_equal [255, 0, 0], pixel_at(95, 95).first(3), "the wedge is filled to the centre"
+assert_equal [255, 255, 255], pixel_at(245, 95).first(3), "the chord is not"
+assert_equal [255, 0, 0], pixel_at(282, 132).first(3), "both fill along the curve"

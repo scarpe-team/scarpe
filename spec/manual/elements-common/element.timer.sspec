@@ -1,0 +1,20 @@
+---
+manual: element.timer
+lines: [2111, 2125]
+testability: api
+display: native
+----------- app code
+Shoes.app do
+  timer(5) do
+    alert("Your five seconds are up.")
+  end
+end
+----------- test code
+advance(4.9)
+assert_empty dialog_calls, "nothing before five seconds"
+
+advance(0.2)
+assert_equal [[:alert, "Your five seconds are up."]], dialog_calls, "the block runs after five seconds"
+
+advance(10)
+assert_equal 1, dialog_calls.size, "and only once"

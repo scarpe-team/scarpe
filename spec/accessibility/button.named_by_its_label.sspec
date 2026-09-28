@@ -1,0 +1,15 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: visual
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  @save = button "Save"
+end
+----------- test code
+node = a11y_nodes.find { |n| n[:role] == "button" }
+refute_nil node, "a screen reader finds a button"
+assert_equal "Save", node[:name], "named by its label"
+assert_equal layout_of(button("@save")).to_a, node[:bounds], "where the button is drawn"
+assert_equal %w[click focus], node[:actions]

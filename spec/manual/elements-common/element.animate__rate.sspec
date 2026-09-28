@@ -1,0 +1,17 @@
+---
+manual: element.animate
+lines: [1879, 1881]
+testability: api
+display: native
+ledger: I1
+----------- app code
+Shoes.app do
+  $frames = []
+  animate(24) { |frame| $frames << frame }
+end
+----------- test code
+assert_empty $frames, "no frame before the clock moves"
+
+advance(1)
+
+assert_in_delta 24, $frames.size, 1, "animate(24) calls the block 24 times a second"

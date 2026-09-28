@@ -1,0 +1,16 @@
+---
+manual: styles.state.disabled
+lines: [1417, 1421]
+testability: interactive
+display: native
+ledger: G4
+----------- app code
+Shoes.app width: 400, height: 200 do
+  @count = para "0"
+  @off = button "Off", state: "disabled" do
+    @count.replace((@count.text.to_i + 1).to_s)
+  end
+end
+----------- test code
+click_on button("@off")
+assert_equal "0", para("@count").text, "a disabled button is not active: clicking it does nothing"

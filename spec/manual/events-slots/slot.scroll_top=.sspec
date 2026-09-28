@@ -1,0 +1,20 @@
+---
+manual: slot.scroll_top=
+lines: [2460, 2463]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @list = stack width: 200, height: 100, scroll: true do
+    @first = stack height: 40
+    4.times { stack height: 40 }
+  end
+end
+----------- test code
+list = stack("@list")
+first_top = layout_of(stack("@first")).y
+
+list.scroll_top = 20
+
+assert_in_delta first_top - 20, layout_of(stack("@first")).y, 0.5, "the contents moved up 20 pixels"
+assert_equal 20, list.scroll_top

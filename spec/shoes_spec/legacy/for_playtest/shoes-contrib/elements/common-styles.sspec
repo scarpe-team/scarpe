@@ -1,0 +1,32 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/shoes-contrib/elements/common-styles.sspec
+source_commit: 1e766c6
+display: any
+expect: fail
+reason: Lacci makes title, subtitle, banner and caption Para subclasses (element.title),
+  so paras() still includes them, and the finders go by size, so restyling the size
+  loses the banner
+----------- app code
+Shoes.app do
+  stack do
+    # background, text and a button: both are elements!
+    @back = background blue
+    @text = banner "This quick brown fox"
+    @press = button "Jumps over the lazy dog"
+
+    # And so, both can be styled.
+    @text.style :size => 24, :stroke => red, :margin => 10
+    @press.style :width => 400
+    @back.style :height => 10
+  end
+end
+----------- test code
+# Tests styling of banner and button elements
+b = banners().first
+assert b, "Should have a banner"
+assert_equal "This quick brown fox", b.text
+btn = buttons().first
+assert btn, "Should have a button"
+assert_equal "Jumps over the lazy dog", btn.text

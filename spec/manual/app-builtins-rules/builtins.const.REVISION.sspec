@@ -1,0 +1,12 @@
+---
+manual: builtins.const.REVISION
+lines: [611, 611]
+testability: api
+display: any
+ledger: L3
+----------- app code
+Shoes.app { para "revision #{Shoes::REVISION}" }
+----------- test code
+assert Shoes.const_defined?(:REVISION, false), "Shoes::REVISION is defined"
+refute_nil Shoes::REVISION, "it names the build's revision"
+refute_empty Shoes::REVISION.to_s.strip, "and is not blank"

@@ -3,11 +3,13 @@
 require_relative "test_helper"
 
 class TestLacciOval < NienteTest
-  # For an oval, the args go left, top, radius, height
+  # For an oval, the positional args go left, top, width, height. The third
+  # argument is the diameter: the manual (manual.md:1716-1722, "a width and
+  # height of `radius` pixels"), Shoes 3 and Shoes 4 agree (research 06, E1).
   def test_simple_oval_values
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
-        oval 5, 10, 25 # circle with radius 25 with its upper-left point at 5, 10
+        oval 5, 10, 50 # circle 50 across with its upper-left point at 5, 10
       end
     SHOES_APP
       ov = oval()
@@ -22,7 +24,7 @@ class TestLacciOval < NienteTest
   def test_oval_with_height
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
-        oval 5, 10, 25, 35 # oval with radius 25, 50 wide, 35 tall
+        oval 5, 10, 50, 35 # oval 50 wide, 35 tall
       end
     SHOES_APP
       ov = oval()
@@ -34,6 +36,7 @@ class TestLacciOval < NienteTest
     SHOES_SPEC
   end
 
+  # The radius: style stays a true radius (manual.md:1348-1354).
   def test_simple_oval_keyword_values
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
@@ -68,7 +71,7 @@ class TestLacciOval < NienteTest
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
         strokewidth 3
-        oval 5, 10, 25
+        oval 5, 10, 50
       end
     SHOES_APP
       ov = oval()
@@ -77,6 +80,28 @@ class TestLacciOval < NienteTest
       assert_equal 25, ov.radius
       assert_equal 3, ov.draw_context["strokewidth"]
       # assert_equal 3, ov.strokewidth # This should work but doesn't yet, see issue #476
+    SHOES_SPEC
+  end
+
+  # Ledger C10: art may be placed by its far edges, and sized by both edges of an axis.
+  def test_art_placed_by_its_far_edges
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $corner = rect right: 10, bottom: 10, width: 40, height: 20
+        $band = rect left: 20, top: 30, right: 20, bottom: 50
+        $dot = oval right: 0, top: 150, width: 30
+        $stretched = oval left: 100, right: 100, top: 160, height: 30
+        $spark = star right: 0, top: 40
+        $sweep = arc right: 0, bottom: 0, width: 50, height: 50, angle1: 0, angle2: 3
+        $pointer = arrow right: 0, top: 50, width: 30
+      end
+    SHOES_APP
+      styles = ->(shape, *names) { names.map { |name| shape.style[name] } }
+      assert_equal [nil, nil, 10, 10], styles.($corner, :left, :top, :right, :bottom), "no near edge is made up"
+      assert_equal [nil, nil], styles.($band, :width, :height), "a rect between both edges takes no size"
+      assert_equal [nil, 0, 30, 30], styles.($dot, :left, :right, :width, :height), "an oval still defaults to a circle"
+      assert_equal [nil, 30], styles.($stretched, :width, :height), "but one between both edges keeps its span"
+      assert_equal [0, 0, 0], [$spark, $sweep, $pointer].map { |shape| shape.style[:right] }
     SHOES_SPEC
   end
 end

@@ -1,0 +1,26 @@
+---
+manual: border.inside_edge
+lines: [2811, 2815]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 200, height: 200 do
+  stack left: 0, top: 0, width: 50, height: 50 do
+    border black, strokewidth: 5
+  end
+end
+----------- test code
+# A 50 px slot with a 5 px border leaves a 40 px area, x 5..45, inside the border.
+paints = lambda do |x, y, expected, why|
+  assert_equal expected, pixel_at(x, y).first(3), "#{why} at (#{x}, #{y})"
+end
+black = [0, 0, 0]
+white = [255, 255, 255]
+
+paints.(4, 25, black, "the left border is 5 px wide")
+paints.(5, 25, white, "the inside area starts at x = 5")
+paints.(44, 25, white, "and is 40 px wide")
+paints.(45, 25, black, "the right border takes the last 5 px")
+paints.(25, 4, black, "the top border is 5 px high")
+paints.(25, 5, white, "the inside area starts at y = 5")
+paints.(51, 25, white, "the border stays inside the slot")

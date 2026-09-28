@@ -1,0 +1,23 @@
+---
+manual: rules.summary.slot_blocks_push_slot
+lines: [322, 324]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $selves = { app: self }
+  @row = flow do
+    $selves[:flow] = self
+    para "in the flow"
+  end
+  @column = stack { para "first" }
+  @column.append do
+    $selves[:append] = self
+    para "appended"
+  end
+end
+----------- test code
+assert_same $selves[:app], $selves[:flow], "a flow block does not change self"
+assert_same $selves[:app], $selves[:append], "nor does an append block"
+assert_equal ["in the flow"], flow("@row").contents.map(&:text), "the flow was pushed while its block ran"
+assert_equal ["first", "appended"], stack("@column").contents.map(&:text), "and so was the stack being appended to"

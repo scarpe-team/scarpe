@@ -1,0 +1,67 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/shoes3-tests/opacity_test.sspec
+source_commit: 1e766c6
+display: any
+expect: fail
+reason: Lacci makes title, subtitle, banner and caption Para subclasses (element.title),
+  so paras() still includes them, and the finders go by size, so restyling the size
+  loses the banner
+----------- app code
+# App opacity example - demonstrates window transparency control
+#
+# The opacity property controls the transparency of the entire app window.
+# Value ranges from 0.0 (fully transparent) to 1.0 (fully opaque).
+
+Shoes.app(title: "App Opacity Demo", width: 400, height: 300) do
+  background "#333"
+  
+  @current_opacity = 1.0
+  
+  stack margin: 20 do
+    title "App Opacity Demo", stroke: white
+    para "Click buttons to change window opacity.", stroke: "#AAA"
+    
+    @label = para "Opacity: 1.0 (100%)", stroke: lime, size: 16
+    
+    flow margin_top: 20 do
+      button "100%" do
+        @current_opacity = 1.0
+        app.opacity = @current_opacity
+        @label.replace("Opacity: #{@current_opacity} (100%)")
+      end
+      
+      button "75%" do
+        @current_opacity = 0.75
+        app.opacity = @current_opacity
+        @label.replace("Opacity: #{@current_opacity} (75%)")
+      end
+      
+      button "50%" do
+        @current_opacity = 0.5
+        app.opacity = @current_opacity
+        @label.replace("Opacity: #{@current_opacity} (50%)")
+      end
+      
+      button "25%" do
+        @current_opacity = 0.25
+        app.opacity = @current_opacity
+        @label.replace("Opacity: #{@current_opacity} (25%)")
+      end
+    end
+    
+    para "\nNote: Very low opacity may make the window hard to see!", stroke: yellow, margin_top: 20
+  end
+end
+----------- test code
+# Test the opacity demo UI elements
+all_paras = paras()
+all_buttons = buttons()
+assert_equal "App Opacity Demo", title().text
+assert_includes all_paras[0].text, "Click buttons to change window opacity"
+assert_includes all_paras[1].text, "Opacity: 1.0"
+assert_equal "100%", all_buttons[0].text
+assert_equal "75%", all_buttons[1].text
+assert_equal "50%", all_buttons[2].text
+assert_equal "25%", all_buttons[3].text

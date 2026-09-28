@@ -1,0 +1,17 @@
+---
+manual: timers.classes
+lines: [3411, 3413]
+testability: api
+display: native
+ledger: I1
+----------- app code
+$frames = 0
+$counts = 0
+Shoes.app do
+  animate(10) { $frames += 1 }
+  every(0.2) { $counts += 1 }
+end
+----------- test code
+advance 1.1
+assert_operator $frames, :>=, 8, "an animation keeps firing after it starts"
+assert_includes 4..6, $counts, "so does an every: about five times in a second at 0.2 seconds"

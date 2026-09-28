@@ -1,0 +1,20 @@
+---
+manual: manip.prepend
+lines: [2349, 2363]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @slot = stack { @morning = para 'Good Morning' }
+  timer 3 do
+    @slot.prepend { @car = para "Your car is ready." }
+  end
+end
+----------- test code
+assert_equal ["Good Morning"], stack("@slot").contents.map(&:text), "nothing is added before the timer fires"
+
+advance 3.2
+
+assert_equal ["Your car is ready.", "Good Morning"], stack("@slot").contents.map(&:text)
+car, morning = layout_of(para("@car")), layout_of(para("@morning"))
+assert_operator morning.y, :>=, car.y + car.h - 0.5, "the new para shows above Good Morning"

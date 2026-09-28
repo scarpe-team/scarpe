@@ -1,0 +1,22 @@
+---
+manual: manip.clear_with_block
+lines: [2331, 2347]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @slot = stack { para "Old text" }
+  timer 3 do
+    @slot.clear { para "Brand new text" }
+  end
+end
+----------- test code
+assert_equal "Old text", para.text, "the old paragraph shows until the timer fires"
+
+advance 3.2
+
+assert_equal "Brand new text", para.text, "then it is replaced"
+assert_equal 1, paras.size, "the old paragraph is gone"
+laid_out = layout_tree.filter_map { |node| node["text"] || node[:text] }.join(" ")
+refute_includes laid_out, "Old text", "the old paragraph is no longer laid out"
+assert_includes laid_out, "Brand new text"

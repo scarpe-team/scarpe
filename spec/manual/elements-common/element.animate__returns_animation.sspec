@@ -1,0 +1,13 @@
+---
+manual: element.animate
+lines: [1877, 1877]
+testability: api
+display: any
+ledger: I2
+----------- app code
+Shoes.app do
+  $animation = animate(24) { |frame| }
+end
+----------- test code
+assert Shoes.const_defined?(:Animation), "Shoes::Animation exists"
+assert_kind_of Shoes::Animation, $animation, "animate returns a Shoes::Animation"

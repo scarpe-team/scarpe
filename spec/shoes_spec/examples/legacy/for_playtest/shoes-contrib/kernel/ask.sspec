@@ -1,0 +1,17 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/kernel/ask.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+# Original: Shoes.app do name = ask("..."); alert(name) end
+# Disabled: ask() blocks and requires manual input
+Shoes.app do
+  para "Ask test disabled - modal dialogs block test runner"
+end
+----------- test code
+# Ask dialog test - app code disabled to prevent blocking
+# Original functionality: ask() displays input dialog
+p = para()
+assert p.text.include?("disabled"), "Ask test shows disabled message"

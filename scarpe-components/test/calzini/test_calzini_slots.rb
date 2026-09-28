@@ -46,6 +46,16 @@ class TestCalziniSlots < Minitest::Test
       @calzini.render("stack", { "border_color" => "red" }) { "contents" }
   end
 
+  # Shoes measures a gradient's angle from the top, turning counter-clockwise (0 runs
+  # top to bottom, 90 left to right; manual 1073-1079); CSS measures from the bottom.
+  def test_stack_gradient_angles_turn_the_shoes_way
+    down = Shoes::Colors::Gradient.new("red", "green")
+    across = Shoes::Colors::Gradient.new("red", "green", 90)
+
+    assert_includes @calzini.render("stack", { "border_color" => down }) { "" }, "linear-gradient(180deg, red, green)"
+    assert_includes @calzini.render("stack", { "background_color" => across }) { "" }, "linear-gradient(90deg, red, green)"
+  end
+
   def test_stack_border_gradient
     assert_equal %{<div id="elt-1" } +
       %{style="#{@stack_base};border-style:solid;border-width:1px;border-radius:0px;border-image:linear-gradient(45deg, red, green);position:relative">} +
@@ -58,6 +68,14 @@ class TestCalziniSlots < Minitest::Test
       %{style="#{@stack_base};border-style:solid;border-width:1px;border-radius:0px;border-color:rgba(1.0, 0.0, 0.0, 1.0);position:relative">} +
       %{#{@stack_inner_div_tag}contents</div></div>},
       @calzini.render("stack", { "border_color" => [1.0, 0.0, 0.0, 1.0] }) { "contents" }
+  end
+
+  # Lacci colors are four Integers from 0 to 255; CSS alpha is a fraction.
+  def test_stack_border_integer_alpha
+    assert_equal %{<div id="elt-1" } +
+      %{style="#{@stack_base};border-style:solid;border-width:1px;border-radius:0px;border-color:rgba(255, 0, 0, 0.2);position:relative">} +
+      %{#{@stack_inner_div_tag}contents</div></div>},
+      @calzini.render("stack", { "border_color" => [255, 0, 0, 51] }) { "contents" }
   end
 
   def test_stack_border_attrs

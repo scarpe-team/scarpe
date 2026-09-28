@@ -1,0 +1,14 @@
+---
+manual: styles.size.xx-small
+lines: [1400, 1408]
+testability: visual
+display: native
+ledger: F3
+----------- app code
+Shoes.app width: 600, height: 200 do
+  flow { @present = para "HHHHHHHHHHHHHHHHHHHH" }
+  flow { @sized = para "HHHHHHHHHHHHHHHHHHHH", size: "xx-small" }
+end
+----------- test code
+ratio = layout_of(para("@sized")).w / layout_of(para("@present")).w
+assert_in_delta 0.57, ratio, 0.02, "size: \"xx-small\" is 57% of the present size"

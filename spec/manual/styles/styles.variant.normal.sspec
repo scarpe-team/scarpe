@@ -1,0 +1,25 @@
+---
+manual: styles.variant.normal
+lines: [1516, 1518]
+testability: visual
+display: native
+ledger: F4
+----------- app code
+Shoes.app width: 400, height: 300 do
+  flow { @plain = para "pppp", size: 30 }
+  flow { @text = para "pppp", variant: "smallcaps", size: 30 }
+end
+----------- test code
+bottom_of_ink = lambda do |name|
+  box = layout_of(para(name))
+  rows = (box.y.floor...(box.y + box.h).ceil).select do |y|
+    (box.x.floor...(box.x + box.w).ceil).step(2).any? { |x| pixel_at(x, y).first(3).sum < 384 }
+  end
+  rows.max - box.y
+end
+assert_operator bottom_of_ink.call("@text"), :<, bottom_of_ink.call("@plain") - 3, "the paragraph starts in small capitals"
+
+para("@text").style(variant: "normal")
+wait_frames
+
+assert_in_delta bottom_of_ink.call("@plain"), bottom_of_ink.call("@text"), 0.5, "variant: \"normal\" brings back the standard lower-case letters"

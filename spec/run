@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# Runs the Shoes spec suite. See spec/README.md, or spec/run --help.
+require_relative "support/suite"
+
+SpecSuite::CLI.start(ARGV)

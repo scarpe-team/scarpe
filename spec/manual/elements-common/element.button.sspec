@@ -1,0 +1,15 @@
+---
+manual: element.button
+lines: [1936, 1939]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $ok = button "OK!"
+  $sure = button "Are you sure?"
+end
+----------- test code
+assert_instance_of Shoes::Button, $ok, "button returns a Shoes::Button"
+assert_equal "OK!", $ok.text, "written across it is the text it was given"
+assert_equal "Are you sure?", $sure.text
+assert_same $ok, find_button("OK!").obj, "the returned button is the one in the window"

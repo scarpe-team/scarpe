@@ -1,0 +1,17 @@
+---
+manual: common.style_get
+lines: [2693, 2696]
+testability: api
+display: any
+ledger: C2
+----------- app code
+Shoes.app do
+  @box = stack width: "100%", top: "10px" do
+    para "Styled with strings"
+  end
+end
+----------- test code
+box = stack("@box")
+
+assert_equal "100%", box.style[:width], "style[:width] is the original \"100%\""
+assert_equal "10px", box.style[:top], "style[:top] is the original \"10px\""

@@ -1,0 +1,13 @@
+---
+manual: image.scaled_height
+lines: [2630, 2635]
+testability: visual
+display: native
+ledger: A4
+----------- app code
+Shoes.app width: 200, height: 200 do
+  @thumb = image "assets/checker-20x20.png", width: 50
+end
+----------- test code
+# The manual's 150x150 image styled to width 50, with our 20x20 square image.
+assert_equal 50, image("@thumb").height, "height is the height shown right now, 50"

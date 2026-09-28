@@ -1,0 +1,14 @@
+---
+manual: art.constants.PI_TWO_PI
+lines: [1669, 1815]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $pi = PI
+  $two_pi = TWO_PI
+end
+----------- test code
+assert_in_delta Math::PI, $pi, 1e-12, "PI is available inside an app"
+assert_in_delta 2 * Math::PI, $two_pi, 1e-12, "and TWO_PI"
+assert_in_delta 2 * Math::PI, Shoes::TWO_PI, 1e-12, "and Shoes::TWO_PI anywhere"

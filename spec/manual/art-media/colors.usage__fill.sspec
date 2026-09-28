@@ -1,0 +1,20 @@
+---
+manual: colors.usage
+lines: [1568, 1570]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  fill gold
+  nostroke
+  rect 20, 20, 100, 100
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(70, 70, [255, 215, 0], "a named colour fills a shape")
+paints.(150, 70, [255, 255, 255], "outside the shape stays white")

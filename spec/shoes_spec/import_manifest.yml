@@ -1,0 +1,1300 @@
+# Written by spec/import_shoes_spec.rb. Every source case and what became of it.
+---
+source_commit: 1e766c6
+counts:
+  source_cases: 805
+  rejected: 504
+  merged_duplicates: 107
+  dropped_by_ruling: 13
+  imported: 181
+imported:
+  drawables/button/basic_click.sspec: drawables/button/basic_click.sspec
+  drawables/button/button_events.sspec: drawables/button/button_events.sspec
+  drawables/check/check_default_value.sspec: drawables/check/check_default_value.sspec
+  drawables/check/check_initial_value.sspec: drawables/check/check_initial_value.sspec
+  drawables/para/para_replace.sspec: drawables/para/para_replace.sspec
+  drawables/radio/radio_click_callback.sspec: drawables/radio/radio_click_callback.sspec
+  drawables/radio/radio_default_value.sspec: drawables/radio/radio_default_value.sspec
+  drawables/radio/radio_group_switching.sspec: drawables/radio/radio_group_switching.sspec
+  drawables/radio/radio_separate_groups.sspec: drawables/radio/radio_separate_groups.sspec
+  dsl/app/add_drawables.sspec: dsl/app/add_drawables.sspec
+  dsl/slot/self_slot.sspec: dsl/slot/self_slot.sspec
+  scarpe_examples/examples/button_alert.sspec: examples/button_alert.sspec
+  scarpe_examples/examples/hello_world.sspec: examples/hello_world.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe/ask_confirm_demo.sspec: examples/legacy/for_playtest/philippe/ask_confirm_demo.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe/fill_pattern_demo.sspec: examples/legacy/for_playtest/philippe/fill_pattern_demo.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe/hh_patterns_test.sspec: examples/legacy/for_playtest/philippe/hh_patterns_test.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe/minimal_editor.sspec: examples/legacy/for_playtest/philippe/minimal_editor.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe_checked/accordion.sspec: examples/legacy/for_playtest/philippe_checked/accordion.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe_checked/basic-edit-box.sspec: examples/legacy/for_playtest/philippe_checked/basic-edit-box.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe_checked/button.sspec: examples/legacy/for_playtest/philippe_checked/button.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe_checked/calc.sspec: examples/legacy/for_playtest/philippe_checked/calc.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe_checked/editor.sspec: examples/legacy/for_playtest/philippe_checked/editor.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe_checked/gradient-shoes.sspec: examples/legacy/for_playtest/philippe_checked/gradient-shoes.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe_checked/list_box.sspec: examples/legacy/for_playtest/philippe_checked/list_box.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe_checked/simple-calc.sspec: examples/legacy/for_playtest/philippe_checked/simple-calc.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/animation/animate-ovals.sspec: examples/legacy/for_playtest/shoes-contrib/animation/animate-ovals.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/animation/oval-motion.sspec: examples/legacy/for_playtest/shoes-contrib/animation/oval-motion.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/mouse-detection.sspec: examples/legacy/for_playtest/shoes-contrib/app/mouse-detection.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/art/mask.sspec: examples/legacy/for_playtest/shoes-contrib/art/mask.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/a-poem.sspec: examples/legacy/for_playtest/shoes-contrib/basic/a-poem.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-blocks-instances.sspec: examples/legacy/for_playtest/shoes-contrib/basic/basic-blocks-instances.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-blocks.sspec: examples/legacy/for_playtest/shoes-contrib/basic/basic-blocks.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-new-window.sspec: examples/legacy/for_playtest/shoes-contrib/basic/basic-new-window.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-oval-image.sspec: examples/legacy/for_playtest/shoes-contrib/basic/basic-oval-image.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-oval-shape.sspec: examples/legacy/for_playtest/shoes-contrib/basic/basic-oval-shape.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-oval.sspec: examples/legacy/for_playtest/shoes-contrib/basic/basic-oval.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-slot.sspec: examples/legacy/for_playtest/shoes-contrib/basic/basic-slot.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/definr.sspec: examples/legacy/for_playtest/shoes-contrib/basic/definr.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/intro.sspec: examples/legacy/for_playtest/shoes-contrib/basic/intro.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/search.sspec: examples/legacy/for_playtest/shoes-contrib/basic/search.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/url-shoes-subclassing.sspec: examples/legacy/for_playtest/shoes-contrib/basic/url-shoes-subclassing.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/elements/edit_box-character-count.sspec: examples/legacy/for_playtest/shoes-contrib/elements/edit_box-character-count.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/elements/edit_line-character-count.sspec: examples/legacy/for_playtest/shoes-contrib/elements/edit_line-character-count.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/elements/popup.sspec: examples/legacy/for_playtest/shoes-contrib/elements/popup.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/events/pressed-key.sspec: examples/legacy/for_playtest/shoes-contrib/events/pressed-key.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/kernel/alert.sspec: examples/legacy/for_playtest/shoes-contrib/kernel/alert.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/kernel/ask.sspec: examples/legacy/for_playtest/shoes-contrib/kernel/ask.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/kernel/ask_color.sspec: examples/legacy/for_playtest/shoes-contrib/kernel/ask_color.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/kernel/ask_open_file.sspec: examples/legacy/for_playtest/shoes-contrib/kernel/ask_open_file.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/kernel/exit.sspec: examples/legacy/for_playtest/shoes-contrib/kernel/exit.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/manipulation/append-slot.sspec: examples/legacy/for_playtest/shoes-contrib/manipulation/append-slot.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/manipulation/prepend-slot.sspec: examples/legacy/for_playtest/shoes-contrib/manipulation/prepend-slot.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/position/gutter-margin.sspec: examples/legacy/for_playtest/shoes-contrib/position/gutter-margin.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-anim-shapes.sspec: examples/legacy/for_playtest/shoes-contrib/simple/simple-anim-shapes.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-control-sizes.sspec: examples/legacy/for_playtest/shoes-contrib/simple/simple-control-sizes.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-downloader.sspec: examples/legacy/for_playtest/shoes-contrib/simple/simple-downloader.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-form.sspec: examples/legacy/for_playtest/shoes-contrib/simple/simple-form.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/styles/attachment.sspec: examples/legacy/for_playtest/shoes-contrib/styles/attachment.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/styles/para-methods.sspec: examples/legacy/for_playtest/shoes-contrib/styles/para-methods.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/curl/m4.sspec: examples/legacy/for_playtest/shoes3-tests/curl/m4.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/dialogs/confirm.sspec: examples/legacy/for_playtest/shoes3-tests/dialogs/confirm.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/radio/group.sspec: examples/legacy/for_playtest/shoes3-tests/radio/group.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/alert_button.sspec: examples/legacy/for_playtest/shoes_manual/alert_button.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/append.sspec: examples/legacy/for_playtest/shoes_manual/append.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/background_para.sspec: examples/legacy/for_playtest/shoes_manual/background_para.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/background_pattern.sspec: examples/legacy/for_playtest/shoes_manual/background_pattern.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/basic_app.sspec: examples/legacy/for_playtest/shoes_manual/basic_app.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/border.sspec: examples/legacy/for_playtest/shoes_manual/border.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/button_icon.sspec: examples/legacy/for_playtest/shoes_manual/button_icon.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/checkbox.sspec: examples/legacy/for_playtest/shoes_manual/checkbox.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/clear.sspec: examples/legacy/for_playtest/shoes_manual/clear.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/custom_header.sspec: examples/legacy/for_playtest/shoes_manual/custom_header.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/displace.sspec: examples/legacy/for_playtest/shoes_manual/displace.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/download.sspec: examples/legacy/for_playtest/shoes_manual/download.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/edit_box.sspec: examples/legacy/for_playtest/shoes_manual/edit_box.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/fixed_height.sspec: examples/legacy/for_playtest/shoes_manual/fixed_height.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/fixed_width.sspec: examples/legacy/for_playtest/shoes_manual/fixed_width.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/focus.sspec: examples/legacy/for_playtest/shoes_manual/focus.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/fonts.sspec: examples/legacy/for_playtest/shoes_manual/fonts.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/gutter.sspec: examples/legacy/for_playtest/shoes_manual/gutter.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/image.sspec: examples/legacy/for_playtest/shoes_manual/image.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/instance_variable_check.sspec: examples/legacy/for_playtest/shoes_manual/instance_variable_check.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/keypress.sspec: examples/legacy/for_playtest/shoes_manual/keypress.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/list_box.sspec: examples/legacy/for_playtest/shoes_manual/list_box.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/message.sspec: examples/legacy/for_playtest/shoes_manual/message.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/move.sspec: examples/legacy/for_playtest/shoes_manual/move.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/nested_ovals.sspec: examples/legacy/for_playtest/shoes_manual/nested_ovals.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/ovals.sspec: examples/legacy/for_playtest/shoes_manual/ovals.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/ovals_image.sspec: examples/legacy/for_playtest/shoes_manual/ovals_image.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/prepend.sspec: examples/legacy/for_playtest/shoes_manual/prepend.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/progress_bar.sspec: examples/legacy/for_playtest/shoes_manual/progress_bar.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/stack.sspec: examples/legacy/for_playtest/shoes_manual/stack.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/start.sspec: examples/legacy/for_playtest/shoes_manual/start.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/style_info.sspec: examples/legacy/for_playtest/shoes_manual/style_info.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/style_length.sspec: examples/legacy/for_playtest/shoes_manual/style_length.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/trigger_window.sspec: examples/legacy/for_playtest/shoes_manual/trigger_window.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/utf8_support.sspec: examples/legacy/for_playtest/shoes_manual/utf8_support.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/wheel.sspec: examples/legacy/for_playtest/shoes_manual/wheel.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/window_owner.sspec: examples/legacy/for_playtest/shoes_manual/window_owner.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/clear-slot.sspec: examples/legacy/for_playtest/simple/clear-slot.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/downloader1.sspec: examples/legacy/for_playtest/simple/downloader1.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/image.sspec: examples/legacy/for_playtest/simple/image.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/list_box-shape-report.sspec: examples/legacy/for_playtest/simple/list_box-shape-report.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/path-animation.sspec: examples/legacy/for_playtest/simple/path-animation.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/phat-button.sspec: examples/legacy/for_playtest/simple/phat-button.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/stack-width.sspec: examples/legacy/for_playtest/simple/stack-width.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/width-introspec.sspec: examples/legacy/for_playtest/simple/width-introspec.sspec
+  scarpe_examples/examples/legacy/needs_deps/custom-list-box.sspec: examples/legacy/needs_deps/custom-list-box.sspec
+  scarpe_examples/examples/legacy/working/shoes_manual/animate.sspec: examples/legacy/working/shoes_manual/animate.sspec
+  scarpe_examples/examples/legacy/working/shoes_manual/button_alternative.sspec: examples/legacy/working/shoes_manual/button_alternative.sspec
+  scarpe_examples/examples/legacy/working/shoes_manual/rectangle.sspec: examples/legacy/working/shoes_manual/rectangle.sspec
+  scarpe_examples/examples/legacy/working/shoes_manual/save_download.sspec: examples/legacy/working/shoes_manual/save_download.sspec
+  scarpe_examples/examples/legacy/working/shoes_manual/width.sspec: examples/legacy/working/shoes_manual/width.sspec
+  scarpe_examples/examples/legacy/working/simple/border-cat.sspec: examples/legacy/working/simple/border-cat.sspec
+  scarpe_examples/examples/legacy/working/simple/timer.sspec: examples/legacy/working/simple/timer.sspec
+  scarpe_examples/examples/list_box_choose.sspec: examples/list_box_choose.sspec
+  scarpe_examples/examples/local_assets/multi_image.sspec: examples/local_assets/multi_image.sspec
+  scarpe_examples/examples/margin_check.sspec: examples/margin_check.sspec
+  scarpe_examples/examples/motion_events.sspec: examples/motion_events.sspec
+  scarpe_examples/examples/page_navigation_single_app.sspec: examples/page_navigation_single_app.sspec
+  scarpe_examples/examples/para/collection_of_arguments.sspec: examples/para/collection_of_arguments.sspec
+  scarpe_examples/examples/para/hello_world.sspec: examples/para/hello_world.sspec
+  scarpe_examples/examples/para/hide_and_show.sspec: examples/para/hide_and_show.sspec
+  scarpe_examples/examples/para/para_text.sspec: examples/para/para_text.sspec
+  scarpe_examples/examples/para_font_styles.sspec: examples/para_font_styles.sspec
+  scarpe_examples/examples/para_font_variant.sspec: examples/para_font_variant.sspec
+  scarpe_examples/examples/para_fontweight.sspec: examples/para_fontweight.sspec
+  scarpe_examples/examples/para_text_widgets.sspec: examples/para_text_widgets.sspec
+  scarpe_examples/examples/rotate_shapes.sspec: examples/rotate_shapes.sspec
+  scarpe_examples/examples/selfitude.sspec: examples/selfitude.sspec
+  scarpe_examples/examples/shoes_splorer.sspec: examples/shoes_splorer.sspec
+  scarpe_examples/examples/sleepless.sspec: examples/sleepless.sspec
+  scarpe_examples/examples/text_change.sspec: examples/text_change.sspec
+  scarpe_examples/examples/title_and_resize.sspec: examples/title_and_resize.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/basic/list_box-select-class.sspec: legacy/for_playtest/shoes-contrib/basic/list_box-select-class.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/basic/shoes-notes.sspec: legacy/for_playtest/shoes-contrib/basic/shoes-notes.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/basic/two-column.sspec: legacy/for_playtest/shoes-contrib/basic/two-column.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/browser.sspec: legacy/for_playtest/shoes-contrib/browser.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/elements/button-block.sspec: legacy/for_playtest/shoes-contrib/elements/button-block.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/elements/common-styles.sspec: legacy/for_playtest/shoes-contrib/elements/common-styles.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/elements/displace-animation.sspec: legacy/for_playtest/shoes-contrib/elements/displace-animation.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/styles/alignment.sspec: legacy/for_playtest/shoes-contrib/styles/alignment.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/styles/emphasis.sspec: legacy/for_playtest/shoes-contrib/styles/emphasis.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/styles/para-red-underlined.sspec: legacy/for_playtest/shoes-contrib/styles/para-red-underlined.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/styles/para-style-method.sspec: legacy/for_playtest/shoes-contrib/styles/para-style-method.sspec
+  scarpe_examples/legacy/for_playtest/shoes-manual/builtins/ask_open_file.sspec: legacy/for_playtest/shoes-manual/builtins/ask_open_file.sspec
+  scarpe_examples/legacy/for_playtest/shoes-manual/edit_box.sspec: legacy/for_playtest/shoes-manual/edit_box.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/curl/bare.sspec: legacy/for_playtest/shoes3-tests/curl/bare.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/curl/downloader.sspec: legacy/for_playtest/shoes3-tests/curl/downloader.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/cursor/c1.sspec: legacy/for_playtest/shoes3-tests/cursor/c1.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/dialogs/ask.sspec: legacy/for_playtest/shoes3-tests/dialogs/ask.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/dialogs/confirm.sspec: legacy/for_playtest/shoes3-tests/dialogs/confirm.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/dynamic_title.sspec: legacy/for_playtest/shoes3-tests/dynamic_title.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/editbox/editbox.sspec: legacy/for_playtest/shoes3-tests/editbox/editbox.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/editline/editline.sspec: legacy/for_playtest/shoes3-tests/editline/editline.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/events/button.sspec: legacy/for_playtest/shoes3-tests/events/button.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/opacity.sspec: legacy/for_playtest/shoes3-tests/opacity.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/opacity_test.sspec: legacy/for_playtest/shoes3-tests/opacity_test.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/progress/progress.sspec: legacy/for_playtest/shoes3-tests/progress/progress.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/radio/clear.sspec: legacy/for_playtest/shoes3-tests/radio/clear.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/radio/group.sspec: legacy/for_playtest/shoes3-tests/radio/group.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/radio/multiple.sspec: legacy/for_playtest/shoes3-tests/radio/multiple.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/radio/nogroup.sspec: legacy/for_playtest/shoes3-tests/radio/nogroup.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/tooltips.sspec: legacy/for_playtest/shoes3-tests/tooltips.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/wheel/wheel1.sspec: legacy/for_playtest/shoes3-tests/wheel/wheel1.sspec
+  scarpe_examples/legacy/for_playtest/shoes_manual/alert_button.sspec: legacy/for_playtest/shoes_manual/alert_button.sspec
+  scarpe_examples/legacy/for_playtest/shoes_manual/style.sspec: legacy/for_playtest/shoes_manual/style.sspec
+  scarpe_examples/legacy/for_playtest/shoes_manual/style_alternative_1.sspec: legacy/for_playtest/shoes_manual/style_alternative_1.sspec
+  scarpe_examples/legacy/for_playtest/shoes_manual/style_alternative_2.sspec: legacy/for_playtest/shoes_manual/style_alternative_2.sspec
+  scarpe_examples/legacy/for_playtest/simple/anim-shapes.sspec: legacy/for_playtest/simple/anim-shapes.sspec
+  scarpe_examples/legacy/for_playtest/simple/basic-fps.sspec: legacy/for_playtest/simple/basic-fps.sspec
+  scarpe_examples/legacy/for_playtest/simple/control-sizes.sspec: legacy/for_playtest/simple/control-sizes.sspec
+  scarpe_examples/legacy/for_playtest/simple/curve-control-points.sspec: legacy/for_playtest/simple/curve-control-points.sspec
+  scarpe_examples/legacy/for_playtest/simple/form.sspec: legacy/for_playtest/simple/form.sspec
+  scarpe_examples/legacy/for_playtest/simple/menu.sspec: legacy/for_playtest/simple/menu.sspec
+  scarpe_examples/legacy/for_playtest/simple/menu1.sspec: legacy/for_playtest/simple/menu1.sspec
+  scarpe_examples/legacy/working/philippe/guessing_game.sspec: legacy/working/philippe/guessing_game.sspec
+  scarpe_examples/legacy/working/shoes_manual/self_check.sspec: legacy/working/shoes_manual/self_check.sspec
+  scarpe_examples/legacy/working/simple/check-mate.sspec: legacy/working/simple/check-mate.sspec
+  scarpe_examples/legacy/working/simple/clock.sspec: legacy/working/simple/clock.sspec
+  scarpe_examples/legacy/working/simple/image-icon.sspec: legacy/working/simple/image-icon.sspec
+duplicates:
+  scarpe_examples/legacy/working/philippe/guessing_game.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/philippe/guessing_game.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe_checked/basic-edit-box.sspec:
+  - scarpe_examples/examples/legacy/working/simple/basic-edit-box.sspec
+  - scarpe_examples/legacy/working/simple/basic-edit-box.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe_checked/calc.sspec:
+  - scarpe_examples/legacy/working/simple/calc.sspec
+  scarpe_examples/legacy/working/simple/check-mate.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/philippe_checked/check-mate.sspec
+  - scarpe_examples/examples/legacy/working/simple/check-mate.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe_checked/gradient-shoes.sspec:
+  - scarpe_examples/legacy/working/simple/gradient-shoes.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe_checked/list_box.sspec:
+  - scarpe_examples/examples/legacy/working/simple/list_box.sspec
+  - scarpe_examples/legacy/working/simple/list_box.sspec
+  scarpe_examples/examples/legacy/for_playtest/philippe_checked/simple-calc.sspec:
+  - scarpe_examples/examples/legacy/working/simple/simple-calc.sspec
+  - scarpe_examples/legacy/working/simple/simple-calc.sspec
+  scarpe_examples/examples/legacy/working/simple/timer.sspec:
+  - scarpe_examples/legacy/working/simple/timer.sspec
+  - scarpe_examples/examples/legacy/for_playtest/philippe_checked/timer.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/a-poem.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes-contrib/basic/a-poem.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-blocks-instances.sspec:
+  - scarpe_examples/examples/legacy/working/shoes-contrib/basic/basic-blocks-instances.sspec
+  - scarpe_examples/legacy/for_playtest/shoes-contrib/basic/basic-blocks-instances.sspec
+  - scarpe_examples/legacy/working/shoes-contrib/basic/basic-blocks-instances.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-blocks.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes-contrib/basic/basic-blocks.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-new-window.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes-contrib/basic/basic-new-window.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-slot.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes-contrib/basic/basic-slot.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/definr.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes-contrib/basic/definr.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/intro.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes-contrib/basic/intro.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/basic/list_box-select-class.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/list_box-select-class.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/search.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes-contrib/basic/search.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/url-shoes-subclassing.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes-contrib/basic/url-shoes-subclassing.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/elements/edit_box-character-count.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes-contrib/elements/edit_box-character-count.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/events/pressed-key.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes-contrib/events/pressed-key.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/manipulation/append-slot.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes-contrib/manipulation/append-slot.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-downloader.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-downloader.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/styles/alignment.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/shoes-contrib/styles/alignment.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/styles/attachment.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes-contrib/styles/attachment.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/styles/emphasis.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/shoes-contrib/styles/emphasis.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/styles/para-methods.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes-contrib/styles/para-methods.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/styles/para-red-underlined.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/shoes-contrib/styles/para-red-underlined.sspec
+  scarpe_examples/legacy/for_playtest/shoes-contrib/styles/para-style-method.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/shoes-contrib/styles/para-style-method.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/curl/m4.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes3-tests/curl/m4.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/dialogs/ask.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/shoes3-tests/dialogs/ask.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/editline/editline.sspec:
+  - scarpe_examples/examples/legacy/working/shoes3-tests/editline/editline.sspec
+  - scarpe_examples/examples/legacy/for_playtest/shoes3-tests/editline/editline.sspec
+  scarpe_examples/legacy/for_playtest/shoes3-tests/radio/nogroup.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/shoes3-tests/radio/nogroup.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/alert_button.sspec:
+  - scarpe_examples/legacy/working/shoes_manual/alert_button.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/append.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes_manual/append.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/background_para.sspec:
+  - scarpe_examples/examples/legacy/working/shoes_manual/background_para.sspec
+  - scarpe_examples/legacy/for_playtest/shoes_manual/background_para.sspec
+  - scarpe_examples/legacy/working/shoes_manual/background_para.sspec
+  scarpe_examples/examples/legacy/working/shoes_manual/button_alternative.sspec:
+  - scarpe_examples/legacy/working/shoes_manual/button_alternative.sspec
+  - scarpe_examples/examples/legacy/for_playtest/shoes_manual/button_alternative.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/checkbox.sspec:
+  - scarpe_examples/examples/legacy/working/shoes_manual/checkbox.sspec
+  - scarpe_examples/legacy/working/shoes_manual/checkbox.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/download.sspec:
+  - scarpe_examples/examples/legacy/working/shoes_manual/download.sspec
+  - scarpe_examples/legacy/working/shoes_manual/download.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/fixed_height.sspec:
+  - scarpe_examples/examples/legacy/working/shoes_manual/fixed_height.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/image.sspec:
+  - scarpe_examples/examples/legacy/working/shoes_manual/image.sspec
+  - scarpe_examples/legacy/working/shoes_manual/image.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/instance_variable_check.sspec:
+  - scarpe_examples/examples/legacy/working/shoes_manual/instance_variable_check.sspec
+  - scarpe_examples/legacy/working/shoes_manual/instance_variable_check.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/message.sspec:
+  - scarpe_examples/examples/legacy/working/shoes_manual/message.sspec
+  - scarpe_examples/legacy/for_playtest/shoes_manual/message.sspec
+  - scarpe_examples/legacy/working/shoes_manual/message.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/prepend.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes_manual/prepend.sspec
+  scarpe_examples/legacy/working/shoes_manual/self_check.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/shoes_manual/self_check.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/stack.sspec:
+  - scarpe_examples/legacy/working/shoes_manual/stack.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/start.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes_manual/start.sspec
+  scarpe_examples/legacy/for_playtest/shoes_manual/style.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/shoes_manual/style.sspec
+  scarpe_examples/legacy/for_playtest/shoes_manual/style_alternative_1.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/shoes_manual/style_alternative_1.sspec
+  scarpe_examples/legacy/for_playtest/shoes_manual/style_alternative_2.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/shoes_manual/style_alternative_2.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/style_info.sspec:
+  - scarpe_examples/examples/legacy/working/shoes_manual/style_info.sspec
+  - scarpe_examples/legacy/for_playtest/shoes_manual/style_info.sspec
+  - scarpe_examples/legacy/working/shoes_manual/style_info.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/style_length.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes_manual/style_length.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/trigger_window.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes_manual/trigger_window.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/utf8_support.sspec:
+  - scarpe_examples/examples/legacy/working/shoes_manual/utf8_support.sspec
+  - scarpe_examples/legacy/working/shoes_manual/utf8_support.sspec
+  scarpe_examples/examples/legacy/working/shoes_manual/width.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes_manual/width.sspec
+  - scarpe_examples/legacy/working/shoes_manual/width.sspec
+  - scarpe_examples/examples/legacy/for_playtest/shoes_manual/width.sspec
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/window_owner.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes_manual/window_owner.sspec
+  scarpe_examples/legacy/for_playtest/simple/anim-shapes.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/simple/anim-shapes.sspec
+  scarpe_examples/examples/legacy/working/simple/border-cat.sspec:
+  - scarpe_examples/legacy/for_playtest/simple/border-cat.sspec
+  - scarpe_examples/legacy/working/simple/border-cat.sspec
+  - scarpe_examples/examples/legacy/for_playtest/simple/border-cat.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/clear-slot.sspec:
+  - scarpe_examples/legacy/for_playtest/simple/clear-slot.sspec
+  - scarpe_examples/examples/legacy/working/simple/clear-slot.sspec
+  - scarpe_examples/legacy/working/simple/clear-slot.sspec
+  scarpe_examples/legacy/for_playtest/simple/control-sizes.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/simple/control-sizes.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/downloader1.sspec:
+  - scarpe_examples/legacy/for_playtest/simple/downloader1.sspec
+  scarpe_examples/legacy/for_playtest/simple/form.sspec:
+  - scarpe_examples/examples/legacy/for_playtest/simple/form.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/image.sspec:
+  - scarpe_examples/legacy/for_playtest/simple/image.sspec
+  - scarpe_examples/examples/legacy/working/simple/image.sspec
+  - scarpe_examples/legacy/working/simple/image.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/list_box-shape-report.sspec:
+  - scarpe_examples/examples/legacy/working/simple/list_box-shape-report.sspec
+  - scarpe_examples/legacy/for_playtest/simple/list_box-shape-report.sspec
+  - scarpe_examples/legacy/working/simple/list_box-shape-report.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/path-animation.sspec:
+  - scarpe_examples/legacy/for_playtest/simple/path-animation.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/phat-button.sspec:
+  - scarpe_examples/examples/legacy/working/simple/phat-button.sspec
+  - scarpe_examples/legacy/for_playtest/simple/phat-button.sspec
+  - scarpe_examples/legacy/working/simple/phat-button.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/stack-width.sspec:
+  - scarpe_examples/legacy/for_playtest/simple/stack-width.sspec
+  - scarpe_examples/legacy/working/simple/stack-width.sspec
+  - scarpe_examples/examples/legacy/working/simple/stack-width.sspec
+  scarpe_examples/examples/legacy/for_playtest/simple/width-introspec.sspec:
+  - scarpe_examples/legacy/for_playtest/simple/width-introspec.sspec
+  - scarpe_examples/legacy/working/simple/width-introspec.sspec
+  - scarpe_examples/examples/legacy/working/simple/width-introspec.sspec
+  scarpe_examples/examples/legacy/for_playtest/speedometer_app.sspec:
+  - scarpe_examples/legacy/for_playtest/speedometer_app.sspec
+  - scarpe_examples/legacy/working/speedometer_app.sspec
+  scarpe_examples/examples/legacy/working/shoes_manual/animate.sspec:
+  - scarpe_examples/legacy/for_playtest/shoes_manual/animate.sspec
+  scarpe_examples/examples/legacy/working/shoes_manual/save_download.sspec:
+  - scarpe_examples/legacy/working/shoes_manual/save_download.sspec
+dropped:
+  scarpe_examples/examples/legacy/for_playtest/expert/tooltips.sspec: finds a para
+    by its text, which finders do not support
+  scarpe_examples/examples/legacy/for_playtest/good/plots.sspec: plot is Shoes 3 only
+    (examples/legacy/shoes3_only/README.md)
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/download-and-save.sspec: 'needs
+    the network: the asserted text arrives from a download callback'
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/download.sspec: 'needs
+    the network: the asserted text arrives from a download callback'
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/get-google.sspec: 'needs
+    the network: the asserted text arrives from a download callback'
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-dialogs.sspec: calls
+    button() while the app has several buttons
+  scarpe_examples/examples/legacy/for_playtest/speedometer_app.sspec: 'finds an edit_line
+    by a text: hash, which finders do not support'
+  scarpe_examples/examples/ruby_racer.sspec: needs the benchmark gem, no longer a
+    default gem in Ruby 4
+  scarpe_examples/examples/scarpe_ext.sspec: needs the webview-only :html feature
+  scarpe_examples/examples/shoes_school.sspec: calls para() while the app has several
+    paras
+  scarpe_examples/legacy/for_playtest/shoes3-tests/curl/m1.sspec: 'needs the network:
+    the asserted text arrives from a download callback'
+  scarpe_examples/legacy/for_playtest/shoes3-tests/curl/m2.sspec: 'needs the network:
+    the asserted text arrives from a download callback'
+  scarpe_examples/legacy/for_playtest/shoes3-tests/curl/m3.sspec: 'needs the network:
+    the asserted text arrives from a download callback'
+rejected:
+  legacy_examples/misc/speedometer_app.sspec: only assert true
+  legacy_examples/misc/superleg.sspec: only assert true
+  legacy_examples/simple/calc.sspec: only assert true
+  legacy_examples/simple/image.sspec: only assert true
+  manual/examples/example_1.sspec: no assertions (comments or TODO only)
+  scarpe_examples/examples/Edit_box_Styles.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/Kerning.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/animate.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/arrow.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/background_with_image.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/bloopsaphone/working/1901_by_Aanand_Prasad.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/bloopsaphone/working/b1.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/bloopsaphone/working/b2.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/bloopsaphone/working/bloops_test.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/bloopsaphone/working/bloopsaphone_theme_song_by_why.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/bloopsaphone/working/bronx_army_knife.sspec: uses dom_html
+    (webview only)
+  scarpe_examples/examples/bloopsaphone/working/feepogram.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/bloopsaphone/working/le_dance_des_rubis.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/bloopsaphone/working/morning_serenity.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/bloopsaphone/working/pixel_dreams_in_ruby.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/bloopsaphone/working/simpsons_theme_song_by_why.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/bloopsaphone/working/tune_cheeky_drat.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/bloopsaphone/working/type_rebellion.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/border.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/btn_tooltip.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/button.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/button_go_away.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/button_style_changed.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/button_styles_default.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/button_with_position_and_size.sspec: uses dom_html (webview
+    only)
+  scarpe_examples/examples/check.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/clear_and_append.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/coffee.sspec: skip-only (skips before asserting anything)
+  scarpe_examples/examples/download.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/download_and_show_image.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/edit_box.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/edit_line.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/flags/finland.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/flags/italy.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/flags/mauritius.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/flow.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/font_family.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/font_shorthand.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/fonts.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/gen.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/get_headers.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/highlander.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/image/clickable_image.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/image/image.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/image/image_size.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/image/image_with_position_and_size.sspec: uses dom_html
+    (webview only)
+  scarpe_examples/examples/info.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/internal_link_navigation.sspec: uses dom_html (webview
+    only)
+  scarpe_examples/examples/legacy/for_playtest/expert/colours.sspec: uses dom_html
+    (webview only)
+  scarpe_examples/examples/legacy/for_playtest/expert/curve-animation.sspec: uses
+    dom_html (webview only)
+  scarpe_examples/examples/legacy/for_playtest/expert/curve-control-point.sspec: uses
+    dom_html (webview only)
+  scarpe_examples/examples/legacy/for_playtest/expert/minesweeper.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/for_playtest/expert/othello.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/for_playtest/expert/pong.sspec: only asserts that
+    something exists
+  scarpe_examples/examples/legacy/for_playtest/expert/tankspank.sspec: only assert
+    true
+  scarpe_examples/examples/legacy/for_playtest/expert/url.sspec: only asserts that
+    something exists
+  scarpe_examples/examples/legacy/for_playtest/good/console.sspec: only asserts that
+    something exists
+  scarpe_examples/examples/legacy/for_playtest/good/svgview.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/philippe/image_events_test.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/philippe/shape_curves.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/animation/flowers.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/animation/happy-trails.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/animation/mice-satellites.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/animation/pink-bubbles.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/animation/pulsate.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/animation/rotating-star.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/app/resizeable-false.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/art/bubble-bullseye.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/art/faded.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/art/fill-oval.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/art/oval-gradient.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/art/star-gradient.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/class-book.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/funnies.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/rect-arrow.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/scribble.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/shoes-notes.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/two-column.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/browser.sspec: only assert
+    true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/elements/background-column.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/elements/background.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/elements/button-block.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/elements/common-styles.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/elements/displace-animation.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/elements/edit_box.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/elements/move-flow-animate.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/elements/progress-bar.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/elements/radio-dreamcast-favs.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/elements/timer.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/events/background-hover.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/events/motion-detect.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/expert/expert-othello.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/good/good-arc.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/kernel/ask_save_file.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/kernel/confirm.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/kernel/debug.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/kernel/font.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/kernel/fonts.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/manipulation/roll.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-accordion.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-anim-text.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-arc.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-bounce.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-curve.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-draw.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-editor.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-mask.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-menu.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-menu1.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-slide.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-sphere.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-sqlite3.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-video.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-contrib/styles/gradient-angle.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-dep-samples/expert-game-of-life.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-dep-samples/expert-othello.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes-manual/builtins/ask_open_file.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/shoes-manual/edit_box.sspec: only assert
+    true
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/button/button.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/combo/combo.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/curl/bare.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/curl/downloader.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/curl/m1.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/curl/m2.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/curl/m3.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/cursor/c1.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/dynamic_title.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/editbox/editbox.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/events/button.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/opacity.sspec: only assert
+    true
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/opacity_test.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/progress/progress.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/radio/clear.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/radio/multiple.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/tooltips.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes3-tests/wheel/wheel1.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/animate.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/background_change.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/builtins/FONTS.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/builtins/ask.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/builtins/ask_color.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/builtins/ask_save_folder.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/builtins/confirm.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/builtins/debug.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/builtins/info.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/editline.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/fill_pattern.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/image_web.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/motion.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/mouse.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/oval.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/radio.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/radio_alternative_1.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/radio_alternative_2.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/rectangle.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/rotate_rectangle.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/save_download.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/shape.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/stroke.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/for_playtest/shoes_manual/timer.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/simple/arc.sspec: no assertions (comments
+    or TODO only)
+  scarpe_examples/examples/legacy/for_playtest/simple/basic-fps.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/for_playtest/simple/clock.sspec: only asserts that
+    something exists
+  scarpe_examples/examples/legacy/for_playtest/simple/curve-control-points.sspec: only
+    asserts that something exists
+  scarpe_examples/examples/legacy/for_playtest/simple/follow.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/examples/legacy/for_playtest/simple/image-icon.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/for_playtest/simple/image-rotate.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/for_playtest/simple/mask2.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/simple/menu.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/simple/menu1.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/simple/reminder.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/simple/sqlite3.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/for_playtest/simple/vjot.sspec: splits into 5 segments
+    (a line of 5+ dashes in the app code)
+  scarpe_examples/examples/legacy/needs_deps/expert-funnies.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/needs_deps/expert-irb.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/needs_deps/info.sspec: skip-only (skips before asserting
+    anything)
+  scarpe_examples/examples/legacy/needs_deps/simple-rubygems.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/needs_deps/superleg.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/path_issues/_why-stories.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/cache/cache.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/cardflip.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/curl/typ.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/decoration.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/events/capture.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/events/event0.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/events/event1.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/events/event2.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/events/event3.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/events/event4.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/events/event5.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/events/event6.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/events/replay.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/gapp/fullscreen.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/gapp/icon.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/gapp/mon1.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/gapp/settings1.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/gapp/title1.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/menus/event.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/menus/menu1.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/menus/menu2.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/menus/menu3.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/menus/menu4.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/plot/cstest.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/plot/gr1.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/plot/gr2.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/plot/gr3.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/plot/gr4.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/plot/gr5.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/plot/gr6.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/plot/gr7.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/plot/grcsv.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/plot/manual.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/simple-chipmunk.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/spinner.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/svg.sspec: skip-only (skips before asserting
+    anything)
+  scarpe_examples/examples/legacy/shoes3_only/switch/switch.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/systray/back.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/systray/note.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/terminal/cursor.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/terminal/ed.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/terminal/el.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/terminal/logattr.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/tests_color.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/tests_svg.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/tests_video_vlc.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/video-player.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/shoes3_only/video_vlc.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/working/philippe/guessing_game.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/working/shoes-contrib/basic/a-poem.sspec: only assert
+    true
+  scarpe_examples/examples/legacy/working/shoes-contrib/basic/basic-blocks.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/working/shoes-contrib/basic/basic-slot.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/working/shoes-contrib/basic/class-book.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/working/shoes-contrib/basic/intro.sspec: only assert
+    true
+  scarpe_examples/examples/legacy/working/shoes-contrib/basic/two-column.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/working/shoes-contrib/elements/edit_box.sspec: only
+    assert true
+  scarpe_examples/examples/legacy/working/shoes-contrib/kernel/alert.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/working/shoes-contrib/kernel/confirm.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/working/shoes-contrib/kernel/font.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/working/shoes-contrib/simple/simple-sqlite3.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/working/shoes-dep-samples/expert-game-of-life.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/working/shoes-dep-samples/expert-othello.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/working/shoes-manual/builtins/ask_open_file.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/working/shoes_manual/alert_button.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/working/shoes_manual/edit_box.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/legacy/working/shoes_manual/editline.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/working/shoes_manual/fixed_width.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/examples/legacy/working/shoes_manual/self_check.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/working/shoes_manual/stack.sspec: only asserts that
+    something exists
+  scarpe_examples/examples/legacy/working/simple/basic-fps.sspec: only asserts that
+    something exists
+  scarpe_examples/examples/legacy/working/simple/calc.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/working/simple/clock.sspec: only assert true
+  scarpe_examples/examples/legacy/working/simple/gradient-shoes.sspec: only asserts
+    that something exists
+  scarpe_examples/examples/legacy/working/simple/image-icon.sspec: only asserts that
+    something exists
+  scarpe_examples/examples/legacy/working/simple/sqlite3.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/legacy/working/speedometer_app.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/line.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/link.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/list_box.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/local_assets/local_file_server.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/local_fonts.sspec: skip-only (skips before asserting anything)
+  scarpe_examples/examples/local_images.sspec: skip-only (skips before asserting anything)
+  scarpe_examples/examples/margin.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/oval-with-kwargs.sspec: only asserts that something exists
+  scarpe_examples/examples/oval.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/para/rainbow.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/para/rainbow_2.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/para/sizes.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/para/sizes_2.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/para/strong.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/para_cursor_demo.sspec: skip-only (skips before asserting
+    anything)
+  scarpe_examples/examples/parse_xl_funnies.sspec: skip-only (skips before asserting
+    anything)
+  scarpe_examples/examples/progress.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/radio/radio.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/radio/radio_groups.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/radio/radio_same_slot.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/raw_flow.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/rect.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/shapes/arc.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/shapes/shapes.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/shapes/shapes_fill.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/shapes/star.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/shoes_subclass_app.sspec: skip-only (skips before asserting
+    anything)
+  scarpe_examples/examples/show_hide.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/simple_slides.sspec: only assert true
+  scarpe_examples/examples/simpler-menu.sspec: only assert true
+  scarpe_examples/examples/skip_ci/change_my_audio_source.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/examples/skip_ci/guitar_fretboard.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/examples/skip_ci/parrot.sspec: skip-only (skips before asserting
+    anything)
+  scarpe_examples/examples/skip_ci/say.sspec: skip-only (skips before asserting anything)
+  scarpe_examples/examples/slots.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/spacing.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/span.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/stack/background.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/stack/border.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/stack/gradients.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/stack/raw_stack.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/stack/stack.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/text_sizes.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/timmy.sspec: uses dom_html (webview only)
+  scarpe_examples/examples/turtle/barbwire.sspec: only assert true
+  scarpe_examples/examples/turtle/fractal.sspec: only assert true
+  scarpe_examples/examples/turtle/spiral.sspec: only assert true
+  scarpe_examples/examples/turtle/stars.sspec: only assert true
+  scarpe_examples/examples/url_routing_example.sspec: only assert true
+  scarpe_examples/examples/video.sspec: only assert true
+  scarpe_examples/legacy/for_playtest/expert/colours.sspec: only assert true
+  scarpe_examples/legacy/for_playtest/expert/curve-animation.sspec: only assert true
+  scarpe_examples/legacy/for_playtest/expert/curve-control-point.sspec: only assert
+    true
+  scarpe_examples/legacy/for_playtest/expert/minesweeper.sspec: only assert true
+  scarpe_examples/legacy/for_playtest/expert/othello.sspec: only assert true
+  scarpe_examples/legacy/for_playtest/expert/pong.sspec: only assert true
+  scarpe_examples/legacy/for_playtest/expert/tankspank.sspec: only assert true
+  scarpe_examples/legacy/for_playtest/expert/tooltips.sspec: only assert true
+  scarpe_examples/legacy/for_playtest/expert/url.sspec: only assert true
+  scarpe_examples/legacy/for_playtest/good/console.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/legacy/for_playtest/good/plots.sspec: only assert true
+  scarpe_examples/legacy/for_playtest/good/svgview.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/legacy/for_playtest/philippe/ask_confirm_demo.sspec: only assert
+    true
+  scarpe_examples/legacy/for_playtest/philippe/fill_pattern_demo.sspec: only assert
+    true
+  scarpe_examples/legacy/for_playtest/philippe/guessing_game.sspec: only assert true
+  scarpe_examples/legacy/for_playtest/philippe/hh_patterns_test.sspec: only assert
+    true
+  scarpe_examples/legacy/for_playtest/philippe/image_events_test.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/philippe/minimal_editor.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/philippe/shape_curves.sspec: no assertions (comments
+    or TODO only)
+  scarpe_examples/legacy/for_playtest/philippe_checked/accordion.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/philippe_checked/basic-edit-box.sspec: only
+    asserts that something exists
+  scarpe_examples/legacy/for_playtest/philippe_checked/button.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/philippe_checked/calc.sspec: no assertions (comments
+    or TODO only)
+  scarpe_examples/legacy/for_playtest/philippe_checked/check-mate.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/philippe_checked/editor.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/philippe_checked/gradient-shoes.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/philippe_checked/list_box.sspec: only asserts
+    that something exists
+  scarpe_examples/legacy/for_playtest/philippe_checked/simple-calc.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/philippe_checked/timer.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/animation/animate-ovals.sspec: no
+    assertions (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/animation/flowers.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/animation/happy-trails.sspec: no
+    assertions (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/animation/mice-satellites.sspec: no
+    assertions (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/animation/oval-motion.sspec: no
+    assertions (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/animation/pink-bubbles.sspec: no
+    assertions (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/animation/pulsate.sspec: only
+    asserts that something exists
+  scarpe_examples/legacy/for_playtest/shoes-contrib/animation/rotating-star.sspec: no
+    assertions (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/app/download-and-save.sspec: no
+    assertions (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/app/download.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/app/get-google.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/app/mouse-detection.sspec: only
+    asserts that something exists
+  scarpe_examples/legacy/for_playtest/shoes-contrib/app/resizeable-false.sspec: only
+    asserts that something exists
+  scarpe_examples/legacy/for_playtest/shoes-contrib/art/bubble-bullseye.sspec: no
+    assertions (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/art/faded.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/art/fill-oval.sspec: only asserts
+    that something exists
+  scarpe_examples/legacy/for_playtest/shoes-contrib/art/mask.sspec: only assert true
+  scarpe_examples/legacy/for_playtest/shoes-contrib/art/oval-gradient.sspec: only
+    assert true
+  scarpe_examples/legacy/for_playtest/shoes-contrib/art/star-gradient.sspec: only
+    assert true
+  scarpe_examples/legacy/for_playtest/shoes-contrib/basic/basic-oval-image.sspec: only
+    assert true
+  scarpe_examples/legacy/for_playtest/shoes-contrib/basic/basic-oval-shape.sspec: only
+    assert true
+  scarpe_examples/legacy/for_playtest/shoes-contrib/basic/basic-oval.sspec: only assert
+    true
+  scarpe_examples/legacy/for_playtest/shoes-contrib/basic/class-book.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/basic/funnies.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/basic/rect-arrow.sspec: only assert
+    true
+  scarpe_examples/legacy/for_playtest/shoes-contrib/basic/scribble.sspec: only assert
+    true
+  scarpe_examples/legacy/for_playtest/shoes-contrib/elements/background-column.sspec: only
+    assert true
+  scarpe_examples/legacy/for_playtest/shoes-contrib/elements/background.sspec: only
+    assert true
+  scarpe_examples/legacy/for_playtest/shoes-contrib/elements/edit_box.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/elements/edit_line-character-count.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/elements/move-flow-animate.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/elements/popup.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/elements/progress-bar.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/elements/radio-dreamcast-favs.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/elements/timer.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/events/background-hover.sspec: only
+    asserts that something exists
+  scarpe_examples/legacy/for_playtest/shoes-contrib/events/motion-detect.sspec: only
+    asserts that something exists
+  scarpe_examples/legacy/for_playtest/shoes-contrib/expert/expert-othello.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/good/good-arc.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/kernel/alert.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/kernel/ask.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/kernel/ask_color.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/kernel/ask_open_file.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/kernel/ask_save_file.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/kernel/confirm.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/kernel/debug.sspec: only assert
+    true
+  scarpe_examples/legacy/for_playtest/shoes-contrib/kernel/exit.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/kernel/font.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/kernel/fonts.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/manipulation/prepend-slot.sspec: only
+    asserts that something exists
+  scarpe_examples/legacy/for_playtest/shoes-contrib/manipulation/roll.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/position/gutter-margin.sspec: only
+    asserts that something exists
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-accordion.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-anim-shapes.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-anim-text.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-arc.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-bounce.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-control-sizes.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-curve.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-dialogs.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-draw.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-editor.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-form.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-mask.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-menu.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-menu1.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-slide.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-sphere.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-sqlite3.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-video.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-contrib/styles/gradient-angle.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-dep-samples/expert-game-of-life.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes-dep-samples/expert-othello.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes3-tests/button/button.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes3-tests/combo/combo.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes_manual/background_change.sspec: only assert
+    true
+  scarpe_examples/legacy/for_playtest/shoes_manual/background_pattern.sspec: only
+    assert true
+  scarpe_examples/legacy/for_playtest/shoes_manual/basic_app.sspec: only assert true
+  scarpe_examples/legacy/for_playtest/shoes_manual/border.sspec: only asserts that
+    something exists
+  scarpe_examples/legacy/for_playtest/shoes_manual/builtins/FONTS.sspec: only assert
+    true
+  scarpe_examples/legacy/for_playtest/shoes_manual/builtins/ask.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes_manual/builtins/ask_color.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes_manual/builtins/ask_save_folder.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes_manual/builtins/confirm.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes_manual/builtins/debug.sspec: only assert
+    true
+  scarpe_examples/legacy/for_playtest/shoes_manual/builtins/info.sspec: only assert
+    true
+  scarpe_examples/legacy/for_playtest/shoes_manual/button_alternative.sspec: only
+    asserts that something exists
+  scarpe_examples/legacy/for_playtest/shoes_manual/button_icon.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes_manual/checkbox.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes_manual/clear.sspec: only asserts that
+    something exists
+  scarpe_examples/legacy/for_playtest/shoes_manual/custom_header.sspec: only asserts
+    that something exists
+  scarpe_examples/legacy/for_playtest/shoes_manual/displace.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes_manual/download.sspec: only asserts that
+    something exists
+  scarpe_examples/legacy/for_playtest/shoes_manual/edit_box.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes_manual/editline.sspec: only asserts that
+    something exists
+  scarpe_examples/legacy/for_playtest/shoes_manual/fill_pattern.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes_manual/fixed_height.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes_manual/fixed_width.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes_manual/focus.sspec: only asserts that
+    something exists
+  scarpe_examples/legacy/for_playtest/shoes_manual/fonts.sspec: only asserts that
+    something exists
+  scarpe_examples/legacy/for_playtest/shoes_manual/gutter.sspec: only asserts that
+    something exists
+  scarpe_examples/legacy/for_playtest/shoes_manual/image.sspec: only asserts that
+    something exists
+  scarpe_examples/legacy/for_playtest/shoes_manual/image_web.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/for_playtest/shoes_manual/instance_variable_check.sspec: only
+    asserts that something exists
+  scarpe_examples/legacy/for_playtest/shoes_manual/keypress.sspec: only asserts that
+    something exists
+  scarpe_examples/legacy/for_playtest/shoes_manual/list_box.sspec: only asserts that
+    something exists
+  scarpe_examples/legacy/for_playtest/shoes_manual/motion.sspec: no assertions (comments
+    or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/mouse.sspec: no assertions (comments
+    or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/move.sspec: no assertions (comments
+    or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/nested_ovals.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/oval.sspec: no assertions (comments
+    or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/ovals.sspec: no assertions (comments
+    or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/ovals_image.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/progress_bar.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/radio.sspec: no assertions (comments
+    or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/radio_alternative_1.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/radio_alternative_2.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/rectangle.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/rotate_rectangle.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/save_download.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/self_check.sspec: no assertions
+    (comments or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/shape.sspec: no assertions (comments
+    or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/stack.sspec: no assertions (comments
+    or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/stroke.sspec: no assertions (comments
+    or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/timer.sspec: no assertions (comments
+    or TODO only)
+  scarpe_examples/legacy/for_playtest/shoes_manual/utf8_support.sspec: only asserts
+    that something exists
+  scarpe_examples/legacy/for_playtest/shoes_manual/wheel.sspec: no assertions (comments
+    or TODO only)
+  scarpe_examples/legacy/for_playtest/simple/arc.sspec: only assert true
+  scarpe_examples/legacy/for_playtest/simple/clock.sspec: only asserts that something
+    exists
+  scarpe_examples/legacy/for_playtest/simple/follow.sspec: only assert true
+  scarpe_examples/legacy/for_playtest/simple/image-icon.sspec: only asserts that something
+    exists
+  scarpe_examples/legacy/for_playtest/simple/image-rotate.sspec: only asserts that
+    something exists
+  scarpe_examples/legacy/for_playtest/simple/mask2.sspec: only asserts that something
+    exists
+  scarpe_examples/legacy/for_playtest/simple/reminder.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/legacy/for_playtest/simple/sqlite3.sspec: skip-only (skips before
+    asserting anything)
+  scarpe_examples/legacy/for_playtest/simple/vjot.sspec: splits into 5 segments (a
+    line of 5+ dashes in the app code)
+  scarpe_examples/legacy/working/shoes-contrib/basic/a-poem.sspec: only assert true
+  scarpe_examples/legacy/working/shoes-contrib/basic/basic-blocks.sspec: only assert
+    true
+  scarpe_examples/legacy/working/shoes-contrib/basic/basic-slot.sspec: only assert
+    true
+  scarpe_examples/legacy/working/shoes-contrib/basic/class-book.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/working/shoes-contrib/basic/intro.sspec: only assert true
+  scarpe_examples/legacy/working/shoes-contrib/basic/two-column.sspec: only assert
+    true
+  scarpe_examples/legacy/working/shoes-contrib/elements/edit_box.sspec: only assert
+    true
+  scarpe_examples/legacy/working/shoes-contrib/kernel/alert.sspec: only assert true
+  scarpe_examples/legacy/working/shoes-contrib/kernel/confirm.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/working/shoes-contrib/kernel/font.sspec: skip-only (skips
+    before asserting anything)
+  scarpe_examples/legacy/working/shoes-contrib/simple/simple-sqlite3.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/working/shoes-dep-samples/expert-game-of-life.sspec: only
+    assert true
+  scarpe_examples/legacy/working/shoes-dep-samples/expert-othello.sspec: only assert
+    true
+  scarpe_examples/legacy/working/shoes-manual/builtins/ask_open_file.sspec: skip-only
+    (skips before asserting anything)
+  scarpe_examples/legacy/working/shoes3-tests/editline/editline.sspec: only assert
+    true
+  scarpe_examples/legacy/working/shoes_manual/animate.sspec: only assert true
+  scarpe_examples/legacy/working/shoes_manual/edit_box.sspec: only assert true
+  scarpe_examples/legacy/working/shoes_manual/editline.sspec: only assert true
+  scarpe_examples/legacy/working/shoes_manual/fixed_height.sspec: only assert true
+  scarpe_examples/legacy/working/shoes_manual/fixed_width.sspec: only assert true
+  scarpe_examples/legacy/working/shoes_manual/rectangle.sspec: only asserts that something
+    exists
+  scarpe_examples/legacy/working/simple/basic-fps.sspec: only asserts that something
+    exists
+  scarpe_examples/legacy/working/simple/sqlite3.sspec: skip-only (skips before asserting
+    anything)
+  test_code/assertions/fail.sspec: Shoes-Spec harness self-tests; spec/harness/ covers
+    spec/run itself
+  test_code/assertions/pass.sspec: Shoes-Spec harness self-tests; spec/harness/ covers
+    spec/run itself
+  test_code/assertions/skip.sspec: Shoes-Spec harness self-tests; spec/harness/ covers
+    spec/run itself
+  test_code/exceptions/raise_before_shoes_app.sspec: Shoes-Spec harness self-tests;
+    spec/harness/ covers spec/run itself
+  test_code/exceptions/raise_in_shoes_app.sspec: Shoes-Spec harness self-tests; spec/harness/
+    covers spec/run itself
+  test_code/exceptions/raise_in_test_code.sspec: Shoes-Spec harness self-tests; spec/harness/
+    covers spec/run itself

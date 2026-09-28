@@ -1,0 +1,22 @@
+---
+manual: slots.flow.adjacent_text_one_paragraph
+lines: [1611, 1612]
+testability: visual
+display: native
+ledger: C7
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @flow = flow width: 300 do
+    @short = para "Short."
+    @long = para "This second paragraph is long enough that it has to wrap onto more lines inside three hundred pixels."
+  end
+end
+----------- test code
+flow_box = layout_of(flow("@flow"))
+short = layout_of(para("@short"))
+long = layout_of(para("@long"))
+
+assert_operator long.h, :>, short.h * 1.5, "the long para needs more than one line"
+assert_in_delta short.y, long.y, 0.5, "it carries on from the end of the short one, on the same line"
+assert_in_delta short.x, long.x, 0.5, "and its later lines wrap back to the flow's left edge (inside the text margin), as one paragraph would"
+assert_in_delta flow_box.x + 4, long.x, 0.5, "that edge sits 4 px inside the flow's, for the para's margin (ledger C9)"

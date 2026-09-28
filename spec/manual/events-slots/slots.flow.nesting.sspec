@@ -1,0 +1,18 @@
+---
+manual: slots.flow.nesting
+lines: [1618, 1619]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $outer = flow do
+    $inner_flow = flow { para "flowed" }
+    $inner_stack = stack { para "stacked" }
+  end
+end
+----------- test code
+assert_equal [$inner_flow, $inner_stack], $outer.contents, "a flow holds a flow and a stack"
+assert_same $outer, $inner_flow.parent
+assert_same $outer, $inner_stack.parent
+assert_equal ["flowed"], $inner_flow.contents.map(&:text), "the nested slots keep their own children"
+assert_equal ["stacked"], $inner_stack.contents.map(&:text)

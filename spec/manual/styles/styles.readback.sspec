@@ -1,0 +1,13 @@
+---
+manual: styles.readback
+lines: [2470, 2487]
+testability: api
+display: any
+ledger: C2
+----------- app code
+Shoes.app do
+  @s = stack width: "100%"
+  para @s.style[:width]
+end
+----------- test code
+assert_equal "100%", para.text, "the paragraph under the stack shows the width as it was asked for"

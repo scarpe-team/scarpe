@@ -1,0 +1,24 @@
+---
+manual: art.cap.curve
+lines: [1678, 1679]
+testability: visual
+display: native
+ledger: E10
+----------- app code
+Shoes.app width: 300, height: 200 do
+  stroke black
+  strokewidth 20
+  cap :curve
+  line 50, 100, 150, 100
+end
+----------- test code
+# A round cap is a half disc of radius 10 (half the stroke width) past (150, 100).
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(156, 100, [0, 0, 0], "the end is rounded out past the end point")
+paints.(157, 108, [255, 255, 255], "the corner of a square cap is not painted")
+paints.(162, 100, [255, 255, 255], "the round end stops at half the stroke width")

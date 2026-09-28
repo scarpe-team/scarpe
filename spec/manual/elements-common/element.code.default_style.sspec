@@ -1,0 +1,17 @@
+---
+manual: element.code.default_style
+lines: [1949, 1951]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  flow { @plain_narrow = para "iiiiiiii" }
+  flow { @plain_wide = para "MMMMMMMM" }
+  flow { @code_narrow = para code("iiiiiiii") }
+  flow { @code_wide = para code("MMMMMMMM") }
+end
+----------- test code
+width = ->(name) { layout_of(para(name)).w }
+
+assert_operator width.("@plain_wide"), :>, 2 * width.("@plain_narrow"), "in the body font an M is far wider than an i"
+assert_in_delta width.("@code_wide"), width.("@code_narrow"), 1, "in a code fragment every letter is the same width"

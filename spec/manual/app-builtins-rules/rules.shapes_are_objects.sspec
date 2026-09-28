@@ -1,0 +1,15 @@
+---
+manual: rules.shapes_are_objects
+lines: [377, 389]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  fill black(0.1)
+  100.times do |i|
+    oval i, i, i * 2
+  end
+end
+----------- test code
+assert_equal 100, ovals.size, "one hundred Oval objects are created"
+assert_equal 100, ovals.map(&:linkable_id).uniq.size, "each its own object"

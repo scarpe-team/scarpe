@@ -1,0 +1,21 @@
+---
+manual: element.animate
+lines: [1877, 1894]
+testability: api
+display: native
+ledger: I1
+----------- app code
+Shoes.app do
+  @counter = para "STARTING"
+  animate(24) do |frame|
+    @counter.replace "FRAME #{frame}"
+  end
+end
+----------- test code
+assert_equal "STARTING", para.text, "nothing runs before the first frame"
+
+advance(1.0 / 24)
+assert_equal "FRAME 0", para.text, "the first frame is number zero"
+
+advance(1.0 / 24)
+assert_equal "FRAME 1", para.text, "each frame counts one more"

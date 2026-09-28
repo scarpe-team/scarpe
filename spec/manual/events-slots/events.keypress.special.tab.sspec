@@ -1,0 +1,13 @@
+---
+manual: events.keypress.special.tab
+lines: [2242, 2245]
+testability: interactive
+display: native
+----------- app code
+$keys = []
+Shoes.app do
+  keypress { |key| $keys << key }
+end
+----------- test code
+press_key :tab
+assert_equal [:tab], $keys, "the tab key arrives once, as the Symbol :tab"

@@ -1,0 +1,20 @@
+---
+manual: timers.animation_vs_every
+lines: [3415, 3417]
+testability: api
+display: native
+ledger: I1
+----------- app code
+$frames = 0
+$counts = 0
+Shoes.app do
+  animate { $frames += 1 }
+  every(2) { $counts += 1 }
+end
+----------- test code
+advance 1.05
+assert_in_delta 10, $frames, 2, "an animation fires many times a second (10 by default)"
+assert_equal 0, $counts, "an every(2) has not fired in its first second"
+
+advance 1.05
+assert_equal 1, $counts, "it fires once every two seconds"

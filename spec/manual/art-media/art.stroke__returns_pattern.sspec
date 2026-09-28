@@ -1,0 +1,12 @@
+---
+manual: art.stroke
+lines: [1833, 1836]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $pattern = rgb(10, 20, 30)
+  $returned = stroke($pattern)
+end
+----------- test code
+assert_equal $pattern, $returned, "stroke returns the pattern it was given"

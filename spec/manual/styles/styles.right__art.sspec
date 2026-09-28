@@ -1,0 +1,25 @@
+---
+manual: styles.right
+lines: [1356, 1362]
+testability: visual
+display: native
+ledger: C10
+----------- app code
+Shoes.app width: 300, height: 200 do
+  nostroke
+  @corner = rect right: 10, bottom: 10, width: 40, height: 20, fill: red
+  @band = rect left: 20, top: 30, right: 20, bottom: 120, fill: blue
+  @dot = oval right: 0, top: 150, width: 30
+  @spark = star right: 0, top: 40, outer: 20, inner: 10
+end
+----------- test code
+corner = layout_of(rect("@corner"))
+assert_equal [250, 170, 40, 20], [corner.x, corner.y, corner.w, corner.h].map(&:round), "right: and bottom: set a rect's far edges in from the slot's"
+
+band = layout_of(rect("@band"))
+assert_equal [20, 30, 260, 50], [band.x, band.y, band.w, band.h].map(&:round), "a rect naming both edges of each axis runs between them"
+
+dot = layout_of(oval("@dot"))
+assert_in_delta 300, dot.x + dot.w, 0.5, "an oval with only right: sits against the slot's right edge"
+spark = layout_of(star("@spark"))
+assert_in_delta 300, spark.x + spark.w, 0.5, "so does a star"

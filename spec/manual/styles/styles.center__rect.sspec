@@ -1,0 +1,15 @@
+---
+manual: styles.center
+lines: [1115, 1121]
+testability: visual
+display: native
+ledger: E2
+----------- app code
+Shoes.app width: 300, height: 300 do
+  fill red
+  @square = rect 100, 100, 60, 40, center: true
+end
+----------- test code
+box = layout_of(rect)
+assert_in_delta 70, box.x, 0.5, "center: true puts the rect's middle on left: its box starts 30 pixels to the left"
+assert_in_delta 80, box.y, 0.5, "and 20 pixels higher"

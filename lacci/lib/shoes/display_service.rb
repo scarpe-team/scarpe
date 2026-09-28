@@ -39,6 +39,18 @@ class Shoes
         @mouse_state || [0, 0, 0]
       end
 
+      # The pointer over each app's window, by app id, from a display that tells them apart.
+      def app_mouse_states
+        @app_mouse_states ||= {}
+      end
+
+      # What `mouse` answers in one app: its own pointer when the display keeps one per window
+      # (a window just opened reads [0, 0, 0], as in Shoes 3), else the one pointer there is.
+      def mouse_state_of(app_id)
+        states = app_mouse_states
+        states.empty? ? mouse_state : states.fetch(app_id, [0, 0, 0])
+      end
+
       attr_writer :mouse_state
 
       # Para text cursor caches: para hit-test and cursor_top values
@@ -51,6 +63,14 @@ class Shoes
         @para_cursor_top_cache ||= {}
       end
 
+      # Where a display that lays drawables out last put each one, pushed back after
+      # every layout pass: layout_cache[id] = [x, y, w, h, scroll_h] in window pixels,
+      # scroll_h being a slot's content height. Drawable getters (width, left,
+      # scroll_max...) read it. Displays that push nothing leave it empty.
+      def layout_cache
+        @layout_cache ||= {}
+      end
+
       # Builtin response mechanism: allows display service handlers to return
       # values to the Shoes-side caller (e.g. ask, confirm, clipboard).
       # The handler calls set_builtin_response(value) during synchronous dispatch,
@@ -58,6 +78,12 @@ class Shoes
       def set_builtin_response(value)
         @builtin_response = value
         @has_builtin_response = true
+      end
+
+      # Whether a handler answered the current builtin. A nil answer counts:
+      # a cancelled file dialog answers nil and must not open a second dialog.
+      def builtin_response?
+        @has_builtin_response ? true : false
       end
 
       def consume_builtin_response
@@ -153,22 +179,29 @@ class Shoes
         @@display_event_handlers[event_name] ||= {}
         @@display_event_handlers[event_name][event_target] ||= []
         @@display_event_handlers[event_name][event_target] << { handler:, unsub_id: id }
+        subscription_keys[id] = [event_name, event_target]
 
         id
       end
 
       # Unsubscribe from any event subscriptions matching the unsub ID.
+      # Each ID remembers where its handler lives, so this touches one short list
+      # instead of scanning every subscription, and drops lists it empties.
       #
       # @param unsub_id [Integer] the unsub ID returned when subscribing
       # @return [void]
       def unsub_from_events(unsub_id)
         raise "Must provide an unsubscribe ID!" if unsub_id.nil?
 
-        @@display_event_handlers.each do |_e_name, target_hash|
-          target_hash.each do |_target, h_list|
-            h_list.delete_if { |item| item[:unsub_id] == unsub_id }
-          end
-        end
+        event_name, event_target = subscription_keys.delete(unsub_id)
+        targets = @@display_event_handlers[event_name] or return
+        handlers = targets[event_target] or return
+
+        handlers.delete_if { |item| item[:unsub_id] == unsub_id }
+        return unless handlers.empty?
+
+        targets.delete(event_target)
+        @@display_event_handlers.delete(event_name) if targets.empty?
       end
 
       # Reset the display service, for instance between unit tests.
@@ -177,8 +210,18 @@ class Shoes
       # @return [void]
       def full_reset!
         @@display_event_handlers = {}
+        @@subscription_keys = {}
         @json_debug_serialize = nil
       end
+
+      private
+
+      # unsub_id => [event_name, event_target]
+      def subscription_keys
+        @@subscription_keys ||= {}
+      end
+
+      public
 
       # Set the Display Service class which will handle display service functions
       # for this process. This can only be set once. The display service can be

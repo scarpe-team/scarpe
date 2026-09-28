@@ -1,0 +1,3821 @@
+[
+  {
+    "path": "examples/Edit_box_Styles.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/Kerning.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/animate.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/arrow.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/background_with_image.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/bloopsaphone/working/1901_by_Aanand_Prasad.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/bloopsaphone/working/1901_by_Aanand_Prasad.rb:4:in '<top (required)>': uninitialized con",
+    "log_lines": 9,
+    "secs": 0.7
+  },
+  {
+    "path": "examples/bloopsaphone/working/b1.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)",
+    "log_lines": 9,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/bloopsaphone/working/b2.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)",
+    "log_lines": 9,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/bloopsaphone/working/bloops_test.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)",
+    "log_lines": 9,
+    "secs": 0.6
+  },
+  {
+    "path": "examples/bloopsaphone/working/bloopsaphone_theme_song_by_why.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/bloopsaphone/working/bloopsaphone_theme_song_by_why.rb:3:in '<top (required)>': uninitia",
+    "log_lines": 9,
+    "secs": 0.6
+  },
+  {
+    "path": "examples/bloopsaphone/working/bronx_army_knife.rb",
+    "status": "not_run",
+    "first_error": "not run: shells out to ffmpeg/avfoundation device listing (mic permission prompt risk)",
+    "secs": 0
+  },
+  {
+    "path": "examples/bloopsaphone/working/feepogram.rb",
+    "status": "exited_0",
+    "exit": 0,
+    "termsig": null,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 0.6
+  },
+  {
+    "path": "examples/bloopsaphone/working/le_dance_des_rubis.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/bloopsaphone/working/le_dance_des_rubis.rb:3:in '<top (required)>': uninitialized consta",
+    "log_lines": 9,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/bloopsaphone/working/morning_serenity.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/bloopsaphone/working/pixel_dreams_in_ruby.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/bloopsaphone/working/pixel_dreams_in_ruby.rb:3:in '<top (required)>': uninitialized cons",
+    "log_lines": 9,
+    "secs": 0.6
+  },
+  {
+    "path": "examples/bloopsaphone/working/simpsons_theme_song_by_why.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/bloopsaphone/working/simpsons_theme_song_by_why.rb:2:in '<top (required)>': uninitialize",
+    "log_lines": 9,
+    "secs": 0.6
+  },
+  {
+    "path": "examples/bloopsaphone/working/tune_cheeky_drat.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)",
+    "log_lines": 9,
+    "secs": 0.7
+  },
+  {
+    "path": "examples/bloopsaphone/working/type_rebellion.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/bloopsaphone/working/type_rebellion.rb:3:in '<top (required)>': uninitialized constant B",
+    "log_lines": 9,
+    "secs": 0.6
+  },
+  {
+    "path": "examples/border.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/btn_tooltip.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/button.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/button_alert.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/button_go_away.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/button_style_changed.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/button_styles_default.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/button_with_position_and_size.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/check.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/clear_and_append.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/coffee.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/download.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/download_and_show_image.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/edit_box.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/edit_line.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/flags/finland.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/flags/italy.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/flags/mauritius.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/flow.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/font_family.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/font_shorthand.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/fonts.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/gen.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/get_headers.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/hello_world.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/highlander.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/image/clickable_image.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/image/image.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/image/image_size.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": "icon2 size is [1000, 1000]",
+    "log_lines": 1,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/image/image_with_position_and_size.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/info.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": "His calculations were, sadly, very completely wrong. And when he went to try the shoes out, he found that he had not",
+    "log_lines": 3,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/internal_link_navigation.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/expert/colours.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/expert/curve-animation.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/expert/curve-control-point.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/expert/minesweeper.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/expert/othello.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/expert/pong.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/expert/tankspank.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/expert/tooltips.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/expert/url.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/good/console.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/good/plots.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/good/svgview.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/philippe/ask_confirm_demo.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/philippe/fill_pattern_demo.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/philippe/hh_patterns_test.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": "✅ Class-level style",
+    "log_lines": 10,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/philippe/image_events_test.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/philippe/minimal_editor.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/philippe/shape_curves.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/philippe_checked/accordion.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/philippe_checked/button.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/philippe_checked/editor.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/animation/animate-ovals.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/animation/flowers.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/animation/happy-trails.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/animation/mice-satellites.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.3
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/animation/oval-motion.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/animation/pink-bubbles.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.3
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/animation/pulsate.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/animation/rotating-star.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.3
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/app/download-and-save.rb",
+    "status": "loads_with_errors",
+    "exit": null,
+    "termsig": 14,
+    "first_error": "Shoes::App#download error: An error occurred while downloading: wrong number of arguments (given 1, expected 2)",
+    "log_lines": 1,
+    "secs": 6.3
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/app/download.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.4
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/app/get-google.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.3
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/app/mouse-detection.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.4
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/app/resizeable-false.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/art/bubble-bullseye.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/art/faded.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.3
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/art/fill-oval.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.4
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/art/mask.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.4
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/art/oval-gradient.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.3
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/art/star-gradient.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/basic/basic-new-window.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/basic/basic-oval-image.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/basic/basic-oval-shape.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/basic/basic-oval.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/basic/definr.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/basic/funnies.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": "Unexpected non-style keyword(s) in Shoes::Stack initialize: [:border]",
+    "log_lines": 1,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/basic/list_box-select-class.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/basic/rect-arrow.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.3
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/basic/scribble.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/basic/search.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/basic/shoes-notes.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.3
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/basic/url-shoes-subclassing.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/browser.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/elements/background-column.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/elements/background.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/elements/button-block.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/elements/common-styles.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/elements/displace-animation.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/elements/edit_box-character-count.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/elements/edit_line-character-count.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/elements/move-flow-animate.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/elements/popup.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/elements/progress-bar.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/elements/radio-dreamcast-favs.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/elements/timer.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/events/background-hover.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/events/motion-detect.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/events/pressed-key.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/expert/expert-othello.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/good/good-arc.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/kernel/ask.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": "sandbox-stub osascript refused",
+    "log_lines": 1,
+    "secs": 6.2,
+    "note": "re-run with osascript stubbed (first run popped a real macOS dialog via Lacci native_builtin_fallback)"
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/kernel/ask_color.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/kernel/ask_open_file.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": "sandbox-stub osascript refused",
+    "log_lines": 1,
+    "secs": 6.2,
+    "note": "re-run with osascript stubbed (first run popped a real macOS dialog via Lacci native_builtin_fallback)"
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/kernel/ask_save_file.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/legacy/for_playtest/shoes-contrib/kernel/ask_save_file.rb:6:in 'IO.read': no implicit co",
+    "log_lines": 16,
+    "secs": 0.9,
+    "note": "re-run with osascript stubbed (first run popped a real macOS dialog via Lacci native_builtin_fallback)"
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/kernel/debug.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": "Running Shoes on arm64-darwin25",
+    "log_lines": 2,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/kernel/exit.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/kernel/fonts.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/manipulation/append-slot.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/manipulation/prepend-slot.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/manipulation/roll.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/position/gutter-margin.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-accordion.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-anim-shapes.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-anim-text.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-arc.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-bounce.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-control-sizes.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-curve.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-dialogs.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-downloader.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-draw.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-editor.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-form.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-mask.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-menu.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-menu1.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-slide.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-sphere.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/simple/simple-video.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/styles/alignment.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/styles/attachment.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/styles/emphasis.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/styles/gradient-angle.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/styles/para-methods.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/styles/para-red-underlined.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-contrib/styles/para-style-method.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes-manual/edit_box.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/button/button.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/combo/combo.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/curl/bare.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/curl/downloader.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/curl/m1.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/curl/m2.rb",
+    "status": "loads_with_errors",
+    "exit": null,
+    "termsig": 14,
+    "first_error": "Shoes::App#download error: An error occurred while downloading: wrong number of arguments (given 1, expected 2)",
+    "log_lines": 1,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/curl/m3.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/curl/m4.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/cursor/c1.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/dialogs/ask.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/dialogs/confirm.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/dynamic_title.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/editbox/editbox.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/events/button.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/opacity.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/opacity_test.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/progress/progress.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/radio/clear.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/radio/group.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/radio/multiple.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/radio/nogroup.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/tooltips.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes3-tests/wheel/wheel1.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/append.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/background_change.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/background_pattern.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/basic_app.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/border.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/builtins/FONTS.rb",
+    "status": "exited_0",
+    "exit": 0,
+    "termsig": null,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 0.7
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/builtins/ask.rb",
+    "status": "exited_0",
+    "exit": 0,
+    "termsig": null,
+    "first_error": "sandbox-stub osascript refused",
+    "log_lines": 1,
+    "secs": 0.9,
+    "note": "re-run with osascript stubbed (first run popped a real macOS dialog via Lacci native_builtin_fallback)"
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/builtins/ask_color.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/builtins/ask_save_folder.rb",
+    "status": "exited_0",
+    "exit": 0,
+    "termsig": null,
+    "first_error": "sandbox-stub osascript refused",
+    "log_lines": 1,
+    "secs": 0.9,
+    "note": "re-run with osascript stubbed (first run popped a real macOS dialog via Lacci native_builtin_fallback)"
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/builtins/confirm.rb",
+    "status": "exited_0",
+    "exit": 0,
+    "termsig": null,
+    "first_error": "sandbox-stub osascript refused",
+    "log_lines": 1,
+    "secs": 0.9,
+    "note": "re-run with osascript stubbed (first run popped a real macOS dialog via Lacci native_builtin_fallback)"
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/builtins/debug.rb",
+    "status": "exited_0",
+    "exit": 0,
+    "termsig": null,
+    "first_error": "[DEBUG] Running Shoes on arm64-darwin25",
+    "log_lines": 1,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/builtins/info.rb",
+    "status": "exited_0",
+    "exit": 0,
+    "termsig": null,
+    "first_error": "[INFO] You just ran the info example on Shoes Strangers.",
+    "log_lines": 1,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/button_icon.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/clear.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/custom_header.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/displace.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/fill_pattern.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/focus.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/fonts.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/gutter.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/image_web.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/keypress.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/list_box.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/motion.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/mouse.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/move.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/nested_ovals.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/oval.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/ovals.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/ovals_image.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/prepend.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/progress_bar.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/radio.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/radio_alternative_1.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/radio_alternative_2.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/rotate_rectangle.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/shape.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/start.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/stroke.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/style.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/style_alternative_1.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/style_alternative_2.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/style_length.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/timer.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/trigger_window.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/wheel.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/shoes_manual/window_owner.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/simple/anim-shapes.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/simple/arc.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/simple/control-sizes.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/simple/curve-control-points.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/simple/downloader1.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/simple/follow.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/simple/form.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/simple/image-rotate.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/simple/mask2.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/simple/menu.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/simple/menu1.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/simple/path-animation.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/simple/reminder.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/for_playtest/simple/vjot.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/needs_deps/expert-funnies.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- hpricot (LoadError)",
+    "log_lines": 9,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/needs_deps/expert-irb.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/legacy/needs_deps/expert-irb.rb:12:in 'MimickIRB#initialize': undefined method 'set_inpu",
+    "log_lines": 10,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/needs_deps/simple-rubygems.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<rubies>/4.0.1/lib/ruby/gems/4.0.0/gems/bundler-2.4.10/lib/bundler/rubygems_integration.rb:280:in 'block (2 levels) in Kernel#replace_gem': bluecloth =2.0.6 is not part of the bundle.",
+    "log_lines": 10,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/path_issues/_why-stories.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<rubies>/4.0.1/lib/ruby/gems/4.0.0/gems/psych-5.3.1/lib/psych.rb:717:in 'File#initialize': No such file or directory @ rb_sysopen - samples/good/",
+    "log_lines": 11,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/shoes3_only/cache/cache.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- shoes/data (LoadError)",
+    "log_lines": 14,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/cardflip.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/builtins.rb:32:in 'Shoes::Builtins#ask_open_file': wrong number of arguments (given 1, expected 0) (ArgumentError)",
+    "log_lines": 21,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/shoes3_only/curl/typ.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- typhoeus (LoadError)",
+    "log_lines": 9,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/decoration.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/shoes3_only/events/capture.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/shoes3_only/events/event0.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'shoesevent' for an instance of Shoes::App (NoMethodError)",
+    "log_lines": 23,
+    "secs": 0.9
+  },
+  {
+    "path": "examples/legacy/shoes3_only/events/event1.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of arguments (given 0, expected 1+) (ArgumentError)",
+    "log_lines": 19,
+    "secs": 0.6
+  },
+  {
+    "path": "examples/legacy/shoes3_only/events/event2.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/shoes3_only/events/event3.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/shoes3_only/events/event4.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'svg' for an instance of Shoes::App (NoMethodError)",
+    "log_lines": 31,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/events/event5.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of arguments (given 0, expected 1+) (ArgumentError)",
+    "log_lines": 19,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/events/event6.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:497:in 'Shoes::Drawable#event': wrong number of arguments (given 0, expected 1+) (ArgumentError)",
+    "log_lines": 19,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/events/replay.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/shoes3_only/gapp/fullscreen.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/legacy/shoes3_only/gapp/fullscreen.rb:4:in 'block (2 levels) in <top (required)>': undef",
+    "log_lines": 23,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/gapp/icon.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/legacy/shoes3_only/gapp/icon.rb:4:in 'block (2 levels) in <top (required)>': undefined m",
+    "log_lines": 23,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/shoes3_only/gapp/mon1.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/legacy/shoes3_only/gapp/mon1.rb:4:in 'block (2 levels) in <top (required)>': undefined m",
+    "log_lines": 23,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/gapp/settings1.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/shoes3_only/gapp/title1.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/legacy/shoes3_only/gapp/title1.rb:4:in 'block (2 levels) in <top (required)>': undefined",
+    "log_lines": 23,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/menus/event.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/shoes3_only/menus/menu1.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'id' for an instance of Shoes::App (NoMethodError)",
+    "log_lines": 23,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/menus/menu2.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined local variable or method 'menubar' for an instance of Shoes::App (NameError)",
+    "log_lines": 14,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/menus/menu3.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/shoes3_only/menus/menu4.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/shoes3_only/plot/cstest.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "log_lines": 39,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/shoes3_only/plot/gr1.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "log_lines": 39,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/plot/gr2.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "log_lines": 39,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/plot/gr3.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "log_lines": 39,
+    "secs": 0.6
+  },
+  {
+    "path": "examples/legacy/shoes3_only/plot/gr4.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "log_lines": 39,
+    "secs": 0.6
+  },
+  {
+    "path": "examples/legacy/shoes3_only/plot/gr5.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "log_lines": 39,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/plot/gr6.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "log_lines": 39,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/plot/gr7.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "log_lines": 39,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/shoes3_only/plot/grcsv.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for #<Shoes::App:0x00000001044c5338> (NoMethodError)",
+    "log_lines": 23,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/plot/manual.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'plot' for an instance of Shoes::App (NoMethodError)",
+    "log_lines": 39,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/shoes3_only/simple-chipmunk.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- shoes/chipmunk (LoadError)",
+    "log_lines": 9,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/spinner.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined local variable or method 'spinner' for an instance of Shoes::App (NameError)",
+    "log_lines": 23,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/shoes3_only/svg.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/legacy/shoes3_only/svg.rb:3:in '<top (required)>': uninitialized constant Test (NameErro",
+    "log_lines": 9,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/shoes3_only/switch/switch.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/drawable.rb:833:in 'Shoes::Drawable#method_missing': undefined method 'switch' for an instance of Shoes::App (NoMethodError)",
+    "log_lines": 23,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/shoes3_only/systray/back.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/shoes3_only/systray/note.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/shoes3_only/terminal/cursor.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/shoes3_only/terminal/ed.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- readline (LoadError)",
+    "log_lines": 10,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/shoes3_only/terminal/el.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- readline (LoadError)",
+    "log_lines": 10,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/shoes3_only/terminal/logattr.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/shoes3_only/tests_color.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- test/unit (LoadError)",
+    "log_lines": 9,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/tests_svg.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- test/unit (LoadError)",
+    "log_lines": 9,
+    "secs": 0.6
+  },
+  {
+    "path": "examples/legacy/shoes3_only/tests_video_vlc.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- test/unit (LoadError)",
+    "log_lines": 9,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/shoes3_only/video-player.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- shoes/videoffi (LoadError)",
+    "log_lines": 9,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/shoes3_only/video_vlc.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/legacy/shoes3_only/video_vlc.rb:3:in '<top (required)>': uninitialized constant Test (Na",
+    "log_lines": 9,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/working/custom-list-box.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": "Unexpected non-style keyword(s) in CustomListBox initialize: [:items, :choose]",
+    "log_lines": 1,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/info.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/legacy/working/info.rb:7:in 'block in <top (required)>': uninitialized constant Gem::Rub",
+    "log_lines": 15,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/working/philippe/guessing_game.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes-contrib/basic/a-poem.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes-contrib/basic/basic-blocks-instances.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes-contrib/basic/basic-blocks.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes-contrib/basic/basic-slot.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes-contrib/basic/class-book.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes-contrib/basic/intro.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes-contrib/basic/two-column.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes-contrib/elements/edit_box.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes-contrib/kernel/alert.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes-contrib/kernel/confirm.rb",
+    "status": "exited_0",
+    "exit": 0,
+    "termsig": null,
+    "first_error": "sandbox-stub osascript refused",
+    "log_lines": 1,
+    "secs": 0.4,
+    "note": "re-run with osascript stubbed (first run popped a real macOS dialog via Lacci native_builtin_fallback)"
+  },
+  {
+    "path": "examples/legacy/working/shoes-contrib/kernel/font.rb",
+    "status": "exited_0",
+    "exit": 0,
+    "termsig": null,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/working/shoes-contrib/simple/simple-sqlite3.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<rubies>/4.0.1/lib/ruby/gems/4.0.0/gems/sqlite3-1.6.9/lib/sqlite3/database.rb:177:in 'SQLite3::Statement#initialize': table t1 already exists (SQLite3::SQLException)",
+    "log_lines": 15,
+    "secs": 0.5
+  },
+  {
+    "path": "examples/legacy/working/shoes-dep-samples/expert-game-of-life.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes-dep-samples/expert-othello.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/working/shoes-manual/builtins/ask_open_file.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/legacy/working/shoes-manual/builtins/ask_open_file.rb:4:in 'IO.read': no implicit conver",
+    "log_lines": 16,
+    "secs": 0.4,
+    "note": "re-run with osascript stubbed (first run popped a real macOS dialog via Lacci native_builtin_fallback)"
+  },
+  {
+    "path": "examples/legacy/working/shoes3-tests/editline/editline.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/alert_button.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/animate.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/background_para.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/button_alternative.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/checkbox.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/download.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/edit_box.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/editline.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/fixed_height.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/fixed_width.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/image.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/instance_variable_check.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/message.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/rectangle.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/save_download.rb",
+    "status": "loads_with_errors",
+    "exit": null,
+    "termsig": 14,
+    "first_error": "Shoes::App#download error: An error occurred while downloading: wrong number of arguments (given 1, expected 2)",
+    "log_lines": 1,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/self_check.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/stack.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/style_info.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/utf8_support.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/shoes_manual/width.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/basic-edit-box.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/basic-fps.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/border-cat.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/calc.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/check-mate.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/clear-slot.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/clock.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/gradient-shoes.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/image-icon.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/image.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/list_box-shape-report.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/list_box.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/phat-button.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/simple-calc.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/sqlite3.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/legacy/working/simple/sqlite3.rb:18:in 'block in <top (required)>': uninitialized consta",
+    "log_lines": 19,
+    "secs": 0.4
+  },
+  {
+    "path": "examples/legacy/working/simple/stack-width.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/working/simple/timer.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/simple/width-introspec.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/legacy/working/speedometer_app.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": "Unexpected non-style keyword(s) in Speedometer initialize: [:range, :ticks]",
+    "log_lines": 1,
+    "secs": 6.2
+  },
+  {
+    "path": "examples/legacy/working/superleg.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/line.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/link.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/list_box.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/list_box_choose.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/local_assets/local_file_server.rb",
+    "status": "hung_killed",
+    "exit": null,
+    "termsig": 9,
+    "first_error": "[2026-09-27 13:51:54] INFO  WEBrick 1.7.0",
+    "log_lines": 3,
+    "secs": 10.0,
+    "note": "re-run with osascript stubbed (first run popped a real macOS dialog via Lacci native_builtin_fallback)"
+  },
+  {
+    "path": "examples/local_assets/multi_image.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/local_fonts.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/local_images.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/margin.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/margin_check.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/motion_events.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/oval-with-kwargs.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/oval.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/page_navigation_single_app.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/para/collection_of_arguments.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/para/hello_world.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/para/hide_and_show.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/para/para_text.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/para/rainbow.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/para/rainbow_2.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/para/sizes.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/para/sizes_2.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/para/strong.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/para_cursor_demo.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/para_font_styles.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/para_font_variant.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/para_fontweight.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/para_text_widgets.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/parse_xl_funnies.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": "Unexpected non-style keyword(s) in Shoes::Stack initialize: [:border]",
+    "log_lines": 1,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/progress.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/radio/radio.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/radio/radio_groups.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/radio/radio_same_slot.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/raw_flow.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/rect.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/rotate_shapes.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/ruby_racer.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- benchmark (LoadError)",
+    "log_lines": 9,
+    "secs": 0.3
+  },
+  {
+    "path": "examples/scarpe_ext.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/app.rb:73:in 'Shoes::App#initialize': Shoes app needs features: [:html] (Shoes::Errors::UnsupportedFeatureError)",
+    "log_lines": 11,
+    "secs": 0.2
+  },
+  {
+    "path": "examples/selfitude.rb",
+    "status": "not_run",
+    "first_error": "not run: appends to /tmp/shoesy_stuff.txt at top level (outside sandbox)",
+    "secs": 0
+  },
+  {
+    "path": "examples/shapes/arc.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/shapes/shapes.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/shapes/shapes_fill.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/shapes/star.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/shoes_school.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/shoes_splorer.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/shoes_subclass_app.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/show_hide.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/simple_slides.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/simpler-menu.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/skip_ci/change_my_audio_source.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "<scratch>/research/sandbox/examples/skip_ci/change_my_audio_source.rb:11:in 'Kernel#`': No such file or directory - SwitchAu",
+    "log_lines": 13,
+    "secs": 0.3
+  },
+  {
+    "path": "examples/skip_ci/guitar_fretboard.rb",
+    "status": "fail",
+    "exit": 1,
+    "termsig": null,
+    "first_error": "lacci/lib/shoes/compat_require.rb:28:in 'Kernel#require': cannot load such file -- bloops (LoadError)",
+    "log_lines": 9,
+    "secs": 0.3
+  },
+  {
+    "path": "examples/skip_ci/parrot.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/skip_ci/say.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/sleepless.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/slots.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/spacing.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/span.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/stack/background.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/stack/border.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/stack/gradients.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/stack/raw_stack.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/stack/stack.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/text_change.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/text_sizes.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/timmy.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/title_and_resize.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/turtle/barbwire.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/turtle/fractal.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/turtle/spiral.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/turtle/stars.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/url_routing_example.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  },
+  {
+    "path": "examples/video.rb",
+    "status": "loads",
+    "exit": null,
+    "termsig": 14,
+    "first_error": null,
+    "log_lines": 0,
+    "secs": 6.1
+  }
+]

@@ -1,0 +1,26 @@
+---
+manual: app.visit
+lines: [1012, 1014]
+testability: api
+display: any
+ledger: J1
+----------- app code
+Shoes.app do
+  url "/", :index
+  url "/about", :about
+
+  def index
+    @greeting = para "Welcome"
+    button("About") { visit "/about" }
+  end
+
+  def about
+    @about = para "Made with Shoes"
+  end
+end
+----------- test code
+assert_equal "Welcome", para.text, "the app starts at /"
+
+find_button("About").trigger_click
+
+assert_equal "Made with Shoes", para.text, "visit shows the page at the new location"

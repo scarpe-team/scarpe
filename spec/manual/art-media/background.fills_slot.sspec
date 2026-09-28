@@ -1,0 +1,16 @@
+---
+manual: background.fills_slot
+lines: [2763, 2774]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  background black
+end
+----------- test code
+window = Shoes.APPS.first
+right, bottom = window.width - 1, window.height - 1
+
+[[0, 0], [right, 0], [0, bottom], [right, bottom], [right / 2, bottom / 2]].each do |x, y|
+  assert_equal [0, 0, 0], pixel_at(x, y).first(3), "the whole window is painted black, including (#{x}, #{y})"
+end

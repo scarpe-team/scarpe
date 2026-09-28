@@ -1,0 +1,15 @@
+---
+manual: slot.width
+lines: [2511, 2513]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  stack width: 300 do
+    @inner = stack { para "fills its parent" }
+  end
+end
+----------- test code
+inner = stack("@inner")
+assert_in_delta 300, layout_of(inner).w, 0.5
+assert_in_delta 300, inner.width, 0.5, "width is the slot's horizontal size in pixels"

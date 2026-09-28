@@ -1,0 +1,21 @@
+---
+manual: styles.align.left
+lines: [1067, 1069]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 200 do
+  stack width: 300 do
+    @text = para "HHHH", align: "left", size: 24
+  end
+end
+----------- test code
+box = layout_of(para("@text"))
+rows = [0.4, 0.5, 0.6].map { |f| (box.y + box.h * f).round }
+ink = (box.x.floor...(box.x + box.w).ceil).select { |x| rows.any? { |y| pixel_at(x, y).first(3).sum < 384 } }
+
+assert_in_delta 300 - 8, box.w, 0.5, "the paragraph spans its 300 pixel stack, less its 4 px margins (ledger C9), so there is room to align in"
+refute_empty ink, "the letters left ink"
+
+assert_operator ink.first - box.x, :<=, 4, "left alignment starts the text at the left edge"
+assert_operator box.x + box.w - ink.last, :>, 100, "and leaves the space on the right"

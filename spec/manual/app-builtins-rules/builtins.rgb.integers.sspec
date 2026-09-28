@@ -1,0 +1,13 @@
+---
+manual: builtins.rgb.integers
+lines: [815, 825]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $blueviolet = rgb(138, 43, 226)
+  $darkgreen = rgb(0, 100, 0)
+end
+----------- test code
+assert_equal [138, 43, 226, 255], $blueviolet.to_a, "whole numbers are 0-255 components, opaque by default"
+assert_equal [0, 100, 0, 255], $darkgreen.to_a

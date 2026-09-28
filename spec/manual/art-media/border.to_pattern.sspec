@@ -1,0 +1,13 @@
+---
+manual: border.to_pattern
+lines: [2854, 2858]
+testability: api
+display: any
+ledger: D9
+----------- app code
+Shoes.app do
+  @edge = border blue, strokewidth: 4
+end
+----------- test code
+pattern = border("@edge").to_pattern
+assert_kind_of Shoes::Pattern, pattern, "to_pattern gives a Shoes::Pattern"

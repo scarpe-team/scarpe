@@ -1,0 +1,14 @@
+---
+manual: image.path=
+lines: [3162, 3164]
+testability: api
+display: any
+ledger: C5
+----------- app code
+Shoes.app do
+  @logo = image "assets/red-40x30.png"
+end
+----------- test code
+logo = image("@logo")
+logo.path = "assets/checker-20x20.png"
+assert_equal "assets/checker-20x20.png", logo.path, "path = swaps in the new file"

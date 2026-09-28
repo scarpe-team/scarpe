@@ -1,0 +1,16 @@
+---
+manual: events.hover
+lines: [2200, 2203]
+testability: interactive
+display: native
+ledger: H5
+----------- app code
+$hovered = []
+Shoes.app width: 400, height: 300 do
+  $slot = stack width: 200, height: 100 do
+    hover { |slot| $hovered << slot }
+  end
+end
+----------- test code
+move_mouse 50, 50
+assert_equal [$slot], $hovered, "the block gets the slot that was hovered over"

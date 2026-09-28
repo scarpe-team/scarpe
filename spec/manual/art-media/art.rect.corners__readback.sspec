@@ -1,0 +1,13 @@
+---
+manual: art.rect.corners
+lines: [1751, 1753]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @plain = rect 10, 10, 100, 100
+  @rounded = rect 10, 10, 100, 100, 20
+end
+----------- test code
+assert_includes [nil, 0], rect("@plain").curve, "without a fifth argument the corners are square"
+assert_equal 20, rect("@rounded").curve, "the fifth argument is the corner radius"

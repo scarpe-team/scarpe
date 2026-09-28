@@ -1,0 +1,18 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/simple/stack-width.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/for_playtest/simple/stack-width.sspec
+- cases/scarpe_examples/legacy/working/simple/stack-width.sspec
+- cases/scarpe_examples/examples/legacy/working/simple/stack-width.sspec
+----------- app code
+Shoes.app do
+  stack(:width => 150) { para "Now that's precision." }
+end
+----------- test code
+# Verify stack with explicit width renders para correctly
+assert_equal "Now that's precision.", para().text
+assert_equal 150, stack().width

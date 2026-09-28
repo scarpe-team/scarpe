@@ -5,7 +5,10 @@ class Shoes
   # group. If no group is specified, or the group is nil, default to all
   # radio buttons in the same slot being treated as being in the same group.
   class Radio < Shoes::Drawable
+    include Shoes::Focusable
+
     shoes_styles :group, :checked
+    shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
     shoes_events :click
 
     # Track radio groups for mutual exclusion
@@ -18,9 +21,8 @@ class Shoes
     init_args
     opt_init_args :group
     def initialize(*args, **kwargs, &block)
-      @block = block
-
       super
+      @click = block if block
 
       self.class.groups[effective_group] << self
 
@@ -32,13 +34,13 @@ class Shoes
         end
         # Radio buttons always check on click (never toggle)
         self.checked = true
-        @block&.call(self)
+        @click&.call(self)
       end
       create_display_drawable
     end
 
     def click(&block)
-      @block = block
+      @click = block
       self
     end
 

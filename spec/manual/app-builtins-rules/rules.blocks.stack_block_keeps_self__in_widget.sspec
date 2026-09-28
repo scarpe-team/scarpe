@@ -1,0 +1,27 @@
+---
+manual: rules.blocks.stack_block_keeps_self
+lines: [198, 198]
+testability: api
+display: any
+ledger: B1
+----------- app code
+class Nametag < Shoes::Widget
+  def initialize(name)
+    @name = name
+    $widget_self = self
+    $inner = stack do
+      $stack_self = self
+      @tag = para @name
+    end
+    $tag = @tag
+  end
+end
+
+Shoes.app do
+  nametag "Ada"
+end
+----------- test code
+assert $stack_self.equal?($widget_self), "inside a widget, the stack block keeps the widget as self, not a #{$stack_self.class}"
+assert_equal "Ada", para.text, "so it reads the widget's own instance variables"
+assert_same $tag, para.obj, "and sets them: @tag is the widget's"
+assert_same $inner, para.parent, "the para created in the block is a child of the stack"

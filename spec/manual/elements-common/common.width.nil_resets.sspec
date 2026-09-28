@@ -1,0 +1,15 @@
+---
+manual: common.width.nil_resets
+lines: [2749, 2750]
+testability: visual
+display: any
+----------- app code
+Shoes.app do
+  @b = button "Click me", width: 150
+end
+----------- test code
+assert_equal 150, button("@b").style[:width]
+
+button("@b").style(width: nil)
+
+assert_nil button("@b").style[:width], "style(width: nil) empties the setting"

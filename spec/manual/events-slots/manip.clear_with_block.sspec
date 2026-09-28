@@ -1,0 +1,16 @@
+---
+manual: manip.clear_with_block
+lines: [2331, 2347]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @slot = stack { para "Old text" }
+  @go = button("Go") { @slot.clear { para "Brand new text" } }
+end
+----------- test code
+assert_equal ["Old text"], stack("@slot").contents.map(&:text)
+
+button("@go").trigger_click
+
+assert_equal ["Brand new text"], stack("@slot").contents.map(&:text), "the block's contents replaced the old ones"

@@ -1,0 +1,17 @@
+---
+manual: background.paints_over_earlier
+lines: [2758, 2761]
+testability: visual
+display: native
+ledger: C12
+----------- app code
+Shoes.app width: 200, height: 200 do
+  fill red
+  nostroke
+  rect 20, 20, 60, 60
+  oval 120, 20, 60
+  background blue
+end
+----------- test code
+assert_equal [0, 0, 255], pixel_at(50, 50).first(3), "a background after a rect paints over it"
+assert_equal [0, 0, 255], pixel_at(150, 50).first(3), "and over an oval"

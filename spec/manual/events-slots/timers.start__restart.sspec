@@ -1,0 +1,19 @@
+---
+manual: timers.start
+lines: [3419, 3423]
+testability: api
+display: native
+ledger: M13
+----------- app code
+$frames = 0
+Shoes.app do
+  $animation = animate(10) { $frames += 1 }
+end
+----------- test code
+$animation.stop
+advance 0.55
+stopped_at = $frames
+
+$animation.start
+advance 0.55
+assert_operator $frames, :>, stopped_at, "start got the stopped animation going again"

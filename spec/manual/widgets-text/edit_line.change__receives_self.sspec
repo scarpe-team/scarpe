@@ -1,0 +1,17 @@
+---
+manual: edit_line.change
+lines: [3086, 3090]
+testability: interactive
+display: any
+ledger: G1
+----------- app code
+Shoes.app do
+  @line = edit_line
+  @line.change { |line| $handed = line }
+end
+----------- test code
+edit_line.trigger_change("typed")
+
+assert_kind_of Shoes::EditLine, $handed, "the change block is given the edit line"
+assert_equal edit_line.linkable_id, $handed.linkable_id, "the one that changed"
+assert_equal "typed", $handed.text, "already holding the new text"

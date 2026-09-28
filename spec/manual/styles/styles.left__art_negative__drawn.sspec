@@ -1,0 +1,15 @@
+---
+manual: styles.left
+lines: [1288, 1294]
+testability: visual
+display: native
+ledger: C15
+----------- app code
+Shoes.app width: 300, height: 200 do
+  nostroke
+  @drifting = oval -30, 50, 100, fill: red
+end
+----------- test code
+assert_equal(-30, layout_of(oval("@drifting")).x.round, "the oval's box starts 30 px left of the window")
+assert_equal [255, 0, 0], pixel_at(10, 100).first(3), "so its right half shows at the left edge"
+assert_equal [255, 255, 255], pixel_at(290, 100).first(3), "and nothing jumps to the far edge"

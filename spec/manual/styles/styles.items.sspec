@@ -1,0 +1,14 @@
+---
+manual: styles.items
+lines: [2041, 2055]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  stack margin: 10 do
+    para "Pick a card:"
+    list_box items: ["Jack", "Ace", "Joker"]
+  end
+end
+----------- test code
+assert_equal ["Jack", "Ace", "Joker"], list_box.items, ":items is the Array of choices, in order"

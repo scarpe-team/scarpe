@@ -1,0 +1,13 @@
+---
+manual: styles.choose
+lines: [1137, 1142]
+testability: visual
+display: native
+ledger: G3
+----------- app code
+Shoes.app do
+  @cards = list_box items: ["Jack", "Ace", "Joker"], choose: "Ace"
+end
+----------- test code
+node = layout_tree.find { |entry| entry[:id] == list_box.linkable_id }
+assert_equal "Ace", node[:text], "the list box shows the chosen item, Ace, not the first one"

@@ -1,0 +1,18 @@
+---
+manual: art.oval.styles
+lines: [1738, 1746]
+testability: api
+display: any
+ledger: M1
+----------- app code
+Shoes.app do
+  @round = oval top: 20, left: 30, radius: 50
+  @wide = oval top: 0, left: 0, width: 80, height: 40
+end
+----------- test code
+round = oval("@round")
+assert_equal [30, 20], [round.left, round.top], "left: and top: are kept"
+assert_equal [100, 100], [round.width, round.height], "radius: 50 doubles into the width and height (M1)"
+
+wide = oval("@wide")
+assert_equal [80, 40], [wide.width, wide.height], "width: and height: size the oval"

@@ -1,0 +1,33 @@
+---
+manual: radio.focus
+lines: [3356, 3359]
+testability: visual
+display: native
+ledger: G9
+----------- app code
+Shoes.app do
+  stack do
+    @first = radio
+    @second = radio
+  end
+end
+----------- test code
+# Every other pixel in a band from 4 px outside the box to 4 px inside it, within the window.
+edge_band = lambda do |r|
+  pixels = []
+  (r.x - 4).step(r.x + r.w + 4, 2) do |x|
+    (r.y - 4).step(r.y + r.h + 4, 2) do |y|
+      core = x > r.x + 4 && x < r.x + r.w - 4 && y > r.y + 4 && y < r.y + r.h - 4
+      pixels << pixel_at(x, y) unless core || x < 0 || y < 0
+    end
+  end
+  pixels
+end
+
+radio("@first").focus
+unfocused = edge_band.call(layout_of(radio("@second")))
+
+radio("@second").focus
+focused = edge_band.call(layout_of(radio("@second")))
+
+refute_equal unfocused, focused, "a focused radio is highlighted"

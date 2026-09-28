@@ -1,0 +1,19 @@
+---
+manual: element.fragment.text_setter_non_string
+lines: [3021, 3030]
+testability: api
+display: any
+ledger: F11
+----------- app code
+Shoes.app do
+  edit_box do |e|
+    @counter.text = e.text.size
+  end
+  @counter = strong("0")
+  para @counter, " characters"
+end
+----------- test code
+edit_box.trigger_change("hello")
+
+assert_equal "5", para.contents.first.text, "the Integer 5 reads back as \"5\""
+assert_equal "5 characters", para.text, "and the para shows it"

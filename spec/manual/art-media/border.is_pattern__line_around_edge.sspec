@@ -1,0 +1,24 @@
+---
+manual: border.is_pattern
+lines: [2807, 2808]
+testability: visual
+display: native
+ledger: M4
+----------- app code
+Shoes.app width: 200, height: 200 do
+  stack left: 50, top: 50, width: 100, height: 100 do
+    border red, strokewidth: 4
+  end
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  assert_equal expected, pixel_at(x, y).first(3), "#{why} at (#{x}, #{y})"
+end
+red = [255, 0, 0]
+white = [255, 255, 255]
+
+paints.(51, 100, red, "a border is a line along the slot's left edge")
+paints.(148, 100, red, "its right edge")
+paints.(100, 51, red, "its top edge")
+paints.(100, 148, red, "and its bottom edge")
+paints.(100, 100, white, "and only a line: the middle is not painted")

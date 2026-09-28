@@ -1,0 +1,17 @@
+---
+manual: art.rect.styles
+lines: [1781, 1781]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @box = rect left: 10, top: 10, width: 30, height: 30
+end
+----------- test code
+box = rect("@box")
+assert_equal 30, box.width
+
+box.style(width: 60, curve: 8)
+
+assert_equal 60, box.width, "style changes the width"
+assert_equal 8, box.curve, "and the corner radius"

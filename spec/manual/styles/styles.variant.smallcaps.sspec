@@ -1,0 +1,21 @@
+---
+manual: styles.variant.smallcaps
+lines: [1516, 1519]
+testability: visual
+display: native
+ledger: F4
+----------- app code
+Shoes.app width: 400, height: 300 do
+  flow { @plain = para "pppp", size: 30 }
+  flow { @small = para "pppp", variant: "smallcaps", size: 30 }
+end
+----------- test code
+bottom_of_ink = lambda do |name|
+  box = layout_of(para(name))
+  rows = (box.y.floor...(box.y + box.h).ceil).select do |y|
+    (box.x.floor...(box.x + box.w).ceil).step(2).any? { |x| pixel_at(x, y).first(3).sum < 384 }
+  end
+  rows.max - box.y
+end
+assert_operator bottom_of_ink.call("@small"), :<, bottom_of_ink.call("@plain") - 3,
+  "small capitals sit on the baseline where a lower-case p hangs below it"

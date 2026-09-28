@@ -1,0 +1,17 @@
+---
+manual: art.stroke
+lines: [1839, 1847]
+testability: visual
+display: native
+ledger: E5
+----------- app code
+Shoes.app do
+  stroke red
+  arrow 0, 100, 10
+end
+----------- test code
+# The manual's arrow: 10 px wide, centred on (0, 100) (E5), so half of it is off the window.
+# Its 1 px outline blends with white at the edges; look for a reddish pixel there.
+around = (0..6).to_a.product((94..106).to_a).map { |x, y| pixel_at(x, y).first(3) }
+reddish = around.any? { |r, g, b| r > 150 && g < 170 && b < 170 && r > g + 60 }
+assert reddish, "the arrow has a red line around it"

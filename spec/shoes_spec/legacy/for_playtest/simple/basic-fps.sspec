@@ -1,0 +1,22 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/simple/basic-fps.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  @counter = para "STARTING"
+  animate(24) do |frame|
+    @counter.replace "FRAME #{frame}"
+  end
+end
+----------- test code
+# Test: Basic animation frame counter
+# Para starts with "STARTING" then updates to "FRAME N"
+
+assert para(), "Counter para should exist"
+# Initial state before animation runs
+initial_text = para().text
+assert initial_text.include?("STARTING") || initial_text.include?("FRAME"), 
+  "Counter should show STARTING or FRAME N"

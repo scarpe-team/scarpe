@@ -1,0 +1,23 @@
+---
+manual: element.list_box.block
+lines: [3186, 3197]
+testability: interactive
+display: native
+ledger: G2
+----------- app code
+Shoes.app do
+  para "Choose a fruit:"
+  list_box items: ["Grapes", "Pears", "Apricots"],
+    width: 120, choose: "Apricots" do |list|
+      @fruit.text = list.text
+  end
+
+  @fruit = para "No fruit selected"
+end
+----------- test code
+assert_equal "No fruit selected", para("@fruit").text
+
+click_on list_box
+click_on "Pears"
+
+assert_equal "Pears", para("@fruit").text, "picking an item runs the block"

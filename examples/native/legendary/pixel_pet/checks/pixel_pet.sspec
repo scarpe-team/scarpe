@@ -1,0 +1,95 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/legendary/pixel_pet/pixel_pet.rb")
+----------- test code
+require "json"
+app = Shoes.APPS.first
+pet = -> { app.instance_variable_get(:@pet) }
+status = para("@status")
+dot = ->(col, row) { [130 + col * 10 + 4, 150 + row * 10 + 4] } # the middle of one dot of the screen
+near = ->(pixel, color) { pixel.first(3).zip(color).all? { |got, want| (got - want).abs <= 12 } }
+outline, cream, apple_red = [74, 59, 82], [255, 246, 238], [239, 71, 111]
+knob = { feed: [166, 452], play: [260, 452], sleep: [354, 452] }
+save_file = File.join(Dir.home, "Library", "Application Support", "Pixel Pet", "pet.json")
+
+# the first visit: an egg, and nothing else to press
+assert_nil pet.call
+assert_equal "Something is about to hatch. Tap the egg.", status.text
+assert stack("@panel").style[:hidden], "no buttons before it hatches"
+assert near.(pixel_at(*dot.call(9, 10)), cream), "the egg is whole"
+refute File.exist?(save_file)
+
+click_at(*dot.call(13, 13))
+assert_equal "It moved!", status.text
+assert near.(pixel_at(*dot.call(9, 10)), outline), "a crack runs across it"
+2.times { click_at(*dot.call(13, 13)) }
+assert_equal "Hello! What will you call me?", status.text
+refute stack("@naming").style[:hidden]
+
+click_on edit_line
+type_text "Pip"
+click_on "Hello!"
+assert_equal "Pip", pet.call["name"]
+assert_equal ["PIP", "day 1"], [para("@title").text, para("@age").text]
+assert_equal "Pip", JSON.parse(File.read(save_file))["name"], "it remembers the name"
+refute stack("@panel").style[:hidden]
+advance 1.1
+
+# its eyes follow the pointer: the left eye sits two dots further right when you point right
+eye_dark = [45, 36, 51]
+left_eye = -> { (9..13).flat_map { |row| (6..12).select { |col| near.(pixel_at(*dot.call(col, row)), eye_dark) } }.min }
+move_mouse 30, 250
+advance 1 / 12.0
+looking_left = left_eye.call
+move_mouse 490, 250
+advance 1 / 12.0
+assert_equal 2, left_eye.call - looking_left, "its eyes follow the pointer"
+
+# feeding: an apple appears beside it, and the meal fills it up
+food = pet.call["food"]
+click_at(*knob[:feed])
+assert_equal "Nom nom nom.", status.text
+advance 0.2
+assert near.(pixel_at(*dot.call(21, 14)), apple_red), "an apple on the screen"
+advance 2
+assert_operator pet.call["food"], :>, food + 25
+assert near.(pixel_at(*dot.call(21, 14)), [223, 233, 207]), "and then it's gone"
+click_at(*knob[:feed])
+assert_equal "Pip is full.", status.text
+
+# playing makes it happier and more tired
+energy = pet.call["energy"]
+advance 1
+click_at(*knob[:play])
+assert_equal "Wheee!", status.text
+advance 2.1
+assert_operator pet.call["energy"], :<, energy - 10
+assert_equal 100, pet.call["joy"].round
+
+# a pat on the head sends up a heart
+click_at(*dot.call(13, 12))
+assert_equal "Pip loves that.", status.text
+advance 0.1
+assert app.instance_variable_get(:@floaters).any? { |floater| floater[:age] >= 0 }, "a heart floats up"
+
+# bedtime: the screen goes dark, the button says Wake, and food waits till morning
+advance 1
+click_at(*knob[:sleep])
+assert_equal ["Night night, Pip.", "Wake"], [status.text, para("@sleep_label").text]
+assert near.(pixel_at(374, 334), [47, 52, 82]), "the screen is dark"
+assert JSON.parse(File.read(save_file))["asleep"], "sleeping is remembered too"
+click_at(*knob[:feed])
+assert_equal "Pip is asleep. Shh.", status.text
+rested = pet.call["energy"]
+advance 4
+assert_operator pet.call["energy"], :>, rested + 1.5, "sleep brings energy back"
+click_at(*knob[:sleep])
+assert_equal ["Good morning, Pip.", "Sleep"], [status.text, para("@sleep_label").text]
+assert near.(pixel_at(374, 334), [223, 233, 207]), "the screen is light again"
+
+# time passes: it gets a little hungry
+food = pet.call["food"]
+advance 10
+assert_operator pet.call["food"], :<, food

@@ -1,0 +1,16 @@
+---
+manual: common.show
+lines: [2686, 2688]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @b = button "Peekaboo"
+  @b.hide
+end
+----------- test code
+assert_equal true, button("@b").style[:hidden], "the button starts hidden"
+
+button("@b").show
+
+refute button("@b").style[:hidden], "show reveals it"

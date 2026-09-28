@@ -1,0 +1,46 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/showcase/snake.rb")
+----------- test code
+game = Shoes.APPS.first
+cells = -> { game.instance_variable_get(:@cells) }
+score = para("@score_text")
+head_color = [126, 224, 160]
+near = ->(pixel, color) { pixel.first(3).zip(color).all? { |got, want| (got - want).abs <= 10 } }
+
+# Apples land on a random free cell; keep them off the snake's path unless the check puts one there.
+out_of_the_way = -> { game.instance_variable_set(:@apple, [19, 0]) }
+
+assert_equal [[6, 8], [5, 8], [4, 8]], cells.call
+out_of_the_way.call
+advance 1
+assert_equal [6, 8], cells.call.first, "it waits for the first key"
+
+press_key "down"
+advance 0.3 # two steps
+assert_equal [[6, 10], [6, 9], [6, 8]], cells.call
+assert near.(pixel_at(20 + 6 * 26 + 13, 84 + 10 * 26 + 6), head_color), "the head is drawn in its new cell"
+
+game.instance_variable_set(:@apple, [6, 11]) # an apple right in its way
+advance 0.14
+assert_equal "1", score.text, "eating scores"
+assert_equal 4, cells.call.size, "and grows the snake"
+out_of_the_way.call
+
+press_key "p"
+held = cells.call.dup
+advance 1
+assert_equal held, cells.call, "P pauses"
+press_key "p"
+
+press_key "left"
+advance 3 # into the left wall
+assert_equal "1 apple", para("@final").text
+refute stack("@overlay").style[:hidden], "game over shows"
+
+press_key " "
+assert_equal "0", score.text
+assert stack("@overlay").style[:hidden], "space starts again"
+assert_equal 3, cells.call.size

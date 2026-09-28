@@ -1,0 +1,12 @@
+---
+manual: list_box.text
+lines: [3234, 3237]
+testability: api
+display: any
+ledger: G3
+----------- app code
+Shoes.app do
+  @fruit = list_box items: ["Grapes", "Pears", "Apricots"]
+end
+----------- test code
+assert_nil list_box.text, "if nothing is selected, text is nil"

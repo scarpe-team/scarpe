@@ -1,0 +1,13 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/title_and_resize.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app(title: "Schwad's app!", width: 1000, height: 800) do
+  para "Boy howdy! Now we're talking!"
+end
+----------- test code
+# Verify the app renders with the expected content
+assert_equal "Boy howdy! Now we're talking!", para().text

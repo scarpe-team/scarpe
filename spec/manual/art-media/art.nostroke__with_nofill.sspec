@@ -1,0 +1,21 @@
+---
+manual: art.nostroke
+lines: [1708, 1709]
+testability: visual
+display: native
+ledger: D7
+----------- app code
+Shoes.app width: 200, height: 200 do
+  stroke blue
+  fill red
+  strokewidth 10
+  nostroke
+  nofill
+  rect 50, 50, 100, 100
+  oval 60, 60, 80
+end
+----------- test code
+changed = [0, 25, 50, 75, 100, 125, 150, 175].product([0, 25, 50, 75, 100, 125, 150, 175])
+  .map { |x, y| [x, y, pixel_at(x, y).first(3)] }
+  .reject { |_x, _y, rgb| rgb == [255, 255, 255] }
+assert_empty changed, "with nofill and nostroke nothing drawn is visible"

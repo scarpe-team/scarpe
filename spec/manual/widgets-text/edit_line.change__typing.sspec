@@ -1,0 +1,20 @@
+---
+manual: edit_line.change
+lines: [3086, 3090]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  $seen = []
+  @line = edit_line
+  @line.change { $seen << @line.text }
+end
+----------- test code
+click_on edit_line
+assert_empty $seen
+
+press_key "o"
+press_key "k"
+press_key :backspace
+
+assert_equal %w[o ok o], $seen, "one change per character typed or deleted"

@@ -1,0 +1,18 @@
+---
+manual: styles.left
+lines: [1288, 1294]
+testability: api
+display: any
+ledger: C15
+----------- app code
+# Art can sit, or move, off the slot's left and top edges (ledger C15, ruled 27 Sep 2026).
+Shoes.app width: 300, height: 200 do
+  @drifting = oval -30, -10, 100
+  @sweep = arc -20, -5, 60, 60, 0, 3
+  @pointer = arrow -15, -25, 30
+  @box = rect -30, 50, 100, 20
+end
+----------- test code
+{ oval("@drifting") => [-30, -10], arc("@sweep") => [-20, -5], arrow("@pointer") => [-15, -25], rect("@box") => [-30, 50] }.each do |shape, corner|
+  assert_equal corner, [shape.style[:left], shape.style[:top]], "a #{shape.class} keeps a negative left and top as given"
+end

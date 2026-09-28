@@ -1,0 +1,22 @@
+---
+manual: events.click
+lines: [2189, 2191]
+testability: interactive
+display: native
+ledger: H3
+----------- app code
+$clicks = []
+Shoes.app width: 400, height: 300 do
+  flow do
+    stack width: 100, height: 100
+    @inner = stack width: 200, height: 100 do
+      click { |button, left, top| $clicks << [button, left, top] }
+    end
+  end
+end
+----------- test code
+inner = layout_of(stack("@inner"))
+assert_equal [100, 0], [inner.x.round, inner.y.round], "the slot sits 100 pixels in from the window's left edge"
+
+click_at 150, 40
+assert_equal [[1, 150, 40]], $clicks, "a nested slot's click reports where it happened in the window"

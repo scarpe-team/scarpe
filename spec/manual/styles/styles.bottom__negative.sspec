@@ -1,0 +1,20 @@
+---
+manual: styles.bottom
+lines: [1100, 1106]
+testability: visual
+display: native
+ledger: C10
+----------- app code
+# Shoes 3 reads a position as a plain number (shoes_px2, s3_ruby.c:327-337), so a negative
+# bottom or right puts the element past the slot's edge. Hackety Hack hangs its editor's
+# button bar 3 px below the window's bottom so; read as the slot less 3, it landed above.
+Shoes.app width: 400, height: 300 do
+  @frame = stack width: 300, height: 200 do
+    @bar = stack width: 100, height: 40, bottom: -3, right: -10
+  end
+end
+----------- test code
+frame = layout_of(stack("@frame"))
+bar = layout_of(stack("@bar"))
+assert_in_delta frame.y + 200 - 40 + 3, bar.y, 0.5, "bottom: -3 hangs the bar 3 px below the slot's lower edge"
+assert_in_delta frame.x + 300 - 100 + 10, bar.x, 0.5, "right: -10 puts it 10 px past the slot's right edge"

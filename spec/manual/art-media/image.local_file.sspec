@@ -1,0 +1,18 @@
+---
+manual: image.local_file
+lines: [3111, 3119]
+testability: visual
+display: native
+ledger: M34
+----------- app code
+Shoes.app do
+  para "Nice, nice, very nice.  Busy, busy, busy."
+  image "assets/red-40x30.png"
+end
+----------- test code
+# The manual's example with our test image in place of static/shoes-manual-apps.gif.
+# The relative path resolves against the app's directory (M34).
+box = layout_of(image)
+assert_in_delta 40, box.w, 0.5, "the image is shown at its own size"
+assert_in_delta 30, box.h, 0.5
+assert_equal [255, 0, 0], pixel_at((box.x + 20).floor, (box.y + 15).floor).first(3), "and shows the file's picture"

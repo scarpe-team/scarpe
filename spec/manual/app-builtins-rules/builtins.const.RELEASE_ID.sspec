@@ -1,0 +1,11 @@
+---
+manual: builtins.const.RELEASE_ID
+lines: [608, 609]
+testability: api
+display: any
+ledger: L3
+----------- app code
+Shoes.app { para "release #{Shoes::RELEASE_ID}" }
+----------- test code
+assert_kind_of Integer, Shoes::RELEASE_ID, "the release id is a number"
+assert_operator Shoes::RELEASE_ID, :>=, 1, "Curious was number 1, the first release"

@@ -1,0 +1,22 @@
+---
+manual: rules.fixed_height_clips
+lines: [345, 352]
+testability: visual
+display: native
+ledger: C13
+----------- app code
+Shoes.app do
+  @box = stack width: 200, height: 100 do
+    stack height: 300 do
+      background red
+    end
+  end
+end
+----------- test code
+box = layout_of(stack("@box"))
+assert_in_delta 100, box.h, 0.5, "the slot keeps its fixed height"
+
+inside = pixel_at((box.x + 100).round, (box.y + 50).round)
+past_the_end = pixel_at((box.x + 100).round, (box.y + 150).round)
+assert_equal [255, 0, 0, 255], inside, "content inside the fixed height shows"
+refute_equal [255, 0, 0, 255], past_the_end, "content past the fixed height is chopped off"

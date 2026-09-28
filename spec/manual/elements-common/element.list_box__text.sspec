@@ -1,0 +1,19 @@
+---
+manual: element.list_box
+lines: [2057, 2058]
+testability: api
+display: any
+ledger: G3
+----------- app code
+Shoes.app do
+  stack margin: 10 do
+    para "Pick a card:"
+    list_box items: ["Jack", "Ace", "Joker"]
+  end
+end
+----------- test code
+refute_equal "Ace", list_box.text, "Ace is not selected yet"
+
+list_box.trigger_change("Ace")
+
+assert_equal "Ace", list_box.text, "text is the selected string"

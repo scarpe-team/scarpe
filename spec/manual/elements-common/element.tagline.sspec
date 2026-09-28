@@ -1,0 +1,13 @@
+---
+manual: element.tagline
+lines: [2107, 2107]
+testability: api
+display: any
+ledger: F2
+----------- app code
+Shoes.app do
+  $block = tagline "Shoes"
+end
+----------- test code
+assert Shoes.const_defined?(:Tagline), "Shoes::Tagline exists"
+assert_kind_of Shoes::Tagline, $block, "tagline returns a Shoes::Tagline"

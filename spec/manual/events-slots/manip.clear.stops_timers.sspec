@@ -1,0 +1,26 @@
+---
+manual: manip.clear.stops_timers
+lines: [2327, 2329]
+testability: api
+display: native
+ledger: B7
+----------- app code
+# Ledger B7, ruled S3 (Q8): the manual's "Empties the slot of any elements, timers and
+# nested slots" is ERRATA. Shoes 3 empties the contents and leaves the timers
+# (s3_canvas.c:759-781), and the animations that clear their own slot every frame need it.
+$ticks = 0
+Shoes.app do
+  @slot = stack do
+    para "ticking"
+    every(0.1) { $ticks += 1 }
+  end
+end
+----------- test code
+advance 0.55
+assert_operator $ticks, :>, 0, "the timer runs while its slot is alive"
+
+stack("@slot").clear
+assert_empty paras, "clear emptied the slot"
+after_clear = $ticks
+advance 0.55
+assert_operator $ticks, :>, after_clear, "the timer the slot started kept running through clear"

@@ -1,0 +1,18 @@
+---
+manual: app.top_level_is_flow
+lines: [855, 857]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @a = button "A", width: 100
+  @b = button "B", width: 100
+  @c = button "C", width: 100
+end
+----------- test code
+a, b, c = %w[@a @b @c].map { |name| layout_of(button(name)) }
+
+assert_in_delta a.y, b.y, 0.5, "elements placed at the top level share a row"
+assert_in_delta a.y, c.y, 0.5
+assert_in_delta a.x + a.w, b.x, 0.5, "each follows the last, left to right"
+assert_in_delta b.x + b.w, c.x, 0.5

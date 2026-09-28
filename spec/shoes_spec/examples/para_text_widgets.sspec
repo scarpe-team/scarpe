@@ -1,0 +1,21 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/para_text_widgets.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  para "This is simple."
+  para "This has ", em("emphasis"), " and great ", strong("strength"), " and ", code("coolness"), "."
+end
+----------- test code
+# Test: Paras with inline text widgets (em, strong, code)
+ps = paras()
+assert_equal 2, ps.length, "Expected 2 paras"
+
+assert_equal "This is simple.", ps[0].text
+# Second para has embedded em, strong, and code widgets
+assert_includes ps[1].text, "emphasis"
+assert_includes ps[1].text, "strength"
+assert_includes ps[1].text, "coolness"

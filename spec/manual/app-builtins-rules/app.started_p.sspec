@@ -1,0 +1,16 @@
+---
+manual: app.started?
+lines: [1006, 1010]
+testability: api
+display: any
+ledger: M26
+----------- app code
+Shoes.app do
+  $during_build = started?
+  button("Check") { $after_open = started? }
+end
+----------- test code
+find_button("Check").trigger_click
+
+assert_equal false, $during_build, "the window is not started while its block is still building it"
+assert_equal true, $after_open, "and is once it is open"

@@ -1,0 +1,26 @@
+---
+manual: art.transform
+lines: [1857, 1860]
+testability: visual
+display: native
+ledger: E10
+----------- app code
+Shoes.app width: 300, height: 300 do
+  fill red
+  nostroke
+  transform :center
+  rotate 90
+  rect 100, 100, 60, 20
+end
+----------- test code
+# Turned 90 degrees about its centre (130, 110), the 60x20 bar stands on end:
+# x 120..140, y 80..140, whichever way it turns.
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(130, 85, [255, 0, 0], "transform :center turns the shape about its centre")
+paints.(130, 135, [255, 0, 0], "so it spans both sides of the centre")
+paints.(105, 110, [255, 255, 255], "and has left its old ends")

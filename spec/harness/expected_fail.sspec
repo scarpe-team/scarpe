@@ -1,0 +1,10 @@
+---
+# Runner self-test: a failing assertion under `expect: fail` reports expected_fail, not fail.
+expect: fail
+reason: runner self-test for expect fail
+----------- app code
+Shoes.app do
+  para "real text"
+end
+----------- test code
+assert_equal "other text", para.text

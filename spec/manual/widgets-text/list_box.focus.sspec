@@ -1,0 +1,22 @@
+---
+manual: list_box.focus
+lines: [3221, 3224]
+testability: interactive
+display: native
+ledger: G13
+----------- app code
+Shoes.app do
+  @first = list_box items: ["Grapes", "Pears", "Apricots"], choose: "Grapes"
+  @second = list_box items: ["Grapes", "Pears", "Apricots"], choose: "Grapes"
+end
+----------- test code
+second = list_box("@second")
+second.focus
+assert_equal second.linkable_id, focused_drawable&.linkable_id, "focus moves keyboard focus to the list box"
+
+press_key :down
+assert_equal "Pears", second.text, "the down arrow selects the next option"
+
+press_key :up
+assert_equal "Grapes", second.text, "the up arrow selects the previous one"
+assert_equal "Grapes", list_box("@first").text, "the other box is untouched"

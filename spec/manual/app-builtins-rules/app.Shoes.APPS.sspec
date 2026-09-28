@@ -1,0 +1,17 @@
+---
+manual: app.Shoes.APPS
+lines: [885, 889]
+testability: api
+display: any
+----------- app code
+Shoes.app title: "First" do
+  button("Another") { window(title: "Second") { para "two" } }
+end
+----------- test code
+find_button("Another").trigger_click
+
+apps = Shoes.APPS
+assert_kind_of Array, apps
+assert_equal 2, apps.size, "many apps run at once, and all are listed"
+assert apps.all?(Shoes::App), "every entry is a Shoes::App"
+assert_equal ["First", "Second"], apps.map { |app| app.style[:title] }

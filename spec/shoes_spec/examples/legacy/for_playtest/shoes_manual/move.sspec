@@ -1,0 +1,28 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/move.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+#!ruby
+ Shoes.app do
+   flow margin: 12 do
+     # Set up three buttons
+     button "One"
+     @two = button "Two"
+     button "Three"
+
+     # Bounce the second button
+     animate do |i|
+       @two.move(40, 40 + (Math.sin(i) * 6).to_i)
+     end
+   end
+ end
+----------- test code
+# Verify animated button movement with three buttons
+assert flows().length >= 1, "Expected a flow container"
+assert buttons().length >= 3, "Expected 3 buttons"
+assert_equal "One", buttons()[0].text
+assert_equal "Two", buttons()[1].text
+assert_equal "Three", buttons()[2].text

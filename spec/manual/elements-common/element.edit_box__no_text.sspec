@@ -1,0 +1,12 @@
+---
+manual: element.edit_box
+lines: [1965, 1966]
+testability: api
+display: any
+ledger: G12
+----------- app code
+Shoes.app do
+  edit_box
+end
+----------- test code
+assert_equal "", edit_box.text, "without the optional text the box starts out empty"

@@ -1,0 +1,29 @@
+---
+manual: events.click
+lines: [2187, 2193]
+testability: interactive
+display: native
+ledger: E8
+----------- app code
+# Shoes 3 runs a slot's click block as the press walks down the canvas to what it lands on,
+# then the block of the shape that takes the press (shoes_canvas_send_click2). So a card's
+# click runs before the click of a backdrop drawn under it, even one that takes the card away.
+$heard = []
+Shoes.app width: 300, height: 200 do
+  @backdrop = rect(0, 0, 300, 200, fill: gray(0.85))
+  @card = stack(left: 50, top: 40, width: 200, height: 80) do
+    background white
+    para "Click me", align: "center", margin_top: 30
+  end
+  @card.click { $heard << :card }
+  @backdrop.click do
+    $heard << :backdrop
+    @card.remove
+  end
+end
+----------- test code
+click_at 150, 80
+assert_equal [:card, :backdrop], $heard, "the card's block, then the backdrop's"
+
+click_at 20, 180
+assert_equal [:card, :backdrop, :backdrop], $heard, "off the card only the backdrop hears it"

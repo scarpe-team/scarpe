@@ -1,0 +1,18 @@
+---
+manual: styles.justify
+lines: [1268, 1273]
+testability: visual
+display: native
+ledger: F5
+----------- app code
+Shoes.app width: 400, height: 300 do
+  stack width: 200 do
+    @spread = para "aa bb cc dd ee ff gg hh ii jj kk ll mm nn oo pp qq rr ss tt uu vv ww xx", justify: true
+  end
+end
+----------- test code
+box = layout_of(para("@spread"))
+edge = ((box.x + box.w - 3).floor...(box.x + box.w).ceil).to_a
+rows = (box.y.floor...(box.y + box.h).ceil).select { |y| edge.any? { |x| pixel_at(x, y).first(3).sum < 384 } }
+lines_at_edge = rows.slice_when { |a, b| b > a + 1 }.count
+assert_operator lines_at_edge, :>=, 2, "at least two lines reach the right edge: the words are spread evenly across each line"

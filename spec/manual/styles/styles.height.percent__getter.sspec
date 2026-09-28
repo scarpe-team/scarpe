@@ -1,0 +1,15 @@
+---
+manual: styles.height.percent
+lines: [1239, 1245]
+testability: api
+display: any
+ledger: C1
+----------- app code
+Shoes.app width: 400, height: 400 do
+  @outer = stack width: 300, height: 200 do
+    @half = stack height: 0.5
+  end
+end
+----------- test code
+assert_equal 0.5, stack("@half").style[:height], "the style keeps the decimal as asked for"
+assert_equal 100, stack("@half").height, "a decimal height is that fraction of the parent's height"

@@ -1,0 +1,72 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/page_navigation_single_app.sspec
+source_commit: 1e766c6
+display: any
+expect: fail
+reason: Lacci makes title, subtitle, banner and caption Para subclasses (element.title),
+  so paras() still includes them, and the finders go by size, so restyling the size
+  loses the banner
+----------- app code
+Shoes.app(title: "Page Navigation Example", width: 300, height: 200) do
+  style(Shoes::Para, size: 10)
+  style(Shoes::Button, width: 80)
+
+  page(:home) do
+    title "Home Page"
+    background "#f0f0f0"
+    para "Welcome to the page navigation example!"
+    button "Go to Razzmatazz" do
+      visit(:razzmatazz)
+    end
+    button "Go to FlooperLand" do
+      visit(:flooperland)
+    end
+  end
+
+  page(:razzmatazz) do
+    title "Razzmatazz"
+    background "#DFA5A5"
+    para "This is Razzmatazz"
+    button "Go Home" do
+      visit(:home)
+    end
+    button "Go to FlooperLand" do
+      visit(:flooperland)
+    end
+  end
+
+  page(:flooperland) do
+    title "FlooperLand"
+    background "#A5DFA5"
+    para "This is FlooperLand"
+    button "Go Home" do
+      visit(:home)
+    end
+    button "Go to Razzmatazz" do
+      visit(:razzmatazz)
+    end
+  end
+
+  visit(:home)  # Start at the home page
+end
+----------- test code
+# Test: Page-based navigation with visit()
+# Initial state should be home page
+t = titles().first
+assert t, "Expected a title"
+assert_includes t.text, "Home", "Should start on Home Page"
+
+p = paras().first
+assert_includes p.text, "Welcome", "Home page should have welcome text"
+
+# Check navigation buttons exist
+btn_razz = find_button("Go to Razzmatazz")
+btn_floop = find_button("Go to FlooperLand")
+assert btn_razz, "Expected Razzmatazz navigation button"
+assert btn_floop, "Expected FlooperLand navigation button"
+
+# Navigate to Razzmatazz
+btn_razz.trigger_click
+assert_includes titles().first.text, "Razzmatazz", "Should be on Razzmatazz page after click"

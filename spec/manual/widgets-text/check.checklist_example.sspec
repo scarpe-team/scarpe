@@ -1,0 +1,30 @@
+---
+manual: check.checklist_example
+lines: [2930, 2945]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  stack do
+    flow { @c1 = check; @p1 = para "Frances Johnson" }
+    flow { @c2 = check; @p2 = para "Ignatius J. Reilly" }
+    flow { @c3 = check; @p3 = para "Winston Niles Rumfoord" }
+  end
+end
+----------- test code
+rows = [%w[@c1 @p1], %w[@c2 @p2], %w[@c3 @p3]].map do |box, name|
+  [layout_of(check(box)), layout_of(para(name))]
+end
+
+rows.each do |box, name|
+  assert_operator box.x + box.w, :<=, name.x + 0.5, "each check sits to the left of its name"
+  assert_operator box.y, :<, name.y + name.h, "a check and its name share a row"
+  assert_operator name.y, :<, box.y + box.h, "a check and its name share a row"
+end
+
+rows.each_cons(2) do |(upper_box, upper_name), (lower_box, lower_name)|
+  upper_bottom = [upper_box.y + upper_box.h, upper_name.y + upper_name.h].max
+  assert_operator [lower_box.y, lower_name.y].min, :>=, upper_bottom - 0.5, "each pair sits on its own row, top to bottom"
+end
+
+assert_equal 1, rows.map { |box, _| box.x.round }.uniq.size, "the checks line up in one column"

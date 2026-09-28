@@ -1,0 +1,26 @@
+---
+manual: textblock.types
+lines: [3370, 3376]
+testability: interactive
+display: native
+ledger: F14
+----------- app code
+# An ext pin: Shoes 3.1's Para#cursor_top is the top of the caret's line, measured in the
+# slot that scrolls the text, so it compares with that slot's scroll_top. Hackety Hack's
+# editor scrolls to keep its caret in view with it.
+Shoes.app width: 300, height: 200 do
+  @box = flow width: 1.0, height: 100, scroll: true do
+    @text = para (1..40).map { |n| "line #{n}" }.join("\n"), size: 10
+  end
+end
+----------- test code
+text = para("@text")
+text.cursor = 0
+first = text.cursor_top
+text.cursor = text.text.index("line 30")
+thirtieth = text.cursor_top
+pitch = (thirtieth - first) / 29.0
+assert_operator pitch, :>, 10, "each line lower down puts the caret one line pitch lower"
+assert_in_delta 4, first, 2, "the first line sits at the para's 4 px margin in the flow"
+flow("@box").scroll_top = 150
+assert_equal thirtieth, text.cursor_top, "scrolling moves the view, not where the caret sits in the flow"

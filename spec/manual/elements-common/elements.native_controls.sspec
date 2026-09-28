@@ -1,0 +1,17 @@
+---
+manual: elements.native_controls
+lines: [2540, 2542]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  stack do
+    $controls = [
+      button("Button"), edit_line, edit_box, list_box(items: ["One"]),
+      progress, check, radio,
+    ]
+  end
+end
+----------- test code
+assert_equal [Shoes::Button, Shoes::EditLine, Shoes::EditBox, Shoes::ListBox, Shoes::Progress, Shoes::Check, Shoes::Radio],
+  $controls.map(&:class), "the seven native controls, one creation method each"

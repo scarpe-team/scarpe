@@ -1,0 +1,17 @@
+---
+manual: app.top_level_is_flow
+lines: [855, 857]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 480 do
+  @a = button "A", width: 200
+  @b = button "B", width: 200
+  @c = button "C", width: 200
+end
+----------- test code
+a, b, c = %w[@a @b @c].map { |name| layout_of(button(name)) }
+
+assert_in_delta a.y, b.y, 0.5, "two 200-pixel buttons fit on a 480-pixel row"
+assert_in_delta a.x, c.x, 0.5, "the third does not, so it wraps to the left edge"
+assert_operator c.y, :>=, a.y + a.h - 0.5, "on the next row"

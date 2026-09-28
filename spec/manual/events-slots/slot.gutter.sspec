@@ -1,0 +1,17 @@
+---
+manual: slot.gutter
+lines: [2394, 2410]
+testability: api
+display: any
+ledger: C6
+----------- app code
+Shoes.app do
+  $gutter = gutter
+  @padded = stack margin_right: 20 + gutter do
+    para "Insert fat and ratified declaration of independence here..."
+  end
+end
+----------- test code
+assert_kind_of Integer, $gutter, "gutter is a number of pixels"
+assert_operator $gutter, :>=, 0
+assert_equal 20 + $gutter, stack("@padded").style[:margin_right], "so it pads elements on the right"

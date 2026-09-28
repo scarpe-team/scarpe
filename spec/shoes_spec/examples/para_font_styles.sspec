@@ -1,0 +1,36 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/para_font_styles.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+
+    para "this text is in normal styl" , emphasis:"italic"
+
+    para "this text is in italic style" , font: "italic normal bold 16px 'Times New Roman', serif;"
+
+
+    para "this text is in oblique style " , family: "'Pacifico', cursive;"
+
+    para "Text in Helvetica", font: "Helvetica;"
+      
+    para "And in Lucida", font: "'Pacifico', cursive;"
+      
+    para "From an example", font: "Trebuchet  bold"
+      
+end
+----------- test code
+# Test: Paras with various font style options
+ps = paras()
+assert_equal 6, ps.length, "Expected 6 paras with different font styles"
+
+# Check text content
+texts = ps.map(&:text)
+assert_includes texts[0], "normal"
+assert_includes texts[1], "italic"
+assert_includes texts[2], "oblique"
+assert_includes texts[3], "Helvetica"
+assert_includes texts[4], "Lucida"
+assert_includes texts[5], "example"

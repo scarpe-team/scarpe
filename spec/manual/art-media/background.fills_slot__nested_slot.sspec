@@ -1,0 +1,24 @@
+---
+manual: background.fills_slot
+lines: [2773, 2774]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  stack left: 50, top: 50, width: 100, height: 80 do
+    background red
+  end
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  assert_equal expected, actual, "#{why} at (#{x}, #{y})"
+end
+red = [255, 0, 0]
+white = [255, 255, 255]
+
+paints.(51, 51, red, "the background paints its slot's top left")
+paints.(148, 128, red, "and bottom right")
+paints.(48, 90, white, "and nothing left of the slot")
+paints.(152, 90, white, "or right of it")
+paints.(100, 132, white, "or below it")

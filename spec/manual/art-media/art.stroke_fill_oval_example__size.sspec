@@ -1,0 +1,20 @@
+---
+manual: art.stroke_fill_oval_example
+lines: [1639, 1640]
+testability: visual
+display: native
+ledger: M1
+----------- app code
+Shoes.app do
+  stroke red
+  fill blue
+  oval top: 10, left: 10,
+  radius: 100
+end
+----------- test code
+# M1: the radius: style is a true radius, so the pie is 200 wide, not the "one-hundred
+# pixels" the prose says (manual 1644-1645 is errata).
+assert_equal [0, 0, 255], pixel_at(205, 110).first(3), "the pie reaches x = 205"
+assert_equal [0, 0, 255], pixel_at(110, 205).first(3), "and y = 205"
+assert_equal [255, 255, 255], pixel_at(215, 110).first(3), "and stops at 210 across"
+assert_equal [255, 255, 255], pixel_at(110, 215).first(3), "and 210 down"

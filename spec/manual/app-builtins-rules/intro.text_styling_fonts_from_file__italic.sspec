@@ -1,0 +1,26 @@
+---
+manual: intro.text_styling_fonts_from_file
+lines: [64, 66]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  stack do
+    @upright = para "H", size: 72
+    @slanted = para em("H"), size: 72
+  end
+end
+----------- test code
+# How far the H's left stem leans: its leftmost ink on a high row minus on a low row.
+lean = lambda do |rect|
+  high, low = [0.4, 0.7].map do |fraction|
+    y = (rect.y + rect.h * fraction).round
+    rect.x.ceil.upto((rect.x + rect.w - 1).floor).find { |x| pixel_at(x, y)[0, 3].sum < 384 }
+  end
+  refute_nil high, "the H drew ink on the high row"
+  refute_nil low, "and on the low row"
+  high - low
+end
+
+assert_in_delta 0, lean.call(layout_of(para("@upright"))), 1, "a regular H stands straight"
+assert_operator lean.call(layout_of(para("@slanted"))), :>=, 2, "an italic H leans to the right"

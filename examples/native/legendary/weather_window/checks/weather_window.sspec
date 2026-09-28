@@ -1,0 +1,111 @@
+---
+display: native
+testability: interactive
+timeout: 150
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/legendary/weather_window/weather_window.rb")
+----------- test code
+srand(11) # the weather has a little chance in it; this makes it the same chance every run
+app = Shoes.APPS.first
+state = ->(name) { app.instance_variable_get("@#{name}") }
+frames = ->(n) { n.times { advance 1 / 30.0 } }
+texts = -> { paras.map(&:text) }
+lines_now = -> { layout_tree.select { |node| node[:kind] == "Line" } }
+
+# The postcards come first, one for each weather, each with its own address.
+assert_equal "/", app.location
+assert_includes texts.(), "Weather Window"
+%w[Sun Rain Snow Storm].each { |name| assert_includes texts.(), name }
+assert_includes texts.(), "2  ·  /rain"
+
+# A postcard is a way in: clicking the rain card goes to /rain.
+click_on "Rain"
+assert_equal "/rain", app.location
+assert_includes texts.(), "Rain. The kettle is on."
+drops = state.(:drops)
+assert_equal 90, drops.size
+before = drops.map(&:y)
+frames.(3)
+moved = drops.each_with_index.count { |drop, i| drop.y > before[i] }
+assert moved > 60, "the rain falls: #{moved} of 90 drops lower (the rest landed and started again)"
+drops.first(10).each do |drop|
+  assert_in_delta drop.x, drop.line.left, 1, "each streak is drawn where its drop is"
+  assert_in_delta drop.y, drop.line.top, 1
+end
+
+# Every streak stays a short streak: none of them ever stretches across the glass.
+60.times do
+  advance 1 / 30.0
+  long = lines_now.().select { |line| line[:w] > 40 || line[:h] > 40 }
+  assert_empty long, "a raindrop stretched across the window: #{long.first.inspect}"
+end
+
+# The clouds drift along.
+clouds = state.(:clouds)
+drift = clouds.map { |slot, _, _| slot.displace_left }
+frames.(30)
+assert clouds.each_with_index.all? { |(slot, _, _), i| slot.displace_left > drift[i] || slot.displace_left < -100 }, "the clouds drift"
+
+# Drops that land in the pond leave rings.
+assert state.(:ripple_ages).any? { |age| age <= 18 }, "the pond and the puddles ripple"
+x, y = 196 + 190, 104 + 298
+pond = pixel_at(x, y)
+assert pond.first(3).sum.between?(250, 600), "the pond is grey-blue water: #{pond.inspect}"
+
+# The chips and the keys go from page to page, and nothing of the old page stays.
+click_on "Snow"
+assert_equal "/snow", app.location
+assert_includes texts.(), "Snow. Nobody is going anywhere."
+assert_nil state.(:drops_on_glass), "no rain on the glass in the snow"
+assert_equal 120, state.(:flakes).size
+assert_equal 0, lines_now.().count { |line| line[:w] > 30 }, "the rain streaks went with the rain page"
+smoke = state.(:smoke)
+frames.(40)
+assert smoke.any? { |puff| puff.top < 150 }, "smoke rises from the chimney"
+flakes = state.(:flakes)
+before = flakes.map(&:y)
+frames.(15)
+fell = flakes.each_with_index.count { |flake, i| flake.y > before[i] }
+assert_operator fell, :>, 100, "snow falls: #{fell} of 120 flakes lower (the rest reached the ground and started again)"
+
+press_key "1"
+assert_equal "/sun", app.location
+assert_equal 12, state.(:rays).size
+angle = ->(ray) { Math.atan2(ray.y2 - ray.top, ray.x2 - ray.left) }
+first = angle.(state.(:rays).first)
+frames.(30)
+assert_in_delta 0.12, (angle.(state.(:rays).first) - first) % (2 * Math::PI), 0.02, "the sun turns slowly"
+beam = pixel_at(300, 500) # in the light below the sill
+wall = pixel_at(76, 500)  # the same paper, out of it
+assert beam[0] >= wall[0] && beam[2] < wall[2] - 3, "the sunbeam warms the wall: #{beam.inspect} vs #{wall.inspect}"
+
+# The storm: its lightning is one soft flash, and never another for five seconds.
+press_key :right # the next page after sun is rain
+assert_equal "/rain", app.location
+press_key "4"
+assert_equal "/storm", app.location
+assert_includes texts.(), "Storm. Count the seconds after the flash."
+flash = state.(:flash)
+sky = -> { pixel_at(196 + 420, 104 + 110).first(3).sum }
+dark = 10.times.map { advance 1 / 30.0; sky.() }.min
+strikes = []
+peak = 0.0
+brightest = dark
+(30 * 20).times do |f|
+  advance 1 / 30.0
+  alpha = flash.fill.alpha / 255.0
+  peak = [peak, alpha].max
+  strikes << f if state.(:struck) == 1
+  brightest = [brightest, sky.()].max if state.(:struck)&.between?(2, 5)
+end
+assert_operator strikes.size, :>=, 2, "it strikes now and then"
+assert_operator strikes.size, :<=, 4
+gaps = strikes.each_cons(2).map { |a, b| (b - a) / 30.0 }
+assert gaps.all? { |gap| gap >= 5.4 }, "strikes are at least five seconds apart: #{gaps.inspect}"
+assert_operator peak, :<=, 0.31, "the flash is soft"
+assert_operator brightest, :>, dark + 20, "the sky does brighten"
+assert_operator brightest, :<, 500, "but only to a soft grey, never to white (765)"
+
+press_key :escape
+assert_equal "/", app.location
+assert_includes texts.(), "Choose the weather, and it will be waiting outside."

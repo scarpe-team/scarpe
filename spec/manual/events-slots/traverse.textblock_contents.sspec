@@ -1,0 +1,16 @@
+---
+manual: traverse.textblock_contents
+lines: [2523, 2524]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $words = para "plain ", strong("bold"), " end"
+end
+----------- test code
+children = $words.contents
+assert_equal 3, children.size, "a text block lists its children"
+assert_equal "plain ", children[0]
+assert_kind_of Shoes::Strong, children[1]
+assert_equal "bold", children[1].text
+assert_equal " end", children[2]

@@ -1,0 +1,17 @@
+---
+manual: styles.state.readonly
+lines: [1417, 1420]
+testability: interactive
+display: native
+ledger: G4
+----------- app code
+Shoes.app width: 400, height: 200 do
+  @line = edit_line text: "fixed", state: "readonly"
+end
+----------- test code
+line = edit_line("@line")
+click_on line
+assert_equal line.linkable_id, focused_drawable&.linkable_id, "a read-only edit_line is still active: it takes focus"
+
+type_text "changed"
+assert_equal "fixed", line.text, "but typing does not edit it"

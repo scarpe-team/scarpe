@@ -1,0 +1,17 @@
+---
+manual: builtins.ask_open_folder
+lines: [681, 693]
+testability: dialog
+display: any
+dialogs: {ask_open_folder: "pictures"}
+----------- app code
+Dir.mkdir("pictures")
+File.write("pictures/sphere.png", "")
+
+folder = ask_open_folder
+Shoes.app do
+  para Dir.entries(folder)
+end
+----------- test code
+assert_equal [[:ask_open_folder]], dialog_calls, "ask_open_folder shows the Open Folder window"
+assert_includes para.text, "sphere.png", "it hands back the chosen folder's name"

@@ -1,0 +1,21 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/background_pattern.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+#!ruby
+ Shoes.app do
+   background black
+   background white, width: 50
+ end
+----------- test code
+# Tests multiple backgrounds (black base, white stripe)
+# Verifies multiple backgrounds can stack
+
+# Should have 2 backgrounds
+backgrounds = Shoes::App.find_drawables_by(Shoes::Background)
+assert_equal 2, backgrounds.length, "Should have exactly two backgrounds"
+
+assert true, "Background pattern test completed"

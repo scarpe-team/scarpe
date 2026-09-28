@@ -1,0 +1,26 @@
+---
+manual: art.oval.four_args
+lines: [1734, 1734]
+testability: visual
+display: native
+ledger: M2
+----------- app code
+Shoes.app width: 300, height: 200 do
+  fill red
+  nostroke
+  oval 10, 10, 200, 100
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+red = [255, 0, 0]
+white = [255, 255, 255]
+
+paints.(110, 60, red, "the oval's centre is the middle of (10, 10, 200, 100)")
+paints.(205, 60, red, "it is 200 wide")
+paints.(215, 60, white, "and no wider")
+paints.(110, 105, red, "it is 100 high")
+paints.(110, 115, white, "and no higher")

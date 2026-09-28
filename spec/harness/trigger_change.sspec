@@ -1,0 +1,12 @@
+---
+# Runner self-test: trigger_change works on every display (spec/support adds it to Niente).
+testability: api
+----------- app code
+Shoes.app do
+  @echo = para ""
+  @line = edit_line { @echo.replace @line.text }
+end
+----------- test code
+edit_line.trigger_change("typed")
+assert_equal "typed", edit_line.text
+assert_equal "typed", para.text

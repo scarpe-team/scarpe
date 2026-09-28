@@ -1,0 +1,14 @@
+---
+manual: styles.readback
+lines: [2475, 2477]
+testability: api
+display: any
+ledger: C2
+----------- app code
+Shoes.app width: 400 do
+  @s = stack width: "100%"
+end
+----------- test code
+s = stack("@s")
+assert_equal "100%", s.style[:width], "style[:width] is the width originally requested"
+assert_equal 400, s.width, "width is the true pixel width, which differs from the request"

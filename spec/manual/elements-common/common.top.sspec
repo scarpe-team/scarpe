@@ -1,0 +1,20 @@
+---
+manual: common.top
+lines: [2719, 2721]
+testability: visual
+display: native
+ledger: A4
+----------- app code
+Shoes.app do
+  stack do
+    @one = button "One"
+    @two = button "Two"
+  end
+end
+----------- test code
+two = layout_of(button("@two"))
+
+assert_operator two.y, :>, 0, "Two sits under One"
+top = button("@two").top
+refute_nil top, "top gives a number"
+assert_in_delta two.y, top, 1, "top is the pixel position of its top edge"

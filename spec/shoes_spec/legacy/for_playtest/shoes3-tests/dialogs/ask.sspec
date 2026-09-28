@@ -1,0 +1,25 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/shoes3-tests/dialogs/ask.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/for_playtest/shoes3-tests/dialogs/ask.sspec
+----------- app code
+Shoes.app do
+  button "ask" do
+    ans = ask "Feeling lucky?"
+    para ans
+  end
+end
+----------- test code
+# Verify button exists
+assert_equal "ask", button().text
+
+# Stub ask() to return a known value, then trigger the button
+stub_dialog(:ask, "Very lucky!")
+button().trigger_click
+
+# The para should now contain our stubbed response
+assert_equal "Very lucky!", para().text

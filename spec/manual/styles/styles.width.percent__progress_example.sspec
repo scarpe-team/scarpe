@@ -1,0 +1,22 @@
+---
+manual: styles.width.percent
+lines: [3245, 3259]
+testability: visual
+display: native
+ledger: C1
+----------- app code
+Shoes.app do
+  stack margin: 0.1 do
+    title "Progress example"
+    @p = progress width: 1.0
+
+    animate do |i|
+      @p.fraction = (i % 100) / 100.0
+    end
+  end
+end
+----------- test code
+slot = layout_of(stack)
+bar = layout_of(progress)
+assert_operator slot.w, :>, 250, "the stack is much wider than a default 200 pixel progress bar"
+assert_in_delta slot.w, bar.w, 0.5, "width: 1.0 stretches the bar across its whole slot"

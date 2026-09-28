@@ -1,0 +1,21 @@
+---
+manual: button.click_later
+lines: [2894, 2908]
+testability: interactive
+display: any
+----------- app code
+Shoes.app do
+  @b1 = button "OK!"
+  @b1.click { para "Well okay then." }
+  @b2 = button "Are you sure?"
+  @b2.click { para "Your confidence is inspiring." }
+end
+----------- test code
+assert_empty paras, "attaching a click block does not run it"
+
+button("@b1").trigger_click
+button("@b1").trigger_click
+button("@b2").trigger_click
+
+expected = { "Well okay then." => 2, "Your confidence is inspiring." => 1 }
+assert_equal expected, paras.map(&:text).tally, "a block attached with click works like one given to button"

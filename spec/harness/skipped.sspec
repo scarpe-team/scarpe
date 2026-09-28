@@ -1,0 +1,8 @@
+---
+# Runner self-test: skip in test code reports skip.
+----------- app code
+Shoes.app do
+  para "hi"
+end
+----------- test code
+skip "runner self-test for skip"

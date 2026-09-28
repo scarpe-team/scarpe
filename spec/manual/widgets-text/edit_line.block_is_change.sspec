@@ -1,0 +1,17 @@
+---
+manual: edit_line.block_is_change
+lines: [3081, 3082]
+testability: interactive
+display: any
+----------- app code
+Shoes.app do
+  $seen = []
+  @line = edit_line { $seen << @line.text }
+end
+----------- test code
+assert_empty $seen, "the block waits for a change"
+
+edit_line.trigger_change("S")
+edit_line.trigger_change("Sh")
+
+assert_equal %w[S Sh], $seen, "a block given to edit_line receives its change events"

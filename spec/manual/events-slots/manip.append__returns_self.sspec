@@ -1,0 +1,14 @@
+---
+manual: manip.append
+lines: [2296, 2296]
+testability: api
+display: any
+ledger: B6
+----------- app code
+Shoes.app do
+  $slot = stack { para "first" }
+  @go = button("Go") { $returned = $slot.append { para "second" } }
+end
+----------- test code
+button("@go").trigger_click
+assert_same $slot, $returned, "append returns self"

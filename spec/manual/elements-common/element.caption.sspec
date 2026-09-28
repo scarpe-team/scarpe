@@ -1,0 +1,13 @@
+---
+manual: element.caption
+lines: [1941, 1941]
+testability: api
+display: any
+ledger: F2
+----------- app code
+Shoes.app do
+  $block = caption "Shoes"
+end
+----------- test code
+assert Shoes.const_defined?(:Caption), "Shoes::Caption exists"
+assert_kind_of Shoes::Caption, $block, "caption returns a Shoes::Caption"

@@ -1,0 +1,92 @@
+---
+display: native
+testability: interactive
+timeout: 150
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/legendary/marble_machine/marble_machine.rb")
+----------- test code
+srand(7) # every knock has a little chance in it; this makes it the same chance every run
+app = Shoes.APPS.first
+state = ->(name) { app.instance_variable_get("@#{name}") }
+frames = ->(n) { n.times { advance 1 / 60.0 } }
+marbles = -> { state.(:marbles) }
+settled = -> { marbles.().select { |m| m.state == :settled } }
+static_ovals = ovals.size
+
+# The welcome pour: 24 marbles from the hopper, and every one comes to rest in a tube.
+frames.(20)
+assert marbles.().any? { |m| m.state == :rolling }, "marbles are falling from the hopper"
+assert marbles.().all? { |m| m.tail.size == 7 }, "a rolling marble drags a tail of seven dots"
+frames.(60 * 6)
+assert_equal 24, settled.().size
+assert_equal "24", para("@count").text
+assert_equal "0 rolling", para("@rolling").text
+assert_match(/\A\d+ fps\z/, para("@fps").text, "the card counts the frames")
+assert settled.().all? { |m| m.tail.empty? }, "a marble at rest lets its tail go"
+
+# Nothing escapes the glass, every marble is in the tube under it, and no two overlap.
+check_piles = lambda do
+  settled.().each do |m|
+    assert m.x.between?(46, 554), "inside the walls: #{m.x}"
+    assert m.y.between?(398, 594.01), "in the tubes: #{m.y}"
+    assert_equal ((m.x - 40) / 40).floor, m.tube, "a marble sits in its own tube"
+  end
+  settled.().combination(2).each do |a, b|
+    assert Math.hypot(a.x - b.x, a.y - b.y) >= 11.9, "two marbles overlap at #{a.x.round}, #{a.y.round}"
+  end
+end
+check_piles.()
+
+# And the picture shows them where the app says they are.
+m = settled.().first
+glass = pixel_at(m.x, m.y + 3)
+assert glass.first(3).sum > 200, "a marble is drawn at #{m.x.round}, #{m.y.round}: #{glass.inspect}"
+empty_tube = pixel_at(40 + 20, 420)
+assert empty_tube.first(3).sum < 150, "the glass of a tube is dark: #{empty_tube.inspect}"
+
+# Pick the ruby swatch and click above the pins: a ruby marble appears right there.
+click_on state.(:spots)[0]
+assert_equal 0, state.(:color)
+assert !state.(:hint).hidden, "the hint shows until the first drop"
+click_at 180, 80
+dropped = marbles.().last
+assert_equal [233, 69, 96], dropped.color
+assert_in_delta 180, dropped.x, 1
+assert state.(:hint).hidden, "the hint goes once someone has dropped a marble"
+
+# Hold the button and sweep: a stream follows the pointer.
+auto = Scarpe::Native::DisplayService.instance.automation
+before = marbles.().size
+auto.mouse(:move, 120, 70)
+auto.mouse(:down, 120, 70)
+30.times do |i|
+  auto.mouse(:move, 120 + i * 10, 70)
+  advance 1 / 60.0
+end
+auto.mouse(:up, 420, 70)
+streamed = marbles.().size - before
+assert_operator streamed, :>=, 6, "about one marble every five frames while the button is down"
+frames.(20)
+assert_equal marbles.().size, before + streamed, "letting go stops the stream"
+
+# Space pours forty more. They all land, and the pile is a bell: the middle
+# tubes hold more than the edges.
+press_key " "
+frames.(60 * 8)
+total = 24 + 1 + streamed + 40
+assert_equal total, settled.().size, "every marble has landed"
+assert_equal total.to_s, para("@count").text
+check_piles.()
+piles = state.(:piles).map { |pile| pile.sum(&:size) }
+assert_operator piles[4..8].sum, :>, 3 * (piles[0..1].sum + piles[11..12].sum), "a bell: #{piles.inspect}"
+
+# Empty the tubes: the floor slides open, every marble falls out and the floor shuts again.
+click_on "Empty the tubes"
+frames.(10)
+assert_equal 1, state.(:door), "the floor is open"
+assert marbles.().all? { |m| m.state == :dropping }
+frames.(60 * 2)
+assert_empty marbles.()
+assert_equal 0, state.(:door), "and shut again"
+assert_equal "0", para("@count").text
+assert_equal static_ovals, ovals.size, "no marble, tail or ripple is left behind"

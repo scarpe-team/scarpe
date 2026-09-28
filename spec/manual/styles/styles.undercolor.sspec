@@ -1,0 +1,16 @@
+---
+manual: styles.undercolor
+lines: [1489, 1494]
+testability: visual
+display: native
+ledger: F5
+----------- app code
+Shoes.app width: 400, height: 300 do
+  flow(margin_bottom: 20) { @text = para "H     H", underline: "single", undercolor: red, size: 30 }
+end
+----------- test code
+box = layout_of(para("@text"))
+x = (box.x + box.w / 2).round
+line = (box.y.floor...(box.y + box.h + 10).ceil).map { |y| pixel_at(x, y).first(3) }.reject { |px| px.sum > 700 }
+refute_empty line, "a line crosses the gap between the letters"
+assert line.all? { |r, g, b| r > 200 && g < 150 && b < 150 }, "and it is red, although the letters are the default colour: #{line.inspect}"

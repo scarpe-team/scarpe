@@ -1,0 +1,17 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/kernel/ask_open_file.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+# Original: Shoes.app do filename = ask_open_file; ... end
+# Disabled: ask_open_file() blocks and requires manual file selection
+Shoes.app do
+  para "Ask open file test disabled - modal dialogs block test runner"
+end
+----------- test code
+# File picker dialog test - app code disabled to prevent blocking
+# Original functionality: ask_open_file() displays file picker
+p = para()
+assert p.text.include?("disabled"), "Ask open file test shows disabled message"

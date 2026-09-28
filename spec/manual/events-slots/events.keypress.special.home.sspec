@@ -1,0 +1,13 @@
+---
+manual: events.keypress.special.home
+lines: [2242, 2245]
+testability: interactive
+display: native
+----------- app code
+$keys = []
+Shoes.app do
+  keypress { |key| $keys << key }
+end
+----------- test code
+press_key :home
+assert_equal [:home], $keys, "the home key arrives once, as the Symbol :home"

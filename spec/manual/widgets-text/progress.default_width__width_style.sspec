@@ -1,0 +1,18 @@
+---
+manual: progress.default_width
+lines: [3245, 3246]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  stack do
+    @plain = progress
+    @long = progress width: 300
+  end
+end
+----------- test code
+plain = layout_of(progress("@plain"))
+long = layout_of(progress("@long"))
+
+assert_in_delta 300, long.w, 0.5, ":width lengthens the bar"
+assert_operator long.w, :>, plain.w

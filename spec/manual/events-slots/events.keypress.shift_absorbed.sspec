@@ -1,0 +1,14 @@
+---
+manual: events.keypress.shift_absorbed
+lines: [2223, 2226]
+testability: interactive
+display: native
+ledger: H1
+----------- app code
+$keys = []
+Shoes.app do
+  keypress { |key| $keys << key }
+end
+----------- test code
+press_key :shift_7
+assert_equal ["&"], $keys, "on a US keyboard Shift-7 is the String \"&\", with no shift in it"

@@ -1,0 +1,28 @@
+---
+manual: styles.attach.nil_resets
+lines: [1089, 1091]
+testability: visual
+display: native
+ledger: C11
+----------- app code
+Shoes.app width: 400, height: 300 do
+  stack margin: 40 do
+    @words = para "Above the pinned slot"
+    @pinned = stack width: 60, height: 40, attach: Window do
+      background red
+    end
+  end
+end
+----------- test code
+pinned = stack("@pinned")
+start = layout_of(pinned)
+assert_in_delta 0, start.x, 0.5, "attached to the window, the slot starts at the window's left edge"
+assert_in_delta 0, start.y, 0.5, "and its top edge"
+
+pinned.style(attach: nil)
+wait_frames
+
+now = layout_of(pinned)
+words = layout_of(para("@words"))
+assert_in_delta words.x - 4, now.x, 0.5, "back in the stack, it lines up with its neighbour (whose text sits in a 4 px margin, ledger C9)"
+assert_operator now.y, :>=, words.y + words.h - 0.5, "and flows in below the paragraph"

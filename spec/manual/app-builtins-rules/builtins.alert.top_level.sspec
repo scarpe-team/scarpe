@@ -1,0 +1,15 @@
+---
+manual: builtins.alert.top_level
+lines: [579, 584]
+testability: dialog
+display: any
+ledger: A5
+----------- app code
+$apps_open_at_alert = Shoes.APPS.size
+alert "No dots in sight"
+
+# The runner hooks its test code into the first app, so one must follow.
+Shoes.app { para "after the alert" }
+----------- test code
+assert_equal 0, $apps_open_at_alert, "no app existed when alert was called"
+assert_equal [:alert, "No dots in sight"], dialog_calls.first, "alert works at the top level of a script"

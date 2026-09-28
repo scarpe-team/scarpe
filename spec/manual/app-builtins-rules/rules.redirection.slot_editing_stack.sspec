@@ -1,0 +1,17 @@
+---
+manual: rules.redirection.slot_editing_stack
+lines: [246, 267]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  stack do
+    para "First"
+    para "Second"
+    para "Third"
+  end
+end
+----------- test code
+assert_equal %w[First Second Third], stack.contents.map(&:text), "drawing inside the block is redirected to the stack"
+assert_equal [stack.linkable_id], Shoes.APPS.first.document_root.contents.map(&:linkable_id),
+  "nothing lands in the App's top slot"

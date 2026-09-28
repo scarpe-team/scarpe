@@ -1,0 +1,15 @@
+---
+manual: builtins.ask
+lines: [629, 641]
+testability: dialog
+display: any
+dialogs: {ask: "Nick"}
+----------- app code
+name = ask("Please, enter your name:")
+
+Shoes.app do
+  @greeting = para "Hello, #{name}"
+end
+----------- test code
+assert_equal [[:ask, "Please, enter your name:"]], dialog_calls, "ask shows its question"
+assert_equal "Hello, Nick", para("@greeting").text, "ask returns the String the person typed"

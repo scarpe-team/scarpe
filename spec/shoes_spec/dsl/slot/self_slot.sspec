@@ -1,0 +1,23 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/dsl/slot/self_slot.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  $app_self = self
+  @a = 7
+  p = para ""
+  stack do
+    $stack_self = self
+    p.replace "val: #{@a.inspect}"
+  end
+
+  if $app_self == $stack_self
+    button "OK"
+  end
+end
+----------- test code
+assert_equal "OK", button().text, "It looks like app's self is not equal to stack's self!"
+assert_equal "val: 7", para().text, "It looks like the stack's instance vars are not the same as the app's!"

@@ -1,0 +1,20 @@
+---
+manual: styles.cap
+lines: [1108, 1113]
+testability: visual
+display: native
+ledger: E10
+----------- app code
+Shoes.app width: 300, height: 200 do
+  strokewidth 20
+  @flat = line 50, 50, 150, 50, cap: :rect
+  @round = line 50, 100, 150, 100, cap: :curve
+  @square = line 50, 150, 150, 150, cap: :project
+end
+----------- test code
+dark = ->(x, y) { pixel_at(x, y).first(3).sum < 200 }
+refute dark.call(155, 50), ":rect ends the line flat at its end point"
+assert dark.call(155, 100), ":curve rounds the end out past the end point"
+refute dark.call(157, 108), "a round end leaves the corner empty"
+assert dark.call(155, 150), ":project sticks out past the end point"
+assert dark.call(157, 158), "and a projecting end is square, corner included"

@@ -1,0 +1,19 @@
+---
+manual: app.added_to_APPS
+lines: [881, 883]
+testability: api
+display: any
+----------- app code
+$apps_before = Shoes.APPS.dup
+
+Shoes.app do
+  $main = self
+  button("Spawn") { window { $spawned = self } }
+end
+----------- test code
+assert_empty $apps_before, "no app is listed before one is created"
+assert_equal [$main], Shoes.APPS, "Shoes.app adds its app to Shoes.APPS"
+
+find_button("Spawn").trigger_click
+
+assert_equal [$main, $spawned], Shoes.APPS, "so does every window it spawns"

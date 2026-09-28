@@ -1,0 +1,12 @@
+---
+manual: styles.rise
+lines: [1366, 1373]
+testability: api
+display: any
+ledger: F5
+----------- app code
+Shoes.app do
+  @it = para "up", rise: 10
+end
+----------- test code
+assert_equal 10, para("@it").style[:rise], "the :rise style is kept on the para and reads back, so a display can draw it"

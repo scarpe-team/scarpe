@@ -1,0 +1,14 @@
+---
+manual: background.is_pattern
+lines: [2754, 2755]
+testability: api
+display: any
+ledger: D9
+----------- app code
+Shoes.app do
+  $background = background red
+  $border = border blue
+end
+----------- test code
+assert_kind_of Shoes::Pattern, $background, "a background is a kind of Shoes::Pattern"
+assert_kind_of Shoes::Pattern, $border, "and so is a border"

@@ -1,0 +1,23 @@
+---
+manual: list_box.default_size
+lines: [3183, 3197]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  para "Choose a fruit:"
+  @plain = list_box items: ["Grapes", "Pears", "Apricots"]
+  @narrow = list_box items: ["Grapes", "Pears", "Apricots"],
+    width: 120, choose: "Apricots" do |list|
+      @fruit.text = list.text
+  end
+
+  @fruit = para "No fruit selected"
+end
+----------- test code
+plain = layout_of(list_box("@plain"))
+narrow = layout_of(list_box("@narrow"))
+
+assert_in_delta 120, narrow.w, 0.5, ":width adjusts the length"
+refute_in_delta plain.w, narrow.w, 2
+assert_in_delta plain.h, narrow.h, 0.5, "and leaves the height alone"

@@ -1,0 +1,19 @@
+---
+manual: styles.bottom
+lines: [1100, 1106]
+testability: visual
+display: native
+ledger: C10
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @slot = stack margin_top: 20, width: 300, height: 200 do
+    para "in the flow"
+    @foot = stack width: 50, height: 30, bottom: 0 do
+      background red
+    end
+  end
+end
+----------- test code
+slot = layout_of(stack("@slot"))
+foot = layout_of(stack("@foot"))
+assert_in_delta slot.y + slot.h, foot.y + foot.h, 0.5, "bottom: 0 makes the element's lower edge touch the slot's lower edge"

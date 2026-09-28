@@ -1,0 +1,17 @@
+---
+manual: styles.top.nil_flows
+lines: [1481, 1487]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @row = flow margin_top: 30, width: 300 do
+    @spacer = stack width: 80, height: 20
+    @flowing = button "Flowing", top: nil
+  end
+end
+----------- test code
+row = layout_of(flow("@row"))
+flowing = layout_of(button("@flowing"))
+assert_in_delta row.x + 80, flowing.x, 0.5, "with top: nil the button flows in after its 80 pixel neighbour"
+assert_in_delta row.y, flowing.y, 0.5, "on the same row, at the flow's top"

@@ -1,0 +1,30 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/drawables/radio/radio_click_callback.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  @log = []
+  @r1 = radio :test
+  @r1.click { @log << "r1" }
+  @r2 = radio :test
+  @r2.click { @log << "r2" }
+end
+----------- test code
+r1 = radio("@r1")
+r2 = radio("@r2")
+app = Shoes.APPS[0]
+
+# Click r1 — callback should fire
+r1.trigger_click
+assert_equal ["r1"], app.instance_variable_get(:@log), "r1 callback should fire"
+
+# Click r2 — callback should fire, r1 callback should NOT re-fire
+r2.trigger_click
+assert_equal ["r1", "r2"], app.instance_variable_get(:@log), "r2 callback should fire"
+
+# Click r1 again — callback should still work (not destroyed by prior clicks)
+r1.trigger_click
+assert_equal ["r1", "r2", "r1"], app.instance_variable_get(:@log), "r1 callback should still work after switching"

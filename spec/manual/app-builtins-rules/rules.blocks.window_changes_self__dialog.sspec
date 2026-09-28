@@ -1,0 +1,18 @@
+---
+manual: rules.blocks.window_changes_self
+lines: [231, 233]
+testability: api
+display: any
+----------- app code
+Shoes.app title: "MAIN" do
+  button "Ask" do
+    dialog title: "DIALOG" do
+      $dialog_self = self
+    end
+  end
+end
+----------- test code
+find_button("Ask").trigger_click
+
+assert_equal 2, Shoes.APPS.size, "dialog opened a new App"
+assert_same Shoes.APPS.last, $dialog_self, "and inside its block, self is that new App"

@@ -1,0 +1,26 @@
+---
+display: native
+testability: visual
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/showcase/for_noah.rb")
+----------- test code
+nodes = layout_tree
+card = nodes.find { |node| node[:kind] == "Stack" && node[:w] == 488 && node[:h] == 536 }
+refute_nil card, "the card is laid out"
+card_bottom = card[:y] + card[:h]
+
+texts = nodes.select { |node| node[:kind] == "Para" }
+assert_equal ["For Noah", "who made Scarpe's display services swappable"], texts.first(2).map { |node| node[:text] }
+texts.each do |node|
+  assert_operator node[:y] + node[:h], :<=, card_bottom - 8, "#{node[:text][0, 30].inspect} fits inside the card"
+end
+
+link = nodes.find { |node| node[:kind] == "Link" }
+assert_equal "scarpe-team/scarpe", link[:text]
+assert_operator link[:y], :<, card_bottom, "the link is on the card"
+
+# the shoe's upper is clay, its sole cream, both on the white card
+upper = pixel_at(card[:x] + 118 + 60, card[:y] + 36 + 62)
+assert upper[0] > 180 && upper[1] < 150 && upper[2] < 130, "clay upper, got #{upper.inspect}"
+sole = pixel_at(card[:x] + 118 + 100, card[:y] + 36 + 90)
+assert sole.first(3).all? { |channel| channel > 225 }, "cream sole, got #{sole.inspect}"

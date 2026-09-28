@@ -1,0 +1,17 @@
+---
+manual: styles.fill.value_types
+lines: [1202, 1210]
+testability: api
+display: any
+ledger: M17
+----------- app code
+Shoes.app do
+  @hex = rect 10, 10, 40, 40, fill: "#00ff00"
+  @color = rect 60, 10, 40, 40, fill: red
+  @hex_range = rect 110, 10, 40, 40, fill: "#ff0000".."#0000ff"
+  @color_range = rect 160, 10, 40, 40, fill: red..blue
+end
+----------- test code
+%w[@hex @color @hex_range @color_range].each do |name|
+  refute_nil rect(name).style[:fill], "#{name}: the :fill was accepted and kept"
+end

@@ -1,0 +1,29 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/para_fontweight.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+    para "This is normal"  
+
+    para "This is bolder" , font_weight: "bold"
+
+    para "This is a little less bold" , font_weight: 800
+
+    para "This is bolder than the last one " , font_weight: 700
+
+    para "Close to normal "  , font_weight: 300
+  
+  end
+----------- test code
+# Test: Paras with various font weights
+ps = paras()
+assert_equal 5, ps.length, "Expected 5 paras with different font weights"
+
+assert_includes ps[0].text, "normal"
+assert_includes ps[1].text, "bolder"
+assert_includes ps[2].text, "less bold"
+assert_includes ps[3].text, "bolder than"
+assert_includes ps[4].text, "Close to normal"

@@ -1,0 +1,24 @@
+---
+manual: events.hover_leave_example
+lines: [2167, 2185]
+testability: interactive
+display: native
+ledger: H9
+----------- app code
+Shoes.app do
+  s = stack width: 200, height: 200 do
+    background red
+    hover do
+      s.clear { background blue }
+    end
+    leave do
+      s.clear { background red }
+    end
+  end
+end
+----------- test code
+move_mouse 100, 100
+assert_equal [0, 0, 255, 255], pixel_at(100, 100), "blue while the mouse is inside"
+
+move_mouse 300, 100
+assert_equal [255, 0, 0, 255], pixel_at(100, 100), "the mouse floated away, so the background is red again"

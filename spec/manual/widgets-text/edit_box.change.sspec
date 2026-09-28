@@ -1,0 +1,19 @@
+---
+manual: edit_box.change
+lines: [3038, 3042]
+testability: interactive
+display: any
+----------- app code
+Shoes.app do
+  $seen = []
+  @box = edit_box
+  @box.change { $seen << @box.text }
+end
+----------- test code
+assert_empty $seen
+
+edit_box.trigger_change("a")
+edit_box.trigger_change("ab")
+edit_box.trigger_change("a")
+
+assert_equal %w[a ab a], $seen, "the change block runs when a character is added and when one is removed"

@@ -1,0 +1,17 @@
+---
+manual: styles.left
+lines: [1288, 1294]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @slot = stack margin_left: 50, margin_top: 30, width: 300, height: 200 do
+    para "a neighbour in the flow"
+    @placed = button "Placed", left: 10, top: 20
+  end
+end
+----------- test code
+slot = layout_of(stack("@slot"))
+placed = layout_of(button("@placed"))
+assert_in_delta 50, slot.x, 0.5, "the slot itself sits 50 pixels in, so window and slot coordinates differ"
+assert_in_delta slot.x + 10, placed.x, 0.5, "left: 10 puts the button's left edge 10 pixels from the slot's left edge"

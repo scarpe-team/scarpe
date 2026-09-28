@@ -1,0 +1,18 @@
+---
+manual: edit_box.change_on_type_and_delete
+lines: [3017, 3019]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  $seen = []
+  @box = edit_box { $seen << @box.text }
+end
+----------- test code
+click_on edit_box
+assert_empty $seen, "focusing the box is not a change"
+
+press_key "a"
+press_key "b"
+press_key "c"
+assert_equal %w[a ab abc], $seen, "the block runs every time someone types into the box"

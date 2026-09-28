@@ -1,0 +1,21 @@
+---
+manual: slots.flow.widgets_run_together
+lines: [1612, 1612]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  flow do
+    @one = button "One"
+    @picture = image "assets/red-40x30.png"
+    @two = button "Two"
+  end
+end
+----------- test code
+series = [layout_of(button("@one")), layout_of(image("@picture")), layout_of(button("@two"))]
+
+series.each_cons(2) do |left, right|
+  assert_operator right.x, :>=, left.x + left.w - 0.5, "each one follows the last, left to right"
+  assert_operator right.y, :<, left.y + left.h, "on the same row"
+  assert_operator left.y, :<, right.y + right.h, "on the same row"
+end

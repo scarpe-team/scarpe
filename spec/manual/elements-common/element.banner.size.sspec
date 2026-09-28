@@ -1,0 +1,20 @@
+---
+manual: element.banner.size
+lines: [1921, 1924]
+testability: visual
+display: native
+ledger: F2
+----------- app code
+Shoes.app do
+  flow { @default = banner "Shoes" }
+  flow { @sized = para "Shoes", size: 48 }
+  flow { @double = para "Shoes", size: 96 }
+end
+----------- test code
+default = layout_of(drawable("@default"))
+sized = layout_of(drawable("@sized"))
+double = layout_of(drawable("@double"))
+
+assert_operator double.w, :>, sized.w * 1.5, "the size style changes how big text is drawn"
+assert_in_delta sized.w, default.w, 0.5, "banner text is as wide as 48 pixel text"
+assert_in_delta sized.h, default.h, 0.5, "and as high"

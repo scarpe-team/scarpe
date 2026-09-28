@@ -1,0 +1,16 @@
+---
+manual: styles.font.default_family
+lines: [1223, 1224]
+testability: visual
+display: native
+ledger: F4
+----------- app code
+Shoes.app width: 400, height: 300 do
+  flow { @sized = para "Hello there", font: "20px" }
+  flow { @default = para "Hello there", size: 20 }
+  flow { @mono = para "Hello there", family: "monospace", size: 20 }
+end
+----------- test code
+width = ->(name) { layout_of(para(name)).w }
+refute_in_delta width.call("@default"), width.call("@mono"), 5, "families differ in width here, so width tells them apart"
+assert_in_delta width.call("@default"), width.call("@sized"), 0.5, "a font string with no family uses the default family"

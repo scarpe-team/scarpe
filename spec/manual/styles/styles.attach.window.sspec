@@ -1,0 +1,19 @@
+---
+manual: styles.attach.window
+lines: [1085, 1087]
+testability: visual
+display: native
+ledger: C11
+----------- app code
+Shoes.app width: 400, height: 300 do
+  stack margin_left: 100, margin_top: 80 do
+    para "Something that pushes this slot away from the window's corner"
+    @pinned = stack top: 10, left: 10, width: 60, height: 40, attach: Window do
+      background red
+    end
+  end
+end
+----------- test code
+pinned = layout_of(stack("@pinned"))
+assert_in_delta 10, pinned.x, 0.5, "attach: Window measures left from the window, not from the enclosing slot"
+assert_in_delta 10, pinned.y, 0.5, "and top from the window's top edge"

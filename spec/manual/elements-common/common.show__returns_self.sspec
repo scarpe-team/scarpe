@@ -1,0 +1,13 @@
+---
+manual: common.show
+lines: [2686, 2686]
+testability: api
+display: any
+ledger: B6
+----------- app code
+Shoes.app do
+  $b = button "Peekaboo"
+  $b.hide
+end
+----------- test code
+assert_same $b, $b.show, "show returns the element itself"

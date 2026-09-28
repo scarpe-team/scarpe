@@ -2,7 +2,11 @@
 
 class Shoes
   class Rect < Shoes::Drawable
+    include Shoes::Art
+
+    uses_draw_context
     shoes_styles :draw_context, :curve, :stroke, :fill
+    shoes_styles :strokewidth, :center # every shape's (ledger D8), rect's by the manual (E2)
     shoes_events # No Rect-specific events
 
     init_args :left, :top, :width, :height
@@ -13,10 +17,10 @@ class Shoes
       # rect(left, top, width, height) — full spec
       # rect(side) — square at origin
       # Also supports keyword args without positional: rect(left: 10, top: 10, width: 40)
-      # Or even rect(width: 40) — left/top default to 0
+      # Or even rect(width: 40) — left/top default to 0, unless right/bottom place it (C10)
       if args.empty?
-        kwargs[:left] ||= 0
-        kwargs[:top] ||= 0
+        kwargs[:left] ||= 0 unless kwargs.key?(:right)
+        kwargs[:top] ||= 0 unless kwargs.key?(:bottom)
         kwargs[:height] ||= kwargs[:width] if kwargs[:width]
       elsif args.length == 3
         # rect(left, top, width) — height defaults to width

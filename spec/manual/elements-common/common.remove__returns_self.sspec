@@ -1,0 +1,11 @@
+---
+manual: common.remove
+lines: [2681, 2681]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $goner = para "goes"
+end
+----------- test code
+assert_same $goner, $goner.remove, "remove returns the element itself"

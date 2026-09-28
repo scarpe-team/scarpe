@@ -1,0 +1,15 @@
+---
+manual: builtins.ask_save_file
+lines: [671, 679]
+testability: dialog
+display: any
+dialogs: {ask_save_file: "letter.txt"}
+----------- app code
+save_as = ask_save_file
+
+Shoes.app do
+  @chosen = para save_as
+end
+----------- test code
+assert_equal [[:ask_save_file]], dialog_calls, "ask_save_file shows the Save File window"
+assert_equal "letter.txt", para("@chosen").text, "it hands back the chosen file name"

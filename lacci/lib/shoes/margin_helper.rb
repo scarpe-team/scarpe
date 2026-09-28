@@ -67,7 +67,6 @@ module MarginHelper
   
           end
         end
-        kwargs[:margin] = nil
       end
       if kwargs["options"] && !kwargs[:margin] && !kwargs[:margin_left] && !kwargs[:margin_right] && !kwargs[:margin_top] && !kwargs[:margin_bottom]
         kwargs[options].each do |key,value|

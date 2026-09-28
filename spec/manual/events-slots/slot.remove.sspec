@@ -1,0 +1,20 @@
+---
+manual: slot.remove
+lines: [2430, 2433]
+testability: api
+display: any
+ledger: B5
+----------- app code
+Shoes.app do
+  $parent = stack do
+    para "stays"
+    $gone = stack { para "goes" }
+  end
+end
+----------- test code
+assert_includes $parent.contents, $gone
+
+$gone.remove
+
+refute_includes $parent.contents, $gone, "it is not listed in its parent's contents"
+assert_equal ["stays"], paras.map(&:text), "it's gone, and its para with it"

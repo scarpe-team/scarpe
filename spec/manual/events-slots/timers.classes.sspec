@@ -1,0 +1,16 @@
+---
+manual: timers.classes
+lines: [3411, 3413]
+testability: api
+display: any
+ledger: I2
+----------- app code
+Shoes.app do
+  $animation = animate(10) { }
+  $every = every(1) { }
+  $timer = timer(1) { }
+end
+----------- test code
+assert_equal "Shoes::Animation", $animation.class.name
+assert_equal "Shoes::Every", $every.class.name
+assert_equal "Shoes::Timer", $timer.class.name

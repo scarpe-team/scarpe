@@ -1,0 +1,19 @@
+---
+manual: builtins.font
+lines: [748, 767]
+testability: api
+display: any
+ledger: K4
+----------- app code
+# Pacifico (OFL) is in spec/support/assets, copied into every sandbox.
+# Loading it once first means Shoes::FONTS is not empty, so handing back all of
+# Shoes::FONTS cannot pass for the families in the file.
+PACIFICO = File.expand_path("assets/Pacifico.ttf")
+
+Shoes.app do
+  font PACIFICO
+  $families = font(PACIFICO)
+end
+----------- test code
+assert File.exist?(PACIFICO), "the test font is at #{PACIFICO}"
+assert_equal ["Pacifico"], $families, "font returns the family names found in the file, and only those"

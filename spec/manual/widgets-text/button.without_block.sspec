@@ -1,0 +1,18 @@
+---
+manual: button.without_block
+lines: [2866, 2875]
+testability: interactive
+display: any
+----------- app code
+Shoes.app do
+  button "OK!"
+  button "Are you sure?"
+end
+----------- test code
+before = drawables(Shoes::Drawable).size
+
+find_button("OK!").trigger_click
+find_button("Are you sure?").trigger_click
+
+assert_equal before, drawables(Shoes::Drawable).size, "clicking a button with no block adds nothing"
+assert_empty dialog_calls, "and opens no dialog"

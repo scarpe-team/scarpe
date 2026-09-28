@@ -1,0 +1,18 @@
+---
+manual: check.checked?
+lines: [2979, 2981]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @box = check
+end
+----------- test code
+box = check
+assert_equal false, box.checked?, "an unclicked box answers false"
+
+box.trigger_click
+assert_equal true, box.checked?, "true means yes, the box is checked"
+
+box.trigger_click
+assert_equal false, box.checked?, "and false again once it is unchecked"

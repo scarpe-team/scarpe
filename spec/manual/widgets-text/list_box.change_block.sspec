@@ -1,0 +1,25 @@
+---
+manual: list_box.change_block
+lines: [3204, 3206]
+testability: interactive
+display: any
+ledger: G2
+----------- app code
+Shoes.app do
+  para "Choose a fruit:"
+  list_box items: ["Grapes", "Pears", "Apricots"],
+    width: 120, choose: "Apricots" do |list|
+      @fruit.text = list.text
+  end
+
+  @fruit = para "No fruit selected"
+end
+----------- test code
+fruit = para("@fruit")
+assert_equal "No fruit selected", fruit.text, "creating the box is not a change"
+
+list_box.trigger_change("Pears")
+assert_equal "Pears", fruit.text, "the block on list_box is its change block"
+
+list_box.trigger_change("Grapes")
+assert_equal "Grapes", fruit.text, "called each time the selection changes"

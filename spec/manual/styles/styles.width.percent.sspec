@@ -1,0 +1,17 @@
+---
+manual: styles.width.percent
+lines: [1543, 1545]
+testability: visual
+display: native
+ledger: C1
+----------- app code
+Shoes.app width: 400, height: 200 do
+  @outer = stack width: 300 do
+    @half = stack width: 0.5, height: 10
+    @all = stack width: 1.0, height: 10
+  end
+end
+----------- test code
+outer = layout_of(stack("@outer"))
+assert_in_delta outer.w * 0.5, layout_of(stack("@half")).w, 0.5, "width: 0.5 is half the parent's width"
+assert_in_delta outer.w, layout_of(stack("@all")).w, 0.5, "width: 1.0 fills the parent slot"

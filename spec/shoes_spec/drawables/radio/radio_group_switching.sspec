@@ -1,0 +1,44 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/drawables/radio/radio_group_switching.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  stack do
+    flow { @r1 = radio :films }
+    flow { @r2 = radio :films }
+    flow { @r3 = radio :films }
+  end
+end
+----------- test code
+r1 = radio("@r1")
+r2 = radio("@r2")
+r3 = radio("@r3")
+
+# All start unchecked
+assert_equal false, r1.checked?
+assert_equal false, r2.checked?
+assert_equal false, r3.checked?
+
+# Click r1
+r1.trigger_click
+assert_equal true, r1.checked?, "r1 should be checked after clicking it"
+
+# Click r2 — r1 should uncheck, r2 should check
+r2.trigger_click
+assert_equal false, r1.checked?, "r1 should be unchecked after clicking r2"
+assert_equal true, r2.checked?, "r2 should be checked after clicking it"
+
+# Click r3 — r2 should uncheck, r3 should check
+r3.trigger_click
+assert_equal false, r1.checked?, "r1 should still be unchecked"
+assert_equal false, r2.checked?, "r2 should be unchecked after clicking r3"
+assert_equal true, r3.checked?, "r3 should be checked after clicking it"
+
+# Click r1 AGAIN — this was the regression bug (required double-click)
+r1.trigger_click
+assert_equal true, r1.checked?, "r1 should check on first click (not require double-click)"
+assert_equal false, r2.checked?, "r2 should be unchecked"
+assert_equal false, r3.checked?, "r3 should be unchecked after clicking r1"

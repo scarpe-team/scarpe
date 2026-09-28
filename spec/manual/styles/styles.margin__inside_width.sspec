@@ -1,0 +1,22 @@
+---
+manual: styles.margin
+lines: [1298, 1306]
+testability: visual
+display: native
+ledger: C14
+----------- app code
+Shoes.app width: 400, height: 300 do
+  flow do
+    @padded = stack width: 100, margin: 10 do
+      background red
+    end
+    @next = stack width: 100, height: 20 do
+      background blue
+    end
+  end
+end
+----------- test code
+padded = layout_of(stack("@padded"))
+assert_equal [10, 80], [padded.x, padded.w].map(&:round), "width: 100 holds the margins, leaving 80 px inside them"
+assert_equal 100, layout_of(stack("@next")).x.round, "so the next stack starts 100 px along, not 120"
+assert_equal 100, stack("@padded").width, "and the width reads back as given"

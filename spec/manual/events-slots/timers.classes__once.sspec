@@ -1,0 +1,14 @@
+---
+manual: timers.classes
+lines: [3411, 3413]
+testability: api
+display: native
+ledger: I1
+----------- app code
+$fired = 0
+Shoes.app do
+  timer(0.1) { $fired += 1 }
+end
+----------- test code
+advance 1
+assert_equal 1, $fired, "a timer happens once"

@@ -1,0 +1,18 @@
+---
+manual: common.left
+lines: [2644, 2646]
+testability: visual
+display: native
+ledger: A4
+----------- app code
+Shoes.app do
+  @one = button "One"
+  @two = button "Two"
+end
+----------- test code
+two = layout_of(button("@two"))
+
+assert_operator two.x, :>, 0, "Two sits to the right of One"
+left = button("@two").left
+refute_nil left, "left gives a number"
+assert_in_delta two.x, left, 1, "left is the pixel position of its left edge"

@@ -1,0 +1,17 @@
+---
+manual: app.style.resizable
+lines: [869, 878]
+testability: interactive
+display: any
+----------- app code
+Shoes.app(title: "White Circle",
+  width: 200, height: 200, resizable: false) {
+    background black
+    button("Spawn") { window { para "I can be resized" } }
+}
+----------- test code
+find_button("Spawn").trigger_click
+
+main, spawned = Shoes.APPS
+assert_equal false, main.style[:resizable], "resizable: false reaches the app"
+assert_equal true, spawned.style[:resizable], "windows are resizable unless told otherwise"

@@ -1,0 +1,20 @@
+---
+manual: app.Shoes.APPS
+lines: [887, 888]
+testability: api
+display: any
+ledger: A8
+----------- app code
+Shoes.app title: "First" do
+  $first = self
+  button("Another") do
+    window(title: "Second") { button("Close me") { close } }
+  end
+end
+----------- test code
+find_button("Another").trigger_click
+assert_equal 2, Shoes.APPS.size
+
+find_button("Close me").trigger_click
+
+assert_equal [$first], Shoes.APPS, "a closed app leaves the list; the other stays open"

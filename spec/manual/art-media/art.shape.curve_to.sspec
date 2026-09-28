@@ -1,0 +1,28 @@
+---
+manual: art.shape.curve_to
+lines: [1801, 1804]
+testability: visual
+display: native
+ledger: E7
+----------- app code
+Shoes.app width: 300, height: 300 do
+  nofill
+  stroke red
+  strokewidth 6
+  shape do
+    move_to 50, 200
+    curve_to 50, 50, 250, 50, 250, 200
+  end
+end
+----------- test code
+# The manual does not give curve_to's arguments. Lacci and Shoes 3 take a cubic Bezier:
+# curve_to(cx1, cy1, cx2, cy2, x, y). At t = 0.5 this curve passes through (150, 87.5).
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(150, 87, [255, 0, 0], "the segment curves up through the middle of its control points")
+paints.(150, 200, [255, 255, 255], "it is not the straight line between its ends")
+paints.(50, 190, [255, 0, 0], "it leaves the pen heading towards the first control point")

@@ -1,0 +1,26 @@
+---
+manual: intro.text_styling_fonts_from_file
+lines: [64, 66]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  stack do
+    @plain = para "Handwriting", size: 32
+    @underlined = para "Handwriting", size: 32, underline: "single"
+  end
+end
+----------- test code
+# Is there a row in the lower part of the block that is dark all the way across the words?
+ruled = lambda do |rect|
+  middle = (rect.y + rect.h * 0.5).round
+  inked = rect.x.ceil.upto((rect.x + rect.w - 1).floor).select { |x| pixel_at(x, middle)[0, 3].sum < 384 }
+  refute_empty inked, "the words drew ink"
+  samples = (0..11).map { |i| inked.first + (inked.last - inked.first) * i / 11 }
+  (middle..(rect.y + rect.h - 1).floor).any? do |y|
+    samples.all? { |x| pixel_at(x, y)[0, 3].sum < 384 }
+  end
+end
+
+refute ruled.call(layout_of(para("@plain"))), "plain words have no line under them"
+assert ruled.call(layout_of(para("@underlined"))), "underlined words do"

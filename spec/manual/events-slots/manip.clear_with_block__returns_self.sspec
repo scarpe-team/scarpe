@@ -1,0 +1,14 @@
+---
+manual: manip.clear_with_block
+lines: [2331, 2331]
+testability: api
+display: any
+ledger: B6
+----------- app code
+Shoes.app do
+  $slot = stack { para "Old text" }
+  @go = button("Go") { $returned = $slot.clear { para "Brand new text" } }
+end
+----------- test code
+button("@go").trigger_click
+assert_same $slot, $returned, "clear { } returns self"

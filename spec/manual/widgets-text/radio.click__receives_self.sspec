@@ -1,0 +1,18 @@
+---
+manual: radio.click
+lines: [3349, 3352]
+testability: interactive
+display: any
+ledger: G1
+----------- app code
+Shoes.app do
+  @film = radio
+  @film.click { |r| $handed = r }
+end
+----------- test code
+assert_nil $handed
+
+radio.trigger_click
+
+assert_kind_of Shoes::Radio, $handed, "the click block is handed the radio"
+assert_equal radio.linkable_id, $handed.linkable_id, "the one that was clicked"

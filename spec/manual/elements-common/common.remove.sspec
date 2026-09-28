@@ -1,0 +1,19 @@
+---
+manual: common.remove
+lines: [2681, 2684]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $column = stack do
+    para "stays"
+    $goner = para "goes"
+  end
+end
+----------- test code
+assert_includes $column.contents, $goner
+
+$goner.remove
+
+refute_includes $column.contents, $goner, "remove takes the element out of its slot"
+assert_equal ["stays"], paras.map(&:text), "and it is no longer in the window"

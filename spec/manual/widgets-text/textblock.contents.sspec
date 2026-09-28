@@ -1,0 +1,15 @@
+---
+manual: textblock.contents
+lines: [3386, 3388]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @words = para "Plain, ", strong("bold"), " and ", em("italic"), "."
+end
+----------- test code
+contents = para.contents
+
+assert_equal [String, Shoes::Strong, String, Shoes::Em, String], contents.map(&:class),
+  "contents lists the strings and styled text objects in order"
+assert_equal ["Plain, ", "bold", " and ", "italic", "."], contents.map { |c| c.is_a?(String) ? c : c.text }

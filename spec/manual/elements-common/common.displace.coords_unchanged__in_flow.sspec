@@ -1,0 +1,24 @@
+---
+manual: common.displace.coords_unchanged
+lines: [2623, 2626]
+testability: api
+display: native
+ledger: M9
+----------- app code
+Shoes.app do
+  flow margin: 12 do
+    button "One"
+    @two = button "Two"
+    button "Three"
+  end
+end
+----------- test code
+two = button("@two")
+laid_out = layout_of(two)
+
+two.displace(2, 6)
+wait_frames
+
+refute_nil two.left, "left gives a number"
+assert_in_delta laid_out.x, two.left, 1, "left still reads the laid-out position"
+assert_in_delta laid_out.y, two.top, 1, "and so does top"

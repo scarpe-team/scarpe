@@ -1,0 +1,33 @@
+---
+manual: radio.all_visible
+lines: [3278, 3281]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  stack do
+    @taste = radio
+    @kin = radio
+    @heaven = radio
+  end
+end
+----------- test code
+ids = %w[@taste @kin @heaven].map { |name| radio(name).linkable_id }
+boxes = lambda do
+  tree = layout_tree
+  ids.map { |id| tree.find { |n| n[:id] == id } }
+end
+
+before = boxes.call
+before.each do |node|
+  assert node && node[:visible], "every radio is shown before a choice"
+  assert_operator node[:w], :>, 0
+end
+
+click_on radio("@kin")
+assert radio("@kin").checked?
+
+after = boxes.call
+after.each { |node| assert node && node[:visible], "every radio is still shown after one is marked" }
+assert_equal before.map { |n| n.values_at(:x, :y, :w, :h) }, after.map { |n| n.values_at(:x, :y, :w, :h) },
+  "marking one hides or moves none of them"

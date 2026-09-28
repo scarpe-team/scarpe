@@ -1,0 +1,25 @@
+---
+manual: art.rect.corners
+lines: [1751, 1753]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 200, height: 200 do
+  fill red
+  nostroke
+  rect 10, 10, 100, 100, 20
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+red = [255, 0, 0]
+white = [255, 255, 255]
+
+paints.(11, 11, white, "the corner is rounded off")
+paints.(108, 108, white, "every corner")
+paints.(35, 11, red, "the straight edge starts one radius (20 px) in from the corner")
+paints.(11, 60, red, "the sides are straight")
+paints.(60, 60, red, "the rectangle is filled")
