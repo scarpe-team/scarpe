@@ -379,8 +379,11 @@ As of 27 Sep 2026. Each has more detail in the ledger or in DESIGN.
 - **Art.** Pens set inside a `shape` block style that shape only, where Shoes 3 carries them on to the
   shapes after it (E7). `scale` and `skew` set their value outright, where Shoes 3 multiplies
   them into what came before; only `rotate` adds up (E10).
-- **Lacci.** `left` and `top` answer in window coordinates, where Shoes 3 answers from the
-  parent's content origin. `font(url)` returns the file's name before the font is fetched.
+- **Lacci.** `left` and `top` of a drawable its slot flowed answer where the layout put it, in
+  window coordinates, where Shoes 3 answers from the slot's corner. One the app placed with
+  `left:`, `top:` or `move` answers the numbers it was given, which are from its slot's corner,
+  as in Shoes 3, so `left += 5` never drifts. In a slot away from the window's corner the two
+  kinds differ (ledger A4). `font(url)` returns the file's name before the font is fetched.
   A slot's `start` fires on the first heartbeat after it appears. Image downloads happen at create
   time and hold up building the tree. `download` reads the whole body before its one `progress`.
   Ledger rows B1 (a slot block's `self`) and K6 (`exit` at once) are still open.
