@@ -61,7 +61,11 @@ class Shoes::Widget < Shoes::Slot
     # And add the default initialize back where it belongs
     @midway_through_adding_initialize = true
     define_method(:initialize) do |*args, **kwargs, &block|
-      super(*args, **kwargs, &block)
+      # A widget's options are its own, as a Shoes 3 widget's were: the ones that are styles
+      # (left, width, margin...) place it, and the rest (Hackety Hack's Glossb takes :color)
+      # are for its initialize alone, not an "unexpected keyword" for Drawable.
+      styles = kwargs.select { |key, _| self.class.shoes_style_name?(key) }
+      super(*args, **styles, &block)
       @options = kwargs # Get rid of options?
       create_display_drawable
       __widget_initialize(*args, **kwargs, &block)
