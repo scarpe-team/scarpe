@@ -4,6 +4,8 @@ require_relative "helper"
 require "scarpe/package"
 
 # `scarpe package` choosing between webview and native, and the pieces a native build writes.
+# Native packages are macOS apps, so the tests ask for one by name (--target macos) and run the
+# same on a Linux host; only what needs macOS tools checks the host.
 class PackageTest < Minitest::Test
   include PackageTestHelpers
 
@@ -12,14 +14,14 @@ class PackageTest < Minitest::Test
   end
 
   def test_native_flag_picks_the_native_packager
-    options = Scarpe::Package.parse_args([@app, "--native", "--install-dir", "/Users/Shared", "--no-bytecode"])
+    options = Scarpe::Package.parse_args([@app, "--native", "--install-dir", "/Users/Shared", "--no-bytecode", "--target", "macos"])
 
-    assert_equal({ app_file: @app, native: true, install_dir: "/Users/Shared", bytecode: false }, options)
+    assert_equal({ app_file: @app, native: true, install_dir: "/Users/Shared", bytecode: false, target_os: "macos" }, options)
     assert_instance_of Scarpe::Package::Native, Scarpe::Package.packager_for(options, env: {})
   end
 
   def test_scarpe_display_service_native_picks_the_native_packager
-    options = Scarpe::Package.parse_args([@app])
+    options = Scarpe::Package.parse_args([@app, "--target", "macos"])
 
     assert_instance_of Scarpe::Package::Native, Scarpe::Package.packager_for(options, env: { "SCARPE_DISPLAY_SERVICE" => "native" })
     assert_instance_of Scarpe::Package, Scarpe::Package.packager_for(options, env: {})
@@ -32,16 +34,17 @@ class PackageTest < Minitest::Test
 
   # SCARPE_NATIVE_BIN can point at test/native/fake_child.rb in a test shell; that must not ship.
   def test_only_a_mach_o_binary_gets_packaged
-    packager = Scarpe::Package::Native.new(@app)
+    packager = Scarpe::Package::Native.new(@app, target_os: "macos")
     script = write(scratch_dir, "fake_child.rb", "#!/usr/bin/env ruby\n")
 
     error = assert_raises(RuntimeError) { packager.send(:check_binary_arch, script) }
     assert_match(/not a macOS executable/, error.message)
-    packager.send(:check_binary_arch, RbConfig.ruby) if RbConfig.ruby.end_with?("/ruby")
+    # lipo, and a Mach-O Ruby to read, are only on a Mac.
+    packager.send(:check_binary_arch, RbConfig.ruby) if RUBY_PLATFORM.include?("darwin") && RbConfig.ruby.end_with?("/ruby")
   end
 
   def test_bytecode_is_compiled_for_the_install_dir
-    packager = Scarpe::Package::Native.new(@app, install_dir: "/Applications")
+    packager = Scarpe::Package::Native.new(@app, install_dir: "/Applications", target_os: "macos")
 
     assert_equal "/Applications/HelloApp.app/Contents/Resources", packager.installed_resources
   end
@@ -103,7 +106,7 @@ class PackageTest < Minitest::Test
 
   def render_launcher
     output = scratch_dir
-    packager = Scarpe::Package::Native.new(@app, output_dir: output)
+    packager = Scarpe::Package::Native.new(@app, output_dir: output, target_os: "macos")
     FileUtils.mkdir_p(File.join(packager.app_path, "Contents", "MacOS"))
     packager.send(:write_launcher)
     File.read(File.join(packager.app_path, "Contents", "MacOS", "scarpe-launcher"))
