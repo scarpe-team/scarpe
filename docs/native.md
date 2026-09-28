@@ -176,6 +176,27 @@ a11y_action check("@keep"), :click
 The cases in `spec/accessibility/` show the rest, and DESIGN section 12 lists exactly what each
 drawable becomes.
 
+## When something goes wrong: `Shoes.on_error` and the console
+
+An error in a click, a timer or an animation is logged, and the app goes on. `Shoes.on_error`
+hears each one too, and what stops the program loading:
+
+```ruby
+Shoes.on_error do |err|
+  File.write("problems.log", "#{err["during"]}: #{err["class"]}: #{err["message"]} " \
+    "at #{err["path"]}:#{err["line"]}\n", mode: "a")
+end
+```
+
+`err` is a Hash with String keys: `"class"`, `"message"`, `"backtrace"` (an Array of Strings),
+`"path"` and `"line"` (where in your code it happened, nil when Ruby does not say) and
+`"during"` (`"startup"`, `"handler"`, `"timer"` or `"exit"`).
+
+The Shoes console lists the same errors, newest first, with where each happened, beside what your
+program said with `debug`, `info` and `error` and Scarpe's own warnings. Press Alt-/ in any window
+(Cmd-/ on a Mac) to open it, or call `Shoes.show_console`. It never opens by itself, and Alt-/
+never reaches your `keypress` block, as the manual reserves it for Shoes.
+
 ## Tests, the spec suite and the ledger
 
 There are four kinds of test. All of them run headless.
@@ -393,7 +414,7 @@ The smallest real one to copy is `progress`, and its trail is below.
 
 ## Known gaps
 
-As of 27 Sep 2026. Each has more detail in the ledger or in DESIGN.
+As of 28 Sep 2026. Each has more detail in the ledger or in DESIGN.
 
 - **Windows on screen.** The spec suite and peek never open a window. The windowed tests and
   benches open ghosts, which present real frames nobody can see, so nothing has been checked by
@@ -424,6 +445,8 @@ As of 27 Sep 2026. Each has more detail in the ledger or in DESIGN.
   VoiceOver on. A field reads whole: its caret and selection are not exposed, so a screen reader
   cannot move through its text a letter at a time. Click handlers on slots and shapes, radio
   groups and scrolling a node into view are not exposed either.
+- **The console.** The webview display opens one window, so `Shoes.show_console` cannot open the
+  console there. Alt-. and Alt-?, which the manual also reserves, still reach the app.
 - **Examples.** The ones marked failing on native in `spec/examples.yml` each say why (see above),
   and `rotate_shapes.rb` turns its shapes about their corners, as the manual says, where it was
   written for the centre.

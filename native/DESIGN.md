@@ -1,6 +1,7 @@
 # Scarpe Native: design
 
-Status: v1.1, 27 Sep 2026, after the fourth build wave merged and the orchestrator ruled Q1 to Q8
+Status: v1.2, 28 Sep 2026: the w10 scarpe lane added `Shoes.on_error` and the Shoes console
+(5.6), and Nick's Q10 ruling (section 6). v1.1, 27 Sep 2026, after the fourth build wave merged and the orchestrator ruled Q1 to Q8
 (under "Rulings on the questions" in `spec/LEDGER.md`, Q8 on `clear` and timers also in 5.4; Nick
 may overrule any of them). This document is the contract every builder codes against. If the
 code and this document disagree, fix one of them in the same change. The user guide is
@@ -79,7 +80,7 @@ lib/scarpe/native/              the Ruby shim
   automation.rb                 look-and-click requests shared by Shoes-Spec and peek
   shoes_spec.rb                 Shoes::Spec implementation + native test API (section 8)
   peek.rb                       `scarpe peek` driver
-  log.rb                        Shoes::Log to stderr
+  log.rb                        Shoes::Log to stderr and the Shoes console
 lib/scarpe/package/native.rb    `scarpe package --native` (section 11), with bytecode.rb and yjit.rb
 templates/package/              the packaged app's launcher and boot.rb
 exe/scarpe                      gains `--native` and the `peek` subcommand
@@ -153,6 +154,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 | `scroll` | `id`, `top` (Integer) | set the slot's `@scroll_top` directly |
 | `layout` | `app`, `rects`: `[[id, x, y, w, h, scroll_h], ...]` | `Shoes::DisplayService.layout_cache[id] = [x, y, w, h, scroll_h]` (Integer keys; the shim defines the accessor if Lacci lacks it and deletes ids on destroy). Sent after every layout pass, before its frame is presented and before the reply of any request that caused it: every laid-out node on an app's first layout, then only those whose rect changed, sorted by id. Window logical px, rounded to 1/100; `scroll_h` is a slot's content height, padding included, else `h`. Art reports its transformed box. Destroyed ids are simply not sent again (contract a; ledger A4, C5) |
 | `closed` | `app` | user closed a window: close that app, as `App#close` does (`quit {app}`, and it leaves `Shoes.APPS`), or every app if it was the last |
+| `console` | `app` | Alt-/ was pressed in that app's window (Cmd-/ on a Mac, 4.4): `Shoes.show_console` (5.6). The app hears no keypress for it |
 | `reply` | `req`, `value`, `error` (null or String), plus op extras like `cancelled` | answers a `req` |
 | `log` | `level`, `msg` | forwarded to Shoes::Log (`scarpe-native` component) |
 
@@ -188,6 +190,9 @@ not true. Mouse buttons are 1 = left, 2 = middle, 3 = right (manual numbering).
   like Control (copy, paste, select all, line ends, undo and redo); Option moves by words. The default app menu
   still quits on Cmd-Q before the app sees the key; Rust then reports every open window `closed`.
   The `key` op accepts `command_` (or `cmd_`, `super_`) for Cmd.
+- `:alt_/` is Shoes' own (manual 2239-2240, ledger H10): Rust sends `console` for it (4.2) and
+  neither a focused field nor a `keypress` block hears it, as Shoes 3's `shoes_app_keypress` opens
+  its console for it first (`s3_app.c:773-776`). Alt-. and Alt-? still reach the app.
 
 ### 4.5 Wire contracts settled on 27 Sep 2026
 
@@ -309,9 +314,10 @@ loop until no app is open or the child's stdout ended:
   flush
 ```
 
-Handler exceptions are rescued per dispatch, logged with the app file/line, and the loop continues.
-That covers a failed `require` (ScriptError) and a runaway recursion (SystemStackError) as well
-as StandardError; only `exit` (SystemExit), a signal and NoMemoryError end the app.
+Handler exceptions are rescued per dispatch (`DisplayService#guarded`), logged with the app
+file/line, handed to `Shoes.on_error` (5.6) and the Shoes console, and the loop continues. That
+covers a failed `require` (ScriptError) and a runaway recursion (SystemStackError) as well as
+StandardError; only `exit` (SystemExit), a signal and NoMemoryError end the app.
 
 Deadlines are `origin + n * interval`, so ten 0.1 s frames land on one second instead of drifting.
 A timer that fell behind skips the deadlines it missed rather than firing a burst, and a restarted
@@ -332,6 +338,27 @@ once (its whole process group) before Ruby goes on to die of it, because a child
 never reads that EOF and a harness that follows TERM with KILL never waits out the grace. While the
 child runs, `SCARPE_NATIVE_PID_FILE` (when set) holds its pid, so a harness that had to kill Ruby
 can kill the child's group too: `spec/run` and `rake native_test` do.
+
+### 5.6 Errors and the Shoes console
+
+- **`Shoes.on_error { |err| }`** (Lacci, ledger K9): every block given it hears each error a
+  handler, a timer or the startup raises, on the pump, besides the log line; with no block the
+  error is logged and the app goes on, as before. A block that raises is logged and the others
+  still run. `err` is `Shoes::ErrorReport`'s Hash with String keys: `"class"`, `"message"`,
+  `"backtrace"` (Strings), `"path"` and `"line"` (the innermost frame outside Scarpe's own code
+  and Ruby's library, or for a SyntaxError the place Ruby names; nil when there is none), and
+  `"during"`: `"startup"` (`Shoes.run_app` reports what stops the file loading, then lets it go
+  on up), `"handler"` (an event, the heartbeat, a program's block), `"timer"` (`animate`,
+  `every`, `timer`) or `"exit"` (only a program in a process of its own reports it). Test code that clicks or
+  advances still has its errors raised in the test instead (section 8).
+- **The Shoes console** (`Shoes::Console`, `lacci/lib/shoes/console.rb`; ledger K8) is a Shoes
+  window titled "Shoes Console" that lists, newest first, the program's `debug`, `info` and
+  `error` lines (which still print as before), every error `Shoes.on_error` hears, with where it
+  happened and the program's own backtrace frames, and Scarpe's log lines at its log level
+  (Rust's included). Alt-/ opens it (Cmd-/ on a Mac, 4.4), and so does `Shoes.show_console`
+  (Shoes 3's `Shoes.show_log` is the same); it never opens by itself. Lines wait in a queue any
+  thread or signal trap may add to, and the window, one per process, draws them on the pump
+  (a 0.25 s timer). It keeps the last 500.
 
 ## 6. Layout rules (canonical)
 

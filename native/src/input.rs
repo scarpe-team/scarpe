@@ -1022,6 +1022,13 @@ impl Runtime {
             return;
         }
         self.ensure_layout(app);
+        // Alt-/ is Shoes' own (manual 2239-2240): it opens the console, and neither a field nor
+        // the app hears it, as Shoes 3's shoes_app_keypress runs Shoes.show_log for it first
+        // (s3_app.c:773-776, ledger H10). On a Mac it is Cmd-/, named alt_/ (Q5).
+        if key.shoes_name().as_deref() == Some(":alt_/") {
+            self.out.send(crate::protocol::Outgoing::Console { app });
+            return;
+        }
         if self.modal_key(app, &key) {
             return;
         }

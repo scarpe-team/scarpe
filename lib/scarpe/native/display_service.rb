@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "rbconfig"
+
 # Lacci keeps the rects the display pushes back (cross-lane contract a) in a class-level Hash,
 # as it keeps para_hit_cache. A Lacci without that accessor gets this one.
 unless Shoes::DisplayService.respond_to?(:layout_cache)
@@ -45,6 +47,8 @@ module Scarpe::Native
     include Shoes::Log
 
     LIBRARY_DIRS = %w[lacci lib scarpe-components].map { |dir| File.join(ROOT, dir) + "/" }.freeze
+    # An error report names the program's line, not Scarpe's or Ruby's own (Shoes::ErrorReport).
+    Shoes::ErrorReport::LIBRARY_DIRS.concat(LIBRARY_DIRS, [RbConfig::CONFIG["rubylibdir"] + "/"])
 
     # What a handler may raise that ends the app instead of being logged.
     FATAL = [SystemExit, SignalException, NoMemoryError].freeze
@@ -142,21 +146,31 @@ module Scarpe::Native
       when "scroll" then lacci_drawable(message["id"])&.instance_variable_set(:@scroll_top, message["top"])
       when "closed" then closed(message["app"])
       when "log" then log_from_child(message["level"].to_s, message["msg"])
+      when "console" then guarded("console key") { Shoes.show_console }
       else @log.warn("Unknown message from scarpe-native: #{message.inspect[0, 200]}")
       end
     end
 
-    # A handler that raises is logged and forgotten, so one bad block never takes the window down:
-    # a failed require (ScriptError) or a runaway recursion (SystemStackError) as much as a
-    # StandardError. Only exit, signals and running out of memory end the app.
-    # Inside surfacing_handler_errors (test code clicking things) it is kept to raise afterwards.
-    def dispatch_from_child(name, target, args)
-      Shoes::DisplayService.dispatch_event(name, target, *decode_args(name, target, args))
+    # during: "handler", or "timer" for a timer's tick (Shoes::ErrorReport).
+    def dispatch_from_child(name, target, args, during: "handler")
+      guarded("#{name} handler for #{target.inspect}", during: during) do
+        Shoes::DisplayService.dispatch_event(name, target, *decode_args(name, target, args))
+      end
+    end
+
+    # Runs one of the app's blocks. One that raises is logged, handed to Shoes.on_error and
+    # forgotten, so one bad block never takes the window down: a failed require (ScriptError) or
+    # a runaway recursion (SystemStackError) as much as a StandardError. Only exit, signals and
+    # running out of memory end the app. Inside surfacing_handler_errors (test code clicking
+    # things) it is kept to raise afterwards.
+    def guarded(context, during: "handler")
+      yield
     rescue *FATAL
       raise
     rescue Exception => e
       drop_unstarted_apps
-      @surfaced_errors ? @surfaced_errors << e : report_handler_error(e, "#{name} handler for #{target.inspect}")
+      @surfaced_errors ? @surfaced_errors << e : report_handler_error(e, context, during: during)
+      nil
     end
 
     # Test code wants to see what its clicks broke, as an error in the test, not a log line.
@@ -174,7 +188,7 @@ module Scarpe::Native
     def fire_timers
       now = clock.now
       settle_layout if @layout_owed && timers.next_turn_due?(now)
-      timers.fire_due(now) { |event, id, args| dispatch_from_child(event, id, args) }
+      timers.fire_due(now) { |event, id, args| dispatch_from_child(event, id, args, during: "timer") }
     end
 
     # A timer(0) runs once what was made before it is laid out, as Shoes 3 draws before it
@@ -445,12 +459,14 @@ module Scarpe::Native
       @child_log.public_send(level, message)
     end
 
-    def report_handler_error(error, context)
+    # Logged, listed in the Shoes console and handed to Shoes.on_error, as a Hash.
+    def report_handler_error(error, context, during: "handler")
       app_frame = Array(error.backtrace).find do |frame|
         !frame.start_with?(*LIBRARY_DIRS) && !frame.include?("/gems/") && !frame.start_with?("<internal:")
       end
-      @log.error("#{error.class}: #{error.message} in the #{context}#{" (at #{app_frame})" if app_frame}")
-      @log.debug(Array(error.backtrace).join("\n"))
+      @log.error("#{error.class}: #{error.message} in the #{context}#{" (at #{app_frame})" if app_frame}", console: false)
+      @log.debug(Array(error.backtrace).join("\n"), console: false)
+      Shoes.report_error(error, during: during)
     end
   end
 end
