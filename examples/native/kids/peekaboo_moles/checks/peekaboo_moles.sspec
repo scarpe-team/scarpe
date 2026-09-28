@@ -25,7 +25,7 @@ refute brown.(pixel_at(*body.(moles[2]))), "nobody in the hole yet"
 assert_equal 0, ivar.(:@stars)
 
 # after a moment a mole comes up by itself, paws over its eyes, then peekaboo
-advance 0.1 until moles.any? { |m| m.state == :rise } || ivar.(:@clock) > 12
+120.times { break if moles.any? { |m| m.state == :rise }; advance 0.1 }
 risen = moles.find { |m| m.state == :rise }
 assert risen, "a mole comes out to play"
 assert_equal :peek, sounds.last_name
@@ -63,15 +63,31 @@ refute ivar.(:@star_spots).first[:gold].hidden
   assert_operator peak, :>, 0.05, "#{name} makes a sound"
 end
 
-# Space: every mole plays peekaboo at once
-advance 0.2 until moles.all? { |m| m.state == :down } || ivar.(:@clock) > 60
+# Space: every mole plays peekaboo at once (the game's own moles wait a moment, so all start in their holes)
+app.instance_variable_set(:@next_pop, 30)
+100.times { break if moles.all? { |m| m.state == :down }; advance 0.2 }
+assert moles.all? { |m| m.state == :down }
 press_key " "
 advance 0.4
 assert moles.all? { |m| m.state == :rise }, "all seven come up together: #{moles.map(&:state).inspect}"
 advance 3
 
+# a mole that is up looks at the pointer as it goes by
+watcher = moles[3]
+60.times { break if watcher.state == :down; advance 0.1 }
+click_at(*middle.(watcher))
+advance 1.0
+assert_equal :up, watcher.state
+left, right = [watcher.x - 150, 12].max, [watcher.x + 150, W - 12].min
+move_mouse left + 10, 600
+move_mouse left, 610
+assert_equal(-1, watcher.look, "it looks left")
+move_mouse right, 610
+assert_equal 1, watcher.look, "and right"
+advance 3
+
 # the keys knock on the holes: the left of the keyboard is the moles on the left
-advance 0.2 until [moles[0], moles[5]].all? { |m| m.state == :down } || ivar.(:@clock) > 60
+100.times { break if [moles[0], moles[5]].all? { |m| m.state == :down }; advance 0.2 }
 press_key "z"
 assert_equal :rise, moles[0].state, "z knocks on the front left hole"
 press_key "p"

@@ -78,6 +78,17 @@ refute ivar.(:@rainbow).first.hidden
 assert_operator ivar.(:@butterflies).size, :>=, 1, "and butterflies come to visit"
 assert flowers.all? { |flower| flower.spot[:flower].equal?(flower) }, "one flower to a spot"
 
+# a wiggle of the mouse leaves golden pollen, and a flower it brushes through wiggles and chimes
+advance 1.3 # past the eight-a-second limit on sounds, so the chime is heard
+flower = flowers.find { |f| f.grow >= 1 && f.shown && f.stir.zero? }
+sparks = ivar.(:@bits).size
+move_mouse flower.shown[0] - 60, flower.shown[1]
+move_mouse flower.shown[0] - 20, flower.shown[1]
+move_mouse flower.shown[0], flower.shown[1]
+assert_operator ivar.(:@bits).size, :>, sparks, "pollen"
+assert_equal 1.0, flower.stir, "the flower wiggles"
+assert_match(/hop-#{flower.note}\.wav\z/, sounds.last_file, "and chimes its note")
+
 # holding the button down is a bubble wand: it keeps blowing, and stops when you let go
 before = bubbles.size
 auto.mouse(:move, 480, 300)
