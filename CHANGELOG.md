@@ -52,6 +52,7 @@ straightforward as possible.
 - Lacci: `style` on an animated shape costs about half what it did: a class's style names are worked out once
 - Native: a packaged app whose name or folder holds a space or a parenthesis ("ZARKING (Rust)", "For Noah") starts when double-clicked; Ruby passed the renderer's path alone to /bin/sh, which only a start with no flags does. Opened from Finder, the Dock or `open`, a native package writes its output to `~/Library/Logs/<name>/launcher.log`
 - Native: `timer(0)` runs on the next turn of the loop, and `every(0)` every millisecond, as in Shoes 3; both waited a whole second
+- Lacci: `style(scale:)`, `style(skew:)`, `style(translate:)` and `style(transform:)` reach the display, as `style(rotate:)` does; they only set an instance variable
 
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
