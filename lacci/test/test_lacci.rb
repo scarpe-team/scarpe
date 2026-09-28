@@ -393,7 +393,12 @@ class TestLacci < NienteTest
     SHOES_SPEC
   end
 
-  def test_para_cursor_marker_special
+  # Shoes 3.1's cursor = :marker drops the selection: the caret goes to its start and the
+  # marker is cleared (s3t_textblock.c:602-616, ledger F14). It used to jump to the marker and
+  # keep it, so in Hackety Hack's editor a second Backspace did nothing and typing after
+  # Backspace or select-all came out backwards: `alert "hello"`, two Backspaces and `p!"`
+  # read `alert "hello"!p`.
+  def test_para_cursor_marker_drops_the_selection
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
         @p = para "Hello World"
@@ -403,7 +408,44 @@ class TestLacci < NienteTest
       p.cursor = 5
       p.marker = 10
       p.cursor = :marker
-      assert_equal 10, p.cursor
+      assert_equal [5, nil], [p.cursor, p.marker], "a selection ahead of the caret"
+      p.cursor = 10
+      p.marker = 3
+      p.cursor = :marker
+      assert_equal [3, nil], [p.cursor, p.marker], "one behind it"
+      p.cursor = :marker
+      assert_equal [3, nil], [p.cursor, p.marker], "with no marker nothing moves"
+      p.marker = 7
+      p.cursor = nil
+      assert_equal [nil, nil], [p.cursor, p.marker], "nil takes the caret and the marker away"
+    SHOES_SPEC
+  end
+
+  # How Hackety Hack's editor types: an edit puts the caret after it and then says
+  # cursor = :marker (app/ui/editor/editor.rb:291-301).
+  def test_para_typing_after_a_backspace_goes_forward
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @p = para "hello"
+      end
+    SHOES_APP
+      p = para()
+      text = +"hello"
+      p.cursor = 5
+      2.times do # Backspace: select the letter before the caret, delete the selection
+        p.marker = p.cursor - 1 if p.marker.nil?
+        pos, len = p.highlight
+        text[pos, len] = ""
+        p.cursor = pos
+        p.cursor = :marker
+      end
+      "p!".each_char do |c|
+        pos, _len = p.highlight
+        text.insert(pos, c)
+        p.cursor = pos + 1
+        p.cursor = :marker
+      end
+      assert_equal ["help!", 5, nil], [text, p.cursor, p.marker]
     SHOES_SPEC
   end
 

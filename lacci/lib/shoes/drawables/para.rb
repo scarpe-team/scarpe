@@ -172,7 +172,10 @@ class Shoes
     end
 
     # Set the text cursor position.
-    # Accepts integer (character position), :marker (jump to marker), or nil (remove cursor).
+    # Accepts integer (character position), :marker, or nil (remove the cursor and the marker).
+    # :marker is Shoes 3.1's "drop the selection": with a marker set, the caret goes to the
+    # start of the selection and the marker is cleared; with none, nothing changes
+    # (s3t_textblock.c:602-616, ledger F14). Editors call it after every edit.
     # String/symbol values set the CSS cursor style directly (via Shoes style prop_change).
     #
     # @param val [Integer, Symbol, String, nil] the new cursor value
@@ -181,9 +184,13 @@ class Shoes
       when Integer
         self.text_cursor = val
       when :marker
-        self.text_cursor = @text_marker if @text_marker
+        if @text_marker
+          self.text_cursor = [@text_cursor, @text_marker].compact.min
+          self.text_marker = nil
+        end
       when nil
         self.text_cursor = nil
+        self.text_marker = nil
       else
         # For CSS cursor types (:text, :arrow, etc.), set the cursor style directly
         # We can't call super because method_missing would redefine cursor= on Para
