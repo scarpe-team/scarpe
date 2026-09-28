@@ -68,7 +68,11 @@ fn check(scene: &str) {
         return;
     }
     if let Some(problem) = mismatch(&actual, &golden(scene)) {
-        panic!("{scene}: {problem} (tests/golden/{scene}.png)");
+        // Keep what this machine drew, so a failure elsewhere (CI uploads the folder) can be seen.
+        let kept = std::path::Path::new(env!("CARGO_TARGET_TMPDIR")).join("golden-actual").join(format!("{scene}.png"));
+        let saved = std::fs::create_dir_all(kept.parent().unwrap()).is_ok() && actual.save(&kept).is_ok();
+        let drawn = if saved { format!("; this run drew {}", kept.display()) } else { String::new() };
+        panic!("{scene}: {problem} (tests/golden/{scene}.png{drawn})");
     }
 }
 
