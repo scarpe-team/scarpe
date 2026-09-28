@@ -279,6 +279,28 @@ fn turned_scaled_and_skewed_art_repaints_in_part() {
     }
 }
 
+/// More scattered changes than MAX_RECTS: twelve 8 px dots drifting far apart (fireflies,
+/// confetti, fish). They were joined into one bounding box across the window, which plan() then
+/// painted whole (_repros/night_light_1.rb); now the nearest are joined until eight rects remain.
+#[test]
+fn many_small_things_moving_far_apart_repaint_in_part() {
+    let mut h = Harness::new();
+    let sky = create(3, "Background", 2, json!({"fill": {"gradient": [{"rgba": [20, 26, 68, 255]}, {"rgba": [70, 57, 127, 255]}], "angle": 0}}));
+    let spot = |i: i64, frame: i64| (60 + (i * 211) % 840 + frame * 2, 60 + (i * 157) % 520);
+    let dots: Vec<Value> = (0..12)
+        .map(|i| create(10 + i, "Oval", 2, json!({"left": spot(i, 0).0, "top": spot(i, 0).1, "width": 8, "height": 8, "center": true, "fill": {"rgba": [255, 244, 204, 255]}})))
+        .collect();
+    h.feed(&app(960, 640, &[vec![sky], dots].concat()));
+    let mut window = Window::open(&mut h, 2.0);
+    for frame in 1..=5 {
+        let moves: Vec<Value> = (0..12).map(|i| json!({"t": "props", "id": 10 + i, "props": {"left": spot(i, frame).0}})).collect();
+        feed(&mut h, &moves);
+        let plan = window.repaint(&mut h);
+        assert!(partial(&plan, &window, 0.02), "frame {frame}: {plan:?}");
+        assert!(matches!(&plan, Repaint::Rects(r) if r.len() <= 8), "{plan:?}");
+    }
+}
+
 #[test]
 fn a_change_of_paint_order_repaints_everything() {
     let mut h = Harness::new();
