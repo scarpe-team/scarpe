@@ -164,14 +164,14 @@ Shoes.app(title: "Ledger", width: 960, height: 640, resizable: false) do
   def money(amount, sign: false, cents: true)
     digits = cents ? format("%.2f", amount.abs) : amount.abs.round.to_s
     text = CURRENCY + digits.gsub(/(\d)(?=(\d{3})+(\.|\z))/, '\1,')
-    return text unless sign || amount.negative?
+    return text if amount.zero? || !(sign || amount.negative?)
 
     (amount.negative? ? "−" : "+") + text
   end
 
-  # 4218.4 -> "$4.2k", for the chart's labels.
-  def short_money(amount)
-    amount.abs >= 1000 ? "#{CURRENCY}#{(amount / 1000.0).round(1)}k" : "#{CURRENCY}#{amount.round}"
+  # A chart's label: "$4.2k" when the chart spans thousands, "$4,147" when it does not.
+  def chart_money(amount, span)
+    span >= 3000 ? "#{CURRENCY}#{(amount / 1000.0).round(1)}k" : money(amount, cents: false)
   end
 
   def month_path(month) = "/month/#{month.strftime("%Y-%m")}"
@@ -574,26 +574,28 @@ Shoes.app(title: "Ledger", width: 960, height: 640, resizable: false) do
       label "Running balance", left: 20, top: 18
       @point_text = para "", size: 12, weight: "semibold", stroke: INK, align: "right", left: 360, top: 15, width: 280
       stack left: 0, top: 44, width: 660, height: 196 do
-        unless @balances.empty?
-          points = @balances.each_with_index.map { |value, i| [@chart_x.(i + 1), @chart_y.(value)] }
-          nostroke
-          fill gradient(rgb(46, 125, 91, 0.26), rgb(46, 125, 91, 0.02))
-          shape do
-            move_to points.first[0], 12 + h
-            points.each { |x, y| line_to x, y }
-            line_to points.last[0], 12 + h
-          end
-          nofill
-          stroke GREEN
-          strokewidth 2.5
-          cap :curve
-          shape do
-            move_to(*points.first)
-            points.drop(1).each { |x, y| line_to x, y }
-          end
-          fill white
-          oval(*points.last, 9, center: true)
+        if @balances.empty?
+          para "Nothing to draw yet", size: 13, stroke: MUTED, align: "center", left: 44, top: 60, width: w, margin: 0
+          next
         end
+        points = @balances.each_with_index.map { |value, i| [@chart_x.(i + 1), @chart_y.(value)] }
+        nostroke
+        fill gradient(rgb(46, 125, 91, 0.26), rgb(46, 125, 91, 0.02))
+        shape do
+          move_to points.first[0], 12 + h
+          points.each { |x, y| line_to x, y }
+          line_to points.last[0], 12 + h
+        end
+        nofill
+        stroke GREEN
+        strokewidth 2.5
+        cap :curve
+        shape do
+          move_to(*points.first)
+          points.drop(1).each { |x, y| line_to x, y }
+        end
+        fill white
+        oval(*points.last, 9, center: true)
         # a white curtain that slides off to the right, uncovering the line
         nostroke
         fill white
@@ -604,7 +606,7 @@ Shoes.app(title: "Ledger", width: 960, height: 640, resizable: false) do
           stroke tint(INK, 0.07)
           strokewidth 1
           line 44, @chart_y.(value), 44 + w, @chart_y.(value)
-          para short_money(value), size: 9, stroke: MUTED, left: 0, top: @chart_y.(value) - 7, width: 38, align: "right", margin: 0
+          para chart_money(value, high - low), size: 9, stroke: MUTED, left: 0, top: @chart_y.(value) - 7, width: 38, align: "right", margin: 0
         end
         [1, 8, 15, 22, days].each do |day|
           para day.to_s, size: 9, stroke: MUTED, left: @chart_x.(day) - 15, top: h + 20, width: 30, align: "center", margin: 0
@@ -634,13 +636,11 @@ Shoes.app(title: "Ledger", width: 960, height: 640, resizable: false) do
   end
 
   def point_at(day)
+    return @point_text.replace("") if @balances.empty?
+
     day = nil if day && day > @balances.size
     @guide.hidden = @dot.hidden = day.nil?
     shown = day || @balances.size
-    if shown.zero?
-      @point_text.replace ""
-      return
-    end
     @point_text.replace "#{money(@balances[shown - 1])} on #{(@month + shown - 1).strftime("%-d %B")}"
     return unless day
 
