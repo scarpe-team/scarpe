@@ -409,7 +409,11 @@ moved there the same day, so apps normally send it.
   edge n px in from the slot's right edge, `bottom: n` likewise from the bottom (manual 1100-1106,
   1356-1364, ledger C10); `left` and `top` win when both are given. A negative `right` or `bottom`
   lies past that edge, as Shoes 3 reads positions (`shoes_px2`, s3_ruby.c:327-337): `bottom: -3`
-  hangs the element 3 px below the slot. Backgrounds and borders read them the same way.
+  hangs the element 3 px below the slot. Backgrounds and borders read them the same way, but for
+  one case: one with a size of its own along the axis is measured from the far edge by its
+  pattern's size, 1 px for a colour or a gradient, as Shoes 3 places a tile (PATTERN_DIM, ledger
+  M19), so `background ..., height: 150, bottom: 150` runs along the slot's foot with its top
+  151 px up, and a picture keeps the size it is given as its measure.
   `displace_left/top` shifts a laid-out element (and what it holds) visually without affecting others.
 - `hidden: true` removes the element from layout and painting.
 - `attach: "window"` positions relative to the window instead of the slot; `attach` with a

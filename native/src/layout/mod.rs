@@ -874,16 +874,29 @@ fn decor_box(node: &Node, slot: Rect) -> Rect {
     let edge = |key: &str, basis: f32| p.dim(key).map(|d| d.resolve(basis));
     let (left, right) = (edge("left", area.w), p.position("right", area.w));
     let (top, bottom) = (edge("top", area.h), p.position("bottom", area.h));
-    let w = edge("width", area.w).unwrap_or(area.w - left.unwrap_or(0.0) - right.unwrap_or(0.0)).max(0.0);
-    let h = edge("height", area.h).unwrap_or(area.h - top.unwrap_or(0.0) - bottom.unwrap_or(0.0)).max(0.0);
+    let (given_w, given_h) = (edge("width", area.w), edge("height", area.h));
+    let w = given_w.unwrap_or(area.w - left.unwrap_or(0.0) - right.unwrap_or(0.0)).max(0.0);
+    let h = given_h.unwrap_or(area.h - top.unwrap_or(0.0) - bottom.unwrap_or(0.0)).max(0.0);
+    // Placed from the far edge with a size of its own, a colour or a gradient keeps its near side
+    // `right` (or `bottom`) px and one more in from that edge: Shoes 3 measures a tile's offset
+    // against the pattern's own size, which is 1 for anything but a picture (PATTERN_DIM,
+    // shoes/types/pattern.h; shoes_place_decide keeps tw and th for REL_TILE, s3_ruby.c:514-520).
+    // So `background ..., height: 150, bottom: 150` runs along the foot, and the manual's
+    // `width: 50, right: 50` is "a fifty pixel column on the right-side" (ledger M19). A picture
+    // keeps its size as the one it is measured by.
+    let key = if node.kind == Kind::Border { "stroke" } else { "fill" };
+    let own = match p.paint(key) {
+        Some(crate::style::color::Paint::Image(_)) => None,
+        _ => Some(1.0),
+    };
     let x = match (left, right) {
         (Some(left), _) => left,
-        (None, Some(right)) => area.w - right - w,
+        (None, Some(right)) => area.w - right - given_w.and(own).unwrap_or(w),
         (None, None) => 0.0,
     };
     let y = match (top, bottom) {
         (Some(top), _) => top,
-        (None, Some(bottom)) => area.h - bottom - h,
+        (None, Some(bottom)) => area.h - bottom - given_h.and(own).unwrap_or(h),
         (None, None) => 0.0,
     };
     Rect::new(area.x + x, area.y + y, w, h)

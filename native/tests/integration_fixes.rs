@@ -86,19 +86,24 @@ fn a_negative_para_cursor_counts_from_the_end() {
     assert_ne!(row(json!(-1)), row(Value::Null), "a caret is drawn");
 }
 
-/// simple/form.rb: `background ..., right: 0, top: 50, width: 55` sat at the left edge.
+/// simple/form.rb: `background "menu-right.png", right: 0, top: 50, width: 55` sat at the left
+/// edge. A picture is measured from the far edge by the size it is given; a colour with a size
+/// of its own by 1 px, as Shoes 3 places a tile (ledger M19), and one with no size is inset.
 #[test]
 fn backgrounds_honour_right_bottom_and_run_to_the_far_edge() {
     let mut h = Harness::new();
     let red = json!({"rgba": [255, 0, 0, 255]});
+    let picture = json!({"image": "/nonexistent/menu-right.png"});
     h.feed(&app(320, 420, &[
         create(3, "Background", 2, json!({"fill": red, "top": 50, "width": 55})),
-        create(4, "Background", 2, json!({"fill": red, "right": 0, "top": 50, "width": 55})),
-        create(5, "Background", 2, json!({"fill": red, "bottom": 0, "height": 20})),
+        create(4, "Background", 2, json!({"fill": picture, "right": 0, "top": 50, "width": 55})),
+        create(5, "Background", 2, json!({"fill": red, "bottom": 20, "height": 20})),
         create(6, "Background", 2, json!({"fill": red, "margin_left": 2, "margin_top": 2, "margin_right": 2, "margin_bottom": 2})),
+        create(7, "Background", 2, json!({"fill": red, "bottom": 20})),
     ]));
     assert_eq!(rect(&h.node(|n| n["id"] == 3)), (0.0, 50.0, 55.0, 370.0));
     assert_eq!(rect(&h.node(|n| n["id"] == 4)), (265.0, 50.0, 55.0, 370.0));
-    assert_eq!(rect(&h.node(|n| n["id"] == 5)), (0.0, 400.0, 320.0, 20.0));
+    assert_eq!(rect(&h.node(|n| n["id"] == 5)), (0.0, 399.0, 320.0, 20.0));
     assert_eq!(rect(&h.node(|n| n["id"] == 6)), (2.0, 2.0, 316.0, 416.0));
+    assert_eq!(rect(&h.node(|n| n["id"] == 7)), (0.0, 0.0, 320.0, 400.0));
 }
