@@ -170,6 +170,14 @@ assert_operator fresh.call.size, :>, 0, "still blooming in a small window"
 resize_window 1000, 660
 advance 3.5
 
+# left alone for a while, the sun nods off; any key wakes it
+advance 21
+assert ivar.(:@dozing), "asleep after twenty seconds of nobody playing"
+assert ivar.(:@zeds).all? { |z| z.hidden == false }, "with its z's"
+press_key "h"
+advance 0.1
+refute ivar.(:@dozing), "a key wakes it"
+
 # a tap on Escape is just another key; holding it for two seconds leaves
 press_key :escape
 advance 1.5
