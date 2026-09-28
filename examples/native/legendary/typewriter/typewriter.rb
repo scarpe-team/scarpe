@@ -161,7 +161,7 @@ Shoes.app(title: "Typewriter", width: 720, height: 680, resizable: false) do
     runs << [@ink, +""] unless runs.last && runs.last[0] == @ink
     runs.last[1] << letter
     show_line(@line)
-    press_key(letter)
+    sink_key(letter)
     @voice.play(letter == " " ? :space : %i[key1 key2 key3].sample)
     move_carriage
     @hint.hide
@@ -215,7 +215,8 @@ Shoes.app(title: "Typewriter", width: 720, height: 680, resizable: false) do
     @glide.stop if @at == @to
   end
 
-  def press_key(letter)
+  # The key for a letter dips and darkens for a moment, as if a finger struck it.
+  def sink_key(letter)
     key = @keys[letter.downcase] or return
     key[:cap].style(top: key[:y] + 3, fill: "#44434a")
     key[:label].top = key[:y] - 7
@@ -238,6 +239,8 @@ Shoes.app(title: "Typewriter", width: 720, height: 680, resizable: false) do
     @saved_to = File.join(SAVE_DIR, "Page #{Time.now.strftime("%Y-%m-%d %H.%M.%S")}.txt")
     File.write(@saved_to, text)
     tell "Saved to #{@saved_to.sub(Dir.home, "~")}"
+  rescue SystemCallError => e
+    tell "The page could not be saved: #{e.message}"
   end
 
   def new_sheet
