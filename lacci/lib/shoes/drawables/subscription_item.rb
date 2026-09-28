@@ -139,6 +139,20 @@ class Shoes::SubscriptionItem < Shoes::Drawable
     !!self.stopped
   end
 
+  # Shoes 3 keeps one handler per slot per event (EVENT_HANDLER stores a single proc,
+  # s3_canvas.c:934-955), so a slot given a second click or keypress block drops the first
+  # (ledger H6). Clear keeps a slot's handlers (H9), so a slot rebuilt with a fresh one,
+  # as Hackety Hack's editor is for every program it opens, would otherwise hear each key
+  # once per rebuild.
+  def replace_earlier_handlers
+    Array(parent&.children).dup.each do |sibling|
+      next if sibling.equal?(self) || !sibling.is_a?(Shoes::SubscriptionItem)
+
+      sibling.destroy if sibling.shoes_api_name == shoes_api_name
+    end
+    self
+  end
+
   def destroy
     # TODO: we need a better way to do this automatically. See https://github.com/scarpe-team/scarpe/issues/291
     unsub_shoes_event(@unsub_id) if @unsub_id

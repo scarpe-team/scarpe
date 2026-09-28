@@ -1,0 +1,20 @@
+---
+manual: events.click
+lines: [2187, 2193]
+testability: interactive
+display: native
+ledger: H6
+----------- app code
+# Shoes 3 keeps one click block per slot: a second one replaces the first (EVENT_HANDLER,
+# s3_canvas.c:934-955).
+$clicks = []
+Shoes.app width: 200, height: 120 do
+  @box = stack width: 200, height: 120 do
+    background orange
+    click { $clicks << :first }
+  end
+  @box.click { $clicks << :second }
+end
+----------- test code
+click_at 100, 60
+assert_equal [:second], $clicks, "the slot's second click block replaced its first"
