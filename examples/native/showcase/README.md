@@ -13,5 +13,9 @@ Six small apps in plain Shoes, each leaning on a different strength of the nativ
 
 Run one with `scarpe --native examples/native/showcase/pomodoro.rb`.
 
+`shoe_icon.rb` is For Noah's app icon, the card's shoe on a tile, drawn by Scarpe itself. Its
+opening comment has the three commands that turn it into `For Noah.app` with that icon:
+`scarpe peek` draws it, one ImageMagick line cuts the corners, `scarpe package` does the rest.
+
 `spec/showcase/` holds a Shoes-Spec case per app that drives it headless and looks at the
 pixels. They run with the rest of the suite, or alone: `spec/run --display native spec/showcase`.

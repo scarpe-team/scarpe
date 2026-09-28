@@ -53,6 +53,14 @@ module Scarpe
         raise "Native packaging makes macOS apps for now (not #{@target_os})" unless @target_os == "macos"
         raise "Native packaging builds one architecture (#{@arch}); --universal is not supported yet" if @universal
 
+        # A name given with --name is what Finder, the Dock and the disk image show, so it stays as
+        # written ("ZARKING (Rust)", "For Noah") less what a file name cannot hold. A name made from
+        # the file name stays CamelCase, as for every build.
+        if (given = given_name(options[:name]))
+          @name = given
+          @bundle_id = "com.scarpe.#{given.downcase.gsub(/[^a-z0-9]/, "").then { |id| id.empty? ? "app" : id }}"
+        end
+
         @scarpe_root ||= find_scarpe_root || raise("Cannot find the Scarpe source (lib/scarpe and lacci/lib)")
         @install_dir = install_dir
         @bytecode = bytecode
@@ -103,6 +111,13 @@ module Scarpe
       end
 
       private
+
+      # A --name as a bundle name: slashes, colons and control characters cannot be in a file
+      # name, and a leading dot would hide the app.
+      def given_name(name)
+        clean = name.to_s.gsub(%r{[/:[:cntrl:]]}, "").strip.sub(/\A\.+/, "")
+        clean.empty? ? nil : clean
+      end
 
       # Under Contents/Resources/scarpe/: the sources, then the vendored gems' lib directories.
       def load_dirs
