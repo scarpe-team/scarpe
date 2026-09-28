@@ -143,4 +143,21 @@ class TestControls < NienteTest
       assert_equal ["tea for two"], $sent
     SHOES_SPEC
   end
+
+  # Ledger G17: fields take their page's colours. fill: and border_color: are styles of their
+  # own on edit lines and edit boxes, kept and changed like any other, never dropped as unknown.
+  def test_fields_keep_their_colours
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @line = edit_line fill: "#fbf9f4", border_color: "#cdc2b0", stroke: "#1c1a17"
+        @box = edit_box fill: "#fbf9f4", border_color: "#cdc2b0"
+      end
+    SHOES_APP
+      line = edit_line("@line")
+      assert_equal ["#fbf9f4", "#cdc2b0", "#1c1a17"], %i[fill border_color stroke].map { |key| line.style[key] }
+      assert_equal ["#fbf9f4", "#cdc2b0"], %i[fill border_color].map { |key| edit_box("@box").style[key] }
+      line.obj.border_color = "#b3321e"
+      assert_equal "#b3321e", line.style[:border_color], "and they change like any other style"
+    SHOES_SPEC
+  end
 end

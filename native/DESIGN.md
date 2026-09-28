@@ -472,7 +472,9 @@ Hard-won API notes (from research 07):
 Default background white, text #1d1d1f, system sans (San Francisco on macOS) at the Shoes sizes
 (banner 48, title 34, subtitle 26, tagline 18, caption 14, para 12, inscription 10). Buttons: rounded
 6 px, subtle vertical gradient, 1 px border, soft shadow, pressed and hover states. Inputs: white,
-1 px #c7c7cc border, 6 px radius, blue focus ring. Check/radio: drawn, accent blue (#0a84ff) when on.
+1 px #c7c7cc border, 6 px radius, blue focus ring and caret; `fill:` and `border_color:` repaint the
+box and its edge, and a `stroke:` that colours the text colours the caret and focus ring too
+(ledger G17). Check/radio: drawn, accent blue (#0a84ff) when on.
 Links: #0066ee, underline, #003399 on hover, pointer cursor. Buttons, checks, radios and list boxes
 also show the pointing hand and text fields an I-beam; a drawable's own `cursor` style
 (`:hand_cursor`, `:text_cursor`, `:watch_cursor`, `:arrow_cursor`) wins, and the App's `cursor`
