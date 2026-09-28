@@ -47,6 +47,23 @@ class ExampleRunTest < Minitest::Test
     assert_equal ["fail", "pixel 15,5 is #ffffff, not #000000"], judge.([[2, 2, "#000000"], [15, 5, "#000000"]])
   end
 
+  # ruby_racer.rb stops on `require "benchmark"` only where Ruby 4.0 made benchmark a bundled gem;
+  # on 3.2 it loads, and CI runs both.
+  def test_a_status_can_hold_on_some_rubies_only
+    example = SpecSuite::ExampleList::Example.new(path: "examples/demo.rb", status: "fails", ruby: ">= 4.0")
+
+    assert_equal "fails", example.status_on("native", ruby_version: "4.0.1")
+    assert_equal "loads", example.status_on("native", ruby_version: "3.2.11")
+    assert_equal "fails", SpecSuite::ExampleList::Example.new(path: "x.rb", status: "fails").status_on("native", ruby_version: "3.2.0")
+  end
+
+  def test_a_ruby_that_is_not_a_requirement_is_a_problem
+    list = SpecSuite::ExampleList.new("examples/demo.rb" => { "status" => "fails", "ruby" => "four or newer" },
+      "examples/fine.rb" => { "status" => "fails", "ruby" => ">= 4.0" })
+
+    assert_equal ["examples/demo.rb: ruby \"four or newer\" is not a version requirement like \">= 4.0\""], list.problems
+  end
+
   def test_an_unknown_step_names_the_example
     example = SpecSuite::ExampleList::Example.new(path: "examples/demo.rb", steps: [{ "hover" => [1, 2] }])
     run = SpecSuite::ExampleRun.new(example, display: "native", tree: nil, sandboxes: nil)
