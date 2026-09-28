@@ -53,4 +53,35 @@ class TestManual < NienteTest
       refute texts.call.any? { |t| t.include?("Shoes is a tiny graphics toolkit") }, "in place of the first"
     SHOES_SPEC
   end
+
+  # Shoes 3's manual drew its Colors List and Classes List where the text says {COLORS} and
+  # {INDEX} (help.rb color_page, index_page; ledger M38), and showed the pictures beside it.
+  # Scarpe's printed the braces and dropped every picture.
+  def test_the_manual_draws_its_colours_classes_and_pictures
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        button("Help") { Shoes.show_manual("Colors List") }
+      end
+    SHOES_APP
+      button.trigger_click
+      manual = Shoes.APPS.last
+      words = -> { manual.all_drawables.grep(Shoes::Para).map(&:text) }
+      turn_to = lambda do |title|
+        link = manual.all_drawables.grep(Shoes::Para).flat_map(&:contents).grep(Shoes::Link).find { |l| l.text == title }
+        Shoes::DisplayService.dispatch_event("click", link.linkable_id)
+      end
+      refute words.call.any? { |t| t.include?("{COLORS}") }, "no braces"
+      assert words.call.any? { |t| t.include?("tomato") && t.include?("rgb(255, 99, 71)") }, "tomato, with its numbers"
+      assert_operator words.call.count { |t| t.start_with?("aliceblue", "antiquewhite", "aqua") }, :>=, 3
+
+      turn_to.call("Classes List")
+      refute words.call.any? { |t| t.include?("{INDEX}") }
+      assert words.call.any? { |t| t.include?("Button") }, "the drawables are listed"
+
+      turn_to.call("Hello!")
+      picture = manual.all_drawables.grep(Shoes::Image).find { |i| i.url.to_s.end_with?("man-shot1.png") }
+      refute_nil picture, "the first page shows how Shoes looks on Linux"
+      assert words.call.any? { |t| t.end_with?("here's how this might look:") }, "under the words that promise it"
+    SHOES_SPEC
+  end
 end

@@ -141,13 +141,21 @@ module Scarpe
           FileUtils.cp_r(File.join(@scarpe_root, dir, "."), File.join(dest, dir))
         end
         LEAVE_OUT.each { |path| FileUtils.rm_rf(File.join(dest, "lib", path)) }
-        SOURCE_FILES.each do |file|
+        (SOURCE_FILES + manual_pictures).each do |file|
           source = File.join(@scarpe_root, file)
           next unless File.exist?(source)
 
           FileUtils.mkdir_p(File.dirname(File.join(dest, file)))
           FileUtils.cp(source, File.join(dest, file))
         end
+      end
+
+      # The pictures the manual shows (![man-app.png](man-app.png)), which sit beside it.
+      def manual_pictures
+        manual = File.join(@scarpe_root, "docs/static/manual.md")
+        return [] unless File.exist?(manual)
+
+        File.read(manual, encoding: Encoding::UTF_8).scan(/!\[[^\]]*\]\(([^)\/]+)\)/).flatten.uniq.map { |name| "docs/static/#{name}" }
       end
 
       def copy_vendored_gems

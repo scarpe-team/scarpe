@@ -15,6 +15,11 @@ class Shoes
 
     # Inline marks the manual uses: `'emphasis`', `code`, __strong__, [[links]], pictures.
     INLINE = /(`'.+?`'|`[^`]+`|__.+?__|\*\*.+?\*\*|\[\[[^\]]+\]\]|!\[[^\]]*\]\([^)]*\))/
+    # A picture, ![man-app.png](man-app.png); its file sits beside the manual.
+    PICTURE = /!\[[^\]]*\]\(([^)]+)\)/
+    # Shoes 3's manual drew these where the text holds them (help.rb color_page, index_page and
+    # sample_page; ledger M38).
+    PLACEHOLDERS = { "{COLORS}" => :colors, "{INDEX}" => :index, "{SAMPLES}" => :samples }.freeze
 
     class << self
       # The manual cut into sections, in order, without the page's front matter. It is UTF-8,
@@ -94,7 +99,17 @@ class Shoes
       out = []
       words = []
       code = nil
-      finish_para = -> { out << [:para, words.join(" ")] unless words.empty?; words = [] }
+      finish_para = lambda do
+        text = words.join(" ")
+        words = []
+        return if text.empty?
+        return out << [PLACEHOLDERS[text]] if PLACEHOLDERS.key?(text)
+
+        pictures = text.scan(PICTURE).flatten
+        text = text.gsub(PICTURE, "").strip
+        out << [:para, text] unless text.empty?
+        pictures.each { |file| out << [:picture, file] }
+      end
       lines.each do |line|
         if code && !line.start_with?("```")
           code << line.delete_prefix(" ")
@@ -122,8 +137,14 @@ class Shoes
       out
     end
 
-    def draw_block(kind, text)
+    def draw_block(kind, text = nil)
       case kind
+      when :picture
+        path = File.join(File.dirname(FILE), text)
+        image path, margin: [18, 4, 18, 12] if File.exist?(path)
+      when :colors then color_list
+      when :index then class_list
+      when :samples then nil # Shoes 3 listed the samples it came with; this manual has none to list
       when :heading
         tagline(*inline(text), size: 15, weight: "bold", stroke: "#7a3310", margin: [18, 14, 18, 4])
       when :code
@@ -139,13 +160,49 @@ class Shoes
       end
     end
 
+    # Every named colour on a swatch of itself, its name and its numbers under it, three to a row,
+    # as Shoes 3's manual drew its Colors List (help.rb color_page).
+    def color_list
+      flow margin: [18, 4, 18, 12] do
+        Shoes::COLORS.keys.sort.each do |name|
+          r, g, b = Shoes::COLORS[name]
+          dark = (r * 299 + g * 587 + b * 114) / 1000 < 128
+          flow width: 0.33 do
+            background rgb(r, g, b)
+            para strong(name.to_s), "\n", "rgb(#{r}, #{g}, #{b})", size: 9, align: "center",
+              stroke: dark ? white : black, margin: 4
+          end
+        end
+      end
+    end
+
+    # The classes Shoes brings, each under the class it comes from, as Shoes 3's manual drew its
+    # Classes List (help.rb index_page): the drawables and the colour, not the machinery under
+    # them. A name with a section of its own links to it.
+    def class_list
+      classes = Shoes.constants.sort.filter_map do |name|
+        klass = Shoes.const_get(name)
+        klass if klass.is_a?(Class) && klass.name&.start_with?("Shoes::") && (klass <= Shoes::Drawable || klass.name == "Shoes::Color")
+      end
+      children = classes.group_by(&:superclass)
+      roots = classes.reject { |k| classes.include?(k.superclass) }
+      stack margin: [18, 4, 18, 12] do
+        roots.sort_by(&:name).each { |k| class_branch(k, children, 0) }
+      end
+    end
+
+    def class_branch(klass, children, depth)
+      para "▸ ", wiki_link(klass.name.delete_prefix("Shoes::")), size: 10, margin: [depth * 20, 1, 0, 1]
+      Array(children[klass]).sort_by(&:name).each { |k| class_branch(k, children, depth + 1) }
+    end
+
     def inline(text)
       text.split(INLINE).reject(&:empty?).map do |piece|
         case piece
         when /\A`'(.+)`'\z/m then em(Regexp.last_match(1))
         when /\A`(.+)`\z/m then code(Regexp.last_match(1))
         when /\A__(.+)__\z/m, /\A\*\*(.+)\*\*\z/m then strong(Regexp.last_match(1))
-        when /\A!\[/ then "" # the pictures do not come with the manual
+        when /\A!\[/ then "" # blocks draws a picture under the words it closes
         when "[[BR]]" then "\n"
         when /\A\[\[(.+)\]\]\z/ then wiki_link(Regexp.last_match(1))
         else piece
