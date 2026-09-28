@@ -993,6 +993,11 @@ impl Runtime {
                 if edited.0.changed {
                     self.out.event("change", Some(id), vec![Value::String(edited.1)]);
                 }
+                // Return in a one-line field runs its `finish` block (Shoes 3.2.15's
+                // `edit_line.finish = proc`, ledger G16).
+                if self.doc.get(id).is_some_and(|n| n.kind == Kind::EditLine) && key.key == Key::Named(Named::Enter) && !(key.modified() || key.shift) {
+                    self.out.event("finish", Some(id), vec![]);
+                }
                 self.request_redraw(app);
                 send_keypress = key.key == Key::Named(Named::Escape) || key.modified();
             }

@@ -2,7 +2,7 @@
 
 Shoes-Spec was Noah Gibbs' idea: write down what Shoes *is* as tests that any display service can run. Wherever the sources disagree about what Shoes is, the argument happens on this page. Each row records one disagreement, the evidence on every side, the ruling, what `spec/` asserts, and what the native Rust backend does.
 
-Status: v1.2, 27 Sep 2026. The orchestrator ruled the seven open questions (Q1 to Q7) that day, then Q8 and Q9 as the later build waves raised them, with two new rows (C15, G15) from the fifth wave's rulings; and the rows the first build wave asked for joined it (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20). v1 was seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`. When the build lanes merged the same day, every row whose Lacci behaviour changed gained a "Since 27 Sep" sentence naming the Lacci lane commit, and rows whose Lacci change landed say so in their ruling line.
+Status: v1.3, 28 Sep 2026. The sixth build wave (the legendary apps) extended C15 to every number on art and added E12 and G16; its finishing lane fixed what the app builders met, each row saying so. v1.2, 27 Sep 2026: The orchestrator ruled the seven open questions (Q1 to Q7) that day, then Q8 and Q9 as the later build waves raised them, with two new rows (C15, G15) from the fifth wave's rulings; and the rows the first build wave asked for joined it (A9, B6, C13, D9, E11, F12, G10 to G14, H9, H10, I2, K6, X20). v1 was seeded from `native/research/06_discrepancy_ledger_seed.md` (rows A1 to L4, ids kept), the 37 contradictions in `native/research/03_manual_inventory.md` (rows M1 to M37, same numbers), and the Lacci divergences in reports 01, 03 and 04 (rows X1 to X19 plus new rows in each area). Contract: `native/DESIGN.md`. When the build lanes merged the same day, every row whose Lacci behaviour changed gained a "Since 27 Sep" sentence naming the Lacci lane commit, and rows whose Lacci change landed say so in their ruling line.
 
 ## How to read this
 
@@ -160,6 +160,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | G13 | Up and Down on a focused list box select | MANUAL | | |
 | G14 | A radio unmarked by its sibling: does its block run? | BOTH | | |
 | G15 | Scarpe draws its own controls | EXT | | |
+| G16 | `edit_line.finish = proc` runs on Return | EXT | | |
 
 ### H. Events
 
@@ -1034,6 +1035,16 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci / WV today:** Webview uses HTML form controls, which the browser engine draws.
 - **Spec:** `elements.native_controls__drawn_by_scarpe` (native): in a headless run, where no OS widget exists, a button, edit line, edit box, list box, progress bar, check and radio each paint their own pixels. The manual's claim is not transcribed as an expectation. Sizes still follow C4.
 - **Native:** every control is drawn by the renderer (DESIGN 7, "Look and feel"). `alert`, `confirm` and the file and folder choosers are the platform's (rfd); `ask` and `ask_color` are drawn in the window (DESIGN 12, "Windowed dialogs").
+
+### G16. `edit_line.finish = proc` runs on Return
+
+**Ruling: EXT** (Shoes 3.2.15). New row, 28 Sep 2026, from the wave-6 business lane.
+
+- **Manual:** silent; an edit line has `change`, `focus`, `text` and `text=` (manual 3057-3104).
+- **Shoes 3:** `rb_define_method(cEditLine, "finish=", ..., 1)` stores the proc as the field's `donekey` attribute, run when Return is pressed (`s3t_edit_line.c:15, 42-49`, "added in Shoes 3.2.15").
+- **Lacci today:** until 28 Sep EditLine had no `finish=`, and Return in a focused line reached no Shoes code at all, since `keypress` skips unmodified keys while a field has focus (DESIGN 4.3). Kanban typed new cards into an edit box to hear the newline, and Ledger took Cmd-Return. Now `finish=` stores a proc, called with the line.
+- **Spec:** `element.edit_line__finish` (native): typing does not run it, Return does, with the line holding its text.
+- **Native:** Return, with no Control, Option, Command or Shift, in a focused edit line sends `finish` (DESIGN 4.3). An edit box takes Return as a new line. Webview sends nothing yet.
 
 ## H. Events
 

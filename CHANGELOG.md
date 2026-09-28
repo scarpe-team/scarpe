@@ -18,6 +18,7 @@ straightforward as possible.
 - Ghost windows (`--ghost`, or `SCARPE_NATIVE_GHOST=1`): real windows that present frames nobody can see or click; every automated windowed run opens them
 - `scarpe peek --drag X,Y,X,Y...`, and `drag` in Shoes-Spec test code
 - `scarpe package --include PATH` carries any other file or folder an app reads (repeatable); a native package keeps its `--name` as written, spaces and all
+- Lacci: `edit_line.finish = proc` runs when Return is pressed in the line, as Shoes 3.2.15 added; `arc` takes `wedge: true` for a pie slice, as in Shoes 4
 - Lacci: `download` takes `start:`, `progress:`, `finish:`, `headers:` and `body:` and no longer needs nokogiri; `Image#path`, `full_width` and `full_height` and the `imagesize` built-in; the `error` built-in; `rgb`, `gray` and the named colours return a `Shoes::Color`, an Array with `red`, `green`, `blue` and `alpha`; `banner`, `title` and the rest of that family are `Shoes::Para` subclasses
 
 ### Bugs Fixed
