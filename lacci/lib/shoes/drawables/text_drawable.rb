@@ -102,12 +102,27 @@ class Shoes
       @text_children.dup
     end
 
+    # The text block or fragment this fragment sits in, as Shoes 3's cText#parent is
+    # (s3t_text.c:72-83, ledger F13): nil until a para or a fragment takes it as text.
+    # Hackety Hack's links recolour their para through it.
+    #
+    # @return [Shoes::Para, Shoes::TextDrawable, nil]
+    def parent
+      @parent || @text_parent
+    end
+
+    # The para or fragment that takes this fragment as text says so here.
+    def text_parent=(holder)
+      @text_parent = holder
+    end
+
     private
 
     # Text_children alternates strings and TextDrawables, so we can't just pass
     # it as a Shoes style. It won't serialize.
     def update_text_children(children)
       @text_children = children.flatten.map { |child| utf8_text(child) }
+      @text_children.each { |child| child.text_parent = self if child.is_a?(TextDrawable) }
       # This should signal the display drawable to change
       self.text_items = text_children_to_items(@text_children)
     end

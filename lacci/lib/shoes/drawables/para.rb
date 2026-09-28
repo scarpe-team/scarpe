@@ -252,6 +252,7 @@ class Shoes
     # it as a Shoes style. It won't serialize.
     def update_text_children(children)
       @text_children = children.flatten.map { |child| utf8_text(child) }
+      @text_children.each { |child| child.text_parent = self if child.is_a?(TextDrawable) }
       # This should signal the display drawable to change
       self.text_items = text_children_to_items(@text_children)
     end
