@@ -1,0 +1,25 @@
+---
+manual: styles.stroke.text_color
+lines: [1459, 1461]
+testability: visual
+display: native
+----------- app code
+# Fading text out ends on a stroke with no alpha at all. That last step must print nothing;
+# it used to fall back to the default black ink, a black flash at the end of every fade.
+Shoes.app width: 300, height: 120 do
+  background "#dff1ff"
+  @word = para "BIG", size: 60, weight: "bold", stroke: rgb(255, 152, 48, 1.0)
+end
+----------- test code
+word = para("@word")
+box = layout_of(word)
+inked = lambda do
+  (box.y.floor...(box.y + box.h).ceil).step(2).flat_map do |y|
+    (box.x.floor...(box.x + box.w).ceil).step(2).map { |x| pixel_at(x, y).first(3) }
+  end.reject { |pixel| pixel == [223, 241, 255] }
+end
+refute_empty inked.call, "the letters show while the stroke is solid"
+
+word.style(stroke: rgb(255, 152, 48, 0.0))
+wait_frames
+assert_empty inked.call, "a stroke with no alpha leaves only the sky"

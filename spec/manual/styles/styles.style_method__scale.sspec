@@ -1,0 +1,29 @@
+---
+manual: styles.style_method
+lines: [1037, 1045]
+testability: visual
+display: native
+ledger: E10
+----------- app code
+# scale and skew are draw-context settings, as rotate is, so style changes them on a shape
+# that is already drawn.
+Shoes.app width: 300, height: 160 do
+  background white
+  nostroke
+  fill red
+  transform :center
+  @box = rect 180, 50, 60, 60
+end
+----------- test code
+box = rect("@box")
+assert_equal [255, 0, 0, 255], pixel_at(210, 80), "the square's middle is red"
+assert_equal [255, 255, 255, 255], pixel_at(160, 30), "outside its corner is white"
+
+box.style(scale: [2, 2])
+wait_frames
+assert_equal [255, 0, 0, 255], pixel_at(160, 30), "scaled about its centre, it now covers that corner"
+assert_equal [255, 255, 255, 255], pixel_at(145, 30), "and stops 30 px out from its old edge"
+
+box.style(scale: 1)
+wait_frames
+assert_equal [255, 255, 255, 255], pixel_at(160, 30), "scale 1 puts it back"

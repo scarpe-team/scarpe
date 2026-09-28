@@ -76,6 +76,50 @@ class TestApp < NienteTest
     SHOES_SPEC
   end
 
+  # A Shoes app's block runs with the App as self, so its instance variables share a namespace
+  # with Lacci's own. Names an app is likely to pick (a list of slots, of pages, a start time)
+  # must stay the app's (examples/native/kids/_repros/peekaboo_moles_1.rb, where @slots
+  # replaced Lacci's slot stack and the next stack died with NoMethodError on a Hash).
+  def test_an_apps_own_instance_variables_leave_lacci_alone
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @slots = [{ x: 10 }, { x: 60 }]
+        @pages = %w[one two]
+        @routes = :mine
+        @location = "Belfast"
+        @started = 1966
+        @document_root = "mine"
+        @content_container = "mine"
+        @dir = "mine"
+        @do_shutdown = true
+        @event_loop_type = "mine"
+        @start_callbacks = "mine"
+        @external_self_stack = "mine"
+        @first_boot_finished = "mine"
+        @app_code_body = "mine"
+        @watch_for_destroy = "mine"
+        @watch_for_event_loop = "mine"
+        url "/about", :about
+        def about = flow { $about = para("about") }
+        page(:extra) { $extra = para("extra") }
+        start { $started = true }
+        $stack = stack(left: 10, top: 10, width: 100, height: 40) { para "hello" }
+      end
+    SHOES_APP
+      app = Shoes.APPS.first
+      assert_equal "hello", $stack.contents.first.text, "the stack after @slots = [...] was built"
+      app.visit("/about")
+      assert_equal ["about", "/about"], [$about.text, app.location]
+      app.visit(:extra)
+      assert_equal ["extra", "/extra"], [$extra.text, app.location]
+      assert_equal true, $started
+      assert_equal true, app.started?
+      assert_kind_of Shoes::DocumentRoot, app.document_root
+      assert_equal Dir.pwd, app.dir
+      assert_equal [{ x: 10 }, { x: 60 }], app.instance_variable_get(:@slots), "and @slots is still the app's"
+    SHOES_SPEC
+  end
+
   # Ledger K4: font returns the family names in the file, or nil when it holds none
   # (manual 766-767).
   def test_font_returns_the_families_in_the_file
@@ -92,6 +136,16 @@ class TestApp < NienteTest
       assert_nil $not_a_font
       assert_includes Shoes::FONTS, "Pacifico"
     SHOES_SPEC
+  end
+
+  # Font names are UTF-16 text, read by hand because a packaged app's Ruby has no encoding
+  # transcoders (test/package's test_fonts_are_named_and_loaded_in_the_bundle): a surrogate
+  # pair is one character, half a pair alone is U+FFFD, and a Mac Roman name in plain ASCII
+  # reads as it is.
+  def test_font_names_are_read_without_transcoders
+    assert_equal "\u{1D49C} Sans", Shoes::FontFile.send(:utf_16be, "\xD8\x35\xDC\x9C\x00 \x00S\x00a\x00n\x00s".b)
+    assert_equal "\uFFFDx", Shoes::FontFile.send(:utf_16be, "\xD8\x00\x00x".b)
+    assert_equal "Pacifico", Shoes::FontFile.send(:mac_roman, "Pacifico".b)
   end
 
   # Ledger D6: background takes an :angle for its gradient (manual 1073-1079).

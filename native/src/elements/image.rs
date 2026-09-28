@@ -16,10 +16,16 @@ use tiny_skia::{FilterQuality, IntSize, Pixmap, PixmapPaint, Transform};
 /// a file that did not read (not there yet, not a picture) is tried again once it changes.
 /// A file is looked at once a batch at most (`next_batch`), not on every paint. Runtime::flush
 /// lets go of pictures nothing shows any more (`retain`).
+///
+/// A picture shown bigger or smaller than its pixels is resampled once for the size it is shown
+/// at, and the copy kept with it (`at_size`): resampling a 211 px glow up to 844 device pixels
+/// on every paint cost five times what drawing it did.
 #[derive(Default)]
 pub struct ImageCache {
     entries: HashMap<PathBuf, Entry>,
     batch: u64,
+    /// Copies made at a new size since the runtime last asked (`take_resampled`).
+    resampled: u64,
 }
 
 struct Entry {
@@ -28,7 +34,14 @@ struct Entry {
     image: Option<Rc<Pixmap>>,
     /// The batch the file was last looked at in.
     looked: u64,
+    /// The picture resampled to the device sizes it is drawn at, the last used first.
+    sized: Vec<Rc<Pixmap>>,
 }
+
+/// How many sizes of one picture are kept, for a picture shown at several sizes at once.
+const SIZES_KEPT: usize = 4;
+/// A copy bigger than this many pixels is not kept; the picture is drawn resampled as it goes.
+const MOST_KEPT_PIXELS: u64 = 16 * 1024 * 1024;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct FileStamp {
@@ -55,8 +68,37 @@ impl ImageCache {
             return entry.image.clone();
         }
         let image = file.and_then(|_| decode(path)).map(Rc::new);
-        self.entries.insert(path.to_path_buf(), Entry { file, image: image.clone(), looked: batch });
+        self.entries.insert(path.to_path_buf(), Entry { file, image: image.clone(), looked: batch, sized: Vec::new() });
         image
+    }
+
+    /// The picture at `path` resampled to exactly `w` x `h` pixels, made the first time and kept
+    /// after. None for a size too big to keep, or a picture not read.
+    pub fn at_size(&mut self, path: &Path, w: u32, h: u32) -> Option<Rc<Pixmap>> {
+        if w == 0 || h == 0 || w as u64 * h as u64 > MOST_KEPT_PIXELS {
+            return None;
+        }
+        let entry = self.entries.get_mut(path)?;
+        let image = entry.image.clone()?;
+        if let Some(i) = entry.sized.iter().position(|copy| copy.width() == w && copy.height() == h) {
+            let copy = entry.sized.remove(i);
+            entry.sized.insert(0, copy.clone());
+            return Some(copy);
+        }
+        let mut copy = Pixmap::new(w, h)?;
+        let (sx, sy) = (w as f32 / image.width() as f32, h as f32 / image.height() as f32);
+        let paint = PixmapPaint { quality: FilterQuality::Bicubic, ..PixmapPaint::default() };
+        copy.draw_pixmap(0, 0, image.as_ref().as_ref(), &paint, Transform::from_scale(sx, sy), None);
+        let copy = Rc::new(copy);
+        entry.sized.insert(0, copy.clone());
+        entry.sized.truncate(SIZES_KEPT);
+        self.resampled += 1;
+        Some(copy)
+    }
+
+    /// How many copies at a new size were made since the last call (stats' images_resampled).
+    pub fn take_resampled(&mut self) -> u64 {
+        std::mem::take(&mut self.resampled)
     }
 
     /// A new batch of changes arrived: files are worth looking at again.
@@ -158,21 +200,36 @@ pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, images: &mut ImageCa
     if r.w <= 0.0 || r.h <= 0.0 {
         return;
     }
-    let Some(img) = url(node).and_then(|p| images.get(&p)) else {
+    let path = url(node);
+    let Some(mut img) = path.as_ref().and_then(|p| images.get(p)) else {
         if node.props.str("url").is_some_and(|u| !u.is_empty()) {
             placeholder(canvas, r, lbox.clip);
         }
         return;
     };
-    let sx = r.w / img.width() as f32;
-    let sy = r.h / img.height() as f32;
-    let mut transform = Transform::from_row(sx, 0.0, 0.0, sy, r.x, r.y);
-    if let Some(deg) = node.props.f32("rotate_angle").filter(|d| *d != 0.0) {
+    let base = canvas.base();
+    let turned = node.props.f32("rotate_angle").filter(|d| *d != 0.0);
+    // Unturned, it lands on whole device pixels; a picture of another size is drawn from its
+    // copy at that size, kept from paint to paint, one pixel for each.
+    let (x0, y0) = ((r.x * base.sx + base.tx).round(), (r.y * base.sy + base.ty).round());
+    let (w, h) = ((r.right() * base.sx + base.tx).round() - x0, (r.bottom() * base.sy + base.ty).round() - y0);
+    let same_size = w as u32 == img.width() && h as u32 == img.height();
+    if let (None, Some(p), false) = (turned, &path, same_size) {
+        if let Some(copy) = images.at_size(p, w as u32, h as u32) {
+            img = copy;
+        }
+    }
+    let mut transform = if turned.is_none() && w as u32 == img.width() && h as u32 == img.height() {
+        // In device pixels already: `base` is taken off again below.
+        Transform::from_translate((x0 - base.tx) / base.sx, (y0 - base.ty) / base.sy).pre_scale(1.0 / base.sx, 1.0 / base.sy)
+    } else {
+        Transform::from_row(r.w / img.width() as f32, 0.0, 0.0, r.h / img.height() as f32, r.x, r.y)
+    };
+    if let Some(deg) = turned {
         let (cx, cy) = if node.props.str("transform_origin") == Some("center") { r.center() } else { (r.x, r.y) };
         transform = Transform::from_rotate_at(deg, cx, cy).pre_concat(transform);
     }
     let paint = PixmapPaint { quality: FilterQuality::Bicubic, ..PixmapPaint::default() };
-    let base = canvas.base();
     let mask_clip = lbox.clip;
     // draw_pixmap has no clip rect of its own: clip by drawing through a pattern-filled rect.
     if mask_clip.is_some() {

@@ -377,6 +377,26 @@
 "examples/margin.rb": {category: ".", needs: [], status: "loads"}
 "examples/margin_check.rb": {category: ".", needs: ["dialog"], status: "loads"}
 "examples/motion_events.rb": {category: ".", needs: [], status: "loads"}
+"examples/native/kids/balloon_pop/balloon_pop.rb": {category: "native/kids/balloon_pop", needs: ["timer/animation", "audio", "asset:__dir__-relative"], status: "loads"}
+"examples/native/kids/balloon_pop/icon.rb": {category: "native/kids/balloon_pop", needs: ["asset:__dir__-relative"], status: "loads"}
+"examples/native/kids/bubble_garden/bubble_garden.rb": {category: "native/kids/bubble_garden", needs: ["timer/animation", "audio", "asset:__dir__-relative"], status: "loads", steps: [{key: "a"}, {key: "g"}, {key: "k"}, {key: "p"}, {wait: 0.8}]}
+"examples/native/kids/bubble_garden/icon.rb": {category: "native/kids/bubble_garden", needs: ["asset:__dir__-relative"], status: "loads"}
+"examples/native/kids/key_splash/key_splash.rb": {category: "native/kids/key_splash", needs: ["timer/animation", "audio", "asset:__dir__-relative", "file_write"], status: "loads", steps: [{key: "a"}, {wait: 0.3}]}
+"examples/native/kids/key_splash/icon.rb": {category: "native/kids/key_splash", needs: ["asset:__dir__-relative"], status: "loads"}
+"examples/native/kids/maze_mouse/maze_mouse.rb": {category: "native/kids/maze_mouse", needs: ["timer/animation", "audio", "asset:__dir__-relative"], status: "loads"}
+"examples/native/kids/maze_mouse/icon.rb": {category: "native/kids/maze_mouse", needs: ["asset:__dir__-relative"], status: "loads"}
+"examples/native/kids/memory_match/memory_match.rb": {category: "native/kids/memory_match", needs: ["timer/animation", "audio", "asset:__dir__-relative", "file_write"], status: "loads"}
+"examples/native/kids/memory_match/icon.rb": {category: "native/kids/memory_match", needs: ["asset:__dir__-relative"], status: "loads"}
+"examples/native/kids/night_light/night_light.rb": {category: "native/kids/night_light", needs: ["timer/animation", "audio", "asset:__dir__-relative"], status: "loads"}
+"examples/native/kids/night_light/icon.rb": {category: "native/kids/night_light", needs: ["asset:__dir__-relative"], status: "loads"}
+"examples/native/kids/paint_puddles/paint_puddles.rb": {category: "native/kids/paint_puddles", needs: ["timer/animation", "audio", "asset:__dir__-relative"], status: "loads", steps: [{drag: [[260, 380], [330, 300], [420, 250], [520, 260], [620, 330], [720, 400], [820, 380], [900, 300]]}]}
+"examples/native/kids/paint_puddles/icon.rb": {category: "native/kids/paint_puddles", needs: ["asset:__dir__-relative"], status: "loads"}
+"examples/native/kids/peekaboo_moles/peekaboo_moles.rb": {category: "native/kids/peekaboo_moles", needs: ["timer/animation", "audio", "asset:__dir__-relative", "file_write"], status: "loads"}
+"examples/native/kids/peekaboo_moles/icon.rb": {category: "native/kids/peekaboo_moles", needs: ["asset:__dir__-relative"], status: "loads"}
+"examples/native/kids/rainbow_lab/rainbow_lab.rb": {category: "native/kids/rainbow_lab", needs: ["timer/animation", "audio", "asset:__dir__-relative", "file_write"], status: "loads"}
+"examples/native/kids/rainbow_lab/icon.rb": {category: "native/kids/rainbow_lab", needs: ["asset:__dir__-relative"], status: "loads"}
+"examples/native/kids/shape_sorter/shape_sorter.rb": {category: "native/kids/shape_sorter", needs: ["timer/animation", "audio", "asset:__dir__-relative"], status: "loads"}
+"examples/native/kids/shape_sorter/icon.rb": {category: "native/kids/shape_sorter", needs: ["asset:__dir__-relative"], status: "loads"}
 "examples/native/legendary/aquarium/aquarium.rb": {category: "native/legendary/aquarium", needs: ["timer/animation"], status: "loads", steps: [{wait: 1}]}
 "examples/native/legendary/aquarium/icon.rb": {category: "native/legendary/aquarium", needs: [], status: "loads"}
 "examples/native/legendary/bloop_sequencer/bloop_sequencer.rb": {category: "native/legendary/bloop_sequencer", needs: ["timer/animation", "audio"], status: "loads"}

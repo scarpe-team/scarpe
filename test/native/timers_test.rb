@@ -52,6 +52,21 @@ class TimersTest < Minitest::Test
     assert_in_delta 1.0, @timers.next_due_at
   end
 
+  # Shoes 3 turns a rate under a millisecond into one millisecond (s3t_timerbase.c:72), so
+  # timer(0) fires on the next turn of the loop; it waited the default second here, and a run
+  # of `timer(i * 0.12)` fired its first last (examples/native/kids/_repros/bubble_garden_1.rb).
+  def test_a_zero_or_negative_timer_fires_on_the_next_turn
+    [0, 0.0, -1].each_with_index { |delay, id| @timers.add(id, "timer", [delay], now: 0.0) }
+    @timers.add(3, "timer", [0.12], now: 0.0)
+    advance_to(0.2)
+    assert_equal [0, 1, 2, 3], @fired.map { |fired| fired[1] }, "the zero timers come first, in order"
+  end
+
+  def test_every_zero_repeats_at_the_shortest_interval
+    @timers.add(1, "every", [0], now: 0.0)
+    assert_in_delta Timers::SHORTEST_INTERVAL, @timers.next_due_at
+  end
+
   def test_timers_fire_in_deadline_order
     @timers.add(1, "every", [0.3], now: 0.0)
     @timers.add(2, "timer", [0.1], now: 0.0)

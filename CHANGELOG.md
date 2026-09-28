@@ -10,7 +10,7 @@ straightforward as possible.
 - A native display service: `scarpe --native app.rb` draws with a Rust program (tiny-skia, cosmic-text, winit) instead of a webview, while Lacci and every block stay in Ruby. See docs/native.md and native/DESIGN.md. Dedicated to the late Noah Gibbs.
 - `scarpe peek APP.rb` runs an app headless on the native display, clicks, types, scrolls and saves pictures
 - `scarpe package --native` builds an ad-hoc signed macOS `.app` (and a `.dmg` with `--dmg`) with precompiled Ruby bytecode, no installed gems, and FastImage copied in for image sizes
-- The Shoes spec suite (`spec/run`): 1026 cases from the manual and Noah Gibbs' Shoes-Spec corpus, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree
+- The Shoes spec suite (`spec/run`): 1042 cases from the manual, Noah Gibbs' Shoes-Spec corpus and the native example apps' checks, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree
 - Lacci: `animate`, `every` and `timer` return `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer`; `Shoes.app`, `window` and `dialog` return the App; methods the manual marks "» self" return self
 - Lacci: `left`, `top`, `width` and `height` read laid-out pixels when the display reports them; slots gain `before`, `after`, `scroll_height`, `scroll_max` and `gutter`; `font(path)` returns the family names in the file
 - Native text fields undo and redo (Cmd-Z or Control-Z, Cmd-Shift-Z or Control-Y) and take an input method's commit as one edit
@@ -21,6 +21,7 @@ straightforward as possible.
 - CI for the native display service: `.github/workflows/native.yml` runs clippy and `cargo test` on Rust 1.89 (macOS, Linux and, not yet required, Windows) and the shim, Lacci, spec, example and package suites on Ruby 3.2 and 4.0 (macOS and Linux); `rake ci_native` runs the same steps headless on your machine, and `rake ci_test` no longer runs `brew install` or `git checkout main`
 - Lacci: `edit_line.finish = proc` runs when Return is pressed in the line, as Shoes 3.2.15 added; `arc` takes `wedge: true` for a pie slice, as in Shoes 4
 - Lacci: `download` takes `start:`, `progress:`, `finish:`, `headers:` and `body:` and no longer needs nokogiri; `Image#path`, `full_width` and `full_height` and the `imagesize` built-in; the `error` built-in; `rgb`, `gray` and the named colours return a `Shoes::Color`, an Array with `red`, `green`, `blue` and `alpha`; `banner`, `title` and the rest of that family are `Shoes::Para` subclasses
+- Ten Kids apps in `examples/native/kids`, for ages two to eight: Night Light, Balloon Pop, Paint Puddles, Shape Sorter, Bubble Garden, Peekaboo Moles, Key Splash, Memory Match, Rainbow Lab and Maze Mouse, each with a check in `spec/kids` and an icon drawn in Shoes
 
 ### Bugs Fixed
 - #569 link(click: "/path") now triggers internal navigation via visit(); paths like "/foo" also fall back to page(:foo) if no URL route matches
@@ -51,6 +52,16 @@ straightforward as possible.
 - Lacci: `line.move` moves both ends of the line, not only its start; a border's `strokewidth` is its own, 1 unless given, and no longer the pen's
 - Lacci: `style` on an animated shape costs about half what it did: a class's style names are worked out once
 - Native: a packaged app whose name or folder holds a space or a parenthesis ("ZARKING (Rust)", "For Noah") starts when double-clicked; Ruby passed the renderer's path alone to /bin/sh, which only a start with no flags does. Opened from Finder, the Dock or `open`, a native package writes its output to `~/Library/Logs/<name>/launcher.log`
+- Native: `timer(0)` runs on the next turn of the loop, and `every(0)` every millisecond, as in Shoes 3; both waited a whole second
+- Lacci: `style(scale:)`, `style(skew:)`, `style(translate:)` and `style(transform:)` reach the display, as `style(rotate:)` does; they only set an instance variable
+- Lacci: an app may name its own instance variables `@slots`, `@pages`, `@routes`, `@started` or `@location`; they had replaced the App's own, and the next `stack` died with NoMethodError. The App keeps its bookkeeping in `@_` names
+- Native: text whose stroke has no alpha prints nothing, so a fade ends clear; it was drawn in solid black
+- Native: a slot's `click` runs before the click of a shape drawn under it, as in Shoes 3, so a backdrop that closes a card no longer swallows the card's own click; `click_on` and `peek --click` go through an empty slot on top, as a real press does, and name the drawable whose block ran
+- Native: turned, scaled or skewed art repaints only its own corner of the window; any transform had repainted the whole window on every change to that shape
+- Native: a dozen small things moving far apart (fireflies, confetti) repaint in a few small patches; past eight they were joined into one box across the window and repainted whole
+- Native: a picture shown bigger or smaller than its pixels is resampled once for that size and kept, not on every paint; a 211 px glow stretched to 844 device pixels cost 15 ms a paint and now costs what the same glow drawn from an 844 px file does, 5.8 ms
+- Lacci: `move` and `displace` tell the display in one message, not one for each coordinate
+- Native packages: `font(path)` names and loads the font inside a packaged app; it answered nil there, since the bundled Ruby has no encoding transcoders, and the words fell back to the system face
 
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
