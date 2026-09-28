@@ -58,6 +58,7 @@ straightforward as possible.
 - Native: a slot's `click` runs before the click of a shape drawn under it, as in Shoes 3, so a backdrop that closes a card no longer swallows the card's own click; `click_on` and `peek --click` go through an empty slot on top, as a real press does, and name the drawable whose block ran
 - Native: turned, scaled or skewed art repaints only its own corner of the window; any transform had repainted the whole window on every change to that shape
 - Native: a dozen small things moving far apart (fireflies, confetti) repaint in a few small patches; past eight they were joined into one box across the window and repainted whole
+- Native: a picture shown bigger or smaller than its pixels is resampled once for that size and kept, not on every paint; a 211 px glow stretched to 844 device pixels cost 15 ms a paint and now costs what the same glow drawn from an 844 px file does, 5.8 ms
 
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")

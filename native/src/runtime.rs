@@ -550,6 +550,15 @@ impl Runtime {
         *frames += 1;
         self.stats.since(Phase::Paint, started);
         self.stats.mark("first_paint");
+        self.count_resampled_images();
+    }
+
+    /// Pictures resampled to a new size since the last paint (elements::image::ImageCache::at_size).
+    pub(crate) fn count_resampled_images(&mut self) {
+        let made = self.images.take_resampled();
+        if made > 0 {
+            self.stats.count("images_resampled", made);
+        }
     }
 
     /// Paints `app` for its window: the view is clean afterwards.
