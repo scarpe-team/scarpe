@@ -573,6 +573,10 @@ each with its reason (dialog-only apps, scripts that never start an app or stop 
 library, apps that only log or paint one flat colour, and `colours.rb`, whose colours `flatten`
 dissolves, ledger D1). Two of the 23 name Ruby 4.0 in a `ruby:` field and load on Ruby 3.2.
 
+After the Hackety Hack lane (w9, 28 Sep 2026) the suite holds 1038 cases: native 1023 pass, 0 fail,
+1 skip and 14 expected failures; niente 545 pass and 11 expected failures (481 n/a). The legendary
+checks and the examples on both displays pass as before.
+
 ## 10. Lacci fixes this work depends on (each has a LEDGER row and a test)
 
 All ten landed on 27 Sep 2026; `native/research/09_lacci_fixes.md` records each defect, ruling,

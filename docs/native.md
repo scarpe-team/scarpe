@@ -195,8 +195,8 @@ the case says why in its `reason:`. When someone fixes it, the case reports `xpa
 until the mark comes off, so a fix can never go unnoticed. `n/a` is a case that needs layout or real
 input, run on Niente, which has neither. `spec/README.md` explains how to write a case.
 
-On 28 Sep 2026, when the sixth build wave merged, the suite had 1026 cases. On the native display
-1010 pass and 15 are expected failures, each pointing at its ledger row; none fail. On Niente 540
+On 28 Sep 2026, after the Hackety Hack lane (w9), the suite had 1038 cases. On the native display
+1023 pass and 14 are expected failures, each pointing at its ledger row; none fail. On Niente 545
 pass. The eleven apps in `examples/native/legendary` keep their twelve checks beside them, where a
 plain `spec/run` does not look: `spec/run --display native examples/native/legendary` runs them,
 and all 12 pass.
