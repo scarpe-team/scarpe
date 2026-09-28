@@ -3,7 +3,7 @@
 //! native (rfd); `ask` and `ask_color` are a modal we draw, in a running app's
 //! window, or in a small window of its own when no app window is running yet.
 
-use crate::elements::text_field::TextField;
+use crate::elements::text_field::{Face, TextField};
 use crate::elements::{ACCENT, CONTROL_TEXT_SIZE};
 use crate::input::{Key, KeyInput, Named, ViewState};
 use crate::layout::Rect;
@@ -242,7 +242,7 @@ impl Runtime {
         let kind = if dialog.kind == "ask" {
             let initial = dialog.default.as_str().unwrap_or("");
             let fs = &mut self.text.fonts.system;
-            let mut field = TextField::new(fs, initial, false, dialog.secret, FamilyName::Sans, CONTROL_TEXT_SIZE, INK);
+            let mut field = TextField::new(fs, initial, false, dialog.secret, Face::plain(FamilyName::Sans), CONTROL_TEXT_SIZE, INK);
             field.select_all();
             ModalKind::Ask(Box::new(field))
         } else {

@@ -981,7 +981,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Manual:** "in current versions of Shoes, the font for edit lines and edit boxes cannot be altered anyway" (manual 3078-3079): a limitation of that release, not a promise.
 - **Lacci today:** EditLine and EditBox declare `:font` (`drawables/edit_line.rb:5`, `drawables/edit_box.rb:5`), and the native backend honours it.
 - **Spec:** `core` asserts nothing; `edit_line.font_fixed` stays in `UNTESTABLE.md`. A case under `ext-scarpe` may assert that `font:` changes an input's text.
-- **Native:** honours `font:` on inputs.
+- **Native:** honours `font:` on inputs: family and size, and since 28 Sep 2026 weight and slant too (`"bold 16px"`, `"Georgia italic"`), which the fields dropped while a para with the same string drew them.
 
 ### G12. New inputs read `""`, new progress bars `0.0`
 
