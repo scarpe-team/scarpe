@@ -67,11 +67,21 @@ held = app.instance_variable_get(:@step)
 advance 1
 assert_equal held, app.instance_variable_get(:@step), "nothing moves while stopped"
 
-# patterns come from the list
-click_on list_box
-click_on "Chiptune march"
-assert_equal "Chiptune march", list_box.text
+# patterns: the arrows and the left and right keys step through them
+name = para("@pattern_name")
+assert_equal "Four on the floor", name.text
+click_at 673, 513
+assert_equal "Boom bap", name.text
+press_key :right
+press_key :right
+assert_equal "Chiptune march", name.text
 assert_equal "xxxxxxxxxxxxxxxx", row_text.call(3)
+click_at 431, 513
+assert_equal "Bossa bloop", name.text
+press_key :left
+press_key :left
+press_key :left
+assert_equal "Empty page", name.text, "and round from the first to the last"
 
 # the dice keep the downbeat and the backbeat
 3.times do
@@ -79,6 +89,8 @@ assert_equal "xxxxxxxxxxxxxxxx", row_text.call(3)
   assert on.call[0][0], "the kick always lands on one"
   assert on.call[1][4] && on.call[1][12], "the snare always lands on two and four"
 end
+assert_equal "Rolled by the dice", name.text
 
 click_on "Clear"
 assert on.call.flatten.none?, "Clear empties the page"
+assert_equal "Empty page", name.text

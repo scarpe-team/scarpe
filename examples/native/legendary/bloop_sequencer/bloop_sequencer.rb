@@ -1,8 +1,8 @@
 # Bloop Sequencer: sixteen steps, four voices, one small drum machine.
 #
 # Click the pads to switch them on, then press Play or the space bar. Up and
-# down change the tempo. The bloop row sings a pentatonic tune, so whatever
-# you switch on sounds right. Start from a pattern in the list, or roll the dice.
+# down change the tempo, left and right change the pattern. The bloop row sings
+# a pentatonic tune, so whatever you switch on sounds right. Or roll the dice.
 #
 # The sound comes from _why's bloops gem when it is installed (gem install bloops,
 # which needs PortAudio), and otherwise from small WAV files the app writes once
@@ -205,8 +205,15 @@ Shoes.app(title: "Bloop Sequencer", width: 720, height: 590, resizable: false) d
   end
 
   def load_pattern(name)
+    @pattern = name
+    @pattern_name.replace name
     @on = PATTERNS[name].map { |line| line.chars.map { |mark| mark == "x" } }
     VOICES.each_index { |row| STEPS.times { |step| paint_pad(row, step) } }
+  end
+
+  def next_pattern(by)
+    names = PATTERNS.keys
+    load_pattern names[(names.index(@pattern) + by) % names.size]
   end
 
   # Switching a pad on lets you hear it at once. Pressing one starts a stroke:
@@ -227,6 +234,7 @@ Shoes.app(title: "Bloop Sequencer", width: 720, height: 590, resizable: false) d
   def roll_dice
     @on = VOICES.map { |voice| Array.new(STEPS) { |step| chance(voice, step) } }
     VOICES.each_index { |row| STEPS.times { |step| paint_pad(row, step) } }
+    @pattern_name.replace "Rolled by the dice"
   end
 
   def chance(voice, step)
@@ -426,13 +434,17 @@ Shoes.app(title: "Bloop Sequencer", width: 720, height: 590, resizable: false) d
   clear_button.click { load_pattern("Empty page") }
   dice_button, = pill(264, 104, "Dice", indent: 22) { die 22, 15 }
   dice_button.click { roll_dice }
-  stack left: 496, top: 499, width: 200 do
-    @patterns = list_box(items: PATTERNS.keys, choose: "Four on the floor", width: 200) do |box|
-      load_pattern(box.text)
+  # the pattern: its name, with an arrow each side to step through the others
+  name_plate, @pattern_name = pill(460, 184, "")
+  name_plate.click { next_pattern(1) }
+  { "\u2039" => [408, -1], "\u203A" => [650, 1] }.each do |arrow, (x, by)|
+    button, = pill(x, 46, "") do
+      para arrow, align: "center", size: 20, weight: "medium", stroke: INK, margin_top: 8
     end
+    button.click { next_pattern(by) }
   end
   stack left: 0, top: 552, width: 720 do
-    inscription "Space plays and stops. Up and down change the tempo. Drag across pads to paint them.",
+    inscription "Space plays and stops. Up and down set the tempo, left and right the pattern. Drag to paint pads.",
       align: "center", stroke: MUTED
   end
 
@@ -441,6 +453,8 @@ Shoes.app(title: "Bloop Sequencer", width: 720, height: 590, resizable: false) d
     when " " then @playing ? stop : play
     when :up, "+", "=" then set_tempo(@bpm + 4)
     when :down, "-" then set_tempo(@bpm - 4)
+    when :left then next_pattern(-1)
+    when :right then next_pattern(1)
     end
   end
 
