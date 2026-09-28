@@ -138,6 +138,16 @@ class TestApp < NienteTest
     SHOES_SPEC
   end
 
+  # Font names are UTF-16 text, read by hand because a packaged app's Ruby has no encoding
+  # transcoders (test/package's test_fonts_are_named_and_loaded_in_the_bundle): a surrogate
+  # pair is one character, half a pair alone is U+FFFD, and a Mac Roman name in plain ASCII
+  # reads as it is.
+  def test_font_names_are_read_without_transcoders
+    assert_equal "\u{1D49C} Sans", Shoes::FontFile.send(:utf_16be, "\xD8\x35\xDC\x9C\x00 \x00S\x00a\x00n\x00s".b)
+    assert_equal "\uFFFDx", Shoes::FontFile.send(:utf_16be, "\xD8\x00\x00x".b)
+    assert_equal "Pacifico", Shoes::FontFile.send(:mac_roman, "Pacifico".b)
+  end
+
   # Ledger D6: background takes an :angle for its gradient (manual 1073-1079).
   def test_a_backgrounds_angle_turns_its_gradient
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
