@@ -698,7 +698,6 @@ Shoes.app(title: "Pixel Pet", width: 520, height: 680, resizable: false) do
   @pet_grid[:slot].click { pat }
   @pet_grid[:slot].style(cursor: :hand_cursor)
 
-
   # meters, and the three buttons
   @panel = stack(left: 0, top: 360, width: 520, height: 150, hidden: @pet.nil?) do
     meter 124, "food", APPLES[0].first(7), "#ef476f"
@@ -738,6 +737,7 @@ Shoes.app(title: "Pixel Pet", width: 520, height: 680, resizable: false) do
     @age.replace "day #{days_old}"
     @sleep_label.replace(@pet["asleep"] ? "Wake" : "Sleep")
     light(@pet["asleep"])
+    paint(@pet_grid, FACES[mood])
     show_meters
     chirp :hello unless @pet["asleep"]
     say "#{@pet["name"]} missed you. You were away #{away(hours)}."
