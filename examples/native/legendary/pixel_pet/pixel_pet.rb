@@ -681,14 +681,7 @@ Shoes.app(title: "Pixel Pet", width: 520, height: 680, resizable: false) do
     (0...LCD_ROWS).map { |y| rect LCD_X + x * DOT, LCD_Y + y * DOT, DOT - 1, DOT - 1, fill: rgb(0, 0, 0, 0.035) }
   end
 
-  @floaters = Array.new(4) { { grid: dots(7, 6, 0, 0), age: -1 } }
-  @floaters.each { |floater| floater[:grid][:slot].hide }
-  @apple = dots(7, 8, 18, 10)
-  @pet_grid = dots(16, 16, PET_COL, PET_ROW)
-  @pet_grid[:slot].click { pat }
-  @pet_grid[:slot].style(cursor: :hand_cursor)
-
-  # a gleam across the glass
+  # a gleam across the glass, under the pet so a pat can land anywhere on it
   fill rgb(255, 255, 255, 0.12)
   shape do
     move_to LCD_X - 2, LCD_Y + 10
@@ -697,6 +690,14 @@ Shoes.app(title: "Pixel Pet", width: 520, height: 680, resizable: false) do
     line_to LCD_X - 2, LCD_Y + 96
     line_to LCD_X - 2, LCD_Y + 10
   end
+
+  @floaters = Array.new(4) { { grid: dots(7, 6, 0, 0), age: -1 } }
+  @floaters.each { |floater| floater[:grid][:slot].hide }
+  @apple = dots(7, 8, 18, 10)
+  @pet_grid = dots(16, 16, PET_COL, PET_ROW)
+  @pet_grid[:slot].click { pat }
+  @pet_grid[:slot].style(cursor: :hand_cursor)
+
 
   # meters, and the three buttons
   @panel = stack(left: 0, top: 360, width: 520, height: 150, hidden: @pet.nil?) do
