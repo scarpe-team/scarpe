@@ -195,14 +195,15 @@ the case says why in its `reason:`. When someone fixes it, the case reports `xpa
 until the mark comes off, so a fix can never go unnoticed. `n/a` is a case that needs layout or real
 input, run on Niente, which has neither. `spec/README.md` explains how to write a case.
 
-On 28 Sep 2026, when the sixth build wave merged, the suite had 1026 cases. On the native display
-1010 pass and 15 are expected failures, each pointing at its ledger row; none fail. On Niente 540
-pass. The eleven apps in `examples/native/legendary` keep their twelve checks beside them, where a
-plain `spec/run` does not look: `spec/run --display native examples/native/legendary` runs them,
-and all 12 pass.
+On 28 Sep 2026, with the ten Kids apps in (the eighth build wave), the suite has 1042 cases. On the
+native display 1026 pass and 15 are expected failures, each pointing at its ledger row; none
+fail. On Niente 540 pass. The Kids apps' ten checks are among them, in `spec/kids`, as the
+showcase's six are in `spec/showcase`. The eleven apps in `examples/native/legendary` keep their
+twelve checks beside them, where a plain `spec/run` does not look:
+`spec/run --display native examples/native/legendary` runs them, and all 12 pass.
 
 `spec/run --examples --display native` smoke-runs every example under `examples/`: it loads, it
-draws something that is not one flat colour, and neither side crashes. On Ruby 4.0, 340 pass and
+draws something that is not one flat colour, and neither side crashes. On Ruby 4.0, 360 pass and
 none fail unexpectedly; 90 are skipped (the network, mostly) and 23 are marked as failing on
 native, each with its reason in `spec/examples.yml`: dialog-only scripts, scripts that never open
 an app or stop on a missing library, apps that only log or paint one flat colour, and `colours.rb`,
