@@ -682,9 +682,7 @@ class Shoes
     # @param top [Integer] the new top/y coordinate
     # @return [self]
     def move(left, top)
-      self.left = left
-      self.top = top
-      self
+      set_styles(left:, top:)
     end
 
     # Displace the drawable visually by the given amount.
@@ -696,10 +694,23 @@ class Shoes
     # @param top [Integer] the vertical displacement in pixels
     # @return [self]
     def displace(left, top)
-      self.displace_left = left
-      self.displace_top = top
+      set_styles(displace_left: left, displace_top: top)
+    end
+
+    private
+
+    # Sets styles the way their setters do, and tells the display in one prop_change, so it
+    # never lays out a drawable moved across but not yet down.
+    def set_styles(**styles)
+      raise(Shoes::Errors::NoSuchLinkableIdError, "Trying to set Shoes styles in a #{self.class} with no linkable ID!") unless linkable_id
+
+      changes = styles.to_h { |name, value| [name.to_s, self.class.validate_as(name, value)] }
+      changes.each { |name, value| instance_variable_set("@#{name}", value) }
+      send_shoes_event(changes, event_name: "prop_change", target: linkable_id)
       self
     end
+
+    public
 
     # The width in pixels (manual 2511-2513: "returns an exact pixel size").
     # A pixel width the app gave is the truth. Anything else (unset, "50%", 0.5, -100)
