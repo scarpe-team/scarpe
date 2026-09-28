@@ -21,9 +21,14 @@ class StartupTest < Minitest::Test
     $stdin.each_line {}
   RUBY
 
+  # These stand-ins need no gems. Under `bundle exec` they would inherit RUBYOPT=-rbundler/setup
+  # and spend most of a second resolving the bundle on a slow runner, which the timings below
+  # would count against the child (a Linux container missed the 0.8 s this way).
+  WITHOUT_BUNDLER = { "RUBYOPT" => nil }.freeze
+
   def test_hello_goes_out_and_ruby_carries_on_without_waiting_for_ready
     started = monotonic
-    child = Scarpe::Native::Child.new([RbConfig.ruby, "-e", SLOW_CHILD])
+    child = Scarpe::Native::Child.new([WITHOUT_BUNDLER, RbConfig.ruby, "-e", SLOW_CHILD])
     assert_operator monotonic - started, :<, 0.5, "Child.new came back before the answer"
     assert_equal "slow", child.version, "and the answer is there when asked for"
     assert_operator monotonic - started, :>=, 1.0
@@ -34,7 +39,7 @@ class StartupTest < Minitest::Test
   # Ruby runs the app body between spawning the child and the pump's first look at its answer,
   # so a slow body is not a slow child (review: a 20 s body raised a false ChildTimeout).
   def test_a_long_app_body_is_not_taken_for_a_child_that_never_answered
-    child = Scarpe::Native::Child.new([RbConfig.ruby, "-e", PROMPT_CHILD], ready_timeout: 0.3)
+    child = Scarpe::Native::Child.new([WITHOUT_BUNDLER, RbConfig.ruby, "-e", PROMPT_CHILD], ready_timeout: 0.3)
     sleep 0.5 # the app body; ready sits unread in the pipe meanwhile
     child.check_started!
     assert_equal "prompt", child.version
