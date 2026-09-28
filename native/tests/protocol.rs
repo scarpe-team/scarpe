@@ -728,6 +728,27 @@ fn a_press_passes_through_what_has_no_click_block() {
     assert_eq!(ids(&evs, "click"), vec![json!(6)], "a button on the oval keeps its press");
 }
 
+/// An image with a click block is heard like a shape (ledger E8): on the press, once, with the
+/// button and the window coordinates, and through an empty slot laid over it, as Hackety
+/// Hack's side tabs sit under a window-sized stack. Images took a button's release-time click
+/// as well, so one on top heard two.
+#[test]
+fn an_image_hears_its_press_once_even_under_an_empty_slot() {
+    let mut h = Harness::new();
+    h.feed(&app(200, 120, &[
+        create(3, "Image", 2, json!({"url": "", "left": 20, "top": 20, "width": 40, "height": 30, "has_click": true})),
+        create(4, "Image", 2, json!({"url": "", "left": 120, "top": 20, "width": 40, "height": 30, "has_click": true})),
+        create(5, "Stack", 2, json!({"left": 0, "top": 0, "width": 100, "height": 120})),
+    ]));
+    let clicks = |evs: &[Value]| named(&events(evs), "click").iter().map(|e| (e.1.clone(), e.2.clone())).collect::<Vec<_>>();
+    let (evs, reply) = h.req(json!({"op": "click", "target": {"x": 40, "y": 35}}));
+    assert_eq!(reply["value"]["hit"], json!(5), "the empty stack is on top");
+    assert_eq!(clicks(&evs), vec![(json!(3), json!([1, 40, 35]))], "the image beneath hears the press");
+    let (evs, reply) = h.req(json!({"op": "click", "target": {"x": 140, "y": 35}}));
+    assert_eq!(reply["value"]["hit"], json!(4), "nothing covers the second image");
+    assert_eq!(clicks(&evs), vec![(json!(4), json!([1, 140, 35]))], "and it hears one click, not two");
+}
+
 #[test]
 fn fragments_appear_in_the_layout_and_take_clicks_by_id() {
     let mut h = Harness::new();

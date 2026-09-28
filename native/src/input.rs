@@ -713,7 +713,8 @@ impl Runtime {
         } else {
             match kind {
                 Kind::Button | Kind::Check | Kind::Radio => (PressKind::Click, true),
-                Kind::Image => (PressKind::Click, false),
+                // An image's click block is heard like a shape's, through has_click on the
+                // press (ledger E8), so it is not also clicked on the release.
                 Kind::EditLine | Kind::EditBox => {
                     self.focus_field_at(app, hit.node, x, y, clicks, shift);
                     (PressKind::Field, true)
