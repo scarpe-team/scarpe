@@ -218,11 +218,11 @@ Shoes.app(title: "Typewriter", width: 720, height: 680, resizable: false) do
   # The key for a letter dips and darkens for a moment, as if a finger struck it.
   def sink_key(letter)
     key = @keys[letter.downcase] or return
-    key[:cap].style(top: key[:y] + 3, fill: "#44434a")
-    key[:label].top = key[:y] - 7
+    key[:key].top = key[:top] + 3
+    key[:cap].fill = "#44434a"
     timer(0.09) do
-      key[:cap].style(top: key[:y], fill: "#26252a")
-      key[:label].top = key[:y] - 10
+      key[:key].top = key[:top]
+      key[:cap].fill = "#26252a"
     end
   end
 
@@ -345,20 +345,22 @@ Shoes.app(title: "Typewriter", width: 720, height: 680, resizable: false) do
       emphasis: "italic", weight: "bold", stroke: "#f6f7f2", kerning: 1, margin: 0
   end
 
-  # the keys: dark caps in chrome rings, a row at a time, each row a little further right
+  # the keys: dark caps in chrome rings, a row at a time, each row a little further right.
+  # Each key is a small slot holding its cap and its letter, so a click anywhere on it types.
   @keys = {}
   KEY_ROWS.each_with_index do |row, r|
     row.each_char.with_index do |letter, i|
       x = 172 + [0, 12, 24, 36][r] + i * 42
       y = 420 + r * 44
-      stroke "#d4d8d5"
-      strokewidth 3
-      cap = oval x, y, 34, center: true, fill: "#26252a", cursor: :hand_cursor
-      label = stack left: x - 17, top: y - 10, width: 34 do
-        para letter.upcase, align: "center", size: 12, weight: "bold", stroke: "#f2f2ee", margin: 0
+      cap = nil
+      key = stack left: x - 17, top: y - 17, width: 34, height: 37, cursor: :hand_cursor do
+        stroke "#d4d8d5"
+        strokewidth 3
+        cap = oval 17, 17, 31, center: true, fill: "#26252a"
+        para letter.upcase, align: "center", size: 12, weight: "bold", stroke: "#f2f2ee", margin_top: 10
       end
-      [cap, label].each { |part| part.click { type(letter) } } # the letter sits on the cap, so both type it
-      @keys[letter] = { cap: cap, label: label, y: y }
+      key.click { type(letter) }
+      @keys[letter] = { key: key, cap: cap, top: y - 17 }
     end
   end
   nostroke
