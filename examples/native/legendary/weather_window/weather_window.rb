@@ -55,14 +55,6 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
     rgb(*CLEAR)
   end
 
-  # Art reads a Float from 0 to 1 as a share of its slot, the way a width of
-  # 0.5 means half. Anything passing that close to the slot's corner goes on
-  # the whole pixel instead, as Shoes 3 always placed art.
-  def px(value)
-    value = value.round(1)
-    value > 0 && value <= 1 ? value.round : value
-  end
-
   # A fluffy cloud: a few round puffs on a flat bottom, in a slot of its own so
   # it can drift as one. The slot stays in the corner and is displaced to where
   # the cloud is, since a slot's own negative left counts from the far edge.
@@ -285,7 +277,7 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
         drop.y = rand(-40.0..-10.0)
         drop.floor = rand(210.0..GH + 10)
       end
-      drop.line.style(left: px(drop.x), top: px(drop.y), x2: px(drop.x - @wind * drop.length), y2: px(drop.y - drop.length))
+      drop.line.style(left: drop.x, top: drop.y, x2: drop.x - @wind * drop.length, y2: drop.y - drop.length)
     end
     spread_ripples
   end
@@ -335,7 +327,7 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
         flake.x = rand(-20.0..GW)
       end
       x = flake.x + Math.sin(time * 0.9 + flake.phase) * flake.sway
-      flake.dot.style(left: px(x), top: px(flake.y))
+      flake.dot.style(left: x, top: flake.y)
     end
   end
 
@@ -375,8 +367,8 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
       y = bird[:y] + Math.sin(time * 0.9 + bird[:phase]) * 4
       tip = y - 5 * flap
       left, right = bird[:wings]
-      left.style(left: px(x - 9), top: px(tip), x2: px(x), y2: px(y))
-      right.style(left: px(x), top: px(y), x2: px(x + 9), y2: px(tip))
+      left.style(left: x - 9, top: tip, x2: x, y2: y)
+      right.style(left: x, top: y, x2: x + 9, y2: tip)
     end
   end
 
@@ -656,7 +648,7 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
     look = nil
     button = stack(width: width + 10, height: 40, margin_right: 10) do
       look = background(current ? white : rgb(255, 255, 255, 0.35), curve: 20)
-      border rgb(90, 60, 40, current ? 0.18 : 0.12), curve: 20, strokewidth: 1
+      border rgb(90, 60, 40, current ? 0.18 : 0.12), curve: 20
       icon name, 24, 20
       para label, size: 13, weight: current ? "semibold" : "medium", stroke: INK, margin: [40, 11, 0, 0]
     end
@@ -849,8 +841,8 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
       if drop[:y] > GH + 10
         drop.merge!(x: rand(8.0..GW - 8), y: rand(-10.0..60.0), speed: 0.0, sliding: false)
       end
-      drop[:body].style(left: px(drop[:x]), top: px(drop[:y]))
-      drop[:shine].style(left: px(drop[:x] - drop[:size] * 0.18), top: px(drop[:y] - drop[:size] * 0.22))
+      drop[:body].style(left: drop[:x], top: drop[:y])
+      drop[:shine].style(left: drop[:x] - drop[:size] * 0.18, top: drop[:y] - drop[:size] * 0.22)
     end
   end
 
@@ -905,7 +897,7 @@ Shoes.app(title: "Weather Window", width: WIDTH, height: HEIGHT, resizable: fals
     shadow = rect(x + 3, y + 8, 176, 236, curve: 12, fill: rgb(70, 45, 25, 0.10))
     card = stack left: x, top: y, width: 176, height: 236 do
       background white, curve: 12
-      border rgb(90, 60, 40, 0.10), curve: 12, strokewidth: 1
+      border rgb(90, 60, 40, 0.10), curve: 12
       stack left: 8, top: 8, width: 160, height: 136 do
         background gradient(*w[:sky])
         miniature(name, w)
