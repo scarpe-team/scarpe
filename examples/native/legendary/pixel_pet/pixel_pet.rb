@@ -559,9 +559,23 @@ Shoes.app(title: "Pixel Pet", width: 520, height: 680, resizable: false) do
       face = :blink if face != :asleep && (@frame % 50 < 2 || @frame % 50 == 5)
       float(ZED, PET_COL + 13) if face == :asleep && @frame % 18 == 0
     end
-    paint(@pet_grid, FACES[face])
+    paint(@pet_grid, glance(FACES[face], face == :asleep ? 0 : @look))
     place(@pet_grid, col, row)
     paint(@apple, APPLES[[@action && @action[:name] == :feed ? @action[:frame] / 8 : 3, 3].min] || [])
+  end
+
+  # The same face with its eyes moved a dot towards your pointer.
+  def glance(picture, dx)
+    return picture if dx.zero?
+
+    picture.each_with_index.map do |line, y|
+      next line unless (6..8).cover?(y)
+
+      dots = line.chars
+      moved = dots.map { |letter| "ew".include?(letter) ? "#" : letter }
+      dots.each_with_index { |letter, x| moved[x + dx] = letter if "ew".include?(letter) }
+      moved.join
+    end
   end
 
   def doing(action)
@@ -652,6 +666,7 @@ Shoes.app(title: "Pixel Pet", width: 520, height: 680, resizable: false) do
   # ---- building it ----
 
   @frame = 0
+  @look = 0
   @seconds = 0
   @cracks = 0
   @night = false
@@ -738,6 +753,11 @@ Shoes.app(title: "Pixel Pet", width: 520, height: 680, resizable: false) do
 
   stack left: 20, top: 618, width: 480 do
     @status = para "", align: "center", size: 15, weight: "medium", stroke: "#6b3d58", margin: 0
+  end
+
+  # its eyes follow the pointer across the window
+  motion do |x, _y|
+    @look = x < 200 ? -1 : x > 320 ? 1 : 0
   end
 
   keypress do |key|
