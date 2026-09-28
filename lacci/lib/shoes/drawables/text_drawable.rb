@@ -38,6 +38,7 @@ class Shoes
   class TextDrawable < Shoes::Drawable
     shoes_styles :text_items, :size, :stroke, :strokewidth, :fill, :undercolor, :font
     shoes_styles :justify, :rise, :stretch, :strikecolor, :variant # as on text blocks (ledger F5)
+    shoes_styles :weight, :family, :emphasis, :kerning # the manual lists span for these too (F5)
     include TextDecoration
 
     shoes_events # No TextDrawable-specific events yet

@@ -833,6 +833,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci / WV today:** none are Para styles (`para.rb:6-36`); they hit the "Unexpected non-style keyword" warning (`drawable.rb:385-388`). TextDrawable has `:undercolor` (`text_drawable.rb:15`). Calzini already renders `rise`, `strikecolor` and `undercolor` when present (`calzini/para.rb:43-50, 79-82`). Since the wave-4 Lacci lane Para declares all six (colours through `to_rgb`, as its stroke), and text fragments `justify`, `rise`, `stretch` and `strikecolor` besides their `undercolor`. The native display draws all but `stretch`, so the four `styles.stretch` visual cases stay `expect: fail` on native: cosmic-text varies only a font's weight axis, not its width, and the bundled fonts have no condensed or expanded faces (checked in wave 5).
 - **Spec:** each style is accepted without a warning and reads back through `style`; `leading` and `rise` change layout.
 - **Native:** honours them once Lacci sends them.
+- **Fragments, 28 Sep 2026 (w9):** the manual lists span and the other fragments for `weight`, `family`, `emphasis` and `kerning` too (manual 1181-1283, 1521-1537), and native already drew them on spans, but Lacci dropped them with a warning. Hackety Hack colours its method names with bold spans. Fragments now keep all four. **Spec:** `styles.weight__span` (native).
 
 ### F6. `underline` and `strikethrough` value types
 
