@@ -38,7 +38,7 @@ class NativePackageTest < Minitest::Test
     assert File.executable?(File.join(contents, "MacOS", "scarpe-launcher"))
     assert File.executable?(File.join(contents, "Resources", "runtime", "ruby", "bin.real", "ruby"))
     %w[scarpe/lib/scarpe/native.rb scarpe/lacci/lib/shoes.rb scarpe/scarpe-components/lib/scarpe/components/version.rb
-       scarpe/CHANGELOG.md scarpe/docs/static/manual.md bytecode/manifest licenses/Inter-LICENSE app/packaged_app.rb
+       scarpe/CHANGELOG.md scarpe/docs/static/manual.md scarpe/docs/static/man-app.png bytecode/manifest licenses/Inter-LICENSE app/packaged_app.rb
        boot.rb].each do |file|
       assert File.exist?(File.join(contents, "Resources", file)), "missing Resources/#{file}"
     end

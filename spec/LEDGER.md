@@ -1330,6 +1330,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Shoes 3:** the manual is a Shoes app shipped with Shoes (`lib/shoes/help.rb`, not fetched), opened in a window of its own: the chapters and their sections down the left, the page on the right.
 - **Examples:** Hackety Hack's Help tab calls `Shoes.show_manual` (`app/ui/mainwindow.rb:76-78`). An app for children should not send them to a browser: the Shoes Store's Kids shelf promises no links out.
 - **Lacci until 28 Sep:** `show_manual` ran `open https://github.com/scarpe-team/scarpe/wiki`, which a test sandbox traps. Since 28 Sep it opens "The Shoes Manual" beside the app that asked (or as the app, with none running), drawn from `docs/static/manual.md` by `Shoes::Manual`: the index of chapters and sections as links, the page with its headings, paragraphs, code, lists, inline code and emphasis, and its `[[links]]` turning to the section they name. The pictures do not come with the manual, so they are left out. A copy of Scarpe without `docs/` says so in an alert rather than opening a browser. Since 28 Sep (the w9 integrate lane) a native package carries `docs/static/manual.md` beside Lacci, at the path `Shoes::Manual` reads, so a packaged app opens the manual too (`test/package/native_package_test.rb`), and reads it as UTF-8 whatever the locale: started from Finder, a packaged app has none, and read it as US-ASCII (`lacci/test/test_manual.rb`).
+- **Pictures and lists, 28 Sep 2026 (w9 polish):** the pictures do come with Scarpe: every one the manual names sits beside it in `docs/static`, so the page draws each under the words it closes ("On Linux, here's how this might look:" and the screenshot). Where the text holds `{COLORS}` and `{INDEX}`, the window draws what Shoes 3's did (`help.rb` `color_page` and `index_page`, the w9 fidelity lane's `web/shoes3_help.rb`): every named colour on a swatch of itself, three to a row, its name and its `rgb` numbers on it, and the drawables under the class they come from, each linking to its section. `{SAMPLES}` listed the samples Shoes 3 came with; no samples come with this manual, so it draws nothing. A native package carries the pictures with the manual. The learner lane found the braces printed, and Basic Programming 4.6 sends children to the colour list. **Test:** `lacci/test/test_manual.rb` (`test_the_manual_draws_its_colours_classes_and_pictures`) and `test/package/native_package_test.rb`.
 - **Spec:** `intro.manual_is_shoes_program` (both displays); `lacci/test/test_manual.rb` also turns a page.
 - **Native:** nothing; the window is an ordinary Shoes app.
 
@@ -1562,7 +1563,7 @@ A border's width is its own, 1 unless given: Shoes 3 strokes it with `ATTR2(dbl,
 
 ### M38. Unexpanded placeholders
 
-**Ruling: ERRATA.** `{INDEX}`, `{COLORS}` and `{SAMPLES}` (manual 1564, 1576, 3525) were never expanded. The colour list comes from Shoes 3's colour table and Lacci's `Shoes::COLORS`.
+**Ruling: ERRATA.** `{INDEX}`, `{COLORS}` and `{SAMPLES}` (manual 1564, 1576, 3525) were never expanded in the text: Shoes 3's built-in manual drew them when it showed the page (`help.rb` `index_page`, `color_page`, `sample_page`). The colour list comes from Shoes 3's colour table and Lacci's `Shoes::COLORS`. Since 28 Sep Scarpe's manual window draws the first two the same way (K7).
 
 ### M39. The Messenger fix
 
