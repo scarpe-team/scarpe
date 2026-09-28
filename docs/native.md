@@ -278,9 +278,9 @@ the case says why in its `reason:`. When someone fixes it, the case reports `xpa
 until the mark comes off, so a fix can never go unnoticed. `n/a` is a case that needs layout or real
 input, run on Niente, which has neither. `spec/README.md` explains how to write a case.
 
-On 28 Sep 2026, with the ten Kids apps in (the eighth build wave) and the Hackety Hack lanes (w9),
-the suite has 1060 cases. On the native display 1045 pass, 14 are expected failures, each pointing
-at its ledger row, and one is skipped; none fail. On Niente 545 pass. The Kids apps' ten checks are among them, in `spec/kids`, as the
+On 28 Sep 2026, with the ten Kids apps in (the eighth build wave), the Hackety Hack lanes (w9) and
+the w10 scarpe lane, the suite has 1062 cases. On the native display 1047 pass, 14 are expected
+failures, each pointing at its ledger row, and one is skipped; none fail. On Niente 545 pass. The Kids apps' ten checks are among them, in `spec/kids`, as the
 showcase's six are in `spec/showcase`. The eleven apps in `examples/native/legendary` keep their
 twelve checks beside them, where a plain `spec/run` does not look:
 `spec/run --display native examples/native/legendary` runs them, and all 12 pass.

@@ -708,6 +708,11 @@ After the Hackety Hack lane (w9, 28 Sep 2026) the suite holds 1038 cases: native
 1 skip and 14 expected failures; niente 545 pass and 11 expected failures (481 n/a). The legendary
 checks and the examples on both displays pass as before.
 
+After the w10 scarpe lane (28 Sep 2026, Q10's two cases) the suite holds 1062 cases: native
+1047 pass, 0 fail, 1 skip and 14 expected failures; niente 545 pass and 11 expected failures
+(505 n/a). The legendary checks (the Typewriter's check moved to where its lever is in reach,
+ledger C18) and the examples on both displays pass.
+
 ## 10. Lacci fixes this work depends on (each has a LEDGER row and a test)
 
 All ten landed on 27 Sep 2026; `native/research/09_lacci_fixes.md` records each defect, ruling,
