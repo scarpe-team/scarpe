@@ -25,20 +25,31 @@ concurrency:
 jobs:
   # Build job
   build:
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest moves to 26.04 from October 2026.
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+      # webview_ruby compiles against GTK and WebKitGTK while the bundle installs. It asks
+      # pkg-config for webkit2gtk-4.0, which Ubuntu no longer ships; 4.1 is the same API on
+      # libsoup 3, so it answers to the old name (as in native.yml).
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get -y install portaudio19-dev libgtk-3-dev libwebkit2gtk-4.0-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgtk-3-dev libwebkit2gtk-4.1-dev
+          mkdir -p "$RUNNER_TEMP/pkgconfig"
+          printf '%s\n' 'Name: webkit2gtk-4.0' 'Description: webkit2gtk-4.1 under its old name' \
+            'Version: 2.0' 'Requires: webkit2gtk-4.1' > "$RUNNER_TEMP/pkgconfig/webkit2gtk-4.0.pc"
+          echo "PKG_CONFIG_PATH=$RUNNER_TEMP/pkgconfig" >> "$GITHUB_ENV"
+      # v1.146.0 predates Ubuntu 24.04 and took it for a self-hosted runner with no Ruby.
       - name: Setup Ruby
-        uses: ruby/setup-ruby@55283cc23133118229fd3f97f9336ee23a179fcf # v1.146.0
+        uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 0 # Increment this number if you need to re-download cached gems
       - name: Setup Pages
         id: pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Build with yardoc
         run: rm -rf .yardoc doc && bundle exec yardoc -o doc
         env:

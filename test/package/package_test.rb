@@ -5,6 +5,8 @@ require "scarpe/package"
 require "minitest/mock"
 
 # `scarpe package` choosing between webview and native, and the pieces a native build writes.
+# Native packages are macOS apps, so the tests ask for one by name (--target macos) and run the
+# same on a Linux host; only what needs macOS tools checks the host.
 class PackageTest < Minitest::Test
   include PackageTestHelpers
 
@@ -13,14 +15,14 @@ class PackageTest < Minitest::Test
   end
 
   def test_native_flag_picks_the_native_packager
-    options = Scarpe::Package.parse_args([@app, "--native", "--install-dir", "/Users/Shared", "--no-bytecode"])
+    options = Scarpe::Package.parse_args([@app, "--native", "--install-dir", "/Users/Shared", "--no-bytecode", "--target", "macos"])
 
-    assert_equal({ app_file: @app, native: true, install_dir: "/Users/Shared", bytecode: false }, options)
+    assert_equal({ app_file: @app, native: true, install_dir: "/Users/Shared", bytecode: false, target_os: "macos" }, options)
     assert_instance_of Scarpe::Package::Native, Scarpe::Package.packager_for(options, env: {})
   end
 
   def test_scarpe_display_service_native_picks_the_native_packager
-    options = Scarpe::Package.parse_args([@app])
+    options = Scarpe::Package.parse_args([@app, "--target", "macos"])
 
     assert_instance_of Scarpe::Package::Native, Scarpe::Package.packager_for(options, env: { "SCARPE_DISPLAY_SERVICE" => "native" })
     assert_instance_of Scarpe::Package, Scarpe::Package.packager_for(options, env: {})
@@ -33,16 +35,17 @@ class PackageTest < Minitest::Test
 
   # SCARPE_NATIVE_BIN can point at test/native/fake_child.rb in a test shell; that must not ship.
   def test_only_a_mach_o_binary_gets_packaged
-    packager = Scarpe::Package::Native.new(@app)
+    packager = Scarpe::Package::Native.new(@app, target_os: "macos")
     script = write(scratch_dir, "fake_child.rb", "#!/usr/bin/env ruby\n")
 
     error = assert_raises(RuntimeError) { packager.send(:check_binary_arch, script) }
     assert_match(/not a macOS executable/, error.message)
-    packager.send(:check_binary_arch, RbConfig.ruby) if RbConfig.ruby.end_with?("/ruby")
+    # lipo, and a Mach-O Ruby to read, are only on a Mac.
+    packager.send(:check_binary_arch, RbConfig.ruby) if RUBY_PLATFORM.include?("darwin") && RbConfig.ruby.end_with?("/ruby")
   end
 
   def test_bytecode_is_compiled_for_the_install_dir
-    packager = Scarpe::Package::Native.new(@app, install_dir: "/Applications")
+    packager = Scarpe::Package::Native.new(@app, install_dir: "/Applications", target_os: "macos")
 
     assert_equal "/Applications/HelloApp.app/Contents/Resources", packager.installed_resources
   end
@@ -101,7 +104,7 @@ class PackageTest < Minitest::Test
   end
 
   def test_include_can_be_given_more_than_once
-    options = Scarpe::Package.parse_args([@app, "--native", "--include", "art", "--include", "playhouse"])
+    options = Scarpe::Package.parse_args([@app, "--native", "--include", "art", "--include", "playhouse", "--target", "macos"])
 
     assert_equal %w[art playhouse], options[:includes]
     assert_equal %w[art playhouse], Scarpe::Package.packager_for(options, env: {}).instance_variable_get(:@includes)
@@ -116,7 +119,7 @@ class PackageTest < Minitest::Test
     write(root, "playhouse/today.md", "bonjour")
     write(root, "notes/deep/tip.txt", "tip")
     elsewhere = write(scratch_dir, "shared.txt", "shared")
-    packager = Scarpe::Package::Native.new(app, output_dir: scratch_dir,
+    packager = Scarpe::Package::Native.new(app, output_dir: scratch_dir, target_os: "macos",
       includes: ["art", "playhouse/", "notes/deep/tip.txt", elsewhere])
     app_dir = File.join(packager.app_path, "Contents", "Resources", "app")
     FileUtils.mkdir_p(app_dir)
@@ -130,7 +133,7 @@ class PackageTest < Minitest::Test
   end
 
   def test_a_missing_include_stops_the_build
-    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, includes: ["nowhere"])
+    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, includes: ["nowhere"], target_os: "macos")
     FileUtils.mkdir_p(File.join(packager.app_path, "Contents", "Resources", "app"))
 
     error = assert_raises(RuntimeError) { packager.send(:copy_user_app) }
@@ -139,26 +142,30 @@ class PackageTest < Minitest::Test
 
   # sanitize_name turned "ZARKING (Rust)" into ZarkingRust.app and "For Noah" into ForNoah.app.
   def test_a_native_package_keeps_the_name_it_was_given
-    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, name: "ZARKING (Rust)")
+    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, name: "ZARKING (Rust)", target_os: "macos")
 
     assert_equal "ZARKING (Rust).app", File.basename(packager.app_path)
     assert_equal "/Applications/ZARKING (Rust).app/Contents/Resources", packager.installed_resources
     assert_equal "com.scarpe.zarkingrust", packager.instance_variable_get(:@bundle_id)
-    assert_equal "ab.app", File.basename(Scarpe::Package::Native.new(@app, name: "..a/b:\t").app_path), "no slash, colon, control character or leading dot"
-    assert_equal "HelloApp.app", File.basename(Scarpe::Package::Native.new(@app).app_path), "a name made from the file stays CamelCase"
+    assert_equal "ab.app", File.basename(Scarpe::Package::Native.new(@app, name: "..a/b:\t", target_os: "macos").app_path), "no slash, colon, control character or leading dot"
+    assert_equal "HelloApp.app", File.basename(Scarpe::Package::Native.new(@app, target_os: "macos").app_path), "a name made from the file stays CamelCase"
     assert system("bash", "-n", "-c", render_launcher(name: "ZARKING (Rust)")), "the launcher is valid bash under that name"
   end
 
   def test_the_info_plist_holds_a_given_name_whole
-    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, name: "Salt & <Pepper>")
+    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, name: "Salt & <Pepper>", target_os: "macos")
     FileUtils.mkdir_p(File.join(packager.app_path, "Contents"))
     packager.send(:write_info_plist)
     plist = File.join(packager.app_path, "Contents", "Info.plist")
 
-    assert system("plutil", "-lint", "-s", plist), "Info.plist does not parse"
-    name, status = Open3.capture2("plutil", "-extract", "CFBundleName", "raw", "-o", "-", plist)
-    assert status.success?
-    assert_equal "Salt & <Pepper>", name.strip
+    assert_includes File.read(plist), "<string>Salt &amp; &lt;Pepper&gt;</string>"
+    # plutil, which reads the plist as macOS will, is only on a Mac.
+    if RUBY_PLATFORM.include?("darwin")
+      assert system("plutil", "-lint", "-s", plist), "Info.plist does not parse"
+      name, status = Open3.capture2("plutil", "-extract", "CFBundleName", "raw", "-o", "-", plist)
+      assert status.success?
+      assert_equal "Salt & <Pepper>", name.strip
+    end
   end
 
   # Builds share ~/.scarpe/packager-cache. Each used to stage its disk image in the same
@@ -166,7 +173,7 @@ class PackageTest < Minitest::Test
   def test_a_dmg_build_leaves_other_builds_staging_alone
     cache = scratch_dir
     other = write(cache, "dmg-staging/Other.app/Contents/Info.plist", "another build's")
-    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir)
+    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, target_os: "macos")
     packager.instance_variable_set(:@cache_dir, cache)
     staged = nil
     # ditto and hdiutil stand in: note where the app was staged, and make no image.
@@ -187,13 +194,16 @@ class PackageTest < Minitest::Test
     cache = scratch_dir
     other = write(cache, "icon.iconset/icon_16x16.png", "another build's")
     icon = File.join(ROOT, "spec", "support", "assets", "red-40x30.png")
-    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, icon: icon)
+    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, icon: icon, target_os: "macos")
     packager.instance_variable_set(:@cache_dir, cache)
     FileUtils.mkdir_p(File.join(packager.app_path, "Contents", "Resources"))
 
     packager.send(:copy_icon)
 
-    assert File.exist?(File.join(packager.app_path, "Contents", "Resources", "red-40x30.icns")), "the icon was made"
+    # sips and iconutil, which make the icon, are only on a Mac.
+    if RUBY_PLATFORM.include?("darwin")
+      assert File.exist?(File.join(packager.app_path, "Contents", "Resources", "red-40x30.icns")), "the icon was made"
+    end
     assert File.exist?(other), "another build's iconset survives"
     assert_equal ["icon.iconset"], Dir.children(cache), "this build's own folder is gone"
   end
@@ -202,7 +212,7 @@ class PackageTest < Minitest::Test
 
   def render_launcher(name: nil)
     output = scratch_dir
-    packager = Scarpe::Package::Native.new(@app, output_dir: output, name: name)
+    packager = Scarpe::Package::Native.new(@app, output_dir: output, name: name, target_os: "macos")
     FileUtils.mkdir_p(File.join(packager.app_path, "Contents", "MacOS"))
     packager.send(:write_launcher)
     File.read(File.join(packager.app_path, "Contents", "MacOS", "scarpe-launcher"))

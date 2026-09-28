@@ -805,6 +805,8 @@ mod tests {
     }
 
     /// An opener that has exited is waited for, not left a zombie for the life of the app.
+    /// Zombies, `sh` and `ps` are Unix things; Windows keeps no zombies to reap.
+    #[cfg(unix)]
     #[test]
     fn a_finished_opener_is_reaped() {
         let mut quick = std::process::Command::new("sh");
