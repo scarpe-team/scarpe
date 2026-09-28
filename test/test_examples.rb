@@ -11,6 +11,7 @@ class TestExamplesWithWebview < ShoesSpecLoggedTest
     .reject { !_1.include?(match_str) }
     .reject { _1.include?("/not_checked/") }
     .reject { _1.include?("/bloopsaphone/") } # How do we want to CI-check these?
+    .reject { _1.include?("/native/bench/") } # native/PERF.md's benchmarks: driver scripts and 2000-drawable load tests
     .reject { _1.include?("/skip_ci/") if ENV["CI_RUN"] }
 
   examples_to_test.each do |example_filename|

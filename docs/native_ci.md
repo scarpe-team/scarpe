@@ -15,9 +15,10 @@ first runs on GitHub turned up two things no local run could: "The first runs on
 ## What runs where
 
 `.github/workflows/native.yml` is new. It runs on every pull request and every push to `main`,
-except for changes that touch only `docs/` or Markdown files. So a push of only those leaves the
-pull request's newest commit with no checks at all, and the last results stay on the commit
-before it, as they did after this page's own update on #591.
+except for changes that touch only `docs/` or Markdown files. On a pull request GitHub applies
+that filter to the whole pull request's diff from `main`, not to the push, so every push to #591
+runs it: this page's own update, `aa0f22c`, changed nothing else and still ran both workflows
+(run 4, below). Only a push to `main` of nothing but those files runs neither.
 
 | job | runner | what it runs |
 |---|---|---|
@@ -96,6 +97,8 @@ Each of these failed, or would have, the first time the steps ran somewhere new.
 | Mend the webview and docs workflows for today's runners | `libwebkit2gtk-4.0-dev` is gone from Ubuntu 24.04; setup-ruby v1.146.0 predates 24.04; `macos-13` was retired in December 2025 | GitHub, on `main` |
 | Rename the three spec cases whose names held a question mark | checkout: `invalid path 'spec/manual/app-builtins-rules/app.started?.sspec'`; NTFS keeps no `?` | GitHub, `windows-2025` |
 | Ask the real-clock animate test for movement, not a frame rate | `Expected 2 to be >= 3.`: the runner fired 3 frames of `animate(20)` in a 0.3 s peek where this Mac fires 6 | GitHub, `macos-26` |
+| Ask the real-clock timer tests for counts, not a rate | `Expected 4 to be >= 5.`: `animate(40)` fired 4 frames in 0.4 s where 16 were due | GitHub, `macos-26`, Ruby 4.0 |
+| Let the HTML fixture tasks run without a window; Regenerate the webview HTML fixtures | "Check HTML output": all 67 examples it checks differed from their fixtures | GitHub, `macos-26`, and on `main` since June |
 
 ## What was run, and how
 
@@ -170,9 +173,19 @@ branch's do. On Ruby 3.2.2, with a small bundle of Lacci and pure-Ruby gems (nok
 does not build there), Lacci's tests passed 210 of 210, and every Ruby file the merge changed
 parses. The Linux legs as a whole, and the rest of the Ruby 3.2 leg, were not run again.
 
+**After the fourth GitHub run.** On `ci/fixes`, which is `native-rust` with 84 commits not yet on
+#591 and the fixes for that run ("The first runs on GitHub"), `bundle exec rake ci_native` ran
+every step green on this Mac on Ruby 4.0.1 in 8.5 min, with a scratch HOME and `fakebin` first on
+PATH: clippy clean on Rust 1.93.1, and on 1.89.0 from a scratch rustup; `cargo test` 331 pass, 8
+ignored; `native_test` 184 runs, 8 skips; `lacci_test` 236; `component_test` 126; `spec:selftest`
+16 runs; `spec/run --check` 1060/1060 valid; Niente 545 pass, 11 xfail, 503 n/a, 1 skip; native
+1045 pass, 14 xfail, 1 skip; examples on native 360 pass, 23 xfail, 90 skip of 473; `Button.app`
+packaged; `package_test` 39 runs, 0 skips. The load average stayed near 40 throughout. Ruby 3.2 and
+the Linux legs were not run.
+
 ## The first runs on GitHub
 
-Three runs of `native.yml` on pull request #591, all on 28 Sep 2026.
+Four runs of `native.yml` on pull request #591, all on 28 Sep 2026.
 
 **Run 1, [36407505591](https://github.com/scarpe-team/scarpe/actions/runs/36407505591), at
 `178d93e`.** Windows stopped at checkout after 23 s:
@@ -221,6 +234,27 @@ The spec steps ran 3 cases at once on macOS and 4 on Linux, and the slowest step
 native, 230 s on macOS Ruby 3.2. The webview job stopped at "Check HTML output" each time, as it
 does on `main`.
 
+**Run 4, [36410714919](https://github.com/scarpe-team/scarpe/actions/runs/36410714919), at
+`aa0f22c`**, this page's update and nothing else. Every native job passed but Ruby 4.0 on macOS,
+which failed in 1.9 min, at `rake native_test`, on another count of timer fires:
+
+```
+AppTest#test_ruby_timers_fire_at_the_right_counts_in_real_time [test/native/app_test.rb:98]:
+Expected 4 to be >= 5.
+```
+
+`animate(40)` had fired 4 frames in 0.4 s where 16 were due, once every 100 ms or so, the pace
+run 2's runner kept as well. This Mac keeps that pace when the process runs at a lower QoS: under
+`taskpolicy -c background` a 25 ms `IO.select` wakes after 120 to 134 ms, against 30 ms at the
+default, and the test failed there with the same `Expected 4 to be >= 5`. So the count measured
+how often the machine wakes a sleeping process, the second of run 2's two guesses. Whether GitHub
+runs its macOS jobs at a lower QoS is not known; its counts match this Mac's under one. The test
+now asks for the counting itself, 0, 1, 2 one at a time with at least two of each, and
+`test_peek_waits_in_real_time_and_resizes_first`, which asked the same `>= 3` of an `animate(20)`
+after 0.3 s, asks for a frame past 0 ("Ask the real-clock timer tests for counts, not a rate").
+The webview job stopped at "Check HTML output" again, on all 67 examples it checks ("The webview
+fixtures", below).
+
 **`continue-on-error`.** In run 1 the pull request listed "Rust on Windows" as failed, while the
 other jobs ran on. `continue-on-error` on a job keeps it from failing the workflow run; it does
 not turn the job's own check grey, so a Windows failure still shows red on the pull request. The
@@ -228,22 +262,60 @@ run was cancelled before it concluded, so the run-level half was not seen. Windo
 passed twice. To make it count, delete `experimental: true` from its matrix row; to keep it a
 report, leave it, and do not make it a required check.
 
+## The webview fixtures
+
+"Check HTML output" (`rake test:check_html_fixtures`, in `ci.yml`) runs the examples in
+`examples/*.rb`, 67 of the 71 since 4 say `# html_ci: false`, keeps the first page Scarpe hands
+the webview, beautifies it and compares it line by line with `test/wv/html_fixtures`. That page
+is Calzini's HTML, built in Ruby before any JavaScript runs, so getting it needs no window.
+`WINDOWLESS=1` puts `tasks/windowless_webview` first on the examples' load path, and its
+`webview_ruby.rb` stands in for the gem: the same methods, no window and no JavaScript. It plays
+the page's calls back into Ruby, `scarpeInit();` and the heartbeat, which is all the fixture
+tasks wait for, and the task stops before the first example unless the stand-in is what loads.
+
+```sh
+WINDOWLESS=1 bundle exec rake test:regenerate_html_fixtures   # then read the diff
+WINDOWLESS=1 bundle exec rake test:check_html_fixtures
+```
+
+On Ruby 4.0, `examples/ruby_racer.rb` needs `benchmark`, which 4.0 no longer ships as a default
+gem, so either task wants `RUBYOPT="-I$(dirname "$(gem which benchmark)")"` there. The webview job
+runs Ruby 3.2.
+
+The stand-in's pages are the real webview's. At `aa0f22c` its page for each of the 67 examples
+matched, line for line, the page CI's real webview drew in [run
+36410714827](https://github.com/scarpe-team/scarpe/actions/runs/36410714827), rebuilt from the
+check's diffs against the old fixtures, and the commits since `aa0f22c` change none of the 67. The
+regenerated fixtures ("Regenerate the webview HTML fixtures") are those pages. 56 of them are
+exactly the files upstream [#589](https://github.com/scarpe-team/scarpe/pull/589) regenerates for
+`main`. The other 11 add this branch's Lacci changes on top, each traced to the commit that made
+it: from `e75b5a0`, `oval` (the third argument is a diameter), `span` and `text_sizes` (`ins` is
+the underline fragment), and `para_cursor_demo` (`#333` is `#333333`), with CSS alpha `1.0` for
+`255` there and in `border`, `background_with_image`, `margin_check`, `simple_slides` and
+`simpler-menu`; `progress` (the fraction starts at 0.0, `c91ffd6`); and `shoes_splorer` (the App
+answers `transform`, `5cd2ed1`). With them the check passes 67 of 67 here.
+
 ## What was not run
 
 1. **Windows, here.** There is no Windows machine here. The crate's tests have run on Windows
    only on GitHub's `windows-2025` ("The first runs on GitHub"). The Ruby side is Unix-only
    today: the shim starts the renderer in a process group of its own (`pgroup: true`) and
    signals the group, which Ruby on Windows does not offer, so there is no Windows Ruby job.
-2. **The webview job on this branch.** It opens real webview windows, which nothing in this work
-   may do on this Mac. On `main` it has stopped at "Check HTML output" since at least 29 June
-   2026 ([run 28374518146](https://github.com/scarpe-team/scarpe/actions/runs/28374518146)): the
-   fixtures in `test/wv/html_fixtures` no longer match the HTML Calzini writes, and upstream
-   [#589](https://github.com/scarpe-team/scarpe/pull/589) regenerates 67 of the 71. This branch
-   also changes Lacci in ways the webview HTML can show (DESIGN section 10), and `rake test`
-   smoke-runs every example on webview, now including the 40 under `examples/native/` (the
-   showcase, the benches and the eleven legendary apps with their icons).
-   What it needs: on a Mac with a screen, `bundle exec rake test:regenerate_html_fixtures`, read
-   the diff, commit it, then `bundle exec rake test` for the rest of the webview suite.
+2. **`rake test`, the webview job's last step.** It opens real webview windows, which nothing in
+   this work may do on this Mac, and on GitHub it has not run since at least 29 June 2026: "Check
+   HTML output" stopped the job before it, on `main` ([run
+   28374518146](https://github.com/scarpe-team/scarpe/actions/runs/28374518146)) and on every run
+   of #591. With the fixtures regenerated, the next run reaches it. Its example smoke run,
+   `test/test_examples.rb`, did run here, with the windowless stand-in on `RUBYOPT`, Ruby 4.0.1 and
+   `fakebin` first on PATH, for this branch and for `main`. `main` failed 53 of its 407 examples,
+   and this branch the same 53 of 456, once `examples/native/bench/` was left out ("Leave the
+   native benchmarks out of the webview smoke run"). The 53 are Shoes 3 only examples, missing
+   gems, a path issue, examples that open dialogs (`fakebin` refuses them; the webview job has no
+   `fakebin`, so on GitHub they reach a real `osascript`), `legacy/working/info.rb` on Ruby 4.0,
+   and `local_assets/local_file_server.rb`, whose `at_exit` joins a server thread that never ends:
+   it hung here until killed, and on GitHub a hang runs into the job's 30-minute timeout. The rest
+   of `rake test` waits on JavaScript the stand-in never runs, and was not run. What it needs: on a
+   Mac with a screen, `CI_RUN=true bundle exec rake test`.
 3. **`build-docs.yml` and `build-webview-extensions.yml` on GitHub.** The docs job's apt,
    setup-ruby and `yardoc` steps ran in the Linux container; pushing to the `pages` branch did
    not. The extension build did not run; actionlint accepts `macos-15-intel`.
@@ -259,7 +331,7 @@ slower per core than this Mac and faster than an emulated container.
 | Rust on Windows | 8 to 12 min (a guess: never run) | 4 to 6 min |
 | Ruby on macOS (2 jobs) | 18 to 25 min each | 13 to 18 min each |
 | Ruby on Linux (2 jobs) | 13 to 18 min each | 9 to 12 min each |
-| webview job | about 4 min, to where it stops today | the same |
+| webview job | about 4 min to the fixture check; `rake test` after it has not been timed | the same |
 
 That is roughly 85 to 120 runner minutes per push with cold caches and 60 to 80 with warm ones,
 and 20 to 25 minutes of waiting, since the jobs run side by side. GitHub-hosted runners cost
@@ -292,11 +364,12 @@ changes that file, and its Linux arm64 leg builds under QEMU, which takes a whil
 `build-docs.yml` runs only on `main`.
 
 The branch went up as draft pull request #591 on 28 Sep, and "The first runs on GitHub" says what
-its first three runs found. The webview job will stop at "Check HTML output" until the fixtures
-are regenerated.
+its first four runs found. With the fixtures regenerated, the webview job's next run goes on to
+`rake test`, where `main`'s own failing examples wait for it ("What was not run", item 2).
 
-The native jobs have been green since run 3. Next, make the two Rust jobs on macOS and Linux
-and the four Ruby jobs required checks in the branch protection for `main`.
+The native jobs were green in run 3, and in run 4 all but Ruby 4.0 on macOS, whose count is
+loosened since. Next, make the two Rust jobs on macOS and Linux and the four Ruby jobs
+required checks in the branch protection for `main`.
 
 ## Later
 
