@@ -35,7 +35,20 @@ class Scarpe::Native::LogImpl
   def write(level, component, msg, console: true)
     return unless LEVELS[level] >= @level
 
-    $stderr.puts("[scarpe-native] #{component} #{level}: #{msg}")
+    Scarpe::Native.diagnostics.puts("[scarpe-native] #{component} #{level}: #{msg}")
     Shoes::Console.log(level, "#{component}: #{msg}") if console && defined?(Shoes::Console)
+  end
+end
+
+module Scarpe::Native
+  # Where Scarpe's own lines go: stderr, or in a program Shoes.run_program started, the
+  # stderr it was given rather than the program's own output, which goes to the parent
+  # (ProgramChild).
+  def self.diagnostics
+    @diagnostics || $stderr
+  end
+
+  def self.diagnostics=(io)
+    @diagnostics = io
   end
 end

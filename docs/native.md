@@ -176,6 +176,41 @@ a11y_action check("@keep"), :click
 The cases in `spec/accessibility/` show the rest, and DESIGN section 12 lists exactly what each
 drawable becomes.
 
+## Running a program in a process of its own
+
+`Shoes.run_program` starts another Shoes program, in a process of its own on the same Ruby and
+Scarpe, and gives back a `Shoes::Program` to follow it with. A program that never stops then
+freezes only itself, and `stop` ends it. Hackety Hack's Run button is built on it.
+
+```ruby
+Shoes.app do
+  @said = para ""
+  button "Run it" do
+    @game = Shoes.run_program("game.rb", args: ["easy"])
+    @game.on_output { |stream, line| @said.text += "#{line}\n" }
+    @game.on_error { |err| alert "#{err["message"]} (line #{err["line"]})" }
+    @game.on_exit { |status| @said.text += "It stopped.\n" }
+  end
+  button("Stop it") { @game&.stop }
+end
+```
+
+The program runs in its file's directory unless `dir:` says otherwise, with `args:` as its
+`ARGV`, and headless or as a ghost when its parent is. What it writes to `$stdout` and `$stderr`
+arrives a line at a time in `on_output`, as `"stdout"` or `"stderr"` and the line. `on_error`
+hears every error it runs into, as the Hash `Shoes.on_error` hands over (below), with `"during"`
+saying when: `"startup"` for one that stopped it loading (a syntax error, say), `"handler"` or
+`"timer"` for one in its blocks (it keeps running), or `"exit"` for one that ended it. `on_exit`
+gets its `Process::Status`. `stop` sends TERM and then, a second later, KILL, and the program's
+window goes with it. `pid` and `running?` say the rest. Every block runs in the app's event
+loop, like a click's, and one added late still hears the errors so far and the end.
+
+No window outlives the app that started it: when the app ends, even killed outright, the
+program notices and stops. A packaged app runs programs with its own Ruby and Scarpe, through its
+launcher. Niente and the webview display cannot start a process, so there `run_program` runs the
+program inside the app, as Shoes 3 did, and logs a warning that an endless loop in it will stop
+the app too. DESIGN section 5.5 has the protocol.
+
 ## When something goes wrong: `Shoes.on_error` and the console
 
 An error in a click, a timer or an animation is logged, and the app goes on. `Shoes.on_error`
@@ -323,6 +358,7 @@ and the numbers.
 | `SCARPE_NATIVE_STATS=DIR` | each process writes where its time went (`ruby.json`, `rust.json`) when it exits |
 | `SCARPE_NATIVE_DAMAGE` | `off` repaints every frame whole; `check` verifies every partial repaint pixel by pixel |
 | `SCARPE_NATIVE_WINDOWED_TESTS=1` | let `rake native_test` open real windows, as ghosts |
+| `SCARPE_RUN_FILE` | run this file as a program `Shoes.run_program` started (a packaged app's launcher runs it instead of the app); with `SCARPE_RUN_DIR`, `SCARPE_RUN_ARGS`, `SCARPE_REPORT_FD` and `SCARPE_PARENT_FD`, set by `run_program` (DESIGN 5.5) |
 | `SCARPE_BYTECODE=0` | a packaged app loads source instead of bytecode |
 | `RUBY_YJIT_ENABLE=0` | a packaged app leaves YJIT off |
 
@@ -445,6 +481,12 @@ As of 28 Sep 2026. Each has more detail in the ledger or in DESIGN.
   VoiceOver on. A field reads whole: its caret and selection are not exposed, so a screen reader
   cannot move through its text a letter at a time. Click handlers on slots and shapes, radio
   groups and scrolling a node into view are not exposed either.
+- **Programs.** `on_output` hears what a program writes through Ruby's `$stdout` and `$stderr`;
+  a command it runs, or C code writing to the descriptors, writes to the app's own output
+  instead. A program starts in Scarpe's own text sizes, so one written for Shoes 3's asks for
+  them itself (`Shoes.text_mode = :shoes3`). A packaged app draws its program's window with a
+  second copy of its renderer, which may put a second icon in the Dock; nobody has looked. A
+  program's window and the console have only been drawn headless.
 - **The console.** The webview display opens one window, so `Shoes.show_console` cannot open the
   console there. Alt-. and Alt-?, which the manual also reserves, still reach the app.
 - **Examples.** The ones marked failing on native in `spec/examples.yml` each say why (see above),

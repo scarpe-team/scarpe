@@ -448,7 +448,7 @@ module Scarpe::Native
 
     def drain_stderr
       @stderr.each_line do |line|
-        $stderr.write(line)
+        Scarpe::Native.diagnostics.write(line)
         @stderr_lock.synchronize do
           @stderr_tail << line
           @stderr_tail.shift while @stderr_tail.size > STDERR_TAIL_LINES

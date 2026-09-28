@@ -159,6 +159,7 @@ Everything above, plus the native API (DESIGN.md section 8):
 | `pixel_at(x, y)` | `[r, g, b, a]` |
 | `snapshot(name)` | writes `spec/results/snapshots/<name>.png`, returns the path |
 | `wait_frames(n = 1)`, `advance(seconds)` | pump the loop; `wait_frames` also beats the heart, so a slot made since starts; `advance` fires timers |
+| `wait_until(timeout = 10) { cond }` | turn the loop in real time until the block is true, else fail: for what comes from outside the app, such as a program `Shoes.run_program` started, whose news arrives in real time while `advance`'s clock stands still |
 | `focused_drawable` | proxy or nil |
 | `a11y_tree`, `a11y_nodes` | what a screen reader meets: the window's Hash (Symbol keys: `:role`, `:name`, `:value`, `:toggled`, `:actions`, `:bounds`...) with `:children`, or every node in a flat list |
 | `a11y_action(target, action, value = nil)` | what a screen reader does to a drawable, an id or a tree node: `:click`, `:focus`, `:set_value`, `:expand`, `:collapse` |

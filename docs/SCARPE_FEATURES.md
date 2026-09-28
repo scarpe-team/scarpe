@@ -37,6 +37,26 @@ Shoes.app do
 end
 ```
 
+## Running a program in a process of its own
+
+`Shoes.run_program(path, dir:, args:)` starts another Shoes program in a process of its own, on
+the same Ruby and Scarpe, and returns a `Shoes::Program`: `pid`, `running?`, `stop`, and blocks for
+its output, its errors and its end. A program that never stops freezes only itself. Approved by
+Nick Schwaderer on 28 Sep 2026, for Hackety Hack's Run button, which in Shoes 3 evaluated a
+child's program inside Hackety Hack. On the native display only; the others run the program
+inside the app, as Shoes 3 did, with a warning. `docs/native.md` shows it in use, and
+`native/DESIGN.md` 5.5 has the protocol.
+
+```ruby
+Shoes.app do
+  button "Run" do
+    @game = Shoes.run_program("game.rb")
+    @game.on_error { |err| alert "#{err["message"]} (line #{err["line"]})" }
+  end
+  button("Stop") { @game&.stop }
+end
+```
+
 ## `Shoes.on_error`
 
 `Shoes.on_error { |err| }` hears every error a handler, a timer or the program's startup raises,
