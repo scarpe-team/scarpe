@@ -990,12 +990,10 @@ Shoes.app(title: "Bubble Garden", width: W, height: H, resizable: false) do
     blow_bubble(x, 505 + (row || 2) * 12, note_at(x))
   end
 
-  # Return blows five bubbles in a fan, singing up the scale. (The first goes at
-  # once: a timer of 0 seconds would wait a whole second here.)
+  # Return blows five bubbles in a fan, singing up the scale.
   def fanfare
     %w[c5 d5 e5 g5 a5].each_with_index do |note, i|
-      puff = -> { blow_bubble(W / 2 + (i - 2) * 70, 560, note, vx: (i - 2) * 16.0) }
-      i.zero? ? puff.call : timer(i * 0.12, &puff)
+      timer(i * 0.12) { blow_bubble(W / 2 + (i - 2) * 70, 560, note, vx: (i - 2) * 16.0) }
     end
   end
 

@@ -41,7 +41,8 @@ assert_operator high.size, :<, low.size, "and smaller"
 # Return blows a fan of five bubbles up the scale, the first straight away
 fan = bubbles.size
 press_key "\n"
-assert_equal fan + 1, bubbles.size, "the first bubble of the fan comes at once"
+advance 0.01
+assert_equal fan + 1, bubbles.size, "the first bubble of the fan comes straight away (timer(0))"
 advance 0.6
 assert_equal fan + 5, bubbles.size, "and four more follow"
 assert_equal %w[c5 d5 e5 g5 a5], bubbles.last(5).map(&:note)

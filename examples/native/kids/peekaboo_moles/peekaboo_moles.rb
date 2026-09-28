@@ -220,9 +220,9 @@ Shoes.app(title: "Peekaboo Moles", width: W, height: H, resizable: false) do
     @sounds.play(name, note, @clock)
   end
 
-  # Moves a drawable in one message (move sends its left and its top separately).
+  # Moves a drawable, its place kept a whole-pixel decimal (px, below).
   def place(drawable, x, y)
-    drawable.style(left: px(x), top: px(y))
+    drawable.move(px(x), px(y))
   end
 
   # A slot reads a number between -1 and 1 as a share of its parent, and a
@@ -1190,8 +1190,7 @@ Shoes.app(title: "Peekaboo Moles", width: W, height: H, resizable: false) do
   def chorus
     return if @big_kid || @countdown || @party
 
-    # (a timer of 0 seconds would wait a whole second here, so the first one starts at once)
-    @moles.each_with_index { |m, i| i.zero? ? pop_up(m, stay: 2.0) : timer(i * 0.06) { pop_up(m, stay: 2.0) } }
+    @moles.each_with_index { |m, i| timer(i * 0.06) { pop_up(m, stay: 2.0) } }
   end
 
   def look_all(side)
