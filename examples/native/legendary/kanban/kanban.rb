@@ -191,14 +191,13 @@ Shoes.app(title: "Kanban", width: 1040, height: 680, resizable: false) do
   def refresh(*columns)
     columns = COLUMNS.keys if columns.empty?
     columns.each do |key|
-      all = @board.in(key).size
-      shown = @board.in(key).count { |card| shows?(card) }
-      @counts[key].replace(shown == all ? all.to_s : "#{shown} of #{all}")
-      @edges[key].stroke = @drag && @drag[:key] == key ? rgb(91, 91, 214, 0.45) : rgb(255, 255, 255, 0.95)
-      @views[key] = {}
+      cards = @board.in(key)
+      shown = cards.select { |card| shows?(card) }
+      @counts[key].replace(shown.size == cards.size ? cards.size.to_s : "#{shown.size} of #{cards.size}")
       dragging_here = @drag && @drag[:key] == key
+      @edges[key].stroke = dragging_here ? rgb(91, 91, 214, 0.45) : rgb(255, 255, 255, 0.95)
+      @views[key] = {}
       @lists[key].clear do
-        shown = @board.in(key).select { |card| shows?(card) }
         shown.each do |card|
           space_for_drag if dragging_here && card.equal?(@drag[:before])
           card_view(card) unless @drag && card.equal?(@drag[:card])
@@ -295,8 +294,10 @@ Shoes.app(title: "Kanban", width: 1040, height: 680, resizable: false) do
 
   def add_card(key)
     title = @new_title.text.delete("\n").strip
-    return @new_title.text = "" if title.empty?
-
+    if title.empty?
+      @new_title.text = ""
+      return
+    end
     @board.add(title, key)
     refresh(key)
     @new_title.focus # ready for the next one
@@ -316,8 +317,9 @@ Shoes.app(title: "Kanban", width: 1040, height: 680, resizable: false) do
     @filter = name
     @chips.each do |each_name, (look, words, color)|
       on = each_name == name
-      look.fill = on ? tint(color, each_name ? 0.16 : 1) : white
-      words.stroke = on && each_name.nil? ? white : INK
+      every_card = each_name.nil?
+      look.fill = on ? (every_card ? INK : tint(color, 0.16)) : white
+      words.stroke = on && every_card ? white : INK
     end
     refresh
   end
