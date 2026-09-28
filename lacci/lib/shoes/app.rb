@@ -539,7 +539,7 @@ class Shoes::App < Shoes::Drawable
   # button is 1 if the left mouse button is held down, 0 otherwise.
   # x and y are the mouse coordinates relative to the app window.
   def mouse
-    Shoes::DisplayService.mouse_state
+    Shoes::DisplayService.mouse_state_of(linkable_id)
   end
 
   # Read the system clipboard contents.

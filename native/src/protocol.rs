@@ -291,7 +291,9 @@ fn target(v: Option<&Value>) -> Result<Target, ParseError> {
 pub enum Outgoing {
     Ready { v: u32, version: String },
     Event { name: String, target: Option<Id>, args: Vec<Value> },
-    Mouse { state: [i64; 3] },
+    /// The pointer over one app's window: `[button held, x, y]`. Each app keeps its own, as
+    /// Shoes 3's `mouse` answers from app->mousex (s3_canvas.c).
+    Mouse { app: Id, state: [i64; 3] },
     ParaHit { id: Id, value: Option<i64> },
     Resize { app: Id, w: i64, h: i64 },
     Scroll { id: Id, top: i64 },
@@ -491,7 +493,7 @@ mod tests {
         let v = |m: Outgoing| serde_json::to_value(m).unwrap();
         assert_eq!(v(Outgoing::ready())["t"], "ready");
         assert_eq!(v(Outgoing::event("click", Some(4), vec![])), json!({"t":"event","name":"click","target":4,"args":[]}));
-        assert_eq!(v(Outgoing::Mouse { state: [1, 20, 30] }), json!({"t":"mouse","state":[1,20,30]}));
+        assert_eq!(v(Outgoing::Mouse { app: 1, state: [1, 20, 30] }), json!({"t":"mouse","app":1,"state":[1,20,30]}));
         assert_eq!(v(Outgoing::ParaHit { id: 3, value: None }), json!({"t":"para_hit","id":3,"value":null}));
         assert_eq!(v(Outgoing::Resize { app: 1, w: 500, h: 400 }), json!({"t":"resize","app":1,"w":500,"h":400}));
         assert_eq!(v(Outgoing::Scroll { id: 2, top: 40 }), json!({"t":"scroll","id":2,"top":40}));
