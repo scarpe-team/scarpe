@@ -10,7 +10,7 @@ straightforward as possible.
 - A native display service: `scarpe --native app.rb` draws with a Rust program (tiny-skia, cosmic-text, winit) instead of a webview, while Lacci and every block stay in Ruby. See docs/native.md and native/DESIGN.md. Dedicated to the late Noah Gibbs.
 - `scarpe peek APP.rb` runs an app headless on the native display, clicks, types, scrolls and saves pictures
 - `scarpe package --native` builds an ad-hoc signed macOS `.app` (and a `.dmg` with `--dmg`) with precompiled Ruby bytecode, no installed gems, and FastImage copied in for image sizes
-- The Shoes spec suite (`spec/run`): 1038 cases from the manual and Noah Gibbs' Shoes-Spec corpus, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree
+- The Shoes spec suite (`spec/run`): 1041 cases from the manual and Noah Gibbs' Shoes-Spec corpus, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree
 - Lacci: `animate`, `every` and `timer` return `Shoes::Animation`, `Shoes::Every` and `Shoes::Timer`; `Shoes.app`, `window` and `dialog` return the App; methods the manual marks "» self" return self
 - Lacci: `left`, `top`, `width` and `height` read laid-out pixels when the display reports them; slots gain `before`, `after`, `scroll_height`, `scroll_max` and `gutter`; `font(path)` returns the family names in the file
 - Native text fields undo and redo (Cmd-Z or Control-Z, Cmd-Shift-Z or Control-Y) and take an input method's commit as one edit
@@ -57,6 +57,12 @@ straightforward as possible.
 - Lacci: a flow's `scroll_top` read nil until set; every slot has `scroll_top` and `scroll_top=` now. A text fragment's `parent` is the para or fragment holding it, as in Shoes 3, and spans keep `weight`, `family`, `emphasis` and `kerning`
 - Native: a click block on an image is heard through an empty slot laid over it, once, on the press, as a shape's is; a negative `right` or `bottom` puts an element past its slot's edge, as in Shoes 3; a star or an arrow turns about the centre its `left` and `top` name
 - Lacci: every drawable subscribed to its own hover, leave and motion as it was made; now only when given a block for one, so a text of a thousand spans remade on every key leaves nothing on the event bus
+
+- Lacci: a closing window sends every slot in it its `finish`, the window's own slot first, as Shoes 3 does (ledger H8), so an app can save its work as it goes; closing Hackety Hack with its red button used to lose the child's program
+- Lacci: the colon key reaches `keypress` as the String `":"`; it arrived as `:""`
+- Lacci's turtle: `Turtle.draw` with no program draws an empty canvas instead of raising; step mode shows the next command again on Ruby 3.4 and later; `execute` and `draw all` sit at the right of their rows, as in Hackety Hack's turtle, so both rows of controls fit the window
+- Native: a sized or trimmed text too wide as a box for the rest of a line, whose text fits there on one line, sits on that line, as Shoes 3 draws it (ledger C7): Hackety Hack's lists put each name beside its icon
+- Native packages carry `docs/static/manual.md`, so `Shoes.show_manual` opens the manual in a packaged app too
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
 - `oval(left, top, n)`: `n` is a diameter, as the manual says, not a radius
@@ -66,6 +72,7 @@ straightforward as possible.
 - Slot blocks (`stack`, `flow`, `append`, `clear`...) keep the self they were written with, as the manual and Shoes 3 have it (ledger B1); only the app block, `window`, `dialog` and `app { }` run on the App. Code that calls Shoes methods bare inside a slot block from a plain object needs a way to the app, its own `method_missing` or `app { }`, as in Shoes 3. A widget's calls inside its own slots land in them, and what a widget lacks it asks its app for
 - Gradients run top to bottom (angle 0) unless given an angle; they used to default to 45
 - `clear` keeps the slot's event handlers and the timers it started, as Shoes 3 does
+- A slot keeps one block per event: a second `click`, `keypress`, `hover`, `leave`, `motion`, `release` or `wheel` given to the same slot replaces the first, as in Shoes 3 (ledger H6); they used to add up
 - A `list_box` starts with nothing chosen unless `choose:` names an item
 - The draw context's `fill`, `stroke` and `strokewidth` no longer reach text and controls
 - Native: a `width` or `height` the app gives includes the element's margins, as in Shoes 3 (`stack width: 100, margin: 10` is an 80 px box); before, margins went outside a px size
