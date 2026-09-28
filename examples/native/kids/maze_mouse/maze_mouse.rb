@@ -511,10 +511,10 @@ Shoes.app(title: "Maze Mouse", width: W, height: H, resizable: false) do
   end
 
   # Two little prints for each step, one each side, between one room and the next.
-  def paw_prints(from, to, way, color = [226, 140, 160], alpha = 0.5)
+  def paw_prints(from, to, way, color = [226, 140, 160], alpha = 0.5, grow = 1.0)
     (x1, y1), (x2, y2) = middle(from), middle(to)
     dx, dy = STEPS[way]
-    size = @cell * 0.13
+    size = @cell * 0.13 * grow
     nostroke
     [[0.3, 1], [0.7, -1]].each do |along, side|
       x = x1 + (x2 - x1) * along - dy * size * 0.7 * side
@@ -638,7 +638,7 @@ Shoes.app(title: "Maze Mouse", width: W, height: H, resizable: false) do
     @help_layer.clear do
       @maze.way_to_cheese(@at, 3).each_with_index do |nxt, i|
         way = STEPS.keys.find { |one| @maze.next_room(room, one) == nxt }
-        paw_prints(room, nxt, way, [245, 170, 30], 0.7 - i * 0.15)
+        paw_prints(room, nxt, way, [245, 170, 30], 0.7 - i * 0.15, 1.4) # bigger as well as golden, not told apart by colour alone
         room = nxt
       end
     end
