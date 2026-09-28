@@ -75,6 +75,7 @@ straightforward as possible.
 - Native: a sized or trimmed text too wide as a box for the rest of a line, whose text fits there on one line, sits on that line, as Shoes 3 draws it (ledger C7): Hackety Hack's lists put each name beside its icon
 - Native packages carry `docs/static/manual.md`, so `Shoes.show_manual` opens the manual in a packaged app too
 - Native packages read files as UTF-8 when started with no `LANG`, as Finder, the Dock and `open` start them, and the manual reads as UTF-8 anywhere: in a packaged app Help raised "invalid byte sequence in US-ASCII", and a saved program with an accented letter could not be read back
+- Lacci: `para.cursor = :marker` drops the selection as Shoes 3.1 does (the caret goes to its start and the marker is cleared), and `cursor = nil` clears the marker too; it jumped to the marker and kept it, so in Hackety Hack's editor typing after Backspace or select-all came out backwards
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
 - `oval(left, top, n)`: `n` is a diameter, as the manual says, not a radius
