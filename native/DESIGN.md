@@ -361,8 +361,10 @@ evaluated a child's program inside Hackety Hack, and `while true` took Hackety H
   exe/scarpe --native PATH` on `RbConfig.ruby`, in `dir`, with this process's environment
   (Bundler's included), so headless and ghost modes carry over to the program. From a packaged
   app: its own launcher again (`SCARPE_LAUNCHER`, which the launcher exports), which runs
-  `SCARPE_RUN_FILE` with the bundled Ruby and Scarpe instead of the app (section 11). The program
-  runs in its own process group, with stdin `/dev/null` and this process's stdout and stderr.
+  `SCARPE_RUN_FILE` with the bundled Ruby and Scarpe instead of the app (section 11). The
+  command's first word goes to `spawn` as `[name, argv0]`, so a lone launcher is never read as
+  a command line and split at the space in `Hackety Hack.app`. The program runs in its own
+  process group, with stdin `/dev/null` and this process's stdout and stderr.
   A spec run's settings stay the parent's: `SHOES_SPEC_TEST`, the minitest exports,
   `SCARPE_NATIVE_PID_FILE` and `SCARPE_NATIVE_STATS` are unset for it.
 - **The settings** (read once by `ProgramChild.run` and taken out of its ENV, so a program it
@@ -413,7 +415,9 @@ evaluated a child's program inside Hackety Hack, and `while true` took Hackety H
   error is logged and the app goes on, as before. A block that raises is logged and the others
   still run. `err` is `Shoes::ErrorReport`'s Hash with String keys: `"class"`, `"message"`,
   `"backtrace"` (Strings), `"path"` and `"line"` (the innermost frame outside Scarpe's own code
-  and Ruby's library, or for a SyntaxError the place Ruby names; nil when there is none), and
+  and Ruby's library, or for a SyntaxError the place Ruby names; nil when there is none; for a
+  startup error, a frame in the program's own file first, its path compared through links, as
+  Ruby names a loaded file by its real path), and
   `"during"`: `"startup"` (`Shoes.run_app` reports what stops the file loading, then lets it go
   on up), `"handler"` (an event, the heartbeat, a program's block), `"timer"` (`animate`,
   `every`, `timer`) or `"exit"` (only a program reports it, 5.5). Test code that clicks or
