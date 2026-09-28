@@ -70,7 +70,9 @@ dashes, so never put such a line inside your app code (not even in a heredoc).
 Name the file after the manual entry: `spec/manual/<group>/<entry-id>.sspec`, where the group
 is the directory your brief gives you (by default the part of the id before the first dot).
 A second case for the same entry is `<entry-id>__<what differs>.sspec`,
-e.g. `styles.width.percent_string__in_flow.sspec`.
+e.g. `styles.width.percent_string__in_flow.sspec`. Windows cannot check out a path with a `?`
+in it, so a predicate's `?` becomes `_p`, as in Ruby's own C: `check.checked?` is
+`check.checked_p.sspec`, and its front matter still says `manual: check.checked?`.
 
 ### Front matter
 
