@@ -339,17 +339,21 @@ Units are logical pixels (f32). Window content size = App `width` x `height`; an
 neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1, Q1). Lacci's own default
 moved there the same day, so apps normally send it.
 
-- **Dimensions** for width/height/left/top/margins: Integer = px; negative Integer = parent inner
+- **Dimensions** for width/height/margins: Integer = px; negative Integer = parent inner
   size minus |v|; Float in (0, 1] = fraction of parent inner size (1.0 = 100%); Float in (-1, 0) =
   the parent less that fraction; any other Float is px, because Ruby code often computes widths like
   `w / 2.0`. String `"N%"` = percent (negative: 100% less N%); `"Npx"` or a numeric String = px.
   Shoes 3 treats every Float as a fraction, 1.5 included (ledger C1); native keeps the Floats
-  above 1 as pixels. On art (`rect`, `oval`, `line`, `star`, `arrow`, `arc`, `shape`) every number
-  is pixels, as the manual's "pixel coordinates" and Shoes 3 (`shoes_place_exact`,
-  s3_ruby.c:385-392) have it: a negative `left`, `top` or line end moves art off the left and top
-  edges (ruled 27 Sep 2026), and a Float up to 1 is a coordinate or size in pixels, not a share of
-  the slot (28 Sep 2026, ledger C15), so art animated through a slot's corner never jumps across
-  it. Only a percentage String is of the slot on art, and a negative size keeps the rule above.
+  above 1 as pixels. **Positions** (`left`, `top`, `right`, `bottom`) read the same forms but keep
+  their sign, as Shoes 3's `shoes_px2` reads them (`nv` 0, s3_ruby.c:298-337; ledger C10, C18,
+  ruled by Nick 28 Sep 2026): a negative number or share lies past the edge the position counts
+  from, so `top: -400` is 400 px above the slot and `left: -0.25` a quarter of it to the left.
+  On art (`rect`, `oval`, `line`, `star`, `arrow`, `arc`, `shape`) every number is pixels, as the
+  manual's "pixel coordinates" and Shoes 3 (`shoes_place_exact`, s3_ruby.c:385-392) have it: a
+  negative `left`, `top` or line end moves art off the left and top edges (ruled 27 Sep 2026), and
+  a Float up to 1 is a coordinate or size in pixels, not a share of the slot (28 Sep 2026, ledger
+  C15), so art animated through a slot's corner never jumps across it. Only a percentage String
+  is of the slot on art, and a negative size keeps the rule above.
 - **DocumentRoot** is a flow filling the window. If content is taller than the window, the root
   scrolls vertically (wheel + a thin overlay scrollbar), and the window's own backgrounds scroll
   with it.
@@ -414,9 +418,9 @@ moved there the same day, so apps normally send it.
   art shape, and every background and border is out of flow: placed relative to its slot's content
   origin, it does not affect siblings or slot height. `right: n` puts the element's right margin
   edge n px in from the slot's right edge, `bottom: n` likewise from the bottom (manual 1100-1106,
-  1356-1364, ledger C10); `left` and `top` win when both are given. A negative `right` or `bottom`
-  lies past that edge, as Shoes 3 reads positions (`shoes_px2`, s3_ruby.c:327-337): `bottom: -3`
-  hangs the element 3 px below the slot. A slot with no `height` placed by `bottom` is measured
+  1356-1364, ledger C10); `left` and `top` win when both are given. A negative position lies past
+  the edge it counts from, as Shoes 3 reads positions (`shoes_px2`, s3_ruby.c:327-337): `top: -400`
+  starts the element 400 px above the slot and `bottom: -3` hangs it 3 px below (ledger C10, C18). A slot with no `height` placed by `bottom` is measured
   by its margins alone, its top `bottom` and its margins above the foot, as Shoes 3 places a
   canvas it has not drawn yet (ledger C10). Backgrounds and borders read them the same way, but for
   one case: one with a size of its own along the axis is measured from the far edge by its

@@ -1,0 +1,23 @@
+---
+manual: styles.top
+lines: [1477, 1485]
+testability: visual
+display: native
+ledger: C18
+----------- app code
+# Shoes 3 reads a position as a plain number (shoes_px2 passes nv 0 to shoes_px,
+# s3_ruby.c:298-337), so a negative top puts the element above its slot's top edge. Hackety
+# Hack's intro starts its hand 400 px above the window and slides it down into view.
+Shoes.app width: 400, height: 300 do
+  @frame = stack margin_left: 50, margin_top: 60, width: 300, height: 200 do
+    @hand = stack width: 100, height: 40, left: 10, top: -40 do
+      background red
+    end
+  end
+end
+----------- test code
+frame = layout_of(stack("@frame"))
+hand = layout_of(stack("@hand"))
+assert_in_delta frame.y - 40, hand.y, 0.5, "top: -40 sits 40 pixels above the slot's top edge"
+assert_in_delta frame.x + 10, hand.x, 0.5
+assert_equal(-40, stack("@hand").top, "and top reads the number it was given")

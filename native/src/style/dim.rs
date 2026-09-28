@@ -3,6 +3,7 @@
 //! Integer = px, negative Integer = parent minus |v|, Float in (0, 1] = a
 //! fraction of the parent, "N%" = percent, "Npx" or "N" = px. Floats outside
 //! that range are px, because Ruby code often computes widths like `w / 2.0`.
+//! Positions (`left`, `top`, `right`, `bottom`) keep their sign instead: see `position`.
 
 use serde_json::Value;
 
@@ -76,10 +77,11 @@ fn parse_dim_str(s: &str) -> Option<Dim> {
     number.parse::<f64>().ok().map(integer_dim)
 }
 
-/// A `right` or `bottom` offset, as Shoes 3 reads a position: shoes_px2 passes nv 0 to
-/// shoes_px (s3_ruby.c:298-337), so a negative number stays negative and puts the element
-/// past its slot's far edge, where a size counts back from the slot. A Float up to 1 or a
-/// percentage is still that share of the slot, and a negative share lies past the edge too.
+/// A `left`, `top`, `right` or `bottom` offset, as Shoes 3 reads a position: shoes_px2 passes
+/// nv 0 to shoes_px (s3_ruby.c:298-337), so a negative number stays negative and puts the
+/// element past the slot's edge it counts from, where a size counts back from the slot. A
+/// Float up to 1 or a percentage is still that share of the slot, and a negative share lies
+/// past the edge too (ledger C10, Q10).
 pub fn position(value: &Value, parent: f32) -> Option<f32> {
     let dim = parse_dim(value)?;
     let negative_share = match value {

@@ -59,16 +59,22 @@ assert inked.call(336 + 24 - 2, 284, 20, 16, &red), "red ink on the new line"
 assert_equal "Hi q\nok\n", app.text
 click_at 70, 460
 
-# the carriage stops at the margin
-press_key "\n"
+# the lever on the carriage's left end sends it home too
+lever = layout_of(app.instance_variable_get(:@lever))
+click_at lever.x + lever.w / 2, lever.y + lever.h / 2
+assert_equal "return", sound.call, "the lever returns the carriage too"
+
+# the carriage stops at the margin, slid as far left as it goes: past the window's edge, as
+# Shoes 3 draws a slot at a negative left (ledger C18), so the lever is out of reach there
 41.times { press_key "m" }
 assert_equal "m" * 40, app.text.lines.last.chomp, "forty letters to a line"
 assert_equal "stop", sound.call
 assert_equal "The carriage is at the margin. Press Return.", para("@note").text
 settle.call
-lever = layout_of(app.instance_variable_get(:@lever))
-click_at lever.x + lever.w / 2, lever.y + lever.h / 2
-assert_equal "return", sound.call, "the lever returns the carriage too"
+carriage = layout_of(app.instance_variable_get(:@carriage))
+assert_in_delta layout_of(paper).x - 70, carriage.x, 1, "the carriage rides with the paper"
+press_key "\n"
+assert_equal "return", sound.call
 press_key :tab
 press_key "t"
 assert_equal "        t", app.text.lines.last.chomp, "a tab jumps to the next stop"
