@@ -249,16 +249,34 @@ fn scrolling_repaints_everything() {
     assert_eq!(window.repaint(&mut h), Repaint::Everything);
 }
 
+/// Turned, scaled or skewed art repaints the box its transform turns it into, grown by how
+/// far its stroke and points can reach once stretched. Any transform used to repaint the whole
+/// window, so one star turned once made every later twinkle a full repaint
+/// (_repros/night_light_2.rb).
 #[test]
-fn art_its_transform_may_carry_anywhere_repaints_everything() {
+fn turned_scaled_and_skewed_art_repaints_in_part() {
     let mut h = Harness::new();
     busy_scene(&mut h);
     props(&mut h, 13, json!({"draw_context": {"rotate": 30}}));
     let mut window = Window::open(&mut h, 2.0);
     props(&mut h, 13, json!({"left": 300}));
-    assert_eq!(window.repaint(&mut h), Repaint::Everything);
+    assert!(partial(&window.repaint(&mut h), &window, 0.3), "a turned rect moving");
+    props(&mut h, 13, json!({"fill": {"rgba": [200, 60, 160, 220]}, "strokewidth": 6, "stroke": {"rgba": [0, 0, 0, 255]}}));
+    assert!(partial(&window.repaint(&mut h), &window, 0.3), "a turned rect changing colour, with a wide stroke");
+    props(&mut h, 13, json!({"draw_context": {"rotate": 75, "scale": [1.6, 0.7], "skew": [20, 5], "transform": "center"}}));
+    assert!(partial(&window.repaint(&mut h), &window, 0.4), "turned, scaled and skewed about its centre");
     props(&mut h, 12, json!({"left": 300}));
-    assert!(partial(&window.repaint(&mut h), &window, 0.3), "untransformed art stays cheap, and the rotated rect still shows through");
+    assert!(partial(&window.repaint(&mut h), &window, 0.3), "untransformed art stays cheap, and the transformed rect still shows through");
+    props(&mut h, 13, json!({"draw_context": {"scale": [30, 30]}}));
+    assert_eq!(window.repaint(&mut h), Repaint::Everything, "scaled past the window, it is cheaper to paint it all");
+
+    feed(&mut h, &[create(30, "Star", 2, json!({"left": 120, "top": 270, "points": 5, "outer": 12, "inner": 5.4, "draw_context": {"rotate": 20, "transform": "center"}}))]);
+    window.repaint(&mut h);
+    for alpha in [120, 250, 60] {
+        props(&mut h, 30, json!({"fill": {"rgba": [255, 244, 204, alpha]}}));
+        let plan = window.repaint(&mut h);
+        assert!(partial(&plan, &window, 0.02), "a turned star twinkling repaints only the star: {plan:?}");
+    }
 }
 
 #[test]
@@ -307,7 +325,7 @@ fn a_random_walk_of_changes_never_leaves_a_stale_pixel() {
         let mut art: Vec<i64> = vec![11, 12, 13, 14];
         let mut paras: Vec<i64> = vec![7, 8];
         for step in 0..150 {
-            match walk.below(9) {
+            match walk.below(10) {
                 0 | 1 => {
                     let id = art[walk.below(art.len() as u64) as usize];
                     props(&mut h, id, json!({"left": walk.below(470), "top": walk.below(310)}));
@@ -340,6 +358,13 @@ fn a_random_walk_of_changes_never_leaves_a_stale_pixel() {
                 7 => {
                     let id = art[walk.below(art.len() as u64) as usize];
                     props(&mut h, id, json!({"hidden": walk.below(2) == 0}));
+                }
+                8 => {
+                    let id = art[walk.below(art.len() as u64) as usize];
+                    let (sx, sy) = (0.5 + walk.below(20) as f64 / 10.0, 0.5 + walk.below(20) as f64 / 10.0);
+                    let about = ["corner", "center"][walk.below(2) as usize];
+                    let turn = json!({"rotate": walk.below(360), "scale": [sx, sy], "skew": [walk.below(40) - 20, 0], "transform": about});
+                    props(&mut h, id, json!({"draw_context": if walk.below(4) == 0 { json!({}) } else { turn }}));
                 }
                 _ => props(&mut h, 4, json!({"displace_left": walk.below(20), "displace_top": walk.below(10)})),
             }
