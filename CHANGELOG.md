@@ -56,6 +56,7 @@ straightforward as possible.
 - The draw context's `fill`, `stroke` and `strokewidth` no longer reach text and controls
 - Native: a `width` or `height` the app gives includes the element's margins, as in Shoes 3 (`stack width: 100, margin: 10` is an 80 px box); before, margins went outside a px size
 - Native: a negative `left` or `top` on art is a plain coordinate, as in Shoes 3, so art moves off the left and top edges instead of jumping to the far side
+- Native: any number on art is pixels, as the manual and Shoes 3 say: `oval 0.5, 0.5, 12` sits in the corner and `rect 10, 10, 0.8` is under a pixel wide, where a Float up to 1 was a share of the slot; a percentage (`"50%"`) still is
 - `close` closes only its own window while another is open, as the manual says (it closed every window); the last window's `close` still ends the app
 - Native: downloaded images are cached in `~/Library/Caches/scarpe-native` (or `XDG_CACHE_HOME`, or `%LOCALAPPDATA%`), no longer under `$TMPDIR`
 - Native: in a checkout, a `scarpe-native` on PATH wins over the dev build; the order is `SCARPE_NATIVE_BIN`, the packaged binary, PATH, then the dev build

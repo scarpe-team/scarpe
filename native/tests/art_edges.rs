@@ -135,3 +135,27 @@ fn negative_art_coordinates_are_plain_coordinates() {
     assert_eq!(at(&mut h, 6), (-25.0, -25.0), "a star centred on (-5, -5)");
     assert_eq!(h.value(json!({"op": "pixel", "x": 10, "y": 100})), json!([0, 0, 0, 255]), "the oval's right part shows");
 }
+
+/// A Float between 0 and 1 on art is pixels too (ledger C15, extended 28 Sep 2026): the manual
+/// draws shapes "at pixel coordinates" and Shoes 3 reads them as whole pixels. It read as a
+/// share of the slot, so a raindrop, a star or a bar animated through the slot's top-left
+/// corner jumped across the window for a frame, and a 0.8 px star became 80% of the slot.
+/// A percentage still reads as a share.
+#[test]
+fn float_art_coordinates_under_one_are_pixels() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "Oval", 2, json!({"left": 0.5, "top": 0.5, "width": 12, "center": true, "draw_context": red()})),
+        create(4, "Line", 2, json!({"left": 10, "top": 10, "x2": 0.5, "y2": 100})),
+        create(5, "Rect", 2, json!({"left": 200, "top": 150, "width": 0.8, "height": 0.8})),
+        create(6, "Rect", 2, json!({"left": "10%", "top": 0, "width": "50%", "height": 10})),
+    ]));
+    let box_of = |h: &mut Harness, id: i64| rect_of(h, id);
+    assert_eq!(box_of(&mut h, 3), [-5.5, -5.5, 12.0, 12.0], "centred on (0.5, 0.5), not the middle of the slot");
+    assert_eq!(rgb(&mut h, 2.0, 2.0), [255, 0, 0], "so it shows in the corner");
+    assert_eq!(rgb(&mut h, 150.0, 100.0), [255, 255, 255], "and nothing in the middle");
+    let line = box_of(&mut h, 4);
+    assert!(line[2] < 11.0, "the line ends a hair right of the left edge, not at x = 150: {line:?}");
+    assert!(box_of(&mut h, 5)[2] < 1.0, "a 0.8 px rect stays under a pixel");
+    assert_eq!(box_of(&mut h, 6), [30.0, 0.0, 150.0, 10.0], "percentages are of the slot");
+}
