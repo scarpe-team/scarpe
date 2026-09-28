@@ -804,6 +804,25 @@ fn text_mode_shoes3_sizes_text_in_points() {
     assert_eq!(h.node(|n| n["id"] == 3)["w"].as_f64().unwrap(), w, "and back");
 }
 
+/// Pango makes each line as tall as its own text, so Hackety Hack's intro title, a 15 point
+/// " Welcome to" line over a 34 point "Hackety Hack", keeps its small line short and the Ready
+/// button under it clear. Shoes 3's text mode sets lines that way; otherwise every line of a
+/// block is at least the block's line height.
+#[test]
+fn shoes3_text_keeps_a_line_of_small_text_short() {
+    let mut h = Harness::new();
+    h.feed(&app(400, 300, &[
+        create(3, "Span", 0, json!({"text_items": [" Welcome to\n"], "size": 15})),
+        create(4, "Para", 2, json!({"text_items": [3, "Hackety Hack"], "size": "title", "margin": 0})),
+    ]));
+    let tall = h.node(|n| n["id"] == 4)["h"].as_f64().unwrap();
+    h.feed(&json!({"t": "text_mode", "mode": "shoes3"}).to_string());
+    let para = h.node(|n| n["id"] == 4)["h"].as_f64().unwrap();
+    let (small, big) = (15.0 * 4.0 / 3.0, 34.0 * 4.0 / 3.0);
+    assert!((para - (small * 1.2 + 4.0 + big * 1.2)).abs() < 1.5, "one short line and one tall: {para}");
+    assert!(tall > 2.0 * 34.0 * 1.2, "without the mode both lines are title lines: {tall}");
+}
+
 /// After Return at the end of the text the caret sits at the start of the new, empty line under
 /// it, where Pango puts it and where the next letter goes (Hackety Hack's editor, the fidelity
 /// lane's caret strip). cosmic-text keeps no line for a closing newline, so the caret was drawn
