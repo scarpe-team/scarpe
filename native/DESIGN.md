@@ -159,9 +159,10 @@ Rust processes `req`s after an implicit flush of everything received before them
 |---|---|---|---|
 | click Button, Check, Radio, Image, Link | `click` | that id | `[]`, on release over the same drawable (Check/Radio: Lacci toggles and echoes `checked`; Rust shows the echo, it does not toggle on its own). Return or Space on a focused button, check or radio clicks it too (ledger G9) |
 | edit EditLine / EditBox | `change` | that id | `[new_text]` on every edit. Lacci echoes `props {text}`: apply idempotently, keep caret. Echoes can trail later edits, so any text the field reported and has not seen echoed yet counts as an echo |
+| Return in a focused EditLine (no Control, Option, Command or Shift) | `finish` | that id | `[]`, for `edit_line.finish = proc` (Shoes 3.2.15, ledger G16). An EditBox takes Return as a new line |
 | pick in ListBox (popup, or Up/Down while focused) | `change` | that id | `[item_string]` |
 | pointer enters / leaves a drawable | `hover` / `leave` | that id | `[]`, on transitions only, for every drawable in the hovered chain |
-| press / release on a drawable that has `has_click` / `has_release` true | `click` / `release` | the innermost such id under the pointer | `[button, x, y]` window coordinates, Integers |
+| press / release on a drawable that has `has_click` / `has_release` true | `click` / `release` | the innermost such id under the pointer: a text fragment's first, then the topmost drawable under the pointer that has one, so a label or icon with no block passes the press to a clickable shape beneath it (Shoes 3's `shoes_canvas_send_click2`, ledger E8). A control on top keeps the press | `[button, x, y]` window coordinates, Integers |
 | SubscriptionItem `click`/`release` | same | item id | `[button, x, y]` in window coordinates, like drawable clicks (ledger H3, Q4, contract g). Fires for presses inside the parent slot unless a control, text field or link consumed the press |
 | SubscriptionItem `motion` | `motion` | item id | `[x, y, ctrl, shift]` (booleans) in window coordinates, on pointer move inside the parent slot |
 | SubscriptionItem `hover`/`leave` | same | item id | `[]` on entering/leaving the parent slot box |
@@ -337,9 +338,12 @@ moved there the same day, so apps normally send it.
   the parent less that fraction; any other Float is px, because Ruby code often computes widths like
   `w / 2.0`. String `"N%"` = percent (negative: 100% less N%); `"Npx"` or a numeric String = px.
   Shoes 3 treats every Float as a fraction, 1.5 included (ledger C1); native keeps the Floats
-  above 1 as pixels. On art (`rect`, `oval`, `line`, `star`, `arrow`, `arc`, `shape`) a negative
-  `left`, `top` or line end is a plain coordinate, as in Shoes 3 (`shoes_place_exact`,
-  s3_ruby.c:385-392; ruled 27 Sep 2026), so art can move off the left and top edges.
+  above 1 as pixels. On art (`rect`, `oval`, `line`, `star`, `arrow`, `arc`, `shape`) every number
+  is pixels, as the manual's "pixel coordinates" and Shoes 3 (`shoes_place_exact`,
+  s3_ruby.c:385-392) have it: a negative `left`, `top` or line end moves art off the left and top
+  edges (ruled 27 Sep 2026), and a Float up to 1 is a coordinate or size in pixels, not a share of
+  the slot (28 Sep 2026, ledger C15), so art animated through a slot's corner never jumps across
+  it. Only a percentage String is of the slot on art, and a negative size keeps the rule above.
 - **DocumentRoot** is a flow filling the window. If content is taller than the window, the root
   scrolls vertically (wheel + a thin overlay scrollbar), and the window's own backgrounds scroll
   with it.
@@ -692,13 +696,16 @@ change the code and this list together.
 - **`layout`** lists every laid-out node in paint order; each text fragment (Link, Strong, Em...)
   follows its Para as its own entry, with the box of its first line of glyphs and its text, and
   `click {id}` on a fragment clicks there. Fragments are hit-tested like drawables: a press inside
-  one walks fragment, para, slots for `has_click`, and hover/leave include the fragments. **`frames`** replies with the number
+  one walks fragment, then whatever lies under the pointer, topmost first, for `has_click`, then
+  the para's slots, and hover/leave include the fragments. **`frames`** replies with the number
   of frames painted so far. **`snapshot`** defaults to the app's scale (the window's, or `--scale`
   headless, else 1). **`click {text}`** also picks an item of an open list_box popup.
 - **`para_hit {id, value}`** is sent while the pointer moves over a para (the character index), and
   with `value: null` when it leaves.
 - **Focus.** Text fields show a focus ring whenever focused; buttons, checks, radios and list boxes
-  only when focus came from the keyboard (tab or a `focus` message). On a focused list box Up and
+  only when focus came from the keyboard (tab or a `focus` message), and only then do they take
+  keys: one the mouse pressed leaves Space, Return and the arrows to `keypress`, as a Mac's controls
+  do (28 Sep 2026, ledger G9). Text fields draw `font:`'s family, size, weight and slant (G11). On a focused list box Up and
   Down choose the previous and next item without opening the popup (manual 3221-3224); Return and
   Space open it.
 - **`state: "disabled"`** greys a control out and it ignores the pointer, keys and tab;

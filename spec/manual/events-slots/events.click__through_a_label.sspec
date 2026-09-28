@@ -1,0 +1,24 @@
+---
+manual: events.click
+lines: [2187, 2193]
+testability: interactive
+display: native
+ledger: E8
+----------- app code
+# A press on something with no click block goes on to the topmost drawable under the
+# pointer that has one, as Shoes 3's shoes_canvas_send_click2 skips what has none: a label
+# drawn over a clickable oval does not swallow the click.
+$clicks = []
+Shoes.app width: 200, height: 120 do
+  @oval = oval 100, 60, 80, center: true, fill: orange
+  stack left: 60, top: 53, width: 80 do
+    @label = para "click me", align: "center", size: 12, margin: 0
+  end
+  @oval.click { |button, left, top| $clicks << [button, left, top] }
+end
+----------- test code
+click_at 100, 90
+assert_equal [[1, 100, 90]], $clicks, "the oval hears a click below the label"
+click_at 100, 58
+assert_equal [1, 100, 58], $clicks.last, "and one on the label itself"
+assert_equal 2, $clicks.size

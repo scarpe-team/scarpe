@@ -1,0 +1,67 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/legendary/kaleidoscope/kaleidoscope.rb")
+----------- test code
+scope = Shoes.APPS.first
+strokes = -> { scope.instance_variable_get(:@strokes) }
+rgb_of = ->(hex) { hex.delete("#").scan(/../).map { |pair| pair.to_i(16) } }
+near = ->(x, y, hex) { pixel_at(x.round, y.round).first(3).zip(rgb_of.(hex)).all? { |got, want| (got - want).abs <= 12 } }
+glass = "#07050f"
+teal, blue = PALETTES["Aurora"][0], PALETTES["Aurora"][1]
+
+# A straight line pulled out from near the centre, then its copies.
+line_from = ->(dx1, dy1, dx2, dy2) { (0..20).map { |i| t = i / 20.0; [CX + dx1 + (dx2 - dx1) * t, CY + dy1 + (dy2 - dy1) * t] } }
+assert near.(CX + 140, CY - 50, glass), "the lens starts empty"
+drag(*line_from.(60, -20, 220, -80))
+assert_equal 1, strokes.().size
+assert near.(CX + 140, CY - 50, teal), "the stroke is where it was drawn"
+assert near.(CX + 50, CY + 140, teal), "and a quarter turn round"
+assert near.(CX - 140, CY + 50, teal), "and half a turn round"
+assert near.(CX + 140, CY + 50, blue), "its reflection wears the partner colour"
+assert near.(CX - 50, CY + 140, blue), "reflected and turned"
+
+click_on "Undo"
+assert_empty strokes.()
+assert near.(CX + 140, CY - 50, glass), "undo takes it away"
+
+# Twelve mirrors turn copies a sixth of the way round.
+click_on "12"
+drag(*line_from.(60, -20, 220, -80))
+sixth = Math::PI / 3
+turned = [140 * Math.cos(sixth) + 50 * Math.sin(sixth), 140 * Math.sin(sixth) - 50 * Math.cos(sixth)]
+color = strokes.().last.color
+assert near.(CX + turned[0], CY + turned[1], color), "a sixth of a turn round"
+
+# Spin turns the plate, strokes and all, anticlockwise.
+click_at 220, 523
+advance 2
+angle = scope.instance_variable_get(:@angle) * Math::PI / 180
+assert_operator angle, :>, 0.2, "the plate has turned"
+moved = [140 * Math.cos(angle) - 50 * Math.sin(angle), -140 * Math.sin(angle) - 50 * Math.cos(angle)]
+assert near.(CX + moved[0], CY + moved[1], color), "the stroke went round with it"
+refute near.(CX + 140, CY - 50, color), "and left its old place"
+
+# Drawing on the turning plate lands under the pointer.
+press_key "s"
+spun = scope.instance_variable_get(:@angle)
+circle = (0..24).map { |i| a = 2 * Math::PI * i / 24; [CX - 120 + 26 * Math.cos(a), CY + 90 + 26 * Math.sin(a)] }
+drag(*circle)
+stamped = strokes.().last.color
+assert near.(CX - 120 + 26, CY + 90, stamped), "the circle is under the pointer"
+assert near.(CX - 120, CY + 90 - 26, stamped)
+assert_equal spun, scope.instance_variable_get(:@angle), "S stopped the spin"
+
+# Nothing escapes the lens.
+drag([CX + 200, CY + 5], [CX + 300, CY + 5], [CX + 330, CY + 5])
+refute near.(CX + 325, CY + 5, strokes.().last.color), "strokes stay inside the glass"
+
+click_on "Surprise me"
+assert_includes 6..8, strokes.().size, "a surprise is six to eight strokes"
+click_on "Clear"
+assert_empty strokes.()
+assert near.(CX + 140, CY - 50, glass), "clear empties the lens"
+
+click_on "Candy"
+assert_equal rgb_of.(PALETTES["Candy"][0]), pixel_at(46, 372).first(3), "the brush wears the next colour"

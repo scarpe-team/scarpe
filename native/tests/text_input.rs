@@ -226,3 +226,47 @@ fn the_input_method_follows_the_focused_fields_caret() {
     h.value(json!({"op": "click", "target": {"id": 5}}));
     assert_eq!(h.rt.text_input_area(1), None, "a readonly field takes nothing");
 }
+
+// ---- Fonts ----
+
+/// The dark pixels of a field's text, at 1x, as (x, y) points.
+fn ink(h: &mut Harness, id: i64) -> Vec<(i64, i64)> {
+    let n = h.node(|n| n["id"] == id);
+    let (x, y, w, hh) = (n["x"].as_f64().unwrap(), n["y"].as_f64().unwrap(), n["w"].as_f64().unwrap(), n["h"].as_f64().unwrap());
+    let mut dark = Vec::new();
+    for py in (y as i64 + 3)..((y + hh) as i64 - 3) {
+        for px in (x as i64 + 3)..((x + w) as i64 - 3) {
+            let c = h.value(json!({"op": "pixel", "x": px, "y": py}));
+            if c.as_array().unwrap()[..3].iter().map(|v| v.as_i64().unwrap()).sum::<i64>() < 300 {
+                dark.push((px, py));
+            }
+        }
+    }
+    dark
+}
+
+/// How far right the upper half of some ink sits over its lower half, in pixels: about
+/// nothing for upright letters, and a pixel or more for slanted ones.
+fn lean(ink: &[(i64, i64)]) -> f64 {
+    let mid = ink.iter().map(|p| p.1).sum::<i64>() as f64 / ink.len() as f64;
+    let mean_x = |upper: bool| {
+        let xs: Vec<f64> = ink.iter().filter(|p| ((p.1 as f64) < mid) == upper).map(|p| p.0 as f64).collect();
+        xs.iter().sum::<f64>() / xs.len() as f64
+    };
+    mean_x(true) - mean_x(false)
+}
+
+/// `font: "bold 16px"` draws a field's text bold, and `"italic 16px"` slanted, as they do a
+/// para's (ledger G11). The fields took only the family and size from the string.
+#[test]
+fn a_fields_font_keeps_its_weight_and_slant() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "EditLine", 2, json!({"text": "Weight", "font": "16px", "width": 120})),
+        create(4, "EditLine", 2, json!({"text": "Weight", "font": "bold 16px", "width": 120})),
+        create(5, "EditLine", 2, json!({"text": "Weight", "font": "italic 16px", "width": 120})),
+    ]));
+    let (plain, bold, italic) = (ink(&mut h, 3), ink(&mut h, 4), ink(&mut h, 5));
+    assert!(bold.len() * 10 > plain.len() * 13, "bold puts down at least 30% more ink: {} against {}", plain.len(), bold.len());
+    assert!(lean(&italic) > lean(&plain) + 0.5, "italic leans right: {:.2} against {:.2}", lean(&plain), lean(&italic));
+}

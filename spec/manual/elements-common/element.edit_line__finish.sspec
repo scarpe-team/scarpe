@@ -1,0 +1,20 @@
+---
+manual: element.edit_line
+lines: [1978, 1982]
+testability: api
+display: native
+ledger: G16
+----------- app code
+# An ext pin (ledger G16): Shoes 3.2.15 added edit_line.finish = proc, run when Return is
+# pressed in the line (s3t_edit_line.c:15, 42-49), so a one-line form sends from the keyboard.
+$sent = []
+Shoes.app do
+  @line = edit_line
+  @line.finish = proc { |line| $sent << line.text }
+end
+----------- test code
+click_on edit_line("@line")
+type_text "tea"
+assert_empty $sent, "typing does not finish the line"
+press_key "\n"
+assert_equal ["tea"], $sent, "Return runs the finish proc with the line and its text"

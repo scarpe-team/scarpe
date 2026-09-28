@@ -1,0 +1,96 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/legendary/bloop_sequencer/bloop_sequencer.rb")
+----------- test code
+app = Shoes.APPS.first
+on = -> { app.instance_variable_get(:@on) }
+row_text = ->(row) { on.call[row].map { |lit| lit ? "x" : "." }.join }
+synth = app.instance_variable_get(:@synth)
+pad = ->(row, step) { [104 + step * 36 + step / 4 * 8 + 15, 242 + row * 52 + 20] }
+near = ->(pixel, color) { pixel.first(3).zip(color).all? { |got, want| (got - want).abs <= 12 } }
+coral = [255, 107, 107]
+step_seconds = 60.0 / 112 / 4
+
+assert_equal "x...x...x...x...", row_text.call(0), "the first pattern is loaded"
+assert near.(pixel_at(*pad.call(0, 0)), coral), "a lit kick pad is coral"
+refute near.(pixel_at(*pad.call(0, 1)), coral), "an unlit one is smoked glass"
+
+# a click switches a pad on and plays its voice at once, through a WAV the app wrote
+click_at(*pad.call(1, 2))
+assert on.call[1][2], "clicking a pad switches it on"
+assert_match(/snare\.wav\z/, synth.last_file)
+wav = File.binread(synth.last_file)
+assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV header"
+assert_operator wav.bytesize, :>, 44 + 22_050 * 2 / 10, "with a fifth of a second of sound or more"
+synth.player.join(10)
+assert_includes File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true), "afplay #{synth.last_file}",
+  "afplay was asked to play it (the suite traps afplay, so nothing is heard)"
+click_at(*pad.call(1, 2))
+refute on.call[1][2], "a second click switches it off"
+
+# dragging paints: the first pad decides on or off, the rest follow
+drag(pad.call(2, 0), pad.call(2, 1), pad.call(2, 2), pad.call(2, 3))
+assert_equal "xxxx..x...x...x.", row_text.call(2)
+move_mouse 360, 580
+click_at 360, 580
+assert_equal "xxxx..x...x...x.", row_text.call(2), "letting go ends the stroke"
+
+# space plays: the first step sounds at once and the orbs swell
+press_key " "
+assert app.instance_variable_get(:@playing)
+assert_match(%r{/kick\+hat\+bloop-a4\.wav\z}, synth.last_file)
+kick_core = app.instance_variable_get(:@orbs)[0][1]
+advance 1 / 60.0
+assert_operator layout_of(kick_core).w, :>, 42, "the kick's orb swells when it sounds"
+
+# four steps later the playhead is on the second beat, where the snare is
+advance step_seconds * 4 - 1 / 60.0
+assert_equal 4, app.instance_variable_get(:@step)
+assert_match(%r{/kick\+snare\.wav\z}, synth.last_file)
+assert_in_delta 104 + 4 * 36 + 8 - 4, layout_of(app.instance_variable_get(:@column)).x, 1, "the lit column follows"
+
+# the tempo goes up and down with the arrow keys, and the clock follows it
+press_key :up
+assert_equal "116", para("@tempo").text
+advance 60.0 / 116 / 4
+assert_equal 5, app.instance_variable_get(:@step)
+press_key :down
+press_key :down
+assert_equal "108", para("@tempo").text
+
+press_key " "
+refute app.instance_variable_get(:@playing), "space stops it"
+assert_equal "Play", para("@play_label").text
+held = app.instance_variable_get(:@step)
+advance 1
+assert_equal held, app.instance_variable_get(:@step), "nothing moves while stopped"
+
+# patterns: the arrows and the left and right keys step through them
+name = para("@pattern_name")
+assert_equal "Four on the floor", name.text
+click_at 673, 513
+assert_equal "Boom bap", name.text
+press_key :right
+press_key :right
+assert_equal "Chiptune march", name.text
+assert_equal "xxxxxxxxxxxxxxxx", row_text.call(3)
+click_at 431, 513
+assert_equal "Bossa bloop", name.text
+press_key :left
+press_key :left
+press_key :left
+assert_equal "Empty page", name.text, "and round from the first to the last"
+
+# the dice keep the downbeat and the backbeat
+3.times do
+  click_on "Dice"
+  assert on.call[0][0], "the kick always lands on one"
+  assert on.call[1][4] && on.call[1][12], "the snare always lands on two and four"
+end
+assert_equal "Rolled by the dice", name.text
+
+click_on "Clear"
+assert on.call.flatten.none?, "Clear empties the page"
+assert_equal "Empty page", name.text

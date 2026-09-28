@@ -198,6 +198,17 @@ class Shoes
 
         linkable_properties << { name: name, validator:, feature: }
         linkable_properties_hash[name] = true
+        Shoes::Drawable.forget_style_names
+      end
+
+      # Every class's list of style names is worked out once (shoes_style_names) and kept
+      # until a style is declared anywhere, since a class lists its parents' styles too.
+      def forget_style_names
+        @style_generation = style_generation + 1
+      end
+
+      def style_generation
+        Shoes::Drawable.instance_variable_get(:@style_generation) || 0
       end
 
       # Add these names as Shoes styles with the given validator and feature, if any
@@ -223,9 +234,22 @@ class Shoes
       # Return a list of shoes_style names with the given features. If with_features is nil,
       # return them with a list of features for the current Shoes::App. For the list of
       # styles available with no features requested, pass nil to with_features.
+      #
+      # `style` asks for this on every change an animation makes, so the answer is kept per
+      # class and set of features (a frozen Array) until a new style is declared.
       def shoes_style_names(with_features: nil)
         # No with_features given? Use the ones requested by this Shoes::App
         with_features ||= (@app&.features || [])
+        unless @style_names_generation == Shoes::Drawable.style_generation
+          @style_names = {}
+          @style_names_generation = Shoes::Drawable.style_generation
+        end
+        @style_names.fetch(with_features) do
+          @style_names[with_features.dup.freeze] = find_style_names(with_features)
+        end
+      end
+
+      def find_style_names(with_features)
         parent_prop_names = self != Shoes::Drawable ? self.superclass.shoes_style_names(with_features:) : []
 
         if with_features == :all
@@ -233,7 +257,7 @@ class Shoes
         else
           subclass_props = linkable_properties.select { |prop| !prop[:feature] || with_features.include?(prop[:feature]) }
         end
-        parent_prop_names | subclass_props.map { |prop| prop[:name] }
+        (parent_prop_names | subclass_props.map { |prop| prop[:name] }).freeze
       end
 
       def shoes_style_hashes

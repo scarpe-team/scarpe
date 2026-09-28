@@ -18,6 +18,7 @@ straightforward as possible.
 - Ghost windows (`--ghost`, or `SCARPE_NATIVE_GHOST=1`): real windows that present frames nobody can see or click; every automated windowed run opens them
 - `scarpe peek --drag X,Y,X,Y...`, and `drag` in Shoes-Spec test code
 - `scarpe package --include PATH` carries any other file or folder an app reads (repeatable); a native package keeps its `--name` as written, spaces and all
+- Lacci: `edit_line.finish = proc` runs when Return is pressed in the line, as Shoes 3.2.15 added; `arc` takes `wedge: true` for a pie slice, as in Shoes 4
 - Lacci: `download` takes `start:`, `progress:`, `finish:`, `headers:` and `body:` and no longer needs nokogiri; `Image#path`, `full_width` and `full_height` and the `imagesize` built-in; the `error` built-in; `rgb`, `gray` and the named colours return a `Shoes::Color`, an Array with `red`, `green`, `blue` and `alpha`; `banner`, `title` and the rest of that family are `Shoes::Para` subclasses
 
 ### Bugs Fixed
@@ -43,6 +44,11 @@ straightforward as possible.
 - Native: Ctrl-C still quits after a second window opens, and a second Ctrl-C ends a stuck renderer; TERM, or a Ruby that dies, takes the renderer's process group with it
 - Native: Shoes-Spec test code and `scarpe peek` steps start after the slots' `start` blocks, and `wait_frames` starts a slot made since
 - Native: an installed gem never runs cargo, and downloaded images are cached in a private per-user directory that refuses planted links, stale junk and https-to-http redirects
+- Native: a press on a label or icon with no click block goes on to the clickable shape beneath it, as Shoes 3 skips what has no click; before, the label swallowed it
+- Native: a button, check, radio or list box the mouse pressed leaves Space, Return and the arrows to the app's `keypress`; only focus from the keyboard or `focus` takes them
+- Native: `font: "bold 16px"` (and `italic`) on an edit line or edit box draws bold (or slanted), as it does on a para
+- Lacci: `line.move` moves both ends of the line, not only its start; a border's `strokewidth` is its own, 1 unless given, and no longer the pen's
+- Lacci: `style` on an animated shape costs about half what it did: a class's style names are worked out once
 
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
@@ -56,6 +62,7 @@ straightforward as possible.
 - The draw context's `fill`, `stroke` and `strokewidth` no longer reach text and controls
 - Native: a `width` or `height` the app gives includes the element's margins, as in Shoes 3 (`stack width: 100, margin: 10` is an 80 px box); before, margins went outside a px size
 - Native: a negative `left` or `top` on art is a plain coordinate, as in Shoes 3, so art moves off the left and top edges instead of jumping to the far side
+- Native: any number on art is pixels, as the manual and Shoes 3 say: `oval 0.5, 0.5, 12` sits in the corner and `rect 10, 10, 0.8` is under a pixel wide, where a Float up to 1 was a share of the slot; a percentage (`"50%"`) still is
 - `close` closes only its own window while another is open, as the manual says (it closed every window); the last window's `close` still ends the app
 - Native: downloaded images are cached in `~/Library/Caches/scarpe-native` (or `XDG_CACHE_HOME`, or `%LOCALAPPDATA%`), no longer under `$TMPDIR`
 - Native: in a checkout, a `scarpe-native` on PATH wins over the dev build; the order is `SCARPE_NATIVE_BIN`, the packaged binary, PATH, then the dev build

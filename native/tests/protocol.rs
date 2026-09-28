@@ -210,6 +210,57 @@ fn keypress_names_follow_the_manual() {
     assert_eq!(typed, vec![json!("H"), json!("i")]);
 }
 
+/// A list box or button the mouse pressed takes focus without a ring, and so leaves Space,
+/// Return and the arrows to the app, as a Mac's pop-up buttons and push buttons do. Space
+/// reopened the popup and the app's keypress never heard it (Bloop Sequencer met this).
+/// Focus from the keyboard or the app's `focus` still takes them (ledger G9, G13).
+#[test]
+fn a_control_the_mouse_pressed_leaves_keys_to_the_app() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "ListBox", 2, json!({"items": ["One", "Two", "Three"], "chosen": "Two"})),
+        create(4, "Button", 2, json!({"text": "Go"})),
+        json!({"t": "create", "id": 5, "kind": "SubscriptionItem", "parent": 2, "props": {"shoes_api_name": "keypress"}}),
+    ]));
+    let keyed = |h: &mut Harness, key: &str| {
+        let (evs, _) = h.req(json!({"op": "key", "key": key}));
+        let evs = events(&evs);
+        let names = |name: &str| named(&evs, name).iter().map(|e| e.1.clone()).collect::<Vec<_>>();
+        (names("keypress"), names("change"), names("click"))
+    };
+    h.value(json!({"op": "click", "target": {"id": 3}}));
+    h.value(json!({"op": "click", "target": {"text": "Three"}}));
+    assert_eq!(h.value(json!({"op": "focused"})), json!(3), "the list box has focus");
+    assert_eq!(keyed(&mut h, " "), (vec![json!(5)], vec![], vec![]), "Space reaches the app");
+    assert_eq!(keyed(&mut h, "down"), (vec![json!(5)], vec![], vec![]), "and so does Down");
+    h.value(json!({"op": "key", "key": "escape"}));
+    h.value(json!({"op": "click", "target": {"id": 4}}));
+    assert_eq!(keyed(&mut h, " "), (vec![json!(5)], vec![], vec![]), "a pressed button leaves Space too");
+    h.feed(&json!({"t": "focus", "id": 3}).to_string());
+    assert_eq!(keyed(&mut h, "down").1, vec![json!(3)], "focus from the app takes the arrows");
+    h.feed(&json!({"t": "focus", "id": 4}).to_string());
+    assert_eq!(keyed(&mut h, " ").2, vec![json!(4)], "and Space presses the focused button");
+}
+
+/// Return in an edit line sends `finish`, for Shoes 3.2.15's `edit_line.finish = proc`
+/// (ledger G16); an edit box takes it as a new line instead.
+#[test]
+fn return_in_an_edit_line_finishes_it() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(3, "EditLine", 2, json!({"text": ""})), create(4, "EditBox", 2, json!({"text": ""}))]));
+    let finished = |h: &mut Harness, key: &str| {
+        let (evs, _) = h.req(json!({"op": "key", "key": key}));
+        named(&events(&evs), "finish").iter().map(|e| e.1.clone()).collect::<Vec<_>>()
+    };
+    h.value(json!({"op": "click", "target": {"id": 3}}));
+    h.req(json!({"op": "type", "text": "tea"}));
+    assert_eq!(finished(&mut h, "\n"), vec![json!(3)]);
+    assert!(finished(&mut h, "a").is_empty(), "only Return");
+    assert!(finished(&mut h, ":control_enter").is_empty(), "a modified Return is a keypress");
+    h.value(json!({"op": "click", "target": {"id": 4}}));
+    assert!(finished(&mut h, "\n").is_empty(), "an edit box has no finish");
+}
+
 #[test]
 fn a_focused_text_input_keeps_plain_keys_to_itself() {
     let mut h = Harness::new();
@@ -652,6 +703,29 @@ fn text_fragments_with_has_click_get_pointer_clicks() {
     assert_eq!(clicks[0].2[0], json!(1));
     let hovered: Vec<Value> = named(&evs, "hover").iter().map(|e| e.1.clone()).collect();
     assert!(hovered.contains(&json!(5)) && hovered.contains(&json!(6)), "{hovered:?}");
+}
+
+/// A press on a drawable with no click block goes on to the topmost drawable under the
+/// pointer that has one (DESIGN 4.3, ledger E8), as Shoes 3's shoes_canvas_send_click2 skips
+/// elements without a click: a label drawn over a clickable oval passes the press, and the
+/// release, to the oval. It went only up the label's own slots, and nothing heard it.
+/// A button on top keeps its press.
+#[test]
+fn a_press_passes_through_what_has_no_click_block() {
+    let mut h = Harness::new();
+    h.feed(&app(200, 120, &[
+        create(3, "Oval", 2, json!({"left": 60, "top": 20, "width": 80, "height": 80, "has_click": true, "has_release": true})),
+        create(4, "Stack", 2, json!({"left": 60, "top": 53, "width": 80})),
+        create(5, "Para", 4, json!({"text_items": ["click me"], "margin": 0})),
+        create(6, "Button", 2, json!({"text": "Go", "left": 70, "top": 75})),
+    ]));
+    let ids = |evs: &[Value], name: &str| named(&events(evs), name).iter().map(|e| e.1.clone()).collect::<Vec<_>>();
+    let (evs, reply) = h.req(json!({"op": "click", "target": {"x": 100, "y": 58}}));
+    assert_eq!(reply["value"]["hit"], json!(5), "the label is on top");
+    assert_eq!(ids(&evs, "click"), vec![json!(3)], "the label passes the press to the oval");
+    assert_eq!(ids(&evs, "release"), vec![json!(3)], "and the release");
+    let (evs, _) = h.req(json!({"op": "click", "target": {"id": 6}}));
+    assert_eq!(ids(&evs, "click"), vec![json!(6)], "a button on the oval keeps its press");
 }
 
 #[test]

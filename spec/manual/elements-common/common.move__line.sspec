@@ -1,0 +1,21 @@
+---
+manual: common.move
+lines: [2648, 2653]
+testability: visual
+display: native
+ledger: E6
+----------- app code
+# Moving a line moves all of it: Shoes 3 draws a line across its place box
+# (s3t_shape.c:127-132), and move shifts the box.
+Shoes.app width: 300, height: 200 do
+  stroke red
+  strokewidth 3
+  @line = line 20, 20, 20, 180
+  @line.move(220, 20)
+end
+----------- test code
+box = layout_of(line("@line"))
+assert_in_delta 218.5, box.x, 0.01, "the line starts where it was moved"
+assert_operator box.w, :<=, 3.01, "and stays upright, its far end moved with it"
+assert_equal [255, 0, 0], pixel_at(220, 170).first(3), "drawn low down at x = 220"
+assert_equal [255, 255, 255], pixel_at(20, 170).first(3), "and gone from x = 20"

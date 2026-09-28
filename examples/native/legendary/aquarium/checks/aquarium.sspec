@@ -1,0 +1,83 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/legendary/aquarium/aquarium.rb")
+----------- test code
+tank = Shoes.APPS.first
+fish = tank.instance_variable_get(:@fish)
+everyone = fish + [tank.instance_variable_get(:@leader)] + tank.instance_variable_get(:@zips)
+flakes = tank.instance_variable_get(:@flakes)
+brightness = ->(x, y) { pixel_at(x, y).first(3).sum }
+warm = ->(x, y) { r, g, b = pixel_at(x, y); r > 200 && g > 160 && b < 150 }
+
+assert_equal %w[Marlow Sapphire Puff Goldie], fish.map(&:name)
+assert_equal 7, everyone.size - fish.size, "the Zips: a leader and six more"
+
+# They swim, and each is drawn where the app thinks it is.
+before = everyone.map { |f| [f.x, f.y] }
+advance 1
+refute_equal before, everyone.map { |f| [f.x, f.y] }, "the fish swim"
+boxes = layout_tree.to_h { |node| [node[:id], node] }
+everyone.each do |f|
+  w, h = SIZES[f.kind]
+  box = boxes.fetch(f.slot.linkable_id)
+  assert_in_delta f.x - w / 2, box[:x], 1.5, "#{f.name} is drawn where it swims"
+  assert_in_delta f.y - h / 2, box[:y], 3.5, "#{f.name} bobs near its depth"
+end
+
+# A click in open water drops a pinch of food, and the fish race over and eat it.
+everyone.each { |f| f.x, f.y, f.goal = 700.0, 260.0, nil }
+click_at 300, 260
+assert_equal 7, flakes.size, "a pinch is seven flakes"
+hearts = 0
+60.times do
+  advance 0.1
+  hearts += 1 if tank.instance_variable_get(:@fleeting).any? { |thing| thing.art.is_a?(Shoes::Shape) }
+end
+assert_operator flakes.size, :<, 7, "the fish eat"
+assert_operator hearts, :>, 0, "a fed fish shows a heart"
+
+# Clicking a fish says hello; Puff puffs up for a moment.
+marlow, puff = fish[0], fish[2]
+click_at marlow.x.round, marlow.y.round
+assert_equal "Marlow", para("@greet_name").text
+assert_equal "Brave, mostly.", para("@greet_line").text
+refute tank.instance_variable_get(:@card).hidden, "the card shows"
+click_at puff.x.round, puff.y.round
+assert_equal "Puff", para("@greet_name").text
+assert puff.puffed, "Puff puffs up"
+advance 3.2
+refute puff.puffed, "and calms down again"
+assert tank.instance_variable_get(:@card).hidden, "the card goes"
+
+# Park everyone in the far corner so they are not in the way of the pixels below.
+parked = lambda do
+  everyone.each { |f| f.x, f.y, f.goal, f.rest = 790.0, 430.0, nil, 99.0 }
+  advance 0.2
+end
+parked.call
+day = brightness.(440, 180)
+sand = brightness.(430, 548)
+refute warm.(95, 355), "the castle windows are dark by day"
+
+# Night: the water darkens, the windows glow, everyone closes their eyes.
+click_on "Night"
+advance 2.5
+parked.call
+assert_equal "Day", para("@switch_label").text
+assert_operator brightness.(440, 180), :<, day * 0.45, "the water darkens"
+assert_operator brightness.(430, 548), :<, sand * 0.7, "and the lights go down on the sand"
+assert warm.(95, 355), "the castle windows glow: #{pixel_at(95, 355).inspect}"
+assert everyone.all? { |f| f.parts[:eyes][:shut].hidden == false }, "everyone is asleep"
+assert_match(/sleeping/, para("@hint").text)
+uneaten = flakes.size
+click_at 440, 200
+assert_equal uneaten, flakes.size, "no new food at night"
+
+# And morning again.
+press_key "n"
+advance 2.5
+parked.call
+assert_in_delta day, brightness.(440, 180), 12, "the water is as bright as before"
+assert everyone.all? { |f| f.parts[:eyes][:shut].hidden }, "everyone is awake"
