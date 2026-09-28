@@ -122,6 +122,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | E9 | `image(w, h) { }` is a canvas | MANUAL | | |
 | E10 | Transforms; turns add up | MANUAL; S3 for turns | | |
 | E11 | Art methods return `Shoes::Shape` | MANUAL | | |
+| E12 | `arc(..., wedge: true)` fills a pie slice | EXT | | |
 
 ### F. Text
 
@@ -702,6 +703,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci / WV today:** `init_args :left, :top, :x2, :y2` (`line.rb:8`); Calzini offsets the start twice and sizes the SVG `x2 × y2`, so a horizontal line gets a zero-height SVG (`art_drawables.rb:50-58`).
 - **Spec:** `line(10, 150, 200, 150)` strokes pixel (100, 150) and nothing at (20, 300).
 - **Native:** strokes from (left, top) to (x2, y2).
+- **`move`, 28 Sep 2026 (wave 6):** Shoes 3 draws a line across its place box (`s3t_shape.c:127-132`) and `move` shifts the box, so the whole line moves. Lacci's `move` set only `left` and `top`, and Ledger's vertical hover guide became a diagonal from its new start back to its old end. `Line#move` now shifts `x2` and `y2` by as much, in one `prop_change`. **Spec:** `common.move__line` (native).
 
 ### E7. `shape { move_to; line_to; curve_to; arc_to }` is one path
 
@@ -762,6 +764,17 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** `Shoes::Oval`, `Shoes::Rect` and the rest inherit from `Shoes::Drawable`; `Shoes::Shape` exists only as the `shape { }` slot (`drawables/shape.rb`). Since the wave-4 Lacci lane the six art classes include `Shoes::Art` (`art.rb`) and answer `is_a?(Shoes::Shape)` and `kind_of?(Shoes::Shape)` with true, as `ActiveSupport::Duration` answers `is_a?`. They keep their classes, so the display is still told `Oval` or `Rect`, and `Shoes::Shape` stays the `shape { }` slot, so shape blocks work as before. `Shoes::Shape === oval` is still false, on purpose: the spec finders match with `===`, and the `shape` finder should keep meaning shape blocks. Making the art real subclasses would need `Shoes::Shape` to stop being a slot.
 - **Spec:** `shape.element`: every art method's result `is_a?(Shoes::Shape)` and answers the Common methods.
 - **Native:** nothing; the `kind` on the wire stays the concrete class name (DESIGN 4.1).
+
+### E12. `arc(..., wedge: true)` fills a pie slice
+
+**Ruling: EXT** (Shoes 4). New row, 28 Sep 2026, from the wave-6 toys lane.
+
+- **Manual:** silent; `arc` draws "a section of an oval" (manual 1665-1670).
+- **Shoes 3:** no `wedge`: an arc is its curve alone (`shoes_cairo_arc`, `s3_ruby.c:613-617`), filled as a chord.
+- **Shoes 4:** `style_with ... :wedge`, default `false` (`s4_arc.rb:14-15`, `s4_dsl_art.rb:47`).
+- **Lacci today:** until 28 Sep Arc declared no `wedge`, so `arc ..., wedge: true` logged "Unexpected non-style keyword(s)" and dropped it, though DESIGN 12 and the renderer already drew a pie for it. Marble Machine drew its rainbow swatch from `shape` slices instead. Arc now declares it.
+- **Spec:** `art.arc__wedge` (native): the pie is filled to its centre and the chord is not.
+- **Native:** `wedge: true` closes the arc through its centre (`shapes.rs`, DESIGN 12).
 
 ## F. Text
 
@@ -1315,6 +1328,8 @@ M1 to M37 carry the numbers of the contradictions in `native/research/03_manual_
 ### M4. `border`'s first argument is a pattern
 
 **Ruling: ERRATA.** The heading says `border(text, strokewidth: a number)` (manual 1925); the prose (manual 1927) and every example (manual 2826, 2839) pass a colour or pattern. **Spec:** `border red, strokewidth: 2` strokes 2 px of red inside the slot box. **Native:** DESIGN 6 strokes borders inside the box.
+
+A border's width is its own, 1 unless given: Shoes 3 strokes it with `ATTR2(dbl, attr, strokewidth, 1.)` (`s3t_pattern.c:219`) and never reads the pen. Until 28 Sep 2026 Lacci's Border took an unset `strokewidth` from the draw context, so Weather Window's hairline chips came out 4 px wide after its mug handle set `strokewidth 4`. **Spec:** `element.border__own_strokewidth` (native).
 
 ### M5. `EditBox#text` and `EditLine#text` return a String
 
