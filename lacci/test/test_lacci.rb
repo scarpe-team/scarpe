@@ -166,6 +166,27 @@ class TestLacci < NienteTest
     SHOES_SPEC
   end
 
+  # Shoes 3 kept the pointer per app (app->mousex, app->mousey), so a window just opened reads
+  # [0, 0, 0] until the pointer is over it. A display that tells windows apart hands Lacci one
+  # state per app; Hackety Hack's Pong read the pointer over Hackety Hack's own Run button and
+  # started its paddle off its window.
+  def test_mouse_is_per_window_when_the_display_says_which
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app { para "first" }
+    SHOES_APP
+      first = Shoes.APPS[0]
+      begin
+        Shoes::DisplayService.mouse_state = [0, 764, 530]
+        assert_equal [0, 764, 530], first.mouse, "one pointer for every window, from a display that keeps one"
+        Shoes::DisplayService.app_mouse_states[first.linkable_id] = [1, 20, 30]
+        assert_equal [1, 20, 30], first.mouse, "its own, from one that keeps one a window"
+        assert_equal [0, 0, 0], Shoes::DisplayService.mouse_state_of(first.linkable_id + 1000), "and a window the pointer never crossed reads 0, 0, 0"
+      ensure
+        Shoes::DisplayService.app_mouse_states.clear
+      end
+    SHOES_SPEC
+  end
+
   def test_builtin_response_mechanism
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do

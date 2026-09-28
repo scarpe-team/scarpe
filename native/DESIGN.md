@@ -147,7 +147,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 |---|---|---|
 | `ready` | `v`, `version` | handshake done |
 | `event` | `name`, `target` (id or null), `args` (array) | `Shoes::DisplayService.dispatch_event(name, target, *args)`; a ListBox `change` gets back the item whose `to_s` Rust sent |
-| `mouse` | `state` [held, x, y] (held is 1 while the left button is down; window px, rounded) | `Shoes::DisplayService.mouse_state = state` |
+| `mouse` | `app`, `state` [held, x, y] (held is 1 while the left button is down; window px, rounded) | `Shoes::DisplayService.mouse_state = state`, and the app's own in `app_mouse_states`: each app's `mouse` reads the pointer as it was last over its window, [0, 0, 0] before it ever was, as Shoes 3 keeps `app->mousex` |
 | `para_hit` | `id`, `value` | `para_hit_cache[id] = value` (Integer keys) |
 | `resize` | `app`, `w`, `h` (Integers) | set the App's `@width`/`@height` ivars directly (no prop_change echo) |
 | `scroll` | `id`, `top` (Integer) | set the slot's `@scroll_top` directly |

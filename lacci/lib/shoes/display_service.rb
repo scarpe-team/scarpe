@@ -39,6 +39,18 @@ class Shoes
         @mouse_state || [0, 0, 0]
       end
 
+      # The pointer over each app's window, by app id, from a display that tells them apart.
+      def app_mouse_states
+        @app_mouse_states ||= {}
+      end
+
+      # What `mouse` answers in one app: its own pointer when the display keeps one per window
+      # (a window just opened reads [0, 0, 0], as in Shoes 3), else the one pointer there is.
+      def mouse_state_of(app_id)
+        states = app_mouse_states
+        states.empty? ? mouse_state : states.fetch(app_id, [0, 0, 0])
+      end
+
       attr_writer :mouse_state
 
       # Para text cursor caches: para hit-test and cursor_top values

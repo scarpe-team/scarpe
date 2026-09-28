@@ -135,7 +135,7 @@ module Scarpe::Native
     def receive(message)
       case message["t"]
       when "event" then dispatch_from_child(message["name"], message["target"], message["args"] || [])
-      when "mouse" then Shoes::DisplayService.mouse_state = message["state"]
+      when "mouse" then pointer_moved(message["app"], message["state"])
       when "para_hit" then Shoes::DisplayService.para_hit_cache[message["id"]] = message["value"]
       when "layout" then laid_out(message["rects"])
       when "resize" then resized(message["app"], message["w"], message["h"])
@@ -316,6 +316,13 @@ module Scarpe::Native
       timers.remove(id)
       @display_drawable_for.delete(id)
       Shoes::DisplayService.layout_cache.delete(id)
+    end
+
+    # Each app keeps the pointer as it was last over its own window (Shoes 3's app->mousex), so a
+    # window just opened reads [0, 0, 0] and not wherever the pointer was over another one.
+    def pointer_moved(app_id, state)
+      Shoes::DisplayService.mouse_state = state
+      Shoes::DisplayService.app_mouse_states[app_id] = state if app_id
     end
 
     # Where Rust laid things out, [x, y, w, h, scroll_height] in window pixels by id, for

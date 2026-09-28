@@ -538,7 +538,7 @@ impl Runtime {
         let Some(view) = self.views.get(&app).filter(|v| !v.standalone) else { return };
         let (x, y) = view.ui.pointer.unwrap_or((0.0, 0.0));
         let held = (view.ui.buttons & 1 != 0) as i64;
-        self.out.send(Outgoing::Mouse { state: [held, x.round() as i64, y.round() as i64] });
+        self.out.send(Outgoing::Mouse { app, state: [held, x.round() as i64, y.round() as i64] });
     }
 
     fn hit(&mut self, app: Id, x: f32, y: f32) -> Option<Hit> {
