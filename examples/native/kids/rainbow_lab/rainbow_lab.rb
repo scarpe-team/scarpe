@@ -341,21 +341,21 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
       jar[:slot] = stack(left: x - 16, top: SHELF_Y - 46, width: 32, height: 46) { jar_art(jar) }
       jar[:slot].click { tap_jar(name) }
       @jars[name] = jar
-      fill_jar(name) if @found.include?(name)
+      fill_jar(jar, name) if @found.include?(name)
     end
   end
 
-  # A little glass jar, empty until its colour is found.
+  # A little glass jar: empty and faint until its colour is found, then full, with a cork.
   def jar_art(jar)
     nostroke
     jar[:glass] = rect 2, 10, 28, 36, curve: 9, fill: paint([255, 255, 255], 0.45), stroke: paint(INK, 0.16), strokewidth: 2
-    jar[:paint] = rect 5, 17, 22, 26, curve: 7, fill: paint([255, 255, 255], 0), hidden: true
+    jar[:paint] = rect 5, 17, 22, 26, curve: 7, hidden: true
     jar[:shine] = rect 8, 20, 4, 16, curve: 2, fill: paint([255, 255, 255], 0.6), hidden: true
     jar[:lid] = rect 5, 3, 22, 9, curve: 3, fill: paint(INK, 0.1)
+    jar
   end
 
-  def fill_jar(name)
-    jar = @jars[name]
+  def fill_jar(jar, name)
     color = Paint.mix(COLOURS[name][0])
     jar[:paint].style(fill: paint(color)..paint(Paint.darken(color, 0.12)), hidden: false)
     jar[:shine].show
@@ -407,7 +407,7 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
     nostroke
     @body = arc BOWL_X - BOWL_RX, RIM_Y - BOWL_RY, BOWL_RX * 2, BOWL_RY * 2, 1.5, 1.6, hidden: true
     @surface = oval BOWL_X, RIM_Y + BOWL_RY, 10, 4, center: true, hidden: true
-    @swirl = Array.new(22) { oval(BOWL_X, RIM_Y, 10, center: true, hidden: true) }
+    @swirl = Array.new(16) { oval(BOWL_X, RIM_Y, 10, center: true, hidden: true) }
     strokewidth 2.5
     @ripples = Array.new(3) { { art: oval(0, 0, 10, 4, center: true, fill: paint([255, 255, 255], 0), stroke: paint([255, 255, 255], 0), hidden: true), age: 9.0 } }
     @bubbles = Array.new(4) { { art: oval(0, 0, 8, center: true, fill: paint([255, 255, 255], 0.4), hidden: true), age: 9.0 } }
@@ -433,18 +433,23 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
     if @level < 0.005
       [@body, @surface, *@swirl].each(&:hide) unless @paint_hidden
       @paint_hidden = true
+      @painted = nil
       return
     end
     @paint_hidden = false
     y = surface_y
     half = half_width_at(y)
+    show_swirl(y, half)
+    look = [y.round(1), @shown.map(&:round)]
+    return if look == @painted # nothing has changed since the last frame
+
+    @painted = look
     angle = Math.asin(((y - RIM_Y) / BOWL_RY).clamp(-1, 1))
     color = @shown
     @body.style(angle1: angle, angle2: Math::PI - angle, hidden: false,
       fill: paint(Paint.lighten(color, 0.06))..paint(Paint.darken(color, 0.16)))
     @surface.style(left: BOWL_X, top: y, width: half * 2, height: half * 0.36,
       fill: paint(Paint.lighten(color, 0.16)), hidden: false)
-    show_swirl(y, half)
   end
 
   # Fresh paint swirls around the surface in a spiral and slowly melts into the mix:
@@ -452,18 +457,18 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
   def show_swirl(y, half)
     color = Paint.blend(@swirl_color, @shown, 1 - @swirl_strength)
     last = @swirl.size - 1.0
-    return if @swirl_strength < 0.03 && @swirl_hidden
+    return if @swirl_strength < 0.05 && @swirl_hidden
 
-    @swirl_hidden = @swirl_strength < 0.03
+    @swirl_hidden = @swirl_strength < 0.05
     @swirl.each_with_index do |blob, i|
       next blob.hide if @swirl_hidden
 
       along = i / last
       reach = (0.06 + 0.78 * along) * half * (0.55 + 0.45 * @swirl_strength)
       angle = @spin + along * 4.4
-      size = (10 + 30 * along) * (0.35 + 0.65 * @swirl_strength)
-      blob.style(left: BOWL_X + Math.cos(angle) * reach, top: y + Math.sin(angle) * reach * 0.18,
-        width: size, height: size * 0.34, fill: paint(color, 0.95 * @swirl_strength**0.5), hidden: false)
+      size = (12 + 32 * along) * (0.35 + 0.65 * @swirl_strength)
+      blob.style(left: (BOWL_X + Math.cos(angle) * reach).round(1), top: (y + Math.sin(angle) * reach * 0.18).round(1),
+        width: size.round(1), height: (size * 0.34).round(1), fill: paint(color, 0.95 * @swirl_strength**0.5), hidden: false)
     end
   end
 
@@ -474,6 +479,7 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
     @lizard = { spring: Spring.new(stiffness: 260, damping: 10), look: [0, 0], blink_at: 3.0 }
     @lizard[:slot] = stack(left: LIZARD_X, top: LIZARD_Y, width: 310, height: 210) { lizard_art }
     paint_lizard(@lizard_color)
+    @painted_lizard = @lizard_color
   end
 
   def skin(art, shade)
@@ -482,12 +488,15 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
   end
 
   def lizard_art
-    tail = (0..44).map do |i|
-      along = i / 44.0
+    # the tail curls in a spiral, in three pieces that get thinner towards the tip
+    spiral = (0..60).map do |i|
+      along = i / 60.0
       angle = -2.3 + along * 3 * Math::PI
       radius = 52 * (1 - 0.78 * along)
-      [218 + Math.cos(angle) * radius, 132 + Math.sin(angle) * radius, 22 * (1 - 0.62 * along)]
+      [218 + Math.cos(angle) * radius, 132 + Math.sin(angle) * radius]
     end
+    tail = [[spiral[0..22], 20], [spiral[21..42], 14], [spiral[41..60], 9]]
+    curl = ->(points) { proc { move_to(*points.first); points.drop(1).each { |x, y| line_to x, y } } }
     body = proc do
       move_to 106, 100
       curve_to 102, 68, 130, 46, 154, 52
@@ -504,11 +513,12 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
     legs = [[116, 104, 114, 128], [166, 106, 166, 124]]
     nostroke
     # an outline first, a little bigger, then the skin on top, so the pieces join up seamlessly
-    tail.each { |x, y, d| skin(oval(x, y, d + 5, center: true), :edge) }
+    nofill
+    tail.each { |points, width| skin(shape(strokewidth: width + 5, cap: :round, &curl.(points)), :edge_stroke) }
     skin(shape(stroke: black, strokewidth: 5, &body), :edge_both)
     skin(shape(stroke: black, strokewidth: 5, &head), :edge_both)
     legs.each { |x1, y1, x2, y2| skin(line(x1, y1, x2, y2, strokewidth: 13, cap: :round), :edge_stroke) }
-    tail.each { |x, y, d| skin(oval(x, y, d, center: true), :skin) }
+    tail.each { |points, width| skin(shape(strokewidth: width, cap: :round, &curl.(points)), :skin_stroke) }
     skin(shape(&body), :skin)
     skin(shape(&head), :skin)
     legs.each { |x1, y1, x2, y2| skin(line(x1, y1, x2, y2, strokewidth: 8, cap: :round), :skin_stroke) }
@@ -594,8 +604,8 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
       list.each_with_index do |pot, i|
         x = left + 17 + i * 34
         nostroke
-        oval x, 17, 30, center: true, fill: paint(pot[:paint]), stroke: pot[:name] == :white ? paint([186, 178, 210]) : paint(Paint.darken(pot[:paint], 0.25)), strokewidth: 2
-        picture(pot[:picture], x, 17, 16, pot[:name] == :white ? paint([150, 170, 205]) : white)
+        oval x, 17, 30, center: true, fill: paint(pot[:paint]), stroke: edge_of(pot), strokewidth: 2
+        picture(pot[:picture], x, 17, 16, pot[:name] == :white ? picture_ink(pot) : white)
       end
     end
   end
@@ -610,7 +620,7 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
   def buttons
     nostroke
     oval 140, 392, 96, center: true, fill: paint(INK, 0.1)
-    @drain = oval 140, 386, 96, center: true, fill: white, stroke: paint([190, 220, 245]), strokewidth: 3
+    oval 140, 386, 96, center: true, fill: white, stroke: paint([190, 220, 245]), strokewidth: 3
     spiral = (0..60).map do |i|
       a = i * 0.21
       r = 4 + i * 0.52
@@ -624,7 +634,7 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
     hit.click { empty_bowl }
 
     oval 906, 672, 62, center: true, fill: paint(INK, 0.1)
-    @mute = oval 906, 668, 62, center: true, fill: white
+    oval 906, 668, 62, center: true, fill: white
     fill paint(INK)
     rect 888, 660, 10, 16, curve: 2
     shape { move_to 894, 660; line_to 906, 651; line_to 906, 685; line_to 894, 676; line_to 894, 660 }
@@ -725,16 +735,9 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
   # A jar full of the new colour leaps from the bowl up onto its place on the shelf.
   def send_jar(name)
     land_jar if @flying_jar
-    color = Paint.mix(COLOURS[name][0])
     slot = nil
     @jar_layer.append do
-      slot = stack(left: BOWL_X - 16, top: surface_y - 30, width: 32, height: 46) do
-        nostroke
-        rect 2, 10, 28, 36, curve: 9, fill: paint([255, 255, 255], 0.6), stroke: paint(Paint.darken(color, 0.35)), strokewidth: 2
-        rect 5, 17, 22, 26, curve: 7, fill: paint(color)
-        rect 8, 20, 4, 16, curve: 2, fill: paint([255, 255, 255], 0.6)
-        rect 5, 3, 22, 9, curve: 3, fill: paint([214, 160, 112])
-      end
+      slot = stack(left: BOWL_X - 16, top: surface_y - 30, width: 32, height: 46) { fill_jar(jar_art({}), name) }
     end
     @flying_jar = { name: name, slot: slot, from: [BOWL_X - 16, surface_y - 30], to: [@jars[name][:x] - 16, SHELF_Y - 46], age: 0.0 }
   end
@@ -754,7 +757,7 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
     jar = @flying_jar
     @flying_jar = nil
     jar[:slot].remove
-    fill_jar(jar[:name])
+    fill_jar(@jars[jar[:name]], jar[:name])
     @jars[jar[:name]][:spring].kick(-200)
     x = @jars[jar[:name]][:x]
     8.times { |i| sparkle(x, SHELF_Y - 24, i * Math::PI / 4) }
@@ -892,7 +895,7 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
       b[:y] -= 38 * dt
       done = b[:y] < surface_y || @level < 0.2
       b[:age] = 9.0 if done
-      b[:art].style(left: b[:x] + Math.sin(b[:age] * 9) * 2, top: b[:y], width: b[:size], height: b[:size], hidden: done)
+      b[:art].style(left: (b[:x] + Math.sin(b[:age] * 9) * 2).round(1), top: b[:y].round(1), width: b[:size].round(1), height: b[:size].round(1), hidden: done)
     end
   end
 
@@ -933,7 +936,7 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
       fade = 1 - dot[:age] / dot[:life]
       size = dot[:size] * (dot[:kind] == :bubble ? 0.5 + 0.5 * fade : 1)
       bubble = dot[:kind] == :bubble
-      dot[:art].style(left: dot[:x], top: dot[:y], width: size, height: size, hidden: dot[:age] >= dot[:life],
+      dot[:art].style(left: dot[:x].round(1), top: dot[:y].round(1), width: size.round(1), height: size.round(1), hidden: dot[:age] >= dot[:life],
         fill: paint(dot[:color], bubble ? 0.45 * fade : 1), stroke: bubble ? paint(Paint.darken(dot[:color], 0.3), 0.7 * fade) : paint(dot[:color], 0))
     end
     @stars.each do |star|
@@ -946,7 +949,7 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
       star[:vy] *= 0.94
       k = star[:age] / star[:life]
       size = 14 * Math.sin(Math::PI * [k, 1].min)
-      star[:art].style(left: star[:x], top: star[:y], outer: size, inner: size * 0.45,
+      star[:art].style(left: star[:x].round(1), top: star[:y].round(1), outer: size.round(1), inner: (size * 0.45).round(1),
         rotate: (star[:turn] * star[:age]).round(1), fill: paint(star[:color]), hidden: k >= 1)
     end
   end
@@ -1005,8 +1008,11 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
       @rainbow_skin = nil if @rainbow_skin >= 1
     end
     @lizard_color = Paint.blend(@lizard_color, color, 1 - Math.exp(-dt * 4))
-    paint_lizard(@lizard_color) if (@lizard_color.zip(@painted_lizard || []).map { |a, b| (a - b.to_f).abs }.max || 99) > 0.8
-    @painted_lizard = @lizard_color if @painted_lizard.nil? || @lizard_color.zip(@painted_lizard).any? { |a, b| (a - b).abs > 0.8 }
+    @lizard_frame = !@lizard_frame # recolouring every other frame is plenty for the eye
+    if @lizard_frame && @lizard_color.zip(@painted_lizard).any? { |now, was| (now - was).abs > 1.5 }
+      paint_lizard(@lizard_color)
+      @painted_lizard = @lizard_color
+    end
 
     tongue = lizard[:tongue_age]
     return unless tongue
@@ -1096,7 +1102,7 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
       @chip.hide
       @chimes.tune("e5 c5", voice: :hum, gap: 0.22, level: 0.6)
     end
-    @hint_until = @t + 4
+    @recipe_until = @t + 4
   end
 
   def sing_again
@@ -1153,6 +1159,7 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
   buttons
   @flight_layer = stack(left: 0, top: 0, width: W, height: H) {}
   @dots = Array.new(28) { { art: oval(0, 0, 8, center: true, strokewidth: 2, hidden: true), age: 1.0, life: 1.0 } }
+  transform :center # sparkles turn about their own middles
   @stars = Array.new(18) { { art: star(0, 0, 5, 10, 4.5, hidden: true), age: 1.0, life: 1.0 } }
   @jar_layer = stack(left: 0, top: 0, width: W, height: H) {}
   @hint = para "hold esc to leave", size: 10, stroke: paint(INK, 0.45), left: 36, top: 698
@@ -1196,8 +1203,8 @@ Shoes.app(title: "Rainbow Lab", width: W, height: H, resizable: false) do
     announce if @announce_at && @t >= @announce_at
     invite
     watch_escape
-    if @hint_until && @t > @hint_until
-      @hint_until = nil
+    if @recipe_until && @t > @recipe_until
+      @recipe_until = nil
       @name ? show_recipe(@drops) : hide_recipe
     end
   end
