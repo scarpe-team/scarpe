@@ -161,9 +161,11 @@ class EndToEndTest < Minitest::Test
       end
     APP
     assert_clean_exit(run)
+    # Frames move on during each wait. How many is the machine's speed, not ours: a late timer
+    # skips the frames it missed, and a 3-core macOS runner fired 3 where 6 were due.
     first, second = run.stdout.scan(/"frame (\d+)"/).flatten.map(&:to_i)
-    assert_operator first, :>=, 3
-    assert_operator second, :>, first
+    assert_operator first, :>=, 1, run.stdout
+    assert_operator second, :>, first, run.stdout
   end
 
   def test_keys_reach_the_app_keypress_block_unless_a_field_has_focus
