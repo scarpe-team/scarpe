@@ -411,11 +411,12 @@ Each of these bit someone building the apps in `examples/native`. The rulings be
    the Ruby getters `left`, `top`, `width` and `height` include them (C9, A4).
 3. A width or height you give is the margin box: `stack(width: 100, margin: 10)` is 80 px inside
    (C14).
-4. On slots, text blocks, images and controls, a negative whole number counts from the far edge
-   (`left: -40` sits 40 px in from the right), and a Float from 0 to 1 is a share of the parent
-   (`left: 0.5` is halfway). A float above 1 is pixels. Anything you place or move through the
-   corner jumps, so give positions whole pixels of 0 or more (`x.round`), and draw what drifts off
-   an edge as art (C1, docs/native.md).
+4. A position is a plain number, negative ones too: `stack(top: -40)` starts 40 px above its
+   slot, and `left: -40` sits 40 px past its left edge, as art does (C18). `right` and `bottom`
+   count from the far edges. A size is different: a negative `width` or `height` is the parent
+   less that much (`width: -100`). A Float between -1 and 1 is a share of the parent for both
+   (`left: 0.5` is halfway), and a float above 1 is pixels, so give anything that moves whole
+   pixels (`x.round`) or it jumps as it passes through a fraction (C1, docs/native.md).
 5. On art every number is pixels, negatives and fractions included (C15).
 6. A fixed `height` clips the slot, with or without `scroll: true` (C13).
 7. `left` and `top` answer in two frames. Something its slot flowed answers window coordinates;
@@ -723,7 +724,8 @@ Their checks: `spec/showcase/*.sspec`, `spec/kids/*.sspec` and
 | `peek: ... never started a Shoes app` | the file must call `Shoes.app` |
 | `peek: click failed: no visible drawable shows ...` | the text is not on screen, is covered, or differs: read `--layout`, or use `--click-at` |
 | `peek: NameError: ...` (or any error) after a click | a handler raised; the message names it, and peek fails the run |
-| things jump to the right edge or the middle as they move | rule 4: round positions to whole pixels of 0 or more, or draw them as art |
+| things jump to the middle or a corner as they move | rule 4: round positions to whole pixels (`x.round`) |
+| an error in a click or a timer, and the app goes on | it is logged, and one that repeats is logged once and then counted; `Shoes.on_error { \|err\| }` hears every one, and Alt-/ (Cmd-/ on a Mac) opens the Shoes console (docs/native.md) |
 | a check says `n/a` | add `--display native` |
 | `peek: key failed: unknown key name` | use the names in the `--key` row, e.g. `enter` |
 | an old renderer runs | a `scarpe-native` on your `PATH` wins over the clone's build: remove it, or set `SCARPE_NATIVE_BIN` |
