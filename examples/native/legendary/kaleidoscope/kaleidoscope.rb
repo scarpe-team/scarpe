@@ -323,7 +323,7 @@ Shoes.app(title: "Kaleidoscope", width: W, height: H, resizable: false) do
     y = stars.rand(0..H)
     next if Math.hypot(x - CX, y - CY) < RADIUS + 20
 
-    oval x, y, stars.rand(1.0..2.2), center: true, fill: rgb(255, 255, 255, stars.rand(0.15..0.5))
+    oval x, y, stars.rand(1.2..2.4), center: true, fill: rgb(255, 255, 255, stars.rand(0.15..0.5))
   end
 
   # the lens: a dark glass disc in a soft rim
