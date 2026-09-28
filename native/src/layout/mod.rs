@@ -659,7 +659,8 @@ impl Engine<'_> {
         // Positioned text shrinks to fit what is left of the slot, like CSS absolute.
         let remaining = frame.w - dim("left", frame.w).unwrap_or(0.0);
         let w = self.width_for(node, true, (frame.w, avail_h), remaining, &m);
-        let x = match (dim("left", frame.w), dim("right", frame.w)) {
+        // A negative right or bottom lies past the slot's edge, as in Shoes 3 (dim::position).
+        let x = match (dim("left", frame.w), p.position("right", frame.w)) {
             (Some(left), _) => frame.x + left + m.left,
             (None, Some(right)) => frame.right() - right - w - m.right,
             (None, None) => frame.x + m.left,
@@ -668,7 +669,7 @@ impl Engine<'_> {
         let y = frame.y + top.unwrap_or(0.0) + m.top;
         let h = self.place_box(node, x, y, w, (frame.w, avail_h), &m);
         if top.is_none() {
-            if let Some(bottom) = dim("bottom", frame.h) {
+            if let Some(bottom) = p.position("bottom", frame.h) {
                 let dy = frame.bottom() - bottom - h - m.bottom - y;
                 self.translate_subtree(node.id, 0.0, dy);
             }
@@ -835,8 +836,8 @@ fn decor_box(node: &Node, slot: Rect) -> Rect {
     let m = p.margins(slot.w);
     let area = Rect::new(slot.x + m.left, slot.y + m.top, (slot.w - m.horizontal()).max(0.0), (slot.h - m.vertical()).max(0.0));
     let edge = |key: &str, basis: f32| p.dim(key).map(|d| d.resolve(basis));
-    let (left, right) = (edge("left", area.w), edge("right", area.w));
-    let (top, bottom) = (edge("top", area.h), edge("bottom", area.h));
+    let (left, right) = (edge("left", area.w), p.position("right", area.w));
+    let (top, bottom) = (edge("top", area.h), p.position("bottom", area.h));
     let w = edge("width", area.w).unwrap_or(area.w - left.unwrap_or(0.0) - right.unwrap_or(0.0)).max(0.0);
     let h = edge("height", area.h).unwrap_or(area.h - top.unwrap_or(0.0) - bottom.unwrap_or(0.0)).max(0.0);
     let x = match (left, right) {

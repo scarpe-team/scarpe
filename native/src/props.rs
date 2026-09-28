@@ -83,6 +83,12 @@ impl Props {
         self.get(key).and_then(parse_dim)
     }
 
+    /// A `right` or `bottom` offset in pixels against a slot `basis` wide or high; a
+    /// negative one lies past the slot's edge (crate::style::dim::position).
+    pub fn position(&self, key: &str, basis: f32) -> Option<f32> {
+        self.get(key).and_then(|v| crate::style::dim::position(v, basis))
+    }
+
     pub fn paint(&self, key: &str) -> Option<Paint> {
         self.get(key).and_then(parse_paint)
     }

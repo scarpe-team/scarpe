@@ -76,6 +76,24 @@ fn parse_dim_str(s: &str) -> Option<Dim> {
     number.parse::<f64>().ok().map(integer_dim)
 }
 
+/// A `right` or `bottom` offset, as Shoes 3 reads a position: shoes_px2 passes nv 0 to
+/// shoes_px (s3_ruby.c:298-337), so a negative number stays negative and puts the element
+/// past its slot's far edge, where a size counts back from the slot. A Float up to 1 or a
+/// percentage is still that share of the slot, and a negative share lies past the edge too.
+pub fn position(value: &Value, parent: f32) -> Option<f32> {
+    let dim = parse_dim(value)?;
+    let negative_share = match value {
+        Value::Number(n) if !n.is_i64() => n.as_f64().filter(|v| *v < 0.0 && *v > -1.0),
+        Value::String(s) => s.trim().strip_suffix('%').and_then(|v| v.trim().parse::<f64>().ok()).filter(|v| *v < 0.0).map(|v| v / 100.0),
+        _ => None,
+    };
+    Some(match (negative_share, dim) {
+        (Some(share), _) => (share * f64::from(parent)) as f32,
+        (None, Dim::Minus(px)) => -px,
+        (None, d) => d.resolve(parent),
+    })
+}
+
 /// A plain number (px) from a Value that may be an Integer, Float or numeric String.
 pub fn parse_number(value: &Value) -> Option<f32> {
     let n: Option<f32> = match value {
@@ -123,5 +141,17 @@ mod tests {
         assert_eq!(parse_number(&json!("NaN")), None);
         assert_eq!(parse_dim(&json!(null)), None);
         assert_eq!(parse_dim(&json!(true)), None);
+    }
+
+    #[test]
+    fn positions_keep_their_sign() {
+        let at = |v: Value, parent: f32| position(&v, parent).unwrap();
+        assert_eq!(at(json!(-3), 300.0), -3.0, "past the edge, not the slot less 3");
+        assert_eq!(at(json!("-12px"), 400.0), -12.0);
+        assert_eq!(at(json!("-10%"), 400.0), -40.0);
+        assert_eq!(at(json!(-0.25), 400.0), -100.0);
+        assert_eq!(at(json!(20), 300.0), 20.0);
+        assert_eq!(at(json!(0.5), 400.0), 200.0);
+        assert_eq!(position(&json!(null), 400.0), None);
     }
 }

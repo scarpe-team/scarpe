@@ -490,6 +490,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci / WV today:** declared as styles (`drawable.rb:264`) and never rendered (report 02, 4.2).
 - **Spec:** `background black, width: 50, right: 50` paints a 50 px column whose right edge is 50 px in from the window's right edge (see M19).
 - **Native:** an element with `right` or `bottom` is out of flow and placed from the slot's right or bottom edge; backgrounds and borders too (DESIGN 6 and 12, 27 Sep). Art follows the same ruling since wave 4 (DESIGN 12): its far edge sits `right` px in from the slot's right edge, art that names both edges and no size runs between them, and `left`/`top` win when given; Shoes 3 instead read them on art as absolute far-edge coordinates that size the shape (`s3_ruby.c:396-399`), and no example uses either. **Lacci** gave art no way to reach this until wave 5: `rect` defaulted `left` and `top` to 0 and every art class required `left`, `top` and a size (`rect.rb:18-21`, `oval.rb`, `drawable.rb:343-349`), so `right`/`bottom` arrived only beside a `left` that won. Now `right` stands in for `left` and `bottom` for `top` on art, and naming both edges of an axis stands in for the size along it (`Shoes::Art.placed_by_edges`); an oval still defaults to a circle unless it spans both edges of an axis. **Lacci change, done 27 Sep 2026.** **Spec:** `styles.right__art` (native) places a rect, an oval and a star by their far edges and stretches a rect between both edges.
+- **Negative `right` and `bottom`, 28 Sep 2026 (w9):** Shoes 3 reads a position as a plain number, negative ones too: `shoes_px2` passes `nv` 0 to `shoes_px` (`s3_ruby.c:298-337`), so `bottom: -3` hangs an element 3 px below its slot's lower edge. Native read a negative `right` or `bottom` by the dimension rule, as the slot less that much, so Hackety Hack's editor button bar (`stack height: 40, width: 182, bottom: -3, right: 0`) landed at y = -37, above the window. Now a negative `right` or `bottom` on an element, a background or a border lies past the slot's edge, and a Float up to 1 or a percentage is still a share of the slot, a negative share past the edge too (`style::dim::position`). `left` and `top` keep the dimension rule on everything that is not art (C15), though Shoes 3 reads them the same way; that is Q10. **Spec:** `styles.bottom__negative` (native).
 
 ### C11. `attach: Window`
 
@@ -1534,6 +1535,14 @@ The evidence was balanced on each of these, so v1 asked Nick. The orchestrator r
 - **Q9 (C14), found in wave 4.** Is an explicit `width` (or `height`) the element's **margin box**, margins inside it, as Shoes 3 does for slots and text blocks (`s3_ruby.c:506, 537`, `s3t_textblock.c:125-126`), or its **border box**, margins added outside, as DESIGN 12 and Webview do? The manual is silent. `menu1.rb`'s panels fit a row only under Shoes 3's rule; changing the rule moves every element that has both a px size and a margin.
 
   **Ruled:** the margin box (S3), so `menu1.rb` and `simple-control-sizes.rb` lay out as written (C14). The same day: a negative `left` or `top` on art is a plain coordinate (C15), and Scarpe's controls are its own (G15, Nick).
+
+## Open questions (28 Sep 2026)
+
+Raised by the Hackety Hack lane (w9). Each is asked the way the questions above were, with what Scarpe does until someone rules.
+
+- **Q10 (C10, C15).** Should a negative `left` or `top` on an element that is not art be a plain coordinate, past the slot's left or top edge, as Shoes 3 reads every position (`shoes_px2` with `nv` 0, `s3_ruby.c:298-337`), or stay the slot less that much, as DESIGN 6 and C15 have it? Since 28 Sep a negative `right` or `bottom` follows Shoes 3 (C10). Hackety Hack's splash starts its hand at `top: -400`, above the window, and slides it down into view; native shows it 150 px down a 550 px window at once. `legacy/for_playtest/expert/othello.rb` puts its Undo button at `left: -150` and relies on today's reading to show it at the right; under Shoes 3 it would sit off the window.
+
+  **Meanwhile:** the dimension rule, as C15 ruled.
 
 ## Citation check
 
