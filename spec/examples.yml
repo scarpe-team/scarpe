@@ -376,6 +376,28 @@
 "examples/margin.rb": {category: ".", needs: [], status: "loads"}
 "examples/margin_check.rb": {category: ".", needs: ["dialog"], status: "loads"}
 "examples/motion_events.rb": {category: ".", needs: [], status: "loads"}
+"examples/native/legendary/aquarium/aquarium.rb": {category: "native/legendary/aquarium", needs: ["timer/animation"], status: "loads", steps: [{wait: 1}]}
+"examples/native/legendary/aquarium/icon.rb": {category: "native/legendary/aquarium", needs: [], status: "loads"}
+"examples/native/legendary/bloop_sequencer/bloop_sequencer.rb": {category: "native/legendary/bloop_sequencer", needs: ["timer/animation", "audio"], status: "loads"}
+"examples/native/legendary/bloop_sequencer/icon.rb": {category: "native/legendary/bloop_sequencer", needs: [], status: "loads"}
+"examples/native/legendary/constellations/constellations.rb": {category: "native/legendary/constellations", needs: ["timer/animation"], status: "loads"}
+"examples/native/legendary/constellations/icon.rb": {category: "native/legendary/constellations", needs: [], status: "loads"}
+"examples/native/legendary/kaleidoscope/kaleidoscope.rb": {category: "native/legendary/kaleidoscope", needs: ["timer/animation"], status: "loads", steps: [{click: "Surprise me"}, {wait: 0.5}]}
+"examples/native/legendary/kaleidoscope/icon.rb": {category: "native/legendary/kaleidoscope", needs: [], status: "loads"}
+"examples/native/legendary/kanban/kanban.rb": {category: "native/legendary/kanban", needs: [], status: "loads"}
+"examples/native/legendary/kanban/icon.rb": {category: "native/legendary/kanban", needs: [], status: "loads"}
+"examples/native/legendary/ledger/ledger.rb": {category: "native/legendary/ledger", needs: ["timer/animation"], status: "loads"}
+"examples/native/legendary/ledger/icon.rb": {category: "native/legendary/ledger", needs: [], status: "loads"}
+"examples/native/legendary/marble_machine/marble_machine.rb": {category: "native/legendary/marble_machine", needs: ["timer/animation"], status: "loads", steps: [{wait: 1}]}
+"examples/native/legendary/marble_machine/icon.rb": {category: "native/legendary/marble_machine", needs: [], status: "loads"}
+"examples/native/legendary/pixel_pet/pixel_pet.rb": {category: "native/legendary/pixel_pet", needs: ["timer/animation", "audio"], status: "loads"}
+"examples/native/legendary/pixel_pet/icon.rb": {category: "native/legendary/pixel_pet", needs: [], status: "loads"}
+"examples/native/legendary/system_monitor/system_monitor.rb": {category: "native/legendary/system_monitor", needs: ["timer/animation", "shell"], status: "loads"}
+"examples/native/legendary/system_monitor/icon.rb": {category: "native/legendary/system_monitor", needs: [], status: "loads"}
+"examples/native/legendary/typewriter/typewriter.rb": {category: "native/legendary/typewriter", needs: ["audio"], status: "loads", steps: [{type: "Hello, Noah."}]}
+"examples/native/legendary/typewriter/icon.rb": {category: "native/legendary/typewriter", needs: [], status: "loads"}
+"examples/native/legendary/weather_window/weather_window.rb": {category: "native/legendary/weather_window", needs: ["timer/animation"], status: "loads", steps: [{key: "2"}, {wait: 1}]}
+"examples/native/legendary/weather_window/icon.rb": {category: "native/legendary/weather_window", needs: [], status: "loads"}
 "examples/native/showcase/for_noah.rb": {category: "native/showcase", needs: [], status: "loads"}
 "examples/native/showcase/notes.rb": {category: "native/showcase", needs: [], status: "loads", steps: [{click: "Sourdough, Saturday"}, {click_at: [700, 380]}, {type: " Take a loaf next door."}]}
 "examples/native/showcase/shoe_icon.rb": {category: "native/showcase", needs: [], status: "loads"}
