@@ -1,0 +1,53 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/legendary/system_monitor/system_monitor.rb")
+----------- test code
+app = Shoes.APPS.first
+history = -> { app.instance_variable_get(:@cpu_history).size }
+rows = -> { app.instance_variable_get(:@rows) }
+names = -> { rows.().map { |row| row[:name].text } }
+values = -> { rows.().map { |row| row[:value].text } }
+percent = ->(ring) { app.instance_variable_get(ring).last.text }
+near = ->(pixel, hex) { pixel.first(3).zip(hex.scan(/\h\h/).map(&:hex)).all? { |got, want| (got - want).abs <= 10 } }
+
+# The first reading is taken at once, and the rings glide up to it
+assert_equal 1, history.()
+advance 1.5
+assert_equal 2, history.(), "a reading a second"
+%i[@cpu_ring @memory_ring @disk_ring].each { |ring| assert_match(/\A\d{1,3}%\z/, percent.(ring), ring) }
+
+# Memory and disk agree with the machine, read here another way
+gigabytes = ->(bytes) { format("%.1f GB", bytes / 1024.0**3) }
+assert_match(/ of #{Regexp.escape(gigabytes.(`sysctl -n hw.memsize`.to_i))}\z/, para("@memory_used").text)
+fields = `df -k /`.lines.last.split
+assert_equal gigabytes.(fields[3].to_i * 1024), para("@disk_free").text
+used = (fields[1].to_i - fields[3].to_i) * 100.0 / fields[1].to_i
+assert_in_delta used, percent.(:@disk_ring).to_f, 1, "the disk ring reads what df says"
+
+# Eight processes, busiest first; then the biggest first
+assert_equal 8, names.().reject(&:empty?).size
+cpu = values.().map(&:to_f)
+assert_equal cpu.sort.reverse, cpu, "sorted by CPU: #{values.().inspect}"
+click_on app.instance_variable_get(:@sorts)[:memory].last
+assert(values.().all? { |value| value.match?(/\A\d+(\.\d)? (MB|GB)\z/) }, values.().inspect)
+bytes = values.().map { |value| value.to_f * (value.end_with?("GB") ? 1024 : 1) }
+assert_equal bytes.sort.reverse, bytes, "sorted by memory"
+assert_match(/\A\d+ processes, sorted by memory\z/, para("@count_text").text)
+
+# Space pauses the readings and carries them on again
+press_key " "
+assert_equal "Paused", para("@live_text").text
+held = history.()
+advance 3
+assert_equal held, history.(), "nothing is read while paused"
+press_key " "
+assert_equal "Live", para("@live_text").text
+assert_equal held + 1, history.(), "carrying on reads at once"
+advance 2
+assert_equal held + 3, history.()
+
+# The CPU ring starts at twelve o'clock in teal
+advance 1
+assert near.(pixel_at(96, 137), "#4fd1c5"), "teal at twelve: #{pixel_at(96, 137).inspect}"
