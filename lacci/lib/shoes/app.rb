@@ -298,6 +298,7 @@ class Shoes
 
     def destroy(send_event: true)
       @do_shutdown = true
+      finish_slots
       send_shoes_event(event_name: 'destroy') if send_event
     end
 
@@ -655,6 +656,26 @@ class Shoes::App < Shoes::Drawable
   alias exit quit
 
   private
+
+  # A closing window tells every slot in it that it is going, as Shoes 3 does (ledger H8): the
+  # window's own slot first (shoes_app_remove, s3_app.c:107-114), then each slot as it is
+  # removed, after the slots inside it (s3_canvas.c:481-495), hidden ones too. Once per app,
+  # however it closes. A finish block that raises is logged, and the window closes anyway.
+  def finish_slots
+    return if @slots_finished || @document_root.nil?
+
+    @slots_finished = true
+    ([@document_root] + slots_inside(@document_root)).each do |slot|
+      slot.fire_finish_callbacks
+    rescue StandardError, ScriptError => e
+      @log.error("A finish block raised #{e.class}: #{e.message} as its window closed")
+    end
+  end
+
+  # Every slot below this one, each after the slots inside it.
+  def slots_inside(slot)
+    Array(slot.children).grep(Shoes::Slot).flat_map { |child| slots_inside(child) + [child] }
+  end
 
   # Apps start at "/" (ledger J1), whatever method it routes to: url.rb routes it to
   # :setupscreen.
