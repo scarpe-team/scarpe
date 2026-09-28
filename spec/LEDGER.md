@@ -725,7 +725,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Examples:** `for_playtest/expert/curve-control-point.rb:22-30` (drag with oval `click`/`release`), `expert/colours.rb:70`.
 - **Lacci today:** `Drawable#click`/`#release` store `@block`/`@release` (`drawable.rb:784-802`), but only Button, Check, Radio, Link, Image and SubscriptionItem bind a `click` event; art classes declare no events, so the handler never fires (X9). Fix 10.9 bound the `click` and `release` methods; since the wave-4 Lacci lane a `click:` proc given as a style binds the same way (G10), so `styles.click__para` passes.
 - **Spec:** `oval(...).click { }` fires on `click_at` the oval's centre and not on a click outside it.
-- **Native:** routes a press to the topmost drawable with `has_click` (DESIGN 4.3).
+- **Native:** routes a press to the topmost drawable with `has_click` (DESIGN 4.3). Until 28 Sep 2026 it looked only at the topmost drawable and its slots, so a label or icon drawn over a clickable shape swallowed the press; Shoes 3's `shoes_canvas_send_click2` skips elements with no click block and asks the next one down. Now a press no control takes goes to the topmost drawable under the pointer with `has_click` (`input::pointer_owner`), and a release likewise. A control on top still keeps its press. **Spec:** `events.click__through_a_label` (native).
 
 ### E9. `image(w, h) { drawing }` is a canvas
 

@@ -43,6 +43,7 @@ straightforward as possible.
 - Native: Ctrl-C still quits after a second window opens, and a second Ctrl-C ends a stuck renderer; TERM, or a Ruby that dies, takes the renderer's process group with it
 - Native: Shoes-Spec test code and `scarpe peek` steps start after the slots' `start` blocks, and `wait_frames` starts a slot made since
 - Native: an installed gem never runs cargo, and downloaded images are cached in a private per-user directory that refuses planted links, stale junk and https-to-http redirects
+- Native: a press on a label or icon with no click block goes on to the clickable shape beneath it, as Shoes 3 skips what has no click; before, the label swallowed it
 
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
