@@ -86,4 +86,34 @@ class TestShape < NienteTest
         shape.display.instance_variable_get(:@shape_commands)
     SHOES_SPEC
   end
+
+  # Shoes 3 draws a line across its place box (s3t_shape.c:127-132) and `move` shifts the
+  # box, so the whole line moves. Lacci moved only its start, and a vertical line turned
+  # into a diagonal from its new start back to its old end.
+  def test_moving_a_line_moves_both_ends
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $line = line 20, 20, 20, 180
+        $moved = $line.move(220, 30)
+      end
+    SHOES_APP
+      assert_same $line, $moved, "move returns the line"
+      assert_equal [220, 30, 220, 190], [$line.style[:left], $line.style[:top], $line.x2, $line.y2]
+    SHOES_SPEC
+  end
+
+  # Shoes 4's arc takes wedge: true for a pie slice, and the native display draws one
+  # (DESIGN 12). Lacci did not know the style, so it warned and dropped it.
+  def test_an_arc_keeps_its_wedge
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $pie = arc 20, 20, 140, 140, 0, Math::PI / 2, wedge: true
+        $chord = arc 170, 20, 140, 140, 0, Math::PI / 2
+      end
+    SHOES_APP
+      assert_equal true, $pie.style[:wedge]
+      assert_nil $chord.style[:wedge]
+      assert_equal true, arc("$pie").display.instance_variable_get(:@data)["wedge"], "and the display was told"
+    SHOES_SPEC
+  end
 end

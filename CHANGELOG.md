@@ -46,6 +46,7 @@ straightforward as possible.
 - Native: a press on a label or icon with no click block goes on to the clickable shape beneath it, as Shoes 3 skips what has no click; before, the label swallowed it
 - Native: a button, check, radio or list box the mouse pressed leaves Space, Return and the arrows to the app's `keypress`; only focus from the keyboard or `focus` takes them
 - Native: `font: "bold 16px"` (and `italic`) on an edit line or edit box draws bold (or slanted), as it does on a para
+- Lacci: `line.move` moves both ends of the line, not only its start; a border's `strokewidth` is its own, 1 unless given, and no longer the pen's
 
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")

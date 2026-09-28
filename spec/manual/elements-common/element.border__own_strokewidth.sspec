@@ -1,0 +1,22 @@
+---
+manual: element.border
+lines: [1925, 1929]
+testability: visual
+display: native
+ledger: M4
+----------- app code
+# A border strokes with its own strokewidth, 1 unless given, as Shoes 3's shoes_border_draw
+# does (s3t_pattern.c:219). The pen's strokewidth is for shapes.
+Shoes.app width: 320, height: 140 do
+  strokewidth 6
+  line 20, 120, 300, 120, stroke: gray
+  @box = stack left: 20, top: 20, width: 130, height: 70 do
+    border red
+  end
+end
+----------- test code
+box = layout_of(stack("@box"))
+mid = (box.y + box.h / 2).round
+x = box.x.round
+assert_equal [255, 0, 0], pixel_at(x, mid).first(3), "the border's one pixel at the slot's edge"
+assert_equal [255, 255, 255], pixel_at(x + 2, mid).first(3), "and no more, though the pen is six wide"
