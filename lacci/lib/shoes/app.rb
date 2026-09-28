@@ -145,7 +145,8 @@ class Shoes
       send_shoes_event(event_name: 'init')
       return if @_do_shutdown
 
-      with_slot(@_document_root, &@_app_code_body)
+      # The app block is the one that changes self (manual 208-214); slot blocks keep it (B1).
+      with_slot(@_document_root) { instance_eval(&@_app_code_body) } if @_app_code_body
       show_root_route_on_first_boot
 
       # Fire any registered start callbacks after the app code has run
@@ -201,45 +202,36 @@ class Shoes
     # Shoes3 compatibility: app.slot returns the current slot
     alias_method :slot, :current_slot
 
-    # Track external (non-Shoes) callers from Slot#append so that
-    # method_missing can fall back to them. This enables Shoes3-compatible
-    # patterns like HH::SideTab where methods defined on the caller
-    # (e.g. `content`) need to be reachable from inside instance_eval'd blocks.
-    def push_external_self(obj)
-      @_external_self_stack ||= []
-      @_external_self_stack.push(obj)
-    end
-
-    def pop_external_self
-      @_external_self_stack&.pop
-    end
-
-    def external_self
-      @_external_self_stack&.last
-    end
-
-    def with_slot(slot_item, &block)
+    # Runs a slot's block with that slot pushed on the app's editing stack (manual 322-324).
+    # The block keeps its own self, as Shoes 3 calls it plainly (s3_canvas.c:650-653, ledger
+    # B1): a widget or a plain object keeps its instance variables and methods inside its
+    # stacks, and the DSL calls it sends to the App, or to a widget, land in the slot.
+    def with_slot(slot_item)
       return unless block_given?
 
       push_slot(slot_item)
-      instance_eval(&block)
-    ensure
-      pop_slot
+      @__editing_depth = editing_depth + 1
+      begin
+        yield
+      ensure
+        @__editing_depth -= 1
+        pop_slot
+      end
+    end
+
+    # How many slot blocks are running: none between events, one or more while an app, a slot
+    # or an append builds something, as Shoes 3's nesting stack is empty or not. (The app's
+    # own instance variables are its user's, hence the underscores.)
+    def editing_depth
+      @__editing_depth || 0
     end
 
     # We use method_missing for drawable-creating methods like "button".
     # The parent's method_missing will auto-create Shoes style getters and setters.
     # This is similar to the method_missing in Shoes::Slot, but different in
     # where the new drawable appears.
-    #
-    # When an external_self is active (from Slot#append), unknown methods are
-    # delegated to that external object. This provides Shoes3-compatible
-    # method dispatch for non-Shoes callers.
     def method_missing(name, *args, **kwargs, &block)
       klass = ::Shoes::Drawable.drawable_class_by_name(name)
-      if !klass && external_self && external_self.respond_to?(name)
-        return external_self.send(name, *args, **kwargs, &block)
-      end
       return super unless klass
 
       ::Shoes::App.define_method(name) do |*args, **kwargs, &block|
@@ -314,6 +306,7 @@ class Shoes
 
     def destroy(send_event: true)
       @_do_shutdown = true
+      finish_slots
       send_shoes_event(event_name: 'destroy') if send_event
     end
 
@@ -472,10 +465,11 @@ end
   end
 end
 
+# A slot keeps one handler per event, so giving it another replaces the first (ledger H6).
 %i[motion hover leave click release keypress wheel].each do |event|
   [Shoes::App, Shoes::Slot].each do |owner|
     owner.define_method(event) do |*args, &block|
-      subscription_item(args:, shoes_api_name: event.to_s, &block)
+      subscription_item(args:, shoes_api_name: event.to_s, &block).replace_earlier_handlers
       self
     end
   end
@@ -545,7 +539,7 @@ class Shoes::App < Shoes::Drawable
   # button is 1 if the left mouse button is held down, 0 otherwise.
   # x and y are the mouse coordinates relative to the app window.
   def mouse
-    Shoes::DisplayService.mouse_state
+    Shoes::DisplayService.mouse_state_of(linkable_id)
   end
 
   # Read the system clipboard contents.
@@ -648,15 +642,16 @@ class Shoes::App < Shoes::Drawable
   end
 
   # Open a new app window. In classic Shoes, `window` is like `Shoes.app` but
-  # sets the child window's `owner` to the launching app.
-  def window(**opts, &block)
-    Shoes.app(**opts.merge(owner: self), &block)
+  # sets the child window's `owner` to the launching app. Its styles may come as
+  # a Hash too, as Shoes.app's may (ledger A10).
+  def window(styles = {}, **opts, &block)
+    Shoes.app(styles, **opts, owner: self, &block)
   end
 
   # Open a dialog-style window. In classic Shoes, this is like `window` but
   # with dialog box styling. Sets the owner like `window`.
-  def dialog(**opts, &block)
-    Shoes.app(**opts.merge(owner: self), &block)
+  def dialog(styles = {}, **opts, &block)
+    Shoes.app(styles, **opts, owner: self, &block)
   end
 
   # Quit the application. This is an App-level alias for Shoes.quit
@@ -669,6 +664,26 @@ class Shoes::App < Shoes::Drawable
   alias exit quit
 
   private
+
+  # A closing window tells every slot in it that it is going, as Shoes 3 does (ledger H8): the
+  # window's own slot first (shoes_app_remove, s3_app.c:107-114), then each slot as it is
+  # removed, after the slots inside it (s3_canvas.c:481-495), hidden ones too. Once per app,
+  # however it closes. A finish block that raises is logged, and the window closes anyway.
+  def finish_slots
+    return if @_slots_finished || @_document_root.nil?
+
+    @_slots_finished = true
+    ([@_document_root] + slots_inside(@_document_root)).each do |slot|
+      slot.fire_finish_callbacks
+    rescue StandardError, ScriptError => e
+      @log.error("A finish block raised #{e.class}: #{e.message} as its window closed")
+    end
+  end
+
+  # Every slot below this one, each after the slots inside it.
+  def slots_inside(slot)
+    Array(slot.children).grep(Shoes::Slot).flat_map { |child| slots_inside(child) + [child] }
+  end
 
   # Apps start at "/" (ledger J1), whatever method it routes to: url.rb routes it to
   # :setupscreen.

@@ -432,7 +432,7 @@ class Shoes
       # and prevent them.
       unexpected = (kwargs.keys - this_drawable_styles)
       unless unexpected.empty?
-        STDERR.puts "Unexpected non-style keyword(s) in #{self.class} initialize: #{unexpected.inspect}"
+        $stderr.puts "Unexpected non-style keyword(s) in #{self.class} initialize: #{unexpected.inspect}"
       end
 
       super(linkable_id: Shoes::Drawable.allocate_drawable_id)
@@ -451,28 +451,9 @@ class Shoes
         self.class.shoes_events
       end
 
-      # Binding the motion events here isn't perfect.
-      # What about drawables like SubscriptionItem that
-      # have no motion events? With the current Lacci
-      # implementation, the answer is that those events
-      # will never be sent. Calling .hover on one will
-      # be useless, harmless, and allowed. If you want
-      # to make it disallowed, you can do something like
-      # define a SubscriptionItem#hover that raises an
-      # exception instead.
-
-      # hover and leave hand over the drawable (manual 2200-2205, ledger H5)
-      bind_self_event("hover") do
-        @hover&.call(self)
-      end
-
-      bind_self_event("leave") do
-        @leave&.call(self)
-      end
-
-      bind_self_event("motion") do |x, y|
-        @motion&.call(x, y)
-      end
+      # hover, leave and motion are heard from the first block given for them (#hover, #leave,
+      # #motion). Most drawables never get one, and a program's syntax-coloured text is a
+      # thousand spans, remade on every key in Hackety Hack's editor.
     end
 
     def self.expects_parent?
@@ -484,26 +465,24 @@ class Shoes
 
     # Calling stack.app or drawable.app will execute the block
     # with the Shoes::App as self, and with that stack or
-    # flow as the current slot.
-    #
-    # @incompatibility In Shoes Classic this is the only way
-    #   to change self, while Scarpe will also change self
-    #   with the other Slot Manipulation methods: #clear,
-    #   #append, #prepend, #before and #after.
+    # flow as the current slot. Along with the app and window
+    # blocks, it is the one Shoes block that changes self
+    # (manual 297-326, ledger B1 and B2).
     #
     # @return [Shoes::App] the Shoes app
     # @yield the block to call with the Shoes App as self
     def app(&block)
-      @app.with_slot(self, &block) if block_given?
+      @app.with_slot(self) { @app.instance_eval(&block) } if block_given?
       @app
     end
 
     private
 
     def generate_debug_id
-      cl = caller_locations(3)
-      da = cl.detect { |loc| !loc.path.include?("lacci/lib/shoes") }
-      @drawable_defined_at = "#{File.basename(da.path)}:#{da.lineno}"
+      # The app's line is a few frames up; only look further when it is not.
+      outside = ->(locations) { locations.detect { |loc| !loc.path.include?("lacci/lib/shoes") } }
+      da = outside.call(caller_locations(3, 12)) || outside.call(caller_locations(3))
+      @drawable_defined_at = da ? "#{File.basename(da.path)}:#{da.lineno}" : "lacci"
 
       class_name = self.class.name.split("::")[-1]
 
@@ -959,6 +938,8 @@ class Shoes
     # @return [self]
     def hover(&block)
       @hover = block
+      # hover and leave hand over the drawable (manual 2200-2205, ledger H5)
+      listen_for("hover") { @hover&.call(self) }
       self
     end
 
@@ -969,6 +950,7 @@ class Shoes
     # @return [self]
     def leave(&block)
       @leave = block
+      listen_for("leave") { @leave&.call(self) }
       self
     end
 
@@ -980,6 +962,7 @@ class Shoes
     # @return [self]
     def motion(&block)
       @motion = block
+      listen_for("motion") { |x, y| @motion&.call(x, y) }
       self
     end
 
@@ -1007,6 +990,12 @@ class Shoes
     end
 
     private
+
+    # Bind one of the drawable's own events the first time a block is given for it.
+    def listen_for(event_name, &handler)
+      @listening ||= {}
+      @listening[event_name] ||= bind_self_event(event_name, &handler)
+    end
 
     # Bind the display's click or release event once, and tell the display
     # with has_click / has_release that presses on this drawable belong here.

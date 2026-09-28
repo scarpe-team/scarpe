@@ -5,7 +5,7 @@ use super::fonts::{FamilyName, Fonts};
 use crate::doc::{Doc, Kind};
 use crate::props::{Id, Props, TextItem};
 use crate::style::color::Color;
-use crate::style::font::{named_size, parse_font, parse_size, parse_weight, X_SMALL};
+use crate::style::font::{named_size, parse_font, parse_weight, text_size, X_SMALL};
 use std::hash::{Hash, Hasher};
 
 pub const INK: Color = Color::rgb(0x1d, 0x1d, 0x1f);
@@ -123,6 +123,10 @@ pub struct RichText {
     pub leading: f32,
     pub align: Align,
     pub wrap: WrapMode,
+    /// Each line as tall as its own text, as Pango sets lines (Shoes 3's text mode): a line of
+    /// small text under a big title is short. Otherwise a line is never shorter than the
+    /// block's own line height, so a lone `sub` cannot shrink it.
+    pub own_line_heights: bool,
 }
 
 impl RichText {
@@ -135,6 +139,7 @@ impl RichText {
             leading: 0.0,
             align: Align::Left,
             wrap: WrapMode::Word,
+            own_line_heights: false,
         }
     }
 
@@ -156,6 +161,7 @@ impl RichText {
         self.leading.to_bits().hash(&mut h);
         self.align.hash(&mut h);
         self.wrap.hash(&mut h);
+        self.own_line_heights.hash(&mut h);
         width.map(f32::to_bits).hash(&mut h);
         h.finish()
     }
@@ -169,7 +175,8 @@ pub fn class_size(class: &str) -> f32 {
 /// A Para (or a standalone TextDrawable) as styled runs.
 pub fn resolve_block(doc: &Doc, fonts: &Fonts, id: Id) -> Option<RichText> {
     let node = doc.get(id)?;
-    let mut style = TextStyle::new(class_size(&node.class), INK);
+    let mut style = TextStyle::new(fonts.text_mode.px(class_size(&node.class)), INK);
+    style.family = fonts.text_face();
     apply_text_props(&mut style, &node.props, fonts);
     // A block's fill is a highlighter over its text, not paint over its box (manual 1208-1210;
     // Shoes 3 makes it a Pango background, s3t_textblock.c:258, 477).
@@ -198,6 +205,7 @@ pub fn resolve_block(doc: &Doc, fonts: &Fonts, id: Id) -> Option<RichText> {
         leading,
         align,
         wrap,
+        own_line_heights: fonts.text_mode == super::fonts::TextMode::Shoes3,
     })
 }
 
@@ -277,10 +285,10 @@ pub fn apply_text_props(style: &mut TextStyle, props: &Props, fonts: &Fonts) {
             style.italic = true;
         }
         if let Some(size) = spec.size {
-            style.size = size;
+            style.size = if spec.size_px { size } else { fonts.text_mode.px(size) };
         }
     }
-    if let Some(size) = props.get("size").and_then(|v| parse_size(v, style.size)) {
+    if let Some(size) = props.get("size").and_then(|v| text_size(v, style.size, fonts.text_mode)) {
         style.size = size;
     }
     if let Some(family) = props.str("family") {
@@ -331,13 +339,17 @@ pub fn apply_text_props(style: &mut TextStyle, props: &Props, fonts: &Fonts) {
     if let Some(variant) = props.str("variant").or_else(|| props.str("font_variant")) {
         style.small_caps = matches!(variant.to_ascii_lowercase().as_str(), "smallcaps" | "small-caps" | "small_caps");
     }
+    // A face the machine does not have falls back to the text's own default face.
+    if style.family == FamilyName::Sans {
+        style.family = fonts.text_face();
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::doc::NewNode;
-    use crate::text::fonts::FontMode;
+    use crate::text::fonts::{FontMode, TextMode};
     use serde_json::json;
 
     fn node(doc: &mut Doc, id: Id, class: &str, parent: Option<Id>, props: serde_json::Value) {
@@ -433,5 +445,30 @@ mod tests {
         assert_eq!(rich.runs[0].style.color, Color::rgb(255, 0, 0));
         assert_eq!(rich.align, Align::Center);
         assert!((rich.line_height - 44.8).abs() < 0.01, "1.2 x 34 plus the default leading");
+    }
+
+    /// Shoes 3's text mode (ledger M14): a size is points at 96 dpi, as Shoes 3 hands Pango
+    /// `size * 96/72` (s3t_textblock.c:293), so Hackety Hack's para is 16 px and its 10 point
+    /// code 13.3. A relative word still scales the present size, and a font string's `px` is
+    /// pixels, as Pango reads it.
+    #[test]
+    fn shoes3_text_is_sized_in_points() {
+        let mut fonts = Fonts::new(FontMode::Bundled);
+        let mut doc = Doc::default();
+        node(&mut doc, 2, "DocumentRoot", None, json!({}));
+        node(&mut doc, 3, "Para", Some(2), json!({"text_items": ["plain"]}));
+        node(&mut doc, 4, "Para", Some(2), json!({"text_items": ["code"], "font": "Liberation Mono", "size": 10}));
+        node(&mut doc, 5, "Para", Some(2), json!({"text_items": ["t"], "size": "title"}));
+        node(&mut doc, 6, "Para", Some(2), json!({"text_items": ["big"], "size": "large"}));
+        node(&mut doc, 7, "Para", Some(2), json!({"text_items": ["pt"], "font": "Monospace 12"}));
+        node(&mut doc, 8, "Para", Some(2), json!({"text_items": ["px"], "font": "Monospace 18px"}));
+        let sizes = |fonts: &Fonts| [3, 4, 5, 6, 7, 8].map(|id| resolve_block(&doc, fonts, id).unwrap().size);
+        assert_eq!(sizes(&fonts), [12.0, 10.0, 34.0, 12.0 * 1.2, 12.0, 18.0], "Scarpe's pixels");
+        fonts.text_mode = TextMode::Shoes3;
+        let pt = 96.0 / 72.0;
+        let want = [12.0 * pt, 10.0 * pt, 34.0 * pt, 12.0 * pt * 1.2, 12.0 * pt, 18.0];
+        for (got, want) in sizes(&fonts).iter().zip(want) {
+            assert!((got - want).abs() < 0.01, "{:?} against {want:?}", sizes(&fonts));
+        }
     }
 }

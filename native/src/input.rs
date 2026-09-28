@@ -444,6 +444,26 @@ pub fn char_at(tb: &TextBox, x: f32, y: f32) -> Option<i64> {
     Some(tb.shaped.char_index(cursor) as i64)
 }
 
+/// The character under (x, y) in a text block, as Shoes 3's Para#hit answers it from Pango's
+/// xy_to_index (s3t_textblock.c:713-722, ledger F14): the one whose glyph the point is over,
+/// the first on its line for a point left of the text, the last for one past the line's end,
+/// and the nearest line for a point above or below the lines. None off `bounds`, the block.
+pub fn char_under(tb: &TextBox, bounds: crate::layout::Rect, x: f32, y: f32) -> Option<i64> {
+    if x < bounds.x || x > bounds.right() || y < bounds.y || y > bounds.bottom() {
+        return None;
+    }
+    let (lx, ly) = (x - tb.x, y - tb.y);
+    let runs: Vec<_> = tb.shaped.buffer.layout_runs().collect();
+    // Under the last line of text that ends in a newline is the empty line after it.
+    if tb.shaped.line_after_end().is_some_and(|(top, _)| ly >= top) {
+        return Some(tb.shaped.text().chars().count() as i64);
+    }
+    let run = runs.iter().find(|r| ly < r.line_top + r.line_height).or(runs.last())?;
+    let glyphs: Vec<_> = run.glyphs.iter().filter(|g| g.metadata != crate::text::shape_cache::INDENT_META).collect();
+    let start = glyphs.iter().find(|g| lx < g.x + g.w).or(glyphs.last()).map_or(0, |g| g.start);
+    Some(tb.shaped.char_index(cosmic_text::Cursor::new(run.line_i, start)) as i64)
+}
+
 pub fn chain(doc: &Doc, hit: &Hit) -> Vec<Id> {
     let mut chain = hit.spans.clone();
     if let Some(link) = hit.link.filter(|l| !chain.contains(l)) {
@@ -469,15 +489,16 @@ fn cursor_of(node: &crate::doc::Node) -> Option<CursorShape> {
 }
 
 /// How a press on a drawable of `kind` is taken, and whether it keeps it (DESIGN 4.3): a link,
-/// a button, check or radio, a text field or a list box keeps it; an image clicks and passes
-/// it on too; anything else only passes it on, to the slots and drawables that listen.
+/// a button, check or radio, a text field or a list box keeps it; anything else, an image too,
+/// only passes it on, to the slots and drawables that listen.
 fn press_on(kind: &Kind, on_a_link: bool) -> (PressKind, bool) {
     if on_a_link {
         return (PressKind::Click, true);
     }
     match kind {
         Kind::Button | Kind::Check | Kind::Radio => (PressKind::Click, true),
-        Kind::Image => (PressKind::Click, false),
+        // An image's click block is heard like a shape's, through has_click on the press
+        // (ledger E8), so it is not also clicked on the release.
         Kind::EditLine | Kind::EditBox => (PressKind::Field, true),
         Kind::ListBox => (PressKind::Plain, true),
         _ => (PressKind::Plain, false),
@@ -517,7 +538,7 @@ impl Runtime {
         let Some(view) = self.views.get(&app).filter(|v| !v.standalone) else { return };
         let (x, y) = view.ui.pointer.unwrap_or((0.0, 0.0));
         let held = (view.ui.buttons & 1 != 0) as i64;
-        self.out.send(Outgoing::Mouse { state: [held, x.round() as i64, y.round() as i64] });
+        self.out.send(Outgoing::Mouse { app, state: [held, x.round() as i64, y.round() as i64] });
     }
 
     fn hit(&mut self, app: Id, x: f32, y: f32) -> Option<Hit> {

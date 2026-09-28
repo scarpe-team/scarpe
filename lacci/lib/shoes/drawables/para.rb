@@ -172,7 +172,10 @@ class Shoes
     end
 
     # Set the text cursor position.
-    # Accepts integer (character position), :marker (jump to marker), or nil (remove cursor).
+    # Accepts integer (character position), :marker, or nil (remove the cursor and the marker).
+    # :marker is Shoes 3.1's "drop the selection": with a marker set, the caret goes to the
+    # start of the selection and the marker is cleared; with none, nothing changes
+    # (s3t_textblock.c:602-616, ledger F14). Editors call it after every edit.
     # String/symbol values set the CSS cursor style directly (via Shoes style prop_change).
     #
     # @param val [Integer, Symbol, String, nil] the new cursor value
@@ -181,9 +184,13 @@ class Shoes
       when Integer
         self.text_cursor = val
       when :marker
-        self.text_cursor = @text_marker if @text_marker
+        if @text_marker
+          self.text_cursor = [@text_cursor, @text_marker].compact.min
+          self.text_marker = nil
+        end
       when nil
         self.text_cursor = nil
+        self.text_marker = nil
       else
         # For CSS cursor types (:text, :arrow, etc.), set the cursor style directly
         # We can't call super because method_missing would redefine cursor= on Para
@@ -220,23 +227,44 @@ class Shoes
       [start, len]
     end
 
-    # Hit-test: given pixel coordinates, return the character index at that position.
-    # The display service pre-computes this on mouse events for paras with cursor mode.
+    # The index of the character under (x, y), window coordinates as every click hands them
+    # out (ledger H3), or nil off the text block: Shoes 3.1's TextBlock#hit (ledger F14).
+    # A display that lays text out answers; others give the last index the pointer was over.
     #
-    # @param x [Integer] the x coordinate (page-relative)
-    # @param y [Integer] the y coordinate (page-relative)
-    # @return [Integer, nil] the character index, or nil if not over text
+    # @param x [Integer] the x coordinate
+    # @param y [Integer] the y coordinate
+    # @return [Integer, nil] the character index, or nil if not over the text block
     def hit(x, y)
+      display = Shoes::DisplayService.display_service
+      return display.para_hit(linkable_id, x, y) if display.respond_to?(:para_hit)
+
       Shoes::DisplayService.para_hit_cache[linkable_id]
     end
 
-    # Return the vertical position (top) of the cursor in the para.
-    # Useful for scroll tracking in editors.
+    # The top of the caret's line, measured in the slot that scrolls the para, so it compares
+    # with that slot's scroll_top: Shoes 3.1's TextBlock#cursor_top, which editors keep their
+    # caret in view with (ledger F14). 0 when the display cannot say.
     #
     # @return [Integer] the y-coordinate of the cursor position
     def cursor_top
-      Shoes::DisplayService.para_cursor_top_cache[linkable_id] || 0
+      caret("top") || Shoes::DisplayService.para_cursor_top_cache[linkable_id] || 0
     end
+
+    # The caret's left edge, measured as cursor_top is.
+    #
+    # @return [Integer, nil]
+    def cursor_left
+      caret("left")
+    end
+
+    private
+
+    def caret(edge)
+      display = Shoes::DisplayService.display_service
+      display.para_caret(linkable_id)&.fetch(edge, nil) if display.respond_to?(:para_caret)
+    end
+
+    public
 
     protected
 
@@ -252,6 +280,7 @@ class Shoes
     # it as a Shoes style. It won't serialize.
     def update_text_children(children)
       @text_children = children.flatten.map { |child| utf8_text(child) }
+      @text_children.each { |child| child.text_parent = self if child.is_a?(TextDrawable) }
       # This should signal the display drawable to change
       self.text_items = text_children_to_items(@text_children)
     end

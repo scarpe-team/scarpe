@@ -1,0 +1,18 @@
+---
+manual: styles.weight
+lines: [1521, 1537]
+testability: visual
+display: native
+ledger: F5
+----------- app code
+# The manual gives span and the other fragments the text block's styles: weight, family,
+# emphasis and kerning among them. Hackety Hack draws method names in bold spans.
+Shoes.app width: 500, height: 300 do
+  flow { @bold = para span("Weight Watchers", weight: "bold"), size: 20 }
+  flow { @plain = para span("Weight Watchers"), size: 20 }
+  $span = span("x", weight: "bold", family: "Fira Mono", emphasis: "italic", kerning: 2)
+end
+----------- test code
+assert_equal ["bold", "Fira Mono", "italic", 2], %i[weight family emphasis kerning].map { |k| $span.style[k] },
+  "a span keeps weight, family, emphasis and kerning"
+refute_in_delta layout_of(para("@plain")).w, layout_of(para("@bold")).w, 1, "and a bold span is drawn bold"

@@ -33,6 +33,18 @@ class PeekDragTest < Minitest::Test
     assert_operator text[/moves=(\d+)/, 1].to_i, :>=, 3, "and the pointer moved through them"
   end
 
+  # A handler that raises a SyntaxError (a ScriptError, not a StandardError) fails the run: it
+  # skipped the steps after it and still exited 0 (the w9 learner lane, eval'ing a child's code).
+  def test_a_syntax_error_in_a_clicked_handler_fails_the_run
+    run = run_real(<<~APP, argv: ->(app) { ["peek", app, "--click", "Go", "--layout"] })
+      Shoes.app(width: 200, height: 100) do
+        button("Go") { eval("alert 'unfinished") }
+      end
+    APP
+    refute run.status.success?, run.stdout
+    assert_match(/peek: SyntaxError/, run.stderr)
+  end
+
   def test_peek_wants_two_points_to_drag
     run = run_real("Shoes.app { para 'hi' }", argv: ->(app) { ["peek", app, "--drag", "10,10"] })
     refute run.status.success?

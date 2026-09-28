@@ -84,9 +84,10 @@ class Shoes::SubscriptionItem < Shoes::Drawable
     when "keypress"
       # Keypress passes the key string or symbol to the handler.
       # The display service sends special keys prefixed with ":" (e.g. ":left"),
-      # which we convert to Ruby symbols (:left). Regular characters stay as strings.
+      # which we convert to Ruby symbols (:left). Regular characters stay as strings,
+      # the colon key's own ":" among them.
       @unsub_id = bind_self_event("keypress") do |key|
-        if key.is_a?(String) && key.start_with?(":")
+        if key.is_a?(String) && key.start_with?(":") && key.length > 1
           @callback&.call(key[1..].to_sym)
         else
           @callback&.call(key)
@@ -137,6 +138,20 @@ class Shoes::SubscriptionItem < Shoes::Drawable
   # Whether this subscription is currently stopped.
   def stopped?
     !!self.stopped
+  end
+
+  # Shoes 3 keeps one handler per slot per event (EVENT_HANDLER stores a single proc,
+  # s3_canvas.c:934-955), so a slot given a second click or keypress block drops the first
+  # (ledger H6). Clear keeps a slot's handlers (H9), so a slot rebuilt with a fresh one,
+  # as Hackety Hack's editor is for every program it opens, would otherwise hear each key
+  # once per rebuild.
+  def replace_earlier_handlers
+    Array(parent&.children).dup.each do |sibling|
+      next if sibling.equal?(self) || !sibling.is_a?(Shoes::SubscriptionItem)
+
+      sibling.destroy if sibling.shoes_api_name == shoes_api_name
+    end
+    self
   end
 
   def destroy

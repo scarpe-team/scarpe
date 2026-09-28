@@ -1,0 +1,22 @@
+---
+manual: events.keypress
+lines: [2207, 2237]
+testability: interactive
+display: native
+ledger: H6
+----------- app code
+# A slot keeps one keypress block, as Shoes 3 keeps one handler per slot per event: giving it
+# another replaces the first. Hackety Hack's editor rebuilds its slot with clear and a fresh
+# keypress for every program it opens; with both kept, each key was typed twice.
+$seen = []
+Shoes.app do
+  @editor = stack do
+    keypress { |k| $seen << "first #{k}" }
+  end
+  @editor.clear do
+    keypress { |k| $seen << "second #{k}" }
+  end
+end
+----------- test code
+press_key "a"
+assert_equal ["second a"], $seen, "only the slot's latest keypress block hears the key"

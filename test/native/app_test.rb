@@ -157,6 +157,35 @@ class AppTest < Minitest::Test
     assert_match(%r{The end of its stderr:.*\nthread 'main' panicked at src/paint.rs:7:5}, run.stderr)
   end
 
+  # Shoes 3 sends every slot its finish as the window closes: the window's own slot first
+  # (shoes_app_remove, s3_app.c:107-114), then each slot as it is removed, after its children
+  # (s3_canvas.c:481-495), hidden ones too. Hackety Hack saves the child's program from there,
+  # so closing its window with the red button lost the program.
+  def test_closing_a_window_sends_every_slot_its_finish
+    run = run_app(<<~RUBY, script: CLOSE_ON_RUN)
+      Shoes.app do
+        finish { puts "the window's own slot" }
+        @side = stack(hidden: true) do
+          stack { finish { puts "inside it" } }
+        end
+        @side.finish { |slot| puts "the hidden stack, handed a \#{slot.class}" }
+      end
+    RUBY
+    assert_clean_exit(run)
+    assert_equal "the window's own slot\ninside it\nthe hidden stack, handed a Shoes::Stack\n", run.stdout
+  end
+
+  def test_an_app_that_closes_itself_finishes_its_slots_once
+    run = run_app(<<~RUBY)
+      Shoes.app do
+        stack { finish { puts "finished" } }
+        timer(0.05) { close }
+      end
+    RUBY
+    assert_clean_exit(run)
+    assert_equal "finished\n", run.stdout
+  end
+
   def test_a_child_that_closes_its_last_window_and_exits_has_not_crashed
     run = run_app(<<~RUBY, script: [{ "on" => "run", "emit" => [{ "t" => "closed", "app" => "first" }], "exit" => 0 }])
       Shoes.app { para "hi" }

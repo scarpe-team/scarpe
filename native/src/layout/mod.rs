@@ -196,6 +196,7 @@ pub fn layout(inputs: Inputs, root: Id, size: (f32, f32)) -> Layout {
         out: Layout { size, root, ..Layout::default() },
         attached: Vec::new(),
         depth: 0,
+        row_floor: None,
     };
     engine.text.begin_layout(root);
     engine.root(root, size);
@@ -213,6 +214,9 @@ struct Engine<'a> {
     attached: Vec<(Id, Attach)>,
     /// How many slots (and shape blocks) deep the node being placed sits.
     depth: usize,
+    /// The height a slot about to be placed in a flow reaches down to at least: the bottom of
+    /// what came before it on its row (ledger C16). Taken by the next slot.
+    row_floor: Option<f32>,
 }
 
 #[derive(Clone, Copy)]
@@ -373,12 +377,19 @@ impl Engine<'_> {
         let mut width = self.width_for(node, flow, parent, remaining, &m);
         let overflows = cursor.x + m.horizontal() + width > content.w + 0.5;
         if flow && cursor.x > 0.0 && overflows {
+            if let Some((rich, wanted)) = self.line_beside(node, &m, width, content, cursor) {
+                return self.place_line(node, &rich, wanted, &m, content, cursor, parent);
+            }
             cursor.new_row();
             width = self.width_for(node, flow, parent, content.w, &m);
         }
         let x = content.x + cursor.x + m.left;
         let y = content.y + cursor.y + m.top;
+        // A slot with no height of its own beside what came before it on the row reaches down to
+        // the bottom of that, as Shoes 3 grows it to its parent's end (s3_canvas.c:639-642).
+        self.row_floor = (flow && cursor.x > 0.0 && node.kind.is_slot()).then(|| cursor.row_h - m.vertical());
         let h = self.place_box(node, x, y, width, parent, &m);
+        self.row_floor = None;
         if flow {
             cursor.x += m.horizontal() + width;
             cursor.row_h = cursor.row_h.max(m.vertical() + h);
@@ -414,14 +425,7 @@ impl Engine<'_> {
         let closing_newline = rich.runs.last().is_some_and(|run| run.text.ends_with('\n'));
         loop {
             if one_line && wanted <= full - cursor.x + 0.5 {
-                // One line beside what came before, as wide as its text.
-                let shaped = self.text.shape(rich, Some(wanted.max(1.0)));
-                let rect = Rect::new(content.x + cursor.x + m.left, content.y + cursor.y + m.top, wanted, shaped.height);
-                self.put_text(node, shaped, rect, parent);
-                cursor.row_h = cursor.row_h.max(m.vertical() + rect.h);
-                cursor.content_bottom = cursor.content_bottom.max(rect.bottom() - content.y);
-                cursor.x = carry_on(rect.right() - content.x, &m);
-                return;
+                return self.place_line(node, rich, wanted, &m, content, cursor, parent);
             }
             let shaped = if cursor.x > 0.0 {
                 if overhangs(cursor, rich, &m) {
@@ -439,10 +443,10 @@ impl Engine<'_> {
                 self.text.shape(rich, Some(full.max(1.0)))
             };
             let (mut last_top, last_w) = shaped.buffer.layout_runs().last().map(|run| (run.line_top, run.line_w)).unwrap_or_default();
-            let mut height = shaped.height;
-            if closing_newline {
+            // The shaped height already counts the empty line under a closing newline.
+            let height = shaped.height;
+            if shaped.closing_newline {
                 last_top += rich.line_height;
-                height += rich.line_height;
             }
             let rect = Rect::new(content.x + m.left, content.y + cursor.y + m.top, full, height);
             self.put_text(node, shaped, rect, parent);
@@ -456,6 +460,37 @@ impl Engine<'_> {
             cursor.x = if closing_newline { 0.0 } else { carry_on(m.left + last_w, &m) };
             return;
         }
+    }
+
+    /// One line of text beside what came before on the line, as wide as its text; what follows
+    /// carries on after it.
+    #[allow(clippy::too_many_arguments)]
+    fn place_line(&mut self, node: &Node, rich: &RichText, wanted: f32, m: &Edges, content: Rect, cursor: &mut Cursor, parent: (f32, f32)) {
+        let shaped = self.text.shape(rich, Some(wanted.max(1.0)));
+        let rect = Rect::new(content.x + cursor.x + m.left, content.y + cursor.y + m.top, wanted, shaped.height);
+        self.put_text(node, shaped, rect, parent);
+        cursor.row_h = cursor.row_h.max(m.vertical() + rect.h);
+        cursor.content_bottom = cursor.content_bottom.max(rect.bottom() - content.y);
+        cursor.x = carry_on(rect.right() - content.x, m);
+    }
+
+    /// A text block with a width of its own, or trimmed, that is too wide as a box for the
+    /// rest of the line but whose text fits there on one line, and inside its own width after
+    /// what came before. Shoes 3 starts such a block at the flow's left edge with its first line
+    /// indented past what came before (s3t_textblock.c:125-145), and one line shrinks to its
+    /// text (:207-210), so it sits on the line instead of starting a row (ledger C7). Hackety
+    /// Hack puts every program's and lesson's name beside its icon this way.
+    fn line_beside(&mut self, node: &Node, m: &Edges, width: f32, content: Rect, cursor: &Cursor) -> Option<(RichText, f32)> {
+        if !is_text(node) || node.props.has("height") {
+            return None;
+        }
+        let rich = rich::resolve_block(self.doc, &self.text.fonts, node.id)?;
+        if rich.align != rich::Align::Left || rich.runs.iter().any(|run| run.text.contains('\n')) {
+            return None;
+        }
+        let wanted = self.text.max_content(&rich);
+        let room = (content.w - m.horizontal()).min(width) - cursor.x;
+        (wanted <= room + 0.5).then_some((rich, wanted))
     }
 
     /// Records a text block's box and its shaped text.
@@ -554,12 +589,13 @@ impl Engine<'_> {
 
     /// A slot: its children, then its decor and positioned children, then scrolling.
     fn slot(&mut self, node: &Node, frame: Rect, explicit_h: Option<f32>, parent: (f32, f32)) -> f32 {
+        let floor = self.row_floor.take().unwrap_or(0.0);
         let padding = node.props.padding(frame.w);
         let content = Rect::new(frame.x + padding.left, frame.y + padding.top, (frame.w - padding.horizontal()).max(0.0), 0.0);
         let avail_h = explicit_h.map(|h| (h - padding.vertical()).max(0.0)).unwrap_or(parent.1);
         let flow = matches!(node.kind, Kind::Flow | Kind::DocumentRoot | Kind::Widget | Kind::Mask);
         let (used, later) = self.children(node.id, flow, content, avail_h);
-        let h = explicit_h.unwrap_or(used + padding.vertical());
+        let h = explicit_h.unwrap_or((used + padding.vertical()).max(floor));
         let slot_box = Rect::new(frame.x, frame.y, frame.w, h);
         self.record(node, slot_box, parent);
         self.out.content_heights.insert(node.id, used + padding.vertical());
@@ -599,7 +635,7 @@ impl Engine<'_> {
     /// paint::shapes draws it; so the member boxes turn with the group.
     fn place_art(&mut self, node: &Node, content: Rect) {
         let Some(frame) = self.art_frame(node, content) else { return };
-        let transform = shapes::art_transform(&node.props, frame);
+        let transform = shapes::art_transform(node, frame);
         if !transform.is_identity() {
             self.turn_art(node.id, transform);
         }
@@ -659,7 +695,8 @@ impl Engine<'_> {
         // Positioned text shrinks to fit what is left of the slot, like CSS absolute.
         let remaining = frame.w - dim("left", frame.w).unwrap_or(0.0);
         let w = self.width_for(node, true, (frame.w, avail_h), remaining, &m);
-        let x = match (dim("left", frame.w), dim("right", frame.w)) {
+        // A negative right or bottom lies past the slot's edge, as in Shoes 3 (dim::position).
+        let x = match (dim("left", frame.w), p.position("right", frame.w)) {
             (Some(left), _) => frame.x + left + m.left,
             (None, Some(right)) => frame.right() - right - w - m.right,
             (None, None) => frame.x + m.left,
@@ -668,8 +705,13 @@ impl Engine<'_> {
         let y = frame.y + top.unwrap_or(0.0) + m.top;
         let h = self.place_box(node, x, y, w, (frame.w, avail_h), &m);
         if top.is_none() {
-            if let Some(bottom) = dim("bottom", frame.h) {
-                let dy = frame.bottom() - bottom - h - m.bottom - y;
+            if let Some(bottom) = p.position("bottom", frame.h) {
+                // A slot with no height of its own is placed by its margins alone, its top
+                // `bottom` and its margins above the slot's foot, as Shoes 3 places a canvas
+                // whose height it does not know yet (shoes_place_decide: dh is the margins, and
+                // th = place->h, s3_ruby.c:434-436, 511-525; ledger C10).
+                let measured = if node.kind.is_slot() && !p.has("height") { 0.0 } else { h };
+                let dy = frame.bottom() - bottom - measured - m.bottom - y;
                 self.translate_subtree(node.id, 0.0, dy);
             }
         }
@@ -835,18 +877,31 @@ fn decor_box(node: &Node, slot: Rect) -> Rect {
     let m = p.margins(slot.w);
     let area = Rect::new(slot.x + m.left, slot.y + m.top, (slot.w - m.horizontal()).max(0.0), (slot.h - m.vertical()).max(0.0));
     let edge = |key: &str, basis: f32| p.dim(key).map(|d| d.resolve(basis));
-    let (left, right) = (edge("left", area.w), edge("right", area.w));
-    let (top, bottom) = (edge("top", area.h), edge("bottom", area.h));
-    let w = edge("width", area.w).unwrap_or(area.w - left.unwrap_or(0.0) - right.unwrap_or(0.0)).max(0.0);
-    let h = edge("height", area.h).unwrap_or(area.h - top.unwrap_or(0.0) - bottom.unwrap_or(0.0)).max(0.0);
+    let (left, right) = (edge("left", area.w), p.position("right", area.w));
+    let (top, bottom) = (edge("top", area.h), p.position("bottom", area.h));
+    let (given_w, given_h) = (edge("width", area.w), edge("height", area.h));
+    let w = given_w.unwrap_or(area.w - left.unwrap_or(0.0) - right.unwrap_or(0.0)).max(0.0);
+    let h = given_h.unwrap_or(area.h - top.unwrap_or(0.0) - bottom.unwrap_or(0.0)).max(0.0);
+    // Placed from the far edge with a size of its own, a colour or a gradient keeps its near side
+    // `right` (or `bottom`) px and one more in from that edge: Shoes 3 measures a tile's offset
+    // against the pattern's own size, which is 1 for anything but a picture (PATTERN_DIM,
+    // shoes/types/pattern.h; shoes_place_decide keeps tw and th for REL_TILE, s3_ruby.c:514-520).
+    // So `background ..., height: 150, bottom: 150` runs along the foot, and the manual's
+    // `width: 50, right: 50` is "a fifty pixel column on the right-side" (ledger M19). A picture
+    // keeps its size as the one it is measured by.
+    let key = if node.kind == Kind::Border { "stroke" } else { "fill" };
+    let own = match p.paint(key) {
+        Some(crate::style::color::Paint::Image(_)) => None,
+        _ => Some(1.0),
+    };
     let x = match (left, right) {
         (Some(left), _) => left,
-        (None, Some(right)) => area.w - right - w,
+        (None, Some(right)) => area.w - right - given_w.and(own).unwrap_or(w),
         (None, None) => 0.0,
     };
     let y = match (top, bottom) {
         (Some(top), _) => top,
-        (None, Some(bottom)) => area.h - bottom - h,
+        (None, Some(bottom)) => area.h - bottom - given_h.and(own).unwrap_or(h),
         (None, None) => 0.0,
     };
     Rect::new(area.x + x, area.y + y, w, h)

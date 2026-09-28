@@ -1,0 +1,17 @@
+---
+manual: events.keypress
+lines: [2207, 2237]
+testability: interactive
+display: native
+----------- app code
+# Special keys travel with a leading colon (":left") and arrive as Symbols; the colon key
+# itself is a character like any other. Hackety Hack's editor types Ruby symbols with it.
+Shoes.app do
+  @info = para "none"
+  keypress { |k| @info.replace k.inspect }
+end
+----------- test code
+type_text ":"
+assert_equal '":"', para("@info").text, "the colon key arrives as the String \":\""
+press_key :left
+assert_equal ":left", para("@info").text, "and a special key still arrives as a Symbol"

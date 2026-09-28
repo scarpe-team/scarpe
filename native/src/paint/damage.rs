@@ -443,7 +443,7 @@ pub fn paint_bounds(node: &Node, lbox: &LBox, text: Option<&TextBox>) -> Option<
             // points reach past it by `reach`, and turn, scale and skew with the art: along x
             // by |sx| + |kx| of that, along y by |ky| + |sy|.
             let reach = p.art_f32("strokewidth").unwrap_or(1.0).abs() + 2.0 + super::shapes::overhang(node);
-            let t = super::shapes::art_transform(p, lbox.rect);
+            let t = super::shapes::art_transform(node, lbox.rect);
             (reach * (t.sx.abs() + t.kx.abs()), reach * (t.ky.abs() + t.sy.abs()))
         }
         Kind::Image if p.f32("rotate_angle").is_some_and(|deg| deg != 0.0) => return None,
