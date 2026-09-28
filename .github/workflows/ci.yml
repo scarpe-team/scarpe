@@ -35,9 +35,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+      # nokogiri builds from source here, unpacking libxml2 with xzcat (native.yml says more).
+      - name: xzcat for nokogiri's source build
+        run: command -v xzcat || brew install xz
       - name: Setup Ruby and install gems
         uses: ruby/setup-ruby@v1
         with:
+          # Not .ruby-version's 3.2.0: clang 21 (Xcode 26, on macos-26) warns inside Ruby
+          # 3.2.0's own headers, nokogiri's configure checks run with -Werror, and a cold
+          # bundle then fails to install. 3.2.11 fixed the header.
+          ruby-version: "3.2"
           bundler-cache: true
       - name: Run Lacci tests
         run: CI_RUN='true' bundle exec rake lacci_test
