@@ -78,6 +78,20 @@ class Shoes::Slot < Shoes::Drawable
     @app.gutter
   end
 
+  # How far the slot is scrolled down, in pixels: 0 until it scrolls (manual 2455-2458).
+  # A flow scrolls as a stack does; Hackety Hack's editor keeps its caret in view in one.
+  #
+  # @return [Integer]
+  def scroll_top
+    @scroll_top || 0
+  end
+
+  # Scroll the slot to top, which should lie between 0 and scroll_max (manual 2460-2463).
+  def scroll_top=(top)
+    @scroll_top = top.to_i
+    send_self_event(top.to_i, event_name: "scroll_top")
+  end
+
   # We use method_missing for drawable-creating methods like "button".
   # The parent's method_missing will auto-create Shoes style getters and setters.
   # This is similar to the method_missing in Shoes::App, but differs in where
