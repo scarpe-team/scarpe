@@ -194,8 +194,9 @@ where to look when a double-click shows nothing.
 - A Ruby runtime with YJIT.
 - Bytecode for an app run from somewhere other than `--install-dir` (it loads source there). A
   per-user cache compiled on first launch, bootsnap-style, would cover it.
-- LaunchServices identity: the window belongs to `scarpe-native`, a child of the launcher. Dock
-  name and icon for a double-clicked app were not checked, since that needs `open`.
+- LaunchServices identity: the window belongs to `scarpe-native`, a child of the launcher. Opened
+  with `open` on 28 Sep 2026, ZARKING (Rust) checked in under its bundle name and id
+  (`lsappinfo list`), frontmost; its Dock icon was not looked at.
 - Like the webview packager, the app file, the pictures and sounds beside it and the `images`,
   `assets`, `fonts` and `sounds` folders are copied on their own; any other file or folder the
   app reads, `.rb` files it requires included, needs an `--include`.
