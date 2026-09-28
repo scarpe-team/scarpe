@@ -70,6 +70,7 @@ class MoleSounds
 
   def initialize
     @dir = Dir.mktmpdir("peekaboo-moles")
+    at_exit { FileUtils.rm_rf(@dir) } # the sounds are only kept while the app runs
     @files = {}
     @started = [] # when recent sounds began, in seconds of game time
   end

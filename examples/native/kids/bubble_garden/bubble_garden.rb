@@ -16,6 +16,7 @@
 # any bubbles together sound sweet. Each is worked out once, written to a
 # little WAV file and played with afplay.
 
+require "fileutils"
 require "tmpdir"
 
 W, H = 960, 640
@@ -68,6 +69,7 @@ class GardenSounds
 
   def initialize
     @dir = Dir.mktmpdir("bubble-garden")
+    at_exit { FileUtils.rm_rf(@dir) } # the sounds are only kept while the app runs
     @files = {}
     @started = [] # when recent sounds began, in seconds of garden time
   end
