@@ -1027,8 +1027,10 @@ Shoes.app(title: "Shape Sorter", width: W, height: H, resizable: false) do
   @last_key = -1.0
   @escape_last = -9.0
   @escape_repeats = 0
-  font_file = [File.join(__dir__, "fonts", "Fredoka.ttf"), File.join(__dir__, "..", "_fonts", "Fredoka.ttf")]
-    .find { |file| File.exist?(file) }
+  # Fredoka beside the app, in fonts/ or _fonts/ (where a packaged app carries it), or in the
+  # Kids folder's shared _fonts, as the other Kids apps look.
+  font_file = [["Fredoka.ttf"], ["fonts", "Fredoka.ttf"], ["_fonts", "Fredoka.ttf"], ["..", "_fonts", "Fredoka.ttf"]]
+    .map { |parts| File.join(__dir__, *parts) }.find { |file| File.exist?(file) }
   rounded_font = font_file && font(font_file) ? "Fredoka" : "Avenir Next, Helvetica Neue, sans-serif"
 
   # the playroom: a soft wall, a few bubbles of light, and the table
