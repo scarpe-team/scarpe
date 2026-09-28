@@ -702,7 +702,9 @@ change the code and this list together.
 - **`para_hit {id, value}`** is sent while the pointer moves over a para (the character index), and
   with `value: null` when it leaves.
 - **Focus.** Text fields show a focus ring whenever focused; buttons, checks, radios and list boxes
-  only when focus came from the keyboard (tab or a `focus` message). On a focused list box Up and
+  only when focus came from the keyboard (tab or a `focus` message), and only then do they take
+  keys: one the mouse pressed leaves Space, Return and the arrows to `keypress`, as a Mac's controls
+  do (28 Sep 2026, ledger G9). Text fields draw `font:`'s family, size, weight and slant (G11). On a focused list box Up and
   Down choose the previous and next item without opening the popup (manual 3221-3224); Return and
   Space open it.
 - **`state: "disabled"`** greys a control out and it ignores the pointer, keys and tab;
