@@ -90,6 +90,7 @@ module Scarpe::Native
       display.attach_to(display_drawable(parent_id), index)
       set_drawable_pairing(id, display)
 
+      @layout_owed = true
       message = { t: "create", id: id, kind: kind, parent: parent_id, index: index, widget: is_widget, props: props }
       if kind == "App"
         message[:doc_root] = id + 1
@@ -171,7 +172,21 @@ module Scarpe::Native
     end
 
     def fire_timers
-      timers.fire_due(clock.now) { |event, id, args| dispatch_from_child(event, id, args) }
+      now = clock.now
+      settle_layout if @layout_owed && timers.next_turn_due?(now)
+      timers.fire_due(now) { |event, id, args| dispatch_from_child(event, id, args) }
+    end
+
+    # A timer(0) runs once what was made before it is laid out, as Shoes 3 draws before it
+    # fires a timer: Hackety Hack's tooltips make a para, then size their background to it in a
+    # timer(0). Rust lays out whatever it was sent before it answers any request, and says
+    # where things landed first, so a ping and the messages before its answer settle it.
+    def settle_layout
+      @layout_owed = false
+      answer(:ping)
+      until (messages = child.messages).empty?
+        messages.each { |message| receive(message) }
+      end
     end
 
     def dispatch_heartbeat
@@ -276,6 +291,7 @@ module Scarpe::Native
       changes = changes.to_h.transform_keys(&:to_s)
       props = Normalize.props(display.kind, changes)
       display.update(props)
+      @layout_owed = true
       child.post(t: "props", id: id, props: props)
       # A Flow's scroll_top= arrives as a prop change instead of the scroll_top event.
       child.post(t: "scroll_to", id: id, top: Normalize.value(changes["scroll_top"])) if changes.key?("scroll_top")
@@ -288,6 +304,7 @@ module Scarpe::Native
       display = display_drawable(id)
       return close_app(id) if display&.kind == "App" # App#close, while another window stays open
 
+      @layout_owed = true
       child.post(t: "destroy", id: id)
       return unless display
 
@@ -311,6 +328,7 @@ module Scarpe::Native
     def reparent(id, parent_id)
       index = index_in_parent(id)
       display_drawable(id)&.attach_to(display_drawable(parent_id), index)
+      @layout_owed = true
       child.post(t: "reparent", id: id, parent: parent_id, index: index)
     end
 

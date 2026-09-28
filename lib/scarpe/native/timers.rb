@@ -96,6 +96,12 @@ module Scarpe::Native
       end
     end
 
+    # Whether a timer set to run on the next turn of the loop (timer(0) and anything under a
+    # millisecond) is due by now.
+    def next_turn_due?(now)
+      running.any? { |t| t.interval <= SHORTEST_INTERVAL && t.due_at <= now + EPSILON }
+    end
+
     private
 
     def running
