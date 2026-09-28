@@ -435,10 +435,10 @@ impl Engine<'_> {
                 self.text.shape(rich, Some(full.max(1.0)))
             };
             let (mut last_top, last_w) = shaped.buffer.layout_runs().last().map(|run| (run.line_top, run.line_w)).unwrap_or_default();
-            let mut height = shaped.height;
-            if closing_newline {
+            // The shaped height already counts the empty line under a closing newline.
+            let height = shaped.height;
+            if shaped.closing_newline {
                 last_top += rich.line_height;
-                height += rich.line_height;
             }
             let rect = Rect::new(content.x + m.left, content.y + cursor.y + m.top, full, height);
             self.put_text(node, shaped, rect, parent);

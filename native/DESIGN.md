@@ -817,7 +817,10 @@ change the code and this list together.
   `strong(Time.now)` every tick stays bounded, and `@p.replace(@bold)` still finds `@bold`.
 - **Para `cursor` and `marker`** count from the end when negative (`-1` sits after the last
   character, as Shoes 3 editors use it). The caret takes the text's colour, so it shows on dark
-  backgrounds.
+  backgrounds. Text that ends in a newline has an empty line under it, as Pango lays it out: it
+  counts in the text's height, a caret after the newline sits at that line's start, and
+  `para_hit` on it names the place after the newline (cosmic-text keeps no line there, so
+  `ShapedText::closing_newline` stands in for it).
 - **Screen readers** (`src/a11y.rs`, ledger N1). Scarpe draws its own controls (Nick, 27 Sep 2026:
   "our buttons are OUR buttons"), so it tells screen readers what they are, through AccessKit. The
   tree follows the document: the window (named by the App's title) holds the laid-out slots as

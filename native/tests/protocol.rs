@@ -787,6 +787,36 @@ fn a_paras_caret_is_measured_in_the_slot_that_scrolls_it() {
     assert_eq!(h.value(json!({"op": "para_caret", "id": 4}))["top"].as_i64().unwrap(), lower, "scrolling does not move it");
 }
 
+/// After Return at the end of the text the caret sits at the start of the new, empty line under
+/// it, where Pango puts it and where the next letter goes (Hackety Hack's editor, the fidelity
+/// lane's caret strip). cosmic-text keeps no line for a closing newline, so the caret was drawn
+/// at the end of the line above.
+#[test]
+fn a_caret_after_a_closing_newline_sits_at_the_start_of_the_next_line() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "Stack", 2, json!({"width": 280})),
+        create(4, "Para", 3, json!({"text_items": ["x = [1, 2]\n"], "size": 10, "text_cursor": 0})),
+    ]));
+    let at = |h: &mut Harness| {
+        let c = h.value(json!({"op": "para_caret", "id": 4}));
+        (c["left"].as_i64().unwrap(), c["top"].as_i64().unwrap(), c["height"].as_i64().unwrap())
+    };
+    let (left, top, height) = at(&mut h);
+    h.feed(&json!({"t": "props", "id": 4, "props": {"text_cursor": 10}}).to_string());
+    let (end_left, end_top, _) = at(&mut h);
+    assert!(end_left > left + 30 && end_top == top, "before the newline, the end of the first line: {end_left},{end_top}");
+    h.feed(&json!({"t": "props", "id": 4, "props": {"text_cursor": 11}}).to_string());
+    let (next_left, next_top, next_height) = at(&mut h);
+    assert_eq!(next_left, left, "after it, back at the start of a line");
+    assert!(next_top >= top + height, "on the line below: {next_top} under {top}+{height}");
+    assert_eq!(next_height, height, "a line as tall as the first");
+    let para = h.node(|n| n["id"] == 4);
+    let (x, y) = (para["x"].as_f64().unwrap(), para["y"].as_f64().unwrap());
+    let hit = h.value(json!({"op": "para_hit", "id": 4, "x": x + 2.0, "y": y + height as f64 + 4.0}));
+    assert_eq!(hit, json!(11), "and a point on that empty line names the place after the newline");
+}
+
 /// Shoes 3 runs a slot's click block as the press walks down the canvas to what it lands on,
 /// and the block of the shape that takes the press after that (shoes_canvas_send_click2): a
 /// press on a clickable stack over a clickable rect runs the stack's, then the rect's. Rust
