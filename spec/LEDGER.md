@@ -91,7 +91,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | C12 | Paint order: backgrounds are layered elements | MANUAL | | |
 | C13 | A fixed height clips the slot | MANUAL | | |
 | C14 | An explicit width or height includes the margins | S3, ruled (Q9) | | |
-| C15 | A negative `left` or `top` on art is a plain coordinate | S3 | | |
+| C15 | A number on art is a plain coordinate, negative or under 1 | S3; MANUAL for Floats | | |
 
 ### D. Colours and patterns
 
@@ -539,6 +539,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** passes the number through. Oval, arc and arrow declare clamping validators for `left`, `top`, `width` and `height`, but none of them runs: `validate_as` takes the base Drawable's declaration of those names first, so `Shoes::Oval.validate_as(:left, -30)` is -30.
 - **Spec:** `styles.left__art_negative` (both displays): an oval, arc, arrow and rect keep a negative `left` and `top` as given. `styles.left__art_negative__drawn` (native): `oval -30, 50, 100` has its box at x = -30 and shows its right half at the window's left edge.
 - **Native:** since wave 5 (`b52957b`, `shapes::coordinate`) art's `left` and `top`, a line's ends and a shape block's origin read a negative number as a plain coordinate: the example above lays out at `#3 Oval -30,50`. Before, it read as that far in from the slot's far edge (`#3 Oval 270,50`), the dimension rule every other element keeps. Fractions and percentages stay relative to the slot.
+- **Extended 28 Sep 2026 (wave 6), ruling MANUAL for Floats:** every number on art is pixels, Floats between 0 and 1 included, and a size too (`width`, `height`); only a percentage String is of the slot, and a negative size keeps the dimension rule. The manual draws an oval "at pixel coordinates (left, top)" with a width "of `radius` pixels" (manual 1716-1722), and Shoes 3 reads every art number as whole pixels (`shoes_place_exact`, `ATTR2(int, ...)`, `s3_ruby.c:385-392`). Two of the four wave-6 app lanes met the fraction reading on their own: Weather Window's rain streaks stretched across the glass whenever a drop passed x = 0.5, Aquarium's kelp drew a chevron into the castle, and a star of diameter 0.8 filled 80% of the slot; both apps carried a `px` helper to keep art off (0, 1]. C1 still rules every other element: `stack(width: 0.5)` is half its parent. **Spec:** `art.oval.positional__float_pixels` (native). **Native:** `shapes::coordinate` and `shapes::size`; `oval 0.5, 0.5, 12, center: true` lays out at (-5.5, -5.5), where it read (144, 94).
 
 ## D. Colours and patterns
 

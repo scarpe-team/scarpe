@@ -60,12 +60,21 @@ fn hug_far_edges(node: &Node, origin: (f32, f32), parent: (f32, f32), frame: Rec
 }
 
 /// A coordinate of an art element (`left`, `top`, a line's `x2` and `y2`), from its slot's
-/// content origin. A negative number is a plain coordinate, as in Shoes 3 (shoes_place_exact,
-/// s3_ruby.c:385-392; ruled 27 Sep 2026), so art moves off the left and top edges; elsewhere
-/// it means the slot less that much. A fraction or a percentage is of the slot.
+/// content origin. Any number is a plain coordinate: the manual draws shapes "at pixel
+/// coordinates" and Shoes 3 reads art in whole pixels (shoes_place_exact, s3_ruby.c:385-392;
+/// ledger C15). So art moves off the left and top edges, and a Float between 0 and 1 sits a
+/// hair from the edge rather than across the slot, which art animated through the corner
+/// passes on its way. Only a percentage is of the slot.
 fn coordinate(p: &Props, key: &str, basis: f32) -> Option<f32> {
+    p.get(key).and_then(crate::style::dim::parse_number).or_else(|| p.dim(key).map(|d| d.resolve(basis)))
+}
+
+/// A size of an art element (`width`, `height`): a number of pixels, as for its coordinates,
+/// so a shape that shrinks through 1 px stays small (ledger C15). A percentage is of the slot,
+/// and a negative number the slot less that much, as for every element (DESIGN 6).
+fn size(p: &Props, key: &str, basis: f32) -> Option<f32> {
     match p.get(key).and_then(crate::style::dim::parse_number) {
-        Some(n) if n < 0.0 => Some(n),
+        Some(n) if n >= 0.0 => Some(n),
         _ => p.dim(key).map(|d| d.resolve(basis)),
     }
 }
@@ -73,7 +82,7 @@ fn coordinate(p: &Props, key: &str, basis: f32) -> Option<f32> {
 /// (box, path, fillable) of an untransformed art element.
 fn geometry(node: &Node, origin: (f32, f32), parent: (f32, f32)) -> Option<(Rect, Path, bool)> {
     let p = &node.props;
-    let dim = |key: &str, basis: f32| p.dim(key).map(|d| d.resolve(basis));
+    let dim = |key: &str, basis: f32| size(p, key, basis);
     let left = origin.0 + coordinate(p, "left", parent.0).unwrap_or(0.0);
     let top = origin.1 + coordinate(p, "top", parent.1).unwrap_or(0.0);
     // Art that names a near and a far edge and no size runs from one to the other.
