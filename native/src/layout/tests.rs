@@ -681,3 +681,19 @@ fn a_slot_beside_a_taller_one_in_a_flow_reaches_down_to_its_bottom() {
     assert_eq!(r(&l, short).h, 40.0, "the first on its row has nothing to reach down to");
     let _ = under;
 }
+
+#[test]
+fn a_slot_with_no_height_placed_by_bottom_is_measured_by_its_margins() {
+    // Shoes 3 places a canvas it has not drawn yet with dh = its margins (shoes_place_decide,
+    // s3_ruby.c:434-436), so `stack bottom: 26, margin: 4` has its top 26 + 8 px above the foot
+    // and its contents below that: Hackety Hack's Quit tab icon sits at y 524 of 550, as the Mac
+    // 1.0 screenshot has it (523), where native stood the stack on the 26 px line, 24 px higher.
+    let mut s = Scene::new();
+    let tab = s.add("Stack", ROOT, json!({"bottom": 26, "left": 0, "width": 38, "margin": 4}));
+    let icon = s.add("Image", tab, json!({"url": "", "width": 16, "height": 16, "margin": 4}));
+    let sized = s.add("Stack", ROOT, json!({"bottom": 26, "left": 100, "width": 38, "height": 32}));
+    let l = s.layout(790.0, 550.0);
+    assert_eq!(r(&l, tab).y, 550.0 - 26.0 - 8.0 + 4.0, "the stack's box starts inside its margin");
+    assert_eq!(r(&l, icon).y, 524.0, "and its icon four more px down");
+    assert_eq!(r(&l, sized), Rect::new(100.0, 492.0, 38.0, 32.0), "a slot with a height of its own stands on the line");
+}
