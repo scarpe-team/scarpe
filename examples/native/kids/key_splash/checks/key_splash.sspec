@@ -39,6 +39,13 @@ assert_operator loudest, :<=, 32_767 / 4 + 1, "never above a quarter of full vol
 assert heard.(chimes.last_file), "handed to afplay (the suite traps it, so nothing is heard)"
 assert ivar.(:@bits).any? { |bit| bit.motion == :spark }, "sparks fly out of it"
 
+# the very last frame of its fade is invisible, never a black flash (repro key_splash_2)
+b.fading = b.age - FADE
+app.send(:grow, b, 0.0)
+pixel = pixel_at(b.x, b.y - 36)
+assert pixel.first(3).sum > 500, "faded away to the sky, not to black: #{pixel.inspect}"
+b.fading = nil
+
 # a number brings that many stars, one at a time, to count
 press_key "4"
 four = ivar.(:@blooms).last
