@@ -53,11 +53,39 @@ class Shoes
       nil
     end
 
-    # Windows and Unicode names are UTF-16BE; Mac Roman names are near enough ASCII.
+    # Windows and Unicode names are UTF-16BE; Mac Roman names are near enough ASCII. The
+    # UTF-16 is read by hand: a packaged app's Ruby carries no encoding transcoders
+    # (lib/scarpe/package.rb), and there String#encode raised, so font(path) answered nil and
+    # the font never reached the display.
     def decode(bytes, platform)
-      text = platform == 1 ? bytes.force_encoding(Encoding::MACROMAN) : bytes.force_encoding(Encoding::UTF_16BE)
-      name = text.encode(Encoding::UTF_8).strip
-      name.empty? ? nil : name
+      text = platform == 1 ? mac_roman(bytes) : utf_16be(bytes)
+      name = text&.strip
+      name.nil? || name.empty? ? nil : name
+    end
+
+    def utf_16be(bytes)
+      units = bytes.unpack("n*")
+      points = []
+      while (unit = units.shift)
+        points << if unit.between?(0xD800, 0xDBFF) && units.first&.between?(0xDC00, 0xDFFF)
+          0x10000 + ((unit - 0xD800) << 10) + (units.shift - 0xDC00)
+        elsif unit.between?(0xD800, 0xDFFF)
+          0xFFFD # half a pair, alone
+        else
+          unit
+        end
+      end
+      points.pack("U*")
+    end
+
+    # ASCII as it is; anything past it needs Ruby's Mac Roman transcoder, and without one (a
+    # packaged app) the name is skipped, since the same font names itself in UTF-16 too.
+    def mac_roman(bytes)
+      return bytes.dup.force_encoding(Encoding::UTF_8) if bytes.ascii_only?
+
+      bytes.dup.force_encoding(Encoding::MACROMAN).encode(Encoding::UTF_8)
+    rescue EncodingError
+      nil
     end
   end
 end
