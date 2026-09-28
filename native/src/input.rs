@@ -415,7 +415,7 @@ fn covers(doc: &Doc, layout: &Layout, id: Id, x: f32, y: f32) -> bool {
     if !b.rect.contains(x, y) || b.clip.is_some_and(|c| !c.contains(x, y)) {
         return false;
     }
-    !layout.texts.get(&id).is_some_and(|tb| !tb.owns(x, y))
+    layout.texts.get(&id).is_none_or(|tb| tb.owns(x, y))
 }
 
 /// The styled run whose glyphs are under (x, y), if any.
