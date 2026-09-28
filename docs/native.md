@@ -114,6 +114,17 @@ a step failed (a click on something covered, say) or the script never started an
 `--fonts bundled` swaps the system fonts for Inter and Fira Mono, which ship with Scarpe, so a
 picture comes out the same on every machine.
 
+## Where a number puts a slot
+
+Slots, text and images read `left`, `top`, `width` and `height` the way Shoes 3 does, which can
+surprise an app that moves them. A negative whole number counts in from the parent's far edge,
+so `stack(left: -40)` sits 40 px in from the right, and a Float between -1 and 1 is a share of
+the parent, so `left: 0.5` is halfway across. A slot animated through the corner jumps to the far
+side or across the parent. Give a moving slot whole pixels of 0 or more, and draw anything that
+drifts over an edge as art (`rect`, `oval`, `shape` and the rest): art takes every number as
+pixels and goes off the left and top edges as you would expect. DESIGN section 6 has the whole
+rule, and ledger C1 and C15 say why.
+
 ## Screen readers
 
 Scarpe draws its own buttons, fields and text, so no control of the operating system is there to
