@@ -4,12 +4,20 @@ class Shoes
   class App < Shoes::Drawable
     include Shoes::Log
 
+    # An app's block runs with the App as self, so the app's instance variables and Lacci's
+    # live on one object. Lacci's own start with an underscore (@_slots, @_pages), the way a
+    # Rails view keeps @_request and @_routes, so an app can have @slots or @pages of its own.
+
     # The Shoes root of the drawable tree
-    attr_reader :document_root
+    def document_root
+      @_document_root
+    end
 
     # The application directory for this app. Often this will be the directory
     # containing the launched application file.
-    attr_reader :dir
+    def dir
+      @_dir
+    end
 
     # The owner app that spawned this window (if any).
     # In Shoes, when you call `window` from inside an app, the new window's
@@ -63,10 +71,10 @@ class Shoes
       end
 
       # We cd to the app's containing dir when running the app
-      @dir = Dir.pwd
+      @_dir = Dir.pwd
 
-      @do_shutdown = false
-      @event_loop_type = 'displaylib' # the default
+      @_do_shutdown = false
+      @_event_loop_type = 'displaylib' # the default
 
       @features = features
       @owner = owner
@@ -81,17 +89,17 @@ class Shoes
         @log.warn("Shoes app requested unknown features #{unknown_ext.inspect}! Known: #{(Shoes::FEATURES + Shoes::EXTENSIONS).inspect}")
       end
 
-      @slots = []
+      @_slots = []
 
-      @content_container = nil
+      @_content_container = nil
 
-      @routes = {}
+      @_routes = {}
 
       super
 
       # This creates the DocumentRoot, including its corresponding display drawable
       Drawable.with_current_app(self) do
-        @document_root = Shoes::DocumentRoot.new
+        @_document_root = Shoes::DocumentRoot.new
       end
 
       # Now create the App display drawable
@@ -107,23 +115,23 @@ class Shoes
         end
       end
 
-      @app_code_body = app_code_body
+      @_app_code_body = app_code_body
 
       # Try to de-dup as much as possible and not send repeat or multiple
       # destroy events
-      @watch_for_destroy = bind_shoes_event(event_name: 'destroy') do
-        Shoes::DisplayService.unsub_from_events(@watch_for_destroy) if @watch_for_destroy
-        @watch_for_destroy = nil
+      @_watch_for_destroy = bind_shoes_event(event_name: 'destroy') do
+        Shoes::DisplayService.unsub_from_events(@_watch_for_destroy) if @_watch_for_destroy
+        @_watch_for_destroy = nil
         destroy(send_event: false)
       end
 
-      @watch_for_event_loop = bind_shoes_event(event_name: 'custom_event_loop') do |loop_type|
+      @_watch_for_event_loop = bind_shoes_event(event_name: 'custom_event_loop') do |loop_type|
         unless CUSTOM_EVENT_LOOP_TYPES.include?(loop_type)
           raise(Shoes::Errors::InvalidAttributeValueError,
                 "Unknown event loop type: #{loop_type.inspect}!")
         end
 
-        @event_loop_type = loop_type
+        @_event_loop_type = loop_type
       end
 
       Signal.trap('INT') do
@@ -135,9 +143,9 @@ class Shoes
 
     def init
       send_shoes_event(event_name: 'init')
-      return if @do_shutdown
+      return if @_do_shutdown
 
-      with_slot(@document_root, &@app_code_body)
+      with_slot(@_document_root, &@_app_code_body)
       show_root_route_on_first_boot
 
       # Fire any registered start callbacks after the app code has run
@@ -150,10 +158,10 @@ class Shoes
     #
     # @yield the block to call when the app starts
     def start(&block)
-      return current_slot.start(&block) unless current_slot.equal?(@document_root)
+      return current_slot.start(&block) unless current_slot.equal?(@_document_root)
 
-      @start_callbacks ||= []
-      @start_callbacks << block
+      @_start_callbacks ||= []
+      @_start_callbacks << block
     end
 
     # finish inside a slot's block belongs to that slot (ledger H8).
@@ -164,10 +172,10 @@ class Shoes
     private
 
     def fire_start_callbacks
-      return unless @start_callbacks
+      return unless @_start_callbacks
 
-      @start_callbacks.each do |callback|
-        with_slot(@document_root) { instance_eval(&callback) }
+      @_start_callbacks.each do |callback|
+        with_slot(@_document_root) { instance_eval(&callback) }
       end
     end
 
@@ -177,17 +185,17 @@ class Shoes
     # are considered "slots" in Shoes parlance. When a new slot is created,
     # we push it here in order to track what drawables are found in that slot.
     def push_slot(slot)
-      @slots.push(slot)
+      @_slots.push(slot)
     end
 
     def pop_slot
-      return if @slots.size <= 1
+      return if @_slots.size <= 1
 
-      @slots.pop
+      @_slots.pop
     end
 
     def current_slot
-      @slots[-1]
+      @_slots[-1]
     end
 
     # Shoes3 compatibility: app.slot returns the current slot
@@ -198,16 +206,16 @@ class Shoes
     # patterns like HH::SideTab where methods defined on the caller
     # (e.g. `content`) need to be reachable from inside instance_eval'd blocks.
     def push_external_self(obj)
-      @external_self_stack ||= []
-      @external_self_stack.push(obj)
+      @_external_self_stack ||= []
+      @_external_self_stack.push(obj)
     end
 
     def pop_external_self
-      @external_self_stack&.pop
+      @_external_self_stack&.pop
     end
 
     def external_self
-      @external_self_stack&.last
+      @_external_self_stack&.last
     end
 
     def with_slot(slot_item, &block)
@@ -265,22 +273,22 @@ class Shoes
     # However, some display libraries don't want to shut down and don't
     # want to (and/or can't) take control of the event loop.
     def run
-      if @do_shutdown
+      if @_do_shutdown
         warn 'Destroy has already been signaled, but we just called Shoes::App.run!'
         return
       end
 
       # The app block has built the window; from here the window is open.
-      @started = true
+      @_started = true
 
       # The display lib can send us an event to customise the event loop handling.
       # But it must do so before the "run" event returns.
       send_shoes_event(event_name: 'run')
 
-      case @event_loop_type
+      case @_event_loop_type
       when 'wait'
         # Display lib wants us to busy-wait instead of it.
-        Shoes::DisplayService.dispatch_event('heartbeat', nil) until @do_shutdown
+        Shoes::DisplayService.dispatch_event('heartbeat', nil) until @_do_shutdown
       when 'displaylib'
         # If run event returned, that means we're done.
         destroy
@@ -289,23 +297,23 @@ class Shoes
         # Presumably some event loop *outside* our event loop is handling things.
       else
         raise Shoes::Errors::InvalidAttributeValueError,
-              "Internal error! Incorrect event loop type: #{@event_loop_type.inspect}!"
+              "Internal error! Incorrect event loop type: #{@_event_loop_type.inspect}!"
       end
     end
 
     # Whether the window is open: false while the app block is still building it
     # (manual 1006-1010, ledger M26).
     def started?
-      @started ? true : false
+      @_started ? true : false
     end
 
     # The URL of the page on show (manual 980-982, ledger J1). Apps start at "/".
     def location
-      @location || "/"
+      @_location || "/"
     end
 
     def destroy(send_event: true)
-      @do_shutdown = true
+      @_do_shutdown = true
       send_shoes_event(event_name: 'destroy') if send_event
     end
 
@@ -315,7 +323,7 @@ class Shoes
     def close
       return destroy unless Shoes.APPS.any? { |app| !app.equal?(self) && app.started? }
 
-      @do_shutdown = true
+      @_do_shutdown = true
       Shoes.APPS.delete(self)
       send_self_event(event_name: 'destroy')
     end
@@ -323,7 +331,7 @@ class Shoes
     def all_drawables
       out = []
 
-      to_add = [@document_root, @document_root.children]
+      to_add = [@_document_root, @_document_root.children]
       until to_add.empty?
         out.concat(to_add)
         to_add = to_add.flat_map { |w| w.respond_to?(:children) ? w.children : [] }.compact
@@ -387,8 +395,8 @@ class Shoes
     end
 
     def page(name, &block)
-      @pages ||= {}
-      @pages[name] = proc do
+      @_pages ||= {}
+      @_pages[name] = proc do
         stack(width: 1.0, height: 1.0) do
           instance_eval(&block)
         end
@@ -396,18 +404,18 @@ class Shoes
     end
 
     def visit(name_or_path)
-      @location = name_or_path.is_a?(Symbol) ? "/#{name_or_path}" : name_or_path.to_s
+      @_location = name_or_path.is_a?(Symbol) ? "/#{name_or_path}" : name_or_path.to_s
 
       # First, check for exact page match (symbol)
-      if @pages && @pages[name_or_path]
+      if @_pages && @_pages[name_or_path]
         show_page do
-          instance_eval(&@pages[name_or_path])
+          instance_eval(&@_pages[name_or_path])
         end
         return
       end
 
       # Second, check URL routes
-      route, method_name = @routes.find { |r, _| r === name_or_path }
+      route, method_name = @_routes.find { |r, _| r === name_or_path }
       if route
         show_page do
           if route.is_a?(Regexp)
@@ -423,9 +431,9 @@ class Shoes
       # Third, if it's a string path like "/page2", try matching page :page2
       if name_or_path.is_a?(String) && name_or_path.start_with?("/")
         page_name = name_or_path[1..-1].to_sym  # "/page2" -> :page2
-        if @pages && @pages[page_name]
+        if @_pages && @_pages[page_name]
           show_page do
-            instance_eval(&@pages[page_name])
+            instance_eval(&@_pages[page_name])
           end
           return
         end
@@ -437,8 +445,8 @@ class Shoes
     # A new page starts from nothing. Unlike clear, the old page's timers and event
     # handlers go too, as Shoes 3 resets the whole canvas on visit (s3_canvas.c:282-303).
     def show_page(&block)
-      @document_root.contents.each(&:destroy)
-      @document_root.clear(&block)
+      @_document_root.contents.each(&:destroy)
+      @_document_root.clear(&block)
     end
     private :show_page
 
@@ -446,9 +454,9 @@ class Shoes
       if path.is_a?(String) && path.include?('(')
         # Convert string patterns to regex
         regex = Regexp.new("^#{path.gsub(/\(.*?\)/, '(.*?)')}$")
-        @routes[regex] = method_name
+        @_routes[regex] = method_name
       else
-        @routes[path] = method_name
+        @_routes[path] = method_name
       end
     end
   end
@@ -665,10 +673,10 @@ class Shoes::App < Shoes::Drawable
   # Apps start at "/" (ledger J1), whatever method it routes to: url.rb routes it to
   # :setupscreen.
   def show_root_route_on_first_boot
-    return if @first_boot_finished
+    return if @_first_boot_finished
 
-    visit("/") if @routes.any? { |route, _| route === "/" }
+    visit("/") if @_routes.any? { |route, _| route === "/" }
 
-    @first_boot_finished = true
+    @_first_boot_finished = true
   end
 end

@@ -53,6 +53,7 @@ straightforward as possible.
 - Native: a packaged app whose name or folder holds a space or a parenthesis ("ZARKING (Rust)", "For Noah") starts when double-clicked; Ruby passed the renderer's path alone to /bin/sh, which only a start with no flags does. Opened from Finder, the Dock or `open`, a native package writes its output to `~/Library/Logs/<name>/launcher.log`
 - Native: `timer(0)` runs on the next turn of the loop, and `every(0)` every millisecond, as in Shoes 3; both waited a whole second
 - Lacci: `style(scale:)`, `style(skew:)`, `style(translate:)` and `style(transform:)` reach the display, as `style(rotate:)` does; they only set an instance variable
+- Lacci: an app may name its own instance variables `@slots`, `@pages`, `@routes`, `@started` or `@location`; they had replaced the App's own, and the next `stack` died with NoMethodError. The App keeps its bookkeeping in `@_` names
 
 ### Incompatibilities
 - An app with no size opens at 600x500 titled "Shoes", as in Shoes 3 and Shoes 4 (it was 480x420 "Shoes!")
