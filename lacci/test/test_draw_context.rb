@@ -266,4 +266,29 @@ class TestDrawContext < NienteTest
       assert_equal [true, true], $centred.map { |shape| shape.style[:center] }
     SHOES_SPEC
   end
+
+  # style(scale:) and style(skew:) are draw-context settings as rotate is (DrawContext::SETTINGS),
+  # so they reach the display the same way; they only set an instance variable before
+  # (examples/native/kids/_repros/paint_puddles_1.rb). A bare number scales both ways, as the
+  # scale method's does, and a bare skew leans along x.
+  def test_style_sends_every_draw_context_setting
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $sent = []
+        Shoes::DisplayService.subscribe_to_event("prop_change", :any) do |changes, **_kwargs|
+          $sent << changes if (changes.keys & Shoes::DrawContext::SETTINGS).any?
+        end
+        @box = rect 10, 10, 60, 60
+        @box.style(rotate: 45)
+        @box.style(scale: [2, 3])
+        @box.style(scale: 2)
+        @box.style(skew: 10)
+        @box.style(transform: :center, cap: :curve)
+      end
+    SHOES_APP
+      assert_equal [{ "rotate" => 45 }, { "scale" => [2, 3] }, { "scale" => [2, 2] }, { "skew" => [10, 0] },
+        { "transform" => :center, "cap" => :curve }], $sent
+      assert_equal [10, 0], Shoes.APPS[0].instance_variable_get(:@box).instance_variable_get(:@skew), "and the drawable keeps it"
+    SHOES_SPEC
+  end
 end
