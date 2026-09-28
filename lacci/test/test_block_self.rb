@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "test_helper"
+require "stringio"
 
 # Slot blocks keep the caller's self (manual 198, 322-324; ledger B1). Shoes 3 runs them with a
 # plain call and sends the DSL calls made inside to the slot being built, so a widget or a plain
@@ -89,6 +90,34 @@ class TestBlockSelf < NienteTest
       tip = drawable(Arrowhead).obj.tip
       assert_equal [["move_to", 0, 0], ["line_to", 10, 5], ["line_to", 0, 10]], tip.shape_commands,
         "move_to and line_to live on the App, and a widget's shape block still reaches them"
+    SHOES_SPEC
+  end
+
+  # A widget's options are its own, as in Shoes 3: Hackety Hack's glossb "OK", :color => "dark"
+  # gets :color in its initialize, and Drawable no longer calls it an unexpected keyword. The
+  # options that are styles still place the widget.
+  def test_a_widgets_own_options_reach_it_and_its_styles_place_it
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      class Chip < Shoes::Widget
+        attr_reader :opts
+
+        def initialize(name, opts = {})
+          @opts = opts
+          para name
+        end
+      end
+
+      $stderr_was = $stderr
+      $stderr = StringIO.new
+      Shoes.app do
+        chip "OK", color: "dark", width: 80, left: 10
+      end
+      $warned, $stderr = $stderr.string, $stderr_was
+    SHOES_APP
+      chip = drawable(Chip).obj
+      assert_equal({ color: "dark", width: 80, left: 10 }, chip.opts)
+      assert_equal [80, 10], [chip.style[:width], chip.style[:left]]
+      refute_includes $warned, "Unexpected non-style keyword"
     SHOES_SPEC
   end
 

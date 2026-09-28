@@ -432,7 +432,7 @@ class Shoes
       # and prevent them.
       unexpected = (kwargs.keys - this_drawable_styles)
       unless unexpected.empty?
-        STDERR.puts "Unexpected non-style keyword(s) in #{self.class} initialize: #{unexpected.inspect}"
+        $stderr.puts "Unexpected non-style keyword(s) in #{self.class} initialize: #{unexpected.inspect}"
       end
 
       super(linkable_id: Shoes::Drawable.allocate_drawable_id)
