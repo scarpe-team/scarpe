@@ -950,7 +950,10 @@ Shoes.app(title: "Memory Match", width: W, height: H, resizable: false) do
       para lv[:name], font: FONT, weight: "bold", size: 28, stroke: "#4b4a7a", align: "center",
         left: 0, top: 206, width: 212, margin: 0
       pairs = lv[:cols] * lv[:rows] / 2
-      para "#{pairs} pairs", font: FONT, weight: "500", size: 15, stroke: "#8a7fc0", align: "center",
+      best = @progress["best"][lv[:name]]
+      # big kids see their best, something to beat
+      note = @big_kid && best ? "#{pairs} pairs, best #{best} moves" : "#{pairs} pairs"
+      para note, font: FONT, weight: "500", size: 15, stroke: "#8a7fc0", align: "center",
         left: 0, top: 244, width: 212, margin: 0
       next unless @progress["done"].include?(lv[:name])
 
