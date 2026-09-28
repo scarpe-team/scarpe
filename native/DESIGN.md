@@ -372,7 +372,9 @@ moved there the same day, so apps normally send it.
   line (a picture, a title), where Shoes 3 would wrap lines under it. The indent is a blank
   wide as the indent at the head of the cosmic-text buffer; hit-testing and a para's `fill`
   leave its corner to what came before. Centred, right-aligned, justified, trimmed and sized
-  text keeps the box rule of section 12. A text block's `fill` is a highlighter over its text,
+  text keeps the box rule of section 12, but for one case Shoes 3 draws otherwise: sized or
+  trimmed left-aligned text too wide as a box for the rest of the line, whose text fits there on
+  one line and inside its own width, sits on that line as wide as its text (ledger C7). A text block's `fill` is a highlighter over its text,
   line by line (manual 1208-1210; Shoes 3's Pango background), not paint over its box.
   Line height = 1.2 x size. `leading` (default 4 px, manual 1286, ledger F10) goes between lines
   only, as Pango's spacing does: one line is 1.2 x size tall, two are 2.4 x size + 4.
@@ -643,7 +645,8 @@ change the code and this list together.
 - **Text in a flow** flows as a paragraph (section 6). Text that does not (centred, right-aligned,
   justified, trimmed, or given a width or height) is a box: as wide as its longest line
   (max-content) if that fits in the rest of the row, else it starts a new row and wraps at the
-  full width there. Text with `align: center/right` fills the rest of the row so the alignment
+  full width there. Sized or trimmed left-aligned text whose one line fits on the rest of the row
+  and inside its own width sits there instead, as wide as its text (section 6, ledger C7). Text with `align: center/right` fills the rest of the row so the alignment
   shows. Positioned text (`left`/`top`) shrinks to fit the same way. `right:` and `bottom:`
   place from the far edges.
 - **Widget** (a `Shoes::Widget` subclass) lays its children out as a flow; its default width is

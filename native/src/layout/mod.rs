@@ -373,6 +373,9 @@ impl Engine<'_> {
         let mut width = self.width_for(node, flow, parent, remaining, &m);
         let overflows = cursor.x + m.horizontal() + width > content.w + 0.5;
         if flow && cursor.x > 0.0 && overflows {
+            if let Some((rich, wanted)) = self.line_beside(node, &m, width, content, cursor) {
+                return self.place_line(node, &rich, wanted, &m, content, cursor, parent);
+            }
             cursor.new_row();
             width = self.width_for(node, flow, parent, content.w, &m);
         }
@@ -414,14 +417,7 @@ impl Engine<'_> {
         let closing_newline = rich.runs.last().is_some_and(|run| run.text.ends_with('\n'));
         loop {
             if one_line && wanted <= full - cursor.x + 0.5 {
-                // One line beside what came before, as wide as its text.
-                let shaped = self.text.shape(rich, Some(wanted.max(1.0)));
-                let rect = Rect::new(content.x + cursor.x + m.left, content.y + cursor.y + m.top, wanted, shaped.height);
-                self.put_text(node, shaped, rect, parent);
-                cursor.row_h = cursor.row_h.max(m.vertical() + rect.h);
-                cursor.content_bottom = cursor.content_bottom.max(rect.bottom() - content.y);
-                cursor.x = carry_on(rect.right() - content.x, &m);
-                return;
+                return self.place_line(node, rich, wanted, &m, content, cursor, parent);
             }
             let shaped = if cursor.x > 0.0 {
                 if overhangs(cursor, rich, &m) {
@@ -456,6 +452,37 @@ impl Engine<'_> {
             cursor.x = if closing_newline { 0.0 } else { carry_on(m.left + last_w, &m) };
             return;
         }
+    }
+
+    /// One line of text beside what came before on the line, as wide as its text; what follows
+    /// carries on after it.
+    #[allow(clippy::too_many_arguments)]
+    fn place_line(&mut self, node: &Node, rich: &RichText, wanted: f32, m: &Edges, content: Rect, cursor: &mut Cursor, parent: (f32, f32)) {
+        let shaped = self.text.shape(rich, Some(wanted.max(1.0)));
+        let rect = Rect::new(content.x + cursor.x + m.left, content.y + cursor.y + m.top, wanted, shaped.height);
+        self.put_text(node, shaped, rect, parent);
+        cursor.row_h = cursor.row_h.max(m.vertical() + rect.h);
+        cursor.content_bottom = cursor.content_bottom.max(rect.bottom() - content.y);
+        cursor.x = carry_on(rect.right() - content.x, m);
+    }
+
+    /// A text block with a width of its own, or trimmed, that is too wide as a box for the
+    /// rest of the line but whose text fits there on one line, and inside its own width after
+    /// what came before. Shoes 3 starts such a block at the flow's left edge with its first line
+    /// indented past what came before (s3t_textblock.c:125-145), and one line shrinks to its
+    /// text (:207-210), so it sits on the line instead of starting a row (ledger C7). Hackety
+    /// Hack puts every program's and lesson's name beside its icon this way.
+    fn line_beside(&mut self, node: &Node, m: &Edges, width: f32, content: Rect, cursor: &Cursor) -> Option<(RichText, f32)> {
+        if !is_text(node) || node.props.has("height") {
+            return None;
+        }
+        let rich = rich::resolve_block(self.doc, &self.text.fonts, node.id)?;
+        if rich.align != rich::Align::Left || rich.runs.iter().any(|run| run.text.contains('\n')) {
+            return None;
+        }
+        let wanted = self.text.max_content(&rich);
+        let room = (content.w - m.horizontal()).min(width) - cursor.x;
+        (wanted <= room + 0.5).then_some((rich, wanted))
     }
 
     /// Records a text block's box and its shaped text.
