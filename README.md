@@ -5,6 +5,8 @@
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-shopify-brightgreen.svg)](https://github.com/Shopify/ruby-style-guide)
 [![Discord](https://img.shields.io/discord/1072538177321058377?label=discord)](https://discord.gg/Ca5EHSsGYp)
 
+Coding agents building a desktop app with Scarpe: start at [FOR_AGENTS.md](FOR_AGENTS.md).
+
 <img src="docs/static/scarpe-logo.png">
 
 "Scarpe" means shoes in Italian. "Scarpe" also means [Shoes](https://github.com/shoes/shoes-deprecated) in modern Ruby and Webview!
