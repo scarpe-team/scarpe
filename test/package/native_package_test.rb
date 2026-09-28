@@ -100,6 +100,70 @@ class NativePackageTest < Minitest::Test
     assert_match(/^scarpe-probe /, File.read(log))
   end
 
+  # SCARPE_RUN_FILE: the launcher runs that file on the bundled Ruby and Scarpe instead of the
+  # app's own, in SCARPE_RUN_DIR with SCARPE_RUN_ARGS as its ARGV. It is how a packaged app's
+  # Shoes.run_program starts a program (DESIGN 5.5).
+  def test_the_launcher_runs_a_given_file
+    dir = scratch_dir
+    program = write(dir, "given.rb", "$stderr.puts \"given file in \#{File.basename(Dir.pwd)}, \#{ARGV.inspect}\"\n")
+    Dir.mkdir(File.join(dir, "elsewhere"))
+    env = { "SCARPE_RUN_FILE" => program, "SCARPE_RUN_DIR" => File.join(dir, "elsewhere"), "SCARPE_RUN_ARGS" => '["one"]' }
+
+    status, err = run_launcher(bundle, env)
+
+    assert status.success?, err
+    assert_includes err, 'given file in elsewhere, ["one"]'
+    refute_includes err, "scarpe-probe", "the app's own file did not run"
+  end
+
+  # A double-click starts the app from launchd's bare environment, in /, its output going to
+  # its log. Its Shoes.run_program starts the launcher again for the program, which reports its
+  # output and errors to the app and stops when told, on the bundled runtime throughout.
+  def test_a_packaged_app_runs_a_program_of_its_own
+    home = scratch_dir
+    dir = scratch_dir
+    write(dir, "program.rb", <<~PROGRAM)
+      puts "hello from the program"
+      Shoes.app { para "the program"; timer(0.2) { raise "the program broke" } }
+    PROGRAM
+    parent = write(dir, "parent.rb", <<~PARENT)
+      Shoes.app do
+        para "the app"
+        program = Shoes.run_program(File.join(__dir__, "program.rb"))
+        heard = []
+        program.on_output { |stream, line| heard << [stream, line] }
+        renderer = nil
+        program.on_error do |err|
+          heard << [err["during"], err["message"]]
+          renderer = program.instance_variable_get(:@driver).renderer_pid
+          program.stop
+        end
+        program.on_exit do |status|
+          File.write(File.join(__dir__, "heard.json"), JSON.generate(heard: heard, signaled: status.signaled?, pids: [program.pid, renderer]))
+          Shoes.quit
+        end
+      end
+    PARENT
+    env = { "HOME" => home, "PATH" => "/usr/bin:/bin", "SCARPE_NATIVE_HEADLESS" => "1", "SCARPE_NATIVE_GHOST" => "1", "SCARPE_RUN_FILE" => parent }
+    launcher = File.join(bundle, "Contents", "MacOS", "scarpe-launcher")
+    app = Process.spawn(env, launcher, unsetenv_others: true, chdir: "/", in: File::NULL, out: File::NULL, err: File::NULL, pgroup: true)
+    begin
+      _, status = wait_for(app, 90)
+      log = File.join(home, "Library", "Logs", "PackagedApp", "launcher.log")
+      assert status&.success?, "the app did not end cleanly: #{status.inspect}\n#{File.exist?(log) ? File.read(log) : "(no log)"}"
+      heard = JSON.parse(File.read(File.join(dir, "heard.json")))
+      assert_equal [["stdout", "hello from the program"], ["timer", "the program broke"]], heard["heard"]
+      assert heard["signaled"], "stop ended it"
+      heard["pids"].each do |pid|
+        deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 3
+        sleep 0.05 until `ps -o pid= -p #{Integer(pid)}`.strip.empty? || Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+        assert_empty `ps -o pid= -p #{Integer(pid)}`.strip, "the program and its renderer are gone (#{pid})"
+      end
+    ensure
+      Process.kill("KILL", -app) rescue nil
+    end
+  end
+
   def test_a_moved_app_boots_from_source
     moved = File.join(scratch_dir, "PackagedApp.app")
     assert system("ditto", bundle, moved)
@@ -127,6 +191,27 @@ class NativePackageTest < Minitest::Test
     flunk "scarpe package --native failed:\n#{out}" unless status.success?
 
     File.join(dir, "PackagedApp.app")
+  end
+
+  # The launcher's exit status and stderr, headless, with no probe to wait for.
+  def run_launcher(app, env = {})
+    env = { "HOME" => Dir.home, "PATH" => "/usr/bin:/bin", "SCARPE_NATIVE_HEADLESS" => "1", "SCARPE_NATIVE_GHOST" => "1" }.merge(env)
+    _out, err, status = Open3.capture3(env, File.join(app, "Contents", "MacOS", "scarpe-launcher"), unsetenv_others: true)
+    [status, err]
+  end
+
+  # [pid, status] once the process ends, or [pid, nil] after `seconds`, when it gets KILL.
+  def wait_for(pid, seconds)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + seconds
+    until (done = Process.wait2(pid, Process::WNOHANG))
+      if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+        Process.kill("KILL", -pid)
+        Process.wait(pid)
+        return [pid, nil]
+      end
+      sleep 0.05
+    end
+    done
   end
 
   # Headless unless env says otherwise, and a window it does open is a ghost nobody can see.

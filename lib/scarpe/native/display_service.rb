@@ -57,7 +57,7 @@ module Scarpe::Native
       attr_accessor :instance
     end
 
-    attr_reader :clock, :timers, :builtins, :automation, :pump
+    attr_reader :clock, :timers, :builtins, :automation, :pump, :programs
 
     def initialize
       super()
@@ -71,6 +71,7 @@ module Scarpe::Native
       @builtins = Builtins.new(self, interactive: !@headless && !@ghost)
       @automation = Automation.new(self)
       @pump = Pump.new(self)
+      @programs = Programs.new(self)
       @open_apps = {} # every app that has run => whether its window is still open
       @child_log = Shoes::Log.logger("scarpe-native")
 
@@ -82,6 +83,11 @@ module Scarpe::Native
 
     def child
       @child ||= start_child
+    end
+
+    # The renderer, if one has started: unlike child, never starts one.
+    def started_child
+      @child
     end
 
     # Lacci -> Rust
@@ -132,6 +138,16 @@ module Scarpe::Native
     def register_font(font)
       path = Normalize.font_path(font)
       child.post(t: "font", path: path) if path
+    end
+
+    # Shoes.run_program: the program runs in a process of its own (Programs, DESIGN 5.5).
+    def run_program(path, dir:, args:)
+      programs.start(path, dir: dir, args: args)
+    end
+
+    # Ends a wait of the pump's early, from any thread.
+    def wake!
+      @child&.wake!
     end
 
     # Rust -> Lacci
@@ -213,6 +229,11 @@ module Scarpe::Native
       report_handler_error(e, "heartbeat handler")
     end
 
+    # Programs Shoes.run_program started, and anything they said, handed to their blocks.
+    def dispatch_programs
+      programs.dispatch
+    end
+
     # Lifecycle
 
     def any_app_open?
@@ -238,7 +259,9 @@ module Scarpe::Native
       quit_all
     end
 
+    # Programs Shoes.run_program started go first (their windows with them), then our renderer.
     def shutdown
+      programs.stop_all
       return unless @child
 
       @child.post(t: "quit", app: nil)

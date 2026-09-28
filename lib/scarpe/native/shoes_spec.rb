@@ -210,6 +210,19 @@ module Scarpe::Native
       automation.advance(seconds)
     end
 
+    # Turns the event loop, in real time, until the block answers true, and fails the test after
+    # `timeout` seconds. For news from outside the app, such as a program Shoes.run_program
+    # started: the clock advance moves is frozen, but that news comes when it comes.
+    def wait_until(timeout = 10, message = nil)
+      service = DisplayService.instance
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout
+      until yield
+        flunk(message || "nothing came within #{timeout}s") if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+        service.surfacing_handler_errors { service.pump.step }
+      end
+      true
+    end
+
     def resize_window(width, height)
       automation.resize(width, height)
     end

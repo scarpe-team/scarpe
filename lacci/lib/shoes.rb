@@ -59,6 +59,7 @@ LinkHover = Shoes::LinkHover unless defined?(LinkHover)
 Window = Shoes::App unless defined?(Window)
 
 require_relative 'shoes/download'
+require_relative 'shoes/program'
 
 # No easy way to tell at this point whether
 # we will later load Shoes-Spec code, e.g.
@@ -313,6 +314,28 @@ class Shoes
         Shoes::Log.instance ? Shoes::Log.logger("Shoes").error(said) : warn(said)
       end
       err
+    end
+
+    # Starts the Shoes program in the file at path, and hands back a Shoes::Program to follow
+    # it with. The native display runs it in a process of its own on the same Ruby and
+    # Scarpe, so an endless loop in it freezes only it, and stop ends it; other displays run
+    # it inside this process, with a warning (Shoes::Program::InProcess). A Scarpe extension
+    # (ledger K10).
+    #
+    # @param path [String] the program's file
+    # @param dir [String] the directory it runs in (its own, by default)
+    # @param args [Array<String>] its ARGV
+    # @return [Shoes::Program]
+    def run_program(path, dir: nil, args: [])
+      path = File.expand_path(path)
+      raise Errno::ENOENT, path unless File.file?(path)
+
+      dir = File.expand_path(dir || File.dirname(path))
+      args = Array(args).map(&:to_s)
+      service = Shoes::DisplayService.display_service
+      return service.run_program(path, dir: dir, args: args) if service.respond_to?(:run_program)
+
+      Shoes::Program::InProcess.run(path, dir: dir, args: args)
     end
 
     # Opens the Shoes console (Shoes::Console), which Alt-/ opens too (Cmd-/ on a Mac).

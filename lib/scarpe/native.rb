@@ -27,6 +27,8 @@ require_relative "native/timers"
 require_relative "native/builtins"
 require_relative "native/automation"
 require_relative "native/pump"
+require_relative "native/programs"
+require_relative "native/program_child"
 require_relative "native/display_drawable"
 require_relative "native/display_service"
 

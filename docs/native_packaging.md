@@ -72,6 +72,15 @@ Then the launcher sends that output to `~/Library/Logs/<name>/launcher.log` inst
 opening each start, with one older log kept once it passes 5 MB. Run from a terminal, the output
 stays on the terminal.
 
+Running a given file: with `SCARPE_RUN_FILE=/path/to/program.rb` in its environment the launcher
+runs that file, on the bundled Ruby and Scarpe, instead of the app (`SCARPE_RUN_DIR` and
+`SCARPE_RUN_ARGS`, a JSON Array, set its directory and `ARGV`). That is how a packaged app's
+`Shoes.run_program` starts a program in a process of its own: the launcher exports
+`SCARPE_LAUNCHER`, its own path, and `run_program` starts it again (native/DESIGN.md 5.5). It
+goes back through the launcher because Traveling Ruby hands a running process the environment it
+was started with, so the app's Ruby no longer has the bundle's `RUBYLIB` to give a child. A
+program started so from a double-clicked app writes its lines to the same log.
+
 ## Bytecode
 
 At package time the bundled Ruby compiles Lacci, the shim, scarpe-components, the app and every
@@ -208,7 +217,9 @@ where to look when a double-click shows nothing.
   per-user cache compiled on first launch, bootsnap-style, would cover it.
 - LaunchServices identity: the window belongs to `scarpe-native`, a child of the launcher. Opened
   with `open` on 28 Sep 2026, ZARKING (Rust) checked in under its bundle name and id
-  (`lsappinfo list`), frontmost; its Dock icon was not looked at.
+  (`lsappinfo list`), frontmost; its Dock icon was not looked at. A program the app starts with
+  `Shoes.run_program` draws with a second `scarpe-native` from the same bundle, which may show
+  a second Dock icon for the app while it runs; nobody has looked.
 - Like the webview packager, the app file, the pictures and sounds beside it and the `images`,
   `assets`, `fonts` and `sounds` folders are copied on their own; any other file or folder the
   app reads, `.rb` files it requires included, needs an `--include`.

@@ -1,7 +1,8 @@
 # Scarpe Native: design
 
-Status: v1.2, 28 Sep 2026: the w10 scarpe lane added `Shoes.on_error` and the Shoes console
-(5.6), and Nick's Q10 ruling (section 6). v1.1, 27 Sep 2026, after the fourth build wave merged and the orchestrator ruled Q1 to Q8
+Status: v1.2, 28 Sep 2026: the w10 scarpe lane added programs in a process of their own
+(`Shoes.run_program`, 5.5), `Shoes.on_error` and the Shoes console (5.6), and Nick's Q10 ruling
+(section 6). v1.1, 27 Sep 2026, after the fourth build wave merged and the orchestrator ruled Q1 to Q8
 (under "Rulings on the questions" in `spec/LEDGER.md`, Q8 on `clear` and timers also in 5.4; Nick
 may overrule any of them). This document is the contract every builder codes against. If the
 code and this document disagree, fix one of them in the same change. The user guide is
@@ -80,6 +81,8 @@ lib/scarpe/native/              the Ruby shim
   automation.rb                 look-and-click requests shared by Shoes-Spec and peek
   shoes_spec.rb                 Shoes::Spec implementation + native test API (section 8)
   peek.rb                       `scarpe peek` driver
+  programs.rb                   Shoes.run_program's side in the app that runs a program (5.5)
+  program_child.rb              and in the program: reports to the parent, stops when it goes
   log.rb                        Shoes::Log to stderr and the Shoes console
 lib/scarpe/package/native.rb    `scarpe package --native` (section 11), with bytecode.rb and yjit.rb
 templates/package/              the packaged app's launcher and boot.rb
@@ -304,6 +307,7 @@ loop until no app is open or the child's stdout ended:
   wait for input, at most until the next timer deadline, and at most 1 s when idle
     (Automation#advance and other callers of Pump#step wait at most 50 ms)
   dispatch every complete message
+  hand what programs Shoes.run_program started said to their blocks (5.5), at most 500 items
   tick due timers: animate (frame starts at 0), every (count starts at 0, ledger I1), timer (one shot);
     honour `stopped` and destroyed items; timers can be created at any time; an `every` or `timer`
     shorter than a millisecond (0 included) waits one, as Shoes 3 clamps it; before such a
@@ -339,6 +343,69 @@ never reads that EOF and a harness that follows TERM with KILL never waits out t
 child runs, `SCARPE_NATIVE_PID_FILE` (when set) holds its pid, so a harness that had to kill Ruby
 can kill the child's group too: `spec/run` and `rake native_test` do.
 
+### 5.5 Programs in a process of their own (`Shoes.run_program`)
+
+`Shoes.run_program(path, dir: File.dirname(path), args: [])` returns a `Shoes::Program` (Lacci,
+`lacci/lib/shoes/program.rb`; ledger K10). The native display runs the program in a new process
+on the Ruby and Scarpe it runs on (`Programs`, `lib/scarpe/native/programs.rb`), so an endless
+loop freezes only the program, and `stop` ends it. Hackety Hack's Run needs exactly that: Shoes 3
+evaluated a child's program inside Hackety Hack, and `while true` took Hackety Hack with it.
+
+- **The handle:** `pid`, `running?`, `status` (a `Process::Status` once it has ended), `stop`
+  (TERM to the program's process group, KILL a second later if it is still there; its renderer
+  goes with it), `on_exit { |status| }`, `on_error { |err| }` (err is the Hash of 5.6) and
+  `on_output { |stream, line| }` (stream `"stdout"` or `"stderr"`, the line without its
+  newline). Every block runs on the pump, never on a thread. A block added late still hears the
+  errors reported so far (the last 100) and, once the program has ended, its status.
+- **The command.** From a checkout: `ruby -I lib -I lacci/lib -I scarpe-components/lib
+  exe/scarpe --native PATH` on `RbConfig.ruby`, in `dir`, with this process's environment
+  (Bundler's included), so headless and ghost modes carry over to the program. From a packaged
+  app: its own launcher again (`SCARPE_LAUNCHER`, which the launcher exports), which runs
+  `SCARPE_RUN_FILE` with the bundled Ruby and Scarpe instead of the app (section 11). The program
+  runs in its own process group, with stdin `/dev/null` and this process's stdout and stderr.
+  A spec run's settings stay the parent's: `SHOES_SPEC_TEST`, the minitest exports,
+  `SCARPE_NATIVE_PID_FILE` and `SCARPE_NATIVE_STATS` are unset for it.
+- **The settings** (read once by `ProgramChild.run` and taken out of its ENV, so a program it
+  starts gets its own): `SCARPE_RUN_FILE` (the file), `SCARPE_RUN_DIR` (the directory it runs
+  in), `SCARPE_RUN_ARGS` (its ARGV, JSON), `SCARPE_REPORT_FD` and `SCARPE_PARENT_FD`.
+  `exe/scarpe` and a packaged app's `boot.rb` hand the file to `ProgramChild.run` instead of
+  `Shoes.run_app` when `SCARPE_RUN_FILE` is set; without `SCARPE_REPORT_FD` it simply runs.
+- **The report pipe** is fd 3 (`SCARPE_REPORT_FD`), one JSON object a line, in the order the
+  program did things:
+
+  | t | fields | parent does |
+  |---|---|---|
+  | `renderer` | `pid` (Integer, or null once it has gone) | keeps it, to end a renderer its program could not |
+  | `output` | `stream` (`stdout` or `stderr`), `line` | `on_output` |
+  | `error` | `error` (the 5.6 Hash) | `on_error` |
+
+  The program's `$stdout` and `$stderr` become line forwarders (`ProgramChild::Output`, a
+  StringIO whose `write` sends each whole line; every String is made valid UTF-8, bytes that are
+  not become `?`). Scarpe's own lines, and its renderer's stderr, go to the real stderr instead
+  (`Scarpe::Native.diagnostics`), so `on_output` hears only the program. Both descriptors are
+  close-on-exec in the program, so neither its renderer nor what it starts holds them open.
+- **Errors.** The program's `Shoes.on_error` block sends every report: its startup (`Shoes.run_app`
+  reports what stops the file loading, then the program exits 1 without printing it again), its
+  handlers and timers (5.4), and `exit` for an error that escapes its event loop (its renderer
+  died, say), after which it exits 1.
+- **The parent's side.** Two threads a program: one reads the report pipe into the inbox, one
+  waits for the process, then for the last report, then posts the exit, so a final error comes
+  before `on_exit`. The pump hands out at most 500 items a turn and does not sleep while any
+  wait; more than 10,000 lines of output waiting are dropped and counted, and the count arrives
+  as one last `stderr` line before the exit. `on_exit` comes once, with the `Process::Status`.
+- **No orphans.** The program holds the read end of a pipe (fd 4, `SCARPE_PARENT_FD`) whose other
+  end only the parent has. When the parent ends, however it ends (KILL included), the program
+  reads the end of it and sends itself TERM, which ends its renderer first (5.4); one that
+  ignores TERM ends its renderer and exits a second later. A renderer whose Ruby has gone reads
+  the end of its stdin and exits, and the parent KILLs one the program said it started and never
+  said had gone. When the parent's own event loop ends it stops its programs (TERM, a second, KILL).
+- **Other displays.** Niente and the webview cannot start a process, so `Shoes.run_program` runs
+  the program inside the app (`Shoes::Program::InProcess`), as Shoes 3 did, and logs a warning
+  saying an endless loop will stop the app too: its windows open in this process and stay, a
+  startup error reaches `on_error`, `on_exit` hears nil at once, `on_output` hears nothing (its
+  output is the app's), errors in its handlers go to `Shoes.on_error`, and `stop` closes the
+  windows it opened.
+
 ### 5.6 Errors and the Shoes console
 
 - **`Shoes.on_error { |err| }`** (Lacci, ledger K9): every block given it hears each error a
@@ -349,7 +416,7 @@ can kill the child's group too: `spec/run` and `rake native_test` do.
   and Ruby's library, or for a SyntaxError the place Ruby names; nil when there is none), and
   `"during"`: `"startup"` (`Shoes.run_app` reports what stops the file loading, then lets it go
   on up), `"handler"` (an event, the heartbeat, a program's block), `"timer"` (`animate`,
-  `every`, `timer`) or `"exit"` (only a program in a process of its own reports it). Test code that clicks or
+  `every`, `timer`) or `"exit"` (only a program reports it, 5.5). Test code that clicks or
   advances still has its errors raised in the test instead (section 8).
 - **The Shoes console** (`Shoes::Console`, `lacci/lib/shoes/console.rb`; ledger K8) is a Shoes
   window titled "Shoes Console" that lists, newest first, the program's `debug`, `info` and
@@ -358,7 +425,8 @@ can kill the child's group too: `spec/run` and `rake native_test` do.
   (Rust's included). Alt-/ opens it (Cmd-/ on a Mac, 4.4), and so does `Shoes.show_console`
   (Shoes 3's `Shoes.show_log` is the same); it never opens by itself. Lines wait in a queue any
   thread or signal trap may add to, and the window, one per process, draws them on the pump
-  (a 0.25 s timer). It keeps the last 500.
+  (a 0.25 s timer). It keeps the last 500. A program `run_program` started has a console of its
+  own, which Cmd-/ in its window opens.
 
 ## 6. Layout rules (canonical)
 
@@ -583,6 +651,7 @@ on top of the Niente-compatible finders and proxies (`button`, `para`, `edit_lin
 | `a11y_tree(platform: false)`, `a11y_nodes` | the `a11y` op's tree with Symbol keys, or every node of it in a flat list, window first |
 | `a11y_action(target, action, value = nil, platform: false)` | a screen reader's act on a drawable, an id or a tree node (with `platform: true`, on the element with that title, through AppKit) |
 | `stub_dialog(kind, value)`, `dialogs_seen` | answer the next `kind` builtin with `value`; every `[kind, message]` asked for |
+| `wait_until(timeout = 10) { cond }` | turn the loop in real time until the block is true, else fail: for news from outside the app, such as a program `Shoes.run_program` started (5.5) |
 
 A handler that raises while test code is clicking or advancing fails the test instead of being logged.
 
@@ -669,6 +738,12 @@ release binary stripped into `Contents/MacOS` and signed explicitly, a boot scri
 `scarpe/wv` and sets `SCARPE_DISPLAY_SERVICE=native`, and an ad-hoc signature on the whole bundle.
 A button app is 32.4 MB (13.4 MB as a `.dmg`), or 17.7 MB with `--minimal`. Linux, Windows and
 universal native packages are not built yet, and nothing is notarised.
+
+The launcher exports `SCARPE_LAUNCHER` (its own path), and `boot.rb` runs `SCARPE_RUN_FILE`
+instead of the app when that is set, with the bundled Ruby and Scarpe: a packaged app's
+`Shoes.run_program` starts the launcher again that way (5.5), double-clicked or not. Traveling
+Ruby hands a process the environment it started with (`RUBYLIB`, `RUBYOPT` and two more), so
+going back through the launcher is what gives the program the bundle's load path.
 
 Ruby speed in packaged apps (Nick's call, 27 Sep 2026). Two cheap wins, both measured before and after:
 
@@ -928,5 +1003,8 @@ change the code and this list together.
 | `SCARPE_NATIVE_STATS` | a directory: each process writes where its time went (`ruby.json`, `rust.json`) as it exits (native/PERF.md) |
 | `SCARPE_NATIVE_DAMAGE` | `off` repaints every window frame whole; `check` also paints each one whole and reports any pixel a partial repaint got wrong (headless too) |
 | `CARGO` | the cargo that builds a stale dev binary (default: on `PATH`, else `~/.cargo/bin/cargo`) |
+| `SCARPE_RUN_FILE`, `SCARPE_RUN_DIR`, `SCARPE_RUN_ARGS` | run this file (in this directory, with this JSON ARGV) as a program `Shoes.run_program` started: `exe/scarpe` and a packaged app's launcher both honour it (5.5) |
+| `SCARPE_REPORT_FD`, `SCARPE_PARENT_FD` | the program's report pipe and its parent's lifeline, inherited descriptors (5.5) |
+| `SCARPE_LAUNCHER` | set by a packaged app's launcher to its own path, for `Shoes.run_program` |
 | `SCARPE_BYTECODE=0` | a packaged app loads source instead of its precompiled bytecode |
 | `RUBY_YJIT_ENABLE=0` | a packaged app leaves YJIT off (it turns it on after the first frame when the Ruby has it) |
