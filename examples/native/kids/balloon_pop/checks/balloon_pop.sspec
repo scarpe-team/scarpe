@@ -67,6 +67,15 @@ press_key "g"
 advance 0.3
 refute_includes balloons.(), nearest, "a key popped the nearest one"
 
+# A hand slid across the keyboard: six keys at once send six stars, and every star pops its
+# balloon, even when a star has to be sent again before it lands.
+advance 1
+before = balloons.().dup
+6.times { press_key "q" }
+advance 0.35
+assert_operator (before - balloons.()).size, :>=, 6, "six balloons popped"
+assert_empty balloons.().select(&:aimed), "none left waiting for a star"
+
 # Mashing: lots of keys, lots of pops, and the balloons never run out.
 40.times do |i|
   press_key ["a", "k", " ", "\n", :tab, :left, :f5, "7"][i % 8]
@@ -75,7 +84,7 @@ end
 advance 2
 assert_operator balloons.().size, :>=, 3, "more balloons keep coming"
 spawned = 0
-sounds.define_singleton_method(:spawn) { |*_args, **_opts| spawned += 1; Process.spawn("sleep", "2") }
+sounds.define_singleton_method(:spawn) { |*_args, **_opts| spawned += 1; Process.spawn("sleep", "30") }
 20.times { press_key "p"; advance 0.25 }
 assert_equal 6, spawned, "no more than six sounds at the same moment"
 sounds.singleton_class.remove_method(:spawn)
@@ -131,6 +140,19 @@ assert_operator iv.(:pace), :>, 1.0, "and the balloons rise a little quicker"
 press_key "c"
 advance 0.3
 assert_equal 1, iv.(:count), "counting starts again at 1"
+# Mashing through a round: a key every tenth of a second keeps several stars and numbers in
+# the air at once, and still every pop counts, every place fills, and no balloon is left waiting.
+9.times do
+  press_key "v"
+  advance 0.1
+end
+advance 0.3
+refute_nil iv.(:party), "ten again: another party"
+advance 1.2
+assert iv.(:places).all? { |place| place[:filled] }, "every place filled, even in a rush"
+assert_empty balloons.().select(&:aimed), "no balloon left waiting for its star"
+advance 4
+assert_equal 2, iv.(:round)
 click_at 800, 50
 refute iv.(:counting)
 assert iv.(:bar).hidden

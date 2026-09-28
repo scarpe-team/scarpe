@@ -168,7 +168,9 @@ Shoes.app(title: "Night Light", width: W, height: H, resizable: false) do
   # ---------------------------------------------------------------- drawing kit
 
   # A slot or a text block reads a number from 0 to 1 as a fraction of its
-  # parent, so anything moved to such a spot goes to a whole pixel instead.
+  # parent, so anything moved to such a spot goes to a whole pixel instead. (It
+  # reads a negative number as that far in from the far edge, which is why the
+  # slots and words here are kept inside the window, and why clouds are shapes.)
   def px(v)
     v > 0 && v <= 1 ? v.round : v.round(1)
   end
@@ -667,14 +669,12 @@ Shoes.app(title: "Night Light", width: W, height: H, resizable: false) do
 
   # Each firefly drifts about the meadow; while the pointer moves they gather
   # round it, and one you touch chimes and darts off. When nobody has played for
-  # a while, all but one or two land in the grass and glow there, taking turns,
-  # until someone comes back.
+  # a while, all but one land in the grass and glow there, taking turns, until
+  # someone comes back. The first one keeps watch.
   def flutter(dt)
-    resting = quiet?
-    watchers = 1 # this one keeps flying while the others rest
     @glow_turn = (@glow_turn + 1) % @fireflies.size
     @fireflies.each_with_index do |firefly, i|
-      if resting && i >= watchers
+      if quiet? && i > 0
         settle(firefly, i, dt)
       else
         firefly.settled = false
@@ -925,9 +925,9 @@ Shoes.app(title: "Night Light", width: W, height: H, resizable: false) do
     return unless @music_on
 
     note, beats = LULLABY[@note]
-    quiet = 1 - 0.45 * ease(@sleepy)
-    sound :tine, BASS[@beat / 3 % BASS.size], 0.5 * quiet if @beat % 3 == 0
-    sound :tine, note, 0.9 * quiet
+    softer = 1 - 0.45 * ease(@sleepy)
+    sound :tine, BASS[@beat / 3 % BASS.size], 0.5 * softer if @beat % 3 == 0
+    sound :tine, note, 0.9 * softer
     launch(@quavers, 62 + rand(-10.0..10.0), 36, rand(-6.0..10.0), -26, 2.6) if @beat % 3 == 0
     @music_pulse = 1.0
     @beat += beats
@@ -1057,7 +1057,7 @@ Shoes.app(title: "Night Light", width: W, height: H, resizable: false) do
 
   # ---------------------------------------------------------------- every frame
 
-  def tick(n, dt)
+  def tick(dt)
     @clock += dt
     soften(dt)
     twinkle
@@ -1186,7 +1186,7 @@ Shoes.app(title: "Night Light", width: W, height: H, resizable: false) do
   animate(FPS) do |n|
     next unless (n - @last_frame) >= every_nth_frame
 
-    tick(n, (n - @last_frame) / FPS.to_f)
+    tick((n - @last_frame) / FPS.to_f)
     @last_frame = n
   end
   timer(1.2) { start_music }

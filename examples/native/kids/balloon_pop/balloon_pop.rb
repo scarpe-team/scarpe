@@ -27,7 +27,6 @@ require "fileutils"
 
 W, H = 960, 640
 FPS = 30
-HILL = 520 # about where the near hill's grass begins
 BAR_LEFT = 230 # where the counting bar starts
 
 # Six kinds of balloon: a colour (light, then deep), a picture and a note.
@@ -176,7 +175,9 @@ Shoes.app(title: "Balloon Pop", width: W, height: H, resizable: false) do
   # ---------------------------------------------------------------- drawing kit
 
   # A slot or a text block reads a number from 0 to 1 as a fraction of its
-  # parent, so anything moved to such a spot goes to a whole pixel instead.
+  # parent, so anything moved to such a spot goes to a whole pixel instead. (It
+  # reads a negative number as that far in from the far edge, which is why the
+  # big numbers stay inside the window, and why balloons and clouds are shapes.)
   def px(v)
     v > 0 && v <= 1 ? v.round : v.round(1)
   end
@@ -382,10 +383,13 @@ Shoes.app(title: "Balloon Pop", width: W, height: H, resizable: false) do
     @balloons -= gone
   end
 
+  # New balloons come up whenever there are too few still to play with. One
+  # that is drifting out of the top doesn't count: it is on its way home.
   def keep_them_coming(dt)
     @since_launch += dt
     wanted = @party ? 10 : (@counting ? 6 : 8)
-    return if @balloons.size >= wanted || @since_launch < (@balloons.size < 3 ? 0.2 : 0.9)
+    playing = @balloons.count { |b| b.y > 60 }
+    return if playing >= wanted || @since_launch < (playing < 3 ? 0.2 : 0.6)
 
     @since_launch = 0
     launch(speed: @party ? 2.2 : 1.0)
@@ -415,7 +419,8 @@ Shoes.app(title: "Balloon Pop", width: W, height: H, resizable: false) do
     return pop(b) if under
 
     b.aimed = true
-    thrown = @throws.find { |t| t[:b].nil? } || @throws.first
+    thrown = @throws.find { |t| t[:b].nil? } || @throws.max_by { |t| t[:age] }
+    pop(thrown[:b]) if thrown[:b] # still flying: its balloon pops at once, so none is left waiting
     thrown.merge!(b: b, from: [x, y], age: 0.0)
     thrown[:art].show
   end
@@ -458,7 +463,6 @@ Shoes.app(title: "Balloon Pop", width: W, height: H, resizable: false) do
 
   def pools
     nostroke
-    transform :center
     @confetti = Array.new(90) { Bit.new(rect(0, 0, 10, 6, curve: 1.5, hidden: true)) }
     @sparkles = Array.new(24) { Bit.new(star(0, 0, 4, 8, 2.6, fill: white, hidden: true)) }
     @strings = Array.new(4) do
@@ -475,7 +479,6 @@ Shoes.app(title: "Balloon Pop", width: W, height: H, resizable: false) do
     stroke rgb(255, 255, 255, 0.9)
     strokewidth 2
     @throws = Array.new(4) { { art: star(0, 0, 5, 13, 6, hidden: true), b: nil } }
-    transform :corner
   end
 
   def take(pool)
@@ -497,7 +500,7 @@ Shoes.app(title: "Balloon Pop", width: W, height: H, resizable: false) do
     6.times do |i|
       bit = take(@sparkles)
       angle = i * Math::PI / 3 + rand * 0.5
-      bit.x, bit.y, bit.vx, bit.vy, bit.spin, bit.turn, bit.life = x, y, Math.cos(angle) * 160, Math.sin(angle) * 160, 240, 0, 0.7
+      bit.x, bit.y, bit.vx, bit.vy, bit.life = x, y, Math.cos(angle) * 160, Math.sin(angle) * 160, 0.7
       bit.art.show
     end
   end
@@ -523,7 +526,7 @@ Shoes.app(title: "Balloon Pop", width: W, height: H, resizable: false) do
 
   def drop_string(x, y)
     bit = take(@strings)
-    bit.x, bit.y, bit.vx, bit.vy, bit.spin, bit.turn, bit.life = x, y, rand(-20.0..20.0), -40, rand(-40.0..40.0), 0, 1.2
+    bit.x, bit.y, bit.vx, bit.vy, bit.life = x, y, rand(-20.0..20.0), -40, 1.2
     bit.art.show
   end
 
@@ -531,13 +534,13 @@ Shoes.app(title: "Balloon Pop", width: W, height: H, resizable: false) do
     3.times do |i|
       bit = take(@sparkles)
       angle = i * 2.1 + rand
-      bit.x, bit.y, bit.vx, bit.vy, bit.spin, bit.turn, bit.life = x, y, Math.cos(angle) * 60, Math.sin(angle) * 60, 200, 0, 0.6
+      bit.x, bit.y, bit.vx, bit.vy, bit.life = x, y, Math.cos(angle) * 60, Math.sin(angle) * 60, 0.6
       bit.art.show
     end
   end
 
-  # Everything flying about: confetti tumbles and falls, sparkles spin out and
-  # fade, rings spread, strings drop.
+  # Everything flying about: confetti tumbles and falls, sparkles fly out and
+  # shrink away, rings spread, strings drop.
   def fly_bits(dt)
     @confetti.each do |bit|
       next if bit.age.nil? || bit.age >= bit.life
@@ -916,7 +919,7 @@ Shoes.app(title: "Balloon Pop", width: W, height: H, resizable: false) do
     strokewidth 1.5
     line left + 36, 61, left + 36, 70
     stack(left: left + 90, top: 34, width: 64, height: 32) do
-      @count_label = para "123", font: ROUND, size: 19, weight: "bold", align: "center", stroke: "#3d5a8a", margin: 0
+      para "123", font: ROUND, size: 19, weight: "bold", align: "center", stroke: "#3d5a8a", margin: 0
     end
   end
 

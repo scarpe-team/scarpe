@@ -142,9 +142,10 @@ before = trap_lines.().size
 assert_operator trap_lines.().size - before, :<=, 60, "at most one sound a key"
 advance 0.5
 assert_operator iv.(:stars).count { |s| s.lit > 0 }, :>, 10, "stars all over the sky are singing"
-# While six sounds are still ringing, a seventh waits its turn (here each "sound" is a two-second sleep).
+# While six sounds are still ringing, a seventh waits its turn (here each "sound" is a long sleep,
+# stopped straight after, so the test doesn't depend on how fast the machine is).
 spawned = 0
-sounds.define_singleton_method(:spawn) { |*_args, **_opts| spawned += 1; Process.spawn("sleep", "2") }
+sounds.define_singleton_method(:spawn) { |*_args, **_opts| spawned += 1; Process.spawn("sleep", "30") }
 20.times { |i| press_key keys[i] }
 assert_equal 6, spawned, "no more than six sounds at the same moment"
 sounds.singleton_class.remove_method(:spawn)
