@@ -10,6 +10,12 @@ FPS = 30
 DAY_HINT = "Click the water to feed them. Click a fish to say hello."
 NIGHT_HINT = "Shh, they are sleeping. Press Day to wake them."
 INK = "#2a211d"    # every creature is outlined in the same warm near-black
+KELP = {
+  deep: ["#2e7d4f", "#3f9a5b", "#6cc26f"],
+  bright: ["#2e7d4f", "#4caf64", "#8ed17a"],
+  soft: ["#3f9a5b", "#6cc26f", "#a6de8a"],
+  plum: ["#8e4f9e", "#b56cc4", "#dd9be6"],
+}
 
 CAST = [
   { name: "Marlow", kind: :clownfish, line: "Brave, mostly.", speed: 60, depth: 120..400, curious: true },
@@ -28,6 +34,12 @@ Fleeting = Struct.new(:x, :y, :age, :life, :art) # hearts, ripples and snores
 
 Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
   # ---------------------------------------------------------------- drawing kit
+
+  # Shoes reads a Float from 0 to 1 as a fraction of the slot (0.5 is halfway across),
+  # so anything that moves through there is placed on a whole pixel instead.
+  def px(v)
+    v > 0 && v <= 1 ? v.round : v
+  end
 
   # A shape from path steps like [:curve_to, x1, y1, x2, y2, x, y], mirrored
   # left to right when the creature faces left, inside a box `width` wide.
@@ -201,8 +213,8 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
     stroke "#c9443a"
     strokewidth 3
     cap :curve
-    [[-1, 30, 36, 12, 44], [-1, 32, 42, 16, 52], [-1, 36, 46, 24, 56], [1, 60, 36, 78, 44], [1, 58, 42, 74, 52], [1, 54, 46, 66, 56]].each do |_side, x1, y1, x2, y2|
-      line x1, y1, x2, y2
+    [[30, 36, 12, 44], [32, 42, 16, 52], [36, 46, 24, 56], [60, 36, 78, 44], [58, 42, 74, 52], [54, 46, 66, 56]].each do |x1, y1, x2, y2|
+      line x1, y1, x2, y2 # legs
     end
     stroke INK
     strokewidth 2
@@ -229,6 +241,17 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
     look = [eyes(1, 90, 35, 11, 9), eyes(1, 90, 55, 11, 9)]
     smile(1, 90, 45, 42)
     look
+  end
+
+  # An arched window or door: straight sides and a round top, `w` wide and `h` tall.
+  def arch(x, top, w, h)
+    shape do
+      move_to x, top + h
+      line_to x, top + w / 2.0
+      curve_to x, top - w * 0.1, x + w, top - w * 0.1, x + w, top + w / 2.0
+      line_to x + w, top + h
+      line_to x, top + h
+    end
   end
 
   # ---------------------------------------------------------------- the tank
@@ -346,10 +369,10 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
     strokewidth 2
     fill "#4a3f6b"
     @windows = [[87, 344], [87, 404], [123, 412], [187, 412], [218, 378]].map do |x, y|
-      shape { move_to x, y + 22; line_to x, y + 7; curve_to x, y - 2, x + 16, y - 2, x + 16, y + 7; line_to x + 16, y + 22; line_to x, y + 22 }
-      [x + 8, y + 11]
+      arch x, y - 1, 16, 23
+      [x + 8, y + 11] # where its glow goes at night
     end
-    shape { move_to 146, 490; line_to 146, 458; curve_to 146, 436, 178, 436, 178, 458; line_to 178, 490 }
+    arch 146, 440, 32, 50 # the door
     nostroke
     fill "#5fae6e"
     [[74, 488, 30, 12], [118, 490, 24, 10], [200, 489, 34, 12], [244, 490, 16, 8]].each do |x, y, bw, bh|
@@ -358,12 +381,11 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
   end
 
   def chest
-    stroke INK
-    strokewidth 2
-    fill rgb(255, 214, 90, 0.35)
     nostroke
+    fill rgb(255, 214, 90, 0.35)
     @gleam = oval 655, 458, 90, 40, center: true, hidden: true
     stroke INK
+    strokewidth 2
     fill "#6b3f1f"
     @lid_open = shape { move_to 622, 462; line_to 626, 424; curve_to 640, 412, 672, 412, 686, 424; line_to 690, 462 }
     @lid_open.hide
@@ -415,8 +437,8 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
       next if offsets[i] == leaf.shown
 
       leaf.shown = offsets[i]
-      leaf.art.left = offsets[i]
-      weed[:stem][i].style(left: i.zero? ? leaf.x : offsets[i - 1], x2: offsets[i])
+      leaf.art.left = px(offsets[i])
+      weed[:stem][i].style(left: px(i.zero? ? leaf.x : offsets[i - 1]), x2: px(offsets[i]))
     end
   end
 
@@ -432,7 +454,7 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
                    else tetra(fish.facing)
                    end
     end
-    sleepy(fish, true) if @asleep
+    close_eyes(fish.parts[:eyes], true) if @asleep
   end
 
   def hatch(name:, kind:, line:, speed:, depth:, **traits)
@@ -489,8 +511,23 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
     fish.vy += (dy * want * 0.6 - fish.vy) * ease
     fish.x = (fish.x + fish.vx * dt).clamp(40, W - 40)
     fish.y = (fish.y + fish.vy * dt).clamp(SURFACE + 30, SAND - 20)
+    make_room(fish) if @fish.include?(fish)
     turn(fish) if fish.vx * fish.facing < -6
     show(fish)
+  end
+
+  # Fish give each other a little room, so a crowd at dinner stacks up instead of piling up.
+  def make_room(fish)
+    @fish.each do |other|
+      next if other.equal?(fish)
+
+      dx = fish.x - other.x
+      dy = fish.y - other.y
+      room = (SIZES[fish.kind][1] + SIZES[other.kind][1]) * 0.4
+      next if dx.abs > 60 || dy.abs > room
+
+      fish.y += (dy.negative? ? -1 : 1) * [(room - dy.abs) * 0.1, 1.2].min
+    end
   end
 
   # Marlow comes over to see what the pointer is up to; Puff keeps well away from it.
@@ -515,7 +552,7 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
   def show(fish)
     w, h = SIZES[fish.kind]
     bob = Math.sin(@clock * 2 + fish.phase) * 2
-    fish.slot.move((fish.x - w / 2).round(1), (fish.y - h / 2 + bob).round(1))
+    fish.slot.move(px((fish.x - w / 2).round(1)), px((fish.y - h / 2 + bob).round(1)))
     beat = 5 + Math.hypot(fish.vx, fish.vy) / 12
     fish.parts[:tail].style(rotate: (Math.sin(@clock * beat + fish.phase) * 9).round(1))
   end
@@ -533,9 +570,9 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
     end
   end
 
-  def sleepy(fish, asleep)
-    fish.parts[:eyes][:open].each { |part| part.hidden = asleep }
-    fish.parts[:eyes][:shut].hidden = !asleep
+  def close_eyes(eyes, asleep)
+    eyes[:open].each { |part| part.hidden = asleep }
+    eyes[:shut].hidden = !asleep
   end
 
   def scuttle(dt)
@@ -562,7 +599,7 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
       @below.append do
         fill ["#e8743b", "#f2b134", "#c9543a"].sample
         nostroke
-        art = shape(left: fx, top: fy) do
+        art = shape(left: px(fx), top: px(fy)) do
           move_to 0, 0
           line_to rand(4.0..6.0), rand(-1.0..1.0)
           line_to rand(4.0..6.0), rand(4.0..6.0)
@@ -586,7 +623,7 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
     @below.append do
       nostroke
       fill "#ff6f91"
-      art = shape(left: x - 9, top: y - 16) do
+      art = shape(left: px(x - 9), top: px(y - 16)) do
         move_to 9, 16
         curve_to 0, 9, 0, 1, 5, 1
         curve_to 8, 1, 9, 4, 9, 5
@@ -619,10 +656,10 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
         d = (8 + 50 * k).round(1)
         thing.art.style(width: d, height: d, stroke: rgb(255, 255, 255, 0.8 * (1 - k)))
       when Shoes::Para # a snore drifts up and away
-        thing.art.move(thing.x + Math.sin(k * 5) * 6, thing.y - 44 * k)
+        thing.art.move(px(thing.x + Math.sin(k * 5) * 6), px(thing.y - 44 * k))
         thing.art.style(stroke: rgb(220, 235, 255, 0.9 * (1 - k)))
       else # a heart floats up
-        thing.art.style(top: (thing.y - 30 * k).round(1), fill: rgb(255, 111, 145, 1 - k * k))
+        thing.art.style(top: px((thing.y - 30 * k).round(1)), fill: rgb(255, 111, 145, 1 - k * k))
       end
       false
     end
@@ -638,7 +675,7 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
         flake.x += Math.sin(@clock * 2 + flake.sway) * 8 * dt
         flake.landed = 0.0 if flake.y > SAND + 4
       end
-      flake.art.move(flake.x.round(1), flake.y.round(1))
+      flake.art.move(px(flake.x.round(1)), px(flake.y.round(1)))
       eater = everyone.find do |fish|
         at = mouth(fish)
         Math.hypot(flake.x - at[0], flake.y - at[1]) < 14
@@ -719,8 +756,8 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
     return if asleep == @asleep
 
     @asleep = asleep
-    (@fish + [@leader] + @zips).each { |fish| sleepy(fish, asleep) }
-    @pinch[:eyes].each { |eye| eye[:open].each { |part| part.hidden = asleep }; eye[:shut].hidden = !asleep }
+    (@fish + [@leader] + @zips).each { |fish| close_eyes(fish.parts[:eyes], asleep) }
+    @pinch[:eyes].each { |eyes| close_eyes(eyes, asleep) }
   end
 
   def glimmer
@@ -728,7 +765,8 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
 
     @plankton.each_with_index do |dot, i|
       twinkle = (Math.sin(@clock * 1.7 + i * 1.3) + 1) / 2
-      dot.style(left: (dot.left + Math.sin(@clock * 0.5 + i) * 0.3).round(1), fill: rgb(130, 255, 220, (0.15 + 0.7 * twinkle) * @dusk))
+      drift = Math.sin(@clock * 0.5 + i) * 0.3
+      dot.style(left: px((dot.left + drift).round(1)), fill: rgb(130, 255, 220, (0.15 + 0.7 * twinkle) * @dusk))
     end
   end
 
@@ -809,10 +847,9 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
   @caustics = caustics
   castle
   chest
-  @weeds = [[34, 13, ["#2e7d4f", "#3f9a5b", "#6cc26f"]], [276, 9, ["#2e7d4f", "#4caf64", "#8ed17a"]],
-    [300, 12, ["#3f9a5b", "#6cc26f", "#a6de8a"]], [470, 8, ["#8e4f9e", "#b56cc4", "#dd9be6"]],
-    [566, 14, ["#2e7d4f", "#3f9a5b", "#6cc26f"]], [760, 11, ["#3f9a5b", "#5cb85c", "#8ed17a"]],
-    [842, 15, ["#2e7d4f", "#4caf64", "#8ed17a"]]].map { |x, n, colors| weed(x, n, colors) }
+  # kelp behind the fish: where, how many blades, and which greens
+  @weeds = [[34, 13, :deep], [276, 9, :bright], [300, 12, :soft], [470, 8, :plum], [566, 14, :deep],
+    [760, 11, :soft], [842, 15, :bright]].map { |x, blades, colors| weed(x, blades, KELP[colors]) }
 
   @bubbles = Array.new(10) { |i| bubble(:castle, 95, 330 - i * 30, rand(5..11)) }
   @bubbles += Array.new(8) { bubble(:chest, 655, H + 40, rand(6..12)) }
@@ -821,17 +858,17 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
   @pinch[:slot] = stack(left: 375, top: SAND - 28, width: 90, height: 60) { @pinch[:eyes] = crab }
 
   @fish = CAST.map { |cast| hatch(**cast) }
-  @leader = Fish.new(name: "The Zips", line: "We go everywhere together.", kind: :tetra, speed: 84, depth: 90..330,
-    x: 600.0, y: 200.0, vx: 0.0, vy: 0.0, facing: 1, phase: 0.0, traits: { forgetful: true }, rest: 0.0, slot: stack(left: 582, top: 191, width: 36, height: 18) {})
-  dress(@leader)
+  # the Zips: a leader who wanders, and six who keep their places around it
+  zips = { name: "The Zips", kind: :tetra, line: "We go everywhere together.", speed: 84, depth: 90..330 }
+  @leader = hatch(**zips, forgetful: true)
   @zips = [[-36, -18], [-40, 16], [-72, 0], [-78, -30], [-84, 30], [-112, -10]].map do |dx, dy|
-    zip = hatch(name: "The Zips", kind: :tetra, line: "We go everywhere together.", speed: 84, depth: 90..330, dx: dx, dy: dy)
-    zip.x = 600.0 + dx
-    zip.y = 200.0 + dy
-    zip
+    hatch(**zips, dx: dx, dy: dy)
   end
+  @leader.x, @leader.y = 600.0, 200.0
+  @zips.each { |zip| zip.x, zip.y = 600.0 + zip.traits[:dx], 200.0 + zip.traits[:dy] }
 
-  @weeds += [[14, 8, ["#2e7d4f", "#4caf64", "#8ed17a"]], [700, 9, ["#8e4f9e", "#b56cc4", "#dd9be6"]]].map { |x, n, colors| weed(x, n, colors) }
+  # and two in front, for depth
+  @weeds += [[14, 8, :bright], [700, 9, :plum]].map { |x, blades, colors| weed(x, blades, KELP[colors]) }
   @below = stack(left: 0, top: 0, width: W, height: H) {}
   surface
   @veil = rect 0, 0, W, H, fill: rgb(4, 12, 36, 0), stroke: rgb(0, 0, 0, 0)
@@ -840,7 +877,8 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
   @moon = Array.new(16) { |i| oval 690, -10, 360 - i * 21, center: true, fill: rgb(200, 220, 255, 0) }
   @glows = @windows.flat_map do |x, y|
     halo = [46, 34, 24].map { |d| oval(x, y + 2, d, center: true, fill: rgb(255, 204, 102, 0)) }
-    halo + [shape(fill: rgb(255, 214, 110, 0)) { move_to x - 6, y + 9; line_to x - 6, y - 2; curve_to x - 6, y - 9, x + 6, y - 9, x + 6, y - 2; line_to x + 6, y + 9 }]
+    fill rgb(255, 214, 110, 0)
+    halo + [arch(x - 6, y - 8, 12, 17)]
   end
   sky = Random.new(11)
   @plankton = Array.new(34) { oval sky.rand(20..860), sky.rand(60..460), sky.rand(2..4), center: true, fill: rgb(130, 255, 220, 0) }
@@ -860,8 +898,7 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
   pill(16, 132) do
     para "Aquarium", size: 15, weight: "semibold", stroke: white, margin: [22, 9, 0, 0]
   end
-  stack(left: W / 2 - 200, top: 14, width: 400, height: 36) do
-    @pills << background(rgb(8, 40, 70, 0.3), curve: 18)
+  pill(W / 2 - 200, 400) do
     @hint = para DAY_HINT, align: "center", size: 12, stroke: white, margin: [0, 11, 0, 0]
   end
   switch = pill(W - 118, 102) do
@@ -894,7 +931,7 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
   leave { @pointer = nil }
   keypress { |key| toggle_night if key == "n" }
 
-  @ticker = animate(FPS) do |frame|
+  animate(FPS) do |frame|
     dt = 1.0 / FPS
     @clock = frame * dt
     @fish.each { |fish| swim(fish, dt) }
@@ -912,6 +949,6 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
     @weeds.each { |weed| sway(weed) }
     @rays.each_with_index { |ray, i| ray.style(rotate: (Math.sin(@clock * 0.4 + i) * 1.2).round(2)) }
     @flags.each_with_index { |flag, i| flag.style(rotate: (Math.sin(@clock * 3 + i) * 8).round(1)) }
-    @surface.left = (Math.sin(@clock * 0.6) * 24).round(1)
+    @surface.left = px((Math.sin(@clock * 0.6) * 24).round(1))
   end
 end

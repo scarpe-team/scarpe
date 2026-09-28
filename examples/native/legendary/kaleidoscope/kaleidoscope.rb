@@ -58,7 +58,7 @@ Shoes.app(title: "Kaleidoscope", width: W, height: H, resizable: false) do
   end
 
   # One shape holding every plain copy (or every reflection) of a path, so a
-  # stroke is four shapes however many mirrors there are. The copies are
+  # stroke is six shapes however many mirrors there are. The copies are
   # symmetric about the centre, so the shape's middle is the lens's middle and
   # `transform :center` spins it about the right point.
   def kaleido_shape(steps, reflected)
@@ -78,7 +78,7 @@ Shoes.app(title: "Kaleidoscope", width: W, height: H, resizable: false) do
       transform :center
       cap :curve
       nofill
-      [[trail.size * 2 + 10, 0.1], [trail.size * 2 + 3, 0.22], [trail.size, 1.0]].each do |width, alpha|
+      [[trail.size * 2 + 7, 0.2], [trail.size, 1.0]].each do |width, alpha|
         strokewidth width
         stroke rgb(*hex(trail.color), alpha)
         shapes << kaleido_shape(steps, false)
@@ -86,7 +86,12 @@ Shoes.app(title: "Kaleidoscope", width: W, height: H, resizable: false) do
         shapes << kaleido_shape(steps, true)
       end
     end
-    shapes.each { |piece| piece.style(rotate: @angle.round(2)) } if @angle != 0
+    on_the_plate(shapes)
+  end
+
+  # New shapes start at the plate's current turn, so they land where they were drawn.
+  def on_the_plate(shapes)
+    shapes.each { |shape| shape.style(rotate: @angle.round(2)) } if @angle != 0
     shapes
   end
 
@@ -129,19 +134,19 @@ Shoes.app(title: "Kaleidoscope", width: W, height: H, resizable: false) do
     return if Math.hypot(point[0] - last[0], point[1] - last[1]) < 3
 
     @live.points << point
-    piece = Stroke.new([last, point], @live.color, @live.partner, @live.size, [])
+    trail = @live
+    segment = [[:move_to, *last], [:line_to, *point]]
     shapes = []
     @canvas.append do
       transform :center
       cap :curve
-      strokewidth piece.size
-      stroke piece.color
-      shapes << kaleido_shape([[:move_to, *last], [:line_to, *point]], false)
-      stroke piece.partner
-      shapes << kaleido_shape([[:move_to, *last], [:line_to, *point]], true)
+      strokewidth trail.size
+      stroke trail.color
+      shapes << kaleido_shape(segment, false)
+      stroke trail.partner
+      shapes << kaleido_shape(segment, true)
     end
-    shapes.each { |piece| piece.style(rotate: @angle.round(2)) } if @angle != 0
-    @live.shapes.concat(shapes)
+    @live.shapes.concat(on_the_plate(shapes))
   end
 
   def end_stroke
@@ -403,14 +408,15 @@ Shoes.app(title: "Kaleidoscope", width: W, height: H, resizable: false) do
     end
   end
 
-  # The plate turns a few degrees a second, taking everything on it along.
-  animate(30) do
+  # The plate turns 7.5 degrees a second, taking everything on it along. Every
+  # stroke repaints each step, so 24 steps a second keeps a busy plate smooth.
+  animate(24) do
     next unless @spinning
 
-    @angle = (@angle + 0.25) % 360
+    @angle = (@angle + 7.5 / 24) % 360
     turn = @angle.round(2)
-    @guide_lines.each { |line| line.style(rotate: turn) }
-    @strokes.each { |trail| trail.shapes.each { |piece| piece.style(rotate: turn) } }
-    @live&.shapes&.each { |piece| piece.style(rotate: turn) }
+    @guide_lines.each { |guide| guide.style(rotate: turn) }
+    @strokes.each { |trail| trail.shapes.each { |shape| shape.style(rotate: turn) } }
+    @live&.shapes&.each { |shape| shape.style(rotate: turn) }
   end
 end
