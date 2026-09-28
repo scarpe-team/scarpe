@@ -35,8 +35,9 @@ Fleeting = Struct.new(:x, :y, :age, :life, :art) # hearts, ripples and snores
 Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
   # ---------------------------------------------------------------- drawing kit
 
-  # Shoes reads a Float from 0 to 1 as a fraction of the slot (0.5 is halfway across),
-  # so anything that moves through there is placed on a whole pixel instead.
+  # A slot or a text block reads a Float from 0 to 1 as a fraction of its parent (0.5 is
+  # halfway across), so a fish or a snore passing through there goes on a whole pixel.
+  # Art takes any number as pixels, so the shapes need no help.
   def px(v)
     v > 0 && v <= 1 ? v.round : v
   end
@@ -437,8 +438,8 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
       next if offsets[i] == leaf.shown
 
       leaf.shown = offsets[i]
-      leaf.art.left = px(offsets[i])
-      weed[:stem][i].style(left: px(i.zero? ? leaf.x : offsets[i - 1]), x2: px(offsets[i]))
+      leaf.art.left = offsets[i]
+      weed[:stem][i].style(left: i.zero? ? leaf.x : offsets[i - 1], x2: offsets[i])
     end
   end
 
@@ -599,7 +600,7 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
       @below.append do
         fill ["#e8743b", "#f2b134", "#c9543a"].sample
         nostroke
-        art = shape(left: px(fx), top: px(fy)) do
+        art = shape(left: fx, top: fy) do
           move_to 0, 0
           line_to rand(4.0..6.0), rand(-1.0..1.0)
           line_to rand(4.0..6.0), rand(4.0..6.0)
@@ -623,7 +624,7 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
     @below.append do
       nostroke
       fill "#ff6f91"
-      art = shape(left: px(x - 9), top: px(y - 16)) do
+      art = shape(left: x - 9, top: y - 16) do
         move_to 9, 16
         curve_to 0, 9, 0, 1, 5, 1
         curve_to 8, 1, 9, 4, 9, 5
@@ -659,7 +660,7 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
         thing.art.move(px(thing.x + Math.sin(k * 5) * 6), px(thing.y - 44 * k))
         thing.art.style(stroke: rgb(220, 235, 255, 0.9 * (1 - k)))
       else # a heart floats up
-        thing.art.style(top: px((thing.y - 30 * k).round(1)), fill: rgb(255, 111, 145, 1 - k * k))
+        thing.art.style(top: (thing.y - 30 * k).round(1), fill: rgb(255, 111, 145, 1 - k * k))
       end
       false
     end
@@ -675,7 +676,7 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
         flake.x += Math.sin(@clock * 2 + flake.sway) * 8 * dt
         flake.landed = 0.0 if flake.y > SAND + 4
       end
-      flake.art.move(px(flake.x.round(1)), px(flake.y.round(1)))
+      flake.art.move(flake.x.round(1), flake.y.round(1))
       eater = everyone.find do |fish|
         at = mouth(fish)
         Math.hypot(flake.x - at[0], flake.y - at[1]) < 14
@@ -766,7 +767,7 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
     @plankton.each_with_index do |dot, i|
       twinkle = (Math.sin(@clock * 1.7 + i * 1.3) + 1) / 2
       drift = Math.sin(@clock * 0.5 + i) * 0.3
-      dot.style(left: px((dot.left + drift).round(1)), fill: rgb(130, 255, 220, (0.15 + 0.7 * twinkle) * @dusk))
+      dot.style(left: (dot.left + drift).round(1), fill: rgb(130, 255, 220, (0.15 + 0.7 * twinkle) * @dusk))
     end
   end
 
@@ -949,6 +950,6 @@ Shoes.app(title: "Aquarium", width: W, height: H, resizable: false) do
     @weeds.each { |weed| sway(weed) }
     @rays.each_with_index { |ray, i| ray.style(rotate: (Math.sin(@clock * 0.4 + i) * 1.2).round(2)) }
     @flags.each_with_index { |flag, i| flag.style(rotate: (Math.sin(@clock * 3 + i) * 8).round(1)) }
-    @surface.left = px((Math.sin(@clock * 0.6) * 24).round(1))
+    @surface.left = (Math.sin(@clock * 0.6) * 24).round(1)
   end
 end

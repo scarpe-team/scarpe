@@ -54,17 +54,10 @@ Shoes.app(title: "Constellations", width: W, height: H, resizable: false) do
     File.write(data_file, "[\n" + @named.map { |c| "  #{JSON.generate(c)}" }.join(",\n") + "\n]\n")
   end
 
-  # Shoes reads a Float from 0 to 1 as a fraction of the slot (0.5 is halfway across),
-  # so anything that moves through there is placed on a whole pixel instead.
-  def px(v)
-    v > 0 && v <= 1 ? v.round : v
-  end
-
   # ---------------------------------------------------------------- the sky, grown from its seed
 
   def grow_sky
     seed = Random.new(SEED)
-    # Sizes stay above one pixel: a Float up to 1.0 would mean a fraction of the window.
     @faint = Array.new(420) { [seed.rand(0.0..W), seed.rand(56.0..HORIZON), seed.rand(1.2..2.4), seed.rand(0.2..0.75)] }
     # The Milky Way: a band of fainter, tinier stars from bottom left to top right.
     @milky = Array.new(300) do
@@ -345,13 +338,13 @@ Shoes.app(title: "Constellations", width: W, height: H, resizable: false) do
 
     from = @bright[@draft[:last]]
     to = star ? @bright[star] : [x, y]
-    @band.style(left: from[0], top: from[1], x2: px(to[0]), y2: px(to[1]), hidden: false)
+    @band.style(left: from[0], top: from[1], x2: to[0], y2: to[1], hidden: false)
   end
 
   def show_status(note = nil)
     @status.clear do
       background rgb(8, 12, 32, 0.78), curve: 26
-      border rgb(255, 255, 255, 0.08), curve: 26
+      border rgb(255, 255, 255, 0.08), curve: 26, strokewidth: 5
       if @naming
         flow(margin: [20, 8, 0, 0]) do
           para "Name it", size: 13, stroke: MUTED, margin: [0, 10, 10, 0]
@@ -390,7 +383,7 @@ Shoes.app(title: "Constellations", width: W, height: H, resizable: false) do
     k = @falling[:age] / 10.0
     x = @falling[:x] - 260 * k
     y = @falling[:y] + 110 * k
-    @meteor.style(left: px(x), top: px(y), x2: px(x + 60), y2: px(y - 25), stroke: rgb(255, 255, 255, 0.8 * (1 - k)), hidden: k >= 1)
+    @meteor.style(left: x, top: y, x2: x + 60, y2: y - 25, stroke: rgb(255, 255, 255, 0.8 * (1 - k)), hidden: k >= 1)
     @falling = nil if k >= 1
   end
 

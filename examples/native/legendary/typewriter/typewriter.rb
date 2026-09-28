@@ -262,7 +262,7 @@ Shoes.app(title: "Typewriter", width: 720, height: 680, resizable: false) do
   def body_button(left, top, label, &on_click)
     button = stack(left: left, top: top, width: 108, height: 32, cursor: :hand_cursor) do
       background "#f4f5f2".."#c9cdc8", curve: 16
-      border rgb(40, 60, 50, 0.3), curve: 16
+      border rgb(40, 60, 50, 0.3), curve: 16, strokewidth: 2
       para label, align: "center", size: 12, weight: "semibold", stroke: "#34403a", margin_top: 8
     end
     button.click(&on_click)

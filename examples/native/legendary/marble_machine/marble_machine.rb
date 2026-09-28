@@ -337,7 +337,7 @@ Shoes.app(title: "Marble Machine", width: WIDTH, height: HEIGHT, resizable: fals
     marble.wait += 1
     return marble.state = :faded if marble.wait >= 10
 
-    size = (RADIUS * 2 * (1 - marble.wait / 10.0)).round(1) # never as small as 1, which art reads as "all of it"
+    size = (RADIUS * 2 * (1 - marble.wait / 10.0)).round(1)
     marble.body.style(width: size, height: size)
   end
 
@@ -457,6 +457,7 @@ Shoes.app(title: "Marble Machine", width: WIDTH, height: HEIGHT, resizable: fals
     spot = stack(width: 50, height: 48, margin: [0, 0, 10, 8]) do
       ring = oval 20, 20, 36, center: true, fill: rgb(0, 0, 0, 0), stroke: INK, strokewidth: 2, hidden: true
       if choice == :rainbow
+        nostroke
         JEWELS.each_with_index { |jewel, i| slice(20, 20, 13, i, JEWELS.size, jewel) }
       else
         oval 20, 20, 26, center: true, fill: glass(color), stroke: rgb(0, 0, 0, 0)
@@ -468,18 +469,11 @@ Shoes.app(title: "Marble Machine", width: WIDTH, height: HEIGHT, resizable: fals
     @rings[choice] = ring
   end
 
-  # One slice of a pie of `count`, as a fan of straight edges round the rim.
+  # One slice of a pie of `count`, the first starting at twelve o'clock.
   def slice(x, y, radius, index, count, color)
-    fill rgb(*color)
-    nostroke
-    shape do
-      move_to x, y
-      (0..6).each do |k|
-        angle = (index + k / 6.0) * 2 * Math::PI / count - Math::PI / 2
-        line_to x + radius * Math.cos(angle), y + radius * Math.sin(angle)
-      end
-      line_to x, y
-    end
+    turn = 2 * Math::PI / count
+    arc x - radius, y - radius, radius * 2, radius * 2, index * turn - Math::PI / 2, (index + 1) * turn - Math::PI / 2,
+      wedge: true, fill: rgb(*color)
   end
 
   def choose(choice)

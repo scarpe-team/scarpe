@@ -375,13 +375,14 @@ Shoes.app(title: "Ledger", width: 960, height: 640, resizable: false) do
           stack width: 244 do
             label "What for"
             @note = edit_line width: 232
+            @amount.finish = @note.finish = proc { add_entry }
           end
           @category_box = stack width: 150 do
             label "Category"
             @category = list_box items: @book.categories.map { |c| c["name"] }, width: 138
           end
           stack width: 96, margin_top: 17 do
-            button "Add", width: 96, height: 30, color: INK, stroke: white, tooltip: "Adds the entry (Cmd-Return)" do
+            button "Add", width: 96, height: 30, color: INK, stroke: white, tooltip: "Adds the entry (Return)" do
               add_entry
             end
           end
@@ -612,9 +613,10 @@ Shoes.app(title: "Ledger", width: 960, height: 640, resizable: false) do
           para day.to_s, size: 9, stroke: MUTED, left: @chart_x.(day) - 15, top: h + 20, width: 30, align: "center", margin: 0
         end
         # the pointer's guide and dot, hidden until a day is pointed at
+        stroke tint(INK, 0.25)
+        strokewidth 1
+        @guide = line 0, 12, 0, 12 + h, hidden: true
         nostroke
-        fill tint(INK, 0.25)
-        @guide = rect 0, 12, 1, h, hidden: true
         fill GREEN
         @dot = oval 0, 0, 10, center: true, hidden: true
         # one invisible column per day hears the pointer
@@ -626,7 +628,7 @@ Shoes.app(title: "Ledger", width: 960, height: 640, resizable: false) do
         reveal = animate(60) do |frame|
           t = [frame / 40.0, 1].min
           ease = 1 - (1 - t)**3
-          curtain.style(left: (30 + 610 * ease).round, width: (610 * (1 - ease)).round) # whole pixels: a Float up to 1 is a fraction
+          curtain.style(left: 30 + 610 * ease, width: 610 * (1 - ease))
           reveal.stop if t >= 1
         end
       end
@@ -776,6 +778,7 @@ Shoes.app(title: "Ledger", width: 960, height: 640, resizable: false) do
         stack margin: [18, 16, 18, 0] do
           para "New category", size: 15, weight: "semibold", stroke: INK, margin: 0
           @new_name = edit_line width: 172, margin_top: 10
+          @new_name.finish = proc { add_category }
           flow margin_top: 10 do
             @swatches = SWATCHES.map do |color|
               ring = nil
