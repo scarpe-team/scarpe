@@ -7,7 +7,7 @@
 
 Coding agents building a desktop app with Scarpe: start at [FOR_AGENTS.md](FOR_AGENTS.md).
 
-<img src="docs/static/scarpe-logo.png">
+https://github.com/user-attachments/assets/5018221c-d261-49bb-8c6b-c128254ff2d7
 
 "Scarpe" means shoes in Italian. "Scarpe" also means [Shoes](https://github.com/shoes/shoes-deprecated) in modern Ruby and Webview!
 
