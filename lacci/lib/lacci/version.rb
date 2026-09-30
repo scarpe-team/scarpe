@@ -9,5 +9,5 @@
 # mostly invisible. Instead, look at the {Shoes} module
 # to see what's in Lacci.
 module Lacci
-  VERSION = "0.5.0"
+  VERSION = "1.0.0"
 end
