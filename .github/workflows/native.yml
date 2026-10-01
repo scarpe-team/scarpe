@@ -58,6 +58,10 @@ jobs:
         with:
           workspaces: native
           shared-key: native
+      # The renderer's sound (rodio, through cpal) builds against ALSA's headers on Linux.
+      - name: ALSA headers
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libasound2-dev
       - name: Clippy
         working-directory: native
         run: cargo clippy --all-targets --release --locked -- -D warnings
@@ -114,7 +118,8 @@ jobs:
           # while the bundle installs. It asks pkg-config for webkit2gtk-4.0, which Ubuntu no
           # longer ships; 4.1 is the same API on libsoup 3, so it answers to the old name.
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libgtk-3-dev libwebkit2gtk-4.1-dev
+          # The renderer's sound (rodio, through cpal) builds against ALSA's headers.
+          sudo apt-get install -y --no-install-recommends libgtk-3-dev libwebkit2gtk-4.1-dev libasound2-dev
           mkdir -p "$RUNNER_TEMP/pkgconfig"
           printf '%s\n' 'Name: webkit2gtk-4.0' 'Description: webkit2gtk-4.1 under its old name' \
             'Version: 2.0' 'Requires: webkit2gtk-4.1' > "$RUNNER_TEMP/pkgconfig/webkit2gtk-4.0.pc"

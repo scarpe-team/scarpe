@@ -117,6 +117,7 @@ pub struct Runtime {
     pub opts: Options,
     pub effects: Vec<Effect>,
     pub clipboard: Clipboard,
+    pub audio: crate::audio::Audio,
     /// The app that most recently ran or had input: dialogs open there.
     pub active_app: Option<Id>,
     /// Set when Rust should exit with this code.
@@ -143,6 +144,7 @@ pub struct Runtime {
 impl Runtime {
     pub fn new(opts: Options, out: Outbox) -> Self {
         let clipboard = Clipboard::for_run(opts.headless);
+        let audio = crate::audio::Audio::for_run(opts.headless);
         let mut stats = Stats::default();
         let text = TextEngine::new(opts.fonts);
         stats.mark("fonts");
@@ -155,6 +157,7 @@ impl Runtime {
             opts,
             effects: Vec::new(),
             clipboard,
+            audio,
             active_app: None,
             exit: None,
             mid_batch: false,
@@ -395,6 +398,14 @@ impl Runtime {
     /// The user closed a window. Ruby may be blocked waiting on it (an `ask` in its modal, a
     /// `frames` request), so those are answered first; then Ruby hears `closed`, destroys the
     /// app and sends `quit`.
+    /// Tells Ruby which sounds have ended (audio.rs). The window loop calls it while a sound
+    /// plays; a request calls it for a sound that ended at once.
+    pub fn send_audio_ended(&mut self) {
+        for id in self.audio.take_ended() {
+            self.out.send(Outgoing::AudioEnded { id });
+        }
+    }
+
     pub fn window_closed(&mut self, app: Id) {
         self.answer_what_waits_on(app, "window closed");
         if self.is_standalone(app) {

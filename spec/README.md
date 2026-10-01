@@ -203,6 +203,9 @@ backend follows the ruling).
    `SCARPE_CLIPBOARD_FILE` too, which Lacci and the native renderer use in place of the system
    clipboard), and `pbcopy`, `pbpaste` and `xclip` read and write it for an app that runs them
    itself. Write that file to seed the clipboard, read it to see what the app copied.
+   Sounds go to the file `ENV["SPEC_AUDIO_FILE"]` (`SCARPE_AUDIO_FILE` too): every
+   `audio(...).play`, pause and stop is a line in it, such as `play /path/pop.wav`, and nothing is
+   heard. A played sound ends at once there, so `playing?` is false straight after.
 7. **Images and fonts:** `spec/support/assets/` is copied to `assets/` in the case's working
    directory. Never inline base64 files or read fonts from the checkout; add small files here.
 

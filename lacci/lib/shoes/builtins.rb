@@ -64,6 +64,16 @@ module Shoes::Builtins
     shoes_builtin("confirm", question)
   end
 
+  # A sound with no picture: audio("pop.wav").play (docs/SCARPE_FEATURES.md). Callable from any
+  # object, so a helper class can make the noises for an app.
+  #
+  # @param path [String] a WAV, MP3, Ogg Vorbis or FLAC file
+  # @param volume [Numeric] from 0.0 (silent) to 1.0 (as recorded)
+  # @return [Shoes::Audio] the sound, ready to play
+  def audio(path, volume: 1.0)
+    Shoes::Audio.new(path, volume: volume)
+  end
+
   # The [width, height] stored in an image file, read without showing or caching the
   # image (manual 2017-2023).
   #

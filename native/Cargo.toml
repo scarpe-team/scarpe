@@ -26,6 +26,10 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 rfd = "0.17"
 arboard = { version = "3", default-features = false, features = ["wayland-data-control"] }
+# Sound (src/audio.rs): playback through cpal, and the MIT/Apache decoders rather than Symphonia
+# (MPL-2.0): hound (WAV), minimp3 (MP3), lewton (Ogg Vorbis), claxon (FLAC). On Linux cpal needs
+# ALSA's headers to build (libasound2-dev).
+rodio = { version = "0.22", default-features = false, features = ["playback", "hound", "minimp3", "lewton", "claxon"] }
 # Screen readers (src/a11y.rs): the tree, the winit 0.30 adapter, and the consumer that reads a
 # tree back the way the platform adapters do (the `a11y` automation op).
 accesskit = "0.24"

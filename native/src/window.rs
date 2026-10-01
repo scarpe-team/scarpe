@@ -31,6 +31,9 @@ use winit::keyboard::{Key as WKey, ModifiersState, NamedKey};
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 use winit::window::{CursorIcon, Window, WindowId};
 
+/// How often the loop looks for the end of a sound that is playing (audio.rs).
+const AUDIO_CHECK: Duration = Duration::from_millis(100);
+
 pub enum UserEvent {
     /// Every complete line stdin had ready, so a batch wakes the loop once.
     Lines(Vec<String>),
@@ -606,7 +609,11 @@ impl ApplicationHandler<UserEvent> for Shell {
             }
         }
         let next_frame = self.windows.values().filter_map(|w| w.pacing.due()).min();
-        let wake = [self.deadline, self.orphaned_since.map(|t| t + QUIT_GRACE), tooltip_wake, next_frame]
+        // A sound playing on the device: look for its end ten times a second.
+        self.rt.send_audio_ended();
+        self.rt.out.flush();
+        let audio_check = self.rt.audio.playing().then(|| now + AUDIO_CHECK);
+        let wake = [self.deadline, self.orphaned_since.map(|t| t + QUIT_GRACE), tooltip_wake, next_frame, audio_check]
             .into_iter()
             .flatten()
             .min();

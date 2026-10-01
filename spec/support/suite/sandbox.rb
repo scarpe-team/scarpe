@@ -28,6 +28,8 @@ module SpecSuite
     def renderer_pid_file = File.join(root, "renderer.pid")
     def trap_file = File.join(root, "trapped_commands.txt")
     def clipboard_file = File.join(root, "clipboard.txt")
+    # What Shoes::Audio played, a line a command ("play /path/pop.wav"): nothing is heard.
+    def audio_file = File.join(root, "audio.txt")
     def log = File.join(root, "output.log")
 
     def path(name)
@@ -72,6 +74,8 @@ module SpecSuite
         "SPEC_TRAP_FILE" => trap_file,
         "SPEC_CLIPBOARD_FILE" => clipboard_file,
         "SCARPE_CLIPBOARD_FILE" => clipboard_file,
+        "SPEC_AUDIO_FILE" => audio_file,
+        "SCARPE_AUDIO_FILE" => audio_file,
         "SCARPE_NATIVE_SNAPSHOT_DIR" => File.join(RESULTS_DIR, "snapshots"),
       }.merge(ToolchainEnv.passthrough).merge(windows_env)
     end

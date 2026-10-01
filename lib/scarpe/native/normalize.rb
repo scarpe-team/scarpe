@@ -212,6 +212,7 @@ module Scarpe::Native::Normalize
   end
 
   alias_method :font_path, :image_path
+  alias_method :audio_path, :image_path
 
   # net/http and friends cost ~45 ms at startup (native/PERF.md), so only a download loads them.
   def download(url)

@@ -57,6 +57,30 @@ Shoes.app do
 end
 ```
 
+## Sound: `audio`
+
+`audio(path, volume: 1.0)` is a sound with no picture of its own, and returns a `Shoes::Audio`:
+`play` (from the start, or from where `pause` left it), `pause`, `stop`, `playing?` and
+`volume=`. It is a built-in like `alert`, so any object can call it. WAV, MP3, Ogg Vorbis and FLAC
+play. The manual's `video` plays an audio file the same way (`play`, `pause`, `stop`, `playing?`,
+`autoplay: true`), as Shoes 3 did through VLC; Scarpe still shows no moving pictures. Asked for by
+Andi Idogawa on 1 Oct 2026, so that apps such as `examples/native/kids/*` make sounds on every
+platform rather than through macOS's `afplay`; awaits Nick Schwaderer's approval upstream.
+
+The native renderer plays through the system's output (rodio: CoreAudio, WASAPI, ALSA); Niente and
+the webview hand the file to the system's player (`afplay`, PowerShell's `SoundPlayer`, `paplay`
+or `aplay`, which play WAV at least). `SCARPE_AUDIO_FILE` names a file that stands in for the
+speakers: each command lands there as a line (`play /path/pop.wav`) and a played sound ends at once,
+which is how `spec/run` and the test suites check sounds without making any.
+
+```ruby
+Shoes.app do
+  @pop = audio("pop.wav", volume: 0.3)
+  button("Pop") { @pop.play }
+  button("Hush") { @pop.stop }
+end
+```
+
 ## `Shoes.on_error`
 
 `Shoes.on_error { |err| }` hears every error a handler, a timer or the program's startup raises,

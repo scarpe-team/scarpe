@@ -52,6 +52,8 @@ module Scarpe::Native
         return @service.clipboard
       when "clipboard="
         @service.clipboard = args.first
+      when "audio"
+        @service.audio(*args)
       else
         @log.warn("Unknown builtin #{cmd_name.inspect}(#{args.inspect[1..-2]}); answering nil")
       end

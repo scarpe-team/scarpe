@@ -69,6 +69,7 @@ module NativeTestHelpers
         "SCARPE_NATIVE_GHOST" => nil, # the fake child has no window; a test that means a ghost says so
         "SCARPE_NATIVE_SNAPSHOT_DIR" => File.join(dir, "snapshots"),
         "SCARPE_NATIVE_PID_FILE" => File.join(dir, "renderer.pid"),
+        "SCARPE_AUDIO_FILE" => File.join(dir, "audio.txt"), # a ghost window plays no sound either
         "SCARPE_NATIVE_LOG_LEVEL" => "warn",
         "LOCALAPPDATA" => dir,
         "PATH" => "#{File.join(dir, "bin")}#{File::PATH_SEPARATOR}#{ENV["PATH"]}",

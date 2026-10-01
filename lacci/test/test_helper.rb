@@ -24,9 +24,10 @@ class NienteTest < Minitest::Test
 
   SCARPE_EXE = File.expand_path("../../exe/scarpe", __dir__)
 
-  # Each test app keeps its clipboard in a file of its own (SCARPE_CLIPBOARD_FILE), and runs
-  # with spec/support/fakebin first on PATH, as spec/run does (spec/README.md rule 6), so no
-  # test touches the real clipboard or opens a dialog.
+  # Each test app keeps its clipboard in a file of its own (SCARPE_CLIPBOARD_FILE), writes what
+  # it plays to another (SCARPE_AUDIO_FILE), and runs with spec/support/fakebin first on PATH, as
+  # spec/run does (spec/README.md rule 6), so no test touches the real clipboard, makes a sound
+  # or opens a dialog.
   FAKEBIN = File.expand_path("../../spec/support/fakebin", __dir__)
   CLIPBOARDS = Dir.mktmpdir("lacci-test-clipboards")
   Minitest.after_run { FileUtils.rm_rf(CLIPBOARDS) }
@@ -34,6 +35,11 @@ class NienteTest < Minitest::Test
   # The file this test's app reads and writes as the clipboard.
   def clipboard_file
     File.join(CLIPBOARDS, "#{self.class}-#{name}.txt")
+  end
+
+  # The file this test's app writes what it plays to, a line a command ("play /path/pop.wav").
+  def audio_file
+    File.join(CLIPBOARDS, "#{self.class}-#{name}-audio.txt")
   end
 
   def run_test_niente_code(
@@ -71,6 +77,7 @@ class NienteTest < Minitest::Test
           "PATH" => [FAKEBIN, ENV["PATH"]].join(File::PATH_SEPARATOR),
           "SPEC_CLIPBOARD_FILE" => clipboard_file,
           "SCARPE_CLIPBOARD_FILE" => clipboard_file,
+          "SCARPE_AUDIO_FILE" => audio_file,
           "NIENTE_LOG_LEVEL" => log_level.to_s,
           "SHOES_SPEC_TEST" => shoes_spec_path,
           "SCARPE_DISPLAY_SERVICE" => display_service.to_s,

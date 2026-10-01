@@ -134,6 +134,7 @@ that last ran or had input, else the first running one.
 | `pixel` | `x`, `y` | `[r,g,b,a]` at logical point; error outside the window |
 | `frames` | `n` | reply after n frames have been laid out and painted (sync point); value = frames painted so far |
 | `focused` | | id of the focused input or null |
+| `audio` | `cmd`, `id`, `path`, `volume` (0 to 1) | Shoes::Audio: `cmd` is `play` (from the start), `pause`, `resume`, `stop` or `volume`, for the sound Ruby calls `id`, the file at `path`; replies null. Played through the system's output device (rodio, opened at the first sound), or written as a line (`play /path/pop.wav`, not `volume`) to the file `SCARPE_AUDIO_FILE` names; headless, nothing. A sound that ends, plays nowhere or cannot play is `{"t":"audio_ended","id":...}`, after the reply when that is at once |
 | `clipboard` | `text` (optional) | Shoes' `app.clipboard`: without `text`, the clipboard's text (`""` when empty); with it, `app.clipboard=`, replying null. The clipboard text fields cut and paste through: the system's in a window (arboard: macOS, Windows, X11, Wayland), a private one headless, or the file `SCARPE_CLIPBOARD_FILE` names |
 | `para_hit` | `id` (a para's), `x`, `y` (window coordinates) | the index of the character under the point, as Pango's `xy_to_index` gives Shoes 3's `Para#hit`: the first of the line left of the text, the last past its end; null off the para's box (ledger F14) |
 | `para_caret` | `id` (a para's) | `{left, top, height}` of the para's caret in whole pixels, measured from the content origin of the slot that scrolls the para (the window's when none does), so `top` compares with that slot's `scroll_top`; null when the para has no `text_cursor` (ledger F14) |
@@ -161,6 +162,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 | `console` | `app` | Alt-/ was pressed in that app's window (Cmd-/ on a Mac, 4.4): `Shoes.show_console` (5.6). The app hears no keypress for it |
 | `reply` | `req`, `value`, `error` (null or String), plus op extras like `cancelled` | answers a `req` |
 | `log` | `level`, `msg` | forwarded to Shoes::Log (`scarpe-native` component) |
+| `audio_ended` | `id` | a Shoes::Audio has ended: played to its end, or played nowhere (headless, `SCARPE_AUDIO_FILE`, no device) or could not play. Lacci's `playing?` turns false |
 
 ### 4.3 Events Rust emits (exact names and args; see research 01 section 5)
 
@@ -1021,6 +1023,7 @@ change the code and this list together.
 | `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept (default: the user's cache directory, 5.3) |
 | `SCARPE_NATIVE_SNAPSHOT_DIR` | where relative `snapshot(name)` paths go (default `spec/results/snapshots`) |
 | `SCARPE_CLIPBOARD_FILE` | a file that stands in for the system clipboard, for Rust's clipboard and Lacci's alike, so a sandboxed run never touches the real one (spec/run sets it) |
+| `SCARPE_AUDIO_FILE` | a file that stands in for the speakers, for Rust's audio and Lacci's alike: each command is a line in it and nothing is heard (spec/run and the test suites set it) |
 | `SCARPE_NATIVE_PID_FILE` | a file that holds the child's pid while it runs, for harnesses that may have to kill it (5.4) |
 | `SCARPE_NATIVE_WINDOWED_TESTS` | lets `rake native_test` open real windows, as ghosts |
 | `SCARPE_NATIVE_STATS` | a directory: each process writes where its time went (`ruby.json`, `rust.json`) as it exits (native/PERF.md) |

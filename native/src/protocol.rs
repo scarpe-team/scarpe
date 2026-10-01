@@ -87,6 +87,9 @@ pub enum Op {
     Focused { app: Option<Id> },
     /// Shoes' app.clipboard (no text) and app.clipboard= (text): the runtime's Clipboard.
     Clipboard { text: Option<String> },
+    /// Shoes::Audio: `cmd` (play, pause, resume, stop or volume) for the sound Ruby calls `id`,
+    /// a file at `path`, at `volume` from 0 to 1 (audio.rs).
+    Audio { cmd: String, id: String, path: String, volume: f32 },
     /// Para#hit(x, y): the index of the character of para `id` under window point (x, y), or
     /// null off its box, as Shoes 3's Pango xy_to_index gives it (ledger F14).
     ParaHit { id: Id, x: f32, y: f32 },
@@ -248,6 +251,12 @@ fn op_fields(obj: &Map<String, Value>) -> Result<Op, ParseError> {
         "pixel" => Op::Pixel { x: required(f(obj, "x"), "x")?, y: required(f(obj, "y"), "y")?, app },
         "frames" => Op::Frames { n: obj.get("n").and_then(Value::as_u64).unwrap_or(1).min(u32::MAX as u64) as u32, app },
         "focused" => Op::Focused { app },
+        "audio" => Op::Audio {
+            cmd: required(s(obj, "cmd"), "cmd")?,
+            id: required(s(obj, "id"), "id")?,
+            path: s(obj, "path").unwrap_or_default(),
+            volume: f(obj, "volume").unwrap_or(1.0).clamp(0.0, 1.0),
+        },
         "clipboard" => Op::Clipboard { text: obj.get("text").filter(|v| !v.is_null()).map(crate::props::value_text) },
         "para_hit" => Op::ParaHit { id: required(id(obj, "id"), "id")?, x: required(f(obj, "x"), "x")?, y: required(f(obj, "y"), "y")? },
         "para_caret" => Op::ParaCaret { id: required(id(obj, "id"), "id")? },
@@ -306,6 +315,8 @@ pub enum Outgoing {
     Closed { app: Id },
     /// Alt-/ (Cmd-/ on a Mac) in one of the app's windows: open the Shoes console (ledger H10).
     Console { app: Id },
+    /// A Shoes::Audio has played to its end (or could not play, or played to no speakers).
+    AudioEnded { id: String },
     Reply {
         req: u64,
         value: Value,
@@ -475,6 +486,15 @@ mod tests {
         assert_eq!(op(r#"{"t":"req","req":1,"op":"pixel","x":1,"y":2}"#), Op::Pixel { x: 1.0, y: 2.0, app: None });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"frames","n":3}"#), Op::Frames { n: 3, app: None });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"focused"}"#), Op::Focused { app: None });
+        assert_eq!(
+            op(r#"{"t":"req","req":1,"op":"audio","cmd":"play","id":"audio-1","path":"/s/pop.wav"}"#),
+            Op::Audio { cmd: "play".into(), id: "audio-1".into(), path: "/s/pop.wav".into(), volume: 1.0 }
+        );
+        assert_eq!(
+            op(r#"{"t":"req","req":1,"op":"audio","cmd":"volume","id":"audio-1","path":"/s/pop.wav","volume":3}"#),
+            Op::Audio { cmd: "volume".into(), id: "audio-1".into(), path: "/s/pop.wav".into(), volume: 1.0 }
+        );
+        assert!(matches!(op(r#"{"t":"req","req":1,"op":"audio","id":"audio-1"}"#), Op::Invalid(_)));
         assert_eq!(op(r#"{"t":"req","req":1,"op":"clipboard"}"#), Op::Clipboard { text: None });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"clipboard","text":"hi"}"#), Op::Clipboard { text: Some("hi".into()) });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"clipboard","text":""}"#), Op::Clipboard { text: Some(String::new()) });
@@ -510,6 +530,7 @@ mod tests {
             json!({"t":"layout","app":1,"rects":[[3,4.0,4.0,292.0,14.4,14.4]]})
         );
         assert_eq!(v(Outgoing::Closed { app: 1 }), json!({"t":"closed","app":1}));
+        assert_eq!(v(Outgoing::AudioEnded { id: "audio-1".into() }), json!({"t":"audio_ended","id":"audio-1"}));
         let mut extra = Map::new();
         extra.insert("cancelled".into(), json!(true));
         assert_eq!(

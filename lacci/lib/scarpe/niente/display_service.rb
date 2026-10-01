@@ -12,8 +12,9 @@ module Niente
 
     # What a headless display answers when nothing stubbed the dialog.
     HEADLESS_BUILTIN_ANSWERS = { "confirm" => false, "ask" => "" }.freeze
-    # Niente keeps no clipboard; left unanswered, these reach the system's (Shoes::Clipboard).
-    SYSTEM_BUILTINS = %w[clipboard clipboard=].freeze
+    # Niente keeps no clipboard and plays no sound; left unanswered, these reach the system's
+    # (Shoes::Clipboard, Shoes::AudioPlayer).
+    SYSTEM_BUILTINS = %w[clipboard clipboard= audio].freeze
 
     # Niente shows nothing, dialogs included. Answering every builtin keeps
     # Lacci from falling back to an osascript dialog in the middle of a test.

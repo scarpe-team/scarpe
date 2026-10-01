@@ -8,6 +8,7 @@ straightforward as possible.
 - Removed bloops as a required dependency - sound is now opt-in (install bloops gem separately if needed)
 - Added base64 gem dependency for Ruby 3.4+ compatibility
 - A native display service: `scarpe --native app.rb` draws with a Rust program (tiny-skia, cosmic-text, winit) instead of a webview, while Lacci and every block stay in Ruby. See docs/native.md and native/DESIGN.md. Dedicated to the late Noah Gibbs.
+- `audio("pop.wav").play`: sounds on every display and platform (`play`, `pause`, `stop`, `playing?`, `volume:`), and `video` plays audio files (WAV, MP3, Ogg Vorbis, FLAC). The native renderer plays through rodio; `SCARPE_AUDIO_FILE` writes them down instead, for tests. See docs/SCARPE_FEATURES.md
 - `scarpe peek APP.rb` runs an app headless on the native display, clicks, types, scrolls and saves pictures
 - `scarpe package --native` builds an ad-hoc signed macOS `.app` (and a `.dmg` with `--dmg`) with precompiled Ruby bytecode, no installed gems, and FastImage copied in for image sizes
 - The Shoes spec suite (`spec/run`): 1062 cases from the manual, Noah Gibbs' Shoes-Spec corpus and the native example apps' checks, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree

@@ -22,7 +22,8 @@ without a screen, test it, and package it. Everything here was checked on 28 Sep
 2. Never make a sound, open a dialog or touch their clipboard. Put `spec/support/fakebin` first
    on `PATH` for every run: it traps `afplay`, `say`, `open`, `osascript`, `caffeinate` and
    `SwitchAudioSource`, and keeps `pbcopy`, `pbpaste` and `xclip` in a file. Point
-   `SCARPE_CLIPBOARD_FILE` at a file too: `app.clipboard` uses it in place of the system one.
+   `SCARPE_CLIPBOARD_FILE` at a file too: `app.clipboard` uses it in place of the system one. And
+   `SCARPE_AUDIO_FILE`: `audio(...).play` writes what it would play there instead.
 3. Give the app a scratch `HOME` whenever it might save something.
 4. Let the person open the app themselves: hand over the command or the packaged `.app`.
 
@@ -76,7 +77,7 @@ lines on every command. They are harmless.
 Linux (Ubuntu 24.04), before `bundle install`, as `.github/workflows/native.yml` does it:
 
 ```sh
-sudo apt-get install -y --no-install-recommends libgtk-3-dev libwebkit2gtk-4.1-dev
+sudo apt-get install -y --no-install-recommends libgtk-3-dev libwebkit2gtk-4.1-dev libasound2-dev  # ALSA: the renderer's sound
 mkdir -p ~/.local/lib/pkgconfig      # webview_ruby asks for webkit2gtk-4.0; 4.1 answers to that name
 printf '%s\n' 'Name: webkit2gtk-4.0' 'Description: webkit2gtk-4.1 under its old name' \
   'Version: 2.0' 'Requires: webkit2gtk-4.1' > ~/.local/lib/pkgconfig/webkit2gtk-4.0.pc
@@ -133,6 +134,7 @@ RUBY="$(cd "$SCARPE" && ruby -e 'print RbConfig.ruby')"   # the clone's Ruby, pa
 mkdir -p "$BOX"
 exec env PATH="$SCARPE/spec/support/fakebin:$PATH" HOME="$BOX" \
   SPEC_TRAP_FILE="$BOX/trapped.txt" SPEC_CLIPBOARD_FILE="$BOX/clipboard.txt" SCARPE_CLIPBOARD_FILE="$BOX/clipboard.txt" \
+  SCARPE_AUDIO_FILE="$BOX/audio.txt" \
   RUSTUP_HOME="${RUSTUP_HOME:-$HOME/.rustup}" CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}" \
   BUNDLE_GEMFILE="$SCARPE/Gemfile" "$RUBY" "$SCARPE/exe/scarpe" "$@" --dev
 ```
@@ -142,7 +144,8 @@ exec env PATH="$SCARPE/spec/support/fakebin:$PATH" HOME="$BOX" \
   runs it in a ghost window for five seconds, when you need a real window (timing, frame rates).
 - `$BOX` is `${TMPDIR:-/tmp}/scarpe-home-my_app`, one per app folder. What the app saves lands
   under it (`$BOX/Library/Application Support/...` on a Mac); `rm -rf` it for a first run.
-- Every trapped command is a line in `$BOX/trapped.txt`, e.g. `afplay /var/.../pop.wav`.
+- Every trapped command is a line in `$BOX/trapped.txt`, e.g. `say hello`, and every sound the
+  app played is one in `$BOX/audio.txt`, e.g. `play /var/.../pop.wav`.
 - `--dev` makes `exe/scarpe` load the clone's own `lib` and its Gemfile's gems, as `bundle exec`
   would. It builds nothing. `exe/scarpe` has no `--help`; `./scarpe.sh peek --help` has one.
 - The wrapper resolves Ruby, and points rustup at its toolchains, before it moves `HOME`, so
@@ -410,8 +413,9 @@ alert "Saved"                    # native dialogs on screen; headless answers ni
 confirm "Sure?"
 ask "Name?"
 ask_open_file                    # also ask_save_file, ask_open_folder, ask_save_folder, ask_color
-self.clipboard = "text"          # through pbcopy and pbpaste
+self.clipboard = "text"          # the system clipboard (the renderer's own on native)
 clipboard
+audio("pop.wav").play            # a sound, from any object; also pause, stop, playing?, volume:
 close                            # closes this window; exit quits the app
 ```
 
@@ -545,9 +549,13 @@ Every Minitest assertion works. `spec/README.md` has the whole format, and each 
 
 ## Sound
 
-The native display plays nothing itself. The apps here write each sound once as a WAV file in
-plain Ruby and hand it to `afplay` (macOS) in the background, and stay silent where there is no
-`afplay`. Keep volumes at 0.3 or below and give the person a mute.
+`audio(path)` is a sound with no picture: `play`, `pause`, `stop`, `playing?` and `volume` (0.0 to
+1.0), a Scarpe addition (`docs/SCARPE_FEATURES.md`). It is a built-in, so a helper object can make
+an app's noises. WAV, MP3, Ogg Vorbis and FLAC play; `video "song.mp3"` plays the same way. The
+native renderer plays through the system's output on macOS, Windows and Linux; Niente and the
+webview hand it to the system's player. Keep volumes at 0.3 or below and give the person a mute.
+
+The apps here write each sound once as a WAV file in plain Ruby:
 
 ```ruby
 require "fileutils"
@@ -566,9 +574,7 @@ module Beep
 
       path = File.join(DIR, "#{hz}-#{seconds}.wav")
       write(path, hz, seconds, volume) unless File.exist?(path)
-      Process.detach(spawn("afplay", path, out: File::NULL, err: File::NULL))
-    rescue SystemCallError
-      # no afplay here (Linux, Windows): stay silent
+      audio(path).play
     end
 
     private
@@ -590,10 +596,11 @@ end
 # in the app: Beep.play(520); keypress { |k| Beep.muted = !Beep.muted if k == "m" }
 ```
 
-Under `scarpe.sh` or `spec/run` every `afplay` lands in the trap file instead of the speakers.
-`afplay` runs in the background, so put `--wait 0.3` after the click before peek exits if you
-read `$BOX/trapped.txt`. `examples/native/kids/balloon_pop/balloon_pop.rb` is the full pattern:
-chords, a cap on sounds at once, a mute button.
+Under `scarpe.sh` or `spec/run` every sound lands in `SCARPE_AUDIO_FILE` (`$BOX/audio.txt`) as a
+line such as `play /var/.../520-0.12.wav` instead of the speakers, and ends at once, so
+`playing?` is false straight after. Headless the renderer plays nothing either.
+`examples/native/kids/balloon_pop/balloon_pop.rb` is the full pattern: chords, a cap on sounds at
+once (`@playing.select!(&:playing?)`), a mute button.
 
 ## Saving state
 
