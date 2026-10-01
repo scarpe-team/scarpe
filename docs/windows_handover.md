@@ -16,7 +16,8 @@ Unix-only.
 
 **Update, 1 Oct, from a session with a Windows 11 VM:** the webview display runs on Windows now,
 tested on a real desktop (see [The webview display](#the-webview-display-on-windows) below).
-Nothing in this file about the native display has been checked on that VM yet.
+Items 1, 2, 3 and 7 below are done on that VM too, see [The native display on a real
+desktop](#the-native-display-on-a-real-windows-desktop); 4 and 5 are under way.
 
 Commits on `main` (oldest first):
 
@@ -51,19 +52,19 @@ timeouts went away is **not known**.
 
 ## Open items, most useful first
 
-1. **Read run 8's Windows job**, or better, run the suites on this machine (below). Expect the
+1. ~~**Read run 8's Windows job**~~ (done on the VM, see below), or better, run the suites on this machine (below). Expect the
    clipboard cases to pass now. If the 11 text-style native timeouts remain
    (`manual/elements-common/element.link.sspec`, `element.sup.default_style`,
    `element.sub.default_style`, `manual/styles/styles.rise__negative`, ...), profile one:
    they scan glyph boxes with thousands of `pixel_at` reqs, and the queue read path in
    `lib/scarpe/native/child.rb` (`WINDOWS_READS`) was meant to remove the ~10 ms per reply.
    Check it is taken (`Gem.win_platform?`) and time a single `pixel_at` round trip.
-2. **Check the real clipboard by hand** (unverified): run an app with `--native` in a real
+2. ~~**Check the real clipboard by hand**~~ (done on the VM, see below): run an app with `--native` in a real
    window, `app.clipboard = "x"`, paste in Notepad, copy something in Notepad, read
    `app.clipboard`. Then the same with `SCARPE_DISPLAY_SERVICE=niente` (exercises
    `Shoes::Clipboard`'s PowerShell path, `lacci/lib/shoes/clipboard.rb`, never run on Windows;
    its scripts were only parsed and encoding-checked with pwsh on Linux).
-3. **Run a real windowed app** (`bundle exec ruby exe/scarpe --native examples/button.rb`):
+3. ~~**Run a real windowed app**~~ (done on the VM, see below) (`bundle exec ruby exe/scarpe --native examples/button.rb`):
    nothing has opened an actual window on Windows yet. Also try Ctrl-C in the console
    (new_pgroup + the sliced queue wait), closing the window, and an app that calls
    `Shoes.run_program` (in-process on Windows).
@@ -82,9 +83,10 @@ timeouts went away is **not known**.
 6. ~~**`selfitude`**~~ done: the importer gained `APP_FIXES` (app-code rewrites), whose one rule
    turns `File.open("/tmp/...")` into a `Dir.tmpdir` path; `selfitude.sspec` and
    `examples/selfitude.rb` carry it, and the case passes on Niente on Windows.
-7. **Remaining Windows-only gaps in the code**: `Shoes.run_program` in its own process (it
-   talks to the child on fds 3 and 4, which Windows cannot hand over; a loopback socket would do);
-   native packaging is macOS-only. (The webview's Windows build is done, with MinGW, not MSVC.)
+7. **Remaining Windows-only gaps in the code**: ~~`Shoes.run_program` in its own process~~ done:
+   on Windows fds 3 and 4 are one loopback connection with a token, and `stop` is a line down it
+   (native/DESIGN.md 5.5); `test/native/program_test.rb` runs there now, 7 of 8 (the eighth needs
+   a `/bin/sh` launcher). Native packaging is still macOS-only. (The webview's Windows build is done, with MinGW, not MSVC.)
 8. When the Windows leg is green, make it count: drop `experimental: true` from the
    `Ruby 3.2 on Windows` matrix entry in `native.yml` (and the Rust Windows leg's), and update
    `FOR_AGENTS.md` ("Windows | not yet") and `docs/native_ci.md`.
@@ -93,7 +95,9 @@ timeouts went away is **not known**.
 
 - Ruby: RubyInstaller **Ruby+Devkit 3.2** (x64). Not 3.3+ until nokogiri/sqlite3 are bumped:
   the locked versions have prebuilt Windows gems only for 3.1–3.2.
-- Rust: rustup with the MSVC toolchain; the crate promises Rust 1.89.
+- Rust: rustup with the MSVC toolchain; the crate promises Rust 1.89. The GNU toolchain
+  (`x86_64-pc-windows-gnu`) builds it too, without Visual Studio, given `dlltool` on `PATH`:
+  RubyInstaller's `C:\Ruby-devkit\msys64\ucrt64\bin` has it. The binary needs only system DLLs.
 - Gems: `bundle install`. `webview_ruby` is vendored now and builds itself (with the DevKit's
   MinGW) the first time something loads it, so `BUNDLE_BUILD__WEBVIEW_RUBY=--dry-run` no longer
   does anything; the native path never loads it.
@@ -136,6 +140,26 @@ code with the windowless stand-in (`RUBYLIB=tasks/windowless_webview`): Shoes 3-
 How that VM was driven, for the next session: GUI programs cannot open from an SSH session, so
 a scheduled task with an Interactive principal ran a `.cmd` through a hidden `wscript`, with a
 watchdog killing any `exe/scarpe` process older than 60 s.
+
+## The native display on a real Windows desktop
+
+Same VM, Rust 1.99 (GNU toolchain), RubyInstaller Ruby 4.0.5, a real interactive session:
+
+- `exe/scarpe --native examples/button.rb` opens a real window; a click on "Push me" and on the
+  "Go back" link work; closing the window ends Ruby and the renderer; Ctrl-C in its console
+  (sent as `GenerateConsoleCtrlEvent`, which is what a keypress does) logs "App interrupted by
+  signal", and both processes end.
+- The real clipboard, `--native`: `app.clipboard = "Grüezi from Scarpe ✓"` pastes into Notepad as
+  that, and text copied in Notepad reads back exactly. With Niente, `Shoes::Clipboard`'s
+  PowerShell path round-trips the same text and reads Notepad's. (Read results from a file, not
+  through an SSH console: its code page 850 turns ✓ into "V" and makes correct text look broken.)
+- `Shoes.run_program` opens the program's window in its own process now, and `stop` closes it.
+- Suites, run from `cmd` (not Git Bash): `native_test` 197 runs, 0 failures (the two symlink
+  tests skip where a user may not make links); `spec:selftest` 16/16; `spec/run --check`
+  1062/1062; Niente 545 pass, nothing failing; native 1037 pass and **no timeouts** (the 11 of
+  CI run 6 do not happen here), the 10 not passing all `kids/` sound cases (item 4); examples on
+  native 357 pass, 3 fail (`say`, `parrot`, `change_my_audio_source`: item 5); `package_test` 41
+  runs, 0 failures, once `detect_arch` stopped shelling out to `uname` (absent outside Git Bash).
 
 ## Things learned the hard way
 
