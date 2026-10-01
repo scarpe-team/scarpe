@@ -420,7 +420,10 @@ module Scarpe::Webview
         raise Scarpe::EmptyPageNotSetError, "No empty page markup was set!"
       end
 
-      @webview.navigate("data:text/html, #{URI.encode_www_form_component(@empty_page)}")
+      # encode_uri_component, not encode_www_form_component: a data: URL does not
+      # decode "+" as a space, and WebView2 (Windows) keeps it literally, turning
+      # <div id=...> into <div+id=...>.
+      @webview.navigate("data:text/html, #{URI.encode_uri_component(@empty_page)}")
 
       monkey_patch_console(@webview)
 
