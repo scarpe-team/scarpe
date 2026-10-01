@@ -21,7 +21,8 @@ without a screen, test it, and package it. Everything here was checked on 28 Sep
    frames, nobody can see or click it, and it never takes focus.
 2. Never make a sound, open a dialog or touch their clipboard. Put `spec/support/fakebin` first
    on `PATH` for every run: it traps `afplay`, `say`, `open`, `osascript`, `caffeinate` and
-   `SwitchAudioSource`, and keeps `pbcopy`, `pbpaste` and `xclip` in a file.
+   `SwitchAudioSource`, and keeps `pbcopy`, `pbpaste` and `xclip` in a file. Point
+   `SCARPE_CLIPBOARD_FILE` at a file too: `app.clipboard` uses it in place of the system one.
 3. Give the app a scratch `HOME` whenever it might save something.
 4. Let the person open the app themselves: hand over the command or the packaged `.app`.
 
@@ -115,7 +116,7 @@ BOX="${SCARPE_HOME:-${TMPDIR:-/tmp}/scarpe-home-$(basename "$APP_DIR")}"  # this
 RUBY="$(cd "$SCARPE" && ruby -e 'print RbConfig.ruby')"   # the clone's Ruby, past any version-manager shim
 mkdir -p "$BOX"
 exec env PATH="$SCARPE/spec/support/fakebin:$PATH" HOME="$BOX" \
-  SPEC_TRAP_FILE="$BOX/trapped.txt" SPEC_CLIPBOARD_FILE="$BOX/clipboard.txt" \
+  SPEC_TRAP_FILE="$BOX/trapped.txt" SPEC_CLIPBOARD_FILE="$BOX/clipboard.txt" SCARPE_CLIPBOARD_FILE="$BOX/clipboard.txt" \
   RUSTUP_HOME="${RUSTUP_HOME:-$HOME/.rustup}" CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}" \
   BUNDLE_GEMFILE="$SCARPE/Gemfile" "$RUBY" "$SCARPE/exe/scarpe" "$@" --dev
 ```

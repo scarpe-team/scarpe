@@ -223,22 +223,44 @@ pub fn us_shifted(key: &str) -> String {
 }
 
 /// Clipboard: the system one in a window, a private one when headless so a
-/// test run never touches what the user copied.
+/// test run never touches what the user copied. Text fields copy and paste
+/// through it, and so do Shoes' `app.clipboard` and `app.clipboard=` (the
+/// `clipboard` req).
 pub struct Clipboard {
     system: Option<arboard::Clipboard>,
+    /// SCARPE_CLIPBOARD_FILE: a file standing in for the system clipboard,
+    /// which is how a sandboxed run (spec/run) shares one with its test code.
+    file: Option<std::path::PathBuf>,
     local: String,
 }
 
 impl Clipboard {
     pub fn local() -> Self {
-        Clipboard { system: None, local: String::new() }
+        Clipboard { system: None, file: None, local: String::new() }
     }
 
     pub fn system() -> Self {
-        Clipboard { system: arboard::Clipboard::new().ok(), local: String::new() }
+        Clipboard { system: arboard::Clipboard::new().ok(), file: None, local: String::new() }
+    }
+
+    /// The stand-in file when SCARPE_CLIPBOARD_FILE names one; otherwise the
+    /// system clipboard in a window and a private one headless.
+    pub fn for_run(headless: bool) -> Self {
+        match std::env::var_os("SCARPE_CLIPBOARD_FILE").filter(|file| !file.is_empty()) {
+            Some(file) => Self::backed_by(file.into()),
+            None if headless => Self::local(),
+            None => Self::system(),
+        }
+    }
+
+    pub fn backed_by(file: std::path::PathBuf) -> Self {
+        Clipboard { system: None, file: Some(file), local: String::new() }
     }
 
     pub fn get(&mut self) -> String {
+        if let Some(file) = &self.file {
+            return std::fs::read(file).map(|bytes| String::from_utf8_lossy(&bytes).into_owned()).unwrap_or_default();
+        }
         match self.system.as_mut() {
             Some(sys) => sys.get_text().unwrap_or_default(),
             None => self.local.clone(),
@@ -246,6 +268,10 @@ impl Clipboard {
     }
 
     pub fn set(&mut self, text: String) {
+        if let Some(file) = &self.file {
+            let _ = std::fs::write(file, text);
+            return;
+        }
         match self.system.as_mut() {
             Some(sys) => {
                 let _ = sys.set_text(text);
@@ -1155,6 +1181,21 @@ impl Runtime {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// SCARPE_CLIPBOARD_FILE's stand-in: what another program puts in the file is what a paste
+    /// sees, and a copy is in the file for it to read.
+    #[test]
+    fn a_file_backed_clipboard_reads_and_writes_the_file() {
+        let file = std::env::temp_dir().join(format!("scarpe-clipboard-{}.txt", std::process::id()));
+        let _ = std::fs::remove_file(&file);
+        let mut clipboard = Clipboard::backed_by(file.clone());
+        assert_eq!(clipboard.get(), "", "no file yet is an empty clipboard");
+        std::fs::write(&file, "from another program ✓").unwrap();
+        assert_eq!(clipboard.get(), "from another program ✓");
+        clipboard.set("from Shoes".into());
+        assert_eq!(std::fs::read_to_string(&file).unwrap(), "from Shoes");
+        let _ = std::fs::remove_file(&file);
+    }
 
     #[test]
     fn key_names_follow_the_manual() {

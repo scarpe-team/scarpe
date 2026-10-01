@@ -46,6 +46,8 @@ module Scarpe::Webview
         when "ask_save_folder"
           result = native_open_folder_dialog  # Same dialog, different intent
           Shoes::DisplayService.set_builtin_response(result)
+        when "clipboard", "clipboard="
+          # The webview keeps no clipboard: unanswered, Lacci uses the system's (Shoes::Clipboard).
         else
           raise Scarpe::UnknownBuiltinCommandError, "Unexpected builtin command: #{cmd_name.inspect}!"
         end

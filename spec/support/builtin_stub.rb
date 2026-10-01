@@ -81,7 +81,11 @@ module SpecSuite
       super
     end
 
-    def native_builtin_fallback(cmd_name, *_args)
+    # Dialogs get their headless answers; anything else (the clipboard, whose stand-in file
+    # SCARPE_CLIPBOARD_FILE names) is Lacci's to answer.
+    def native_builtin_fallback(cmd_name, *args)
+      return super unless Dialogs::KINDS.include?(cmd_name)
+
       Dialogs.headless_answer(cmd_name)
     end
 

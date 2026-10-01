@@ -351,6 +351,7 @@ and the numbers.
 | `SCARPE_NATIVE_ARGS` | extra arguments for the Rust program: `--fonts bundled`, `--scale 2`, `--exit-after 3`, `--inactive`, `--trace` |
 | `SCARPE_NATIVE_HEADLESS=1` | no windows; pictures are drawn offscreen (`peek` and the spec suite set it) |
 | `SCARPE_NATIVE_INACTIVE=1` | windows open without taking focus from what you are doing |
+| `SCARPE_CLIPBOARD_FILE` | a file that stands in for the system clipboard: `app.clipboard` and text fields read and write it instead (the spec suite sets it) |
 | `SCARPE_NATIVE_GHOST=1` | ghost windows (the same as `--ghost`): real windows that nobody can see or click, and the app never takes focus; for running windowed tests on a machine someone is using |
 | `SCARPE_NATIVE_BIN` | run this binary instead of building `native/target/release/scarpe-native` |
 | `SCARPE_NATIVE_TRACE=1` | print every message in both directions to stderr |

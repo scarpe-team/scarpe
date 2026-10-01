@@ -138,6 +138,20 @@ module Scarpe::Native
       answer(:para_caret, id: id).last
     end
 
+    # app.clipboard and app.clipboard= use Rust's clipboard, the one its text fields cut and paste
+    # through: the system's in a window (macOS, Windows, X11 and Wayland, with no program to
+    # install), a private one headless, or SCARPE_CLIPBOARD_FILE's stand-in. A renderer that cannot
+    # answer (an older one, or a test double) leaves it to Lacci's (Shoes::Clipboard).
+    def clipboard
+      answered, value = answer(:clipboard)
+      answered ? value.to_s : Shoes::Clipboard.read
+    end
+
+    def clipboard=(text)
+      answered, = answer(:clipboard, text: text.to_s)
+      Shoes::Clipboard.write(text) unless answered
+    end
+
     def register_font(font)
       path = Normalize.font_path(font)
       child.post(t: "font", path: path) if path

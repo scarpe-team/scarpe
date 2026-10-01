@@ -71,6 +71,7 @@ module SpecSuite
         "RUBYOPT" => "-r#{BUILTIN_STUB}",
         "SPEC_TRAP_FILE" => trap_file,
         "SPEC_CLIPBOARD_FILE" => clipboard_file,
+        "SCARPE_CLIPBOARD_FILE" => clipboard_file,
         "SCARPE_NATIVE_SNAPSHOT_DIR" => File.join(RESULTS_DIR, "snapshots"),
       }.merge(ToolchainEnv.passthrough).merge(windows_env)
     end

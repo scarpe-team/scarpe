@@ -1,6 +1,6 @@
 ---
-# Runner self-test: pbcopy, pbpaste and xclip read and write a file in the sandbox, never
-# the real clipboard. The first assertion stops the test before any clipboard call if the
+# Runner self-test: the clipboard is a file in the sandbox (SCARPE_CLIPBOARD_FILE, which
+# fakebin's pbcopy, pbpaste and xclip use too), never the real clipboard. The first assertion stops the test before any clipboard call if the
 # runner gave no sandbox file.
 testability: api
 ----------- app code

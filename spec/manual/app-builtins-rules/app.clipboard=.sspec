@@ -8,8 +8,8 @@ Shoes.app do
   button("Copy") { self.clipboard = "Shoes was here" }
 end
 ----------- test code
-# spec/run's pbcopy, pbpaste and xclip keep the system clipboard in this sandbox file,
-# so the case never touches the real one.
+# spec/run keeps the system clipboard in this sandbox file (SCARPE_CLIPBOARD_FILE), so the
+# case never touches the real one.
 board = ENV.fetch("SPEC_CLIPBOARD_FILE")
 File.write(board, "old contents")
 

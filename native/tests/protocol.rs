@@ -696,6 +696,24 @@ fn shift_selection_cut_and_paste_use_a_private_clipboard_headless() {
     assert_eq!(named(&events(&evs), "change")[0].2, json!(["world!hello "]));
 }
 
+/// Shoes' app.clipboard and app.clipboard= (the `clipboard` req) share the clipboard that text
+/// fields cut and paste through.
+#[test]
+fn the_clipboard_req_shares_the_clipboard_text_fields_use() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 100, &[create(3, "EditLine", 2, json!({"text": ""}))]));
+    assert_eq!(h.value(json!({"op": "clipboard"})), json!(""));
+    assert_eq!(h.value(json!({"op": "clipboard", "text": "from Ruby"})), Value::Null);
+    h.value(json!({"op": "click", "target": {"id": 3}}));
+    let (evs, _) = h.req(json!({"op": "key", "key": ":control_v"}));
+    assert_eq!(named(&events(&evs), "change")[0].2, json!(["from Ruby"]));
+    for _ in 0..4 {
+        h.req(json!({"op": "key", "key": "shift_left"}));
+    }
+    h.req(json!({"op": "key", "key": ":control_x"}));
+    assert_eq!(h.value(json!({"op": "clipboard"})), json!("Ruby"));
+}
+
 #[test]
 fn twin_links_in_different_paras_keep_their_own_ids() {
     let mut h = Harness::new();
