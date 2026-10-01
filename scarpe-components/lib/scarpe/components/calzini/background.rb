@@ -18,6 +18,12 @@ module Scarpe::Components::Calzini
       left: 0,
       'box-sizing': 'border-box',
       'pointer-events': 'none', # Allow clicks to pass through to elements below
+      # A slot's Background drawables render as siblings placed after the
+      # slot's own content div, not nested inside it (see stack/flow
+      # rendering), so without an explicit stacking order they paint over
+      # that content instead of behind it -- same concern mask_style
+      # already handles for the same reason.
+      'z-index': -1,
     }
 
     # Handle fill color - could be a solid color, gradient range, or RGBA array
