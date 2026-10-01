@@ -19,7 +19,7 @@
 #
 # The tunes are made right here in plain Ruby: soft music-box notes on a pentatonic
 # scale, so any two sound lovely together, written once as small WAV files and played
-# with afplay.
+# with audio.
 
 require "json"
 require "fileutils"
@@ -173,7 +173,7 @@ module Paint
 end
 
 # The lab's voice. Each sound is worked out once as numbers, written to a small WAV
-# file, and played in the background with afplay while the app carries on.
+# file, and played in the background with audio while the app carries on.
 class Chimes
   RATE = 22_050
   TAU = 2 * Math::PI
@@ -198,15 +198,13 @@ class Chimes
   def tune(notes, voice: :bell, gap: 0.16, level: 1.0)
     return if @muted
 
-    @playing.select!(&:alive?)
+    @playing.select!(&:playing?)
     return if @playing.size >= AT_ONCE
 
     name = "#{voice}-#{notes.tr(" ", "-")}-#{(gap * 1000).round}-#{(level * 100).round}"
     @last_file = @files[name] ||= write(name, mix(notes.split, voice, gap, level))
-    @player = Process.detach(spawn("afplay", @last_file, out: File::NULL, err: File::NULL))
+    @player = audio(@last_file).play
     @playing << @player
-  rescue SystemCallError
-    # no afplay here (not a Mac): the lab is quiet, and just as colourful
   end
 
   private

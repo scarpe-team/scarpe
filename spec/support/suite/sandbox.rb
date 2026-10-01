@@ -28,6 +28,8 @@ module SpecSuite
     def renderer_pid_file = File.join(root, "renderer.pid")
     def trap_file = File.join(root, "trapped_commands.txt")
     def clipboard_file = File.join(root, "clipboard.txt")
+    # What Shoes::Audio played, a line a command ("play /path/pop.wav"): nothing is heard.
+    def audio_file = File.join(root, "audio.txt")
     def log = File.join(root, "output.log")
 
     def path(name)
@@ -60,7 +62,7 @@ module SpecSuite
 
     def base_env
       {
-        "PATH" => "#{FAKEBIN}:#{ENV.fetch("PATH", "/usr/bin:/bin")}",
+        "PATH" => [FAKEBIN, ENV.fetch("PATH", "/usr/bin:/bin")].join(File::PATH_SEPARATOR),
         "HOME" => home,
         "LOCALAPPDATA" => local_app_data,
         "TMPDIR" => tmp,
@@ -71,8 +73,23 @@ module SpecSuite
         "RUBYOPT" => "-r#{BUILTIN_STUB}",
         "SPEC_TRAP_FILE" => trap_file,
         "SPEC_CLIPBOARD_FILE" => clipboard_file,
+        "SCARPE_CLIPBOARD_FILE" => clipboard_file,
+        "SPEC_AUDIO_FILE" => audio_file,
+        "SCARPE_AUDIO_FILE" => audio_file,
         "SCARPE_NATIVE_SNAPSHOT_DIR" => File.join(RESULTS_DIR, "snapshots"),
-      }.merge(ToolchainEnv.passthrough)
+      }.merge(ToolchainEnv.passthrough).merge(windows_env)
+    end
+
+    # Windows programs need a few of the system's own variables (Winsock, for one, will not start
+    # without SystemRoot), and look for temp and home under Windows' names. Windows matches names in
+    # any case, and MSYS bash (the CI shell) hands them on upper-cased.
+    WINDOWS_SYSTEM_ENV = %w[SystemRoot windir SystemDrive ComSpec PATHEXT NUMBER_OF_PROCESSORS PROCESSOR_ARCHITECTURE OS].freeze
+
+    def windows_env
+      return {} unless Gem.win_platform?
+
+      system = ENV.to_h.select { |name, _| WINDOWS_SYSTEM_ENV.any? { |wanted| wanted.casecmp?(name) } }
+      system.merge("TEMP" => tmp, "TMP" => tmp, "USERPROFILE" => home)
     end
   end
 
@@ -111,7 +128,7 @@ module SpecSuite
   # once before a native run so parallel cases never race to run cargo.
   module NativeBinary
     CRATE = File.join(REPO, "native")
-    RELEASE_BIN = File.join(CRATE, "target", "release", "scarpe-native")
+    RELEASE_BIN = File.join(CRATE, "target", "release", "scarpe-native#{RbConfig::CONFIG["EXEEXT"]}")
 
     class << self
       def prepare(build: true)

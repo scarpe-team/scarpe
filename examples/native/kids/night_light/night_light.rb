@@ -15,7 +15,7 @@
 # and nothing leaves the computer.
 #
 # The sounds are made right here in plain Ruby: each one is worked out as
-# numbers, written once to a small WAV file and played with afplay. They all use
+# numbers, written once to a small WAV file and played with audio. They all use
 # the same five notes (a pentatonic scale), so whatever gets tapped, however
 # fast, it sounds lovely with the lullaby.
 
@@ -55,7 +55,7 @@ Sheep = Struct.new(:x, :y, :slot, :awake, :asleep, :hop, :note)
 Mote = Struct.new(:art, :x, :y, :vx, :vy, :age, :life) # stardust, music notes and sleepy z's
 
 # The sounds. Each is a list of numbers worked out once, written to a WAV file
-# once, and handed to afplay whenever it is wanted.
+# once, and handed to audio whenever it is wanted.
 class Sounds
   RATE = 22_050
   LEVELS = { tine: 0.26, chime: 0.16, twinkle: 0.18, bong: 0.24, sigh: 0.13, hop: 0.2, tick: 0.14 }
@@ -76,15 +76,13 @@ class Sounds
   def play(voice, note, volume = 1.0)
     return if muted
 
-    @playing.select!(&:alive?)
+    @playing.select!(&:playing?)
     return if @playing.size >= AT_ONCE
 
     name = "#{voice}-#{note}"
     @last_file = @files[name] ||= write(name, level(send(voice, hz(note)), LEVELS.fetch(voice)))
-    @player = Process.detach(spawn("afplay", "-v", volume.round(2).to_s, @last_file, out: File::NULL, err: File::NULL))
+    @player = audio(@last_file, volume: volume).play
     @playing << @player
-  rescue SystemCallError
-    # no afplay here (not a Mac): the sky stays quiet
   end
 
   private

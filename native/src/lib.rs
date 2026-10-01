@@ -5,6 +5,7 @@
 //! Scarpe's display services swappable.
 
 pub mod a11y;
+pub mod audio;
 pub mod automation;
 pub mod dialogs;
 pub mod doc;

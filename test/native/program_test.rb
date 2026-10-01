@@ -25,10 +25,18 @@ class ProgramTest < Minitest::Test
     end
   end
 
-  # Neither running nor a zombie: `ps` knows nothing of it, or knows it only as defunct.
-  GONE = <<~RUBY
-    gone = ->(pid) { pid.nil? || `ps -o stat= -p \#{Integer(pid)}`.strip.then { |s| s.empty? || s.start_with?("Z") } }
-  RUBY
+  # Neither running nor a zombie: `ps` knows nothing of it, or knows it only as defunct. Windows
+  # has no ps; tasklist lists only running processes (Process.kill(0) there still finds one that
+  # has exited while anything holds a handle to it).
+  GONE = if Gem.win_platform?
+    <<~RUBY
+      gone = ->(pid) { pid.nil? || !`tasklist /FI "PID eq \#{Integer(pid)}" /FO CSV /NH`.include?(%("\#{Integer(pid)}")) }
+    RUBY
+  else
+    <<~RUBY
+      gone = ->(pid) { pid.nil? || `ps -o stat= -p \#{Integer(pid)}`.strip.then { |s| s.empty? || s.start_with?("Z") } }
+    RUBY
+  end
 
   def test_output_lines_arrive_in_order
     run = run_parent(<<~PROGRAM, <<~TEST)
@@ -62,7 +70,7 @@ class ProgramTest < Minitest::Test
         para "stuck"
         timer(0.1) do
           puts "looping"
-          system("sleep 60 &") # something the program started, in its process group
+          system("sleep 60 &") unless Gem.win_platform? # something the program started, in its process group
           loop {}
         end
       end
@@ -76,7 +84,7 @@ class ProgramTest < Minitest::Test
       process = program.instance_variable_get(:@driver)
       wait_until(5) { process.renderer_pid }
       renderer = process.renderer_pid
-      group = `pgrep -g \#{program.pid}`.split.map(&:to_i)
+      group = Gem.win_platform? ? [] : `pgrep -g \#{program.pid}`.split.map(&:to_i)
 
       started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       program.stop
@@ -84,11 +92,12 @@ class ProgramTest < Minitest::Test
       took = Process.clock_gettime(Process::CLOCK_MONOTONIC) - started
 
       assert_operator took, :<, 2.0, "stopped within two seconds"
-      assert exited.signaled?, "it was stopped by a signal: \#{exited.inspect}"
+      # Windows has no signals in a status: a stopped program there just did not succeed.
+      assert(Gem.win_platform? ? !exited.success? : exited.signaled?, "it was stopped: \#{exited.inspect}")
       assert gone.call(program.pid), "the program is gone"
       wait_until(2) { gone.call(renderer) }
       assert gone.call(renderer), "and its renderer"
-      assert_empty `pgrep -g \#{program.pid}`.split, "and what it started (was \#{group.inspect})"
+      assert_empty `pgrep -g \#{program.pid}`.split, "and what it started (was \#{group.inspect})" unless Gem.win_platform?
     TEST
     assert_spec_passed(run)
   end
@@ -157,7 +166,7 @@ class ProgramTest < Minitest::Test
     run = run_parent(<<~PROGRAM, <<~TEST) { |dir| Dir.mkdir(File.join(dir, "elsewhere")) }
       puts ARGV.inspect
       puts File.basename(Dir.pwd)
-      puts ENV.key?("SCARPE_RUN_FILE") || ENV.key?("SCARPE_REPORT_FD") || ENV.key?("SHOES_SPEC_TEST")
+      puts %w[SCARPE_RUN_FILE SCARPE_REPORT_FD SCARPE_REPORT_ADDR SCARPE_REPORT_TOKEN SHOES_SPEC_TEST].any? { |k| ENV.key?(k) }
     PROGRAM
       program = Shoes.run_program(File.join(Dir.pwd, "program.rb"), dir: File.join(Dir.pwd, "elsewhere"), args: ["one", 2])
       lines = []
@@ -172,6 +181,7 @@ class ProgramTest < Minitest::Test
   # A packaged app starts its own launcher again for a program, and a Mac app's name often has
   # a space in it ("Hackety Hack.app"). The launcher's path is one word, spaces and all.
   def test_a_launcher_whose_path_has_a_space_starts_the_program
+    skip_on_windows("the stand-in launcher is a /bin/sh script")
     run = run_parent(<<~PROGRAM, <<~TEST) { |dir| write_launcher(File.join(dir, "Hackety Hack.app", "Contents", "MacOS")) }
       puts "started by \#{File.basename(ENV.fetch("LAUNCHED_BY", "nobody"))}"
     PROGRAM
@@ -207,7 +217,7 @@ class ProgramTest < Minitest::Test
         "SCARPE_NATIVE_PID_FILE" => File.join(dir, "renderer.pid"), "SCARPE_NATIVE_LOG_LEVEL" => "error",
       }
       parent = Process.spawn(env, RbConfig.ruby, SCARPE, "--dev", "--native", File.join(dir, "parent.rb"),
-        out: File::NULL, err: File::NULL, in: File::NULL, pgroup: true, chdir: dir)
+        out: File::NULL, err: File::NULL, in: File::NULL, chdir: dir, **NativeTestHelpers::OWN_GROUP)
       pids = File.join(dir, "pids.json")
       begin
         assert until_true(45) { File.exist?(pids) && File.size?(pids) }, "the parent never started its program"
@@ -220,7 +230,7 @@ class ProgramTest < Minitest::Test
         assert until_true(5) { !alive?(program) && !alive?(renderer) },
           "the program (#{program}) and its renderer (#{renderer}) outlived their parent"
       ensure
-        [parent, program, renderer].compact.each { |pid| Process.kill("KILL", -pid) rescue nil }
+        [parent, program, renderer].compact.each { |pid| NativeTestHelpers.kill_group(pid) rescue nil }
         Process.wait(parent) rescue nil
         kill_renderer(env["SCARPE_NATIVE_PID_FILE"])
       end
@@ -270,8 +280,10 @@ class ProgramTest < Minitest::Test
     answer
   end
 
-  # Running, and not a zombie waiting for a parent to reap it.
+  # Running, and not a zombie waiting for a parent to reap it. (Windows: tasklist lists it.)
   def alive?(pid)
+    return `tasklist /FI "PID eq #{Integer(pid)}" /FO CSV /NH`.include?(%("#{Integer(pid)}")) if Gem.win_platform?
+
     stat = `ps -o stat= -p #{Integer(pid)}`.strip
     !stat.empty? && !stat.start_with?("Z")
   end

@@ -21,6 +21,19 @@ module NativeTestHelpers
   ROOT = File.expand_path("../..", __dir__)
   SCARPE = File.join(ROOT, "exe", "scarpe")
   FAKE_CHILD = File.join(__dir__, "fake_child.rb")
+  # Windows has no pgroup and signals no group; new_pgroup there, and taskkill /T for the tree.
+  OWN_GROUP = Gem.win_platform? ? { new_pgroup: true } : { pgroup: true }
+
+  def self.kill_group(pid)
+    return system("taskkill", "/T", "/F", "/PID", pid.to_s, out: File::NULL, err: File::NULL) if Gem.win_platform?
+
+    Process.kill("KILL", -pid)
+  end
+
+  # Tests of Unix signals and process groups, which Windows does not have.
+  def skip_on_windows(why)
+    skip "Windows: #{why}" if Gem.win_platform?
+  end
 
   Run = Struct.new(:stdout, :stderr, :status, :timed_out, :received, :results, :osascript_calls, :open_calls, :child_argv, :dir, keyword_init: true) do
     def of_type(type)
@@ -56,6 +69,7 @@ module NativeTestHelpers
         "SCARPE_NATIVE_GHOST" => nil, # the fake child has no window; a test that means a ghost says so
         "SCARPE_NATIVE_SNAPSHOT_DIR" => File.join(dir, "snapshots"),
         "SCARPE_NATIVE_PID_FILE" => File.join(dir, "renderer.pid"),
+        "SCARPE_AUDIO_FILE" => File.join(dir, "audio.txt"), # a ghost window plays no sound either
         "SCARPE_NATIVE_LOG_LEVEL" => "warn",
         "LOCALAPPDATA" => dir,
         "PATH" => "#{File.join(dir, "bin")}#{File::PATH_SEPARATOR}#{ENV["PATH"]}",
@@ -151,7 +165,7 @@ module NativeTestHelpers
   def capture(env, command, timeout, dir)
     out_read, out_write = IO.pipe
     err_read, err_write = IO.pipe
-    pid = Process.spawn(env, *command, out: out_write, err: err_write, in: File::NULL, pgroup: true, chdir: dir)
+    pid = Process.spawn(env, *command, out: out_write, err: err_write, in: File::NULL, chdir: dir, **OWN_GROUP)
     [out_write, err_write].each(&:close)
     readers = [out_read, err_read].map { |io| Thread.new { io.read } }
 
@@ -160,7 +174,7 @@ module NativeTestHelpers
     until (status = Process.wait2(pid, Process::WNOHANG)&.last)
       if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
         timed_out = true
-        Process.kill("KILL", -pid)
+        NativeTestHelpers.kill_group(pid)
         status = Process.wait2(pid).last
         break
       end
@@ -174,7 +188,7 @@ module NativeTestHelpers
   # The renderer leads a process group of its own, out of reach of Ruby's; the shim leaves its pid
   # in the file until it has gone, so a file still there means Ruby died before stopping it.
   def kill_renderer(pid_file)
-    Process.kill("KILL", -Integer(File.read(pid_file))) if pid_file && File.exist?(pid_file)
+    NativeTestHelpers.kill_group(Integer(File.read(pid_file))) if pid_file && File.exist?(pid_file)
   rescue ArgumentError, SystemCallError
     nil
   end

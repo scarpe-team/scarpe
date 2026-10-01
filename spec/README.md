@@ -198,9 +198,14 @@ backend follows the ruling).
 6. **No network, no sleeping, no writing outside the working directory.** Each case runs in a
    throwaway directory with its own `HOME`, `TMPDIR` and image cache; `say`, `open`, `afplay`
    and `osascript` are trapped.
-   `pbcopy`, `pbpaste` and `xclip` read and write the file `ENV["SPEC_CLIPBOARD_FILE"]` in the
-   sandbox instead of the real clipboard: write that file to seed the clipboard, read it to
-   see what the app copied.
+   The clipboard is the file `ENV["SPEC_CLIPBOARD_FILE"]` in the sandbox, not the real one:
+   `app.clipboard` reads it on every display and platform (the runner names it in
+   `SCARPE_CLIPBOARD_FILE` too, which Lacci and the native renderer use in place of the system
+   clipboard), and `pbcopy`, `pbpaste` and `xclip` read and write it for an app that runs them
+   itself. Write that file to seed the clipboard, read it to see what the app copied.
+   Sounds go to the file `ENV["SPEC_AUDIO_FILE"]` (`SCARPE_AUDIO_FILE` too): every
+   `audio(...).play`, pause and stop is a line in it, such as `play /path/pop.wav`, and nothing is
+   heard. A played sound ends at once there, so `playing?` is false straight after.
 7. **Images and fonts:** `spec/support/assets/` is copied to `assets/` in the case's working
    directory. Never inline base64 files or read fonts from the checkout; add small files here.
 

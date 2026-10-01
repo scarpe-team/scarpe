@@ -10,7 +10,7 @@ require "json"
 app = Shoes.APPS.first
 ivar = ->(name) { app.instance_variable_get(name) }
 moles, sounds = ivar.(:@moles), ivar.(:@sounds)
-trapped = -> { File.exist?(ENV.fetch("SPEC_TRAP_FILE")) ? File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true) : [] }
+trapped = -> { File.exist?(ENV.fetch("SPEC_AUDIO_FILE")) ? File.readlines(ENV.fetch("SPEC_AUDIO_FILE"), chomp: true) : [] }
 save_file = File.join(Dir.home, "Library", "Application Support", "Peekaboo Moles", "best.json")
 middle = ->(m) { [m.x, (m.y - 70 * m.scale).round] }
 body = ->(m) { [(m.x + 46 * m.scale).round, (m.y - 40 * m.scale).round] }
@@ -50,8 +50,7 @@ assert_equal :giggle, empty.state
 assert_match(/giggle-#{empty.note}\.wav\z/, sounds.last_file)
 wav = File.binread(sounds.last_file)
 assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV file"
-sounds.player.join(10)
-assert_includes trapped.call, "afplay #{sounds.last_file}", "handed to afplay (trapped here, so nothing is heard)"
+assert_includes trapped.call, "play #{sounds.last_file}", "played (written down here, so nothing is heard)"
 advance 1
 assert_equal 1, ivar.(:@stars), "one star in the row"
 refute ivar.(:@star_spots).first[:gold].hidden

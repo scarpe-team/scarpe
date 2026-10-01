@@ -138,12 +138,38 @@ module Scarpe::Native
       answer(:para_caret, id: id).last
     end
 
+    # app.clipboard and app.clipboard= use Rust's clipboard, the one its text fields cut and paste
+    # through: the system's in a window (macOS, Windows, X11 and Wayland, with no program to
+    # install), a private one headless, or SCARPE_CLIPBOARD_FILE's stand-in. A renderer that cannot
+    # answer (an older one, or a test double) leaves it to Lacci's (Shoes::Clipboard).
+    def clipboard
+      answered, value = answer(:clipboard)
+      answered ? value.to_s : Shoes::Clipboard.read
+    end
+
+    def clipboard=(text)
+      answered, = answer(:clipboard, text: text.to_s)
+      Shoes::Clipboard.write(text) unless answered
+    end
+
+    # Shoes::Audio (audio and video): Rust plays it (rodio), or writes it to SCARPE_AUDIO_FILE,
+    # and says {"t":"audio_ended"} when it has played to its end. A renderer that cannot answer
+    # (an older one, or a test double) leaves it to Lacci's player (Shoes::AudioPlayer).
+    def audio(op, id, path, volume = 1.0)
+      answered, = answer(:audio, cmd: op, id: id, path: Normalize.audio_path(path), volume: volume.to_f)
+      return if answered
+
+      sound = Shoes::Audio[id]
+      Shoes::AudioPlayer.public_send(op, sound) if sound
+    end
+
     def register_font(font)
       path = Normalize.font_path(font)
       child.post(t: "font", path: path) if path
     end
 
-    # Shoes.run_program: the program runs in a process of its own (Programs, DESIGN 5.5).
+    # Shoes.run_program: the program runs in a process of its own (Programs, DESIGN 5.5): on fds 3
+    # and 4, or on Windows, which hands a child neither, over a loopback connection.
     def run_program(path, dir:, args:)
       programs.start(path, dir: dir, args: args)
     end
@@ -164,6 +190,7 @@ module Scarpe::Native
       when "resize" then resized(message["app"], message["w"], message["h"])
       when "scroll" then lacci_drawable(message["id"])&.instance_variable_set(:@scroll_top, message["top"])
       when "closed" then closed(message["app"])
+      when "audio_ended" then Shoes::DisplayService.dispatch_event("audio_ended", nil, message["id"])
       when "log" then log_from_child(message["level"].to_s, message["msg"])
       when "console" then guarded("console key") { Shoes.show_console }
       else @log.warn("Unknown message from scarpe-native: #{message.inspect[0, 200]}")

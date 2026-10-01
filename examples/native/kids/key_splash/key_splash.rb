@@ -13,7 +13,7 @@
 # (Cmd-Q works too. A Shoes app cannot switch off the Mac's own shortcuts.)
 #
 # The notes come from a tiny synthesizer in plain Ruby: each one is worked
-# out once as a WAV file and played with afplay. They all sit on a pentatonic
+# out once as a WAV file and played with audio. They all sit on a pentatonic
 # scale, so any keys pressed together sound lovely.
 
 require "json"
@@ -62,7 +62,7 @@ HOLD_FOR_NAME = 1.5
 DOZE = 20 # seconds with nobody playing before the sun nods off
 
 # A tiny synthesizer. Each sound is worked out once, written to a WAV file,
-# and played in the background with afplay while the app carries on.
+# and played in the background with audio while the app carries on.
 class Chimes
   RATE = 22_050
   TAU = 2 * Math::PI
@@ -85,14 +85,12 @@ class Chimes
   def play(kind, note)
     return if @muted
 
-    @players.select!(&:alive?)
+    @players.select!(&:playing?)
     return if @players.size >= VOICES
 
     @last_file = @files[[kind, note]] ||= write("#{kind}-#{note}", send(kind, frequency(note)))
-    @player = Process.detach(spawn("afplay", @last_file, out: File::NULL, err: File::NULL))
+    @player = audio(@last_file).play
     @players << @player
-  rescue SystemCallError
-    # no afplay here (not a Mac): the colours carry on without the notes
   end
 
   private

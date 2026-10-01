@@ -12,11 +12,16 @@ module Niente
 
     # What a headless display answers when nothing stubbed the dialog.
     HEADLESS_BUILTIN_ANSWERS = { "confirm" => false, "ask" => "" }.freeze
+    # Niente keeps no clipboard and plays no sound; left unanswered, these reach the system's
+    # (Shoes::Clipboard, Shoes::AudioPlayer).
+    SYSTEM_BUILTINS = %w[clipboard clipboard= audio].freeze
 
     # Niente shows nothing, dialogs included. Answering every builtin keeps
     # Lacci from falling back to an osascript dialog in the middle of a test.
     def self.answer_builtins_headlessly
       Shoes::DisplayService.subscribe_to_event("builtin", nil) do |cmd_name, _args|
+        next if SYSTEM_BUILTINS.include?(cmd_name)
+
         Shoes::DisplayService.set_builtin_response(HEADLESS_BUILTIN_ANSWERS[cmd_name])
       end
     end

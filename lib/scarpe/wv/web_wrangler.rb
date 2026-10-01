@@ -131,6 +131,23 @@ module Scarpe::Webview
       @webview.init("setInterval(scarpeHeartbeat,#{js_interval})")
     end
 
+    # Webview init scripts run as each document is created, before its body is parsed.
+    # scarpeInit and timers soon redraw into #wrapper-wvroot, so they wait until it exists.
+    # WebKit's round trip into Ruby used to be slow enough to hide this; WebView2's is not, and
+    # a first redraw could find no wrapper.
+    #
+    # They wait for the wrapper, not for DOMContentLoaded: Tiranti's page ends in a script
+    # served by the asset server, a Ruby thread that only runs while the page calls into Ruby,
+    # so DOMContentLoaded would wait on Ruby. The heartbeat starts at once for the same reason.
+    #
+    # tasks/windowless_webview/webview_ruby.rb unwraps exactly this form.
+    #
+    # @param js [String] the init script
+    # @return [String] the init script, run once #wrapper-wvroot exists
+    def self.when_page_ready(js)
+      "(function scarpeWhenReady() { if (document.getElementById('wrapper-wvroot')) { #{js} } else { setTimeout(scarpeWhenReady, 5); } })();"
+    end
+
     # Shorter name for better stack trace messages
     def inspect
       "Scarpe::WebWrangler:#{object_id}"
@@ -162,7 +179,7 @@ module Scarpe::Webview
       raise Scarpe::JSInitError, "App is running, javascript init no longer works!" if @is_running
 
       # Save a reference to the init string so that it doesn't get GC'd
-      code_str = "#{name}();"
+      code_str = WebWrangler.when_page_ready("#{name}();")
       @init_refs[name] = code_str
 
       bind(name, &block)
@@ -197,7 +214,7 @@ module Scarpe::Webview
           @periodic_dynamic_callbacks[handler_id] = block
           js_eventually("setInterval(() => dynamicPeriodicCallback('#{handler_id}'), #{js_interval});")
         else
-          code_str = "setInterval(#{name}, #{js_interval});"
+          code_str = WebWrangler.when_page_ready("setInterval(#{name}, #{js_interval});")
           @init_refs[name] = code_str
 
           bind(name, &block)
@@ -226,7 +243,7 @@ module Scarpe::Webview
         js_eventually("setTimeout(() => dynamicRubyCallback('#{handler_id}'), #{js_delay});")
       else
         # App not running yet - use more efficient init/bind
-        code_str = "setTimeout(#{name}, #{js_delay});"
+        code_str = WebWrangler.when_page_ready("setTimeout(#{name}, #{js_delay});")
         @init_refs[name] = code_str
         bind(name, &block)
         @webview.init(code_str)
@@ -434,7 +451,10 @@ module Scarpe::Webview
         raise Scarpe::EmptyPageNotSetError, "No empty page markup was set!"
       end
 
-      @webview.navigate("data:text/html, #{URI.encode_www_form_component(@empty_page)}")
+      # encode_uri_component, not encode_www_form_component: a data: URL does not
+      # decode "+" as a space, and WebView2 (Windows) keeps it literally, turning
+      # <div id=...> into <div+id=...>.
+      @webview.navigate("data:text/html, #{URI.encode_uri_component(@empty_page)}")
 
       monkey_patch_console(@webview)
 

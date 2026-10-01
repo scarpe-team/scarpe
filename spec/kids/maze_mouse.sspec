@@ -7,7 +7,7 @@ load File.join(Scarpe::Native::ROOT, "examples/native/kids/maze_mouse/maze_mouse
 app = Shoes.APPS.first
 ivar = ->(name) { app.instance_variable_get(name) }
 chimes = ivar.(:@chimes)
-trapped = -> { File.exist?(ENV.fetch("SPEC_TRAP_FILE")) ? File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true) : [] }
+trapped = -> { File.exist?(ENV.fetch("SPEC_AUDIO_FILE")) ? File.readlines(ENV.fetch("SPEC_AUDIO_FILE"), chomp: true) : [] }
 pads = { up: [853, 485], left: [785, 565], right: [921, 565], down: [853, 645] }
 
 # the shortest way from the mouse to a room, as a list of arrow keys
@@ -50,8 +50,7 @@ wall = %i[up left].first
 press_key wall
 advance 0.2
 assert_equal [0, 0], ivar.(:@at)
-chimes.player.join(10)
-assert trapped.call.any? { |line| line.include?("boop-e3") }, "the boop went to afplay (trapped, so nothing is heard)"
+assert trapped.call.any? { |line| line.include?("boop-e3") }, "the boop was played (written down, so nothing is heard)"
 
 # stuck? after ten quiet seconds, golden prints show the next three steps towards the cheese
 advance 10.5
@@ -127,7 +126,7 @@ assert_equal level, ivar.(:@level)
 assert_equal :playing, ivar.(:@state)
 big = fresh
 
-# the sound switch: nothing reaches afplay while it is off
+# the sound switch: nothing is played while it is off
 click_at 912, 38
 assert chimes.muted
 heard = trapped.call.size

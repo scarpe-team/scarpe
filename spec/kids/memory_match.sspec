@@ -15,9 +15,8 @@ purple = ->(pixel) { pixel[2] > pixel[0] + 60 }
 cream = ->(pixel) { pixel[0] > 235 && pixel[1] > 225 && pixel[2] > 200 }
 save_file = File.join(Dir.home, "Library", "Application Support", "Memory Match", "progress.json")
 heard = lambda do |name|
-  voices.player.join(10)
   voices.last_file.end_with?("/#{name}.wav") &&
-    File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true).include?("afplay #{voices.last_file}")
+    File.readlines(ENV.fetch("SPEC_AUDIO_FILE"), chomp: true).include?("play #{voices.last_file}")
 end
 
 # the home screen: eight animals to say hello to, and three boards

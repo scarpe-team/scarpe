@@ -12,8 +12,7 @@ fresh = -> { ivar.(:@blooms).reject(&:fading) }
 near = ->(pixel, color) { pixel.first(3).zip(color).all? { |got, want| (got - want).abs <= 14 } }
 settings_file = File.join(Dir.home, "Library", "Application Support", "Key Splash", "settings.json")
 heard = lambda do |file|
-  chimes.player.join(10)
-  File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true).include?("afplay #{file}")
+  File.readlines(ENV.fetch("SPEC_AUDIO_FILE"), chomp: true).include?("play #{file}")
 end
 
 # every note is on the pentatonic scale, so anything mashed together sounds right
@@ -36,7 +35,7 @@ wav = File.binread(chimes.last_file)
 assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV file"
 loudest = wav[44..].unpack("s<*").map(&:abs).max
 assert_operator loudest, :<=, 32_767 / 4 + 1, "never above a quarter of full volume"
-assert heard.(chimes.last_file), "handed to afplay (the suite traps it, so nothing is heard)"
+assert heard.(chimes.last_file), "played (the suite writes it down, so nothing is heard)"
 assert ivar.(:@bits).any? { |bit| bit.motion == :spark }, "sparks fly out of it"
 
 # the very last frame of its fade is invisible, never a black flash (a see-through stroke prints nothing)

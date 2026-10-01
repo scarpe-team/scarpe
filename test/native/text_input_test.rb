@@ -60,6 +60,26 @@ class TextInputTest < Minitest::Test
     assert_spec_passed(run)
   end
 
+  # app.clipboard and app.clipboard= go through the clipboard text fields cut and paste with
+  # (DESIGN 4.1 `clipboard`): a private one in a headless run.
+  def test_app_clipboard_is_the_one_text_fields_paste_from
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app { @line = edit_line }
+    APP
+      app = Shoes.APPS.first
+      assert_equal "", app.clipboard, "a headless run starts with an empty clipboard of its own"
+      app.clipboard = "from the app ✓"
+      click_on edit_line("@line")
+      press_key :command_v
+      assert_equal "from the app ✓", edit_line("@line").text, "a field pastes what app.clipboard= put there"
+      type_text "!"
+      press_key :control_a
+      press_key :command_c
+      assert_equal "from the app ✓!", app.clipboard, "app.clipboard reads what a field copied"
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_a_secret_field_copies_nothing
     run = run_real(<<~APP, test_code: <<~TEST)
       Shoes.app do

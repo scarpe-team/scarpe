@@ -13,7 +13,7 @@
 #
 # The import is idempotent: it rewrites spec/shoes_spec/ from scratch, including
 # spec/shoes_spec/import_manifest.yml, which records every source case and what happened to it.
-# To change an imported case, add a rule to RULINGS or FIXES below and re-run.
+# To change an imported case, add a rule to RULINGS, FIXES or APP_FIXES below and re-run.
 
 require "json"
 require "yaml"
@@ -154,6 +154,12 @@ module ShoesSpecImport
      'stub_dialog(:\1, \2)'],
   ].freeze
 
+  # Mechanical rewrites of app code. Kept to portability: an imported app should run as written.
+  APP_FIXES = [
+    # A hard-coded /tmp does not exist on Windows (selfitude).
+    [%r{File\.open\("/tmp/([^"]+)"}, 'File.open(File.join(Dir.tmpdir, "\1")'],
+  ].freeze
+
   # One assertion statement, classified by how much it can prove.
   module Assertion
     VALUE_METHODS = /\A(assert_equal|assert_includes|assert_match|assert_in_delta|assert_operator|assert_kind_of|
@@ -182,7 +188,8 @@ module ShoesSpecImport
       @relative = path.delete_prefix(root + "/")
       _front_matter, segments = Scarpe::Components::SegmentedFileLoader.front_matter_and_segments_from_file(File.read(path))
       if segments.size == 2
-        @app_code, test_code = segments.values
+        app_code, test_code = segments.values
+        @app_code = APP_FIXES.reduce(app_code) { |code, (pattern, replacement)| code.gsub(pattern, replacement) }
         @test_code = FIXES.reduce(test_code) { |code, (pattern, replacement)| code.gsub(pattern, replacement) }
       else
         @problem = "splits into #{segments.size} segments (a line of 5+ dashes in the app code)"

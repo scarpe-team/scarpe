@@ -19,7 +19,7 @@
 # leaves the computer.
 #
 # The sounds are made right here in plain Ruby, written once to small WAV files
-# and played with afplay. Every note is from the same five-note (pentatonic)
+# and played with audio. Every note is from the same five-note (pentatonic)
 # scale, so any pops in any order sound like a tune.
 
 require "tmpdir"
@@ -52,7 +52,7 @@ Balloon = Struct.new(:kind, :x, :y, :w, :h, :home, :sway, :phase, :speed, :parts
 Bit = Struct.new(:art, :x, :y, :vx, :vy, :spin, :turn, :age, :life, :color) # confetti, sparkles and friends
 
 # The sounds. Each is worked out once as a list of numbers, written to a WAV
-# file once, and handed to afplay whenever it is wanted.
+# file once, and handed to audio whenever it is wanted.
 class Sounds
   RATE = 22_050
   LOUDEST = 0.3 # the peak of any sound, where 1.0 would be as loud as a WAV can go
@@ -74,15 +74,13 @@ class Sounds
   def play(voice, note = nil)
     return if muted
 
-    @playing.select!(&:alive?)
+    @playing.select!(&:playing?)
     return if @playing.size >= AT_ONCE
 
     name = [voice, note].compact.join("-")
     @last_file = @files[name] ||= write(name, loudest(note ? send(voice, hz(note)) : send(voice)))
-    @player = Process.detach(spawn("afplay", @last_file, out: File::NULL, err: File::NULL))
+    @player = audio(@last_file).play
     @playing << @player
-  rescue SystemCallError
-    # no afplay here (not a Mac): the balloons pop in silence
   end
 
   private

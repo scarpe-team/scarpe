@@ -19,7 +19,7 @@ assert_empty marks.call
 assert_equal :brush, app.instance_variable_get(:@tool)
 assert near.(pixel_at(560, 340), paper), "the paper starts blank"
 
-# a stroke lays paint that runs through the rainbow, and sings through afplay
+# a stroke lays paint that runs through the rainbow, and sings
 drag(*(0..40).map { |i| [220 + i * 12, 340] })
 assert_operator marks.call.size, :>, 30, "a stroke is many pieces of paint"
 first, last = pixel_at(236, 340), pixel_at(680, 340)
@@ -45,9 +45,8 @@ wav = File.binread(music.last_file)
 assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV file"
 loudest = wav[44..].unpack("s<*").map(&:abs).max
 assert_operator loudest, :<=, 0.3 * 32_767, "and never loud"
-music.player.join(10)
-assert_includes File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true), "afplay #{music.last_file}",
-  "afplay was asked to play it (the suite traps afplay, so nothing is heard)"
+assert_includes File.readlines(ENV.fetch("SPEC_AUDIO_FILE"), chomp: true), "play #{music.last_file}",
+  "it was played (the suite writes it down, so nothing is heard)"
 
 # holding still pools the paint into rainbow rings, and a big puddle drips when let go
 advance 1

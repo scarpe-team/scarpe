@@ -56,10 +56,14 @@ windows). Neither installs, checks out or uploads anything any more; `ci_test` u
   dependencies is also 1.89 (cosmic-text 0.19 and smol_str 0.3.6), so the promise is exactly
   what the dependencies allow, and CI keeps out code that needs a newer compiler.
 - **WebKitGTK on Linux.** The `scarpe` gem depends on `webview_ruby`, which compiles against
-  GTK and WebKitGTK while the bundle installs, so even the native jobs need `libgtk-3-dev` and
-  `libwebkit2gtk-4.1-dev`. `webview_ruby` 0.1.2 asks pkg-config for `webkit2gtk-4.0`, which
+  GTK and WebKitGTK the first time it loads (it is a vendored `path:` gem, which Bundler does not
+  compile), so the jobs that load it need `libgtk-3-dev` and `libwebkit2gtk-4.1-dev`. `webview_ruby` 0.1.2 asks pkg-config for `webkit2gtk-4.0`, which
   Ubuntu stopped shipping in 24.04. 4.1 is the same API on libsoup 3, so the job writes a
   four-line `webkit2gtk-4.0.pc` that requires 4.1 and points `PKG_CONFIG_PATH` at it.
+- **ALSA on Linux.** The renderer plays sounds with rodio, whose cpal backend builds against
+  ALSA's headers there, so the Linux legs of both jobs install `libasound2-dev`. A runner has no
+  sound card; the renderer only opens one for a sound played in a window, and tests write their
+  sounds to `SCARPE_AUDIO_FILE` instead.
 - **xzcat on macOS.** The lockfile builds nokogiri 1.15.7 from source, and nokogiri unpacks its
   libxml2 from a `.tar.xz` with `xzcat`, which macOS does not ship. The `macos-26` image has one
   only because Homebrew's `zstd` depends on `xz`, so the macOS jobs install `xz` if it is ever

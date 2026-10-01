@@ -9,7 +9,7 @@ app = Shoes.APPS.first
 ivar = ->(name) { app.instance_variable_get(name) }
 chimes = ivar.(:@chimes)
 save_file = File.join(Dir.home, "Library", "Application Support", "Rainbow Lab", "shelf.json")
-trapped = -> { File.exist?(ENV.fetch("SPEC_TRAP_FILE")) ? File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true) : [] }
+trapped = -> { File.exist?(ENV.fetch("SPEC_AUDIO_FILE")) ? File.readlines(ENV.fetch("SPEC_AUDIO_FILE"), chomp: true) : [] }
 # a pot's slot: click_on reaches it through the empty layer drops fly in, as a press does
 pot = ->(name) { POTS.find { |each| each[:name] == name }[:slot] }
 # the name of the shelf colour a pixel looks most like
@@ -33,9 +33,8 @@ refute chip.style[:hidden]
 assert_equal [:red], ivar.(:@recipe_shown), "the card shows the drop that made it"
 assert_equal "Red", looks.(450, 462), "the paint in the bowl is red"
 assert_equal ["Red"], JSON.parse(File.read(save_file))["found"], "Red is on the shelf, and remembered"
-chimes.player.join(10)
-tune = trapped.call.grep(/afplay .*bell-g4-c5-e5-g5/).first
-assert tune, "Red's own tune went to afplay (the suite traps afplay, so nothing is heard)"
+tune = trapped.call.grep(/\Aplay .*bell-g4-c5-e5-g5/).first
+assert tune, "Red's own tune was played (the suite writes it down, so nothing is heard)"
 wav = File.binread(tune.split(" ", 2).last)
 assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV file"
 loudest = wav[44..].unpack("s<*").map(&:abs).max / 32_767.0
@@ -92,7 +91,7 @@ assert_equal %i[yellow blue blue], ivar.(:@recipe_shown)
 advance 4.2
 assert_empty ivar.(:@recipe_shown), "and the hint goes away again"
 
-# the sound switch: nothing reaches afplay while it is off
+# the sound switch: nothing is played while it is off
 click_at 906, 668
 assert chimes.muted
 heard = trapped.call.size

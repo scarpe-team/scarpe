@@ -164,8 +164,17 @@ class FakeChild
     when "focused" then [@focused]
     when "resize" then [resize(message)]
     when "dialog" then [DIALOG_ANSWERS[message["kind"]]]
+    when "clipboard" then [clipboard(message)]
     else [nil, "unknown op #{message["op"]}"]
     end
+  end
+
+  # The clipboard req: with text it sets the clipboard, without it reads it.
+  def clipboard(message)
+    return @clipboard.to_s unless message.key?("text")
+
+    @clipboard = message["text"]
+    nil
   end
 
   def layout

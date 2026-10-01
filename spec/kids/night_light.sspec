@@ -9,12 +9,11 @@ srand(4)
 app = Shoes.APPS.first
 iv = ->(name) { app.instance_variable_get("@#{name}") }
 sounds = iv.(:sounds)
-# What afplay was asked to play (the suite traps it, so nothing is heard), once the last one has run.
+# What was played (the suite writes it down, so nothing is heard).
 trap_lines = lambda do
-  sounds.player&.join(5)
-  File.exist?(ENV.fetch("SPEC_TRAP_FILE")) ? File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true) : []
+  File.exist?(ENV.fetch("SPEC_AUDIO_FILE")) ? File.readlines(ENV.fetch("SPEC_AUDIO_FILE"), chomp: true) : []
 end
-played = ->(name) { trap_lines.().grep(/afplay .*#{name}\.wav\z/) }
+played = ->(name) { trap_lines.().grep(/\Aplay .*#{name}\.wav\z/) }
 bright = ->(x, y) { pixel_at(x, y).first(3).sum }
 cream = ->(x, y) { r, g, b = pixel_at(x, y); r > 230 && g > 200 && b > 120 && b < 235 }
 closed = false
@@ -39,7 +38,7 @@ wav = File.binread(sounds.last_file)
 assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV file"
 loudest = wav[44..].unpack("s<*").map(&:abs).max
 assert_operator loudest, :<=, 0.3 * 32_767, "no sound is ever loud"
-refute_empty played.("tine-g4"), "afplay was asked to play it (the suite traps afplay, so nothing is heard)"
+refute_empty played.("tine-g4"), "it was played (the suite writes it down, so nothing is heard)"
 advance 5
 assert_operator iv.(:note), :>=, 4, "and the tune goes on"
 
@@ -142,14 +141,15 @@ before = trap_lines.().size
 assert_operator trap_lines.().size - before, :<=, 60, "at most one sound a key"
 advance 0.5
 assert_operator iv.(:stars).count { |s| s.lit > 0 }, :>, 10, "stars all over the sky are singing"
-# While six sounds are still ringing, a seventh waits its turn (here each "sound" is a long sleep,
-# stopped straight after, so the test doesn't depend on how fast the machine is).
-spawned = 0
-sounds.define_singleton_method(:spawn) { |*_args, **_opts| spawned += 1; Process.spawn("sleep", "30") }
+# While six sounds are still ringing, a seventh waits its turn (here each sound is a stand-in
+# that rings until it is stopped, so the test doesn't depend on how fast the machine is).
+started = 0
+ringing = Struct.new(:on) { def play = tap { self.on = true }; def playing? = on; def stop = tap { self.on = false } }
+sounds.define_singleton_method(:audio) { |*_args, **_opts| started += 1; ringing.new(false) }
 20.times { |i| press_key keys[i] }
-assert_equal 6, spawned, "no more than six sounds at the same moment"
-sounds.singleton_class.remove_method(:spawn)
-sounds.instance_variable_get(:@playing).each { |sleeper| Process.kill("TERM", sleeper.pid) rescue nil; sleeper.join(2) }
+assert_equal 6, started, "no more than six sounds at the same moment"
+sounds.singleton_class.remove_method(:audio)
+sounds.instance_variable_get(:@playing).each(&:stop)
 
 # The speaker turns every sound off, and back on.
 click_at 170, 74

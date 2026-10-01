@@ -1,6 +1,8 @@
+require "tmpdir"
+
 def printish(msg)
   #$stderr.puts msg
-  File.open("/tmp/shoesy_stuff.txt", "a") do |f|
+  File.open(File.join(Dir.tmpdir, "shoesy_stuff.txt"), "a") do |f|
     f.write(msg + "\n")
   end
 end

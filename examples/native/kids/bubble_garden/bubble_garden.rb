@@ -14,7 +14,7 @@
 #
 # The sounds are made right here in Ruby: soft tones on a pentatonic scale, so
 # any bubbles together sound sweet. Each is worked out once, written to a
-# little WAV file and played with afplay.
+# little WAV file and played with audio.
 
 require "fileutils"
 require "tmpdir"
@@ -58,7 +58,7 @@ Cloud = Struct.new(:slot, :x, :y, :speed, :width, :bounce, :asleep, :awake, :sho
 # ---------------------------------------------------------------- the sound
 
 # A tiny synthesizer. Each sound is a list of numbers worked out once, written
-# to a WAV file, and played by afplay in the background while the garden goes on.
+# to a WAV file, and played by audio in the background while the garden goes on.
 class GardenSounds
   RATE = 22_050
   LOUDEST = 0.25 # no sound ever goes above a quarter of full scale
@@ -84,9 +84,7 @@ class GardenSounds
 
     @started << now
     @last_file = @files[[name, note]] ||= write("#{name}-#{note}", samples(name, note))
-    @player = Process.detach(spawn("afplay", @last_file, out: File::NULL, err: File::NULL))
-  rescue SystemCallError
-    # no afplay here (not a Mac): the garden grows in silence
+    @player = audio(@last_file).play
   end
 
   def samples(name, note)

@@ -87,6 +87,7 @@ class ChildTest < Minitest::Test
   # string through /bin/sh when it holds a parenthesis ("(Rust)" is a syntax error there) and
   # splits it at spaces otherwise ("For Noah.app" becomes a missing ".../For").
   def test_a_bundle_named_with_spaces_and_parentheses_starts_it_with_no_flags
+    skip_on_windows("a macOS bundle's binary has no .exe for Windows to start")
     ["ZARKING (Rust).app", "For Noah.app"].each do |bundle|
       binary = File.join(@dir, bundle, "Contents", "MacOS", "scarpe-native")
       FileUtils.mkdir_p(File.dirname(binary))
@@ -116,11 +117,12 @@ class ChildTest < Minitest::Test
   def test_a_scarpe_native_on_path_comes_before_building_one
     bin = File.join(@dir, "bin")
     FileUtils.mkdir_p(bin)
-    File.write(File.join(bin, "scarpe-native"), "#!/bin/sh\n")
-    File.chmod(0o755, File.join(bin, "scarpe-native"))
+    binary = File.join(bin, "scarpe-native#{Scarpe::Native::Binary::EXE}")
+    File.write(binary, "#!/bin/sh\n")
+    File.chmod(0o755, binary)
     with_env("SCARPE_NATIVE_BIN" => nil, "PATH" => bin) do
       Scarpe::Native::Binary.stub(:build, -> { flunk "ran cargo" }) do
-        assert_equal File.join(bin, "scarpe-native"), Scarpe::Native::Binary.path
+        assert_equal binary, Scarpe::Native::Binary.path
       end
     end
   end

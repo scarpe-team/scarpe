@@ -8,6 +8,8 @@ straightforward as possible.
 - Removed bloops as a required dependency - sound is now opt-in (install bloops gem separately if needed)
 - Added base64 gem dependency for Ruby 3.4+ compatibility
 - A native display service: `scarpe --native app.rb` draws with a Rust program (tiny-skia, cosmic-text, winit) instead of a webview, while Lacci and every block stay in Ruby. See docs/native.md and native/DESIGN.md. Dedicated to the late Noah Gibbs.
+- `audio("pop.wav").play`: sounds on every display and platform (`play`, `pause`, `stop`, `playing?`, `volume:`), and `video` plays audio files (WAV, MP3, Ogg Vorbis, FLAC). The native renderer plays through rodio; `SCARPE_AUDIO_FILE` writes them down instead, for tests. See docs/SCARPE_FEATURES.md
+- `say("Hello", voice:)` and `voices`: speech on macOS, Windows and Linux (espeak). See docs/SCARPE_FEATURES.md
 - `scarpe peek APP.rb` runs an app headless on the native display, clicks, types, scrolls and saves pictures
 - `scarpe package --native` builds an ad-hoc signed macOS `.app` (and a `.dmg` with `--dmg`) with precompiled Ruby bytecode, no installed gems, and FastImage copied in for image sizes
 - The Shoes spec suite (`spec/run`): 1062 cases from the manual, Noah Gibbs' Shoes-Spec corpus and the native example apps' checks, runnable on Niente and native, with `spec/LEDGER.md` ruling on every place the manual, Shoes 3, Shoes 4 and Lacci disagree
@@ -22,6 +24,8 @@ straightforward as possible.
 - Lacci: `edit_line.finish = proc` runs when Return is pressed in the line, as Shoes 3.2.15 added; `arc` takes `wedge: true` for a pie slice, as in Shoes 4
 - Lacci: `download` takes `start:`, `progress:`, `finish:`, `headers:` and `body:` and no longer needs nokogiri; `Image#path`, `full_width` and `full_height` and the `imagesize` built-in; the `error` built-in; `rgb`, `gray` and the named colours return a `Shoes::Color`, an Array with `red`, `green`, `blue` and `alpha`; `banner`, `title` and the rest of that family are `Shoes::Para` subclasses
 - Ten Kids apps in `examples/native/kids`, for ages two to eight: Night Light, Balloon Pop, Paint Puddles, Shape Sorter, Bubble Garden, Peekaboo Moles, Key Splash, Memory Match, Rainbow Lab and Maze Mouse, each with a check in `spec/kids` and an icon drawn in Shoes
+- `app.clipboard` works on Windows and on Linux Wayland desktops. On the native display it uses the renderer's clipboard (the one text fields cut and paste through: macOS, Windows, X11 and Wayland, no program to install); Niente and the webview use PowerShell on Windows, `wl-paste`/`wl-copy` on Wayland, `xclip` on X11 and `pbpaste`/`pbcopy` on macOS. `SCARPE_CLIPBOARD_FILE` names a file that stands in for the system clipboard, which the spec suite uses on every platform
+- Windows groundwork for the native display: the renderer starts and is stopped the Windows way, its replies are read without `IO.select`'s 10 ms polling, and the native CI runs the Ruby suites on Windows (not yet required)
 
 - `Shoes.show_manual` opens the manual in a window of its own, drawn from `docs/static/manual.md` with its chapters down the left, as Shoes 3's did; it no longer opens a browser
 - Lacci: `Para#hit(x, y)` answers the character under a point, and `cursor_top` and the new `cursor_left` where the caret sits in the slot that scrolls it, asked of the native display; `Shoes.app`, `window` and `dialog` take their styles as a Hash too, as Ruby 1.9 programs pass them

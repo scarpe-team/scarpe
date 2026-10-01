@@ -45,6 +45,7 @@ class PackageTest < Minitest::Test
   end
 
   def test_bytecode_is_compiled_for_the_install_dir
+    skip_on_windows_for_mac_paths
     packager = Scarpe::Package::Native.new(@app, install_dir: "/Applications", target_os: "macos")
 
     assert_equal "/Applications/HelloApp.app/Contents/Resources", packager.installed_resources
@@ -71,7 +72,11 @@ class PackageTest < Minitest::Test
     assert_includes launcher, %(export RUBYLIB="$RES/scarpe/lib:$RES/scarpe/lacci/lib:$RES/scarpe/scarpe-components/lib:)
     assert_includes launcher, %("$RES/boot.rb" hello_app.rb)
     refute_match(/SCARPE_DISPLAY=/, launcher, "SCARPE_DISPLAY is read by nothing")
-    assert system("bash", "-n", "-c", launcher), "the launcher is not valid bash"
+    if system("bash", "-c", "true", out: File::NULL, err: File::NULL)
+      assert system("bash", "-n", "-c", launcher), "the launcher is not valid bash"
+    else
+      skip "no bash on PATH to check the launcher with (Windows outside Git Bash)"
+    end
   end
 
   def test_the_launcher_quotes_the_app_name
@@ -142,6 +147,7 @@ class PackageTest < Minitest::Test
 
   # sanitize_name turned "ZARKING (Rust)" into ZarkingRust.app and "For Noah" into ForNoah.app.
   def test_a_native_package_keeps_the_name_it_was_given
+    skip_on_windows_for_mac_paths
     packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, name: "ZARKING (Rust)", target_os: "macos")
 
     assert_equal "ZARKING (Rust).app", File.basename(packager.app_path)
@@ -153,6 +159,7 @@ class PackageTest < Minitest::Test
   end
 
   def test_the_info_plist_holds_a_given_name_whole
+    skip "Windows keeps no < or > in a file name" if Gem.win_platform?
     packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, name: "Salt & <Pepper>", target_os: "macos")
     FileUtils.mkdir_p(File.join(packager.app_path, "Contents"))
     packager.send(:write_info_plist)
@@ -171,6 +178,7 @@ class PackageTest < Minitest::Test
   # Builds share ~/.scarpe/packager-cache. Each used to stage its disk image in the same
   # dmg-staging folder and empty it first, under any other build still copying into it.
   def test_a_dmg_build_leaves_other_builds_staging_alone
+    skip_unless_symlinks # the staging folder links to /Applications
     cache = scratch_dir
     other = write(cache, "dmg-staging/Other.app/Contents/Info.plist", "another build's")
     packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, target_os: "macos")
@@ -209,6 +217,23 @@ class PackageTest < Minitest::Test
   end
 
   private
+
+  # A macOS package's paths are Unix paths, which File.expand_path gives a drive letter on Windows.
+  # Windows lets only an administrator, or Developer Mode, make a symbolic link.
+  def skip_unless_symlinks
+    return unless Gem.win_platform?
+
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "target"), "")
+      File.symlink(File.join(dir, "target"), File.join(dir, "link"))
+    end
+  rescue Errno::EACCES, Errno::EPERM, NotImplementedError
+    skip "Windows: this user may not make symbolic links (Developer Mode or an administrator can)"
+  end
+
+  def skip_on_windows_for_mac_paths
+    skip "macOS packages are not built on Windows" if Gem.win_platform?
+  end
 
   def render_launcher(name: nil)
     output = scratch_dir

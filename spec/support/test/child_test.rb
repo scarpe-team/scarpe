@@ -10,7 +10,7 @@ class ChildTest < Minitest::Test
     Dir.mktmpdir do |dir|
       pid_file = File.join(dir, "renderer.pid")
       app = <<~RUBY
-        renderer = Process.spawn(#{RbConfig.ruby.inspect}, "-e", "sleep 30", pgroup: true)
+        renderer = Process.spawn(#{RbConfig.ruby.inspect}, "-e", "sleep 30", **#{SpecSuite::Child::OWN_GROUP.inspect})
         File.write(ENV["SCARPE_NATIVE_PID_FILE"], renderer.to_s)
         sleep 30
       RUBY

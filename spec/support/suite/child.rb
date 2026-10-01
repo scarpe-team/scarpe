@@ -14,6 +14,8 @@ module SpecSuite
 
     GRACE = 1.0
     POLL = 0.02
+    # Windows has no pgroup; new_pgroup keeps a console's Ctrl-C to the runner there.
+    OWN_GROUP = Gem.win_platform? ? { new_pgroup: true } : { pgroup: true }
 
     def self.run(argv, env:, chdir:, log:, deadline_after:)
       new(argv, env:, chdir:, log:).run(deadline_after)
@@ -29,14 +31,15 @@ module SpecSuite
     def run(deadline_after)
       started = now
       pid = Process.spawn(@env, *@argv, chdir: @chdir, in: File::NULL, out: @log, err: [:child, :out],
-        pgroup: true, unsetenv_others: true)
+        unsetenv_others: true, **OWN_GROUP)
       status = wait_until(pid, started + deadline_after)
       timed_out = status.nil?
       status ||= stop(pid)
       Finished.new(exitstatus: status.exitstatus, termsig: status.termsig, timed_out:, secs: (now - started).round(2),
         log: @log)
     ensure
-      kill_group(pid, "KILL") if pid
+      # A reaped child's pid is free on Windows, which has no group to name what it left behind.
+      kill_group(pid, "KILL") if pid && !(Gem.win_platform? && status)
       kill_renderer
     end
 
@@ -69,7 +72,10 @@ module SpecSuite
       nil
     end
 
+    # Windows signals no groups and knows no TERM; taskkill /T ends the process and all it started.
     def kill_group(pid, signal)
+      return system("taskkill", "/T", "/F", "/PID", pid.to_s, out: File::NULL, err: File::NULL) if Gem.win_platform?
+
       Process.kill(signal, -pid)
     rescue Errno::ESRCH, Errno::EPERM
       nil

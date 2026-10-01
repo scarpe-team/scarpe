@@ -141,6 +141,25 @@ impl Runtime {
                     Ok(None)
                 }
             }
+            Op::Clipboard { text: Some(text) } => {
+                self.clipboard.set(text);
+                Ok(Some(Value::Null))
+            }
+            Op::Clipboard { text: None } => Ok(Some(json!(self.clipboard.get()))),
+            Op::Audio { cmd, id, path, volume } => {
+                let done = self.audio.command(&cmd, &id, &path, volume);
+                // Out after the reply: a sound that ended at once is news Ruby can only hear then.
+                let reply = match done {
+                    Ok(()) => Outgoing::reply(req, Value::Null),
+                    Err(e) => {
+                        self.out.send(Outgoing::Log { level: "warn".into(), msg: format!("audio: {e}") });
+                        Outgoing::reply(req, Value::Null)
+                    }
+                };
+                self.out.send(reply);
+                self.send_audio_ended();
+                Ok(None)
+            }
             Op::Focused { app } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;
                 Ok(Some(self.views[&app].ui.focus.map(Value::from).unwrap_or(Value::Null)))

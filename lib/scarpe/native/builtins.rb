@@ -45,8 +45,15 @@ module Scarpe::Native
     def answer(cmd_name, args)
       return dialog(cmd_name, args[0], args[1]) if DIALOGS.include?(cmd_name)
 
-      if cmd_name == "font"
+      case cmd_name
+      when "font"
         @service.register_font(args.first)
+      when "clipboard"
+        return @service.clipboard
+      when "clipboard="
+        @service.clipboard = args.first
+      when "audio"
+        @service.audio(*args)
       else
         @log.warn("Unknown builtin #{cmd_name.inspect}(#{args.inspect[1..-2]}); answering nil")
       end

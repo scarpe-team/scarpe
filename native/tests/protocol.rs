@@ -696,6 +696,38 @@ fn shift_selection_cut_and_paste_use_a_private_clipboard_headless() {
     assert_eq!(named(&events(&evs), "change")[0].2, json!(["world!hello "]));
 }
 
+/// Shoes' app.clipboard and app.clipboard= (the `clipboard` req) share the clipboard that text
+/// fields cut and paste through.
+#[test]
+fn the_clipboard_req_shares_the_clipboard_text_fields_use() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 100, &[create(3, "EditLine", 2, json!({"text": ""}))]));
+    assert_eq!(h.value(json!({"op": "clipboard"})), json!(""));
+    assert_eq!(h.value(json!({"op": "clipboard", "text": "from Ruby"})), Value::Null);
+    h.value(json!({"op": "click", "target": {"id": 3}}));
+    let (evs, _) = h.req(json!({"op": "key", "key": ":control_v"}));
+    assert_eq!(named(&events(&evs), "change")[0].2, json!(["from Ruby"]));
+    for _ in 0..4 {
+        h.req(json!({"op": "key", "key": "shift_left"}));
+    }
+    h.req(json!({"op": "key", "key": ":control_x"}));
+    assert_eq!(h.value(json!({"op": "clipboard"})), json!("Ruby"));
+}
+
+/// A headless renderer plays no sound: a played one ends at once, and Ruby hears so right after
+/// the reply, so Shoes::Audio#playing? turns false.
+#[test]
+fn a_headless_sound_ends_right_after_its_reply() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 100, &[]));
+    let msgs = h.feed(&json!({"t": "req", "req": 900, "op": "audio", "cmd": "play", "id": "audio-7", "path": "/nowhere/pop.wav"}).to_string());
+    let reply = msgs.iter().position(|m| m["t"] == "reply" && m["req"] == json!(900)).expect("a reply");
+    assert_eq!(msgs[reply]["error"], Value::Null);
+    assert_eq!(msgs[reply + 1..].to_vec(), vec![json!({"t": "audio_ended", "id": "audio-7"})]);
+    let msgs = h.feed(&json!({"t": "req", "req": 901, "op": "audio", "cmd": "stop", "id": "audio-7", "path": "/nowhere/pop.wav"}).to_string());
+    assert!(msgs.iter().all(|m| m["t"] != "audio_ended"), "a stop ends nothing more: {msgs:?}");
+}
+
 #[test]
 fn twin_links_in_different_paras_keep_their_own_ids() {
     let mut h = Harness::new();
