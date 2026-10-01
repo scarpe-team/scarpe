@@ -34,7 +34,8 @@ module WebviewRuby
 
     def self.run
       warn "webview_ruby: compiling the native library in #{EXT_DIR} (once, and again when ext/ changes)..."
-      unless system(RbConfig.ruby, "-e", RAKE_SCRIPT, chdir: EXT_DIR)
+      # The compiler's output goes to stderr, never into the app's stdout.
+      unless system(RbConfig.ruby, "-e", RAKE_SCRIPT, chdir: EXT_DIR, out: :err)
         raise LoadError, "webview_ruby: building the native library failed; see the compiler output above. " \
           "To retry by hand: cd #{EXT_DIR} && rake"
       end
