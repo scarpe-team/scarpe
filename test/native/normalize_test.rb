@@ -145,15 +145,20 @@ class NormalizeTest < Minitest::Test
 
   def test_the_cache_is_a_private_directory_of_the_users_own_by_default
     Dir.mktmpdir do |home|
-      with_env("SCARPE_NATIVE_CACHE" => nil, "HOME" => home, "XDG_CACHE_HOME" => nil) do
-        per_user = RUBY_PLATFORM.include?("darwin") ? %w[Library Caches scarpe-native] : %w[.cache scarpe-native]
+      with_env("SCARPE_NATIVE_CACHE" => nil, "HOME" => home, "XDG_CACHE_HOME" => nil, "LOCALAPPDATA" => home) do
+        per_user = if Gem.win_platform? then %w[scarpe-native cache]
+        elsif RUBY_PLATFORM.include?("darwin") then %w[Library Caches scarpe-native]
+        else %w[.cache scarpe-native]
+        end
         assert_equal File.join(home, *per_user), N.cache_dir, "never under the shared temp dir"
-        assert_equal 0o700, File.stat(N.cache_dir).mode & 0o777
+        # Windows keeps no Unix modes; %LOCALAPPDATA%'s access list makes it the user's own.
+        assert_equal 0o700, File.stat(N.cache_dir).mode & 0o777 unless Gem.win_platform?
       end
     end
   end
 
   def test_a_cache_directory_others_could_write_to_is_made_private
+    skip "Windows keeps no Unix modes to tighten" if Gem.win_platform?
     with_cache_dir do |cache|
       File.chmod(0o777, cache)
       N.cache_dir
@@ -162,6 +167,7 @@ class NormalizeTest < Minitest::Test
   end
 
   def test_a_cache_directory_that_is_a_link_is_refused
+    skip "Windows trusts %LOCALAPPDATA%'s access list, and links there need privileges" if Gem.win_platform?
     Dir.mktmpdir do |dir|
       Dir.mkdir(File.join(dir, "real"))
       File.symlink(File.join(dir, "real"), File.join(dir, "link"))
