@@ -44,7 +44,7 @@ without a screen, test it, and package it. Everything here was checked on 28 Sep
 |---|---|---|
 | macOS | Apple silicon, tested | the only platform that packages apps |
 | Linux | runs headless | CI runs the native tests and the spec suite on Ubuntu 24.04 |
-| Windows | webview display runs | Windows 11, RubyInstaller with its DevKit (below); the native renderer compiles, its Ruby side is Unix-only |
+| Windows | webview display runs | Windows 11, RubyInstaller with its DevKit (below); the native display passes CI but has not opened a real window yet (`docs/windows_handover.md`) |
 | Ruby | 3.2.11 or newer; CI runs 3.2 and 4.0 | the repo's `.ruby-version` says 3.2.0: ignore it, since 3.2.0 to 3.2.2 cannot build nokogiri with Xcode 26's clang (`docs/native_ci.md`) |
 | Bundler | 2.4.10, as the lockfile says | `gem install bundler -v 2.4.10` |
 | Rust | 1.89 or newer, with `cargo` | `rust-version` in `native/Cargo.toml` |
