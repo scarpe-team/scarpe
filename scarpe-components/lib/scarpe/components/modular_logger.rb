@@ -43,7 +43,11 @@ module Scarpe
       when "stderr"
         Logging.appenders.stderr layout: @custom_log_layout
       when String
-        Logging.appenders.file data, layout: @custom_log_layout
+        # Several components may log to the same file. Logging.appenders.file
+        # registers a new appender under the filename and drops the old one
+        # without closing it, so Logging.reset could never close that handle --
+        # and Windows will not delete a file that is still open.
+        Logging.appenders[data] || Logging.appenders.file(data, layout: @custom_log_layout)
       else
         raise Shoes::Errors::InvalidAttributeValueError, "Don't know how to convert #{data.inspect} to an appender!"
       end
