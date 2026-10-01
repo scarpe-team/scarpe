@@ -16,7 +16,7 @@
 # are big, nothing flashes, and nobody is ever told they missed. The speaker in
 # the corner turns the sound off; a grown-up can hold Escape for two seconds to
 # leave (Cmd-Q works too). The giggles are made right here in Ruby, soft notes
-# on a pentatonic scale written once to little WAV files and played with afplay.
+# on a pentatonic scale written once to little WAV files and played with audio.
 
 require "json"
 require "fileutils"
@@ -59,7 +59,7 @@ Bit = Struct.new(:art, :x, :y, :vx, :vy, :age, :life, :gravity, :color, keyword_
 # ---------------------------------------------------------------- the sound
 
 # A tiny synthesizer. Each sound is a list of numbers worked out once, written
-# to a WAV file, and played by afplay in the background while the game goes on.
+# to a WAV file, and played by audio in the background while the game goes on.
 class MoleSounds
   RATE = 22_050
   LOUDEST = 0.25 # no sound ever goes above a quarter of full scale
@@ -85,9 +85,7 @@ class MoleSounds
     @started << now
     @last_name = name
     @last_file = @files[[name, note]] ||= write("#{name}-#{note}", samples(name, note))
-    @player = Process.detach(spawn("afplay", @last_file, out: File::NULL, err: File::NULL))
-  rescue SystemCallError
-    # no afplay here (not a Mac): the moles giggle in silence
+    @player = audio(@last_file).play
   end
 
   def samples(name, note)

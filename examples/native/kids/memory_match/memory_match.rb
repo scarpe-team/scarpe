@@ -11,7 +11,7 @@
 # and remembers your best. The speaker in the corner turns the sound off.
 #
 # The animal voices come from a tiny synthesizer in plain Ruby: each one is
-# worked out once as a WAV file and played with afplay.
+# worked out once as a WAV file and played with audio.
 
 require "json"
 require "fileutils"
@@ -51,7 +51,7 @@ FLIP = 0.32 # seconds for a card to turn over
 WIN_FROM, WIN_AT = 12, 150 # where the win card drops in from, and where it lands
 
 # A small synthesizer. Every sound is worked out once, written to a WAV file,
-# and played in the background with afplay while the game carries on.
+# and played in the background with audio while the game carries on.
 class Voices
   RATE = 22_050
   TAU = 2 * Math::PI
@@ -72,9 +72,7 @@ class Voices
     return if @muted
 
     @last_file = @files[name] ||= write(name, samples(name))
-    @player = Process.detach(spawn("afplay", @last_file, out: File::NULL, err: File::NULL))
-  rescue SystemCallError
-    # no afplay here (not a Mac): the animals dance in silence
+    @player = audio(@last_file).play
   end
 
   # A sound's samples, gently scaled. Every animal comes out about as loud

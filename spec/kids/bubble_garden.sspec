@@ -8,7 +8,7 @@ load File.join(Scarpe::Native::ROOT, "examples/native/kids/bubble_garden/bubble_
 app = Shoes.APPS.first
 ivar = ->(name) { app.instance_variable_get(name) }
 bubbles, flowers, sounds = ivar.(:@bubbles), ivar.(:@flowers), ivar.(:@sounds)
-trapped = -> { File.exist?(ENV.fetch("SPEC_TRAP_FILE")) ? File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true) : [] }
+trapped = -> { File.exist?(ENV.fetch("SPEC_AUDIO_FILE")) ? File.readlines(ENV.fetch("SPEC_AUDIO_FILE"), chomp: true) : [] }
 pinkish = ->(pixel) { r, g, b = pixel; r > 230 && b > g && g < 215 }
 auto = Scarpe::Native::DisplayService.instance.automation
 
@@ -28,8 +28,7 @@ assert_operator low.x, :<, 320, "q is on the left of the keyboard"
 assert_match(/blow-[cde]4\.wav\z/, sounds.last_file)
 wav = File.binread(sounds.last_file)
 assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV file"
-sounds.player.join(10)
-assert_includes trapped.call, "afplay #{sounds.last_file}", "handed to afplay (trapped here, so nothing is heard)"
+assert_includes trapped.call, "play #{sounds.last_file}", "played (written down here, so nothing is heard)"
 
 # a key on the right blows a smaller, higher one on the right
 press_key "p"

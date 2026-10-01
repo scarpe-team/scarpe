@@ -13,8 +13,8 @@
 # Mac's own shortcuts). Nothing is saved and nothing goes on the network.
 #
 # The sounds are made right here in plain Ruby: each one is worked out as
-# numbers, written once as a small WAV file, and played with afplay, the Mac's
-# own sound player.
+# numbers, written once as a small WAV file, and played with Scarpe's
+# audio, on every computer.
 
 require "tmpdir"
 require "fileutils"
@@ -99,10 +99,8 @@ class Music
 
     @last_file = @files[[name, volume]] ||= write("#{name}-#{(volume * 100).round}", samples, volume)
     @ringing << { name: name, start: now, ends: now + samples.size.fdiv(RATE), volume: volume }
-    @player = Process.detach(spawn("afplay", @last_file, out: File::NULL, err: File::NULL))
+    @player = audio(@last_file).play
     true
-  rescue SystemCallError
-    false # no afplay here (not a Mac): paint in silence
   end
 
   # A sound's samples, scaled so its loudest moment is LOUDEST, and, for every
