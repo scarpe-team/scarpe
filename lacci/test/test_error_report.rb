@@ -55,6 +55,7 @@ class TestErrorReport < Minitest::Test
   # "path" and "line" prefer the program's own frame, however its path is spelled. On a Mac
   # /var and /tmp are links into /private, and Ruby names a loaded file by its real path.
   def test_the_program_frame_is_found_through_a_link_in_its_path
+    skip_unless_symlinks
     Dir.mktmpdir do |real|
       Dir.mktmpdir do |links|
         File.write(File.join(real, "helper.rb"), "module ErrorReportLinkedHelper\n  def self.go\n    raise 'the helper broke'\n  end\nend\n")
@@ -133,5 +134,17 @@ class TestErrorReport < Minitest::Test
       end
       assert_equal File.realpath(File.join(dir, "elsewhere")), File.realpath($ran_in)
     end
+  end
+
+  # Windows lets only an administrator, or Developer Mode, make a symbolic link.
+  def skip_unless_symlinks
+    return unless Gem.win_platform?
+
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "target"), "")
+      File.symlink(File.join(dir, "target"), File.join(dir, "link"))
+    end
+  rescue Errno::EACCES, Errno::EPERM, NotImplementedError
+    skip "Windows: this user may not make symbolic links (Developer Mode or an administrator can)"
   end
 end

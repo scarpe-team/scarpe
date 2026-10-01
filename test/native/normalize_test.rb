@@ -157,6 +157,19 @@ class NormalizeTest < Minitest::Test
     end
   end
 
+  # Windows lets only an administrator, or Developer Mode, make a symbolic link; a planted link
+  # is still worth refusing there, so these run wherever links can be made.
+  def skip_unless_symlinks
+    return unless Gem.win_platform?
+
+    Dir.mktmpdir do |dir|
+      File.write(File.join(dir, "target"), "")
+      File.symlink(File.join(dir, "target"), File.join(dir, "link"))
+    end
+  rescue Errno::EACCES, Errno::EPERM, NotImplementedError
+    skip "Windows: this user may not make symbolic links (Developer Mode or an administrator can)"
+  end
+
   def test_a_cache_directory_others_could_write_to_is_made_private
     skip "Windows keeps no Unix modes to tighten" if Gem.win_platform?
     with_cache_dir do |cache|
@@ -182,6 +195,7 @@ class NormalizeTest < Minitest::Test
   end
 
   def test_a_link_planted_where_an_entry_goes_is_replaced_and_never_read
+    skip_unless_symlinks
     with_victim do |victim, original|
       with_image_server do |url, hits|
         with_cache_dir do
@@ -197,6 +211,7 @@ class NormalizeTest < Minitest::Test
   end
 
   def test_a_link_planted_where_the_download_is_written_is_never_written_through
+    skip_unless_symlinks
     with_victim do |victim, original|
       with_image_server do |url, _hits|
         with_cache_dir do
