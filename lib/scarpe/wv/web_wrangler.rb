@@ -105,6 +105,15 @@ module Scarpe::Webview
         end
       end
 
+      # Same mechanism as dynamicRubyCallback, for periodic_code's post-init
+      # path (see below) -- a setInterval calls this every tick, so it must
+      # *not* delete itself after the first call the way the one-shot
+      # version does.
+      @periodic_dynamic_callbacks = {}
+      @webview.bind("dynamicPeriodicCallback") do |handler_id|
+        @periodic_dynamic_callbacks[handler_id]&.call
+      end
+
       @webview.bind(EVAL_RESULT) do |*results|
         receive_eval_result(*results)
       end
@@ -192,20 +201,25 @@ module Scarpe::Webview
       if interval == heartbeat
         @heartbeat_handlers << block
       else
-        if @is_running
-          # I *think* we need to use init because we want this done for every
-          # new window. But will there ever be a new page/window? Can we just
-          # use eval instead of init to set up a periodic handler and call it
-          # good?
-          raise Scarpe::PeriodicHandlerSetupError, "App is running, can't set up new periodic handlers with init!"
-        end
-
         js_interval = (interval.to_f * 1_000.0).to_i
-        code_str = WebWrangler.when_page_ready("setInterval(#{name}, #{js_interval});")
-        @init_refs[name] = code_str
 
-        bind(name, &block)
-        @webview.init(code_str)
+        if @is_running
+          # App is running, so init/bind (which only takes effect for a page
+          # that hasn't loaded yet) can't set this up. Same dynamic-callback
+          # mechanism one_shot_code uses for the same reason, just backed by
+          # setInterval instead of setTimeout -- see dynamicPeriodicCallback
+          # above, which (unlike dynamicRubyCallback) doesn't delete itself
+          # after the first tick.
+          handler_id = "dyn_#{name}_#{SecureRandom.hex(8)}"
+          @periodic_dynamic_callbacks[handler_id] = block
+          js_eventually("setInterval(() => dynamicPeriodicCallback('#{handler_id}'), #{js_interval});")
+        else
+          code_str = WebWrangler.when_page_ready("setInterval(#{name}, #{js_interval});")
+          @init_refs[name] = code_str
+
+          bind(name, &block)
+          @webview.init(code_str)
+        end
       end
     end
 
