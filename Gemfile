@@ -8,6 +8,9 @@ gemspec
 gem "lacci", path: "lacci"
 gem "scarpe-components", path: "scarpe-components"
 
+# webview_ruby 0.1.2 plus a Windows (WebView2) build; see vendor/webview_ruby/README.md
+gem "webview_ruby", path: "vendor/webview_ruby"
+
 gem "rake", "~> 13.0"
 
 group :test do

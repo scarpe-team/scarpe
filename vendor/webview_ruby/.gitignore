@@ -1,0 +1,5 @@
+# Build output of ext/Rakefile (ext/<arch>-<os>/) and the downloaded SDK
+/ext/*-darwin/
+/ext/*-linux/
+/ext/*-windows/
+/ext/webview2-sdk/

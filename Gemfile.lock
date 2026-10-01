@@ -26,6 +26,14 @@ PATH
   specs:
     scarpe-components (1.0.0)
 
+PATH
+  remote: vendor/webview_ruby
+  specs:
+    webview_ruby (0.1.2)
+      ffi
+      ffi-compiler
+      rake
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -122,10 +130,6 @@ GEM
       unicode-emoji (~> 4.1)
     unicode-emoji (4.2.0)
     webrick (1.7.0)
-    webview_ruby (0.1.2)
-      ffi
-      ffi-compiler
-      rake
     yard (0.9.38)
 
 PLATFORMS
@@ -152,6 +156,7 @@ DEPENDENCIES
   rubocop (~> 1.21)
   scarpe!
   scarpe-components!
+  webview_ruby!
   yard
 
 BUNDLED WITH
