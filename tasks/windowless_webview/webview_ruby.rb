@@ -32,8 +32,13 @@ module WebviewRuby
       nil
     end
 
+    # Scarpe::Webview::WebWrangler.when_page_ready's wrapper; the script is played as if bare.
+    PAGE_READY = /\A\(function scarpeWhenReady\(\) \{ if \(document\.getElementById\('wrapper-wvroot'\)\) \{ (.*) \} else \{ setTimeout\(scarpeWhenReady, 5\); \} \}\)\(\);\z/m
+
     def init(js)
-      @scripts << js.strip
+      js = js.strip
+      js = Regexp.last_match(1) if js =~ PAGE_READY
+      @scripts << js
       nil
     end
 
