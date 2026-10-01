@@ -3,6 +3,7 @@
 require "fileutils"
 require "monitor"
 require "open3"
+require "rbconfig"
 require "shellwords"
 
 module Scarpe::Native
@@ -94,8 +95,10 @@ module Scarpe::Native
   module Binary
     extend self
 
+    # ".exe" on Windows, where cargo names the binary scarpe-native.exe; "" elsewhere.
+    EXE = RbConfig::CONFIG["EXEEXT"].to_s
     CRATE = File.join(ROOT, "native")
-    DEV_BINARY = File.join(CRATE, "target", "release", "scarpe-native")
+    DEV_BINARY = File.join(CRATE, "target", "release", "scarpe-native#{EXE}")
 
     def path
       explicit = ENV["SCARPE_NATIVE_BIN"].to_s
@@ -138,17 +141,17 @@ module Scarpe::Native
     end
 
     def cargo
-      ENV["CARGO"] || which("cargo") || File.expand_path("~/.cargo/bin/cargo")
+      ENV["CARGO"] || which("cargo") || File.expand_path("~/.cargo/bin/cargo#{EXE}")
     end
 
     def packaged_binary
       beside_script = File.dirname(File.expand_path($PROGRAM_NAME))
-      candidates = [beside_script, File.expand_path("../MacOS", beside_script)].map { |dir| File.join(dir, "scarpe-native") }
+      candidates = [beside_script, File.expand_path("../MacOS", beside_script)].map { |dir| File.join(dir, "scarpe-native#{EXE}") }
       candidates.find { |candidate| File.executable?(candidate) }
     end
 
     def which(name)
-      ENV["PATH"].to_s.split(File::PATH_SEPARATOR).map { |dir| File.join(dir, name) }.find { |f| File.executable?(f) && File.file?(f) }
+      ENV["PATH"].to_s.split(File::PATH_SEPARATOR).map { |dir| File.join(dir, "#{name}#{EXE}") }.find { |f| File.executable?(f) && File.file?(f) }
     end
   end
 
@@ -160,6 +163,7 @@ module Scarpe::Native
   # held only for one short IO.select at a time so waiting threads interleave.
   class Child
     PROTOCOL_VERSION = 1
+    OWN_GROUP = Gem.win_platform? ? { new_pgroup: true } : { pgroup: true }
     STDERR_TAIL_LINES = 40
     READY_TIMEOUT = 20.0
     POLL = 0.05
@@ -342,11 +346,12 @@ module Scarpe::Native
     end
 
     # Its own process group, so a terminal Ctrl-C reaches Ruby (which quits the child) and not the child.
+    # Windows has no pgroup; new_pgroup does the same there for a console's Ctrl-C.
     # The [path, argv0] form never goes through /bin/sh: a lone path would when it holds a parenthesis,
     # and a double-click passes no flags, so "ZARKING (Rust).app" died there. An env hash may lead.
     def spawn(command)
       env, (program, *args) = command.partition { |part| part.is_a?(Hash) }
-      Open3.popen3(*env, [program, program], *args, pgroup: true)
+      Open3.popen3(*env, [program, program], *args, **OWN_GROUP)
     rescue SystemCallError => e
       raise ChildNotFound, "Can't start #{program}: #{e.message}"
     end
@@ -459,8 +464,9 @@ module Scarpe::Native
     end
 
     # To the child's whole process group (it leads one), so what it started goes with it.
+    # Windows has neither TERM nor groups to signal, so there the child is ended outright.
     def signal(name)
-      Process.kill(name, -@pid)
+      Gem.win_platform? ? Process.kill("KILL", @pid) : Process.kill(name, -@pid)
     rescue SystemCallError
       nil
     end

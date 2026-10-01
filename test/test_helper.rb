@@ -61,18 +61,19 @@ class ShoesSpecLoggedTest < Minitest::Test
     ]) do |scarpe_log_config, test_output|
       # Start the application using the exe/scarpe utility
       # For unit testing always supply --debug so we get the most logging
-      cmd = \
-        "SCARPE_DISPLAY_SERVICE=#{display_service} " +
-        "SCARPE_HTML_RENDERER=#{html_renderer} " +
-        "SCARPE_LOG_CONFIG=\"#{scarpe_log_config}\" " +
-        "SCARPE_SSPEC_TIMEOUT=\"#{timeout}\" " +
-        "#{wait_after_test ? "SCARPE_SSPEC_TIMEOUT_WAIT_AFTER_TEST=Y" : ""} " +
-        "SHOES_MINITEST_EXPORT_FILE=\"#{test_output}\" " +
-        "SHOES_MINITEST_CLASS_NAME=\"#{test_class_name}\" " +
-        "SHOES_MINITEST_METHOD_NAME=\"#{test_method_name}\" " +
-        "LOCALAPPDATA=\"#{Dir.tmpdir}\"" +
-        "ruby #{SCARPE_EXE} --debug --dev #{filename}"
-      process_result = system(cmd)
+      # Pass env as a hash rather than a "VAR=x cmd" string, which only Unix shells understand
+      env = {
+        "SCARPE_DISPLAY_SERVICE" => display_service.to_s,
+        "SCARPE_HTML_RENDERER" => html_renderer.to_s,
+        "SCARPE_LOG_CONFIG" => scarpe_log_config,
+        "SCARPE_SSPEC_TIMEOUT" => timeout.to_s,
+        "SHOES_MINITEST_EXPORT_FILE" => test_output,
+        "SHOES_MINITEST_CLASS_NAME" => test_class_name.to_s,
+        "SHOES_MINITEST_METHOD_NAME" => test_method_name.to_s,
+        "LOCALAPPDATA" => Dir.tmpdir,
+      }
+      env["SCARPE_SSPEC_TIMEOUT_WAIT_AFTER_TEST"] = "Y" if wait_after_test
+      process_result = system(env, "ruby", SCARPE_EXE, "--debug", "--dev", filename)
 
       if process_result != process_success
         if process_success
@@ -130,14 +131,17 @@ class ShoesSpecLoggedTest < Minitest::Test
       # Start the application using the exe/scarpe utility
       # For unit testing always supply --debug so we get the most logging
       system(
-        "SCARPE_DISPLAY_SERVICE=#{display_service} " +
-        "SCARPE_LOG_CONFIG=\"#{scarpe_log_config}\" " +
-        "SHOES_SPEC_TEST=\"#{app_test_path}\" " +
-        "SHOES_MINITEST_EXPORT_FILE=\"#{test_output}\" " +
-        "SHOES_MINITEST_CLASS_NAME=\"#{test_class_name}\" " +
-        "SHOES_MINITEST_METHOD_NAME=\"#{test_method_name}\" " +
-        "LOCALAPPDATA=\"#{Dir.tmpdir}\"" +
-        "ruby #{SCARPE_EXE} --debug --dev #{test_app_location}")
+        {
+          "SCARPE_DISPLAY_SERVICE" => display_service.to_s,
+          "SCARPE_LOG_CONFIG" => scarpe_log_config,
+          "SHOES_SPEC_TEST" => app_test_path,
+          "SHOES_MINITEST_EXPORT_FILE" => test_output,
+          "SHOES_MINITEST_CLASS_NAME" => test_class_name.to_s,
+          "SHOES_MINITEST_METHOD_NAME" => test_method_name.to_s,
+          "LOCALAPPDATA" => Dir.tmpdir,
+        },
+        "ruby", SCARPE_EXE, "--debug", "--dev", test_app_location,
+      )
     end
 
     # TODO: this should *require* the process to fail, not allow it.
