@@ -40,6 +40,7 @@ require_relative 'shoes/colors'
 require_relative 'shoes/font_file'
 require_relative 'shoes/error_report'
 require_relative 'shoes/console'
+require_relative 'shoes/clipboard'
 require_relative 'shoes/builtins'
 
 require_relative 'shoes/background'

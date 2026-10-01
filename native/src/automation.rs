@@ -141,6 +141,11 @@ impl Runtime {
                     Ok(None)
                 }
             }
+            Op::Clipboard { text: Some(text) } => {
+                self.clipboard.set(text);
+                Ok(Some(Value::Null))
+            }
+            Op::Clipboard { text: None } => Ok(Some(json!(self.clipboard.get()))),
             Op::Focused { app } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;
                 Ok(Some(self.views[&app].ui.focus.map(Value::from).unwrap_or(Value::Null)))

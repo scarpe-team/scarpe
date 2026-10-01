@@ -77,6 +77,10 @@ jobs:
     name: Ruby ${{ matrix.ruby }} on ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
+    # Windows has never run the Ruby side, which is still Unix-only in places (FOR_AGENTS.md), so
+    # its leg reports without blocking, and once the renderer builds runs every test step even
+    # after one fails, to show all that breaks at once (docs/native_ci.md).
+    continue-on-error: ${{ matrix.experimental == true }}
     strategy:
       fail-fast: false
       matrix:
@@ -86,8 +90,23 @@ jobs:
         include:
           - { name: macOS, os: macos-26 }
           - { name: Linux, os: ubuntu-24.04 }
+          # 3.2: the locked nokogiri and sqlite3 ship Windows gems for Ruby 3.1 and 3.2 only, and
+          # nokogiri's own libiconv does not build from source with the runner's MinGW gcc.
+          - { name: Windows, os: windows-2025, ruby: "3.2", experimental: true }
+    defaults:
+      run:
+        shell: bash
     steps:
+      - name: Keep line endings as committed
+        if: runner.os == 'Windows'
+        run: git config --global core.autocrlf false
       - uses: actions/checkout@v7
+      # webview_ruby compiles its native library while the bundle installs, and has no Windows
+      # build (it needs the WebView2 SDK and MSVC). Nothing on the native path loads it, so on
+      # Windows its build runs as rake --dry-run, which builds nothing.
+      - name: Skip webview_ruby's native build
+        if: runner.os == 'Windows'
+        run: echo "BUNDLE_BUILD__WEBVIEW_RUBY=--dry-run" >> "$GITHUB_ENV"
       - name: Linux packages
         if: runner.os == 'Linux'
         run: |
@@ -120,23 +139,31 @@ jobs:
       - name: Stub dialogs, sounds and the clipboard
         run: echo "$GITHUB_WORKSPACE/spec/support/fakebin" >> "$GITHUB_PATH"
       - name: Build the renderer
+        id: build
         working-directory: native
         run: cargo build --release --locked
       - name: Shim tests
+        if: ${{ !cancelled() && (success() || (matrix.experimental == true && steps.build.outcome == 'success')) }}
         run: bundle exec rake native_test
       - name: Lacci tests
+        if: ${{ !cancelled() && (success() || (matrix.experimental == true && steps.build.outcome == 'success')) }}
         run: bundle exec rake lacci_test
       - name: Component tests
+        if: ${{ !cancelled() && (success() || (matrix.experimental == true && steps.build.outcome == 'success')) }}
         run: bundle exec rake component_test
       - name: Spec runner and front matter
+        if: ${{ !cancelled() && (success() || (matrix.experimental == true && steps.build.outcome == 'success')) }}
         run: |
           bundle exec rake spec:selftest
           spec/run --check
       - name: Spec suite on Niente
+        if: ${{ !cancelled() && (success() || (matrix.experimental == true && steps.build.outcome == 'success')) }}
         run: spec/run --display niente
       - name: Spec suite on native
+        if: ${{ !cancelled() && (success() || (matrix.experimental == true && steps.build.outcome == 'success')) }}
         run: spec/run --display native --no-build
       - name: Examples on native
+        if: ${{ !cancelled() && (success() || (matrix.experimental == true && steps.build.outcome == 'success')) }}
         run: spec/run --examples --display native --no-build
       - name: Cache Traveling Ruby
         if: runner.os == 'macOS'
@@ -149,6 +176,7 @@ jobs:
         if: runner.os == 'macOS'
         run: bundle exec ruby exe/scarpe package --native examples/button.rb --output "$RUNNER_TEMP/packaged"
       - name: Package tests
+        if: ${{ !cancelled() && (success() || (matrix.experimental == true && steps.build.outcome == 'success')) }}
         run: bundle exec rake package_test
       - name: Keep the results and the example gallery
         if: failure()

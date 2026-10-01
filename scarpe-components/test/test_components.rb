@@ -25,10 +25,11 @@ class TestComponentHelpers < Minitest::Test
   end
 
   def test_process_runner_fail
-    out, err, success = run_out_err_result("ls no_such_file_exists")
-    assert !success, "ls on nonexistent file should return failure!"
+    # Ruby rather than ls, which Windows does not have
+    out, err, success = run_out_err_result("ruby no_such_file_exists.rb")
+    assert !success, "Running a nonexistent file should return failure!"
     assert_equal "", out
-    assert err != "", "ls on nonexistent file should give non-empty error output"
+    assert err != "", "Running a nonexistent file should give non-empty error output"
   end
 
   def test_process_runner_command_array

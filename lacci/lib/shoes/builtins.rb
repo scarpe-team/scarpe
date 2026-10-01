@@ -138,6 +138,11 @@ module Shoes::Builtins
       return nil unless result
       match = result.match(/text returned:(.*)/)
       match ? match[1].strip : ""
+    when "clipboard"
+      Shoes::Clipboard.read
+    when "clipboard="
+      Shoes::Clipboard.write(args[0])
+      nil
     when "confirm"
       escaped = args[0].to_s.gsub('\\', '\\\\\\\\').gsub('"', '\\"')
       result = osascript(%Q{display dialog "#{escaped}" buttons {"Cancel", "OK"} default button "OK"})

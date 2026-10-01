@@ -18,12 +18,13 @@ module Scarpe::Components::FileHelpers
   def with_tempfile(prefix, contents, dir: Dir.tmpdir)
     t = Tempfile.new(prefix, dir)
     t.write(contents)
-    t.flush # Make sure the contents are written out
+    # Close it before handing out the path: on Windows an open file can't be
+    # deleted or replaced, and the block (or a child process) may want to.
+    t.close
 
     yield(t.path)
   ensure
-    t.close
-    t.unlink
+    t&.unlink
   end
 
   # Create multiple tempfiles, with given contents, in given
@@ -52,15 +53,12 @@ module Scarpe::Components::FileHelpers
       t = Tempfile.new(prefix, dir)
       tempfiles << t
       t.write(contents)
-      t.flush # Make sure the contents are written out
+      t.close # As in with_tempfile: Windows can't delete or replace an open file
     end
 
     args = tempfiles.map(&:path)
     yield(args)
   ensure
-    tempfiles.each do |t|
-      t.close
-      t.unlink
-    end
+    tempfiles.each(&:unlink)
   end
 end

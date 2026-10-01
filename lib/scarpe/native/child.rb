@@ -3,6 +3,7 @@
 require "fileutils"
 require "monitor"
 require "open3"
+require "rbconfig"
 require "shellwords"
 
 module Scarpe::Native
@@ -94,8 +95,10 @@ module Scarpe::Native
   module Binary
     extend self
 
+    # ".exe" on Windows, where cargo names the binary scarpe-native.exe; "" elsewhere.
+    EXE = RbConfig::CONFIG["EXEEXT"].to_s
     CRATE = File.join(ROOT, "native")
-    DEV_BINARY = File.join(CRATE, "target", "release", "scarpe-native")
+    DEV_BINARY = File.join(CRATE, "target", "release", "scarpe-native#{EXE}")
 
     def path
       explicit = ENV["SCARPE_NATIVE_BIN"].to_s
@@ -138,17 +141,17 @@ module Scarpe::Native
     end
 
     def cargo
-      ENV["CARGO"] || which("cargo") || File.expand_path("~/.cargo/bin/cargo")
+      ENV["CARGO"] || which("cargo") || File.expand_path("~/.cargo/bin/cargo#{EXE}")
     end
 
     def packaged_binary
       beside_script = File.dirname(File.expand_path($PROGRAM_NAME))
-      candidates = [beside_script, File.expand_path("../MacOS", beside_script)].map { |dir| File.join(dir, "scarpe-native") }
+      candidates = [beside_script, File.expand_path("../MacOS", beside_script)].map { |dir| File.join(dir, "scarpe-native#{EXE}") }
       candidates.find { |candidate| File.executable?(candidate) }
     end
 
     def which(name)
-      ENV["PATH"].to_s.split(File::PATH_SEPARATOR).map { |dir| File.join(dir, name) }.find { |f| File.executable?(f) && File.file?(f) }
+      ENV["PATH"].to_s.split(File::PATH_SEPARATOR).map { |dir| File.join(dir, "#{name}#{EXE}") }.find { |f| File.executable?(f) && File.file?(f) }
     end
   end
 
@@ -160,9 +163,15 @@ module Scarpe::Native
   # held only for one short IO.select at a time so waiting threads interleave.
   class Child
     PROTOCOL_VERSION = 1
+    OWN_GROUP = Gem.win_platform? ? { new_pgroup: true } : { pgroup: true }
     STDERR_TAIL_LINES = 40
     READY_TIMEOUT = 20.0
     POLL = 0.05
+    # On Windows IO.select can only poll a pipe, about every 10 ms, which a test that reads a few
+    # thousand pixels one req at a time pays on every reply. There a thread does blocking reads,
+    # which return as soon as Rust writes, and hands the chunks over a Queue.
+    WINDOWS_READS = Gem.win_platform?
+    TRAP_SLICE = 0.1
 
     attr_reader :pid
 
@@ -197,7 +206,12 @@ module Scarpe::Native
       @stderr_tail = []
       @stderr_lock = Mutex.new
       @stderr_thread = Thread.new { drain_stderr }
-      @wake_reader, @wake_writer = IO.pipe
+      if WINDOWS_READS
+        @chunks = Thread::Queue.new
+        @stdout_thread = Thread.new { pump_stdout }
+      else
+        @wake_reader, @wake_writer = IO.pipe
+      end
 
       say_hello
     end
@@ -228,6 +242,8 @@ module Scarpe::Native
 
     # Ends a wait_for_input early. Safe from a signal trap, where Mutexes are off limits.
     def wake!
+      return @chunks << :wake if WINDOWS_READS
+
       @wake_writer.write_nonblock(".", exception: false)
     rescue IOError
       nil
@@ -342,11 +358,14 @@ module Scarpe::Native
     end
 
     # Its own process group, so a terminal Ctrl-C reaches Ruby (which quits the child) and not the child.
+    # Windows has no pgroup; new_pgroup does the same there for a console's Ctrl-C.
     # The [path, argv0] form never goes through /bin/sh: a lone path would when it holds a parenthesis,
     # and a double-click passes no flags, so "ZARKING (Rust).app" died there. An env hash may lead.
     def spawn(command)
       env, (program, *args) = command.partition { |part| part.is_a?(Hash) }
-      Open3.popen3(*env, [program, program], *args, pgroup: true)
+      # Windows runs no shebang line, so a Ruby stand-in for the binary goes through this Ruby there.
+      program, *args = RbConfig.ruby, program, *args if Gem.win_platform? && program.end_with?(".rb")
+      Open3.popen3(*env, [program, program], *args, **OWN_GROUP)
     rescue SystemCallError => e
       raise ChildNotFound, "Can't start #{program}: #{e.message}"
     end
@@ -384,6 +403,7 @@ module Scarpe::Native
 
     def read_some(timeout)
       return if @eof
+      return read_queued(timeout) if WINDOWS_READS
 
       readable, = IO.select([@stdout, @wake_reader], nil, nil, timeout)
       return unless readable
@@ -395,12 +415,37 @@ module Scarpe::Native
       return if chunk == :wait_readable
       return @eof = true if chunk.nil?
 
+      take(chunk)
+    rescue IOError, SystemCallError
+      @eof = true
+    end
+
+    # read_some for Windows: what pump_stdout has read, or :wake, or :eof. A signal trap (Ctrl-C's
+    # wake!) runs only once pop comes back, so a long wait goes in slices.
+    def read_queued(timeout)
+      deadline = monotonic + timeout
+      chunk = @chunks.pop(timeout: timeout.clamp(0, TRAP_SLICE))
+      chunk = @chunks.pop(timeout: (deadline - monotonic).clamp(0, TRAP_SLICE)) while chunk.nil? && monotonic < deadline
+      while chunk
+        case chunk
+        when :eof then return @eof = true
+        when String then take(chunk)
+        end
+        chunk = @chunks.empty? ? nil : @chunks.pop
+      end
+    end
+
+    def pump_stdout
+      loop { @chunks << @stdout.readpartial(65_536) }
+    rescue EOFError, IOError, SystemCallError
+      @chunks << :eof
+    end
+
+    def take(chunk)
       @read_buffer << chunk
       while (newline = @read_buffer.index("\n"))
         accept(@read_buffer.slice!(0..newline))
       end
-    rescue IOError, SystemCallError
-      @eof = true
     end
 
     def accept(line)
@@ -459,8 +504,9 @@ module Scarpe::Native
     end
 
     # To the child's whole process group (it leads one), so what it started goes with it.
+    # Windows has neither TERM nor groups to signal, so there the child is ended outright.
     def signal(name)
-      Process.kill(name, -@pid)
+      Gem.win_platform? ? Process.kill("KILL", @pid) : Process.kill(name, -@pid)
     rescue SystemCallError
       nil
     end

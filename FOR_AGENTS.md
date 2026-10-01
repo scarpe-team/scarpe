@@ -21,7 +21,8 @@ without a screen, test it, and package it. Everything here was checked on 28 Sep
    frames, nobody can see or click it, and it never takes focus.
 2. Never make a sound, open a dialog or touch their clipboard. Put `spec/support/fakebin` first
    on `PATH` for every run: it traps `afplay`, `say`, `open`, `osascript`, `caffeinate` and
-   `SwitchAudioSource`, and keeps `pbcopy`, `pbpaste` and `xclip` in a file.
+   `SwitchAudioSource`, and keeps `pbcopy`, `pbpaste` and `xclip` in a file. Point
+   `SCARPE_CLIPBOARD_FILE` at a file too: `app.clipboard` uses it in place of the system one.
 3. Give the app a scratch `HOME` whenever it might save something.
 4. Let the person open the app themselves: hand over the command or the packaged `.app`.
 
@@ -43,19 +44,19 @@ without a screen, test it, and package it. Everything here was checked on 28 Sep
 |---|---|---|
 | macOS | Apple silicon, tested | the only platform that packages apps |
 | Linux | runs headless | CI runs the native tests and the spec suite on Ubuntu 24.04 |
-| Windows | not yet | the renderer compiles; the Ruby side is Unix-only |
+| Windows | webview display runs | Windows 11, RubyInstaller with its DevKit (below); the native display passes CI but has not opened a real window yet (`docs/windows_handover.md`) |
 | Ruby | 3.2.11 or newer; CI runs 3.2 and 4.0 | the repo's `.ruby-version` says 3.2.0: ignore it, since 3.2.0 to 3.2.2 cannot build nokogiri with Xcode 26's clang (`docs/native_ci.md`) |
 | Bundler | 2.4.10, as the lockfile says | `gem install bundler -v 2.4.10` |
 | Rust | 1.89 or newer, with `cargo` | `rust-version` in `native/Cargo.toml` |
 | macOS: `xzcat` | any | nokogiri builds from source: `command -v xzcat \|\| brew install xz` |
-| Linux: GTK 3 and WebKitGTK | dev packages | `webview_ruby` compiles during `bundle install` (below) |
+| Linux: GTK 3 and WebKitGTK | dev packages | `webview_ruby` compiles the first time it loads (below) |
 
 ```sh
 git clone --branch native-rust https://github.com/scarpe-team/scarpe.git ~/scarpe   # main once PR #591 merges
 cd ~/scarpe
 ruby -v                     # 3.2.11 or newer; if a version manager picks 3.2.0 here, choose another Ruby for this folder
 gem install bundler -v 2.4.10
-bundle install              # about 1.5 minutes: compiles nokogiri, sqlite3 and webview_ruby
+bundle install              # about 1.5 minutes: compiles nokogiri and sqlite3
 PATH="$PWD/spec/support/fakebin:$PATH" bundle exec ruby exe/scarpe peek examples/button.rb --layout
 ```
 
@@ -80,6 +81,22 @@ mkdir -p ~/.local/lib/pkgconfig      # webview_ruby asks for webkit2gtk-4.0; 4.1
 printf '%s\n' 'Name: webkit2gtk-4.0' 'Description: webkit2gtk-4.1 under its old name' \
   'Version: 2.0' 'Requires: webkit2gtk-4.1' > ~/.local/lib/pkgconfig/webkit2gtk-4.0.pc
 export PKG_CONFIG_PATH=~/.local/lib/pkgconfig
+```
+
+`webview_ruby` is vendored in `vendor/webview_ruby`, and Bundler never compiles a `path:` gem, so
+it compiles itself the first time anything requires it (`vendor/webview_ruby/README.md`). That
+run needs the packages above; `cd vendor/webview_ruby/ext && rake` builds it ahead of time.
+
+Windows, with [RubyInstaller](https://rubyinstaller.org) and its DevKit: `webview_ruby` builds
+against WebView2 (on Windows 11 and most of 10) and fetches the WebView2 SDK header on its first
+build. The lockfile's prebuilt Windows nokogiri and sqlite3 are for Ruby 3.2, which the Windows
+CI job runs. On Ruby 4.0 Bundler drops them (and rewrites `Gemfile.lock`; don't commit that) and
+builds nokogiri 1.15.7 from source, whose bundled zlib needs C17 under GCC 15 and newer (C23 by
+default):
+
+```powershell
+$env:CFLAGS = "-std=gnu17"; $env:MAKEFLAGS = "LOC=-std=gnu17"   # zlib's Makefile.gcc reads LOC
+bundle install
 ```
 
 ## Hello world
@@ -115,7 +132,7 @@ BOX="${SCARPE_HOME:-${TMPDIR:-/tmp}/scarpe-home-$(basename "$APP_DIR")}"  # this
 RUBY="$(cd "$SCARPE" && ruby -e 'print RbConfig.ruby')"   # the clone's Ruby, past any version-manager shim
 mkdir -p "$BOX"
 exec env PATH="$SCARPE/spec/support/fakebin:$PATH" HOME="$BOX" \
-  SPEC_TRAP_FILE="$BOX/trapped.txt" SPEC_CLIPBOARD_FILE="$BOX/clipboard.txt" \
+  SPEC_TRAP_FILE="$BOX/trapped.txt" SPEC_CLIPBOARD_FILE="$BOX/clipboard.txt" SCARPE_CLIPBOARD_FILE="$BOX/clipboard.txt" \
   RUSTUP_HOME="${RUSTUP_HOME:-$HOME/.rustup}" CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}" \
   BUNDLE_GEMFILE="$SCARPE/Gemfile" "$RUBY" "$SCARPE/exe/scarpe" "$@" --dev
 ```

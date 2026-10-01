@@ -351,6 +351,7 @@ and the numbers.
 | `SCARPE_NATIVE_ARGS` | extra arguments for the Rust program: `--fonts bundled`, `--scale 2`, `--exit-after 3`, `--inactive`, `--trace` |
 | `SCARPE_NATIVE_HEADLESS=1` | no windows; pictures are drawn offscreen (`peek` and the spec suite set it) |
 | `SCARPE_NATIVE_INACTIVE=1` | windows open without taking focus from what you are doing |
+| `SCARPE_CLIPBOARD_FILE` | a file that stands in for the system clipboard: `app.clipboard` and text fields read and write it instead (the spec suite sets it) |
 | `SCARPE_NATIVE_GHOST=1` | ghost windows (the same as `--ghost`): real windows that nobody can see or click, and the app never takes focus; for running windowed tests on a machine someone is using |
 | `SCARPE_NATIVE_BIN` | run this binary instead of building `native/target/release/scarpe-native` |
 | `SCARPE_NATIVE_TRACE=1` | print every message in both directions to stderr |
@@ -360,7 +361,7 @@ and the numbers.
 | `SCARPE_NATIVE_STATS=DIR` | each process writes where its time went (`ruby.json`, `rust.json`) when it exits |
 | `SCARPE_NATIVE_DAMAGE` | `off` repaints every frame whole; `check` verifies every partial repaint pixel by pixel |
 | `SCARPE_NATIVE_WINDOWED_TESTS=1` | let `rake native_test` open real windows, as ghosts |
-| `SCARPE_RUN_FILE` | run this file as a program `Shoes.run_program` started (a packaged app's launcher runs it instead of the app); with `SCARPE_RUN_DIR`, `SCARPE_RUN_ARGS`, `SCARPE_REPORT_FD` and `SCARPE_PARENT_FD`, set by `run_program` (DESIGN 5.5) |
+| `SCARPE_RUN_FILE` | run this file as a program `Shoes.run_program` started (a packaged app's launcher runs it instead of the app); with `SCARPE_RUN_DIR`, `SCARPE_RUN_ARGS`, `SCARPE_REPORT_FD` and `SCARPE_PARENT_FD` (on Windows `SCARPE_REPORT_ADDR` and `SCARPE_REPORT_TOKEN`), set by `run_program` (DESIGN 5.5) |
 | `SCARPE_BYTECODE=0` | a packaged app loads source instead of bytecode |
 | `RUBY_YJIT_ENABLE=0` | a packaged app leaves YJIT off |
 

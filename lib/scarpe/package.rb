@@ -417,6 +417,11 @@ module Scarpe
     end
 
     def detect_arch
+      # No uname on Windows outside an MSYS shell; it names the machine itself.
+      if Gem.win_platform?
+        return ENV.fetch("PROCESSOR_ARCHITEW6432", ENV.fetch("PROCESSOR_ARCHITECTURE", "AMD64")).casecmp?("ARM64") ? "arm64" : "x86_64"
+      end
+
       `uname -m`.strip
     end
 

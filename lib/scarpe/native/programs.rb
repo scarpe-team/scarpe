@@ -2,6 +2,8 @@
 
 require "json"
 require "rbconfig"
+require "securerandom"
+require "socket"
 
 module Scarpe::Native
   # The Shoes programs Shoes.run_program started (DESIGN 5.5), each in a process of its own on
@@ -16,11 +18,18 @@ module Scarpe::Native
   #
   # and holds the read end of another as fd 4 (SCARPE_PARENT_FD): when this process ends, the
   # child reads the end of it and stops, so no window outlives the program that opened it.
+  #
+  # Windows can hand a child neither fd 3 and 4 nor a TERM, so there the two pipes are one
+  # loopback connection instead (SOCKET_REPORTS): the child connects to SCARPE_REPORT_ADDR,
+  # proves itself with SCARPE_REPORT_TOKEN, and reports up it the same JSON lines. Its end tells
+  # the child its parent has gone, and a "stop" line down it stands in for TERM: the child sends
+  # TERM to itself, which Windows does deliver.
   # Threads here only read pipes and wait for processes; what they hear waits in the inbox
   # until the pump hands it to the program's blocks (Shoes::Program), on the event loop.
   class Programs
     REPORT_FD = 3
     PARENT_FD = 4
+    SOCKET_REPORTS = Gem.win_platform?
     # How long a program has to go after TERM before it gets KILL.
     GRACE = 1.0
     # News handed out per turn of the loop, so a program that floods its output never stalls this one.
@@ -123,15 +132,14 @@ module Scarpe::Native
       [RbConfig.ruby, *libs.flat_map { |dir| ["-I", dir] }, File.join(ROOT, "exe", "scarpe"), "--native", path]
     end
 
-    # The child inherits this environment, headless and ghost modes included, less the parent's own.
+    # The child inherits this environment, headless and ghost modes included, less the parent's
+    # own. ProgramProcess#spawn adds where it reports to.
     def env_for(path, dir, args)
       PARENT_ONLY_ENV.to_h { |name| [name, nil] }.merge(
         "SCARPE_DISPLAY_SERVICE" => "native",
         "SCARPE_RUN_FILE" => path,
         "SCARPE_RUN_DIR" => dir,
         "SCARPE_RUN_ARGS" => JSON.generate(args),
-        "SCARPE_REPORT_FD" => REPORT_FD.to_s,
-        "SCARPE_PARENT_FD" => PARENT_FD.to_s,
       )
     end
 
@@ -159,6 +167,9 @@ module Scarpe::Native
     # The command's first word goes as [name, argv0], so Ruby never reads a lone launcher as a
     # command line and splits it at the space in "Hackety Hack.app".
     def spawn(command, env, dir)
+      return spawn_reporting_by_socket(command, env, dir) if Programs::SOCKET_REPORTS
+
+      env = env.merge("SCARPE_REPORT_FD" => Programs::REPORT_FD.to_s, "SCARPE_PARENT_FD" => Programs::PARENT_FD.to_s)
       report_read, report_write = IO.pipe
       parent_read, @parent_write = IO.pipe
       name, *args = command
@@ -170,6 +181,23 @@ module Scarpe::Native
       @waiter = Thread.new { wait_for_exit }
     rescue SystemCallError => e
       [report_read, report_write, parent_read, @parent_write].compact.each { |io| io.close unless io.closed? }
+      raise Scarpe::Native::ChildNotFound, "Could not start #{File.basename(path)}: #{e.message}"
+    end
+
+    # Windows (Programs::SOCKET_REPORTS): the child gets an address and a token instead of fds,
+    # and its own process group for Ctrl-C's sake. The reader accepts its connection, and only
+    # one that starts with the token.
+    def spawn_reporting_by_socket(command, env, dir)
+      @server = TCPServer.new("127.0.0.1", 0)
+      token = SecureRandom.hex(16)
+      env = env.merge("SCARPE_REPORT_ADDR" => "127.0.0.1:#{@server.addr[1]}", "SCARPE_REPORT_TOKEN" => token)
+      name, *args = command
+      @pid = Process.spawn(env, [name, name], *args, in: File::NULL, new_pgroup: true, chdir: dir)
+      @programs.track(self)
+      @reader = Thread.new { read_reports_from_socket(token) }
+      @waiter = Thread.new { wait_for_exit }
+    rescue SystemCallError => e
+      @server&.close
       raise Scarpe::Native::ChildNotFound, "Could not start #{File.basename(path)}: #{e.message}"
     end
 
@@ -197,8 +225,22 @@ module Scarpe::Native
     end
 
     def signal(name)
+      return signal_on_windows(name) if Programs::SOCKET_REPORTS
+
       Process.kill(name, -@pid)
     rescue SystemCallError
+      nil
+    end
+
+    # No TERM for another process on Windows: ask over the connection, where the child TERMs
+    # itself. KILL ends it outright.
+    def signal_on_windows(name)
+      if name == "TERM"
+        @socket&.write("stop\n")
+      else
+        Process.kill(name, @pid)
+      end
+    rescue IOError, SystemCallError
       nil
     end
 
@@ -221,6 +263,25 @@ module Scarpe::Native
       io.close unless io.closed?
     end
 
+    # A blocking accept: IO.select never saw the listening socket ready on Windows. If the
+    # program ends without connecting, wait_for_exit closes the server and accept gives up.
+    def read_reports_from_socket(token)
+      until @socket
+        candidate = @server.accept
+        if candidate.gets("\n", 100).to_s.chomp == token
+          @socket = candidate
+        else
+          candidate.close
+        end
+      end
+      @server.close
+      read_reports(@socket)
+    rescue IOError, SystemCallError
+      nil
+    ensure
+      @server.close unless @server.closed?
+    end
+
     # The exit waits for the last reports, so a program's final error comes before its exit.
     def wait_for_exit
       status = begin
@@ -228,9 +289,14 @@ module Scarpe::Native
       rescue SystemCallError
         nil # reaped by someone else's wait
       end
+      # A program that connected, reported and ended at once may still wait in the server's
+      # queue: let the reader take it before closing the server under it.
       @reader.join(2)
+      @server&.close unless @server&.closed?
+      @reader.join(1)
       @reaped = true
-      @parent_write.close unless @parent_write.closed?
+      @parent_write.close if @parent_write && !@parent_write.closed?
+      @socket.close if @socket && !@socket.closed?
       end_renderer
       @programs.forget(self)
       @programs.post(self, :exit, status)
@@ -241,7 +307,7 @@ module Scarpe::Native
     def end_renderer
       pid = @renderer_pid or return
       @renderer_pid = nil
-      Process.kill("KILL", -pid)
+      Process.kill("KILL", Programs::SOCKET_REPORTS ? pid : -pid)
     rescue SystemCallError
       nil
     end

@@ -40,7 +40,8 @@ class StartupTest < Minitest::Test
   # so a slow body is not a slow child (review: a 20 s body raised a false ChildTimeout).
   def test_a_long_app_body_is_not_taken_for_a_child_that_never_answered
     child = Scarpe::Native::Child.new([WITHOUT_BUNDLER, RbConfig.ruby, "-e", PROMPT_CHILD], ready_timeout: 0.3)
-    sleep 0.5 # the app body; ready sits unread in the pipe meanwhile
+    # The app body; ready sits unread in the pipe meanwhile. Ruby takes longer to start on Windows.
+    sleep Gem.win_platform? ? 2.0 : 0.5
     child.check_started!
     assert_equal "prompt", child.version
   ensure

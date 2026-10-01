@@ -20,25 +20,19 @@ class TestScarpeFileLoader < ShoesSpecLoggedTest
       [["scarpe_app_#{test_method_name}", extension], app_code],
       [["scarpe_test_#{test_method_name}", ".rb"], test_code || ""],
     ]) do |log_config, app_filename, test_filename|
-      if test_code
-        test_env = "SHOES_SPEC_TEST=\"#{test_filename}\""
-      else
-        test_env = ""
-      end
+      # Pass env as a hash rather than a "VAR=x cmd" string, which only Unix shells understand
+      env = {
+        "SCARPE_DISPLAY_SERVICE" => "wv_local",
+        "SCARPE_HTML_RENDERER" => "calzini",
+        "SCARPE_LOG_CONFIG" => log_config,
+        "SHOES_MINITEST_EXPORT_FILE" => sspec_file,
+        "SHOES_MINITEST_CLASS_NAME" => test_class_name.to_s,
+        "SHOES_MINITEST_METHOD_NAME" => test_method_name.to_s,
+        "LOCALAPPDATA" => Dir.tmpdir,
+      }
+      env["SHOES_SPEC_TEST"] = test_filename if test_code
 
-      cmd = <<~TEST_CMD.gsub("\n", " ").gsub(/\s+/, " ")
-        SCARPE_DISPLAY_SERVICE=wv_local
-        SCARPE_HTML_RENDERER=calzini
-        SCARPE_LOG_CONFIG=\"#{log_config}\"
-        #{test_env}
-        SHOES_MINITEST_EXPORT_FILE=\"#{sspec_file}\"
-        SHOES_MINITEST_CLASS_NAME=\"#{test_class_name}\"
-        SHOES_MINITEST_METHOD_NAME=\"#{test_method_name}\"
-        LOCALAPPDATA=\"#{Dir.tmpdir}\"
-        ruby #{SCARPE_EXE} --debug --dev \"#{app_filename}\"
-      TEST_CMD
-
-      return system(cmd)
+      return system(env, "ruby", SCARPE_EXE, "--debug", "--dev", app_filename)
     end
   end
 

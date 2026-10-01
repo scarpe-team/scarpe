@@ -142,7 +142,7 @@ pub struct Runtime {
 
 impl Runtime {
     pub fn new(opts: Options, out: Outbox) -> Self {
-        let clipboard = if opts.headless { Clipboard::local() } else { Clipboard::system() };
+        let clipboard = Clipboard::for_run(opts.headless);
         let mut stats = Stats::default();
         let text = TextEngine::new(opts.fonts);
         stats.mark("fonts");

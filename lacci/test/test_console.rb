@@ -38,12 +38,13 @@ class TestConsoleLog < Minitest::Test
 
   # A line may come from a signal trap (Lacci's own INT trap logs), where a Mutex is off limits.
   def test_a_line_can_come_from_a_signal_trap
+    skip "Windows has no USR1" if Gem.win_platform?
     previous = Signal.trap("USR1") { Shoes::Console.log(:warn, "from a trap") }
     Process.kill("USR1", Process.pid)
     sleep 0.05 until Shoes::Console.entries.any? { |e| e.message == "from a trap" }
     assert_equal :warn, Shoes::Console.entries.last.level
   ensure
-    Signal.trap("USR1", previous || "DEFAULT")
+    Signal.trap("USR1", previous || "DEFAULT") unless Gem.win_platform?
   end
 
   def test_the_log_builtins_reach_the_console_and_still_print

@@ -6,8 +6,8 @@ display: any
 ----------- app code
 Shoes.app { para "Reads the clipboard from its test code" }
 ----------- test code
-# spec/run's pbcopy, pbpaste and xclip keep the system clipboard in this sandbox file,
-# so the case never touches the real one.
+# spec/run keeps the system clipboard in this sandbox file (SCARPE_CLIPBOARD_FILE), so the
+# case never touches the real one.
 board = ENV.fetch("SPEC_CLIPBOARD_FILE")
 
 File.write(board, "copied in another program")

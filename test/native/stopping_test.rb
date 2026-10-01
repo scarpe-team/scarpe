@@ -9,6 +9,7 @@ class StoppingTest < Minitest::Test
 
   def setup
     @dir = Dir.mktmpdir("scarpe-native-stopping")
+    skip_on_windows("these tests send TERM, INT and group signals")
   end
 
   def teardown

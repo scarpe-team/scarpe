@@ -1,0 +1,173 @@
+# Windows port: handover
+
+From a cloud session (Linux container, no Windows machine) to a session on a real Windows
+machine. Written 1 Oct 2026, at `main` = `8e5439f`. Delete this file once its open items are
+done or moved elsewhere.
+
+The cloud session could only test on Windows through the GitHub Actions leg
+"Ruby 3.2 on Windows" in `.github/workflows/native.yml`. Everything below marked
+**unverified** has never run on a real Windows desktop.
+
+## Where things stand
+
+The route to Windows is the **native display** (`scarpe --native`, the Rust renderer in
+`native/`). The renderer already built and passed its tests on Windows; the Ruby side was
+Unix-only.
+
+**Update, 1 Oct, from a session with a Windows 11 VM:** the webview display runs on Windows now,
+tested on a real desktop (see [The webview display](#the-webview-display-on-windows) below).
+Items 1, 2, 3 and 7 below are done on that VM too, see [The native display on a real
+desktop](#the-native-display-on-a-real-windows-desktop); 4 and 5 are under way.
+
+Commits on `main` (oldest first):
+
+| commit | what |
+|---|---|
+| `3f5adc2` | Windows leg on the native Ruby CI job (experimental, `continue-on-error`); lockfile gains `x64-mingw-ucrt`; `webview_ruby`'s native build runs as `rake --dry-run` on Windows |
+| `42219ba` | renderer and test children spawn with `new_pgroup` on Windows (Ruby rejects `pgroup:` there), are ended with KILL / `taskkill /T`; binary found as `scarpe-native.exe`; `Shoes.run_program` runs in-process on Windows; test helpers pass env as a Hash |
+| `91bba34` | Windows leg uses Ruby 3.2: the locked nokogiri 1.15.7 and sqlite3 1.6.9 ship `x64-mingw-ucrt` gems for 3.1–3.2 only (nokogiri's libiconv fails to build from source with the runner's gcc); those two platform entries were added to `Gemfile.lock` by hand |
+| `50f2374` | native shim tests: `.rb` stand-in renderer runs through Ruby; signal and run_program tests skip on Windows |
+| `f78be32` | six tests fitted to Windows (cache path/modes, `.exe`, start-up timing, USR1, spec selftest) |
+| `dd8c474` | spec sandbox passes `SystemRoot` & co. case-insensitively (MSYS bash upper-cases them; Winsock needs SystemRoot); drive-letter-aware test regexes; macOS-package tests skip on Windows |
+| `c92b302` | `Child` reads the renderer's stdout on a thread + `Thread::Queue` on Windows instead of `IO.select` (which polls pipes every ~10 ms there); waits sliced at 0.1 s so Ctrl-C still wakes the pump |
+| `8e5439f` | `app.clipboard` through the renderer (new `clipboard` req, arboard, Wayland feature on); Lacci fallback `Shoes::Clipboard` (PowerShell on Windows, wl-paste/wl-copy, xclip, pbpaste/pbcopy); `SCARPE_CLIPBOARD_FILE` stand-in used by spec/run and the Lacci tests |
+
+### Last Windows CI results
+
+Run 6 (`dd8c474`), the last one fully read:
+
+| step | Windows |
+|---|---|
+| bundle, renderer build, Rust tests, component tests, spec selftest, package tests | pass |
+| native shim tests (`rake native_test`) | 196 runs, 0 failures, 24 skips |
+| Lacci | 258/259; the failure was the clipboard (fixed since, in `8e5439f`) |
+| spec suite on Niente | 541 pass; 4 not: 3 clipboard (fixed since), `selfitude` (see below) |
+| spec suite on native | 1022 pass, 6 fail, 8 error, 11 timeout |
+| examples on native | 359 pass, 3 fail (`say`, `parrot`, `change_my_audio_source`: macOS commands) |
+
+Run 7 (`c92b302`, the queue read path) and run 8 (`8e5439f`, clipboard) had not been read when
+this was written. Run 7's Windows job (110423298522) still failed Lacci, Niente, native and
+examples, which the clipboard and sound causes alone would explain; whether the 11 native
+timeouts went away is **not known**.
+
+## Open items, most useful first
+
+1. ~~**Read run 8's Windows job**~~ (done on the VM, see below), or better, run the suites on this machine (below). Expect the
+   clipboard cases to pass now. If the 11 text-style native timeouts remain
+   (`manual/elements-common/element.link.sspec`, `element.sup.default_style`,
+   `element.sub.default_style`, `manual/styles/styles.rise__negative`, ...), profile one:
+   they scan glyph boxes with thousands of `pixel_at` reqs, and the queue read path in
+   `lib/scarpe/native/child.rb` (`WINDOWS_READS`) was meant to remove the ~10 ms per reply.
+   Check it is taken (`Gem.win_platform?`) and time a single `pixel_at` round trip.
+2. ~~**Check the real clipboard by hand**~~ (done on the VM, see below): run an app with `--native` in a real
+   window, `app.clipboard = "x"`, paste in Notepad, copy something in Notepad, read
+   `app.clipboard`. Then the same with `SCARPE_DISPLAY_SERVICE=niente` (exercises
+   `Shoes::Clipboard`'s PowerShell path, `lacci/lib/shoes/clipboard.rb`, never run on Windows;
+   its scripts were only parsed and encoding-checked with pwsh on Linux).
+3. ~~**Run a real windowed app**~~ (done on the VM, see below) (`bundle exec ruby exe/scarpe --native examples/button.rb`):
+   nothing has opened an actual window on Windows yet. Also try Ctrl-C in the console
+   (new_pgroup + the sliced queue wait), closing the window, and an app that calls
+   `Shoes.run_program` (in-process on Windows).
+4. **Sound** (agreed with the user, not started): a cross-platform sound call. Decided: make
+   the manual's `video "file.wav"` actually play audio files, and add a small invisible call for
+   sound effects, probably named `audio("pop.wav").play` (the user wrote "Instead of sound audio";
+   confirm the name with them). Playback would go in the Rust renderer (e.g. `rodio`: CoreAudio,
+   WASAPI, ALSA; Linux then needs `libasound2-dev` to build). Headless runs must record instead of
+   play, so the `kids/` specs can assert what was played. Then port the ten
+   `examples/native/kids/*` apps off `afplay` (they synthesise WAVs in Ruby and `spawn("afplay")`).
+   New features need an entry in `docs/SCARPE_FEATURES.md`.
+5. **Speech** (agreed, not started): a cross-platform text-to-speech call (macOS `say`, Windows'
+   built-in voices via PowerShell `System.Speech`, Linux `spd-say`/`espeak` if installed), plus a
+   voice list, so `examples/skip_ci/say.rb` and `parrot.rb` can use it. `change_my_audio_source.rb`
+   drives Homebrew's `SwitchAudioSource` (picks the Mac's output device); leave it macOS-only.
+6. ~~**`selfitude`**~~ done: the importer gained `APP_FIXES` (app-code rewrites), whose one rule
+   turns `File.open("/tmp/...")` into a `Dir.tmpdir` path; `selfitude.sspec` and
+   `examples/selfitude.rb` carry it, and the case passes on Niente on Windows.
+7. **Remaining Windows-only gaps in the code**: ~~`Shoes.run_program` in its own process~~ done:
+   on Windows fds 3 and 4 are one loopback connection with a token, and `stop` is a line down it
+   (native/DESIGN.md 5.5); `test/native/program_test.rb` runs there now, 7 of 8 (the eighth needs
+   a `/bin/sh` launcher). Native packaging is still macOS-only. (The webview's Windows build is done, with MinGW, not MSVC.)
+8. When the Windows leg is green, make it count: drop `experimental: true` from the
+   `Ruby 3.2 on Windows` matrix entry in `native.yml` (and the Rust Windows leg's), and update
+   `FOR_AGENTS.md` ("Windows | not yet") and `docs/native_ci.md`.
+
+## Running it on this machine
+
+- Ruby: RubyInstaller **Ruby+Devkit 3.2** (x64). Not 3.3+ until nokogiri/sqlite3 are bumped:
+  the locked versions have prebuilt Windows gems only for 3.1–3.2.
+- Rust: rustup with the MSVC toolchain; the crate promises Rust 1.89. The GNU toolchain
+  (`x86_64-pc-windows-gnu`) builds it too, without Visual Studio, given `dlltool` on `PATH`:
+  RubyInstaller's `C:\Ruby-devkit\msys64\ucrt64\bin` has it. The binary needs only system DLLs.
+- Gems: `bundle install`. `webview_ruby` is vendored now and builds itself (with the DevKit's
+  MinGW) the first time something loads it, so `BUNDLE_BUILD__WEBVIEW_RUBY=--dry-run` no longer
+  does anything; the native path never loads it.
+- `git config core.autocrlf false` before checking out, as the CI does.
+- Build the renderer: `cd native && cargo build --release --locked`.
+- Suites (what CI runs, in a bash shell such as Git Bash; `spec/run` is a Ruby script):
+  `bundle exec rake native_test`, `lacci_test`, `component_test`, `spec:selftest`,
+  `spec/run --check`, `spec/run --display niente`, `spec/run --display native --no-build`,
+  `spec/run --examples --display native --no-build`, `bundle exec rake package_test`.
+- CI puts `spec/support/fakebin` first on `PATH`; its stand-ins are `/bin/sh` scripts, which do
+  nothing on Windows. The clipboard no longer needs them (`SCARPE_CLIPBOARD_FILE`); sound and
+  `say` still do, which is why the `kids/` sound cases fail on Windows until item 4.
+
+## The webview display on Windows
+
+Done on a Windows 11 VM with RubyInstaller 4.0.5 (Ruby 4.0, so nokogiri 1.15.7 built from source
+with `CFLAGS=-std=gnu17 MAKEFLAGS=LOC=-std=gnu17`, see `FOR_AGENTS.md`), in a real interactive
+desktop session. What it took, each its own commit:
+
+- `vendor/webview_ruby`: webview_ruby 0.1.2 plus a Windows build of webview 0.12.0's single header
+  (WebView2, built-in loader, static C++ runtime) with MinGW; the WebView2 SDK header comes from
+  NuGet at build time. Bundler never compiles `path:` gems, so the gem builds itself on first
+  load, and again when a file under `ext/` is newer than the library. Details in its README.
+- The empty page went out as a `data:` URL with spaces as `+`; WebView2 keeps them, so
+  `#wrapper-wvroot` never existed. Now `URI.encode_uri_component`.
+- `scarpeInit` and pre-run timers wait (polling) for `#wrapper-wvroot`: WebView2 is quick enough
+  to redraw before the body is parsed. Not `DOMContentLoaded`: Tiranti's page ends in a script
+  from the in-process asset server, which only runs while the page calls into Ruby.
+- webview's Win32 `terminate` was `PostQuitMessage`, which never ends a loop a busy page keeps
+  full (an `animate` block slower than its frame rate); the vendored header has a marked patch.
+- One appender per log file (the old code leaked open handles Windows would not delete), and
+  `with_tempfile(s)` close their files before yielding.
+
+Results there: Lacci 260/261 + 1 skip (USR1), with `8e5439f`'s clipboard; components 126/126; webview unit tests 88/89 (`test_list_box_auto_choose_first` expects
+`"apple"`, but Lacci now leaves an unchosen list box at `nil`: stale on every platform), examples on
+the webview 400/456. Each of the 56 failing examples also fails on Linux through the same webview
+code with the windowless stand-in (`RUBYLIB=tasks/windowless_webview`): Shoes 3-only APIs,
+`test/unit`, `hpricot`, `readline`, no `Shoes.app`, or minutes of Ruby time (game of life).
+
+How that VM was driven, for the next session: GUI programs cannot open from an SSH session, so
+a scheduled task with an Interactive principal ran a `.cmd` through a hidden `wscript`, with a
+watchdog killing any `exe/scarpe` process older than 60 s.
+
+## The native display on a real Windows desktop
+
+Same VM, Rust 1.99 (GNU toolchain), RubyInstaller Ruby 4.0.5, a real interactive session:
+
+- `exe/scarpe --native examples/button.rb` opens a real window; a click on "Push me" and on the
+  "Go back" link work; closing the window ends Ruby and the renderer; Ctrl-C in its console
+  (sent as `GenerateConsoleCtrlEvent`, which is what a keypress does) logs "App interrupted by
+  signal", and both processes end.
+- The real clipboard, `--native`: `app.clipboard = "Grüezi from Scarpe ✓"` pastes into Notepad as
+  that, and text copied in Notepad reads back exactly. With Niente, `Shoes::Clipboard`'s
+  PowerShell path round-trips the same text and reads Notepad's. (Read results from a file, not
+  through an SSH console: its code page 850 turns ✓ into "V" and makes correct text look broken.)
+- `Shoes.run_program` opens the program's window in its own process now, and `stop` closes it.
+- Suites, run from `cmd` (not Git Bash): `native_test` 197 runs, 0 failures (the two symlink
+  tests skip where a user may not make links); `spec:selftest` 16/16; `spec/run --check`
+  1062/1062; Niente 545 pass, nothing failing; native 1037 pass and **no timeouts** (the 11 of
+  CI run 6 do not happen here), the 10 not passing all `kids/` sound cases (item 4); examples on
+  native 357 pass, 3 fail (`say`, `parrot`, `change_my_audio_source`: item 5); `package_test` 41
+  runs, 0 failures, once `detect_arch` stopped shelling out to `uname` (absent outside Git Bash).
+
+## Things learned the hard way
+
+- `Process.spawn(..., pgroup: true)` raises `ArgumentError: wrong exec option symbol: pgroup` on
+  Windows; use `new_pgroup: true`. `Process.kill(sig, -pid)` and TERM do not work there.
+- `IO.select` on a pipe polls about every 10 ms on Windows; a signal trap runs only once
+  `Thread::Queue#pop` returns.
+- Under MSYS bash, Windows variables arrive upper-cased (`SYSTEMROOT`); a scratch environment
+  built with `unsetenv_others` must copy them case-insensitively or Winsock fails with E10106.
+- The GitHub log tool returns at most the last 5000 lines of a job, and the log blob host is
+  blocked in the cloud container, so a long failing run can hide its first failures.

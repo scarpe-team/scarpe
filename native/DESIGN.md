@@ -134,6 +134,7 @@ that last ran or had input, else the first running one.
 | `pixel` | `x`, `y` | `[r,g,b,a]` at logical point; error outside the window |
 | `frames` | `n` | reply after n frames have been laid out and painted (sync point); value = frames painted so far |
 | `focused` | | id of the focused input or null |
+| `clipboard` | `text` (optional) | Shoes' `app.clipboard`: without `text`, the clipboard's text (`""` when empty); with it, `app.clipboard=`, replying null. The clipboard text fields cut and paste through: the system's in a window (arboard: macOS, Windows, X11, Wayland), a private one headless, or the file `SCARPE_CLIPBOARD_FILE` names |
 | `para_hit` | `id` (a para's), `x`, `y` (window coordinates) | the index of the character under the point, as Pango's `xy_to_index` gives Shoes 3's `Para#hit`: the first of the line left of the text, the last past its end; null off the para's box (ledger F14) |
 | `para_caret` | `id` (a para's) | `{left, top, height}` of the para's caret in whole pixels, measured from the content origin of the slot that scrolls the para (the window's when none does), so `top` compares with that slot's `scroll_top`; null when the para has no `text_cursor` (ledger F14) |
 | `a11y` | `app`, `platform` (default false) | the accessibility tree as a screen reader meets it (section 12, "Screen readers"): the window's node with its `children`. Each node has `id` and `role` (AccessKit's, snake_case: `button`, `check_box`, `label`...) and, when set, `name`, `value`, `description`, `toggled`, `numeric` `{value, min, max}`, `expanded`, `selected`, `url`, `level`, `focused`, `disabled`, `read_only`, `modal`, `actions`, `bounds` `[x, y, w, h]` (window coordinates). `platform: true` in a macOS window reads what AppKit hands VoiceOver instead: `role`, `subrole`, `title`, `value`, `help`; elsewhere it is an error |
@@ -401,6 +402,13 @@ evaluated a child's program inside Hackety Hack, and `while true` took Hackety H
   ignores TERM ends its renderer and exits a second later. A renderer whose Ruby has gone reads
   the end of its stdin and exits, and the parent KILLs one the program said it started and never
   said had gone. When the parent's own event loop ends it stops its programs (TERM, a second, KILL).
+- **Windows.** A child there can inherit neither fd 3 and 4 nor a TERM from another process, so
+  both pipes are one loopback TCP connection (`Programs::SOCKET_REPORTS`). The parent listens on
+  `127.0.0.1` and passes `SCARPE_REPORT_ADDR` and a random `SCARPE_REPORT_TOKEN`; the program
+  connects, writes the token as its first line, and reports up the connection as it would up
+  fd 3. Its end is the parent's end, as fd 4's is, and the parent's TERM is a `stop` line down it,
+  on which the program sends itself TERM (Windows delivers that one). KILL is `Process.kill` on
+  the pid; the program gets a process group of its own (`new_pgroup`) for Ctrl-C's sake.
 - **Other displays.** Niente and the webview cannot start a process, so `Shoes.run_program` runs
   the program inside the app (`Shoes::Program::InProcess`), as Shoes 3 did, and logs a warning
   saying an endless loop will stop the app too: its windows open in this process and stay, a
@@ -1012,6 +1020,7 @@ change the code and this list together.
 | `SCARPE_NATIVE_LOG_LEVEL` | `debug`, `info`, `warn` (default; `debug` under `SCARPE_DEBUG`) or `error` |
 | `SCARPE_NATIVE_CACHE` | where downloaded images and fonts are kept (default: the user's cache directory, 5.3) |
 | `SCARPE_NATIVE_SNAPSHOT_DIR` | where relative `snapshot(name)` paths go (default `spec/results/snapshots`) |
+| `SCARPE_CLIPBOARD_FILE` | a file that stands in for the system clipboard, for Rust's clipboard and Lacci's alike, so a sandboxed run never touches the real one (spec/run sets it) |
 | `SCARPE_NATIVE_PID_FILE` | a file that holds the child's pid while it runs, for harnesses that may have to kill it (5.4) |
 | `SCARPE_NATIVE_WINDOWED_TESTS` | lets `rake native_test` open real windows, as ghosts |
 | `SCARPE_NATIVE_STATS` | a directory: each process writes where its time went (`ruby.json`, `rust.json`) as it exits (native/PERF.md) |

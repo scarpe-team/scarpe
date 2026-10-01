@@ -24,9 +24,9 @@ class NienteTest < Minitest::Test
 
   SCARPE_EXE = File.expand_path("../../exe/scarpe", __dir__)
 
-  # Lacci's clipboard shells out to pbcopy, pbpaste or xclip, and its dialogs can fall back
-  # to osascript. Each test app runs with spec/support/fakebin first on PATH, as spec/run
-  # does (spec/README.md rule 6), so no test touches the real clipboard or opens a dialog.
+  # Each test app keeps its clipboard in a file of its own (SCARPE_CLIPBOARD_FILE), and runs
+  # with spec/support/fakebin first on PATH, as spec/run does (spec/README.md rule 6), so no
+  # test touches the real clipboard or opens a dialog.
   FAKEBIN = File.expand_path("../../spec/support/fakebin", __dir__)
   CLIPBOARDS = Dir.mktmpdir("lacci-test-clipboards")
   Minitest.after_run { FileUtils.rm_rf(CLIPBOARDS) }
@@ -64,17 +64,21 @@ class NienteTest < Minitest::Test
       #["scarpe_log_config.json", JSON.dump(log_config_for_test)],
       [["shoes_spec_code", ".rb"], app_test_code],
     ]) do |shoes_spec_path,_|
+      # The environment goes as a Hash: a "VAR=x ruby ..." string needs a Unix shell
       system(
-        "LOCALAPPDATA=\"#{Dir.tmpdir}\" " +
-        "PATH=\"#{FAKEBIN}:#{ENV["PATH"]}\" " +
-        "SPEC_CLIPBOARD_FILE=\"#{clipboard_file}\" " +
-        "NIENTE_LOG_LEVEL=#{log_level} " +
-        "SHOES_SPEC_TEST=\"#{shoes_spec_path}\" " +
-        "SCARPE_DISPLAY_SERVICE=\"#{display_service}\" " +
-        "SHOES_MINITEST_EXPORT_FILE=#{sspec_file} " +
-        "SHOES_MINITEST_CLASS_NAME=\"#{class_name}\" " +
-        "SHOES_MINITEST_METHOD_NAME=\"#{method_name}\" " +
-        "ruby #{SCARPE_EXE} --dev #{test_app_location}"
+        {
+          "LOCALAPPDATA" => Dir.tmpdir,
+          "PATH" => [FAKEBIN, ENV["PATH"]].join(File::PATH_SEPARATOR),
+          "SPEC_CLIPBOARD_FILE" => clipboard_file,
+          "SCARPE_CLIPBOARD_FILE" => clipboard_file,
+          "NIENTE_LOG_LEVEL" => log_level.to_s,
+          "SHOES_SPEC_TEST" => shoes_spec_path,
+          "SCARPE_DISPLAY_SERVICE" => display_service.to_s,
+          "SHOES_MINITEST_EXPORT_FILE" => sspec_file,
+          "SHOES_MINITEST_CLASS_NAME" => class_name.to_s,
+          "SHOES_MINITEST_METHOD_NAME" => method_name.to_s,
+        },
+        "ruby", SCARPE_EXE, "--dev", test_app_location,
       )
     end
 

@@ -1,0 +1,58 @@
+require 'ffi-compiler/compile_task'
+require 'rbconfig'
+
+# The WebView2 SDK header, fetched at build time on Windows. 1.0.1150.38 is the
+# version webview 0.12.0 itself builds and tests against.
+WEBVIEW2_VERSION = "1.0.1150.38"
+
+# Returns a directory holding WebView2.h, downloading the SDK if needed.
+# Set WEBVIEW2_INCLUDE to use an SDK that is already on disk.
+def webview2_include_dir
+  return ENV["WEBVIEW2_INCLUDE"] if ENV["WEBVIEW2_INCLUDE"]
+
+  require "fileutils"
+  require "open-uri"
+
+  dir = File.join(__dir__, "webview2-sdk", WEBVIEW2_VERSION)
+  include_dir = File.join(dir, "build", "native", "include")
+  return include_dir if File.exist?(File.join(include_dir, "WebView2.h"))
+
+  FileUtils.mkdir_p(dir)
+  nupkg = File.join(dir, "webview2.nupkg")
+  url = "https://www.nuget.org/api/v2/package/Microsoft.Web.WebView2/#{WEBVIEW2_VERSION}"
+  puts "Downloading WebView2 SDK #{WEBVIEW2_VERSION} from #{url}"
+  File.binwrite(nupkg, URI.open(url, "rb", &:read))
+
+  # A .nupkg is a zip file. Windows 10 and later ship bsdtar, which reads zip;
+  # the MSYS2 tar that may be first on PATH does not.
+  tar = File.join(ENV.fetch("SystemRoot", "C:/Windows"), "System32", "tar.exe")
+  unless system(tar, "-xf", nupkg, "-C", dir, "build/native/include")
+    raise "Could not unpack #{nupkg} with #{tar}"
+  end
+  include_dir
+end
+
+FFI::Compiler::CompileTask.new('webview-ext') do |c|
+  if RbConfig::CONFIG['host_os'] =~ /darwin/
+    c.exclude << %r{webview-win/}
+    c.cxxflags << "-std=c++11"
+    c.ldflags << "-framework WebKit"
+  elsif RbConfig::CONFIG['host_os'] =~ /linux/
+    c.exclude << %r{webview-win/}
+    c.cxxflags << `pkg-config --cflags gtk+-3.0 webkit2gtk-4.0`.strip
+    c.ldflags << `pkg-config --libs gtk+-3.0 webkit2gtk-4.0`.strip
+  elsif RbConfig::CONFIG['host_os'] =~ /mingw|mswin/
+    # ext/webview/webview.h targets EdgeHTML through C++/WinRT, which MinGW
+    # cannot compile. Build webview 0.12.0 (ext/webview-win) instead: it uses
+    # WebView2 and carries its own loader, so no WebView2Loader.dll is needed.
+    c.exclude << %r{(\A|/)webview/webview\.cpp\z}
+    c.cxxflags << "-std=c++14 -DWEBVIEW_BUILD_SHARED -DWEBVIEW_EDGE"
+    c.add_include_path File.join(__dir__, "webview-win")
+    c.add_include_path webview2_include_dir
+    # Link the C++ runtime statically so the DLL loads without MinGW on PATH.
+    c.ldflags << "-static -static-libgcc -static-libstdc++"
+    c.libs.concat %w[-ladvapi32 -lole32 -lshell32 -lshlwapi -luser32 -lversion]
+  else
+    puts "Unsupported operating system, check rake file in ext directory in source code and add correct flags from here  https://github.com/webview/webview#webview-for-cc-developers "
+  end
+end

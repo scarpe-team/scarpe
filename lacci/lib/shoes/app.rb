@@ -542,29 +542,16 @@ class Shoes::App < Shoes::Drawable
     Shoes::DisplayService.mouse_state_of(linkable_id)
   end
 
-  # Read the system clipboard contents.
-  # Returns the clipboard text as a string, or "" if empty/unavailable.
+  # The system clipboard's text, the one every program cuts and pastes through (manual 891),
+  # or "" when it is empty or cannot be read. A display with a clipboard of its own answers
+  # (the native renderer does); for the others Lacci asks the system (Shoes::Clipboard).
   def clipboard
-    if RUBY_PLATFORM =~ /darwin/
-      `pbpaste 2>/dev/null`.to_s
-    elsif RUBY_PLATFORM =~ /linux/
-      `xclip -selection clipboard -o 2>/dev/null`.to_s
-    else
-      ""
-    end
-  rescue
-    ""
+    shoes_builtin("clipboard").to_s
   end
 
-  # Write text to the system clipboard.
+  # Puts text on the system clipboard (manual 897).
   def clipboard=(text)
-    if RUBY_PLATFORM =~ /darwin/
-      IO.popen("pbcopy", "w") { |p| p.write(text.to_s) }
-    elsif RUBY_PLATFORM =~ /linux/
-      IO.popen("xclip -selection clipboard", "w") { |p| p.write(text.to_s) }
-    end
-    text
-  rescue
+    shoes_builtin("clipboard=", text.to_s)
     text
   end
 
