@@ -8,12 +8,18 @@ Shoes.app height: 450, width: 450, title: "Change Audio Source 🔊" do
     ins "Requires SwitchAudioSource, install with:"
     ins strong "brew install switchaudio-osx"
   end
-  current = `SwitchAudioSource -c`.chomp
+  # SwitchAudioSource is a Mac program; anywhere it is missing, say so and offer nothing.
+  switch = lambda do |*args|
+    IO.popen(["SwitchAudioSource", *args], &:read)
+  rescue SystemCallError
+    nil
+  end
+  current = switch.call("-c")&.chomp || "(SwitchAudioSource is not installed)"
   @current_source = tagline "Current audio source: #{current}"
-  sources = `SwitchAudioSource -a`.split("\n").map do |source|
+  sources = switch.call("-a").to_s.split("\n").map do |source|
     flow do
       button source do
-        `SwitchAudioSource -s "#{source.chomp}"`
+        switch.call("-s", source.chomp)
         @current_source.replace "Current audio source: #{source.chomp}"
       end
     end
