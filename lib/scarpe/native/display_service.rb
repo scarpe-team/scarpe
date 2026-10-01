@@ -157,12 +157,9 @@ module Scarpe::Native
       child.post(t: "font", path: path) if path
     end
 
-    # Shoes.run_program: the program runs in a process of its own (Programs, DESIGN 5.5). Windows
-    # hands a child no descriptors past stderr, and Programs talks on fds 3 and 4, so there it runs
-    # in this process, as it does on the displays that cannot start one.
+    # Shoes.run_program: the program runs in a process of its own (Programs, DESIGN 5.5): on fds 3
+    # and 4, or on Windows, which hands a child neither, over a loopback connection.
     def run_program(path, dir:, args:)
-      return Shoes::Program::InProcess.run(path, dir: dir, args: args) if Gem.win_platform?
-
       programs.start(path, dir: dir, args: args)
     end
 

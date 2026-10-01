@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
+require "socket"
 require "stringio"
 
 module Scarpe::Native
@@ -10,13 +11,17 @@ module Scarpe::Native
   # what it writes to $stdout and $stderr, every error Shoes.on_error hears (its startup, its
   # handlers and timers, its end), and its renderer's pid. Scarpe's own lines go to the stderr
   # it was given. When the pipe named by SCARPE_PARENT_FD reaches its end, the parent is gone,
-  # and the program stops, its window with it.
+  # and the program stops, its window with it. On Windows the report pipe and the parent pipe
+  # are one loopback connection (SCARPE_REPORT_ADDR, Programs::SOCKET_REPORTS), which also
+  # carries the parent's "stop".
   module ProgramChild
     extend self
 
     # Settings the parent passes, read once and taken out of ENV so a program this one starts
     # gets its own.
-    SETTINGS = %w[SCARPE_RUN_FILE SCARPE_RUN_DIR SCARPE_RUN_ARGS SCARPE_REPORT_FD SCARPE_PARENT_FD].freeze
+    SETTINGS = %w[
+      SCARPE_RUN_FILE SCARPE_RUN_DIR SCARPE_RUN_ARGS SCARPE_REPORT_FD SCARPE_PARENT_FD SCARPE_REPORT_ADDR SCARPE_REPORT_TOKEN
+    ].freeze
     # After TERM on its parent's death, the time a program has to end before it ends itself.
     PARENT_GONE_GRACE = 1.0
 
@@ -79,16 +84,23 @@ module Scarpe::Native
         args: raw["SCARPE_RUN_ARGS"] ? JSON.parse(raw["SCARPE_RUN_ARGS"]) : [],
         report_fd: raw["SCARPE_REPORT_FD"]&.then { |fd| Integer(fd) },
         parent_fd: raw["SCARPE_PARENT_FD"]&.then { |fd| Integer(fd) },
+        report_addr: raw["SCARPE_REPORT_ADDR"],
+        report_token: raw["SCARPE_REPORT_TOKEN"].to_s,
       }
     rescue JSON::ParserError, ArgumentError
-      { dir: raw["SCARPE_RUN_DIR"], args: [], report_fd: nil, parent_fd: nil }
+      { dir: raw["SCARPE_RUN_DIR"], args: [], report_fd: nil, parent_fd: nil, report_addr: nil }
     end
 
     def install(settings)
-      watch_parent(settings[:parent_fd]) if settings[:parent_fd]
-      return false unless settings[:report_fd]
+      if settings[:report_addr]
+        @report = connect(settings[:report_addr], settings[:report_token])
+        watch_parent_socket(@report)
+      else
+        watch_parent(settings[:parent_fd]) if settings[:parent_fd]
+        return false unless settings[:report_fd]
 
-      @report = open_fd(settings[:report_fd], "w")
+        @report = open_fd(settings[:report_fd], "w")
+      end
       @report.sync = true
       @lock = Mutex.new
       Scarpe::Native.diagnostics = STDERR
@@ -103,6 +115,15 @@ module Scarpe::Native
       @report = nil
       STDERR.puts("[scarpe-native] Scarpe::Native::ProgramChild warn: cannot report to the parent: #{e.message}")
       false
+    end
+
+    # The connection back to the parent, which knows this program by its token.
+    def connect(addr, token)
+      host, port = addr.split(":", 2)
+      socket = TCPSocket.new(host, Integer(port))
+      socket.close_on_exec = true
+      socket.write("#{token}\n")
+      socket
     end
 
     # Inherited descriptors, kept from anything this program starts (its renderer included),
@@ -131,6 +152,24 @@ module Scarpe::Native
       end
     rescue SystemCallError, ArgumentError
       nil
+    end
+
+    # The connection's side of watch_parent: "stop" is the parent's TERM, its end the parent's
+    # going. Either way the program ends as watch_parent ends it.
+    def watch_parent_socket(socket)
+      Thread.new do
+        begin
+          while (line = socket.gets)
+            break if line.chomp == "stop"
+          end
+        rescue IOError, SystemCallError
+          nil
+        end
+        Process.kill("TERM", Process.pid)
+        sleep PARENT_GONE_GRACE
+        DisplayService.instance&.started_child&.kill!
+        Process.exit!(1)
+      end
     end
 
     # $stdout and $stderr for a program that reports: each whole line goes to the parent as

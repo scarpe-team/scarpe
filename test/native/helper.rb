@@ -30,8 +30,7 @@ module NativeTestHelpers
     Process.kill("KILL", -pid)
   end
 
-  # Tests of Unix signals, process groups and Shoes.run_program's own processes, none of which
-  # Windows has (run_program runs in-process there).
+  # Tests of Unix signals and process groups, which Windows does not have.
   def skip_on_windows(why)
     skip "Windows: #{why}" if Gem.win_platform?
   end

@@ -402,6 +402,13 @@ evaluated a child's program inside Hackety Hack, and `while true` took Hackety H
   ignores TERM ends its renderer and exits a second later. A renderer whose Ruby has gone reads
   the end of its stdin and exits, and the parent KILLs one the program said it started and never
   said had gone. When the parent's own event loop ends it stops its programs (TERM, a second, KILL).
+- **Windows.** A child there can inherit neither fd 3 and 4 nor a TERM from another process, so
+  both pipes are one loopback TCP connection (`Programs::SOCKET_REPORTS`). The parent listens on
+  `127.0.0.1` and passes `SCARPE_REPORT_ADDR` and a random `SCARPE_REPORT_TOKEN`; the program
+  connects, writes the token as its first line, and reports up the connection as it would up
+  fd 3. Its end is the parent's end, as fd 4's is, and the parent's TERM is a `stop` line down it,
+  on which the program sends itself TERM (Windows delivers that one). KILL is `Process.kill` on
+  the pid; the program gets a process group of its own (`new_pgroup`) for Ctrl-C's sake.
 - **Other displays.** Niente and the webview cannot start a process, so `Shoes.run_program` runs
   the program inside the app (`Shoes::Program::InProcess`), as Shoes 3 did, and logs a warning
   saying an endless loop will stop the app too: its windows open in this process and stay, a
