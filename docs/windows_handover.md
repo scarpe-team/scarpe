@@ -17,7 +17,7 @@ Unix-only.
 **Update, 1 Oct, from a session with a Windows 11 VM:** the webview display runs on Windows now,
 tested on a real desktop (see [The webview display](#the-webview-display-on-windows) below).
 Items 1, 2, 3 and 7 below are done on that VM too, see [The native display on a real
-desktop](#the-native-display-on-a-real-windows-desktop); 4 and 5 are under way.
+desktop](#the-native-display-on-a-real-windows-desktop), and so are 4 and 5 (sound and speech).
 
 Commits on `main` (oldest first):
 
@@ -68,18 +68,17 @@ timeouts went away is **not known**.
    nothing has opened an actual window on Windows yet. Also try Ctrl-C in the console
    (new_pgroup + the sliced queue wait), closing the window, and an app that calls
    `Shoes.run_program` (in-process on Windows).
-4. **Sound** (agreed with the user, not started): a cross-platform sound call. Decided: make
-   the manual's `video "file.wav"` actually play audio files, and add a small invisible call for
-   sound effects, probably named `audio("pop.wav").play` (the user wrote "Instead of sound audio";
-   confirm the name with them). Playback would go in the Rust renderer (e.g. `rodio`: CoreAudio,
-   WASAPI, ALSA; Linux then needs `libasound2-dev` to build). Headless runs must record instead of
-   play, so the `kids/` specs can assert what was played. Then port the ten
-   `examples/native/kids/*` apps off `afplay` (they synthesise WAVs in Ruby and `spawn("afplay")`).
-   New features need an entry in `docs/SCARPE_FEATURES.md`.
-5. **Speech** (agreed, not started): a cross-platform text-to-speech call (macOS `say`, Windows'
-   built-in voices via PowerShell `System.Speech`, Linux `spd-say`/`espeak` if installed), plus a
-   voice list, so `examples/skip_ci/say.rb` and `parrot.rb` can use it. `change_my_audio_source.rb`
-   drives Homebrew's `SwitchAudioSource` (picks the Mac's output device); leave it macOS-only.
+4. ~~**Sound**~~ done, named `audio` as the user confirmed: `audio("pop.wav", volume:).play`, with
+   `pause`, `stop` and `playing?`, and `video` plays audio files (docs/SCARPE_FEATURES.md). The
+   renderer plays with rodio (MIT/Apache decoders, not Symphonia); Niente and the webview use the
+   system's player; `SCARPE_AUDIO_FILE` writes each command down instead, and spec/run and the test
+   suites set it. Linux builds need `libasound2-dev`, which the Native workflow installs. The ten
+   `kids/` apps and their cases use it, and all ten pass on native on Windows. Heard on the VM
+   through a real (null-driver) sound device.
+5. ~~**Speech**~~ done, named `say` as the user chose: `say(text, voice:)`, with `stop` and
+   `speaking?`, and `voices`. `say.rb` and `parrot.rb` use them; on the VM `voices` lists Hazel and
+   Zira, and a sentence speaks and stops. `change_my_audio_source.rb` stays macOS-only, but now
+   says so instead of raising where `SwitchAudioSource` is missing.
 6. ~~**`selfitude`**~~ done: the importer gained `APP_FIXES` (app-code rewrites), whose one rule
    turns `File.open("/tmp/...")` into a `Dir.tmpdir` path; `selfitude.sspec` and
    `examples/selfitude.rb` carry it, and the case passes on Niente on Windows.
