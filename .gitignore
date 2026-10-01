@@ -16,3 +16,6 @@ logger/*.log
 **/sspec.json
 examples/legacy/working/shoes_manual/nasa50th.gif
 experiments/dragonruby
+
+# `scarpe package` builds an <App>.AppDir on Linux; never commit one
+*.AppDir/
