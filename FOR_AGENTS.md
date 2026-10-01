@@ -416,6 +416,7 @@ ask_open_file                    # also ask_save_file, ask_open_folder, ask_save
 self.clipboard = "text"          # the system clipboard (the renderer's own on native)
 clipboard
 audio("pop.wav").play            # a sound, from any object; also pause, stop, playing?, volume:
+say "Hello", voice: voices.first # speech; returns at once, with stop and speaking?
 close                            # closes this window; exit quits the app
 ```
 

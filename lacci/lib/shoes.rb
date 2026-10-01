@@ -43,6 +43,7 @@ require_relative 'shoes/console'
 require_relative 'shoes/clipboard'
 require_relative 'shoes/audio'
 require_relative 'shoes/audio_player'
+require_relative 'shoes/speech'
 require_relative 'shoes/builtins'
 
 require_relative 'shoes/background'

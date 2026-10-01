@@ -81,6 +81,26 @@ Shoes.app do
 end
 ```
 
+## Speech: `say` and `voices`
+
+`say(text, voice: nil)` says text aloud and returns at once, with a `Shoes::Speech` that can
+`stop` it and says whether it is still `speaking?`. `voices` names the voices the system has. Both
+are built-ins. macOS speaks with `say`, Windows with its own voices (System.Speech, through
+PowerShell), Linux with `espeak-ng`, `espeak` or `spd-say` if one is installed, and otherwise says
+nothing, with a warning. Under `SCARPE_AUDIO_FILE` each utterance is a line there instead (`say
+Hello`, or `say[Samantha] Hello` in a voice). Asked for by Andi Idogawa on 1 Oct 2026, with the
+name `say`, for `examples/skip_ci/say.rb` and `parrot.rb`, which ran macOS's `say` themselves; awaits
+Nick Schwaderer's approval upstream. An app that defines its own `say` (`examples/native/legendary/
+pixel_pet`) keeps it.
+
+```ruby
+Shoes.app do
+  @line = edit_line "Hello from Scarpe"
+  list_box(items: voices) { |box| @voice = box.text }
+  button("Speak") { say @line.text, voice: @voice }
+end
+```
+
 ## `Shoes.on_error`
 
 `Shoes.on_error { |err| }` hears every error a handler, a timer or the program's startup raises,

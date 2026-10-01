@@ -74,6 +74,23 @@ module Shoes::Builtins
     Shoes::Audio.new(path, volume: volume)
   end
 
+  # Says text aloud, in the system's own voice or the one named (docs/SCARPE_FEATURES.md). It
+  # returns at once; the handle can stop it and says whether it is still speaking.
+  #
+  # @param text [String] what to say
+  # @param voice [String, nil] one of voices, or nil for the system's own
+  # @return [Shoes::Speech]
+  def say(text, voice: nil)
+    Shoes::Speech.new(text, voice).start
+  end
+
+  # The names of the voices say can speak in (macOS's, Windows', or espeak's on Linux).
+  #
+  # @return [Array<String>]
+  def voices
+    Shoes::Speech.voices
+  end
+
   # The [width, height] stored in an image file, read without showing or caching the
   # image (manual 2017-2023).
   #
