@@ -7,15 +7,20 @@ rubygems.org, with two changes:
   reaches EdgeHTML through C++/WinRT, which MinGW cannot compile. On Windows, `ext/Rakefile`
   builds `ext/webview-win/` instead: the single-header
   [webview 0.12.0](https://github.com/webview/webview/tree/0.12.0) (`core/include/webview/webview.h`,
-  unmodified, MIT), which drives Edge through WebView2. Its built-in loader means no
-  `WebView2Loader.dll` is needed, and the C++ runtime is linked statically, so `webview-ext.dll`
-  depends only on system DLLs. The WebView2 SDK header is downloaded from NuGet at build time
-  (pinned to 1.0.1150.38, the version webview 0.12.0 tests against); set `WEBVIEW2_INCLUDE` to a
-  directory holding `WebView2.h` to build offline. At run time the WebView2 Runtime is needed; it
-  ships with Windows 11 and is on most Windows 10 systems.
+  MIT), which drives Edge through WebView2. Its built-in loader means no `WebView2Loader.dll` is
+  needed, and the C++ runtime is linked statically, so `webview-ext.dll` depends only on system
+  DLLs. The WebView2 SDK header is downloaded from NuGet at build time (pinned to 1.0.1150.38,
+  the version webview 0.12.0 tests against); set `WEBVIEW2_INCLUDE` to a directory holding
+  `WebView2.h` to build offline. At run time the WebView2 Runtime is needed; it ships with
+  Windows 11 and is on most Windows 10 systems.
+
+  The header carries one change, marked "Scarpe patch": `terminate` also sets a flag that the
+  Win32 run loop checks after each message. `PostQuitMessage` alone only ends the loop once its
+  queue is empty, which a busy page never allows (an `animate` block slower than its frame rate),
+  so such an app could not quit.
 - **Built on first use.** Bundler does not compile the native extensions of `path:` gems, so
-  `require "webview_ruby"` compiles `ext/` the first time if the library is missing
-  (`lib/webview_ruby/build.rb`). To build ahead of time: `cd vendor/webview_ruby/ext && rake`.
+  `require "webview_ruby"` compiles `ext/` when the library is missing or older than a file
+  under `ext/` (`lib/webview_ruby/build.rb`). To build ahead of time: `cd vendor/webview_ruby/ext && rake`.
 
 The macOS and Linux builds compile exactly the same sources with the same flags as the
 published gem. The Ruby API is unchanged on every platform.

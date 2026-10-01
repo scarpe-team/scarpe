@@ -9,9 +9,14 @@ module WebviewRuby
   extend FFI::Library
 
   def self.library_path
-    FFI::Compiler::Loader.find('webview-ext', __dir__)
-  rescue LoadError
     require_relative "webview_ruby/build"
+    path = begin
+      FFI::Compiler::Loader.find('webview-ext', __dir__)
+    rescue LoadError
+      nil
+    end
+    return path if path && !Build.stale?(path)
+
     Build.run
     FFI::Compiler::Loader.find('webview-ext', __dir__)
   end

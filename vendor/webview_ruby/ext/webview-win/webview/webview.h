@@ -4057,7 +4057,11 @@ public:
 protected:
   noresult run_impl() override {
     MSG msg;
-    while (GetMessageW(&msg, nullptr, 0, 0) > 0) {
+    // Scarpe patch: GetMessageW only returns WM_QUIT once the queue is empty, which a busy
+    // page (timers calling bound functions faster than they return) never lets happen. Check
+    // a flag after every message as the GTK backend does; WM_QUIT still wakes an idle loop.
+    m_stop_run_loop = false;
+    while (!m_stop_run_loop && GetMessageW(&msg, nullptr, 0, 0) > 0) {
       TranslateMessage(&msg);
       DispatchMessageW(&msg);
     }
@@ -4082,6 +4086,7 @@ protected:
     return error_info{WEBVIEW_ERROR_INVALID_STATE};
   }
   noresult terminate_impl() override {
+    m_stop_run_loop = true; // Scarpe patch, see run_impl
     PostQuitMessage(0);
     return {};
   }
@@ -4360,6 +4365,7 @@ private:
   mswebview2::loader m_webview2_loader;
   int m_dpi{};
   bool m_owns_window{};
+  bool m_stop_run_loop{}; // Scarpe patch, see run_impl
 };
 
 } // namespace detail
