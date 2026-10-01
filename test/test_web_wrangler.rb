@@ -39,7 +39,7 @@ class TestWebWranglerMocked < LoggedScarpeTest
 
   def with_mocked_webview(wrangler_opts: {}, &block)
     @mocked_webview = Minitest::Mock.new
-    ["puts", "dynamicRubyCallback", "scarpeAsyncEvalResult", "scarpeHeartbeat"].each do |bound_method|
+    ["puts", "dynamicRubyCallback", "dynamicPeriodicCallback", "scarpeAsyncEvalResult", "scarpeHeartbeat"].each do |bound_method|
       @mocked_webview.expect :bind, nil, [bound_method]
     end
     @mocked_webview.expect :init, nil, [String]
@@ -84,6 +84,26 @@ class TestWebWranglerMocked < LoggedScarpeTest
 
   def replacement_js_code(new_body, eval_serial)
     wrapped_js_code(Scarpe::Webview::WebWrangler::DOMWrangler.replacement_code(new_body), eval_serial)
+  end
+
+  # An animate or every created in a click handler arrives after the page has
+  # loaded, when init can no longer set up a timer.
+  def test_ww_periodic_code_while_running
+    with_running_mocked_webview do
+      ticks = 0
+      interval_code = nil
+      @mocked_webview.expect(:eval, nil) { |code| interval_code = code }
+      @web_wrangler.periodic_code("every_1", 0.25) { ticks += 1 }
+
+      handler_id = interval_code[/dynamicPeriodicCallback\('([^']+)'\)/, 1]
+      assert handler_id, "Expected a setInterval calling dynamicPeriodicCallback, got: #{interval_code.inspect}"
+      assert_includes interval_code, ", 250);"
+
+      # Every tick must still find the handler, unlike a one-shot callback
+      periodic_callbacks = @web_wrangler.instance_variable_get(:@periodic_dynamic_callbacks)
+      2.times { periodic_callbacks[handler_id].call }
+      assert_equal 2, ticks
+    end
   end
 
   def test_ww_draw_body
