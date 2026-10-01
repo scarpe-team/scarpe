@@ -1,0 +1,20 @@
+---
+manual: styles.angle
+lines: [1077, 1079]
+testability: visual
+display: native
+ledger: D6
+----------- app code
+Shoes.app width: 300, height: 300 do
+  @swatch = stack width: 200, height: 200 do
+    background red..blue, angle: 45
+  end
+end
+----------- test code
+box = layout_of(stack("@swatch"))
+at = ->(dx, dy) { pixel_at((box.x + dx).round, (box.y + dy).round) }
+
+top_left, bottom_right = at.call(3, 3), at.call(196, 196)
+assert(top_left[0] > 200 && top_left[2] < 60, "turned 45 degrees counter-clockwise, red starts at the top-left, got #{top_left}")
+assert(bottom_right[2] > 200 && bottom_right[0] < 60, "and blue ends at the bottom-right, got #{bottom_right}")
+assert_in_delta at.call(196, 3)[0], at.call(3, 196)[0], 12, "the other two corners sit halfway, as a clockwise turn would not leave them"

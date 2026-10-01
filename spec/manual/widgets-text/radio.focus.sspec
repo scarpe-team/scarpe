@@ -1,0 +1,22 @@
+---
+manual: radio.focus
+lines: [3356, 3359]
+testability: interactive
+display: native
+ledger: G9
+----------- app code
+Shoes.app do
+  stack do
+    @first = radio
+    @second = radio
+  end
+end
+----------- test code
+# Enter marks the radio; whether a second Enter unmarks it is ledger M27's open question.
+second = radio("@second")
+second.focus
+assert_equal second.linkable_id, focused_drawable&.linkable_id, "focus moves keyboard focus to the radio"
+
+press_key "\n"
+assert_equal true, second.checked?, "Enter marks the focused radio"
+assert_equal false, radio("@first").checked?

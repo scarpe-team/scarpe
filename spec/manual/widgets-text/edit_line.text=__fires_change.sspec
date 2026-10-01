@@ -1,0 +1,17 @@
+---
+manual: edit_line.text=
+lines: [3101, 3103]
+testability: api
+display: any
+ledger: G5
+----------- app code
+# An ext-scarpe pin (ledger G5, ruled 27 Sep 2026): the manual and Shoes 3 leave this open,
+# and Scarpe fires change on purpose (commit eda8975).
+$changes = []
+Shoes.app do
+  @line = edit_line { $changes << @line.text }
+end
+----------- test code
+assert_empty $changes, "nothing has changed yet"
+edit_line("@line").text = "set by code"
+assert_equal ["set by code"], $changes, "setting the text from code fires change, like typing does"

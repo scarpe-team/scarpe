@@ -1,0 +1,13 @@
+---
+manual: element.inscription
+lines: [2030, 2030]
+testability: api
+display: any
+ledger: F2
+----------- app code
+Shoes.app do
+  $block = inscription "Shoes"
+end
+----------- test code
+assert Shoes.const_defined?(:Inscription), "Shoes::Inscription exists"
+assert_kind_of Shoes::Inscription, $block, "inscription returns a Shoes::Inscription"

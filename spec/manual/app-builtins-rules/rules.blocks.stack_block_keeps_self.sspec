@@ -1,0 +1,16 @@
+---
+manual: rules.blocks.stack_block_keeps_self
+lines: [185, 198]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $app_self = self
+  stack do
+    $stack_self = self
+    para "First"
+  end
+end
+----------- test code
+assert_same $app_self, $stack_self, "the stack block does NOT change self"
+refute_kind_of Shoes::Slot, $stack_self

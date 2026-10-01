@@ -1,0 +1,17 @@
+---
+manual: edit_line.text=
+lines: [3101, 3103]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @line = edit_line
+end
+----------- test code
+refute_equal "filled in", edit_line.text
+
+edit_line.text = "filled in"
+assert_equal "filled in", edit_line.text, "text = fills the edit line with the string"
+
+edit_line.text = "again"
+assert_equal "again", edit_line.text, "replacing what was there"

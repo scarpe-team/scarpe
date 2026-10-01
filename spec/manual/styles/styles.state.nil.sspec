@@ -1,0 +1,21 @@
+---
+manual: styles.state.nil
+lines: [1417, 1419]
+testability: interactive
+display: native
+ledger: G4
+----------- app code
+Shoes.app width: 400, height: 200 do
+  @count = para "0"
+  @go = button "Go", state: nil do
+    @count.replace((@count.text.to_i + 1).to_s)
+  end
+  @line = edit_line state: nil
+end
+----------- test code
+click_on button("@go")
+assert_equal "1", para("@count").text, "a button with state: nil is active: the click reached it"
+
+click_on edit_line("@line")
+type_text "hi"
+assert_equal "hi", edit_line("@line").text, "an edit_line with state: nil is editable"

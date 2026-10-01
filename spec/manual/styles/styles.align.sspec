@@ -1,0 +1,23 @@
+---
+manual: styles.align
+lines: [1062, 1071]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  stack width: 300 do
+    @left = para "HHHH", align: "left", size: 24
+    @center = para "HHHH", align: "center", size: 24
+    @right = para "HHHH", align: "right", size: 24
+  end
+end
+----------- test code
+first_ink = lambda do |text|
+  box = layout_of(text)
+  rows = [0.4, 0.5, 0.6].map { |f| (box.y + box.h * f).round }
+  (box.x.floor...(box.x + box.w).ceil).find { |x| rows.any? { |y| pixel_at(x, y).first(3).sum < 384 } }
+end
+left, center, right = %w[@left @center @right].map { |name| first_ink.call(para(name)) }
+
+assert_operator center, :>, left + 50, "centred text starts well to the right of left-aligned text"
+assert_operator right, :>, center + 50, "and right-aligned text further still"

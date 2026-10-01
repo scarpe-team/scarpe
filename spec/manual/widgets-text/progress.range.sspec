@@ -1,0 +1,25 @@
+---
+manual: progress.range
+lines: [3241, 3243]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @bar = progress width: 200
+end
+----------- test code
+bar = progress
+r = layout_of(bar)
+near_start = [r.x + r.w * 0.1, r.y + r.h / 2.0]
+near_end = [r.x + r.w * 0.9, r.y + r.h / 2.0]
+
+bar.fraction = 0.5
+half_start = pixel_at(*near_start)
+half_end = pixel_at(*near_end)
+refute_equal half_start, half_end, "at 0.5 the bar is filled near its start and empty near its end"
+
+bar.fraction = 0.0
+refute_equal half_start, pixel_at(*near_start), "0.0 is empty: the start is no longer filled"
+
+bar.fraction = 1.0
+refute_equal half_end, pixel_at(*near_end), "1.0 is complete: the end is filled too"

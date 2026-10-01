@@ -1,0 +1,13 @@
+---
+manual: common.width.set_via_style
+lines: [2746, 2747]
+testability: visual
+display: any
+----------- app code
+Shoes.app do
+  @b = button "Click me"
+end
+----------- test code
+button("@b").style(width: 150)
+
+assert_equal 150, button("@b").width, "style(width: 150) sets the width"

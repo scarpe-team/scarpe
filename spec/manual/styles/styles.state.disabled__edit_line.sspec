@@ -1,0 +1,17 @@
+---
+manual: styles.state.disabled
+lines: [1417, 1421]
+testability: interactive
+display: native
+ledger: G4
+----------- app code
+Shoes.app width: 400, height: 200 do
+  @line = edit_line text: "fixed", state: "disabled"
+end
+----------- test code
+line = edit_line("@line")
+click_on line
+type_text "changed"
+
+assert_equal "fixed", line.text, "a disabled edit_line cannot be edited"
+refute_equal line.linkable_id, focused_drawable&.linkable_id, "and does not even take focus"

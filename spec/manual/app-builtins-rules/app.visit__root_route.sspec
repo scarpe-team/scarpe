@@ -1,0 +1,24 @@
+---
+manual: app.visit
+lines: [1012, 1014]
+testability: api
+display: any
+ledger: J1
+----------- app code
+# examples/legacy/for_playtest/expert/url.rb routes "/" to a method not named index.
+class Frontdoor < Shoes
+  url "/", :welcome
+  url "/help", :help
+
+  def welcome
+    @greeting = para "Welcome in"
+  end
+
+  def help
+    para "Help"
+  end
+end
+Shoes.app
+----------- test code
+assert_equal "/", Shoes.APPS.first.location
+assert_equal "Welcome in", para.text, "the app starts by showing what \"/\" routes to, whatever its name"

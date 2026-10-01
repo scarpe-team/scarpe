@@ -1,0 +1,21 @@
+---
+manual: styles.size
+lines: [916, 929]
+testability: visual
+display: native
+ledger: F3
+----------- app code
+Shoes.app width: 500, height: 300 do
+  stack do
+    flow { @searching = title "Searching Google", size: 16 }
+    flow { @reference = para "Searching Google", size: 16 }
+    flow { @big = title "Searching Google" }
+  end
+end
+----------- test code
+searching = layout_of(para("@searching"))
+reference = layout_of(para("@reference"))
+big = layout_of(para("@big"))
+
+assert_operator big.w, :>, searching.w * 1.5, "a plain title is much bigger than 16 pixels"
+assert_in_delta reference.w, searching.w, 0.5, "size: 16 makes the title exactly as wide as 16 pixel text"

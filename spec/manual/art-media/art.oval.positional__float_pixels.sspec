@@ -1,0 +1,24 @@
+---
+manual: art.oval.positional
+lines: [1716, 1722]
+testability: visual
+display: native
+ledger: C15
+----------- app code
+# The manual draws an oval "at pixel coordinates (left, top)", and Shoes 3 reads art in whole
+# pixels. A Float between 0 and 1 is no share of the slot here: an oval animated through the
+# corner stays in the corner.
+Shoes.app width: 300, height: 200 do
+  nostroke
+  @dot = oval 0.5, 0.5, 12, center: true, fill: red
+  stroke blue
+  strokewidth 3
+  @line = line 10, 10, 0.5, 100
+end
+----------- test code
+dot = layout_of(oval("@dot"))
+assert_in_delta(-5.5, dot.x, 0.01, "centred on x = 0.5, a hair right of the edge")
+assert_in_delta(-5.5, dot.y, 0.01, "and y = 0.5")
+assert_equal [255, 0, 0], pixel_at(2, 2).first(3), "so it shows in the top-left corner"
+assert_equal [255, 255, 255], pixel_at(150, 100).first(3), "and not in the middle of the slot"
+assert_operator layout_of(line("@line")).w, :<, 15, "a line ending at x = 0.5 runs down near the left edge"

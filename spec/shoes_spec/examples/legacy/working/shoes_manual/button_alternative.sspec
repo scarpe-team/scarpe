@@ -1,0 +1,25 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/working/shoes_manual/button_alternative.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/working/shoes_manual/button_alternative.sspec
+- cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/button_alternative.sspec
+----------- app code
+#!ruby
+ Shoes.app do
+   @b1 = button "OK!"
+   @b1.click { para "Well okay then." }
+   @b2 = button "Are you sure?"
+   @b2.click { para "Your confidence is inspiring." }
+ end
+----------- test code
+# Verify button with "OK!" text exists
+b1 = drawable(Shoes::Button, "@b1")
+assert_equal "OK!", b1.text
+
+# Verify button with "Are you sure?" text exists
+b2 = drawable(Shoes::Button, "@b2")
+assert_equal "Are you sure?", b2.text

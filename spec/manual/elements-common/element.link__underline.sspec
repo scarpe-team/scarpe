@@ -1,0 +1,30 @@
+---
+manual: element.link
+lines: [2036, 2036]
+testability: visual
+display: native
+ledger: F7
+----------- app code
+Shoes.app do
+  flow { @plain = para "nnnn", size: 40 }
+  flow { @linked = para link("nnnn") { }, size: 40 }
+end
+----------- test code
+columns = ->(box, step = 1) { (box.x.ceil..(box.x + box.w).floor - 1).step(step).to_a }
+dark = ->(x, y) { pixel_at(x, y).first(3).sum < 384 }
+rows = ->(box) { (box.y.ceil..(box.y + box.h).floor - 1).to_a }
+ink_rows = ->(box) { rows.(box).select { |y| columns.(box).any? { |x| dark.(x, y) } } }
+full_rows = ->(box) do
+  xs = columns.(box, 2)[1..-2]
+  rows.(box).select { |y| xs.all? { |x| dark.(x, y) } }
+end
+
+plain = layout_of(para("@plain"))
+assert_empty full_rows.(plain), "plain text has no line all the way across"
+
+linked = layout_of(para("@linked"))
+lines = full_rows.(linked)
+refute_empty lines, "a link is underlined"
+
+glyph_bottom = ink_rows.(plain).last - plain.y
+assert lines.all? { |y| y - linked.y >= glyph_bottom - 1 }, "the line runs under the text, not through it"

@@ -1,0 +1,22 @@
+---
+manual: art.stroke_fill_oval_example
+lines: [1631, 1645]
+testability: visual
+display: native
+ledger: M1
+----------- app code
+Shoes.app do
+  stroke red
+  fill blue
+  oval top: 10, left: 10,
+  radius: 100
+end
+----------- test code
+middle = pixel_at(110, 110).first(3)
+assert_equal [0, 0, 255], middle, "fill sets the colour inside the lines: a blue pie"
+
+edge = (4..16).map { |x| pixel_at(x, 110).first(3) }
+reddish = edge.any? { |r, g, b| r > 200 && g < 200 && b < 200 }
+assert reddish, "stroke sets the line colour: a red line around the pie, got #{edge.inspect}"
+
+assert_equal [255, 255, 255], pixel_at(3, 3).first(3), "the pie sits a few pixels southeast of the corner"

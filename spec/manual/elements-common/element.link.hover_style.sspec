@@ -1,0 +1,26 @@
+---
+manual: element.link.hover_style
+lines: [2039, 2039]
+testability: interactive
+display: native
+ledger: F7
+----------- app code
+Shoes.app do
+  flow { @p = para link("MMMM") { }, size: 40 }
+end
+----------- test code
+columns = ->(box, step = 1) { (box.x.ceil..(box.x + box.w).floor - 1).step(step).to_a }
+darkest = ->(box) do
+  points = (box.y.ceil..(box.y + box.h).floor - 1).flat_map { |y| columns.(box).map { |x| [x, y] } }
+  points.map { |x, y| pixel_at(x, y).first(3) }.min_by(&:sum)
+end
+near = ->(expected, actual, tolerance = 24) { expected.zip(actual).all? { |e, a| (e - a).abs <= tolerance } }
+
+box = layout_of(para("@p"))
+before = darkest.(box)
+assert near.([0x00, 0x66, 0xEE], before, 20), "#06E before the pointer arrives, got #{before.inspect}"
+
+hover_at(*box.center)
+after = darkest.(box)
+
+assert near.([0x00, 0x33, 0x99], after, 20), "#039 while hovered, got #{after.inspect}"

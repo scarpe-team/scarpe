@@ -1,0 +1,17 @@
+---
+manual: element.link.click_proc
+lines: [2034, 2034]
+testability: interactive
+display: native
+ledger: F9
+----------- app code
+Shoes.app do
+  $clicks = 0
+  @p = para link("there", click: proc { $clicks += 1 })
+end
+----------- test code
+assert_equal 0, $clicks
+
+click_on para("@p")
+
+assert_equal 1, $clicks, "clicking the link runs its click: proc"

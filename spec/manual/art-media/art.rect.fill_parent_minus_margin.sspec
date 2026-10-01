@@ -1,0 +1,29 @@
+---
+manual: art.rect.fill_parent_minus_margin
+lines: [1757, 1768]
+testability: visual
+display: native
+ledger: A4
+----------- app code
+Shoes.app do
+  stroke rgb(0.5, 0.5, 0.7)
+  fill rgb(1.0, 1.0, 0.9)
+  rect 10, 10, self.width - 20, self.height - 20
+end
+----------- test code
+# The manual's example: the rectangle fills the window less a 10 px margin on every side.
+window = Shoes.APPS.first
+right, bottom = window.width, window.height
+
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 3 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+cream = [255, 255, 230]
+white = [255, 255, 255]
+
+paints.(15, 15, cream, "the fill starts 10 px in from the top left")
+paints.(right - 15, bottom - 15, cream, "and runs to 10 px in from the bottom right")
+paints.(5, 5, white, "leaving a margin at the top left")
+paints.(right - 5, bottom - 5, white, "and at the bottom right")

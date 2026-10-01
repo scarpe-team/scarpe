@@ -1,0 +1,21 @@
+---
+manual: art.rect.styles
+lines: [1770, 1778]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 200, height: 200 do
+  fill red
+  nostroke
+  rect top: 20, left: 10, width: 30, height: 40
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(12, 57, [255, 0, 0], "the style hash draws the same rectangle as rect(10, 20, 30, 40)")
+paints.(45, 30, [255, 255, 255], "30 wide")
+paints.(15, 63, [255, 255, 255], "40 high")

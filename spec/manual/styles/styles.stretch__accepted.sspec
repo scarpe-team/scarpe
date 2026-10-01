@@ -1,0 +1,12 @@
+---
+manual: styles.stretch
+lines: [1423, 1434]
+testability: api
+display: any
+ledger: F5
+----------- app code
+Shoes.app do
+  @it = para "narrow", stretch: "condensed"
+end
+----------- test code
+assert_equal "condensed", para("@it").style[:stretch], "the :stretch style is kept on the para and reads back, so a display can draw it"

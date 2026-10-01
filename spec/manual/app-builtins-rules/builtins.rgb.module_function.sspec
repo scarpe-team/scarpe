@@ -1,0 +1,10 @@
+---
+manual: builtins.rgb.module_function
+lines: [834, 834]
+testability: api
+display: any
+ledger: D4
+----------- app code
+Shoes.app { para "Shoes.rgb" }
+----------- test code
+assert_equal [138, 43, 226, 255], Shoes.rgb(138, 43, 226).to_a, "rgb can be called as Shoes.rgb"

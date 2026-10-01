@@ -1,0 +1,21 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/shoes_manual/style_alternative_2.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/style_alternative_2.sspec
+----------- app code
+Shoes.app title: "A Styling Sample" do
+   @text = para "Red with an underline"
+   @text.stroke = red
+   @text.underline = "single"
+ end
+----------- test code
+# Para styled via attribute setters (.stroke=, .underline=)
+p = para()
+assert_equal "Red with an underline", p.text
+
+# Verify underline style applied
+assert_equal "single", p.style[:underline]

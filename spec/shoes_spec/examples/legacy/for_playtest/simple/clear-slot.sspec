@@ -1,0 +1,30 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/simple/clear-slot.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/for_playtest/simple/clear-slot.sspec
+- cases/scarpe_examples/examples/legacy/working/simple/clear-slot.sspec
+- cases/scarpe_examples/legacy/working/simple/clear-slot.sspec
+----------- app code
+Shoes.app do
+  @slot = stack { para "Old text" }
+  button "Update" do
+    @slot.clear { para "brand new text" }
+  end
+end
+----------- test code
+# Verify initial text
+p = para()
+assert_equal "Old text", p.text
+
+# Click Update button to clear and replace
+btn = button()
+assert_equal "Update", btn.text
+btn.trigger_click
+
+# After clear, should show new text
+p = para()
+assert_equal "brand new text", p.text

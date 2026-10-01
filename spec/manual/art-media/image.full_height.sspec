@@ -1,0 +1,12 @@
+---
+manual: image.full_height
+lines: [3143, 3151]
+testability: api
+display: any
+ledger: C5
+----------- app code
+Shoes.app do
+  @stretched = image "assets/red-40x30.png", width: 80, height: 90
+end
+----------- test code
+assert_equal 30, image("@stretched").full_height, "full_height is the height stored in the file, not the styled 90"

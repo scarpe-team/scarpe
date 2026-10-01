@@ -1,0 +1,13 @@
+---
+manual: element.timer
+lines: [2111, 2114]
+testability: api
+display: any
+ledger: I2
+----------- app code
+Shoes.app do
+  $timer = timer(5) { }
+end
+----------- test code
+assert Shoes.const_defined?(:Timer), "Shoes::Timer exists"
+assert_kind_of Shoes::Timer, $timer, "timer returns a Shoes::Timer"

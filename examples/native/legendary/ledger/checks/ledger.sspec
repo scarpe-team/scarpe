@@ -1,0 +1,125 @@
+---
+display: native
+testability: interactive
+----------- app code
+# A known book in the sandbox's home, all dated the 1st, so the numbers never depend on the day.
+require "json"
+require "date"
+require "fileutils"
+month = Date.new(Date.today.year, Date.today.month, 1)
+book = {
+  "sample" => false,
+  "categories" => [
+    { "name" => "Groceries", "color" => "#4f9d7e", "budget" => 300 },
+    { "name" => "Fun", "color" => "#b86ba4", "budget" => 50 },
+  ],
+  "entries" => [
+    { "date" => (month << 1).to_s, "note" => "Opening balance", "category" => "Income", "amount" => 1000.0 },
+    { "date" => month.to_s, "note" => "Salary", "category" => "Income", "amount" => 2000.0 },
+    { "date" => month.to_s, "note" => "Market", "category" => "Groceries", "amount" => -40.0 },
+    { "date" => month.to_s, "note" => "Cinema", "category" => "Fun", "amount" => -60.0 },
+  ],
+}
+file = File.join(Dir.home, "Library", "Application Support", "Ledger", "ledger.json")
+FileUtils.mkdir_p(File.dirname(file))
+File.write(file, JSON.generate(book))
+load File.join(Scarpe::Native::ROOT, "examples/native/legendary/ledger/ledger.rb")
+----------- test code
+require "json"
+file = File.join(Dir.home, "Library", "Application Support", "Ledger", "ledger.json")
+saved = -> { JSON.parse(File.read(file)) }
+month = Date.new(Date.today.year, Date.today.month, 1)
+month_name = month.strftime("%B")
+texts = -> { paras.map(&:text) }
+near = ->(pixel, hex) { pixel.first(3).zip(hex.scan(/\h\h/).map(&:hex)).all? { |got, want| (got - want).abs <= 6 } }
+
+balance = -> { para("@balance").text } # each visit builds the page afresh
+assert_equal "$2,900.00", balance.()
+assert_equal "+$1,900.00 this month", para("@change_text").text
+refute texts.().any? { |text| text.include?("sample entries") }, "a real book shows no sample line"
+assert near.(pixel_at(29, 46), "#2e7d5b"), "the green mark in the corner"
+
+# An empty amount is refused, politely
+click_on "Add"
+assert_equal "Enter an amount, like 12.50", para("@form_hint").text
+
+# Money out: typed, categorised, added
+click_on edit_line("@amount")
+type_text "12.50"
+click_on edit_line("@note")
+type_text "Tea and cake"
+list_box("@category").trigger_change("Fun")
+click_on "Add"
+advance 0.6
+assert_equal "$2,887.50", balance.(), "the balance counts down to the new figure"
+assert_equal "Added Tea and cake, $12.50", para("@toast_text").text
+assert_equal "", edit_line("@amount").text, "the form clears"
+assert_equal ["Tea and cake", "Fun", -12.5], saved.()["entries"].last.values_at("note", "category", "amount")
+assert_includes texts.(), "Tea and cake", "the new entry heads the recent list"
+
+# Money in has no category
+click_on "Money in"
+assert stack("@category_box").style[:hidden], "income needs no category"
+click_on edit_line("@amount")
+type_text "100"
+click_on "Add"
+advance 0.6
+assert_equal "$2,987.50", balance.()
+assert_equal ["Income", "Income", 100.0], saved.()["entries"].last.values_at("note", "category", "amount")
+assert_equal "$2,987.50", para("@sidebar_balance").text
+
+# The month page: tiles, a chart to point at, bars against budget, a CSV
+click_on month_name
+advance 1
+assert_includes texts.(), month.strftime("%B %Y")
+assert_includes texts.(), "$2,100.00", "money in"
+assert_includes texts.(), "$112.50", "money out"
+assert_includes texts.(), "$1,987.50", "kept"
+assert_includes texts.(), "$23 over", "Fun went past its $50"
+point = para("@point_text")
+assert_equal "$2,987.50 on #{Date.today.strftime("%-d %B")}", point.text
+chart = layout_of(stack("@chart"))
+hover_at chart.x + 44, chart.y + 120
+assert_match(/ on 1 #{month_name}\z/, point.text, "pointing at the 1st reads the 1st")
+assert_equal "$2,900.00 on 1 #{month_name}", point.text unless Date.today.day == 1
+refute oval("@dot").style[:hidden], "and puts a dot on the line"
+
+csv_path = File.join(Dir.home, "september")
+stub_dialog(:ask_save_file, csv_path)
+click_on "Export CSV"
+csv = File.read("#{csv_path}.csv")
+assert_equal "date,note,category,amount", csv.lines.first.chomp
+assert_includes csv, "#{Date.today},Tea and cake,Fun,-12.50"
+assert_equal 6, csv.lines.size, "a header and five entries"
+assert_equal "Saved 5 entries to september.csv", para("@toast_text").text
+
+click_on "‹"
+assert_includes texts.(), (month << 1).strftime("%B %Y"), "the arrow goes back a month"
+press_key "right"
+assert_includes texts.(), month.strftime("%B %Y"), "and the right arrow key comes back"
+
+# Categories: a budget typed in is kept, and a new category joins the list
+click_on "Categories"
+groceries = edit_lines.find { |field| field.text == "300" }
+click_on groceries
+press_key "control_a"
+type_text "450"
+assert_equal 450.0, saved.()["categories"].find { |c| c["name"] == "Groceries" }["budget"]
+assert_includes texts.(), "$40 of $450 spent"
+click_on edit_line("@new_name")
+type_text "Books"
+click_on "Add"
+assert_includes texts.(), "Books"
+assert_equal ["Books", "#8c7a5b", 0], saved.()["categories"].last.values_at("name", "color", "budget")
+
+# Taking an entry out again
+click_on "Overview"
+row = layout_of(para("Tea and cake"))
+hover_at row.x + 10, row.y + 10
+cross = layout_tree.find { |node| node[:kind] == "Para" && node[:text] == "×" && node[:visible] }
+refute_nil cross, "pointing at a row shows its cross"
+click_at cross[:x] + cross[:w] / 2, cross[:y] + cross[:h] / 2
+advance 0.6
+assert_equal "Took out Tea and cake", para("@toast_text").text
+assert_equal "$3,000.00", balance.()
+refute saved.()["entries"].any? { |e| e["note"] == "Tea and cake" }

@@ -1,0 +1,38 @@
+---
+manual: check.query_example
+lines: [2951, 2974]
+testability: interactive
+display: any
+----------- app code
+Shoes.app do
+  @list = ['Frances Johnson', 'Ignatius J. Reilly',
+    'Winston Niles Rumfoord']
+
+  stack do
+    @list.map! do |name|
+      flow { @c = check; para name }
+      [@c, name]
+    end
+
+    button "What's been checked?" do
+      selected = @list.map { |c, name| name if c.checked? }.compact
+      alert("You selected: " + selected.join(', '))
+    end
+  end
+end
+----------- test code
+# The example keeps its checks in a local list, so find each one by the name beside it.
+check_beside = lambda do |name|
+  found = checks.select { |c| c.parent.contents.any? { |d| d.is_a?(Shoes::Para) && d.text == name } }
+  assert_equal 1, found.size, "one check sits beside #{name}"
+  found.first
+end
+
+check_beside.call("Frances Johnson").trigger_click
+check_beside.call("Winston Niles Rumfoord").trigger_click
+assert_empty dialog_calls, "nothing is reported until the button is pressed"
+
+find_button("What's been checked?").trigger_click
+
+assert_equal [[:alert, "You selected: Frances Johnson, Winston Niles Rumfoord"]], dialog_calls,
+  "the button asks each check for checked? and names the checked ones"

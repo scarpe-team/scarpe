@@ -1,0 +1,47 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/simple/simple-downloader.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/for_playtest/shoes-contrib/simple/simple-downloader.sspec
+----------- app code
+Shoes.app do
+  background "#eee"
+  @list = stack do
+    para "Enter a URL to download:", :margin => [10, 8, 10, 0]
+    flow :margin => 10 do
+      @url = edit_line :width => -120
+      button "Download", :width => 120 do
+        @list.append do
+          stack do
+            background "#eee".."#ccd"
+            stack :margin => 10 do
+              dl = nil
+              para @url.text, " [", link("cancel") { dl.abort }, "]", :margin => 0
+              d = inscription "Beginning transfer.", :margin => 0
+              p = progress :width => 1.0, :height => 14
+              dl = download @url.text, :save => File.basename(@url.text),
+                :progress => proc { |dl| 
+                  d.text = "Transferred #{dl.transferred} of #{dl.length} bytes (#{dl.percent}%)"
+                  p.fraction = dl.percent * 0.01 },
+                :finish => proc { |dl| d.text = "Download completed" }
+            end
+          end
+        end
+      end
+    end
+  end
+end
+----------- test code
+# download() with :save, :progress and :finish. The corpus skipped it for want of network
+# access; a URL on a closed local port fails at once without leaving the machine, and
+# what the button appends does not wait for the download (spec/import_shoes_spec.rb, DRIVEN).
+assert_equal "Download", button().text
+url = "http://127.0.0.1:9/nothing.bin"
+edit_line().text = url
+button().trigger_click
+assert_includes paras.map(&:text), "#{url} [cancel]", "the URL and its cancel link"
+assert_equal "Beginning transfer.", inscription().text
+assert_equal 0.0, progress().fraction, "a bar that has not moved yet"

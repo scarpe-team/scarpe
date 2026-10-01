@@ -1,0 +1,13 @@
+---
+manual: background.to_pattern
+lines: [2799, 2803]
+testability: api
+display: any
+ledger: D9
+----------- app code
+Shoes.app do
+  @stripe = background red, height: 50
+end
+----------- test code
+pattern = background("@stripe").to_pattern
+assert_kind_of Shoes::Pattern, pattern, "to_pattern gives a Shoes::Pattern"

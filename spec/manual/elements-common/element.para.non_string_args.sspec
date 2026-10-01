@@ -1,0 +1,12 @@
+---
+manual: element.para.non_string_args
+lines: [517, 523]
+testability: api
+display: any
+ledger: F11
+----------- app code
+Shoes.app do
+  @count = para 5
+end
+----------- test code
+assert_equal "5", para("@count").text, "a non-String argument shows in text form"

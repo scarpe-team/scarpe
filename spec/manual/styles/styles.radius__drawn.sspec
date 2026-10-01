@@ -1,0 +1,18 @@
+---
+manual: styles.radius
+lines: [1348, 1354]
+testability: visual
+display: native
+ledger: E1
+----------- app code
+Shoes.app width: 300, height: 200 do
+  fill black
+  @o = oval left: 50, top: 50, radius: 40
+end
+----------- test code
+box = layout_of(oval)
+assert_in_delta 80, box.w, 0.5, "radius: 40 draws an oval 80 pixels wide"
+assert_in_delta 80, box.h, 0.5, "and 80 pixels high"
+dark = ->(x, y) { pixel_at(x, y).first(3).sum < 200 }
+assert dark.call(127, 90), "the circle reaches almost to x 130"
+refute dark.call(134, 90), "and stops there"

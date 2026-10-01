@@ -1,0 +1,18 @@
+---
+manual: timers.stop
+lines: [3425, 3428]
+testability: api
+display: native
+ledger: M13
+----------- app code
+$fired = 0
+Shoes.app do
+  $timer = timer(0.1) { $fired += 1 }
+end
+----------- test code
+advance 0.3
+assert_equal 1, $fired
+
+$timer.stop
+advance 0.3
+assert_equal 1, $fired, "stopping a timer that already happened changes nothing"

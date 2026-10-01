@@ -1,0 +1,21 @@
+---
+manual: image.formats_and_sources
+lines: [3107, 3109]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  @png = image "assets/red-40x30.png"
+  @jpeg = image "assets/blue-40x30.jpg"
+  @gif = image "assets/green-40x30.gif"
+end
+----------- test code
+{ "@png" => [255, 0, 0], "@jpeg" => [0, 0, 255], "@gif" => [0, 255, 0] }.each do |name, colour|
+  box = layout_of(image(name))
+  assert_in_delta 40, box.w, 0.5, "#{name} shows at the file's own width"
+  assert_in_delta 30, box.h, 0.5, "#{name} shows at the file's own height"
+
+  actual = pixel_at((box.x + box.w / 2).floor, (box.y + box.h / 2).floor).first(3)
+  close = colour.zip(actual).all? { |want, got| (want - got).abs <= 8 }
+  assert close, "#{name} is decoded: wanted #{colour.inspect}, got #{actual.inspect}"
+end

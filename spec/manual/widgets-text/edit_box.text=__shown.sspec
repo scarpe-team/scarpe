@@ -1,0 +1,18 @@
+---
+manual: edit_box.text=
+lines: [3053, 3055]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  @box = edit_box
+end
+----------- test code
+edit_box.text = "Essays"
+
+# A click below the only line of text puts the caret at its end.
+r = layout_of(edit_box)
+click_at r.x + r.w - 6, r.y + r.h - 6
+type_text ", even!"
+
+assert_equal "Essays, even!", edit_box.text, "the box was showing the string, so typing continues it"

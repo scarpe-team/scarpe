@@ -1,0 +1,22 @@
+---
+manual: element.edit_box.block
+lines: [3017, 3030]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  edit_box do |e|
+    @counter.text = e.text.size
+  end
+  @counter = strong("0")
+  para @counter, " characters"
+end
+----------- test code
+assert_equal "0 characters", para.text
+
+click_on edit_box
+type_text "hi"
+assert_equal "2 characters", para.text, "typing into the box runs the block"
+
+press_key :backspace
+assert_equal "1 characters", para.text, "and so does deleting"

@@ -1,0 +1,16 @@
+---
+manual: rules.blocks.app_block_changes_self
+lines: [203, 215]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  self.stack do
+    self.para "First"
+    self.para "Second"
+    self.para "Third"
+  end
+end
+----------- test code
+assert_equal %w[First Second Third], stack.contents.map(&:text),
+  "spelling out self changes nothing: stack and para are sent to the App"

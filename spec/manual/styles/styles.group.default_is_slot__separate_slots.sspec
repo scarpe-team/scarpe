@@ -1,0 +1,24 @@
+---
+manual: styles.group.default_is_slot
+lines: [3296, 3308]
+testability: interactive
+display: any
+ledger: G6
+----------- app code
+Shoes.app do
+  stack do
+    para "Among these films, which do you prefer?"
+    flow { @tea = radio; para "The Taste of Tea by Katsuhito Ishii" }
+    flow { @kin = radio; para "Kin-Dza-Dza by Georgi Danelia" }
+    flow { @heaven = radio; para "Children of Heaven by Majid Majidi" }
+  end
+end
+----------- test code
+tea = radio("@tea")
+kin = radio("@kin")
+
+tea.trigger_click
+kin.trigger_click
+
+assert kin.checked?, "the second radio is marked"
+assert tea.checked?, "radios in different slots with no :group are not grouped, so both stay marked"

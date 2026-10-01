@@ -1,0 +1,16 @@
+---
+manual: events.overview
+lines: [2163, 2165]
+testability: api
+display: any
+ledger: H8
+----------- app code
+Shoes.app do
+  $slot = stack { para "listening" }
+end
+----------- test code
+%i[start finish].each do |event|
+  $slot.public_send(event) { }
+rescue NoMethodError => e
+  flunk "a slot takes a #{event} block: #{e.message}"
+end

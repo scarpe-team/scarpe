@@ -1,0 +1,15 @@
+---
+manual: textblock.text=
+lines: [3400, 3402]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @status = para "Before"
+end
+----------- test code
+shown = -> { layout_tree.find { |n| n[:id] == para.linkable_id }&.fetch(:text, nil) }
+assert_equal "Before", shown.call
+
+para.text = "After, and longer"
+assert_equal "After, and longer", shown.call, "the window shows the new text"

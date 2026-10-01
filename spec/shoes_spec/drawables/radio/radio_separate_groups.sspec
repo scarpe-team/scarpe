@@ -1,0 +1,36 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/drawables/radio/radio_separate_groups.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  @a1 = radio :group_a
+  @a2 = radio :group_a
+  @b1 = radio :group_b
+  @b2 = radio :group_b
+end
+----------- test code
+a1 = radio("@a1")
+a2 = radio("@a2")
+b1 = radio("@b1")
+b2 = radio("@b2")
+
+# Click one in each group — both should stay checked (independent groups)
+a1.trigger_click
+b1.trigger_click
+assert_equal true, a1.checked?, "a1 should still be checked — different group from b1"
+assert_equal true, b1.checked?, "b1 should be checked"
+
+# Switch within group_a — group_b should be unaffected
+a2.trigger_click
+assert_equal false, a1.checked?, "a1 should be unchecked after clicking a2"
+assert_equal true, a2.checked?, "a2 should be checked"
+assert_equal true, b1.checked?, "b1 should be unaffected by group_a changes"
+
+# Switch within group_b — group_a should be unaffected
+b2.trigger_click
+assert_equal true, a2.checked?, "a2 should be unaffected by group_b changes"
+assert_equal false, b1.checked?, "b1 should be unchecked after clicking b2"
+assert_equal true, b2.checked?, "b2 should be checked"

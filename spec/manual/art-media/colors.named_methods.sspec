@@ -1,0 +1,21 @@
+---
+manual: colors.named_methods
+lines: [1572, 1574]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $at_top = tomato
+  stack do
+    $in_stack = tomato
+    flow { $in_flow = tomato }
+  end
+end
+----------- test code
+red, green, blue, alpha = $at_top.to_a
+assert_equal [255, 99, 71], [red, green, blue], "tomato is the X11 tomato"
+assert_operator red, :>, green + blue, "tomato is a nice reddish colour"
+assert_equal 255, alpha, "a named colour with no alpha is opaque"
+
+assert_equal $at_top.to_a, $in_stack.to_a, "tomato works the same inside a stack"
+assert_equal $at_top.to_a, $in_flow.to_a, "and inside a flow inside that stack"

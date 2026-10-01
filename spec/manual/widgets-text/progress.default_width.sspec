@@ -1,0 +1,12 @@
+---
+manual: progress.default_width
+lines: [3245, 3246]
+testability: visual
+display: native
+ledger: C4
+----------- app code
+Shoes.app do
+  @bar = progress
+end
+----------- test code
+assert_in_delta 200, layout_of(progress).w, 2, "a simple progress bar is 200 pixels wide (ledger C4)"

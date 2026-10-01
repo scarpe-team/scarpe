@@ -1,0 +1,17 @@
+---
+manual: textblock.replace
+lines: [3390, 3392]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @tag = tagline "Old ", strong("styled"), " words"
+end
+----------- test code
+tag = drawable("@tag")
+assert_equal "Old styled words", tag.text
+
+tag.replace "Brand new"
+
+assert_equal "Brand new", tag.text, "replace swaps the text of the whole block"
+assert_equal ["Brand new"], tag.contents, "no styled piece of the old text survives"

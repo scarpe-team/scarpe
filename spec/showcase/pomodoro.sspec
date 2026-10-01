@@ -1,0 +1,43 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/showcase/pomodoro.rb")
+----------- test code
+digits = para("@digits")
+caption = para("@caption")
+start = para("@start_label")
+assert_equal ["25:00", "FOCUS", "Start"], [digits.text, caption.text, start.text]
+
+click_on "Start"
+advance 3
+assert_equal "24:57", digits.text, "the clock counts down once a second"
+assert_equal "Pause", start.text
+
+press_key " "
+advance 2
+assert_equal "24:57", digits.text, "space pauses it"
+assert_equal "Resume", start.text
+
+click_on "Short break"
+assert_equal ["05:00", "SHORT BREAK", "Start"], [digits.text, caption.text, start.text]
+
+# A quarter of the break gone: the green arc has pulled back to three o'clock and
+# runs on clockwise to twelve, so six o'clock is green and half past one is bare.
+# (A second at a time: one long advance never reads what the display sends back,
+# and a full pipe wedges it.)
+click_on "Start"
+advance 0.5
+75.times { advance 1 }
+assert_equal "03:45", digits.text
+advance 1
+green = [79, 157, 126]
+track = [228, 221, 211]
+near = ->(pixel, color) { pixel.first(3).zip(color).all? { |got, want| (got - want).abs <= 12 } }
+six = pixel_at(220, 262 + 124)
+half_past_one = pixel_at(220 + 124 * Math.cos(-Math::PI / 4), 262 + 124 * Math.sin(-Math::PI / 4))
+assert near.(six, green), "six o'clock: #{six.inspect}"
+assert near.(half_past_one, track), "half past one: #{half_past_one.inspect}"
+
+224.times { advance 1 }
+assert_equal ["25:00", "FOCUS", "Start"], [digits.text, caption.text, start.text], "a finished break goes back to focus"

@@ -1,0 +1,25 @@
+---
+manual: shape.element
+lines: [3363, 3366]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @ring = oval 10, 10, 50
+end
+----------- test code
+ring = oval("@ring")
+
+ring.move(40, 60)
+assert_equal [40, 60], [ring.left, ring.top], "move works on a shape"
+
+ring.hide
+assert ring.hidden, "hide works on a shape"
+ring.show
+refute ring.hidden, "show works on a shape"
+
+ring.style(width: 80)
+assert_equal 80, ring.width, "style works on a shape"
+
+ring.remove
+assert_empty ovals, "remove takes the shape out of the app"

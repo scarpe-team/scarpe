@@ -1,0 +1,19 @@
+---
+manual: events.finish
+lines: [2195, 2198]
+testability: api
+display: any
+ledger: B5
+----------- app code
+$finished = []
+Shoes.app do
+  $slot = stack { para "going away" }
+  $slot.finish { |slot| $finished << slot }
+  @remove = button("Remove") { $slot.remove }
+end
+----------- test code
+assert_empty $finished, "finish waits for the slot to be removed"
+
+button("@remove").trigger_click
+
+assert_equal [$slot], $finished, "removing the slot fires finish with the slot"

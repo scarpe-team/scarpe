@@ -1,0 +1,19 @@
+---
+manual: common.width.nil_resets
+lines: [2749, 2750]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @b = button "Click me"
+end
+----------- test code
+natural = layout_of(button("@b")).w
+
+button("@b").style(width: 300)
+wait_frames
+assert_in_delta 300, layout_of(button("@b")).w, 0.5
+
+button("@b").style(width: nil)
+wait_frames
+assert_in_delta natural, layout_of(button("@b")).w, 0.5, "with the setting emptied Shoes picks the width again"

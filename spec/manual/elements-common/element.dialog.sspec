@@ -1,0 +1,23 @@
+---
+manual: element.dialog
+lines: [1958, 1961]
+testability: api
+display: any
+ledger: A3
+----------- app code
+Shoes.app title: "The Owner" do
+  button "Ask me" do
+    dialog title: "A question" do
+      para "Inside the dialog"
+    end
+  end
+end
+----------- test code
+main = Shoes.APPS.first
+assert_equal 1, Shoes.APPS.size, "no dialog before the button is pressed"
+
+find_button("Ask me").trigger_click
+
+assert_equal 2, Shoes.APPS.size, "dialog opens a new app window"
+assert_same main, Shoes.APPS.last.owner, "like window, the launching app owns it"
+assert_equal "Inside the dialog", para.text, "its block fills the new window"

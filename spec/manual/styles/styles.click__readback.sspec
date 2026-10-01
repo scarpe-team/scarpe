@@ -1,0 +1,13 @@
+---
+manual: styles.click
+lines: [1144, 1151]
+testability: api
+display: any
+ledger: G10
+----------- app code
+Shoes.app do
+  @go = button "Go"
+  @go.click { |go| go }
+end
+----------- test code
+assert_kind_of Proc, button.style[:click], "the click handler lives in the :click style"

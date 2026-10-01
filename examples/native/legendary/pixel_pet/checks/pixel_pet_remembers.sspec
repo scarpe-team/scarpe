@@ -1,0 +1,24 @@
+---
+display: native
+testability: interactive
+----------- app code
+require "json"
+require "fileutils"
+file = File.join(Dir.home, "Library", "Application Support", "Pixel Pet", "pet.json")
+FileUtils.mkdir_p(File.dirname(file))
+now = Time.now.to_i
+File.write(file, JSON.generate("name" => "Biscuit", "born" => now - 3 * 86_400 - 60, "seen" => now - 3 * 3600,
+  "food" => 90.0, "joy" => 90.0, "energy" => 50.0, "asleep" => false))
+load File.join(Scarpe::Native::ROOT, "examples/native/legendary/pixel_pet/pixel_pet.rb")
+----------- test code
+require "json"
+pet = Shoes.APPS.first.instance_variable_get(:@pet)
+file = File.join(Dir.home, "Library", "Application Support", "Pixel Pet", "pet.json")
+
+assert_equal "Biscuit missed you. You were away 3 hours.", para("@status").text
+assert_equal ["BISCUIT", "day 4"], [para("@title").text, para("@age").text]
+refute stack("@panel").style[:hidden], "no egg this time: it knows you"
+assert_in_delta 66, pet["food"], 0.5, "three hours of getting hungry"
+assert_in_delta 72, pet["joy"], 0.5, "and a little bored"
+assert_in_delta 32, pet["energy"], 0.5, "and tired"
+assert_in_delta Time.now.to_i, JSON.parse(File.read(file))["seen"], 5, "and it notes that you came back"

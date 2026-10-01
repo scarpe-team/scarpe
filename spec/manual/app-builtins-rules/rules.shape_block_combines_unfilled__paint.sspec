@@ -1,0 +1,25 @@
+---
+manual: rules.shape_block_combines_unfilled
+lines: [392, 408]
+testability: visual
+display: native
+ledger: M21
+----------- app code
+# Two ovals, far apart, so an interior pixel and an outline pixel can be told apart.
+# The manual's hundred ovals put an outline within a pixel of every interior point.
+Shoes.app do
+  background white
+  fill black(0.1)
+  shape do
+    oval 20, 20, 100
+    oval 160, 20, 100
+  end
+end
+----------- test code
+interior = pixel_at(70, 70)
+outline = (18..22).map { |x| pixel_at(x, 70)[0] }.min
+outside = pixel_at(140, 70)
+
+assert interior[0, 3].any? { |channel| channel < 250 }, "the combined shape paints its region (M21): #{interior.inspect}"
+assert_operator outline, :<, 180, "and strokes its outlines"
+assert_equal [255, 255, 255], outside[0, 3], "and leaves the gap between the ovals alone"

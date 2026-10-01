@@ -1,0 +1,51 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/shoes3-tests/editline/editline.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/working/shoes3-tests/editline/editline.sspec
+- cases/scarpe_examples/examples/legacy/for_playtest/shoes3-tests/editline/editline.sspec
+----------- app code
+Shoes.app height: 300, width: 300 do
+  stack do
+    flow do
+      para "Normal "
+       @el1 = edit_line "Normal", tooltip: "Normal"
+    end
+    flow do 
+      para "Font  "
+      @el2 = edit_line "Font Is?", font: "Monaco 9", tooltip: "monaco 9"
+    end
+    flow do
+      para "Stroke "
+      @el3 = edit_line "Stroke", stroke: red, tooltip: "red"
+    end
+    flow do
+      para "Both"
+      @el4 = edit_line "Stroke and Font", stroke: green, font: "Arial 14",
+       tooltip: "green arial 14"
+    end
+    button "change contents" do
+      @el1.text = "Changed!"
+      @el2.text = "Changed!"
+      @el3.text = "Changed!"
+      @el4.text = "Changed!"
+    end
+  end
+end
+----------- test code
+# Test the editline demo UI elements
+all_paras = paras()
+all_edit_lines = edit_lines()
+assert_equal "Normal ", all_paras[0].text
+assert_equal "Font  ", all_paras[1].text
+assert_equal "Stroke ", all_paras[2].text
+assert_equal "Both", all_paras[3].text
+assert_equal "change contents", button().text
+# Test edit_line initial values
+assert_equal "Normal", all_edit_lines[0].text
+assert_equal "Font Is?", all_edit_lines[1].text
+assert_equal "Stroke", all_edit_lines[2].text
+assert_equal "Stroke and Font", all_edit_lines[3].text

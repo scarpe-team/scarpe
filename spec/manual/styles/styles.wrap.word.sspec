@@ -1,0 +1,23 @@
+---
+manual: styles.wrap.word
+lines: [1552, 1554]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 500, height: 300 do
+  flow { @word = para "HHHHHH", size: 20 }
+  @box = stack width: 400 do
+    @text = para "HHHHHH HHHHHH", wrap: "word", size: 20
+  end
+end
+----------- test code
+word = layout_of(para("@word"))
+stack("@box").style(width: (word.w * 1.5).round)
+wait_frames
+text = layout_of(para("@text"))
+first_line = ((text.y + word.h * 0.3).round..(text.y + word.h * 0.7).round).to_a
+ink_on_first_line = lambda do |from, to|
+  (from.floor...to.ceil).select { |x| first_line.any? { |y| pixel_at(x, y).first(3).sum < 384 } }
+end
+assert_operator text.h, :>, word.h * 1.6, "the two words no longer fit on one line"
+assert_empty ink_on_first_line.call(text.x + word.w + 3, text.x + text.w), "the first line holds the whole first word and nothing of the second"

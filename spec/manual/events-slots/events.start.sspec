@@ -1,0 +1,21 @@
+---
+manual: events.start
+lines: [2286, 2289]
+testability: api
+display: native
+ledger: H8
+----------- app code
+$started = []
+Shoes.app width: 400, height: 300 do
+  $slot = stack width: 100, height: 50 do
+    start { |slot| $started << slot }
+  end
+  @redraw = button("Redraw") { $slot.hide; $slot.show }
+end
+----------- test code
+wait_frames 1
+assert_equal [$slot], $started, "start ran when the slot was first drawn, handed the slot"
+
+click_on button("@redraw")
+wait_frames 2
+assert_equal [$slot], $started, "drawing it again does not start it again"

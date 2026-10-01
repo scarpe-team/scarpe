@@ -1,0 +1,13 @@
+---
+manual: styles.text
+lines: [1470, 1475]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @line = edit_line text: "hello"
+  @box = edit_box text: "one\ntwo"
+end
+----------- test code
+assert_equal "hello", edit_line.text, ":text fills an edit_line"
+assert_equal "one\ntwo", edit_box.text, ":text fills an edit_box, newlines and all"

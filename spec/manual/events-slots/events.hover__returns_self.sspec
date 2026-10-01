@@ -1,0 +1,12 @@
+---
+manual: events.hover
+lines: [2200, 2200]
+testability: api
+display: any
+ledger: B6
+----------- app code
+Shoes.app do
+  $slot = stack { para "hover me" }
+end
+----------- test code
+assert_same $slot, $slot.hover { }, "hover { } returns self"

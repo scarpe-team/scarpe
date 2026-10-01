@@ -1,0 +1,23 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/stack.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/working/shoes_manual/stack.sspec
+----------- app code
+Shoes.app do
+   stack do
+     para "First"
+     para "Second"
+     para "Third"
+   end
+ end
+----------- test code
+# Verify stack displays paras - use paras() to get all
+ps = paras()
+assert_equal 3, ps.length, "Should have 3 paras"
+assert_equal "First", ps[0].text
+assert_equal "Second", ps[1].text
+assert_equal "Third", ps[2].text

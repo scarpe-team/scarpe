@@ -1,0 +1,27 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/working/shoes_manual/self_check.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/self_check.sspec
+----------- app code
+# self is same throughout due to the use of instance_eval. Caller
+# is Shoes instance.
+
+Shoes.app do
+ self.stack do
+   self.para "First"
+   self.para "Second"
+   self.para "Third"
+ end
+end
+----------- test code
+# Tests that self references work in Shoes.app block
+# self.stack and self.para should work same as stack/para
+all_paras = paras()
+assert_equal 3, all_paras.length, "Should have 3 paras"
+assert_equal "First", all_paras[0].text
+assert_equal "Second", all_paras[1].text
+assert_equal "Third", all_paras[2].text

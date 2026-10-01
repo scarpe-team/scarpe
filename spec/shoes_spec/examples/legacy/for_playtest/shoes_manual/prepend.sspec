@@ -1,0 +1,21 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/prepend.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/for_playtest/shoes_manual/prepend.sspec
+----------- app code
+#!ruby
+ Shoes.app do
+   @slot = stack { para 'Good Morning' }
+   timer 3 do
+     @slot.prepend { para "Your car is ready." }
+   end
+ end
+----------- test code
+# Verify initial para exists (prepend adds after 3 second timer)
+assert stacks().length >= 1, "Expected a stack container"
+assert paras().length >= 1, "Expected initial para"
+assert_equal "Good Morning", para().text

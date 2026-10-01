@@ -1,0 +1,18 @@
+---
+manual: builtins.gray
+lines: [790, 798]
+testability: api
+display: any
+ledger: M11
+----------- app code
+Shoes.app do
+  black = gray(0.0)
+  white = gray(1.0)
+  $greys = { black: black, white: white, whole: gray(100), faded: gray(0.5, 0.5), default: gray }
+end
+----------- test code
+assert_equal [0, 0, 0, 255], $greys[:black].to_a, "gray(0.0) is black"
+assert_equal [255, 255, 255, 255], $greys[:white].to_a, "gray(1.0) is white"
+assert_equal [100, 100, 100, 255], $greys[:whole].to_a, "a whole number is a 0-255 level"
+assert_equal [128, 128, 128, 128], $greys[:faded].to_a, "the optional second number is alpha"
+assert_equal [128, 128, 128, 255], $greys[:default].to_a, "with no level, gray is the middle grey (M11)"

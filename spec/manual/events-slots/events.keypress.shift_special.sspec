@@ -1,0 +1,14 @@
+---
+manual: events.keypress.shift_special
+lines: [2216, 2217]
+testability: interactive
+display: native
+ledger: H1
+----------- app code
+$keys = []
+Shoes.app do
+  keypress { |key| $keys << key }
+end
+----------- test code
+press_key :shift_f1
+assert_equal [:shift_f1], $keys, "Shift-F1 arrives as :shift_f1"

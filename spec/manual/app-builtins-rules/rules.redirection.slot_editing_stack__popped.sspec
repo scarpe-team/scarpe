@@ -1,0 +1,17 @@
+---
+manual: rules.redirection.slot_editing_stack
+lines: [251, 254]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @column = stack do
+    para "Inside"
+  end
+  @after = para "After"
+end
+----------- test code
+assert_equal ["Inside"], stack("@column").contents.map(&:text), "the stack holds only what its block drew"
+assert_equal [stack("@column").linkable_id, para("@after").linkable_id],
+  Shoes.APPS.first.document_root.contents.map(&:linkable_id),
+  "the stack is popped when its block ends, so the next para goes back to the top slot"

@@ -1,0 +1,13 @@
+---
+manual: builtins.confirm
+lines: [707, 717]
+testability: dialog
+display: any
+dialogs: {confirm: true}
+----------- app code
+if confirm("Draw a circle?")
+ Shoes.app{ oval top: 0, left: 0, radius: 50 }
+end
+----------- test code
+assert_equal [[:confirm, "Draw a circle?"]], dialog_calls, "confirm asks its question"
+assert_equal 1, ovals.size, "a yes answer made confirm return true, so the circle was drawn"

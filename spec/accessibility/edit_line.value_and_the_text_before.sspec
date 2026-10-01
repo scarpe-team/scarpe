@@ -1,0 +1,15 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: visual
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  para "Name"
+  @name = edit_line "Nick"
+end
+----------- test code
+node = a11y_nodes.find { |n| n[:role] == "text_input" }
+assert_equal "Name", node[:name], "named by the text before it"
+assert_equal "Nick", node[:value]
+assert_equal %w[click focus set_value], node[:actions]

@@ -1,0 +1,15 @@
+---
+manual: element.edit_line.block
+lines: [1981, 1982]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  $seen = []
+  @line = edit_line { $seen << @line.text }
+end
+----------- test code
+click_on edit_line
+type_text "hi"
+
+assert_equal ["h", "hi"], $seen, "the block runs on every keystroke"

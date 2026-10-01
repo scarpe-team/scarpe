@@ -1,0 +1,14 @@
+---
+manual: radio.checked?
+lines: [3339, 3342]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @film = radio
+end
+----------- test code
+assert_equal false, radio.checked?, "an unmarked radio answers false"
+
+radio.trigger_click
+assert_equal true, radio.checked?, "true means yes, it is checked"

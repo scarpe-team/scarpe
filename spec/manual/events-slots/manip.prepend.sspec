@@ -1,0 +1,17 @@
+---
+manual: manip.prepend
+lines: [2349, 2363]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @slot = stack { para 'Good Morning' }
+  @go = button("Go") { @slot.prepend { para "Your car is ready." } }
+end
+----------- test code
+assert_equal ["Good Morning"], stack("@slot").contents.map(&:text)
+
+button("@go").trigger_click
+
+assert_equal ["Your car is ready.", "Good Morning"], stack("@slot").contents.map(&:text),
+  "the para is added at the beginning of the slot"

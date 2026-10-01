@@ -1,0 +1,16 @@
+---
+manual: builtins.ask_open_file
+lines: [657, 669]
+testability: dialog
+display: any
+dialogs: {ask_open_file: "notes.txt"}
+----------- app code
+File.write("notes.txt", "Shoes read me from disk")
+
+filename = ask_open_file
+Shoes.app do
+  para File.read(filename)
+end
+----------- test code
+assert_equal [[:ask_open_file]], dialog_calls, "ask_open_file shows the Open File window"
+assert_equal "Shoes read me from disk", para.text, "it hands back the chosen file's name"

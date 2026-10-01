@@ -1,0 +1,18 @@
+---
+manual: art.oval.style_method
+lines: [1747, 1747]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @circle = oval 10, 10, 50
+end
+----------- test code
+circle = oval("@circle")
+assert_equal 10, circle.left
+
+circle.style(left: 40, width: 80)
+
+assert_equal 40, circle.left, "style changed left"
+assert_equal 80, circle.width, "style changed width"
+assert_equal 40, circle.style[:left], "and style reads the new value back"

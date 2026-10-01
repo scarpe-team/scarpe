@@ -1,0 +1,20 @@
+---
+manual: textblock.replace
+lines: [3390, 3392]
+testability: api
+display: native
+----------- app code
+# The animate example, manual 1886-1894.
+Shoes.app do
+  @counter = para "STARTING"
+  animate(24) do |frame|
+    @counter.replace "FRAME #{frame}"
+  end
+end
+----------- test code
+assert_equal "STARTING", para.text
+
+advance 1
+
+assert_match(/\AFRAME \d+\z/, para.text, "each frame replaces the whole paragraph")
+refute_equal "FRAME 0", para.text, "and keeps replacing it as frames go by"

@@ -1,0 +1,23 @@
+---
+manual: app.mouse
+lines: [984, 998]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  @p = para
+  animate do
+    button, left, top = self.mouse
+    @p.replace "mouse: #{button}, #{left}, #{top}"
+  end
+end
+----------- test code
+move_mouse 30, 40
+assert_equal [0, 30, 40], Shoes.APPS.first.mouse, "mouse is [button, left, top], 0 while no button is down"
+
+advance 0.3
+assert_equal "mouse: 0, 30, 40", para.text, "the manual's animation reads it every frame"
+
+move_mouse 120, 75
+advance 0.3
+assert_equal "mouse: 0, 120, 75", para.text, "and follows the cursor"

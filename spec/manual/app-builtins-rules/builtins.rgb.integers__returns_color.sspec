@@ -1,0 +1,14 @@
+---
+manual: builtins.rgb.integers
+lines: [815, 815]
+testability: api
+display: any
+ledger: D1
+----------- app code
+Shoes.app do
+  $blueviolet = rgb(138, 43, 226)
+end
+----------- test code
+assert_kind_of Shoes::Color, $blueviolet, "rgb returns a Shoes::Color"
+assert_equal 138, $blueviolet.red
+assert_equal 255, $blueviolet.alpha

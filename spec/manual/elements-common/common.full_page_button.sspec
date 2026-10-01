@@ -1,0 +1,21 @@
+---
+manual: common.full_page_button
+lines: [2698, 2707]
+testability: visual
+display: native
+ledger: C1
+----------- app code
+Shoes.app do
+  # A button which take up the whole page
+  @b = button "All of it", width: 1.0, height: 1.0
+
+  # When clicked, show the styles
+  @b.click { alert(@b.style.inspect) }
+end
+----------- test code
+app = Shoes.APPS.first
+box = layout_of(button("@b"))
+
+assert_equal [0, 0], [box.x.round, box.y.round], "the button starts at the page's corner"
+assert_in_delta app.width, box.w, 0.5, "and is as wide as the page"
+assert_in_delta app.height, box.h, 0.5, "and as high"

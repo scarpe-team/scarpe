@@ -1,0 +1,21 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/kernel/exit.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  button "Ragequit" do
+    exit
+  end
+end
+----------- test code
+# Tests exit() kernel method via button click
+# WARNING: Cannot safely trigger the button - would terminate test runner
+#
+# We can verify the button exists with correct text
+assert_equal "Ragequit", button().text
+
+# DO NOT trigger_click - exit() would terminate the test process
+# Testing exit() properly requires process isolation or exit trapping

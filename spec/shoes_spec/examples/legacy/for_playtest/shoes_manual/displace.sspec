@@ -1,0 +1,30 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/displace.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+#!ruby
+ Shoes.app do
+   flow margin: 12 do
+     # Set up three buttons
+     button "One"
+     @two = button "Two"
+     button "Three"
+
+     # Bounce the second button
+     animate do |i|
+       @two.displace(0, (Math.sin(i) * 6).to_i)
+     end
+   end
+ end
+----------- test code
+# Tests displace to animate button position
+# Verifies buttons exist
+
+# Should have 3 buttons
+buttons = Shoes::App.find_drawables_by(Shoes::Button)
+assert_equal 3, buttons.length, "Should have 3 buttons"
+
+assert true, "Displace test completed"

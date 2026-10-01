@@ -1,0 +1,26 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/para/hide_and_show.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  @banner = banner "This is a big banner!", hidden: true
+  para link("Hide banner") {
+    @banner.hide
+  }
+  para link("Show banner") {
+    @banner.show
+  }
+end
+----------- test code
+# banner() creates a Para with size: :banner, so we use para() finder
+b = para("@banner")
+
+# Verify initial text
+assert_equal "This is a big banner!", b.text
+
+# Show and hide should work without error
+b.show
+b.hide

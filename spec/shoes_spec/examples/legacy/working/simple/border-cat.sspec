@@ -1,0 +1,28 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/working/simple/border-cat.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/for_playtest/simple/border-cat.sspec
+- cases/scarpe_examples/legacy/working/simple/border-cat.sspec
+- cases/scarpe_examples/examples/legacy/for_playtest/simple/border-cat.sspec
+----------- app code
+Shoes.app do
+  stack :width => 50 do
+    border purple, :strokewidth => 5
+    para "=^.^=", :stroke => green
+  end
+end
+----------- test code
+# Verify stack exists with 50px width
+s = stack()
+assert_equal 50, s.width
+
+# Verify border exists
+b = border()
+refute_nil b
+
+# Verify cat face para
+assert_equal "=^.^=", para().text

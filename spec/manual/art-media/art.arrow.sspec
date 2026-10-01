@@ -1,0 +1,30 @@
+---
+manual: art.arrow
+lines: [1672, 1674]
+testability: visual
+display: native
+ledger: E5
+----------- app code
+Shoes.app width: 300, height: 200 do
+  fill red
+  nostroke
+  arrow 100, 100, 40
+end
+----------- test code
+# E5 (Shoes 3's path): centred on (100, 100), pointing right, tip at (120, 100),
+# a head 0.42 w long and 0.8 w tall, a shaft 0.4 w tall back to x = 80.
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+red = [255, 0, 0]
+white = [255, 255, 255]
+
+paints.(100, 100, red, "the arrow covers its (left, top)")
+paints.(123, 100, white, "the tip stops half a width to the right")
+paints.(100, 118, white, "nothing more than 0.4 w below the middle")
+paints.(117, 100, red, "the head runs out to the tip")
+paints.(105, 110, red, "the head is taller than the shaft on the right")
+paints.(95, 110, white, "and only the shaft on the left, so the arrow points right")
+paints.(82, 100, red, "the shaft reaches back to half a width left of (left, top)")

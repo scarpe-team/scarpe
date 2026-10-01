@@ -1,0 +1,73 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/needs_deps/custom-list-box.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+require("observer")
+
+class Items
+  include Observable
+  
+  def initialize(array)
+    @array = array
+  end
+  
+  def method_missing(meth, *args, &block)
+    @array.send(meth, *args, &block)
+    changed
+    notify_observers(@array, meth, *args, &block)
+  end
+end
+
+class CustomListBox < Shoes::Widget
+  attr_accessor :items
+  
+  def initialize(options = {}, &block)
+    @lb = list_box options, &block
+    @items = Items.new(@lb.items)
+    @items.add_observer(self)
+  end
+  
+  def method_missing(meth, *args, &block)
+    if @lb.respond_to? meth
+      @lb.send(meth, *args, &block)
+    else
+      super
+    end
+  end
+  
+  def update(array, *call)
+    @lb.items = array
+  end
+end
+
+Shoes.app {
+  @p = para "Any selection?"
+  @l = custom_list_box :items => ["first", "second"], :choose => "first" do |n|
+    @p.replace "Selection is #{n.text}."
+  end
+  @e = edit_line
+
+  button "ok" do
+    @l.items << @e.text
+  end
+  
+  button "collect" do
+    @l.items.collect! { |n| n.reverse }
+  end
+}
+----------- test code
+# Custom list_box widget using the Observable pattern. The corpus stopped at
+# `skip "Requires Shoes::Widget and observer stdlib"`; both work, so the case drives it
+# (spec/import_shoes_spec.rb, DRIVEN).
+assert_equal "Any selection?", para().text
+assert_equal ["first", "second"], list_box().items
+list_box().trigger_change("second")
+assert_equal "Selection is second.", para().text
+edit_line().text = "third"
+find_button("ok").trigger_click
+assert_equal ["first", "second", "third"], list_box().items, "ok adds the edit line's text through the observer"
+find_button("collect").trigger_click
+assert_equal ["tsrif", "dnoces", "driht"], list_box().items, "collect reverses every item in place"

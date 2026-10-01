@@ -1,0 +1,23 @@
+---
+manual: timers.toggle
+lines: [3430, 3433]
+testability: api
+display: native
+ledger: M13
+----------- app code
+$frames = 0
+Shoes.app do
+  $animation = animate(10) { $frames += 1 }
+end
+----------- test code
+advance 0.55
+running = $frames
+assert_operator running, :>, 0
+
+$animation.toggle
+advance 0.55
+assert_equal running, $frames, "toggle stopped the running animation"
+
+$animation.toggle
+advance 0.55
+assert_operator $frames, :>, running, "toggle started it again"

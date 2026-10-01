@@ -1,0 +1,20 @@
+---
+manual: element.background.is_element
+lines: [1905, 1907]
+testability: api
+display: any
+ledger: C12
+----------- app code
+Shoes.app do
+  @box = stack do
+    @green = background green
+    @stripe = background red, height: 10
+    para "Two backgrounds, one box"
+  end
+end
+----------- test code
+backgrounds = stack("@box").contents.grep(Shoes::Background)
+
+assert_equal 2, backgrounds.size, "one box holds both backgrounds"
+assert_same background("@green").obj, backgrounds.first, "background returns the element it adds"
+assert_same background("@stripe").obj, backgrounds.last, "each call adds another, in order"

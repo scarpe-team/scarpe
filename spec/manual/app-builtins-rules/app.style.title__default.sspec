@@ -1,0 +1,12 @@
+---
+manual: app.style.title
+lines: [863, 870]
+testability: api
+display: any
+ledger: A1
+----------- app code
+Shoes.app do
+  para "No title was given"
+end
+----------- test code
+assert_equal "Shoes", Shoes.APPS.first.style[:title], "an app with no title is titled Shoes, as in Shoes 3"

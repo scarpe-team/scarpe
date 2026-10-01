@@ -1,0 +1,34 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/philippe_checked/button.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+#!ruby
+ Shoes.app do
+   button "OK!" do
+     append { para "Well okay then." }
+   end
+   button "Are you sure?" do
+     append { para "Your confidence is inspiring." }
+   end
+ end
+----------- test code
+# Test button.sspec - buttons that append paras on click
+
+# Initially there should be two buttons
+btns = buttons()
+assert_equal 2, btns.length, "Should have 2 buttons"
+assert_equal "OK!", btns[0].text
+assert_equal "Are you sure?", btns[1].text
+
+# Click OK button - should append "Well okay then."
+btns[0].trigger_click
+ps = paras()
+assert ps.length >= 1, "Clicking OK should append para"
+
+# Click the other button
+btns[1].trigger_click
+ps = paras()
+assert ps.length >= 2, "Clicking 'Are you sure?' should append para"

@@ -1,0 +1,19 @@
+---
+manual: styles.style_method
+lines: [1037, 1038]
+testability: api
+display: any
+----------- app code
+Shoes.app width: 400 do
+  @box = stack width: 100 do
+    para "inside"
+  end
+end
+----------- test code
+box = stack("@box")
+assert_equal 100, box.style[:width], "the slot starts at the width it was created with"
+
+box.style(width: 250)
+
+assert_equal 250, box.style[:width], "style(hash) works on a slot, not only on elements"
+assert_equal 250, box.width, "the slot's width follows the new style"

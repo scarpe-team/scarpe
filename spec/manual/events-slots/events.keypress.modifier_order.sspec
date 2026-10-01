@@ -1,0 +1,14 @@
+---
+manual: events.keypress.modifier_order
+lines: [2219, 2221]
+testability: interactive
+display: native
+ledger: H1
+----------- app code
+$keys = []
+Shoes.app do
+  keypress { |key| $keys << key }
+end
+----------- test code
+press_key :shift_control_alt_page_up
+assert_equal [:control_shift_alt_page_up], $keys, "the modifiers come out as control, shift, alt, whatever order they went down in"

@@ -1,0 +1,34 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/shoes3-tests/wheel/wheel1.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+  stack height: 200 do
+    click do |b,l,t|
+     @p.replace "Stack clicked"
+    end
+    @p = para "None"
+    flow width: 200 do 
+      para "Flow 1"
+      wheel do |d,l,t| 
+       @p.replace  "Flow 1 wheel #{d}"
+      end
+    end
+    flow width: 200 do
+      para "Flow 2"
+      click do |b,l,t|
+       @p.replace "Flow 2 clicked"
+      end
+    end
+  end
+  wheel {|d,l,t,mods | @p.replace "default slot wheel #{d} #{mods}"}
+end
+----------- test code
+# Test the mouse wheel demo UI
+all_paras = paras()
+assert_equal "None", all_paras[0].text
+assert_equal "Flow 1", all_paras[1].text
+assert_equal "Flow 2", all_paras[2].text

@@ -1,0 +1,18 @@
+---
+manual: edit_line.text
+lines: [3097, 3099]
+testability: api
+display: any
+ledger: M5
+----------- app code
+Shoes.app do
+  @line = edit_line
+  @preset = edit_line "hi"
+end
+----------- test code
+assert_equal "hi", edit_line("@preset").text, "text returns the line's characters (ledger M5)"
+
+line = edit_line("@line")
+line.trigger_change("typed words")
+assert_kind_of String, line.text, "a String, not the edit line"
+assert_equal "typed words", line.text, "holding what has been typed"

@@ -1,0 +1,20 @@
+---
+manual: colors.usage
+lines: [1568, 1570]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 300, height: 200 do
+  stack left: 20, top: 20, width: 100, height: 100 do
+    border navy, strokewidth: 10
+  end
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(25, 70, [0, 0, 128], "a named colour strokes a border")
+paints.(70, 70, [255, 255, 255], "the middle of a bordered slot is not painted")

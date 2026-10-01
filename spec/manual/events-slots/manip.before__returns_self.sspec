@@ -1,0 +1,13 @@
+---
+manual: manip.before
+lines: [2320, 2320]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $slot = stack { $last = para "last" }
+  @go = button("Go") { $returned = $slot.before($last) { para "first" } }
+end
+----------- test code
+button("@go").trigger_click
+assert_same $slot, $returned, "before returns self"

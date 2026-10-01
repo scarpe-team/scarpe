@@ -1,0 +1,16 @@
+---
+manual: styles.leading
+lines: [1286, 1286]
+testability: visual
+display: native
+ledger: F10
+----------- app code
+Shoes.app width: 400, height: 300 do
+  stack width: 300 do
+    @none = para "one\ntwo", leading: 0
+    @default = para "one\ntwo"
+  end
+end
+----------- test code
+extra = layout_of(para("@default")).h - layout_of(para("@none")).h
+assert_in_delta 4, extra, 1, "with no :leading the two lines are 4 pixels further apart than with leading: 0"

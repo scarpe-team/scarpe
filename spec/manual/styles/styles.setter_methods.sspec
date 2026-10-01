@@ -1,0 +1,20 @@
+---
+manual: styles.setter_methods
+lines: [1047, 1056]
+testability: api
+display: any
+----------- app code
+Shoes.app title: "A Styling Sample" do
+  @text = para "Red with an underline"
+  @text.stroke = red
+  @text.underline = "single"
+end
+----------- test code
+text = para("@text")
+assert_equal [255, 0, 0], text.stroke.to_a.first(3), "stroke= set the stroke"
+assert_equal "single", text.underline, "underline= set the underline"
+assert_equal "single", text.style[:underline], "the setter and the style hash agree"
+
+text.underline = "double"
+
+assert_equal "double", text.style[:underline], "the setter changes the style again after the app is up"

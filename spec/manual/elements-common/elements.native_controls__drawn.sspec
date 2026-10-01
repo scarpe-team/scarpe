@@ -1,0 +1,29 @@
+---
+manual: elements.native_controls
+lines: [2540, 2544]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  stack do
+    @button = button "Button"
+    @edit_line = edit_line
+    @edit_box = edit_box
+    @list_box = list_box items: ["One"]
+    @progress = progress
+    @check = check
+    @radio = radio
+  end
+end
+----------- test code
+controls = %w[@button @edit_line @edit_box @list_box @progress @check @radio]
+
+controls.each do |name|
+  box = layout_of(drawable(name))
+  assert_operator box.w, :>, 0, "#{name} takes up room"
+  assert_operator box.h, :>, 0, "#{name} takes up room"
+
+  samples = (0...box.h.floor).step(2).flat_map { |dy| (0...box.w.floor).step(2).map { |dx| [box.x + dx, box.y + dy] } }
+  drawn = samples.any? { |x, y| pixel_at(x, y).first(3).sum < 700 }
+  assert drawn, "#{name} is drawn, not left blank"
+end

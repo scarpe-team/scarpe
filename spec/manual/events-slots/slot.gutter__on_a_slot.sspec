@@ -1,0 +1,13 @@
+---
+manual: slot.gutter
+lines: [2394, 2399]
+testability: api
+display: any
+ledger: C5
+----------- app code
+Shoes.app do
+  $app_gutter = gutter
+  $slot = stack { para "inside" }
+end
+----------- test code
+assert_equal $app_gutter, $slot.gutter, "gutter is one of the slot position methods"

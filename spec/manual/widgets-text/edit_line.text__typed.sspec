@@ -1,0 +1,15 @@
+---
+manual: edit_line.text
+lines: [3097, 3099]
+testability: interactive
+display: native
+ledger: M5
+----------- app code
+Shoes.app do
+  @line = edit_line
+end
+----------- test code
+click_on edit_line
+type_text "Hello, Shoes"
+
+assert_equal "Hello, Shoes", edit_line.text, "text returns what the user typed"

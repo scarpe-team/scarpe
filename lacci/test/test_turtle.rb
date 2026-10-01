@@ -16,6 +16,36 @@ class TestTurtle < NienteTest
     SHOES_SPEC
   end
 
+  # The turtle is Hackety Hack's own PNG, which the native display draws; the SVG data URI it
+  # was drew nothing there, so no turtle showed while it stepped (the w9 learner lane).
+  def test_the_turtle_is_a_picture_every_display_can_draw
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      require 'scarpe/turtle'
+      Shoes.app do
+        @tc = turtle_canvas
+      end
+    SHOES_APP
+      turtle = Shoes.APPS.first.all_drawables.grep(Shoes::Image).first
+      assert_equal TURTLE_IMAGE, turtle.url
+      assert_equal [137, 80, 78, 71], File.binread(turtle.url, 4).bytes, "a PNG"
+    SHOES_SPEC
+  end
+
+  # Turtle.start's pen swatch sits after its "pen: " label in the flow (ledger C17): given only
+  # :top, as Hackety Hack's turtle placed it, native put it over the label.
+  def test_the_pen_swatch_sits_in_the_flow_after_its_label
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      require 'scarpe/turtle'
+      Turtle.start { forward 10 }
+    SHOES_APP
+      app = Shoes.APPS.first
+      label = app.all_drawables.grep(Shoes::Para).find { |p| p.text == "pen: " }
+      swatch = app.document_root.children[app.document_root.children.index(label) + 1]
+      assert_kind_of Shoes::Stack, swatch
+      assert_nil swatch.style[:top], "placed by the flow, not by :top"
+    SHOES_SPEC
+  end
+
   def test_turtle_canvas_initial_position
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       require 'scarpe/turtle'
@@ -111,6 +141,43 @@ class TestTurtle < NienteTest
     SHOES_APP
       assert_equal 250, $pos[0]
       assert_equal 250, $pos[1]
+    SHOES_SPEC
+  end
+
+  # Hackety Hack's Basic Programming lesson (4.3, "Type it in!") has a child run `Turtle.draw`
+  # on its own: an empty canvas, "you won't even see him". With no block, drawing raised.
+  def test_turtle_draw_without_a_block_draws_an_empty_canvas
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      require 'scarpe/turtle'
+      Turtle.draw
+    SHOES_APP
+      drawing = Shoes.APPS.first.all_drawables.find { |d| d.is_a?(Shoes::Timer) }
+      refute_nil drawing, "draw mode draws from a timer"
+      Shoes::DisplayService.dispatch_event("timer", drawing.linkable_id)
+      assert Shoes.APPS.first.all_drawables.any? { |d| d.is_a?(Shoes::TurtleCanvas) }
+    SHOES_SPEC
+  end
+
+  # Stepping through a turtle program shows each command as it comes ("next command:
+  # forward"). The name was matched from a backtick in the backtrace, which Ruby 3.4 no
+  # longer prints, so the line stayed blank.
+  def test_turtle_play_shows_the_next_command
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      require 'scarpe/turtle'
+      Shoes.app do
+        @tc = turtle_canvas
+        $shown = para "start"
+        @tc.next_command = $shown
+        @tc.toggle_pause
+        @tc.speed = 10_000
+        @tc.forward(10)
+        $after_forward = $shown.text
+        @tc.turnright(90)
+        $after_turn = $shown.text
+      end
+    SHOES_APP
+      assert_equal "forward", $after_forward
+      assert_equal "turnright", $after_turn
     SHOES_SPEC
   end
 

@@ -1,0 +1,19 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: visual
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  flow do
+    @keep = check checked: true
+    para "Remember me"
+  end
+  flow do
+    @spam = check
+    para "Send me news"
+  end
+end
+----------- test code
+checks = a11y_nodes.select { |n| n[:role] == "check_box" }
+assert_equal [["Remember me", true], ["Send me news", false]], checks.map { |n| n.values_at(:name, :toggled) }

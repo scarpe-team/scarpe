@@ -1,0 +1,14 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: visual
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  para "Read ", link("the docs", click: "https://example.com/"), " first."
+end
+----------- test code
+paragraph = a11y_nodes.find { |n| n[:role] == "paragraph" }
+runs = paragraph[:children].map { |run| [run[:role], run[:name] || run[:value]] }
+assert_equal [["label", "Read "], ["link", "the docs"], ["label", " first."]], runs
+assert_equal "https://example.com/", paragraph[:children][1][:url]

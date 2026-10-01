@@ -1,0 +1,21 @@
+---
+manual: styles.margin
+lines: [1298, 1306]
+testability: visual
+display: native
+ledger: C9
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @column = stack width: 300 do
+    @first = para "First"
+    @second = para "Second"
+  end
+end
+----------- test code
+column = layout_of(stack("@column"))
+first = layout_of(para("@first"))
+second = layout_of(para("@second"))
+
+assert_in_delta column.x + 4, first.x, 0.5, "a text block sits 4 pixels in from its slot's left edge"
+assert_in_delta column.y + 4, first.y, 0.5, "and 4 pixels down from its top"
+assert_in_delta first.y + first.h + 12 + 4, second.y, 0.5, "with 12 pixels below it, then the next one's 4 above"

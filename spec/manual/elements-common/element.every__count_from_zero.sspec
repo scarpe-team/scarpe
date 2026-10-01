@@ -1,0 +1,15 @@
+---
+manual: element.every
+lines: [1989, 1989]
+testability: api
+display: native
+ledger: I1
+----------- app code
+Shoes.app do
+  $counts = []
+  every(1) { |count| $counts << count }
+end
+----------- test code
+advance(3)
+
+assert_equal [0, 1, 2], $counts, "count starts at 0 and goes up by one each time"

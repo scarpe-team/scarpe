@@ -1,0 +1,17 @@
+---
+manual: slot.height
+lines: [2412, 2413]
+testability: visual
+display: native
+ledger: A4
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @box = stack width: 200 do
+    stack height: 40
+    stack height: 30
+  end
+end
+----------- test code
+box = stack("@box")
+assert_in_delta 70, layout_of(box).h, 0.5
+assert_in_delta 70, box.height, 0.5, "height reports the slot's real size in pixels"

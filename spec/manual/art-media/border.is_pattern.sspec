@@ -1,0 +1,12 @@
+---
+manual: border.is_pattern
+lines: [2807, 2809]
+testability: api
+display: any
+ledger: D9
+----------- app code
+Shoes.app do
+  $border = border blue
+end
+----------- test code
+assert_kind_of Shoes::Pattern, $border, "a border is a kind of Shoes::Pattern"

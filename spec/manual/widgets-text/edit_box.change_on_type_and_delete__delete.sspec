@@ -1,0 +1,21 @@
+---
+manual: edit_box.change_on_type_and_delete
+lines: [3017, 3019]
+testability: interactive
+display: native
+----------- app code
+Shoes.app do
+  $seen = []
+  @box = edit_box { $seen << @box.text }
+end
+----------- test code
+click_on edit_box
+type_text "abc"
+assert_equal "abc", edit_box.text
+$seen.clear
+
+press_key :backspace
+assert_equal ["ab"], $seen, "deleting a character runs the block too"
+
+press_key :backspace
+assert_equal %w[ab a], $seen, "once per deleted character"

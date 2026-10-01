@@ -29,5 +29,6 @@ loader = Scarpe::Components::SegmentedFileLoader.new
 Shoes.add_file_loader loader
 
 Shoes::DisplayService.set_display_service_class(Niente::DisplayService)
+Niente::DisplayService.answer_builtins_headlessly
 
 Shoes::FEATURES.push(:multi_app)

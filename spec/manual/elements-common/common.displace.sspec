@@ -1,0 +1,30 @@
+---
+manual: common.displace
+lines: [2589, 2618]
+testability: visual
+display: native
+ledger: M9
+----------- app code
+Shoes.app do
+  flow margin: 12 do
+    # Set up three buttons
+    @one = button "One"
+    @two = button "Two"
+    @three = button "Three"
+
+    # Bounce the second button
+    animate do |i|
+      @two.displace(0, (Math.sin(i) * 6).to_i)
+    end
+  end
+end
+----------- test code
+one, two, three = %w[@one @two @three].map { |name| layout_of(button(name)) }
+
+advance(0.2) # two frames; the second displaces Two by (Math.sin(1) * 6).to_i, which is 5
+
+moved = layout_of(button("@two"))
+assert_in_delta two.x, moved.x, 0.5, "Two does not move sideways"
+assert_in_delta two.y + 5, moved.y, 0.5, "Two is drawn 5 pixels lower"
+assert_equal one.to_a, layout_of(button("@one")).to_a, "One stays put"
+assert_equal three.to_a, layout_of(button("@three")).to_a, "Three stays put"

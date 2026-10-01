@@ -1,0 +1,12 @@
+---
+manual: element.title
+lines: [2127, 2130]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $block = title "Shoes"
+end
+----------- test code
+assert_equal "Shoes", $block.text, "the text block holds the text it was given"
+assert_same $block, drawable("$block").obj, "and is in the window"

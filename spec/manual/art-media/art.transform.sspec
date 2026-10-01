@@ -1,0 +1,21 @@
+---
+manual: art.transform
+lines: [1857, 1860]
+testability: visual
+display: native
+ledger: E10
+----------- app code
+Shoes.app width: 300, height: 300 do
+  fill red
+  nostroke
+  rotate 90
+  rect 100, 100, 60, 20
+end
+----------- test code
+# The default is :corner. Turned 90 degrees about its corner (100, 100) the 60x20 bar
+# stands on end, above or below the corner depending on the direction of turn.
+red = ->(x, y) { pixel_at(x, y).first(3) == [255, 0, 0] }
+
+refute red.(130, 110), "the bar has turned away from where it was drawn"
+refute red.(130, 85), "it did not turn about its centre"
+assert red.(90, 130) || red.(110, 70), "it turned about its corner (100, 100)"

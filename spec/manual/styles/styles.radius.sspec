@@ -1,0 +1,13 @@
+---
+manual: styles.radius
+lines: [1348, 1354]
+testability: api
+display: any
+ledger: E1
+----------- app code
+Shoes.app do
+  @o = oval left: 10, top: 10, radius: 40
+end
+----------- test code
+assert_equal 80, oval.width, "a radius of 40 gives a width of twice that"
+assert_equal 80, oval.height, "and a height of twice that"

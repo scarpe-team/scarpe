@@ -1,0 +1,13 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: visual
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  image "assets/red-40x30.png", alt: "A red square"
+  image "assets/checker-20x20.png"
+end
+----------- test code
+images = a11y_nodes.select { |n| n[:role] == "image" }
+assert_equal ["A red square", nil], images.map { |n| n[:name] }

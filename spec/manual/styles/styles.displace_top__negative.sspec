@@ -1,0 +1,16 @@
+---
+manual: styles.displace_top
+lines: [1175, 1177]
+testability: visual
+display: native
+ledger: M9
+----------- app code
+Shoes.app width: 300, height: 200 do
+  @moved = stack left: 20, top: 100, width: 40, height: 30, displace_top: -40 do
+    background red
+  end
+end
+----------- test code
+red = ->(y) { r, g, b, = pixel_at(40, y); r > 200 && g < 60 && b < 60 }
+assert red.call(75), "a negative displace_top draws the block 40 pixels higher, from y 60"
+refute red.call(115), "so its laid-out spot from y 100 to 130 is mostly empty"

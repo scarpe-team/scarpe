@@ -1,0 +1,13 @@
+---
+manual: app.style.width_height
+lines: [869, 877]
+testability: api
+display: any
+ledger: A1
+----------- app code
+Shoes.app do
+  para "No size was given"
+end
+----------- test code
+app = Shoes.APPS.first
+assert_equal [600, 500], [app.width, app.height], "an app with no size opens at 600x500, as in Shoes 3 and Shoes 4"

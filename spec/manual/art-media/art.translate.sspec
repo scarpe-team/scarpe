@@ -1,0 +1,23 @@
+---
+manual: art.translate
+lines: [1862, 1868]
+testability: visual
+display: native
+ledger: E10
+----------- app code
+Shoes.app width: 200, height: 200 do
+  fill red
+  nostroke
+  translate 10, 20
+  rect 50, 60, 20, 20
+end
+----------- test code
+# After translate(10, 20), a shape drawn at (50, 60) lands at (60, 80).
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(75, 95, [255, 0, 0], "the rectangle is drawn at (60, 80)")
+paints.(55, 65, [255, 255, 255], "not at (50, 60)")

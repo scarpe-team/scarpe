@@ -30,12 +30,13 @@ module Niente
 
       bind_shoes_event(event_name: "destroy", target: shoes_linkable_id) do
         set_parent(nil)
+        unsub_all_shoes_events
       end
     end
 
-    def set_parent(new_parent)
+    def set_parent(new_parent, index: nil)
       @parent&.remove_child(self)
-      new_parent&.add_child(self)
+      new_parent&.add_child(self, index:)
       @parent = new_parent
     end
 
@@ -50,9 +51,9 @@ module Niente
     end
 
     # Do not call directly, use set_parent
-    def add_child(child)
+    def add_child(child, index: nil)
       @children ||= []
-      @children << child
+      @children.insert((index || @children.size).clamp(0, @children.size), child)
     end
   end
 end

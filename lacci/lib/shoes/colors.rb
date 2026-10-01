@@ -150,52 +150,45 @@ class Shoes
 
     class << self
       def included(base)
-        COLORS.each do |color, rgb|
+        COLORS.each do |color, values|
           base.define_method(color) do |alpha = 255|
-            rgb + [alpha]
+            rgb(*values, alpha)
           end
         end
       end
     end
 
     # https://github.com/shoes/shoes3/blob/b856f28795112ecb64bc8f891ac166675f059beb/static/manual-en.txt#L839-L847
-    def gray(darkness = 128, alpha = nil)
-      alpha ||= (darkness.is_a?(Integer) ? 255 : 1.0)
-      [darkness, darkness, darkness, alpha]
+    def gray(darkness = 128, alpha = 255)
+      rgb(darkness, darkness, darkness, alpha)
     end
 
-    # Shoes allows RGB values to be Floats between 0 and 1 or Integers between 0 and 255
-    def rgb(r, g, b, a = nil)
-      if r.is_a?(Float)
-        [r, g, b, a || 1.0]
-      elsif r.is_a?(Integer)
-        [r, g, b, a || 255]
-      else
-        raise("RGB values should be Float or Integer!")
-      end
+    # Each component is an Integer from 0 to 255 or a Float from 0.0 to 1.0,
+    # decided one component at a time, so rgb(0, 0.4, 0) is dark green.
+    # The result is always a Shoes::Color of four Integers from 0 to 255, like Shoes 3's.
+    def rgb(r, g, b, a = 255)
+      Shoes::Color[color_byte(r), color_byte(g), color_byte(b), color_byte(a)]
     end
 
     # In Shoes, gradient(color1, color2) creates a gradient pattern.
     # Returns a Gradient object that display services can render as CSS gradients.
     # Supports :angle option for gradient direction (in degrees).
     def gradient(color1, color2, **opts)
-      c1 = to_rgb(color1) rescue color1
-      c2 = to_rgb(color2) rescue color2
-
-      c1_str = c1.is_a?(Array) ? "rgb(#{c1[0]},#{c1[1]},#{c1[2]})" : c1.to_s
-      c2_str = c2.is_a?(Array) ? "rgb(#{c2[0]},#{c2[1]},#{c2[2]})" : c2.to_s
-
-      Gradient.new(c1_str, c2_str, opts[:angle])
+      Gradient.new(css_color(color1), css_color(color2), opts[:angle])
     end
 
     # Simple gradient class to hold colors and angle for rendering.
     class Gradient
+      include Shoes::Pattern
+
       attr_reader :color1, :color2, :angle
 
+      # Angle 0 runs top to bottom and 90 left to right (manual 1073-1079,
+      # ledger D6), as in Shoes 3.
       def initialize(color1, color2, angle = nil)
         @color1 = color1
         @color2 = color2
-        @angle = angle || 45  # Default to 45 degrees like current behavior
+        @angle = angle || 0
       end
 
       # For backwards compatibility with simple string handling
@@ -231,7 +224,7 @@ class Shoes
             r = color[1].to_i(16)
             g = color[2].to_i(16)
             b = color[3].to_i(16)
-            rgb(16 * r, 16 * g, 16 * b)
+            rgb(17 * r, 17 * g, 17 * b)
           elsif color.length == 7
             r = color[1..2].to_i(16)
             g = color[3..4].to_i(16)
@@ -252,8 +245,30 @@ class Shoes
         raise("Don't know how to convert #{color.inspect} to RGB!")
       end
     end
+
+    private
+
+    # A colour as a CSS rgba() string, alpha included, which every display reads.
+    # A string that is no colour (an image path, say) passes through.
+    def css_color(color)
+      r, g, b, a = rgb(*to_rgb(color))
+      "rgba(#{r},#{g},#{b},#{(a / 255.0).round(3)})"
+    rescue StandardError
+      color.to_s
+    end
+
+    def color_byte(component)
+      case component
+      when Float then (component * 255).round.clamp(0, 255)
+      when Integer then component.clamp(0, 255)
+      else raise("RGB values should be Float or Integer!")
+      end
+    end
   end
 
   # Shoes3 exposes Shoes::COLORS at the top level for apps like Hackety Hack
   COLORS = Colors::COLORS
+
+  # The manual says rgb, gray and gradient "may also be called as Shoes.rgb".
+  extend Colors
 end

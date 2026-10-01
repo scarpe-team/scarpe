@@ -1,0 +1,16 @@
+---
+manual: styles.leading
+lines: [1282, 1286]
+testability: visual
+display: native
+ledger: F10
+----------- app code
+Shoes.app width: 400, height: 300 do
+  stack width: 300 do
+    @none = para "one\ntwo", leading: 0
+    @wide = para "one\ntwo", leading: 20
+  end
+end
+----------- test code
+extra = layout_of(para("@wide")).h - layout_of(para("@none")).h
+assert_in_delta 20, extra, 1, "leading: 20 puts 20 pixels between the two lines"

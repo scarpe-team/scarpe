@@ -1,0 +1,15 @@
+---
+manual: common.hide
+lines: [2639, 2641]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @b = button "Now you see me"
+end
+----------- test code
+refute button("@b").style[:hidden], "the button starts shown"
+
+button("@b").hide
+
+assert_equal true, button("@b").style[:hidden], "hide hides it"

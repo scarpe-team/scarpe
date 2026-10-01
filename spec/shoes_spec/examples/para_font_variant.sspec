@@ -1,0 +1,20 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/para_font_variant.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+Shoes.app do
+    para "This is Normal Variant" ,font_variant: "normal"
+
+    para "This is Small Caps Variant " ,font_variant: "small-caps"
+
+  end
+----------- test code
+# Test: Para font variants (normal vs small-caps)
+ps = paras()
+assert_equal 2, ps.length, "Expected 2 paras with different font variants"
+
+assert_includes ps[0].text, "Normal Variant"
+assert_includes ps[1].text, "Small Caps Variant"

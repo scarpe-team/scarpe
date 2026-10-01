@@ -1,0 +1,32 @@
+---
+# Runner self-test: no dialog reaches the screen. Front matter answers the top-level ask,
+# stub_dialog answers the next ones (nil and false included), and everything else gets the
+# headless default.
+testability: dialog
+dialogs:
+  ask: Nick
+----------- app code
+name = ask("Who are you?")
+
+Shoes.app do
+  @greeting = para "Hello #{name}"
+  @answers = para ""
+  button "Go" do
+    alert "Saved"
+    cancelled = ask("Again?")
+    typed = ask("Once more?")
+    sure = confirm("Sure?")
+    file = ask_open_file
+    @answers.replace [cancelled, typed, sure, file].inspect
+  end
+end
+----------- test code
+assert_equal "Hello Nick", para("@greeting").text
+
+stub_dialog :ask, nil
+stub_dialog :confirm, true
+button.trigger_click
+assert_equal [nil, "", true, nil].inspect, para("@answers").text
+
+expected = [[:ask, "Who are you?"], [:alert, "Saved"], [:ask, "Again?"], [:ask, "Once more?"], [:confirm, "Sure?"], [:ask_open_file]]
+assert_equal expected, dialog_calls

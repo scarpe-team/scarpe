@@ -1,0 +1,41 @@
+---
+manual: builtins.exit
+lines: [741, 744]
+testability: api
+display: any
+ledger: K6
+timeout: 60
+expect: fail
+reason: "Lacci's exit is Shoes.quit, which destroys every app and returns, so the code after it keeps running (K6)"
+----------- app code
+Shoes.app { para "This app only hosts the experiment; the test code runs a second program." }
+----------- test code
+require "timeout"
+
+File.write("quitter.rb", <<~RUBY)
+  Shoes.app do
+    para "about to quit"
+    File.write("before_exit.txt", "")
+    exit
+    File.write("after_exit.txt", "")
+  end
+  File.write("after_app.txt", "")
+RUBY
+
+# The quitter gets this process's environment minus the runner's test hooks.
+hooks = %w[SHOES_SPEC_TEST SHOES_MINITEST_EXPORT_FILE SHOES_MINITEST_CLASS_NAME SHOES_MINITEST_METHOD_NAME SPEC_DIALOG_STUBS]
+pid = Process.spawn(hooks.to_h { |name| [name, nil] }, RbConfig.ruby, $PROGRAM_NAME, "--dev", "quitter.rb",
+  out: "quitter.log", err: [:child, :out], pgroup: true)
+status = begin
+  Timeout.timeout(30) { Process.wait2(pid).last }
+rescue Timeout::Error
+  nil
+ensure
+  Process.kill("KILL", -pid) rescue nil
+end
+
+assert File.exist?("before_exit.txt"), "the program ran up to exit: #{File.read("quitter.log")[-400..]}"
+refute File.exist?("after_exit.txt"), "nothing after exit runs, not even the rest of the block"
+refute File.exist?("after_app.txt"), "nor the rest of the file"
+refute_nil status, "the program stopped instead of running on"
+assert status.success?, "and it stopped cleanly: #{status.inspect}"

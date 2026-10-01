@@ -1,0 +1,18 @@
+---
+manual: builtins.const.FONTS
+lines: [613, 614]
+testability: api
+display: any
+ledger: K4
+----------- app code
+# Pacifico (OFL) is in spec/support/assets, copied into every sandbox.
+PACIFICO = File.expand_path("assets/Pacifico.ttf")
+
+Shoes.app do
+  $listed_before = Shoes::FONTS.include?("Pacifico")
+  font PACIFICO
+end
+----------- test code
+assert File.exist?(PACIFICO), "the test font is at #{PACIFICO}"
+refute $listed_before, "Pacifico is not a font the system already had"
+assert_includes Shoes::FONTS, "Pacifico", "a font loaded with font() joins Shoes::FONTS"

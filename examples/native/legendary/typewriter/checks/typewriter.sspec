@@ -1,0 +1,99 @@
+---
+display: native
+testability: interactive
+----------- app code
+load File.join(Scarpe::Native::ROOT, "examples/native/legendary/typewriter/typewriter.rb")
+----------- test code
+app = Shoes.APPS.first
+voice = app.instance_variable_get(:@voice)
+paper = app.instance_variable_get(:@paper)
+sound = -> { File.basename(voice.last_file.to_s, ".wav") }
+settle = -> { advance 0.4 }
+# Is there ink in this box of the window? Dark for black ribbon, a strong red for red.
+inked = lambda do |x0, y0, w, h, &like|
+  (x0...x0 + w).step(2).any? { |x| (y0...y0 + h).step(2).any? { |y| like.call(pixel_at(x, y)) } }
+end
+dark = ->(pixel) { pixel.first(3).sum < 250 }
+red = ->(pixel) { pixel[0] > 140 && pixel[1] < 90 && pixel[2] < 90 }
+
+assert_equal "\n", app.text, "a blank sheet"
+start = layout_of(paper)
+
+# typing: the letter lands at the strike point and the carriage steps left under it
+press_key "H"
+press_key "i"
+settle.call
+assert_equal "Hi\n", app.text
+assert_in_delta start.x - 2 * 8.4, layout_of(paper).x, 1, "two letters, two steps left"
+assert inked.call(343, 284, 8, 16, &dark), "the H is on the paper"
+assert_match(/\Akey[123]\z/, sound.call)
+wav = File.binread(voice.last_file)
+assert_equal ["RIFF", "WAVE", 22_050], [wav[0, 4], wav[8, 4], wav[24, 4].unpack1("V")], "a real WAV header"
+voice.player.join(10)
+assert_includes File.readlines(ENV.fetch("SPEC_TRAP_FILE"), chomp: true), "afplay #{voice.last_file}",
+  "afplay was asked to play it (the suite traps afplay, so nothing is heard)"
+
+# the correction tape, and the keys on the machine
+press_key "x"
+press_key :backspace
+assert_equal ["Hi\n", "tick"], [app.text, sound.call]
+click_at 360, 594 # the space bar
+click_at 184, 464 # Q
+assert_equal "Hi q\n", app.text
+assert_equal "key", sound.call[0, 3]
+
+# Return: home with a zip and a ding, and the paper rolls up a line
+press_key "\n"
+settle.call
+assert_equal "return", sound.call
+assert_operator File.size(voice.last_file), :>, 44 + 22_050 * 2, "long enough for the bell to ring out"
+assert_in_delta start.x, layout_of(paper).x, 1, "the carriage is home"
+assert_in_delta start.y - 22, layout_of(paper).y, 1, "one line up"
+
+# the red ribbon
+click_at 108, 460
+press_key "o"
+press_key "k"
+settle.call
+assert inked.call(336 + 24 - 2, 284, 20, 16, &red), "red ink on the new line"
+assert_equal "Hi q\nok\n", app.text
+click_at 70, 460
+
+# the lever on the carriage's left end sends it home too
+lever = layout_of(app.instance_variable_get(:@lever))
+click_at lever.x + lever.w / 2, lever.y + lever.h / 2
+assert_equal "return", sound.call, "the lever returns the carriage too"
+
+# the carriage stops at the margin, slid as far left as it goes: past the window's edge, as
+# Shoes 3 draws a slot at a negative left (ledger C18), so the lever is out of reach there
+41.times { press_key "m" }
+assert_equal "m" * 40, app.text.lines.last.chomp, "forty letters to a line"
+assert_equal "stop", sound.call
+assert_equal "The carriage is at the margin. Press Return.", para("@note").text
+settle.call
+carriage = layout_of(app.instance_variable_get(:@carriage))
+assert_in_delta layout_of(paper).x - 70, carriage.x, 1, "the carriage rides with the paper"
+press_key "\n"
+assert_equal "return", sound.call
+press_key :tab
+press_key "t"
+assert_equal "        t", app.text.lines.last.chomp, "a tab jumps to the next stop"
+
+# Save page writes the page, as plain text, into Documents/Typewriter
+click_on "Save page"
+saved = Dir[File.join(Dir.home, "Documents", "Typewriter", "Page *.txt")]
+assert_equal 1, saved.size
+assert_equal app.text, File.read(saved.first)
+assert_equal "Hi q\nok\n#{"m" * 40}\n        t\n", File.read(saved.first)
+assert_match(%r{\ASaved to ~/Documents/Typewriter/Page .+\.txt\z}, para("@note").text)
+
+# a fresh sheet, and a page only holds so much
+click_on "New sheet"
+settle.call
+assert_equal "\n", app.text
+23.times { press_key "\n" }
+press_key "a"
+press_key "\n"
+press_key "b"
+assert_equal "The page is full. Save it, or put in a new sheet.", para("@note").text
+assert_equal "#{"\n" * 23}a\n", app.text, "nothing lands below the last line"

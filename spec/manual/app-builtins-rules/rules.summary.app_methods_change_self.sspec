@@ -1,0 +1,23 @@
+---
+manual: rules.summary.app_methods_change_self
+lines: [319, 321]
+testability: api
+display: any
+----------- app code
+Shoes.app title: "Main" do
+  $selves = { app: self }
+  @column = stack { para "slot" }
+  @column.app { $selves[:slot_app] = self }
+  button "Open" do
+    window(title: "Window") { $selves[:window] = self }
+    dialog(title: "Dialog") { $selves[:dialog] = self }
+  end
+end
+----------- test code
+find_button("Open").trigger_click
+
+main, window, dialog = Shoes.APPS
+assert_same main, $selves[:app], "Shoes.app"
+assert_same main, $selves[:slot_app], "Slot#app"
+assert_same window, $selves[:window], "window changes self to the window's own App"
+assert_same dialog, $selves[:dialog], "and so does dialog"

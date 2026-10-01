@@ -1,0 +1,26 @@
+---
+manual: element.strong.default_style
+lines: [2089, 2091]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  flow { @plain = para "l", size: 48 }
+  flow { @strong = para strong("l"), size: 48 }
+end
+----------- test code
+columns = ->(box, step = 1) { (box.x.ceil..(box.x + box.w).floor - 1).step(step).to_a }
+dark = ->(x, y) { pixel_at(x, y).first(3).sum < 384 }
+rows = ->(box) { (box.y.ceil..(box.y + box.h).floor - 1).to_a }
+ink_rows = ->(box) { rows.(box).select { |y| columns.(box).any? { |x| dark.(x, y) } } }
+
+# How thick the stem of an l is, halfway down.
+stem = lambda do |box|
+  ink = ink_rows.(box)
+  y = (ink.first + ink.last) / 2
+  columns.(box).count { |x| dark.(x, y) }
+end
+plain = stem.(layout_of(para("@plain")))
+
+assert_operator plain, :>=, 2, "a plain l has a stem"
+assert_operator stem.(layout_of(para("@strong"))), :>=, plain * 1.3, "a strong l is bold: its stem is thicker"

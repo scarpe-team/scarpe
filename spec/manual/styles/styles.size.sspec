@@ -1,0 +1,21 @@
+---
+manual: styles.size
+lines: [1393, 1398]
+testability: visual
+display: native
+ledger: M14
+----------- app code
+Shoes.app width: 500, height: 300 do
+  flow { @small = para "Searching Google", size: 16 }
+  flow { @large = para "Searching Google", size: 32 }
+  flow { @letter = para "H", size: 40 }
+end
+----------- test code
+small = layout_of(para("@small"))
+large = layout_of(para("@large"))
+assert_in_delta 2.0, large.w / small.w, 0.03, "twice the size is twice as wide"
+
+box = layout_of(para("@letter"))
+stem = (box.x.floor...(box.x + box.w).ceil).find { |x| pixel_at(x, (box.y + box.h / 2).round).first(3).sum < 384 }
+cap_height = (box.y.floor...(box.y + box.h).ceil).count { |y| pixel_at(stem + 1, y).first(3).sum < 384 }
+assert_includes 25..33, cap_height, "at size 40 a capital H is 25 to 33 pixels tall: the size is pixels, not points"

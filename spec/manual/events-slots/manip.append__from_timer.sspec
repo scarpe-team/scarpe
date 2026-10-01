@@ -1,0 +1,25 @@
+---
+manual: manip.append
+lines: [2296, 2313]
+testability: visual
+display: native
+----------- app code
+Shoes.app do
+  @slot = stack { @morning = para 'Good Morning' }
+  timer 3 do
+    @slot.append do
+      title "Breaking News"
+      tagline "Astronauts arrested for space shuttle DUI."
+    end
+  end
+end
+----------- test code
+assert_equal ["Good Morning"], stack("@slot").contents.map(&:text), "nothing is added before the timer fires"
+
+advance 3.2
+
+assert_equal ["Good Morning", "Breaking News", "Astronauts arrested for space shuttle DUI."],
+  stack("@slot").contents.map(&:text), "the timer appended both"
+morning, headline, strapline = layout_of(para("@morning")), layout_of(title), layout_of(tagline)
+assert_operator headline.y, :>=, morning.y + morning.h - 0.5, "the title shows under Good Morning"
+assert_operator strapline.y, :>=, headline.y + headline.h - 0.5, "the tagline under the title"

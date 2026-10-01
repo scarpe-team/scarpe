@@ -1,0 +1,26 @@
+---
+manual: art.oval.styles
+lines: [1736, 1746]
+testability: visual
+display: native
+ledger: M1
+----------- app code
+Shoes.app width: 300, height: 200 do
+  fill red
+  nostroke
+  oval top: 20, left: 30, radius: 50
+end
+----------- test code
+# M1: the radius: style is half the width, so the box is (30, 20, 100, 100).
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+red = [255, 0, 0]
+white = [255, 255, 255]
+
+paints.(80, 70, red, "left: and top: place the pen")
+paints.(127, 70, red, "radius: 50 makes the circle 100 across")
+paints.(135, 70, white, "and not wider")
+paints.(33, 23, white, "left and top name the box's corner, not the centre")

@@ -1,0 +1,38 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/start.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/for_playtest/shoes_manual/start.sspec
+----------- app code
+#!ruby
+# The start callback fires after the app has finished initializing.
+# It's useful for setting up state that depends on the UI being ready.
+
+Shoes.app(title: "Start Callback Demo", width: 300, height: 200) do
+  @label = para "Waiting..."
+  @counter = 0
+  
+  # This callback fires after the app block finishes running
+  start do
+    @label.replace "App started! Click the button."
+    @counter = 1
+  end
+  
+  button "Click me" do
+    @counter += 1
+    @label.replace "Counter: #{@counter}"
+  end
+end
+----------- test code
+# Verify start callback fires and sets initial text
+# After start callback, label should be updated
+p = para()
+assert_equal "App started! Click the button.", p.text
+
+# Verify button click increments counter
+btn = button()
+btn.trigger_click
+assert_equal "Counter: 2", para().text

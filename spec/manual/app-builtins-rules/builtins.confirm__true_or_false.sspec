@@ -1,0 +1,20 @@
+---
+manual: builtins.confirm
+lines: [707, 710]
+testability: dialog
+display: any
+----------- app code
+Shoes.app do
+  $answers = []
+  button "Ask" do
+    $answers << confirm("Draw a circle?")
+  end
+end
+----------- test code
+stub_dialog(:confirm, true)
+stub_dialog(:confirm, false)
+
+find_button("Ask").trigger_click
+find_button("Ask").trigger_click
+
+assert_equal [true, false], $answers, "yes gives true and anything else gives false, never merely truthy"

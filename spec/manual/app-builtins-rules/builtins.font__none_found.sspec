@@ -1,0 +1,14 @@
+---
+manual: builtins.font
+lines: [766, 767]
+testability: api
+display: any
+ledger: K4
+----------- app code
+Shoes.app do
+  $missing = font("no-such-font.ttf")
+  $not_a_font = font("assets/red-40x30.png")
+end
+----------- test code
+assert_nil $missing, "a file that does not exist holds no fonts"
+assert_nil $not_a_font, "a PNG holds no fonts"

@@ -1,0 +1,12 @@
+---
+manual: image.path
+lines: [3158, 3160]
+testability: api
+display: any
+ledger: C5
+----------- app code
+Shoes.app do
+  @logo = image "assets/red-40x30.png"
+end
+----------- test code
+assert_equal "assets/red-40x30.png", image("@logo").path, "path is the image's file name"

@@ -1,0 +1,23 @@
+---
+manual: timers.classes
+lines: [3411, 3413]
+testability: api
+display: native
+ledger: I1
+----------- app code
+# timer(0) runs on the next turn of the loop, once what was made before it is laid out, as
+# Shoes 3 draws before it fires a timer: Hackety Hack's tooltips make a para, then measure it
+# in a timer(0) and size their background to it (app/ui/widgets.rb:141-146).
+$widths = []
+Shoes.app width: 300, height: 200 do
+  @go = button "Go" do
+    tip = para "a tooltip's words"
+    timer(0) { $widths << tip.width }
+  end
+end
+----------- test code
+click_on button("@go")
+advance 0.05
+assert_equal 1, $widths.size, "the timer ran"
+assert_kind_of Numeric, $widths.first, "and the para it measured had been laid out: #{$widths.inspect}"
+assert_operator $widths.first, :>, 50

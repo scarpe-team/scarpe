@@ -1,0 +1,17 @@
+---
+manual: styles.change
+lines: [1123, 1128]
+testability: interactive
+display: any
+ledger: G10
+----------- app code
+Shoes.app do
+  @said = para "nothing yet"
+  @line = edit_line change: proc { @said.replace "changed" }
+end
+----------- test code
+assert_equal "nothing yet", para("@said").text, "the handler waits for a change"
+
+edit_line.trigger_change("typed")
+
+assert_equal "changed", para("@said").text, "the proc given as the :change style ran"

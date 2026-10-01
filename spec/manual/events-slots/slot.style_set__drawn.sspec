@@ -1,0 +1,15 @@
+---
+manual: slot.style_set
+lines: [2489, 2501]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 500, height: 300 do
+  @s = stack { background green }
+  @s.style(width: 400, height: 200)
+end
+----------- test code
+box = layout_of(stack("@s"))
+assert_equal [400, 200], [box.w.round, box.h.round], "the slot is laid out at its new size"
+assert_equal [0, 128, 0, 255], pixel_at(395, 195), "its green background fills the new size"
+assert_equal [255, 255, 255, 255], pixel_at(450, 100), "and stops there"

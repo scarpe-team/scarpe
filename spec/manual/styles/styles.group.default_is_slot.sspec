@@ -1,0 +1,23 @@
+---
+manual: styles.group.default_is_slot
+lines: [3283, 3294]
+testability: interactive
+display: any
+ledger: G6
+----------- app code
+Shoes.app do
+  para "Among these films, which do you prefer?\n"
+  @tea = radio; para strong("The Taste of Tea"), " by Katsuhito Ishii\n"
+  @kin = radio; para strong("Kin-Dza-Dza"), " by Georgi Danelia\n"
+  @heaven = radio; para strong("Children of Heaven"), " by Majid Majidi\n"
+end
+----------- test code
+tea = radio("@tea")
+kin = radio("@kin")
+
+tea.trigger_click
+assert tea.checked?, "the first radio is marked"
+
+kin.trigger_click
+assert kin.checked?, "the second radio is marked"
+refute tea.checked?, "ungrouped radios in the same slot are one group"

@@ -1,0 +1,21 @@
+---
+manual: events.hover
+lines: [2200, 2203]
+testability: interactive
+display: native
+----------- app code
+$hovers = 0
+Shoes.app width: 400, height: 300 do
+  stack width: 200, height: 100 do
+    hover { $hovers += 1 }
+  end
+end
+----------- test code
+move_mouse 300, 200
+assert_equal 0, $hovers, "the mouse is not over the slot yet"
+
+move_mouse 50, 50
+assert_equal 1, $hovers, "the mouse entered the slot"
+
+move_mouse 60, 60
+assert_equal 1, $hovers, "moving around inside is not another entry"

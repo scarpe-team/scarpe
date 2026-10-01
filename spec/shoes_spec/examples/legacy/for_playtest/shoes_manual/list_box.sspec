@@ -1,0 +1,24 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/list_box.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+#!ruby
+ Shoes.app do
+   para "Choose a fruit:"
+   list_box items: ["Grapes", "Pears", "Apricots"],
+     width: 120, choose: "Apricots" do |list|
+       @fruit.text = list.text
+   end
+
+   @fruit = para "No fruit selected"
+ end
+----------- test code
+# Verify list_box with items and default selection
+assert paras().length >= 2, "Expected 2 para elements"
+assert_includes paras()[0].text, "Choose a fruit"
+assert list_boxes().length >= 1, "Expected a list_box element"
+# Default selection is Apricots
+assert_equal "Apricots", list_box().text

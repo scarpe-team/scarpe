@@ -1,0 +1,12 @@
+---
+manual: timers.stop
+lines: [3425, 3425]
+testability: api
+display: any
+ledger: B6
+----------- app code
+Shoes.app do
+  $animation = animate(10) { }
+end
+----------- test code
+assert_same $animation, $animation.stop, "stop returns self"

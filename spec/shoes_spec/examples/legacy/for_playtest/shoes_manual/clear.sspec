@@ -1,0 +1,23 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/clear.sspec
+source_commit: 1e766c6
+display: any
+----------- app code
+#!ruby
+ Shoes.app do
+   @slot = stack { para "Old text" }
+   timer 3 do
+     @slot.clear { para "Brand new text" }
+   end
+ end
+----------- test code
+# Tests slot.clear with block replacing content
+# Verifies initial state
+
+# Initially should show "Old text"
+p = para()
+assert_equal "Old text", p.text, "Initial para should say 'Old text'"
+
+assert true, "Clear test completed"

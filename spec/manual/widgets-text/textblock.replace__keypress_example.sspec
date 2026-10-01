@@ -1,0 +1,20 @@
+---
+manual: textblock.replace
+lines: [3390, 3392]
+testability: interactive
+display: native
+----------- app code
+# The keypress example, manual 2229-2237.
+Shoes.app do
+  @info = para "NO KEY is PRESSED."
+  keypress do |k|
+    @info.replace "#{k.inspect} was PRESSED."
+  end
+end
+----------- test code
+assert_equal "NO KEY is PRESSED.", para.text
+
+press_key "a"
+
+assert_equal "\"a\" was PRESSED.", para.text, "replace rewrote the whole paragraph"
+assert_equal 1, para.contents.size

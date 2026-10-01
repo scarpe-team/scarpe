@@ -1,0 +1,16 @@
+---
+manual: app.style.width_height
+lines: [869, 877]
+testability: visual
+display: any
+----------- app code
+Shoes.app(title: "White Circle",
+  width: 200, height: 200, resizable: false) {
+    background black
+    fill white
+    oval top: 20, left: 20, radius: 160
+}
+----------- test code
+app = Shoes.APPS.first
+assert_equal 200, app.width, "the window is 200 pixels wide"
+assert_equal 200, app.height, "and 200 pixels high"

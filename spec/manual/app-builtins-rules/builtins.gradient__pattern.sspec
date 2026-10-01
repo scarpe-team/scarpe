@@ -1,0 +1,12 @@
+---
+manual: builtins.gradient
+lines: [785, 788]
+testability: api
+display: any
+ledger: D9
+----------- app code
+Shoes.app do
+  $fade = gradient(rgb(255, 0, 0), "#0000ff")
+end
+----------- test code
+assert_kind_of Shoes::Pattern, $fade, "gradient builds a Shoes::Pattern"

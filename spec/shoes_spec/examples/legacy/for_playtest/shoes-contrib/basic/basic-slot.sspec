@@ -1,0 +1,25 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-slot.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/for_playtest/shoes-contrib/basic/basic-slot.sspec
+----------- app code
+Shoes.app do
+  stack :width => 200, :height => 200, :scroll => true do
+    background "#2F2F2F"
+    60.times do |i|
+      para "Paragraph No. #{i}"
+    end
+  end
+end
+----------- test code
+# Verify 60 paragraphs are created
+all_paras = paras()
+assert_equal 60, all_paras.count, "Should have exactly 60 paragraphs"
+
+# Verify paragraph content pattern
+assert_equal "Paragraph No. 0", all_paras[0].text
+assert_equal "Paragraph No. 59", all_paras[59].text

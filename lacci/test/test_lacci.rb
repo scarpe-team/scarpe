@@ -166,6 +166,27 @@ class TestLacci < NienteTest
     SHOES_SPEC
   end
 
+  # Shoes 3 kept the pointer per app (app->mousex, app->mousey), so a window just opened reads
+  # [0, 0, 0] until the pointer is over it. A display that tells windows apart hands Lacci one
+  # state per app; Hackety Hack's Pong read the pointer over Hackety Hack's own Run button and
+  # started its paddle off its window.
+  def test_mouse_is_per_window_when_the_display_says_which
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app { para "first" }
+    SHOES_APP
+      first = Shoes.APPS[0]
+      begin
+        Shoes::DisplayService.mouse_state = [0, 764, 530]
+        assert_equal [0, 764, 530], first.mouse, "one pointer for every window, from a display that keeps one"
+        Shoes::DisplayService.app_mouse_states[first.linkable_id] = [1, 20, 30]
+        assert_equal [1, 20, 30], first.mouse, "its own, from one that keeps one a window"
+        assert_equal [0, 0, 0], Shoes::DisplayService.mouse_state_of(first.linkable_id + 1000), "and a window the pointer never crossed reads 0, 0, 0"
+      ensure
+        Shoes::DisplayService.app_mouse_states.clear
+      end
+    SHOES_SPEC
+  end
+
   def test_builtin_response_mechanism
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
@@ -213,6 +234,8 @@ class TestLacci < NienteTest
       app.clipboard = "scarpe test"
       assert_equal "scarpe test", app.clipboard
     SHOES_SPEC
+
+    assert_equal "scarpe test", File.read(clipboard_file), "the copy lands in the stub, not the real clipboard"
   end
 
   def test_shoes_builtin_returns_response
@@ -234,6 +257,27 @@ class TestLacci < NienteTest
       assert_equal "test_response", result
 
       Shoes::DisplayService.unsub_from_events(handler_id)
+    SHOES_SPEC
+  end
+
+  # Ledger C5: path is the image's url and swaps it, full_width and full_height read the
+  # file, and imagesize reads a file without showing it (manual 2017-2023, 3143-3164).
+  def test_image_path_and_sizes_from_the_file
+    red = File.expand_path("../../spec/support/assets/red-40x30.png", __dir__)
+    checker = File.expand_path("../../spec/support/assets/checker-20x20.png", __dir__)
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $size = imagesize(#{checker.inspect})
+        @img = image #{red.inspect}, width: 80, height: 90
+      end
+    SHOES_APP
+      img = image()
+      assert_equal [40, 30], [img.full_width, img.full_height]
+      assert_equal #{red.inspect}, img.path
+      img.path = #{checker.inspect}
+      assert_equal #{checker.inspect}, img.url, "path= swaps the picture"
+      assert_equal [20, 20], $size
+      assert_equal 1, images.size, "imagesize showed nothing"
     SHOES_SPEC
   end
 
@@ -370,7 +414,12 @@ class TestLacci < NienteTest
     SHOES_SPEC
   end
 
-  def test_para_cursor_marker_special
+  # Shoes 3.1's cursor = :marker drops the selection: the caret goes to its start and the
+  # marker is cleared (s3t_textblock.c:602-616, ledger F14). It used to jump to the marker and
+  # keep it, so in Hackety Hack's editor a second Backspace did nothing and typing after
+  # Backspace or select-all came out backwards: `alert "hello"`, two Backspaces and `p!"`
+  # read `alert "hello"!p`.
+  def test_para_cursor_marker_drops_the_selection
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
         @p = para "Hello World"
@@ -380,7 +429,44 @@ class TestLacci < NienteTest
       p.cursor = 5
       p.marker = 10
       p.cursor = :marker
-      assert_equal 10, p.cursor
+      assert_equal [5, nil], [p.cursor, p.marker], "a selection ahead of the caret"
+      p.cursor = 10
+      p.marker = 3
+      p.cursor = :marker
+      assert_equal [3, nil], [p.cursor, p.marker], "one behind it"
+      p.cursor = :marker
+      assert_equal [3, nil], [p.cursor, p.marker], "with no marker nothing moves"
+      p.marker = 7
+      p.cursor = nil
+      assert_equal [nil, nil], [p.cursor, p.marker], "nil takes the caret and the marker away"
+    SHOES_SPEC
+  end
+
+  # How Hackety Hack's editor types: an edit puts the caret after it and then says
+  # cursor = :marker (app/ui/editor/editor.rb:291-301).
+  def test_para_typing_after_a_backspace_goes_forward
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        @p = para "hello"
+      end
+    SHOES_APP
+      p = para()
+      text = +"hello"
+      p.cursor = 5
+      2.times do # Backspace: select the letter before the caret, delete the selection
+        p.marker = p.cursor - 1 if p.marker.nil?
+        pos, len = p.highlight
+        text[pos, len] = ""
+        p.cursor = pos
+        p.cursor = :marker
+      end
+      "p!".each_char do |c|
+        pos, _len = p.highlight
+        text.insert(pos, c)
+        p.cursor = pos + 1
+        p.cursor = :marker
+      end
+      assert_equal ["help!", 5, nil], [text, p.cursor, p.marker]
     SHOES_SPEC
   end
 
@@ -423,6 +509,31 @@ class TestLacci < NienteTest
       end
     SHOES_APP
       assert true
+    SHOES_SPEC
+  end
+
+  # `style` looks up a class's style names on every change an animation makes, so each
+  # class keeps its list; a style declared later, even on a parent, is still found.
+  def test_style_names_are_kept_and_still_follow_new_styles
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      class Shoes
+        class CacheParent < Shoes::Drawable
+          shoes_style :first
+        end
+
+        class CacheChild < CacheParent
+          shoes_style :second
+        end
+      end
+      Shoes.app {}
+    SHOES_APP
+      names = Shoes::CacheChild.shoes_style_names
+      assert_same names, Shoes::CacheChild.shoes_style_names, "worked out once"
+      assert names.frozen?, "and kept safe from its callers"
+      assert_includes names, "first"
+      Shoes::CacheParent.shoes_style :third
+      assert_includes Shoes::CacheChild.shoes_style_names, "third", "a parent's new style reaches the child"
+      assert_includes Shoes::CacheChild.shoes_style_names(with_features: :all), "third"
     SHOES_SPEC
   end
 end

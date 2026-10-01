@@ -1,0 +1,12 @@
+---
+# ext-scarpe, ledger N1: Scarpe draws its own controls, so it tells a screen reader what they are.
+testability: visual
+display: native
+ledger: N1
+----------- app code
+Shoes.app do
+  @bar = progress fraction: 0.4
+end
+----------- test code
+node = a11y_nodes.find { |n| n[:role] == "progress_indicator" }
+assert_equal({ value: 0.4, min: 0.0, max: 1.0 }, node[:numeric])

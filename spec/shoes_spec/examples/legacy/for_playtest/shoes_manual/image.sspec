@@ -1,0 +1,20 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes_manual/image.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/working/shoes_manual/image.sspec
+- cases/scarpe_examples/legacy/working/shoes_manual/image.sspec
+----------- app code
+#!ruby
+ Shoes.app do
+   para "Nice, nice, very nice.  Busy, busy, busy."
+   image "#{DIR}/docs/static/avatar.png"
+  end
+----------- test code
+# Verify para text and local image element exist
+assert paras().length >= 1, "Expected a para element"
+assert_includes para().text, "Nice, nice, very nice"
+assert images().length >= 1, "Expected an image element"

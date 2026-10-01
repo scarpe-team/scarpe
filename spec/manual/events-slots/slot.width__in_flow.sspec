@@ -1,0 +1,18 @@
+---
+manual: slot.width
+lines: [2511, 2513]
+testability: visual
+display: native
+ledger: C8
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @row = flow width: 300 do
+    stack width: 100, height: 20
+    @rest = stack { stack height: 20 }
+  end
+end
+----------- test code
+rest = stack("@rest")
+assert_in_delta 300, layout_of(rest).w, 0.5, "a stack with no width is as wide as its flow (Shoes 3 and 4)"
+assert_in_delta 20, layout_of(rest).y - layout_of(flow("@row")).y, 0.5, "so it starts a row below the 100 px stack"
+assert_in_delta 300, rest.width, 0.5, "and width reports that, in pixels"

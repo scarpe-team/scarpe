@@ -1,0 +1,13 @@
+---
+manual: styles.strikethrough
+lines: [1443, 1451]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  @plain = para "plain", strikethrough: "none"
+  @struck = para "struck", strikethrough: "single"
+end
+----------- test code
+assert_equal "none", para("@plain").style[:strikethrough], "\"none\" is one of the two settings"
+assert_equal "single", para("@struck").style[:strikethrough], "\"single\" is the other"

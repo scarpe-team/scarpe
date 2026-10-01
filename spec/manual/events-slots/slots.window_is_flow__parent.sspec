@@ -1,0 +1,11 @@
+---
+manual: slots.window_is_flow
+lines: [1621, 1621]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $top_level = para "Right in the window."
+end
+----------- test code
+assert_kind_of Shoes::Flow, $top_level.parent, "an element placed straight in the window has a flow for a parent"

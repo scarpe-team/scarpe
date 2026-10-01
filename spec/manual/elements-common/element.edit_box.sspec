@@ -1,0 +1,16 @@
+---
+manual: element.edit_box
+lines: [1963, 1976]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $empty = edit_box
+  $filled = edit_box "HORRAY EDIT ME"
+  $small = edit_box "small one", width: 100, height: 160
+end
+----------- test code
+assert_instance_of Shoes::EditBox, $empty, "edit_box returns a Shoes::EditBox"
+assert_equal 3, edit_boxes.size, "each call adds a box to the slot"
+assert_equal "HORRAY EDIT ME", $filled.text, "the text starts out the box"
+assert_equal "small one", $small.text

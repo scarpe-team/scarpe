@@ -1,0 +1,13 @@
+---
+manual: art.nostroke
+lines: [1706, 1706]
+testability: api
+display: any
+ledger: B6
+----------- app code
+Shoes.app do
+  $app = self
+  $returned = nostroke
+end
+----------- test code
+assert_same $app, $returned, "nostroke returns self"

@@ -1,0 +1,15 @@
+---
+manual: slot.scroll_top=
+lines: [2460, 2463]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $list = stack height: 100, scroll: true do
+    5.times { para "a line" }
+  end
+end
+----------- test code
+assert_equal 0, $list.scroll_top
+$list.scroll_top = 20
+assert_equal 20, $list.scroll_top, "the slot is scrolled to 20"

@@ -1,0 +1,21 @@
+---
+manual: colors.hex_strings
+lines: [1453, 1453]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 200, height: 200 do
+  stroke "#1E90FF"
+  strokewidth 20
+  nofill
+  rect 50, 50, 100, 100
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 2 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(50, 100, [30, 144, 255], "a six-digit hex code works as a stroke")
+paints.(100, 100, [255, 255, 255], "and does not leak into the fill")

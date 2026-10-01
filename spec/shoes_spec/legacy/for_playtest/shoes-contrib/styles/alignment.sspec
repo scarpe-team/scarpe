@@ -1,0 +1,17 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/legacy/for_playtest/shoes-contrib/styles/alignment.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/styles/alignment.sspec
+----------- app code
+Shoes.app :title => "A Styling Sample" do
+  @text = para "Rightly aligned"
+  @text.style(:align => "right")
+end
+----------- test code
+# Test para text and style method with alignment
+assert_equal "Rightly aligned", para().text
+assert_includes ["right", :right], para().style[:align]

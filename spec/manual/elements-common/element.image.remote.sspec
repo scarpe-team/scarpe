@@ -1,0 +1,38 @@
+---
+manual: element.image.remote
+lines: [2011, 2015]
+testability: visual
+display: native
+----------- app code
+# A web server on this machine only, so the case needs no network.
+require "socket"
+png = File.binread("assets/red-40x30.png")
+server = TCPServer.new("127.0.0.1", 0)
+$url = "http://127.0.0.1:#{server.addr[1]}/red-40x30.png"
+$requests = 0
+Thread.new do
+  loop do
+    client = server.accept
+    nil while (line = client.gets) && line != "\r\n"
+    $requests += 1
+    client.write "HTTP/1.1 200 OK\r\nContent-Type: image/png\r\nContent-Length: #{png.bytesize}\r\nConnection: close\r\n\r\n"
+    client.write png
+    client.close
+  end
+end
+Shoes.app do
+  @remote = image $url
+end
+----------- test code
+px = ->(x, y) { pixel_at(x.round, y.round).first(3) }
+near = ->(expected, actual, tolerance = 24) { expected.zip(actual).all? { |e, a| (e - a).abs <= tolerance } }
+
+shown = lambda do
+  picture = layout_of(image("@remote"))
+  near.([255, 0, 0], px.(picture.x + 20, picture.y + 15), 4)
+end
+40.times { shown.call ? break : advance(0.1) } # remote images load in the background
+
+assert shown.call, "the image from the URL shows once loaded"
+picture = layout_of(image("@remote"))
+assert_equal [40, 30], [picture.w.round, picture.h.round], "at its own size"

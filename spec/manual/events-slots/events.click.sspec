@@ -1,0 +1,18 @@
+---
+manual: events.click
+lines: [2187, 2193]
+testability: interactive
+display: native
+----------- app code
+$clicks = []
+Shoes.app width: 400, height: 300 do
+  stack width: 200, height: 100 do
+    click { |button, left, top| $clicks << [button, left, top] }
+  end
+end
+----------- test code
+click_at 300, 200
+assert_empty $clicks, "a click outside the slot does not reach its block"
+
+click_at 50, 40
+assert_equal [[1, 50, 40]], $clicks, "one call with the left button's number and where the click happened"

@@ -1,13 +1,13 @@
 PATH
   remote: ../scarpe-components
   specs:
-    scarpe-components (0.5.0)
+    scarpe-components (1.0.0)
 
 PATH
   remote: .
   specs:
-    lacci (0.5.0)
-      scarpe-components (~> 0.5.0)
+    lacci (1.0.0)
+      scarpe-components (~> 1.0.0)
 
 GEM
   remote: https://rubygems.org/

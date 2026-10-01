@@ -1,0 +1,14 @@
+---
+manual: builtins.ask_color
+lines: [643, 655]
+testability: dialog
+display: native
+dialogs: {ask_color: [[255, 136, 0, 255]]}
+----------- app code
+backcolor = ask_color("Pick a background")
+Shoes.app do
+ background backcolor
+end
+----------- test code
+assert_equal [255, 136, 0, 255], pixel_at(5, 5), "the window is painted in the picked colour"
+assert_equal [255, 136, 0, 255], pixel_at(400, 300), "all of it"

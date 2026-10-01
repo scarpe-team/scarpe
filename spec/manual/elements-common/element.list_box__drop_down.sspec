@@ -1,0 +1,19 @@
+---
+manual: element.list_box
+lines: [2043, 2044]
+testability: api
+display: native
+----------- app code
+Shoes.app do
+  stack margin: 10 do
+    para "Pick a card:"
+    list_box items: ["Jack", "Ace", "Joker"]
+  end
+end
+----------- test code
+refute_equal "Joker", list_box.text
+
+click_on list_box
+click_on "Joker"
+
+assert_equal "Joker", list_box.text, "the drop-down offers the last item too, and picking it selects it"

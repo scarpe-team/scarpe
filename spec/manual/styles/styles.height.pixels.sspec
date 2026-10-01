@@ -1,0 +1,15 @@
+---
+manual: styles.height.pixels
+lines: [1239, 1243]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @box = stack width: 200, height: 100 do
+    para "short content"
+  end
+  @tall = button "Tall", height: 40
+end
+----------- test code
+assert_in_delta 100, layout_of(stack("@box")).h, 0.5, "height: 100 makes the slot 100 pixels high, whatever its content"
+assert_in_delta 40, layout_of(button("@tall")).h, 0.5, "height: 40 overrides a button's natural height"

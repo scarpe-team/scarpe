@@ -1,0 +1,27 @@
+---
+manual: styles.size
+lines: [1393, 1398]
+testability: visual
+display: native
+ledger: M14
+----------- app code
+# A program laid out for Shoes 3's text asks for it before its first window (ledger M14):
+# sizes are then points at 96 dpi, as Shoes 3 hands Pango size * 96/72 (s3t_textblock.c:293),
+# while a font string's px stays pixels, as Pango reads it.
+Shoes.text_mode = :shoes3
+Shoes.app width: 500, height: 300 do
+  flow { @default = para "Shoes", margin: 0 }
+  flow { @points = para "Shoes", size: 24, margin: 0 }
+  flow { @pixels = para "Shoes", font: "Monospace 24px", margin: 0 }
+  flow { @letter = para "H", size: 30, margin: 0 }
+end
+----------- test code
+assert_equal :shoes3, Shoes.text_mode
+assert_in_delta 16 * 1.2, layout_of(para("@default")).h, 0.6, "a para's 12 draws 16 px tall, as in Shoes 3"
+assert_in_delta 32 * 1.2, layout_of(para("@points")).h, 0.6, "size 24 is 24 points, 32 px"
+assert_in_delta 24 * 1.2, layout_of(para("@pixels")).h, 0.6, "and 24px in a font string is 24 pixels"
+
+box = layout_of(para("@letter"))
+stem = (box.x.floor...(box.x + box.w).ceil).find { |x| pixel_at(x, (box.y + box.h / 2).round).first(3).sum < 384 }
+cap_height = (box.y.floor...(box.y + box.h).ceil).count { |y| pixel_at(stem + 1, y).first(3).sum < 384 }
+assert_includes 25..33, cap_height, "at size 30 a capital H is 25 to 33 pixels tall: 30 points is 40 pixels"

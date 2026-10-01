@@ -1,0 +1,15 @@
+---
+manual: slot.scroll
+lines: [2435, 2436]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $scrolling = stack height: 100, scroll: true do
+    para "scrolls"
+  end
+  $plain = stack { para "does not" }
+end
+----------- test code
+assert_equal true, $scrolling.scroll, "a slot made with scroll: true may show a scrollbar"
+refute $plain.scroll, "a plain slot may not"

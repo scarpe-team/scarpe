@@ -1,0 +1,22 @@
+---
+manual: radio.one_marked_per_group
+lines: [3274, 3276]
+testability: interactive
+display: any
+----------- app code
+Shoes.app do
+  stack do
+    @a = radio
+    @b = radio
+    @c = radio
+  end
+end
+----------- test code
+group = %w[@a @b @c].map { |name| radio(name) }
+marked = -> { group.select(&:checked?).map(&:linkable_id) }
+assert_empty marked.call
+
+[1, 0, 2].each do |i|
+  group[i].trigger_click
+  assert_equal [group[i].linkable_id], marked.call, "only the radio just clicked is marked"
+end

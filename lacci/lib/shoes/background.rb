@@ -20,11 +20,11 @@ class Shoes
     # @param options [Hash] optional styles like :curve, :height, :width
     # @return [Shoes::Background] the created Background drawable
     def background(color, options = {})
-      # Create the Background drawable with the fill color.
-      # We need to set up the app context properly so the drawable
-      # can access @app during initialization.
+      # Create the Background drawable with the fill color, in this slot or where a
+      # widget sends its DSL calls. We need to set up the app context properly so the
+      # drawable can access @app during initialization.
       instance = nil
-      @app.with_slot(self) do
+      @app.with_slot(dsl_target) do
         Shoes::Drawable.with_current_app(self.app) do
           instance = Shoes::Background.new(fill: color, **options)
         end

@@ -214,6 +214,21 @@ module Scarpe::Components::Calzini
     rgb_to_hex(colors[0])
   end
 
+  # Shoes measures a gradient's angle from the top, turning counter-clockwise, so 0
+  # runs top to bottom and 90 left to right (manual 1073-1079). CSS measures from the
+  # bottom, turning clockwise.
+  def css_gradient_angle(shoes_angle)
+    180 - shoes_angle
+  end
+
+  # Shoes colors carry alpha as an Integer from 0 to 255 (a Float alpha is
+  # already a fraction). CSS rgba() wants the fraction.
+  def rgba_css(color)
+    r, g, b, a = color
+    a = (a / 255.0).round(3) if a.is_a?(Integer)
+    "rgba(#{[r, g, b, a].compact.join(", ")})"
+  end
+
   # Convert an [r, g, b, a] array to an HTML hex color code
   # Arrays support alpha. HTML hex does not. So premultiply.
   def rgb_to_hex(color)

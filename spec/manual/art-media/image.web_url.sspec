@@ -1,0 +1,36 @@
+---
+manual: image.web_url
+lines: [3125, 3132]
+testability: visual
+display: native
+timeout: 60
+----------- app code
+# No outside network in the spec: a one-file web server on the loopback interface stands
+# in for hacketyhack.heroku.com.
+require "socket"
+
+server = TCPServer.new("127.0.0.1", 0)
+picture = File.binread("assets/red-40x30.png")
+Thread.new do
+  loop do
+    client = server.accept
+    loop { break if ["\r\n", nil].include?(client.gets) }
+    client.write "HTTP/1.1 200 OK\r\nContent-Type: image/png\r\nContent-Length: #{picture.bytesize}\r\nConnection: close\r\n\r\n"
+    client.write picture
+    client.close
+  end
+end
+$url = "http://127.0.0.1:#{server.addr[1]}/images/logo.png"
+
+Shoes.app do
+  image $url
+end
+----------- test code
+20.times do
+  break if layout_of(image).w.round == 40
+  advance 0.1
+end
+
+box = layout_of(image)
+assert_in_delta 40, box.w, 0.5, "the image at the web URL is shown at its own size"
+assert_equal [255, 0, 0], pixel_at((box.x + 20).floor, (box.y + 15).floor).first(3), "with the picture from the web"

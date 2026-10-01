@@ -1,0 +1,12 @@
+---
+manual: element.edit_line
+lines: [1980, 1981]
+testability: api
+display: any
+ledger: G12
+----------- app code
+Shoes.app do
+  edit_line
+end
+----------- test code
+assert_equal "", edit_line.text, "without the optional text the line starts out empty"

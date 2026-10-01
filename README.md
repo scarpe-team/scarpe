@@ -5,21 +5,23 @@
 [![Ruby Style Guide](https://img.shields.io/badge/code_style-shopify-brightgreen.svg)](https://github.com/Shopify/ruby-style-guide)
 [![Discord](https://img.shields.io/discord/1072538177321058377?label=discord)](https://discord.gg/Ca5EHSsGYp)
 
-<img src="docs/static/scarpe-logo.png">
+Coding agents building a desktop app with Scarpe: start at [FOR_AGENTS.md](FOR_AGENTS.md).
 
-"Scarpe" means shoes in Italian. "Scarpe" also means [Shoes](https://github.com/shoes/shoes-deprecated) in modern Ruby and Webview!
+https://github.com/user-attachments/assets/5018221c-d261-49bb-8c6b-c128254ff2d7
 
-Scarpe isn't feature complete with any version of Shoes (yet?). We're initially targeting [Shoes 3](https://github.com/scarpe-team/scarpe/wiki/ShoesImplementations.md), also called "Red Shoes."
+"Scarpe" means shoes in Italian. "Scarpe" also means [Shoes](https://github.com/shoes/shoes-deprecated) in modern Ruby with a swappable backend!
+
+Scarpe Native appears to be feature complete with Shoes now. We are working hard to find any places it falls over.
 
 ## Wait, What's A Shoes?
 
 Shoes is an old library (really [several different ones](https://github.com/scarpe-team/scarpe/wiki/ShoesImplementations.md)) that let you build little local desktop computer programs, package them up and give copies to people. Imagine if you can write a tiny little Ruby program (e.g. sneak a peek at the next section) and then it would make a runnable app, opening a window in Ruby, where you could click buttons and play sounds and stuff.
 
-Scarpe is a rewrite of Shoes, because old Shoes doesn't work any more. There have been a surprising number of rewrites of Shoes over the years -- people love it and miss having it around. This one is ours. By default it uses [Webview](https://github.com/webview/webview).
+Scarpe is a rewrite of Shoes, because old Shoes doesn't work any more. There have been a surprising number of rewrites of Shoes over the years -- people love it and miss having it around. This one is ours.
 
 ## Usage
 
-Note: you'll probably want the [Scarpe in Development](#scarpe-in-development) instructions below in most cases! Scarpe isn't ready for "just install the released version" production usage yet.
+Note: you'll probably want the [Scarpe in Development](#scarpe-in-development) instructions below in most cases!
 
 Create an hello world application with:
 
@@ -50,6 +52,19 @@ end
 
 More examples can be found in the [`examples` folder](https://github.com/scarpe-team/scarpe/tree/main/examples)!
 
+## Native display service
+
+Scarpe can also draw your app without a webview. Ruby keeps Lacci and every block you write, and a small Rust program paints the window, on screen or headless.
+
+```
+bundle exec ruby exe/scarpe --native examples/button.rb
+bundle exec ruby exe/scarpe peek examples/button.rb --click "Push me" --shot after.png
+```
+
+The first run builds the Rust program, so you need `cargo`. [docs/native.md](docs/native.md) covers running it, looking and clicking with `scarpe peek`, the spec suite, packaging a macOS app with `scarpe package --native --dmg`, and how it all fits together. The contract lives in [native/DESIGN.md](native/DESIGN.md).
+
+It is dedicated to the late Noah Gibbs, who made Scarpe's display services swappable.
+
 ## Wiki
 
 Explore more in the [Scarpe Wiki](https://github.com/scarpe-team/scarpe/wiki) for in-depth documentation, tutorials, and additional resources. Whether you're a new user, a new contributor or an experienced user, the Wiki provides valuable information to enhance your Scarpe experience.
@@ -59,24 +74,8 @@ Explore more in the [Scarpe Wiki](https://github.com/scarpe-team/scarpe/wiki) fo
 
 ### Quickstart
 
-Scarpe requires [Ruby 3.2](https://www.ruby-lang.org/en/downloads/) or higher! You can use `rvm`, `rbenv` or your favourite version control to install Ruby just like normal.
+Scarpe requires [Ruby 3.2](https://www.ruby-lang.org/en/downloads/) or higher!
 
-This repo is where most of the action is happening right now, and to have the full Scarpe experience _today_ this is probably what you want to do.
-
-```
-# dependencies - Ubuntu Linux version
-sudo apt install libgtk-3-dev libwebkit2gtk-4.0-dev
-
-# for any other Linux or Windows please see the webview docs for your platform:
-# https://github.com/webview/webview#prerequisites
-
-# get it
-git clone http://github.com/scarpe-team/scarpe
-cd scarpe; bundle install
-
-# run it
-./exe/scarpe examples/button.rb --dev
-```
 
 If you are using Visual Studio Code, you can use this [extension](https://github.com/gintama91/Scarpe-Vscode-Extension). This extension simplifies the process of executing commands by eliminating the need to repeatedly type lengthy file paths, resulting in a more efficient and productive development experience.
 
@@ -140,15 +139,8 @@ If you want to quickly add a feature, you can use the `ruby scarpegen.rb` comman
 
 ## Are We Done Yet?
 
-Great question! Right now we have a few key things we want to achieve. The first is passing all of the examples we can get our hands on. The second is passing [Hackety-Hack](https://github.com/hacketyhack/hacketyhack). We're manually keeping tabs on that here.
+We actually might be. After nearly five years. If you can find something in the Shoes DSL we aren't implementing quite right. Let us know and we'll fix it. The Native Rust backend is the complete one.
 
-But the short version is: no, we're far from done. Some Shoes features (e.g. multiple window support) may be very difficult to support with Webview at all. We're working on other ways to handle those features.
-
-### Examples Passing with the Webview Display Service
-
-![](https://geps.dev/progress/30?dangerColor=800000&warningColor=ff9900&successColor=006600)
-
-__92/304__
 ## Teach me more about Shoes, the DSL, what it is and why it is amazing
 
 1. [Nobody Knows Shoes - _why's Manual](https://github.com/whymirror/why-archive/raw/master/shoes/nobody-knows-shoes.pdf)

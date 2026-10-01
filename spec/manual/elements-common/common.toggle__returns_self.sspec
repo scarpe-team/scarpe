@@ -1,0 +1,12 @@
+---
+manual: common.toggle
+lines: [2715, 2715]
+testability: api
+display: any
+ledger: B6
+----------- app code
+Shoes.app do
+  $b = button "Flicker"
+end
+----------- test code
+assert_same $b, $b.toggle, "toggle returns the element itself"

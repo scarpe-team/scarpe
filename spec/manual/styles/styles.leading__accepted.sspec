@@ -1,0 +1,12 @@
+---
+manual: styles.leading
+lines: [1282, 1286]
+testability: api
+display: any
+ledger: F5
+----------- app code
+Shoes.app do
+  @it = para "one\ntwo", leading: 8
+end
+----------- test code
+assert_equal 8, para("@it").style[:leading], "the :leading style is kept on the para and reads back, so a display can draw it"

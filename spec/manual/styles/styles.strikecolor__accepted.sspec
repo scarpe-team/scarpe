@@ -1,0 +1,12 @@
+---
+manual: styles.strikecolor
+lines: [1436, 1441]
+testability: api
+display: any
+ledger: F5
+----------- app code
+Shoes.app do
+  @it = para "struck", strikethrough: "single", strikecolor: red
+end
+----------- test code
+assert_equal [255, 0, 0], para("@it").style[:strikecolor].to_a.first(3), "the :strikecolor style is kept on the para and reads back, so a display can draw it"

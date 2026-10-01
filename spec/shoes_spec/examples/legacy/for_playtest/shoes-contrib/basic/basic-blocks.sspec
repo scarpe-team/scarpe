@@ -1,0 +1,23 @@
+---
+# Imported from Noah Gibbs' Shoes-Spec corpus by spec/import_shoes_spec.rb.
+# Change it through RULINGS or FIXES there: a re-import rewrites this file.
+source: cases/scarpe_examples/examples/legacy/for_playtest/shoes-contrib/basic/basic-blocks.sspec
+source_commit: 1e766c6
+display: any
+duplicates:
+- cases/scarpe_examples/legacy/for_playtest/shoes-contrib/basic/basic-blocks.sspec
+----------- app code
+Shoes.app do
+  stack do
+    para "First"
+    para "Second"
+    para "Third"
+  end
+end
+----------- test code
+# Verify three paragraphs exist in order
+all_paras = paras()
+assert_equal 3, all_paras.count, "Should have exactly 3 paragraphs"
+assert_equal "First", all_paras[0].text
+assert_equal "Second", all_paras[1].text
+assert_equal "Third", all_paras[2].text

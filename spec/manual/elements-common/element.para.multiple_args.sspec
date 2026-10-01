@@ -1,0 +1,15 @@
+---
+manual: element.para.multiple_args
+lines: [3283, 3291]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  para "Among these films, which do you prefer?\n"
+  radio; @film = para strong("The Taste of Tea"), " by Katsuhito Ishii\n"
+end
+----------- test code
+film = para("@film")
+
+assert_equal "The Taste of Tea by Katsuhito Ishii\n", film.text, "the arguments are joined in order"
+assert_equal [Shoes::Strong, String], film.contents.map(&:class), "the fragment and the String both stay"

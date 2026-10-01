@@ -1,0 +1,17 @@
+---
+manual: slot.show
+lines: [2465, 2468]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @box = stack width: 100, height: 100, hidden: true do
+    background red
+  end
+end
+----------- test code
+refute_equal [255, 0, 0, 255], pixel_at(50, 50), "hidden to begin with"
+
+stack("@box").show
+
+assert_equal [255, 0, 0, 255], pixel_at(50, 50), "show reveals the slot"

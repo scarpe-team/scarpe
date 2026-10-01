@@ -1,0 +1,20 @@
+---
+manual: styles.angle.90
+lines: [1077, 1079]
+testability: visual
+display: native
+ledger: D6
+----------- app code
+Shoes.app width: 300, height: 300 do
+  @swatch = stack width: 200, height: 200 do
+    background red..blue, angle: 90
+  end
+end
+----------- test code
+box = layout_of(stack("@swatch"))
+at = ->(dx, dy) { pixel_at((box.x + dx).round, (box.y + dy).round) }
+
+left, right = at.call(2, 100), at.call(197, 100)
+assert(left[0] > 200 && left[2] < 60, "at 90 degrees the gradient starts red on the left, got #{left}")
+assert(right[2] > 200 && right[0] < 60, "and ends blue on the right, got #{right}")
+assert_in_delta at.call(100, 2)[0], at.call(100, 197)[0], 8, "it does not change from top to bottom"

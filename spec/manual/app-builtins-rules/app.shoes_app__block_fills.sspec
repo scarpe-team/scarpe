@@ -1,0 +1,17 @@
+---
+manual: app.shoes_app
+lines: [859, 863]
+testability: api
+display: any
+----------- app code
+Shoes.app do
+  $inside = self
+  @hello = para "Hello"
+  @go = button "Go"
+end
+----------- test code
+assert_equal 1, Shoes.APPS.size, "Shoes.app opened one app"
+app = Shoes.APPS.first
+assert_same app, $inside, "the block ran inside that app"
+assert_equal [para("@hello").linkable_id, button("@go").linkable_id], app.document_root.contents.map(&:linkable_id),
+  "the block's elements fill the window, in order"

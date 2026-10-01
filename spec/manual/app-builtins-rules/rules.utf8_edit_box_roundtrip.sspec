@@ -1,0 +1,21 @@
+---
+manual: rules.utf8_edit_box_roundtrip
+lines: [446, 464]
+testability: interactive
+display: any
+----------- app code
+Shoes.app do
+  stack margin: 10 do
+    @edit = edit_box width: 1.0 do
+      @para.text = @edit.text
+    end
+    @para = para ""
+  end
+end
+----------- test code
+assert_equal "", para.text, "the para starts empty"
+
+edit_box.trigger_change("Καλημέρα, てすと")
+
+assert_equal "Καλημέρα, てすと", para.text, "the edit box's text is copied into the para declared after it"
+assert_equal Encoding::UTF_8, para.text.encoding, "as UTF-8"

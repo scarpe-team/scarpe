@@ -1,0 +1,30 @@
+---
+manual: slots.stack_flow_same_box
+lines: [1614, 1616]
+testability: visual
+display: native
+----------- app code
+Shoes.app width: 400, height: 300 do
+  @stack = stack width: 150 do
+    @s1 = stack width: 60, height: 20
+    @s2 = stack width: 60, height: 20
+  end
+  @flow = flow width: 150 do
+    @f1 = stack width: 60, height: 20
+    @f2 = stack width: 60, height: 20
+  end
+end
+----------- test code
+the_stack = layout_of(stack("@stack"))
+the_flow = layout_of(flow("@flow"))
+assert_in_delta 150, the_stack.w, 0.5, "as boxes they are the same: both take the width they were given"
+assert_in_delta 150, the_flow.w, 0.5
+assert_in_delta the_stack.x + 150, the_flow.x, 0.5, "and sit in their parent the same way"
+
+s1, s2 = layout_of(stack("@s1")), layout_of(stack("@s2"))
+assert_in_delta s1.x, s2.x, 0.5, "the stack puts its children one under the other"
+assert_in_delta s1.y + 20, s2.y, 0.5
+
+f1, f2 = layout_of(stack("@f1")), layout_of(stack("@f2"))
+assert_in_delta f1.y, f2.y, 0.5, "the flow puts the same children side by side"
+assert_in_delta f1.x + 60, f2.x, 0.5

@@ -15,7 +15,7 @@ class Shoes
     include Shoes::Colors
 
     # All Drawables have these so they go in Shoes::Drawable and are inherited
-    @shoes_events = ["parent", "destroy", "prop_change", "hover", "leave", "motion"]
+    @shoes_events = ["parent", "destroy", "prop_change", "hover", "leave", "motion", "click", "release"]
 
     class << self
       attr_accessor :drawable_classes
@@ -40,6 +40,12 @@ class Shoes
       def dsl_name
         n = name.split("::").last.chomp("Drawable")
         n.gsub(/(.)([A-Z])/, '\1_\2').downcase
+      end
+
+      # The kind a display is told to create, e.g. "Para". A subclass the display
+      # should treat as its parent class says so by overriding this.
+      def display_class_name
+        name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
       end
 
       def drawable_class_by_name(name)
@@ -94,7 +100,7 @@ class Shoes
         if @shoes_events
           raise Shoes::Errors::DoubleRegisteredShoesEventError, "Registering shoes events #{args.inspect} for class #{self} but already registered events as #{@shoes_events.inspect}!"
         end
-        @shoes_events = args.map(&:to_s) + self.superclass.get_shoes_events
+        @shoes_events = args.map(&:to_s) | self.superclass.get_shoes_events
       end
 
       # Require supplying these Shoes style values as positional arguments to
@@ -192,6 +198,17 @@ class Shoes
 
         linkable_properties << { name: name, validator:, feature: }
         linkable_properties_hash[name] = true
+        Shoes::Drawable.forget_style_names
+      end
+
+      # Every class's list of style names is worked out once (shoes_style_names) and kept
+      # until a style is declared anywhere, since a class lists its parents' styles too.
+      def forget_style_names
+        @style_generation = style_generation + 1
+      end
+
+      def style_generation
+        Shoes::Drawable.instance_variable_get(:@style_generation) || 0
       end
 
       # Add these names as Shoes styles with the given validator and feature, if any
@@ -217,9 +234,22 @@ class Shoes
       # Return a list of shoes_style names with the given features. If with_features is nil,
       # return them with a list of features for the current Shoes::App. For the list of
       # styles available with no features requested, pass nil to with_features.
+      #
+      # `style` asks for this on every change an animation makes, so the answer is kept per
+      # class and set of features (a frozen Array) until a new style is declared.
       def shoes_style_names(with_features: nil)
         # No with_features given? Use the ones requested by this Shoes::App
         with_features ||= (@app&.features || [])
+        unless @style_names_generation == Shoes::Drawable.style_generation
+          @style_names = {}
+          @style_names_generation = Shoes::Drawable.style_generation
+        end
+        @style_names.fetch(with_features) do
+          @style_names[with_features.dup.freeze] = find_style_names(with_features)
+        end
+      end
+
+      def find_style_names(with_features)
         parent_prop_names = self != Shoes::Drawable ? self.superclass.shoes_style_names(with_features:) : []
 
         if with_features == :all
@@ -227,7 +257,7 @@ class Shoes
         else
           subclass_props = linkable_properties.select { |prop| !prop[:feature] || with_features.include?(prop[:feature]) }
         end
-        parent_prop_names | subclass_props.map { |prop| prop[:name] }
+        (parent_prop_names | subclass_props.map { |prop| prop[:name] }).freeze
       end
 
       def shoes_style_hashes
@@ -239,6 +269,19 @@ class Shoes
       def shoes_style_name?(name)
         linkable_properties_hash[name.to_s] ||
           (self != Shoes::Drawable && superclass.shoes_style_name?(name))
+      end
+
+      # Shapes, backgrounds and borders are drawn with the slot's current fill, stroke
+      # and strokewidth (manual 1692-1709). Text and controls are not: Shoes 3 colours
+      # text from its own styles only (s3t_textblock.c:250-258), and native controls
+      # ignore stroke.
+      def uses_draw_context
+        @uses_draw_context = true
+        shoes_style :cap # a shape's own line ends, else the slot's (manual 1108-1113)
+      end
+
+      def uses_draw_context?
+        @uses_draw_context || (self != Shoes::Drawable && superclass.uses_draw_context?)
       end
 
       # Current_app is set every time a drawable is created - we don't want to keep a default
@@ -281,11 +324,15 @@ class Shoes
     # Tooltip text shown on hover (HTML title attribute)
     shoes_style :tooltip
 
+    # The click handler is this style (manual 1144-1151, ledger G10): click: proc { }
+    # when the drawable is made, or whatever block click was last given.
+    shoes_style :click
+
     attr_reader :debug_id
 
     # These styles can be set to a current per-slot value and inherited from parent slots.
     # Their value is set at drawable-create time.
-    DRAW_CONTEXT_STYLES = [:fill, :stroke, :strokewidth, :rotate, :transform, :translate]
+    DRAW_CONTEXT_STYLES = [:fill, :stroke, :strokewidth, :rotate, :transform, :translate, :cap]
 
     include MarginHelper
 
@@ -325,6 +372,7 @@ class Shoes
         if args.size == 0
           # It's fine to use keyword args instead, but we should make sure they're actually there
           needed_args = req_args.map(&:to_sym) - kwargs.keys
+          needed_args -= Shoes::Art.placed_by_edges(kwargs) if is_a?(Shoes::Art)
           unless needed_args.empty?
             raise Shoes::Errors::BadArgumentListError, "Keyword arguments for #{self.class}#initialize should also supply #{needed_args.inspect}! #{args.inspect}"
           end
@@ -350,7 +398,7 @@ class Shoes
 
       # What styles are in the draw context, are used by this drawable, and weren't
       # given as positional or keyword arguments?
-      draw_context_styles = (DRAW_CONTEXT_STYLES & this_drawable_styles) - supplied_args
+      draw_context_styles = self.class.uses_draw_context? ? (DRAW_CONTEXT_STYLES & this_drawable_styles) - supplied_args : []
       unless draw_context_styles.empty?
         draw_context_styles.each do |style|
           dc_val = dc[style.to_s]
@@ -384,7 +432,7 @@ class Shoes
       # and prevent them.
       unexpected = (kwargs.keys - this_drawable_styles)
       unless unexpected.empty?
-        STDERR.puts "Unexpected non-style keyword(s) in #{self.class} initialize: #{unexpected.inspect}"
+        $stderr.puts "Unexpected non-style keyword(s) in #{self.class} initialize: #{unexpected.inspect}"
       end
 
       super(linkable_id: Shoes::Drawable.allocate_drawable_id)
@@ -403,27 +451,9 @@ class Shoes
         self.class.shoes_events
       end
 
-      # Binding the motion events here isn't perfect.
-      # What about drawables like SubscriptionItem that
-      # have no motion events? With the current Lacci
-      # implementation, the answer is that those events
-      # will never be sent. Calling .hover on one will
-      # be useless, harmless, and allowed. If you want
-      # to make it disallowed, you can do something like
-      # define a SubscriptionItem#hover that raises an
-      # exception instead.
-
-      bind_self_event("hover") do
-        @hover&.call
-      end
-
-      bind_self_event("leave") do
-        @leave&.call
-      end
-
-      bind_self_event("motion") do |x, y|
-        @motion&.call(x, y)
-      end
+      # hover, leave and motion are heard from the first block given for them (#hover, #leave,
+      # #motion). Most drawables never get one, and a program's syntax-coloured text is a
+      # thousand spans, remade on every key in Hackety Hack's editor.
     end
 
     def self.expects_parent?
@@ -435,26 +465,24 @@ class Shoes
 
     # Calling stack.app or drawable.app will execute the block
     # with the Shoes::App as self, and with that stack or
-    # flow as the current slot.
-    #
-    # @incompatibility In Shoes Classic this is the only way
-    #   to change self, while Scarpe will also change self
-    #   with the other Slot Manipulation methods: #clear,
-    #   #append, #prepend, #before and #after.
+    # flow as the current slot. Along with the app and window
+    # blocks, it is the one Shoes block that changes self
+    # (manual 297-326, ledger B1 and B2).
     #
     # @return [Shoes::App] the Shoes app
     # @yield the block to call with the Shoes App as self
     def app(&block)
-      @app.with_slot(self, &block) if block_given?
+      @app.with_slot(self) { @app.instance_eval(&block) } if block_given?
       @app
     end
 
     private
 
     def generate_debug_id
-      cl = caller_locations(3)
-      da = cl.detect { |loc| !loc.path.include?("lacci/lib/shoes") }
-      @drawable_defined_at = "#{File.basename(da.path)}:#{da.lineno}"
+      # The app's line is a few frames up; only look further when it is not.
+      outside = ->(locations) { locations.detect { |loc| !loc.path.include?("lacci/lib/shoes") } }
+      da = outside.call(caller_locations(3, 12)) || outside.call(caller_locations(3))
+      @drawable_defined_at = da ? "#{File.basename(da.path)}:#{da.lineno}" : "lacci"
 
       class_name = self.class.name.split("::")[-1]
 
@@ -541,9 +569,8 @@ class Shoes
       elsif args.empty?
         # This is called to set one or more Shoes styles.
         # Shoes3 was lenient — unknown styles were silently accepted and stored.
-        # We accept known styles AND draw context properties (fill, stroke, strokewidth, rotate).
+        # We accept known styles AND draw context settings (fill, stroke, rotate, scale...).
         prop_names = self.class.shoes_style_names
-        draw_context_props = %w[fill stroke strokewidth rotate]
 
         changes = {}
         kwargs.each do |name, val|
@@ -551,8 +578,9 @@ class Shoes
           if prop_names.include?(name_s)
             instance_variable_set("@#{name}", val)
             changes[name_s] = val
-          elsif draw_context_props.include?(name_s)
+          elsif Shoes::DrawContext::SETTINGS.include?(name_s)
             # Set draw context property on the drawable (Shoes3 supports this)
+            val = draw_context_pair(name_s, val)
             instance_variable_set("@#{name}", val)
             changes[name_s] = val
           else
@@ -575,7 +603,7 @@ class Shoes
     private
 
     def create_display_drawable
-      klass_name = self.class.name.delete_prefix("Scarpe::").delete_prefix("Shoes::")
+      klass_name = self.class.display_class_name
 
       is_widget = Shoes::Drawable.is_widget_class?(klass_name)
       parent_id = @parent&.linkable_id
@@ -583,6 +611,7 @@ class Shoes
       # Should we send an event so this can be discovered from someplace other than
       # the DisplayService?
       ::Shoes::DisplayService.display_service.create_display_drawable_for(klass_name, self.linkable_id, shoes_style_values, parent_id:, is_widget:)
+      click(&@click) if @click.is_a?(Proc)
     end
 
     public
@@ -611,8 +640,18 @@ class Shoes
       unsub_all_shoes_events
       send_shoes_event(event_name: "destroy", target: linkable_id)
       Shoes::Drawable.unregister_drawable_id(linkable_id)
+      Shoes::DisplayService.layout_cache.delete(linkable_id)
     end
-    alias_method :remove, :destroy
+
+    # Take the drawable away for good (manual 2430-2433, 2681-2684). This calls
+    # destroy by name, so a slot's own destroy clears its children and fires
+    # finish (ledger B5; an alias_method bound the base destroy and skipped both).
+    #
+    # @return [self]
+    def remove
+      destroy
+      self
+    end
 
     # Move the drawable to an absolute position.
     # In Shoes, move(left, top) repositions an element
@@ -622,9 +661,7 @@ class Shoes
     # @param top [Integer] the new top/y coordinate
     # @return [self]
     def move(left, top)
-      self.left = left
-      self.top = top
-      self
+      set_styles(left:, top:)
     end
 
     # Displace the drawable visually by the given amount.
@@ -636,67 +673,204 @@ class Shoes
     # @param top [Integer] the vertical displacement in pixels
     # @return [self]
     def displace(left, top)
-      self.displace_left = left
-      self.displace_top = top
-      self
-    end
-
-    # Get the width of the drawable, computing pixel values for percentages and
-    # negative values. Shoes3 apps expect slot.width to return the actual pixel width.
-    # For slots without explicit width, defaults to parent's width (100% fill).
-    #
-    # @return [Integer, nil] the width in pixels, or nil if not determinable
-    def width
-      result = compute_dimension(@width, :width)
-      # Slots without explicit width should fill their parent (Shoes3 behavior)
-      return result if result
-      return parent_dimension(:width) if self.is_a?(Shoes::Slot)
-      nil
-    end
-
-    # Get the height of the drawable, computing pixel values for percentages and
-    # negative values. Shoes3 apps expect slot.height to return the actual pixel height.
-    # For slots without explicit height, defaults to parent's height (100% fill).
-    #
-    # @return [Integer, nil] the height in pixels, or nil if not determinable
-    def height
-      result = compute_dimension(@height, :height)
-      # Slots without explicit height should fill their parent (Shoes3 behavior)
-      return result if result
-      return parent_dimension(:height) if self.is_a?(Shoes::Slot)
-      nil
+      set_styles(displace_left: left, displace_top: top)
     end
 
     private
 
-    # Compute a dimension (width or height) by resolving percentages and negative values.
-    # - Numbers are returned as-is
-    # - "100%" returns the parent's dimension
-    # - Negative values return parent_dimension - |value|
-    # - For document_root with no parent, uses App dimensions
+    # Sets styles the way their setters do, and tells the display in one prop_change, so it
+    # never lays out a drawable moved across but not yet down.
+    def set_styles(**styles)
+      raise(Shoes::Errors::NoSuchLinkableIdError, "Trying to set Shoes styles in a #{self.class} with no linkable ID!") unless linkable_id
+
+      changes = styles.to_h { |name, value| [name.to_s, self.class.validate_as(name, value)] }
+      changes.each { |name, value| instance_variable_set("@#{name}", value) }
+      send_shoes_event(changes, event_name: "prop_change", target: linkable_id)
+      self
+    end
+
+    public
+
+    # The width in pixels (manual 2511-2513: "returns an exact pixel size").
+    # A pixel width the app gave is the truth. Anything else (unset, "50%", 0.5, -100)
+    # is what the display laid out, or failing that, worked out here from the parent.
+    # Slots without a width fill their parent.
     #
-    # @param value [Integer, String, nil] the stored dimension value
-    # @param dimension [Symbol] :width or :height
-    # @return [Integer, nil] the computed pixel value
-    def compute_dimension(value, dimension)
-      return nil if value.nil?
-      return value if value.is_a?(Numeric) && value >= 0
+    # Like every getter here, it measures the element with its margins, as Shoes 3
+    # reports its place (s3_ruby.h:376-413, ledger A4): a para's 4 px count.
+    #
+    # @return [Numeric, nil] the width in pixels, or nil if not determinable
+    def width
+      size_in_pixels(@width, :width)
+    end
 
-      # Get parent's dimension for percentage/negative calculations
-      parent_dim = parent_dimension(dimension)
-      return nil unless parent_dim
+    # The height in pixels. See #width.
+    #
+    # @return [Numeric, nil] the height in pixels, or nil if not determinable
+    def height
+      size_in_pixels(@height, :height)
+    end
 
-      if value.is_a?(String) && value.end_with?("%")
-        # Percentage of parent
-        percent = value.to_f
-        (parent_dim * percent / 100.0).to_i
-      elsif value.is_a?(Numeric) && value < 0
-        # Negative means parent dimension minus the absolute value
-        parent_dim + value.to_i
-      else
-        # Unknown format, return nil
-        nil
+    # Where the drawable sits, in window pixels. A drawable the app placed with left:
+    # (or move) gets that number back, so `el.left += 5` never drifts through a
+    # rounded layout; one its slot placed reports where the display put it, as if
+    # it were not displaced (manual 2623-2626).
+    #
+    # @return [Numeric, nil] the left edge, or nil if not determinable
+    def left
+      @left || laid_out_at(:left)
+    end
+
+    # The top edge. See #left.
+    #
+    # @return [Numeric, nil] the top edge, or nil if not determinable
+    def top
+      @top || laid_out_at(:top)
+    end
+
+    # The margins the display gives this drawable, in pixels: [left, top, right, bottom].
+    # Its own margin styles win, the way the display reads them; the rest are the
+    # class's defaults.
+    #
+    # @return [Array<Numeric>] the four margins
+    def margins
+      given = @margin ? margin_parse(margin: @margin) : {}
+      width = @parent&.border_box_at(:width) || 0
+      default_margins.zip(%w[left top right bottom]).map do |default, side|
+        value = instance_variable_get("@margin_#{side}")
+        value = given[:"margin_#{side}"] if value.nil?
+        value.nil? ? default : margin_in_pixels(value, width)
       end
+    rescue Shoes::Errors::InvalidAttributeValueError
+      default_margins
+    end
+
+    protected
+
+    LAYOUT_FIELDS = { left: 0, top: 1, width: 2, height: 3, scroll_height: 4 }.freeze
+
+    # The box the display laid out, margins included, rounded to whole pixels as
+    # Shoes 3 reports them, or nil when no display reports layout.
+    def laid_out_at(field)
+      rect = Shoes::DisplayService.layout_cache[linkable_id] or return nil
+      x, y, w, h, scroll_h = rect
+      left, top, right, bottom = margins
+
+      case field
+      when :left then x - left - displacement(:left)
+      when :top then y - top - displacement(:top)
+      when :width then w + left + right
+      when :height then h + top + bottom
+      when :scroll_height then scroll_h
+      end.round
+    end
+
+    # The rect the display pushed, inside the margins: what a slot scrolls in.
+    def border_box_at(field)
+      Shoes::DisplayService.layout_cache[linkable_id]&.fetch(LAYOUT_FIELDS.fetch(field))&.round
+    end
+
+    # The display paints a displaced drawable, and everything in a displaced slot, where
+    # it was moved to, and reports that.
+    def displacement(side)
+      moved = instance_variable_get("@displace_#{side}")
+      (moved.is_a?(Numeric) ? moved : 0) + (@parent&.displacement(side) || 0)
+    end
+
+    # Text blocks override this with Shoes 3's text margins.
+    def default_margins
+      [0, 0, 0, 0]
+    end
+
+    private
+
+    # Text must be UTF-8 (manual 482-485, ledger F12). A string with bad bytes is
+    # reported on the console and its bad bytes replaced, so the app carries on.
+    def utf8_text(text)
+      return text if !text.is_a?(String) || text.valid_encoding?
+
+      said = "#{self.class.dsl_name} text is not valid UTF-8: #{text.inspect}"
+      Shoes::Console.log(:error, said)
+      $stderr.puts "[ERROR] #{said}"
+      text.scrub
+    end
+
+    # style(scale: 2) scales both ways and style(skew: 10) leans along x, as the scale and
+    # skew methods read one number (DrawContext); the display takes them as pairs.
+    def draw_context_pair(name, value)
+      return value unless value.is_a?(Numeric)
+
+      case name
+      when "scale" then [value, value]
+      when "skew" then [value, 0]
+      else value
+      end
+    end
+
+    # One margin, read as the display reads dimensions (dim.rs), against the parent's width.
+    def margin_in_pixels(value, parent_width)
+      value = pixels_in(value) if value.is_a?(String) && !percentage(value)
+      return value if pixel_size?(value)
+
+      if (fraction = fraction_of_parent(value))
+        parent_width * fraction
+      elsif value.is_a?(Numeric) && value < 0
+        [parent_width + value, 0].max
+      else
+        0
+      end
+    end
+
+    def size_in_pixels(given, dimension)
+      return given if pixel_size?(given)
+
+      laid_out_at(dimension) ||
+        compute_dimension(given, dimension) ||
+        (parent_dimension(dimension) if is_a?(Shoes::Slot))
+    end
+
+    # Read like the native display reads it (native/src/style/dim.rs): Integers of 0 and
+    # up are pixels, and so are Floats outside (0, 1], which Ruby code computes all the time.
+    def pixel_size?(value)
+      (value.is_a?(Integer) && value >= 0) || (value.is_a?(Float) && (value.zero? || value > 1))
+    end
+
+    # Resolve a size relative to the parent: a Float in (0, 1] is that fraction of it
+    # (manual 1239-1245), "N%" a percentage, a negative number the parent minus that
+    # much, and "Npx" plain pixels. For the document root the parent is the App.
+    #
+    # @param value [Numeric, String, nil] the stored dimension value
+    # @param dimension [Symbol] :width or :height
+    # @return [Numeric, nil] the computed pixel value
+    def compute_dimension(value, dimension)
+      value = pixels_in(value) if value.is_a?(String) && !percentage(value)
+      return value if value.nil? || pixel_size?(value)
+
+      parent = parent_dimension(dimension) or return nil
+      if (fraction = fraction_of_parent(value))
+        (parent * fraction).round
+      elsif value.is_a?(Numeric) && value < 0
+        [parent + value, 0].max
+      end
+    end
+
+    # A Float in (-1, 0) is the rest of the parent: -0.25 leaves 75% (dim.rs agrees).
+    def fraction_of_parent(value)
+      fraction = value.is_a?(String) ? percentage(value) : value
+      return nil unless fraction.is_a?(Numeric)
+      return fraction if fraction > 0 && fraction <= 1
+
+      1 + fraction if fraction < 0 && fraction > -1
+    end
+
+    def percentage(string)
+      string.strip.end_with?("%") ? string.to_f / 100.0 : nil
+    end
+
+    # "120px" and "120" are pixels.
+    def pixels_in(string)
+      number = string.strip.delete_suffix("px").strip
+      Integer(number, exception: false) || Float(number, exception: false)
     end
 
     # Get the parent's dimension (width or height) for computing percentages.
@@ -706,7 +880,7 @@ class Shoes
     # @return [Integer, nil] the parent's dimension in pixels
     def parent_dimension(dimension)
       if @parent
-        @parent.send(dimension)
+        @parent.border_box_at(dimension) || @parent.send(dimension)
       elsif @app
         # Document root uses App dimensions
         @app.send(dimension)
@@ -736,18 +910,27 @@ class Shoes
     end
 
     # Hide the drawable.
+    #
+    # @return [self]
     def hide
       self.hidden = true
+      self
     end
 
     # Show the drawable.
+    #
+    # @return [self]
     def show
       self.hidden = false
+      self
     end
 
     # Hide the drawable if it is currently shown. Show it if it is currently hidden.
+    #
+    # @return [self]
     def toggle
       self.hidden = !self.hidden
+      self
     end
 
     # Set the hover handler. Not every drawable may do something useful with this.
@@ -757,6 +940,8 @@ class Shoes
     # @return [self]
     def hover(&block)
       @hover = block
+      # hover and leave hand over the drawable (manual 2200-2205, ledger H5)
+      listen_for("hover") { @hover&.call(self) }
       self
     end
 
@@ -767,6 +952,7 @@ class Shoes
     # @return [self]
     def leave(&block)
       @leave = block
+      listen_for("leave") { @leave&.call(self) }
       self
     end
 
@@ -778,28 +964,54 @@ class Shoes
     # @return [self]
     def motion(&block)
       @motion = block
+      listen_for("motion") { |x, y| @motion&.call(x, y) }
       self
     end
 
     # Set the click handler. In Shoes3, all drawables support click events.
     # Returns self for method chaining (Shoes3 convention).
+    # Button, Check, Radio, Link and Image keep their own no-argument click.
     #
-    # @yield A block to be called when the drawable is clicked.
+    # @yield [button, left, top] the mouse button number and where the press happened
     # @return [self]
     def click(&block)
-      @block = block
+      @click = block
+      listen_for_pointer("click")
       self
     end
 
     # Set the release handler. In Shoes3, all drawables support release events.
     # Returns self for method chaining (Shoes3 convention).
     #
-    # @yield A block to be called when the mouse button is released over the drawable.
+    # @yield [button, left, top] the mouse button number and where the release happened
     # @return [self]
     def release(&block)
       @release = block
+      listen_for_pointer("release")
       self
     end
+
+    private
+
+    # Bind one of the drawable's own events the first time a block is given for it.
+    def listen_for(event_name, &handler)
+      @listening ||= {}
+      @listening[event_name] ||= bind_self_event(event_name, &handler)
+    end
+
+    # Bind the display's click or release event once, and tell the display
+    # with has_click / has_release that presses on this drawable belong here.
+    def listen_for_pointer(event_name)
+      @pointer_events ||= {}
+      return if @pointer_events[event_name]
+
+      @pointer_events[event_name] = bind_self_event(event_name) do |button, left, top, **_kwargs|
+        instance_variable_get("@#{event_name}")&.call(button, left, top)
+      end
+      send_shoes_event({ "has_#{event_name}" => true }, event_name: "prop_change", target: linkable_id)
+    end
+
+    public
 
     # We use method_missing to auto-create Shoes style getters and setters.
     def method_missing(name, *args, **kwargs, &block)

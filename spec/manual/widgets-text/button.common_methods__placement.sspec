@@ -1,0 +1,24 @@
+---
+manual: button.common_methods
+lines: [2915, 2916]
+testability: api
+display: any
+----------- app code
+# move, displace, left, top, style and style(styles) (manual 2589-2721) on a button.
+Shoes.app do
+  stack { @ok = button "OK!" }
+end
+----------- test code
+ok = button
+
+ok.style(width: 120, height: 40)
+assert_equal 120, ok.width, "style(width:) sets the width"
+assert_equal 40, ok.height, "style(height:) sets the height"
+assert_equal 120, ok.style[:width], "style reads the setting back"
+
+ok.move(30, 50)
+assert_equal [30, 50], [ok.left, ok.top], "move places the button"
+
+ok.displace(5, 7)
+assert_equal [30, 50], [ok.left, ok.top], "displace leaves left and top alone (manual 2623-2626)"
+assert_equal [5, 7], [ok.style[:displace_left], ok.style[:displace_top]], "displace records the offset"

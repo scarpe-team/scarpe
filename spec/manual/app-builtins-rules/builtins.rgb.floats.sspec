@@ -1,0 +1,14 @@
+---
+manual: builtins.rgb.floats
+lines: [827, 832]
+testability: api
+display: any
+ledger: D2
+----------- app code
+Shoes.app do
+  $blueviolet = rgb(0.54, 0.17, 0.89)
+  $darkgreen = rgb(0, 0.4, 0)
+end
+----------- test code
+assert_equal [138, 43, 227, 255], $blueviolet.to_a, "decimals are 0.0-1.0 components"
+assert_equal [0, 102, 0, 255], $darkgreen.to_a, "each component is read on its own, so rgb(0, 0.4, 0) is dark green"

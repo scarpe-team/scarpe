@@ -1,0 +1,30 @@
+---
+manual: intro.text_styling_fonts_from_file
+lines: [64, 66]
+testability: visual
+display: native
+ledger: K4
+----------- app code
+# Pacifico (OFL) is in spec/support/assets, copied into every sandbox.
+font File.expand_path("assets/Pacifico.ttf")
+
+Shoes.app do
+  stack do
+    @plain = para "Handwriting", size: 32
+    @loaded = para "Handwriting", size: 32, font: "Pacifico"
+  end
+end
+----------- test code
+# The rightmost dark pixel across two rows through the middle of a text block.
+ink_right_edge = lambda do |rect|
+  [0.4, 0.6].map do |fraction|
+    y = (rect.y + rect.h * fraction).round
+    (rect.x + rect.w - 1).floor.downto(rect.x.ceil).find { |x| pixel_at(x, y)[0, 3].sum < 384 } || 0
+  end.max
+end
+
+plain = ink_right_edge.call(layout_of(para("@plain")))
+loaded = ink_right_edge.call(layout_of(para("@loaded")))
+
+assert_operator plain, :>, 0, "the plain words drew ink"
+refute_in_delta plain, loaded, 4, "a font loaded from a file sets the same words differently"

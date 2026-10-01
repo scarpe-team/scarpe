@@ -1,0 +1,17 @@
+---
+manual: styles.width.percent
+lines: [1539, 1545]
+testability: api
+display: any
+ledger: C1
+----------- app code
+Shoes.app width: 400 do
+  @outer = stack width: 300 do
+    @half = stack width: 0.5
+    @all = stack width: 1.0
+  end
+end
+----------- test code
+assert_equal 0.5, stack("@half").style[:width], "the style keeps the decimal as asked for"
+assert_equal 150, stack("@half").width, "a decimal width is that fraction of the parent's width"
+assert_equal 300, stack("@all").width, "1.0 fills the parent slot"

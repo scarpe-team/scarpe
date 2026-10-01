@@ -1,0 +1,28 @@
+---
+manual: border.to_pattern
+lines: [2856, 2858]
+testability: visual
+display: native
+ledger: D9
+----------- app code
+Shoes.app width: 200, height: 200 do
+  edge = nil
+  stack left: 0, top: 0, width: 200, height: 40 do
+    edge = border tomato, strokewidth: 6
+  end
+  stack left: 0, top: 60, width: 200, height: 40 do
+    border edge.to_pattern, strokewidth: 6
+  end
+  stack left: 0, top: 120, width: 200, height: 40 do
+    background edge.to_pattern
+  end
+end
+----------- test code
+paints = lambda do |x, y, expected, why|
+  actual = pixel_at(x, y).first(3)
+  close = expected.zip(actual).all? { |want, got| (want - got).abs <= 20 }
+  assert close, "#{why}: wanted #{expected.inspect} at (#{x}, #{y}), got #{actual.inspect}"
+end
+
+paints.(100, 62, [255, 99, 71], "the pattern strokes a new border")
+paints.(100, 140, [255, 99, 71], "and paints a new background")

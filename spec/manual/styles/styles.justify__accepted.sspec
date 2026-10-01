@@ -1,0 +1,12 @@
+---
+manual: styles.justify
+lines: [1268, 1273]
+testability: api
+display: any
+ledger: F5
+----------- app code
+Shoes.app do
+  @it = para "spread me out", justify: true
+end
+----------- test code
+assert_equal true, para("@it").style[:justify], "the :justify style is kept on the para and reads back, so a display can draw it"

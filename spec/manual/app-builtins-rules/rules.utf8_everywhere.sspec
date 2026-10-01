@@ -1,0 +1,15 @@
+---
+manual: rules.utf8_everywhere
+lines: [438, 444]
+testability: api
+display: any
+ledger: M36
+----------- app code
+Shoes.app do
+  @words = para "Ελληνικά, Русский, 日本語, Español"
+end
+----------- test code
+text = para("@words").text
+assert_equal "Ελληνικά, Русский, 日本語, Español", text, "a para holds any language written in UTF-8"
+assert_equal Encoding::UTF_8, text.encoding
+assert text.valid_encoding?

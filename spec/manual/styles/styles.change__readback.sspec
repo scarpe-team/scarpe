@@ -1,0 +1,13 @@
+---
+manual: styles.change
+lines: [1123, 1128]
+testability: api
+display: any
+ledger: G10
+----------- app code
+Shoes.app do
+  @line = edit_line
+  @line.change { |line| line }
+end
+----------- test code
+assert_kind_of Proc, edit_line.style[:change], "the change handler lives in the :change style"
