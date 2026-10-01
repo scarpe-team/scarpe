@@ -12,6 +12,7 @@ class ProgramTest < Minitest::Test
   include NativeTestHelpers
 
   def setup
+    skip_on_windows("Shoes.run_program runs in this process there")
     skip_without_real_binary
   end
 

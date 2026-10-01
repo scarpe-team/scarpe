@@ -351,6 +351,8 @@ module Scarpe::Native
     # and a double-click passes no flags, so "ZARKING (Rust).app" died there. An env hash may lead.
     def spawn(command)
       env, (program, *args) = command.partition { |part| part.is_a?(Hash) }
+      # Windows runs no shebang line, so a Ruby stand-in for the binary goes through this Ruby there.
+      program, *args = RbConfig.ruby, program, *args if Gem.win_platform? && program.end_with?(".rb")
       Open3.popen3(*env, [program, program], *args, **OWN_GROUP)
     rescue SystemCallError => e
       raise ChildNotFound, "Can't start #{program}: #{e.message}"
