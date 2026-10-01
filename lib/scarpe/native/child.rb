@@ -167,6 +167,11 @@ module Scarpe::Native
     STDERR_TAIL_LINES = 40
     READY_TIMEOUT = 20.0
     POLL = 0.05
+    # On Windows IO.select can only poll a pipe, about every 10 ms, which a test that reads a few
+    # thousand pixels one req at a time pays on every reply. There a thread does blocking reads,
+    # which return as soon as Rust writes, and hands the chunks over a Queue.
+    WINDOWS_READS = Gem.win_platform?
+    TRAP_SLICE = 0.1
 
     attr_reader :pid
 
@@ -201,7 +206,12 @@ module Scarpe::Native
       @stderr_tail = []
       @stderr_lock = Mutex.new
       @stderr_thread = Thread.new { drain_stderr }
-      @wake_reader, @wake_writer = IO.pipe
+      if WINDOWS_READS
+        @chunks = Thread::Queue.new
+        @stdout_thread = Thread.new { pump_stdout }
+      else
+        @wake_reader, @wake_writer = IO.pipe
+      end
 
       say_hello
     end
@@ -232,6 +242,8 @@ module Scarpe::Native
 
     # Ends a wait_for_input early. Safe from a signal trap, where Mutexes are off limits.
     def wake!
+      return @chunks << :wake if WINDOWS_READS
+
       @wake_writer.write_nonblock(".", exception: false)
     rescue IOError
       nil
@@ -391,6 +403,7 @@ module Scarpe::Native
 
     def read_some(timeout)
       return if @eof
+      return read_queued(timeout) if WINDOWS_READS
 
       readable, = IO.select([@stdout, @wake_reader], nil, nil, timeout)
       return unless readable
@@ -402,12 +415,37 @@ module Scarpe::Native
       return if chunk == :wait_readable
       return @eof = true if chunk.nil?
 
+      take(chunk)
+    rescue IOError, SystemCallError
+      @eof = true
+    end
+
+    # read_some for Windows: what pump_stdout has read, or :wake, or :eof. A signal trap (Ctrl-C's
+    # wake!) runs only once pop comes back, so a long wait goes in slices.
+    def read_queued(timeout)
+      deadline = monotonic + timeout
+      chunk = @chunks.pop(timeout: timeout.clamp(0, TRAP_SLICE))
+      chunk = @chunks.pop(timeout: (deadline - monotonic).clamp(0, TRAP_SLICE)) while chunk.nil? && monotonic < deadline
+      while chunk
+        case chunk
+        when :eof then return @eof = true
+        when String then take(chunk)
+        end
+        chunk = @chunks.empty? ? nil : @chunks.pop
+      end
+    end
+
+    def pump_stdout
+      loop { @chunks << @stdout.readpartial(65_536) }
+    rescue EOFError, IOError, SystemCallError
+      @chunks << :eof
+    end
+
+    def take(chunk)
       @read_buffer << chunk
       while (newline = @read_buffer.index("\n"))
         accept(@read_buffer.slice!(0..newline))
       end
-    rescue IOError, SystemCallError
-      @eof = true
     end
 
     def accept(line)
