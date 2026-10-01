@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: Scarpe::Native::Pump
+  
+    &mdash; Documentation by YARD 0.9.38
+  
+</title>
+
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="../../css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Scarpe::Native::Pump";
+  relpath = '../../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="../../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../../_index.html">Index (P)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../Native.html" title="Scarpe::Native (module)">Native</a></span></span>
+     &raquo; 
+    <span class="title">Pump</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="docpages_list_link"
+        href="../../docpages_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: Scarpe::Native::Pump
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">Scarpe::Native::Pump</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/scarpe/native/pump.rb</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>The event loop (DESIGN 5.4). The run handler answers custom_event_loop &quot;return&quot;, so
+Shoes.app returns and this loop runs from at_exit, the only arrangement that allows window().</p>
+
+<p>until no apps remain or the child exited:
+    wait for input, at most until the next timer deadline (or a second, idle)
+    dispatch every complete message; what programs Shoes.run_program started said;
+    fire due timers; heartbeat (throttled); flush</p>
+
+<p>An idle app sleeps: Rust&#39;s messages, a post from another thread and Ctrl-C all wake the wait
+(Child#wake!), so the idle wait only bounds how late anything else could be noticed.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="LONGEST_WAIT-constant" class="">LONGEST_WAIT =
+          
+        </dt>
+        <dd><pre class="code"><span class='float'>0.05</span></pre></dd>
+      
+        <dt id="IDLE_WAIT-constant" class="">IDLE_WAIT =
+          
+        </dt>
+        <dd><pre class="code"><span class='float'>1.0</span></pre></dd>
+      
+        <dt id="HEARTBEAT_EVERY-constant" class="">HEARTBEAT_EVERY =
+          
+        </dt>
+        <dd><pre class="code"><span class='float'>0.05</span></pre></dd>
+      
+    </dl>
+  
+
+
+
+
+
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#done%3F-instance_method" title="#done? (instance method)">#<strong>done?</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#drain-instance_method" title="#drain (instance method)">#<strong>drain</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Dispatches everything already read.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(service)  &#x21d2; Pump </a>
+    
+
+    
+  </span>
+  
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>A new instance of Pump.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#install-instance_method" title="#install (instance method)">#<strong>install</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Called at every run: each Shoes::App traps INT afresh as it is made (a window, a dialog), which drops the pump&#39;s link in the chain, so it goes back on for the app about to run.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#run-instance_method" title="#run (instance method)">#<strong>run</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#step-instance_method" title="#step (instance method)">#<strong>step</strong>(longest = LONGEST_WAIT)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>One turn of the loop.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#wake_on_interrupt-instance_method" title="#wake_on_interrupt (instance method)">#<strong>wake_on_interrupt</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Lacci quits on Ctrl-C from a signal trap, which may only flip flags (DisplayService#quit_all); a sleeping pump would not look at them until it woke.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+<div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <h3 class="signature first" id="initialize-instance_method">
+  
+    #<strong>initialize</strong>(service)  &#x21d2; <tt><span class='object_link'><a href="" title="Scarpe::Native::Pump (class)">Pump</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns a new instance of Pump.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+19
+20
+21
+22
+23</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/native/pump.rb', line 19</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_service'>service</span><span class='rparen'>)</span>
+  <span class='ivar'>@service</span> <span class='op'>=</span> <span class='id identifier rubyid_service'>service</span>
+  <span class='ivar'>@last_heartbeat_at</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='ivar'>@interrupts</span> <span class='op'>=</span> <span class='int'>0</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="done?-instance_method">
+  
+    #<strong>done?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+46
+47
+48</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/native/pump.rb', line 46</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_done?'>done?</span>
+  <span class='op'>!</span><span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_any_app_open?'>any_app_open?</span> <span class='op'>||</span> <span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_child'>child</span><span class='period'>.</span><span class='id identifier rubyid_dead?'>dead?</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="drain-instance_method">
+  
+    #<strong>drain</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Dispatches everything already read. Handlers can make requests that queue more; keep going.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+63
+64
+65
+66
+67</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/native/pump.rb', line 63</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_drain'>drain</span>
+  <span class='kw'>until</span> <span class='lparen'>(</span><span class='id identifier rubyid_messages'>messages</span> <span class='op'>=</span> <span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_child'>child</span><span class='period'>.</span><span class='id identifier rubyid_messages'>messages</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+    <span class='id identifier rubyid_messages'>messages</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_message'>message</span><span class='op'>|</span> <span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_receive'>receive</span><span class='lparen'>(</span><span class='id identifier rubyid_message'>message</span><span class='rparen'>)</span> <span class='rbrace'>}</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="install-instance_method">
+  
+    #<strong>install</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Called at every run: each Shoes::App traps INT afresh as it is made (a window, a dialog),
+which drops the pump&#39;s link in the chain, so it goes back on for the app about to run.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+27
+28
+29
+30
+31
+32
+33
+34
+35</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/native/pump.rb', line 27</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_install'>install</span>
+  <span class='id identifier rubyid_wake_on_interrupt'>wake_on_interrupt</span>
+  <span class='kw'>return</span> <span class='kw'>if</span> <span class='ivar'>@installed</span>
+
+  <span class='ivar'>@installed</span> <span class='op'>=</span> <span class='kw'>true</span>
+  <span class='const'><span class='object_link'><a href="Stats.html" title="Scarpe::Native::Stats (module)">Stats</a></span></span><span class='period'>.</span><span class='id identifier rubyid_mark'><span class='object_link'><a href="Stats.html#mark-instance_method" title="Scarpe::Native::Stats#mark (method)">mark</a></span></span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>run</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='comment'># A script that died with an exception (or called exit) wants to stop, not show a window.
+</span>  <span class='id identifier rubyid_at_exit'>at_exit</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_run'>run</span> <span class='kw'>unless</span> <span class='gvar'>$!</span> <span class='rbrace'>}</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="run-instance_method">
+  
+    #<strong>run</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+37
+38
+39
+40
+41
+42
+43
+44</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/native/pump.rb', line 37</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_run'>run</span>
+  <span class='const'><span class='object_link'><a href="Stats.html" title="Scarpe::Native::Stats (module)">Stats</a></span></span><span class='period'>.</span><span class='id identifier rubyid_mark'><span class='object_link'><a href="Stats.html#mark-instance_method" title="Scarpe::Native::Stats#mark (method)">mark</a></span></span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>pump</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_step'>step</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="#IDLE_WAIT-constant" title="Scarpe::Native::Pump::IDLE_WAIT (constant)">IDLE_WAIT</a></span></span><span class='rparen'>)</span> <span class='kw'>until</span> <span class='id identifier rubyid_done?'>done?</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'><span class='object_link'><a href="ChildDied.html" title="Scarpe::Native::ChildDied (class)">ChildDied</a></span></span><span class='comma'>,</span> <span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_child'>child</span><span class='period'>.</span><span class='id identifier rubyid_death_report'>death_report</span> <span class='kw'>if</span> <span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_child'>child</span><span class='period'>.</span><span class='id identifier rubyid_dead?'>dead?</span> <span class='op'>&amp;&amp;</span> <span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_any_app_open?'>any_app_open?</span>
+<span class='kw'>ensure</span>
+  <span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_shutdown'>shutdown</span>
+  <span class='const'><span class='object_link'><a href="Stats.html" title="Scarpe::Native::Stats (module)">Stats</a></span></span><span class='period'>.</span><span class='id identifier rubyid_write'><span class='object_link'><a href="Stats.html#write-instance_method" title="Scarpe::Native::Stats#write (method)">write</a></span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="step-instance_method">
+  
+    #<strong>step</strong>(longest = LONGEST_WAIT)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>One turn of the loop. <code>longest</code>: how long to wait for input; callers that step toward a
+deadline of their own (Automation#advance) keep the default.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+52
+53
+54
+55
+56
+57
+58
+59
+60</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/native/pump.rb', line 52</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_step'>step</span><span class='lparen'>(</span><span class='id identifier rubyid_longest'>longest</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="#LONGEST_WAIT-constant" title="Scarpe::Native::Pump::LONGEST_WAIT (constant)">LONGEST_WAIT</a></span></span><span class='rparen'>)</span>
+  <span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_child'>child</span><span class='period'>.</span><span class='id identifier rubyid_check_started!'>check_started!</span>
+  <span class='const'><span class='object_link'><a href="Stats.html" title="Scarpe::Native::Stats (module)">Stats</a></span></span><span class='period'>.</span><span class='id identifier rubyid_time'><span class='object_link'><a href="Stats.html#time-instance_method" title="Scarpe::Native::Stats#time (method)">time</a></span></span><span class='lparen'>(</span><span class='symbol'>:wait</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_child'>child</span><span class='period'>.</span><span class='id identifier rubyid_wait_for_input'>wait_for_input</span><span class='lparen'>(</span><span class='id identifier rubyid_wait_time'>wait_time</span><span class='lparen'>(</span><span class='id identifier rubyid_longest'>longest</span><span class='rparen'>)</span><span class='rparen'>)</span> <span class='rbrace'>}</span>
+  <span class='const'><span class='object_link'><a href="Stats.html" title="Scarpe::Native::Stats (module)">Stats</a></span></span><span class='period'>.</span><span class='id identifier rubyid_time'><span class='object_link'><a href="Stats.html#time-instance_method" title="Scarpe::Native::Stats#time (method)">time</a></span></span><span class='lparen'>(</span><span class='symbol'>:drain</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_drain'>drain</span> <span class='rbrace'>}</span>
+  <span class='const'><span class='object_link'><a href="Stats.html" title="Scarpe::Native::Stats (module)">Stats</a></span></span><span class='period'>.</span><span class='id identifier rubyid_time'><span class='object_link'><a href="Stats.html#time-instance_method" title="Scarpe::Native::Stats#time (method)">time</a></span></span><span class='lparen'>(</span><span class='symbol'>:programs</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_dispatch_programs'>dispatch_programs</span> <span class='rbrace'>}</span>
+  <span class='const'><span class='object_link'><a href="Stats.html" title="Scarpe::Native::Stats (module)">Stats</a></span></span><span class='period'>.</span><span class='id identifier rubyid_time'><span class='object_link'><a href="Stats.html#time-instance_method" title="Scarpe::Native::Stats#time (method)">time</a></span></span><span class='lparen'>(</span><span class='symbol'>:timers</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_fire_timers'>fire_timers</span> <span class='rbrace'>}</span>
+  <span class='const'><span class='object_link'><a href="Stats.html" title="Scarpe::Native::Stats (module)">Stats</a></span></span><span class='period'>.</span><span class='id identifier rubyid_time'><span class='object_link'><a href="Stats.html#time-instance_method" title="Scarpe::Native::Stats#time (method)">time</a></span></span><span class='lparen'>(</span><span class='symbol'>:heartbeat</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_heartbeat'>heartbeat</span> <span class='rbrace'>}</span>
+  <span class='const'><span class='object_link'><a href="Stats.html" title="Scarpe::Native::Stats (module)">Stats</a></span></span><span class='period'>.</span><span class='id identifier rubyid_time'><span class='object_link'><a href="Stats.html#time-instance_method" title="Scarpe::Native::Stats#time (method)">time</a></span></span><span class='lparen'>(</span><span class='symbol'>:flush</span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_child'>child</span><span class='period'>.</span><span class='id identifier rubyid_flush'>flush</span> <span class='rbrace'>}</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="wake_on_interrupt-instance_method">
+  
+    #<strong>wake_on_interrupt</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Lacci quits on Ctrl-C from a signal trap, which may only flip flags (DisplayService#quit_all);
+a sleeping pump would not look at them until it woke. The trap now wakes it too. A second
+Ctrl-C ends the child as well: Ruby may be stuck writing to a child that stopped reading,
+where asking it to quit changes nothing.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/native/pump.rb', line 73</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_wake_on_interrupt'>wake_on_interrupt</span>
+  <span class='id identifier rubyid_child'>child</span> <span class='op'>=</span> <span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_child'>child</span>
+  <span class='id identifier rubyid_previous'>previous</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='id identifier rubyid_chained'>chained</span> <span class='op'>=</span> <span class='id identifier rubyid_proc'>proc</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_signal'>signal</span><span class='op'>|</span>
+    <span class='id identifier rubyid_previous'>previous</span><span class='period'>.</span><span class='id identifier rubyid_arity'>arity</span><span class='period'>.</span><span class='id identifier rubyid_zero?'>zero?</span> <span class='op'>?</span> <span class='id identifier rubyid_previous'>previous</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span> <span class='op'>:</span> <span class='id identifier rubyid_previous'>previous</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='id identifier rubyid_signal'>signal</span><span class='rparen'>)</span>
+    <span class='lparen'>(</span><span class='ivar'>@interrupts</span> <span class='op'>+=</span> <span class='int'>1</span><span class='rparen'>)</span> <span class='op'>&gt;</span> <span class='int'>1</span> <span class='op'>?</span> <span class='id identifier rubyid_child'>child</span><span class='period'>.</span><span class='id identifier rubyid_kill!'>kill!</span> <span class='op'>:</span> <span class='id identifier rubyid_child'>child</span><span class='period'>.</span><span class='id identifier rubyid_wake!'>wake!</span>
+  <span class='kw'>end</span>
+  <span class='id identifier rubyid_previous'>previous</span> <span class='op'>=</span> <span class='const'>Signal</span><span class='period'>.</span><span class='id identifier rubyid_trap'>trap</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>INT</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='id identifier rubyid_chained'>chained</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='ivar'>@chained</span> <span class='op'>=</span> <span class='id identifier rubyid_chained'>chained</span> <span class='kw'>if</span> <span class='id identifier rubyid_previous'>previous</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:call</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='op'>!</span><span class='id identifier rubyid_previous'>previous</span><span class='period'>.</span><span class='id identifier rubyid_equal?'>equal?</span><span class='lparen'>(</span><span class='ivar'>@chained</span><span class='rparen'>)</span>
+
+  <span class='const'>Signal</span><span class='period'>.</span><span class='id identifier rubyid_trap'>trap</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>INT</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='id identifier rubyid_previous'>previous</span><span class='rparen'>)</span> <span class='comment'># nothing new to chain: ours is still on, or no app trapped INT
+</span><span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Thu Oct  1 22:25:22 2026 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.38 (ruby-3.2.0).
+</div>
+
+    </div>
+  </body>
+</html>

@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: Scarpe::Native::Programs
+  
+    &mdash; Documentation by YARD 0.9.38
+  
+</title>
+
+  <link rel="stylesheet" href="../../css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="../../css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Scarpe::Native::Programs";
+  relpath = '../../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="../../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../../_index.html">Index (P)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span> &raquo; <span class='title'><span class='object_link'><a href="../Native.html" title="Scarpe::Native (module)">Native</a></span></span>
+     &raquo; 
+    <span class="title">Programs</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="docpages_list_link"
+        href="../../docpages_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: Scarpe::Native::Programs
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">Scarpe::Native::Programs</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/scarpe/native/programs.rb</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>The Shoes programs Shoes.run_program started (DESIGN 5.5), each in a process of its own on
+the Ruby and Scarpe this one runs: exe/scarpe --native from a checkout, or the packaged
+app&#39;s own launcher. So an endless loop in a program freezes only it, and stop ends it.</p>
+
+<p>The child reports on a pipe it inherits as fd 3 (SCARPE_REPORT_FD), one JSON object a line:</p>
+
+<p>&quot;t&quot;:&quot;renderer&quot;,&quot;pid&quot;:N                            its Rust renderer, so stop can end it
+  &quot;t&quot;:&quot;output&quot;,&quot;stream&quot;:&quot;stdout&quot;,&quot;line&quot;:&quot;..&quot;t&quot;:&quot;output&quot;,&quot;stream&quot;:&quot;stdout&quot;,&quot;line&quot;:&quot;...&quot;       a line it wrote to $stdout or $stderr
+  Hash}   a handler, timer, startup or exit raised</p>
+
+<p>and holds the read end of another as fd 4 (SCARPE_PARENT_FD): when this process ends, the
+child reads the end of it and stops, so no window outlives the program that opened it.
+Threads here only read pipes and wait for processes; what they hear waits in the inbox
+until the pump hands it to the program&#39;s blocks (Shoes::Program), on the event loop.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="REPORT_FD-constant" class="">REPORT_FD =
+          
+        </dt>
+        <dd><pre class="code"><span class='int'>3</span></pre></dd>
+      
+        <dt id="PARENT_FD-constant" class="">PARENT_FD =
+          
+        </dt>
+        <dd><pre class="code"><span class='int'>4</span></pre></dd>
+      
+        <dt id="GRACE-constant" class="">GRACE =
+          <div class="docstring">
+  <div class="discussion">
+    <p>How long a program has to go after TERM before it gets KILL.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='float'>1.0</span></pre></dd>
+      
+        <dt id="PER_TURN-constant" class="">PER_TURN =
+          <div class="docstring">
+  <div class="discussion">
+    <p>News handed out per turn of the loop, so a program that floods its output never stalls this one.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='int'>500</span></pre></dd>
+      
+        <dt id="MAX_WAITING-constant" class="">MAX_WAITING =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Lines of output held for the event loop at most; past that, lines are left out and counted.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='int'>10_000</span></pre></dd>
+      
+        <dt id="PARENT_ONLY_ENV-constant" class="">PARENT_ONLY_ENV =
+          <div class="docstring">
+  <div class="discussion">
+    <p>A spec run&#39;s settings are the parent&#39;s own: its test code, its results, its renderer&#39;s pid.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='qwords_beg'>%w[</span><span class='words_sep'>
+  </span><span class='tstring_content'>SHOES_SPEC_TEST</span><span class='words_sep'> </span><span class='tstring_content'>SHOES_MINITEST_EXPORT_FILE</span><span class='words_sep'> </span><span class='tstring_content'>SHOES_MINITEST_CLASS_NAME</span><span class='words_sep'> </span><span class='tstring_content'>SHOES_MINITEST_METHOD_NAME</span><span class='words_sep'>
+  </span><span class='tstring_content'>SCARPE_NATIVE_PID_FILE</span><span class='words_sep'> </span><span class='tstring_content'>SCARPE_NATIVE_STATS</span><span class='words_sep'> </span><span class='tstring_content'>SCARPE_TEST_CONTROL</span><span class='words_sep'> </span><span class='tstring_content'>SCARPE_TEST_RESULTS</span><span class='words_sep'> </span><span class='tstring_content'>SCARPE_RUN_FILE</span><span class='words_sep'>
+</span><span class='tstring_end'>]</span></span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+    </dl>
+  
+
+
+
+
+
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#dispatch-instance_method" title="#dispatch (instance method)">#<strong>dispatch</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>On the pump: hands the waiting news to each program&#39;s blocks, a bounded amount a turn.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#forget-instance_method" title="#forget (instance method)">#<strong>forget</strong>(process)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(service)  &#x21d2; Programs </a>
+    
+
+    
+  </span>
+  
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>A new instance of Programs.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#post-instance_method" title="#post (instance method)">#<strong>post</strong>(process, kind, payload = nil)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>From the threads below: news for the pump.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#start-instance_method" title="#start (instance method)">#<strong>start</strong>(path, dir:, args:)  &#x21d2; Shoes::Program </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#stop_all-instance_method" title="#stop_all (instance method)">#<strong>stop_all</strong>(wait: GRACE)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Every program still running, stopped: TERM, then KILL once <code>wait</code> is up.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#track-instance_method" title="#track (instance method)">#<strong>track</strong>(process)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>A process is kept from its spawn, before its threads can forget it, until it has gone.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#waiting%3F-instance_method" title="#waiting? (instance method)">#<strong>waiting?</strong>  &#x21d2; Boolean </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Whether news is waiting for the pump.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+<div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <h3 class="signature first" id="initialize-instance_method">
+  
+    #<strong>initialize</strong>(service)  &#x21d2; <tt><span class='object_link'><a href="" title="Scarpe::Native::Programs (class)">Programs</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns a new instance of Programs.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+36
+37
+38
+39
+40
+41</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/native/programs.rb', line 36</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_service'>service</span><span class='rparen'>)</span>
+  <span class='ivar'>@service</span> <span class='op'>=</span> <span class='id identifier rubyid_service'>service</span>
+  <span class='ivar'>@inbox</span> <span class='op'>=</span> <span class='const'>Thread</span><span class='op'>::</span><span class='const'>Queue</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span>
+  <span class='ivar'>@running</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='ivar'>@lock</span> <span class='op'>=</span> <span class='const'>Mutex</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="dispatch-instance_method">
+  
+    #<strong>dispatch</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>On the pump: hands the waiting news to each program&#39;s blocks, a bounded amount a turn.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/native/programs.rb', line 58</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_dispatch'>dispatch</span>
+  <span class='const'><span class='object_link'><a href="#PER_TURN-constant" title="Scarpe::Native::Programs::PER_TURN (constant)">PER_TURN</a></span></span><span class='period'>.</span><span class='id identifier rubyid_times'>times</span> <span class='kw'>do</span>
+    <span class='id identifier rubyid_process'>process</span><span class='comma'>,</span> <span class='id identifier rubyid_kind'>kind</span><span class='comma'>,</span> <span class='id identifier rubyid_payload'>payload</span> <span class='op'>=</span> <span class='kw'>begin</span>
+      <span class='ivar'>@inbox</span><span class='period'>.</span><span class='id identifier rubyid_pop'>pop</span><span class='lparen'>(</span><span class='kw'>true</span><span class='rparen'>)</span>
+    <span class='kw'>rescue</span> <span class='const'>ThreadError</span>
+      <span class='kw'>break</span>
+    <span class='kw'>end</span>
+    <span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_guarded'>guarded</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_basename'>basename</span><span class='lparen'>(</span><span class='id identifier rubyid_process'>process</span><span class='period'>.</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_content'> program&#39;s </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_kind'>kind</span><span class='embexpr_end'>}</span><span class='tstring_content'> block</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='id identifier rubyid_deliver'>deliver</span><span class='lparen'>(</span><span class='id identifier rubyid_process'>process</span><span class='comma'>,</span> <span class='id identifier rubyid_kind'>kind</span><span class='comma'>,</span> <span class='id identifier rubyid_payload'>payload</span><span class='rparen'>)</span> <span class='rbrace'>}</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="forget-instance_method">
+  
+    #<strong>forget</strong>(process)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+95
+96
+97</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/native/programs.rb', line 95</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_forget'>forget</span><span class='lparen'>(</span><span class='id identifier rubyid_process'>process</span><span class='rparen'>)</span>
+  <span class='ivar'>@lock</span><span class='period'>.</span><span class='id identifier rubyid_synchronize'>synchronize</span> <span class='lbrace'>{</span> <span class='ivar'>@running</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='id identifier rubyid_process'>process</span><span class='period'>.</span><span class='id identifier rubyid_pid'>pid</span><span class='rparen'>)</span> <span class='rbrace'>}</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="post-instance_method">
+  
+    #<strong>post</strong>(process, kind, payload = nil)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>From the threads below: news for the pump.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+81
+82
+83
+84
+85
+86
+87
+88</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/native/programs.rb', line 81</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_post'>post</span><span class='lparen'>(</span><span class='id identifier rubyid_process'>process</span><span class='comma'>,</span> <span class='id identifier rubyid_kind'>kind</span><span class='comma'>,</span> <span class='id identifier rubyid_payload'>payload</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_kind'>kind</span> <span class='op'>==</span> <span class='symbol'>:output</span> <span class='op'>&amp;&amp;</span> <span class='ivar'>@inbox</span><span class='period'>.</span><span class='id identifier rubyid_size'>size</span> <span class='op'>&gt;=</span> <span class='const'><span class='object_link'><a href="#MAX_WAITING-constant" title="Scarpe::Native::Programs::MAX_WAITING (constant)">MAX_WAITING</a></span></span>
+    <span class='id identifier rubyid_process'>process</span><span class='period'>.</span><span class='id identifier rubyid_left_out'>left_out</span> <span class='op'>+=</span> <span class='int'>1</span>
+    <span class='kw'>return</span>
+  <span class='kw'>end</span>
+  <span class='ivar'>@inbox</span> <span class='op'>&lt;&lt;</span> <span class='lbracket'>[</span><span class='id identifier rubyid_process'>process</span><span class='comma'>,</span> <span class='id identifier rubyid_kind'>kind</span><span class='comma'>,</span> <span class='id identifier rubyid_payload'>payload</span><span class='rbracket'>]</span>
+  <span class='ivar'>@service</span><span class='period'>.</span><span class='id identifier rubyid_wake!'>wake!</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="start-instance_method">
+  
+    #<strong>start</strong>(path, dir:, args:)  &#x21d2; <tt><span class='object_link'><a href="../../Shoes/Program.html" title="Shoes::Program (class)">Shoes::Program</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="../../Shoes/Program.html" title="Shoes::Program (class)">Shoes::Program</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+44
+45
+46
+47
+48
+49
+50</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/native/programs.rb', line 44</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_start'>start</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='comma'>,</span> <span class='label'>dir:</span><span class='comma'>,</span> <span class='label'>args:</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_process'>process</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="ProgramProcess.html" title="Scarpe::Native::ProgramProcess (class)">ProgramProcess</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="ProgramProcess.html#initialize-instance_method" title="Scarpe::Native::ProgramProcess#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='kw'>self</span><span class='comma'>,</span> <span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_program'>program</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="../../Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="../../Shoes/Program.html" title="Shoes::Program (class)">Program</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="../../Shoes/Program.html#initialize-instance_method" title="Shoes::Program#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='comma'>,</span> <span class='label'>dir:</span> <span class='id identifier rubyid_dir'>dir</span><span class='comma'>,</span> <span class='label'>args:</span> <span class='id identifier rubyid_args'>args</span><span class='comma'>,</span> <span class='label'>driver:</span> <span class='id identifier rubyid_process'>process</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_process'>process</span><span class='period'>.</span><span class='id identifier rubyid_program'>program</span> <span class='op'>=</span> <span class='id identifier rubyid_program'>program</span>
+  <span class='id identifier rubyid_process'>process</span><span class='period'>.</span><span class='id identifier rubyid_spawn'>spawn</span><span class='lparen'>(</span><span class='id identifier rubyid_command_for'>command_for</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span><span class='comma'>,</span> <span class='id identifier rubyid_env_for'>env_for</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='comma'>,</span> <span class='id identifier rubyid_dir'>dir</span><span class='comma'>,</span> <span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span><span class='comma'>,</span> <span class='id identifier rubyid_dir'>dir</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_program'>program</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="stop_all-instance_method">
+  
+    #<strong>stop_all</strong>(wait: GRACE)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Every program still running, stopped: TERM, then KILL once <code>wait</code> is up. At exit.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+70
+71
+72
+73
+74
+75
+76
+77
+78</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/native/programs.rb', line 70</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_stop_all'>stop_all</span><span class='lparen'>(</span><span class='label'>wait:</span> <span class='const'><span class='object_link'><a href="#GRACE-constant" title="Scarpe::Native::Programs::GRACE (constant)">GRACE</a></span></span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_processes'>processes</span> <span class='op'>=</span> <span class='ivar'>@lock</span><span class='period'>.</span><span class='id identifier rubyid_synchronize'>synchronize</span> <span class='lbrace'>{</span> <span class='ivar'>@running</span><span class='period'>.</span><span class='id identifier rubyid_values'>values</span> <span class='rbrace'>}</span>
+  <span class='kw'>return</span> <span class='kw'>if</span> <span class='id identifier rubyid_processes'>processes</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+
+  <span class='id identifier rubyid_processes'>processes</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_process'>process</span><span class='op'>|</span> <span class='id identifier rubyid_process'>process</span><span class='period'>.</span><span class='id identifier rubyid_signal'>signal</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>TERM</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='rbrace'>}</span>
+  <span class='id identifier rubyid_deadline'>deadline</span> <span class='op'>=</span> <span class='id identifier rubyid_monotonic'>monotonic</span> <span class='op'>+</span> <span class='id identifier rubyid_wait'>wait</span>
+  <span class='id identifier rubyid_sleep'>sleep</span> <span class='float'>0.02</span> <span class='kw'>while</span> <span class='id identifier rubyid_processes'>processes</span><span class='period'>.</span><span class='id identifier rubyid_any?'>any?</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:alive?</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_monotonic'>monotonic</span> <span class='op'>&lt;</span> <span class='id identifier rubyid_deadline'>deadline</span>
+  <span class='id identifier rubyid_processes'>processes</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:kill!</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="track-instance_method">
+  
+    #<strong>track</strong>(process)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>A process is kept from its spawn, before its threads can forget it, until it has gone.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+91
+92
+93</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/native/programs.rb', line 91</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_track'>track</span><span class='lparen'>(</span><span class='id identifier rubyid_process'>process</span><span class='rparen'>)</span>
+  <span class='ivar'>@lock</span><span class='period'>.</span><span class='id identifier rubyid_synchronize'>synchronize</span> <span class='lbrace'>{</span> <span class='ivar'>@running</span><span class='lbracket'>[</span><span class='id identifier rubyid_process'>process</span><span class='period'>.</span><span class='id identifier rubyid_pid'>pid</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_process'>process</span> <span class='rbrace'>}</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="waiting?-instance_method">
+  
+    #<strong>waiting?</strong>  &#x21d2; <tt>Boolean</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Whether news is waiting for the pump.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+53
+54
+55</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/native/programs.rb', line 53</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_waiting?'>waiting?</span>
+  <span class='op'>!</span><span class='ivar'>@inbox</span><span class='period'>.</span><span class='id identifier rubyid_empty?'>empty?</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Thu Oct  1 22:25:23 2026 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.38 (ruby-3.2.0).
+</div>
+
+    </div>
+  </body>
+</html>

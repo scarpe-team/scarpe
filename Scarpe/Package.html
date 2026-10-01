@@ -1,0 +1,2015 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: Scarpe::Package
+  
+    &mdash; Documentation by YARD 0.9.38
+  
+</title>
+
+  <link rel="stylesheet" href="../css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="../css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Scarpe::Package";
+  relpath = '../';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="../js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="../js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="../class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="../_index.html">Index (P)</a> &raquo;
+    <span class='title'><span class='object_link'><a href="../Scarpe.html" title="Scarpe (module)">Scarpe</a></span></span>
+     &raquo; 
+    <span class="title">Package</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="docpages_list_link"
+        href="../docpages_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: Scarpe::Package
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">Scarpe::Package</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lib/scarpe/package.rb<span class="defines">,<br />
+  lib/scarpe/package/yjit.rb,<br /> lib/scarpe/package/native.rb,<br /> lib/scarpe/package/bytecode.rb</span>
+</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>Package a Shoes/Scarpe application into a standalone macOS .app bundle.</p>
+
+<p>Usage:
+  Scarpe::Package.new(&quot;myapp.rb&quot;).build!
+  Scarpe::Package.new(&quot;myapp.rb&quot;, name: &quot;MyApp&quot;, icon: &quot;icon.icns&quot;).build!</p>
+
+<p>The packaged app bundles Traveling Ruby (a self-contained Ruby interpreter)
+along with all Scarpe gems and the user&#39;s application. The resulting .app
+requires no Ruby installation to run.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><div id="subclasses">
+  <h2>Direct Known Subclasses</h2>
+  <p class="children"><span class='object_link'><a href="Package/Native.html" title="Scarpe::Package::Native (class)">Native</a></span></p>
+</div>
+<h2>Defined Under Namespace</h2>
+<p class="children">
+  
+    
+      <strong class="modules">Modules:</strong> <span class='object_link'><a href="Package/Bytecode.html" title="Scarpe::Package::Bytecode (module)">Bytecode</a></span>, <span class='object_link'><a href="Package/YJIT.html" title="Scarpe::Package::YJIT (module)">YJIT</a></span>
+    
+  
+    
+      <strong class="classes">Classes:</strong> <span class='object_link'><a href="Package/Native.html" title="Scarpe::Package::Native (class)">Native</a></span>
+    
+  
+</p>
+
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="TRAVELING_RUBY_RELEASE-constant" class="">TRAVELING_RUBY_RELEASE =
+          
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>20251122</span><span class='tstring_end'>&quot;</span></span></pre></dd>
+      
+        <dt id="TRAVELING_RUBY_VERSION-constant" class="">TRAVELING_RUBY_VERSION =
+          
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>3.4.7</span><span class='tstring_end'>&quot;</span></span></pre></dd>
+      
+        <dt id="RUBY_ABI-constant" class="">RUBY_ABI =
+          
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>3.4.0</span><span class='tstring_end'>&quot;</span></span></pre></dd>
+      
+        <dt id="RELEASE_BASE-constant" class="">RELEASE_BASE =
+          <div class="docstring">
+  <div class="discussion">
+    <p>GitHub base URL for Traveling Ruby releases</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>https://github.com/trubygems/traveling-ruby/releases/download/rel-</span><span class='embexpr_beg'>#{</span><span class='const'><span class='object_link'><a href="#TRAVELING_RUBY_RELEASE-constant" title="Scarpe::Package::TRAVELING_RUBY_RELEASE (constant)">TRAVELING_RUBY_RELEASE</a></span></span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span></pre></dd>
+      
+        <dt id="ARCH_MAP-constant" class="">ARCH_MAP =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Architecture mappings</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='lbrace'>{</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>aarch64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+<span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="TARGET_OS_MAP-constant" class="">TARGET_OS_MAP =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Supported target operating systems</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='lbrace'>{</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>macos</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>macos</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>darwin</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>macos</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>linux</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>linux</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>linux-musl</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>linux-musl</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>  <span class='comment'># Alpine/Docker
+</span>  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>windows</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>windows</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>mingw</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>windows</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>mswin</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>windows</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>
+<span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="EXT_PLATFORM-constant" class="">EXT_PLATFORM =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Platform directory names vary between extensions and stdlib in Traveling Ruby:
+  Extensions: x86_64-darwin-22 (with hyphen)
+  Stdlib:     x86_64-darwin22  (no hyphen)
+macOS platforms</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='lbrace'>{</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64-darwin-22</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64-darwin-22</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="RUBY_PLATFORM_DIR-constant" class="">RUBY_PLATFORM_DIR =
+          
+        </dt>
+        <dd><pre class="code"><span class='lbrace'>{</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64-darwin22</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64-darwin22</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="LINUX_EXT_PLATFORM-constant" class="">LINUX_EXT_PLATFORM =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Linux platforms (glibc)</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='lbrace'>{</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64-linux</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>aarch64-linux</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="LINUX_RUBY_PLATFORM_DIR-constant" class="">LINUX_RUBY_PLATFORM_DIR =
+          
+        </dt>
+        <dd><pre class="code"><span class='lbrace'>{</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64-linux</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>aarch64-linux</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="LINUX_MUSL_EXT_PLATFORM-constant" class="">LINUX_MUSL_EXT_PLATFORM =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Linux musl platforms (Alpine)</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='lbrace'>{</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64-linux-musl</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>aarch64-linux-musl</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="LINUX_MUSL_RUBY_PLATFORM_DIR-constant" class="">LINUX_MUSL_RUBY_PLATFORM_DIR =
+          
+        </dt>
+        <dd><pre class="code"><span class='lbrace'>{</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64-linux-musl</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>aarch64-linux-musl</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="WINDOWS_EXT_PLATFORM-constant" class="">WINDOWS_EXT_PLATFORM =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Windows platforms
+Note: Traveling Ruby uses &quot;x64-mingw-ucrt&quot; for Ruby 3.2+ gems</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='lbrace'>{</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x64-mingw-ucrt</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64-mingw-ucrt</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="WINDOWS_RUBY_PLATFORM_DIR-constant" class="">WINDOWS_RUBY_PLATFORM_DIR =
+          
+        </dt>
+        <dd><pre class="code"><span class='lbrace'>{</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x64-mingw-ucrt</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64-mingw-ucrt</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="LINUX_EXT_SUFFIX-constant" class="">LINUX_EXT_SUFFIX =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Native extension file extensions by platform</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>.so</span><span class='tstring_end'>&quot;</span></span></pre></dd>
+      
+        <dt id="MACOS_EXT_SUFFIX-constant" class="">MACOS_EXT_SUFFIX =
+          
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>.bundle</span><span class='tstring_end'>&quot;</span></span></pre></dd>
+      
+        <dt id="WINDOWS_EXT_SUFFIX-constant" class="">WINDOWS_EXT_SUFFIX =
+          
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>.dll</span><span class='tstring_end'>&quot;</span></span></pre></dd>
+      
+        <dt id="REQUIRED_GEMS-constant" class="">REQUIRED_GEMS =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Gems required for the Scarpe runtime, copied from the full Traveling Ruby tarball.
+Format: [gem_name, version, platform_suffix_or_nil]
+Platform gems (nokogiri, sqlite3) bundle their own native extensions.
+Non-platform gems with native extensions (ffi, racc, syslog) need the
+extensions directory from the Traveling Ruby build.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='lbracket'>[</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>scarpe</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>            <span class='kw'>nil</span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>lacci</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>             <span class='kw'>nil</span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>scarpe-components</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>webview_ruby</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>0.1.2</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>ffi</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>             <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>1.17.2</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>ffi-compiler</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>    <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>1.3.2</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>webrick</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>           <span class='kw'>nil</span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>fastimage</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>       <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>2.2.7</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>logging</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>         <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>2.3.1</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>little-plugger</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>1.1.4</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>multi_json</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>        <span class='kw'>nil</span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>base64</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>            <span class='kw'>nil</span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>minitest</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>          <span class='kw'>nil</span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>rake</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>              <span class='kw'>nil</span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>racc</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>              <span class='kw'>nil</span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>syslog</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>            <span class='kw'>nil</span><span class='comma'>,</span> <span class='kw'>nil</span><span class='rbracket'>]</span><span class='comma'>,</span>
+<span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="PLATFORM_GEMS-constant" class="">PLATFORM_GEMS =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Platform-specific gems (these have native extensions bundled in the gem itself)
+We pick the right platform variant based on target architecture.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='lbrace'>{</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='lbracket'>[</span>
+    <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>nokogiri</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>1.15.7</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64-darwin</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span>
+    <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>sqlite3</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>1.6.9</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>x86_64-darwin</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='lbracket'>[</span>
+    <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>nokogiri</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>1.18.10</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64-darwin</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span>
+    <span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>sqlite3</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>2.8.0</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span>   <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64-darwin</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span><span class='comma'>,</span>
+  <span class='rbracket'>]</span><span class='comma'>,</span>
+<span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="NATIVE_EXTENSION_GEMS-constant" class="">NATIVE_EXTENSION_GEMS =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Native extensions that need the extensions/ directory from Traveling Ruby</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='qwords_beg'>%w[</span><span class='tstring_content'>ffi</span><span class='words_sep'> </span><span class='tstring_content'>racc</span><span class='words_sep'> </span><span class='tstring_content'>syslog</span><span class='words_sep'> </span><span class='tstring_content'>webview_ruby</span><span class='tstring_end'>]</span></span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="SCARPE_DEV_GEMS-constant" class="">SCARPE_DEV_GEMS =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Scarpe source directories (relative to scarpe repo root)</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='lbrace'>{</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>scarpe</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='lbrace'>{</span> <span class='label'>lib:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>lib</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>spec_name:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>scarpe</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span><span class='comma'>,</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>lacci</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='lbrace'>{</span> <span class='label'>lib:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>lacci/lib</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>spec_name:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>lacci</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span><span class='comma'>,</span>
+  <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>scarpe-components</span><span class='tstring_end'>&quot;</span></span> <span class='op'>=&gt;</span> <span class='lbrace'>{</span> <span class='label'>lib:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>scarpe-components/lib</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>spec_name:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>scarpe-components</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span><span class='comma'>,</span>
+<span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="OPTIONAL_GEMS-constant" class="">OPTIONAL_GEMS =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Gems that are truly optional — only loaded when specific Shoes features are used.
+nokogiri: only for Shoes#download XML parsing
+sqlite3: not used by Scarpe at all (phantom gemspec dependency)
+fastimage: only for Image widget auto-sizing
+rake: build tool, not runtime
+minitest: testing framework, only needed for shoes_spec (made conditional in wv.rb)
+racc: parser generator, only needed at compile time
+webrick: packaged apps use MiniAssetServer (SCARPE_PACKAGED=1 in boot.rb)
+Gems that are optional for minimal builds:</p>
+
+<ul>
+<li>nokogiri, sqlite3, fastimage: not required for basic Scarpe apps</li>
+<li>rake, minitest, racc: development/test tools only</li>
+<li>syslog: only needed if using the syslog logging appender (conditionally loaded)</li>
+<li>webrick: replaced by MiniAssetServer in packaged apps (~268KB + ~569KB native deps)</li>
+</ul>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='qwords_beg'>%w[</span><span class='tstring_content'>nokogiri</span><span class='words_sep'> </span><span class='tstring_content'>sqlite3</span><span class='words_sep'> </span><span class='tstring_content'>fastimage</span><span class='words_sep'> </span><span class='tstring_content'>rake</span><span class='words_sep'> </span><span class='tstring_content'>minitest</span><span class='words_sep'> </span><span class='tstring_content'>racc</span><span class='words_sep'> </span><span class='tstring_content'>syslog</span><span class='words_sep'> </span><span class='tstring_content'>logging</span><span class='words_sep'> </span><span class='tstring_content'>little-plugger</span><span class='words_sep'> </span><span class='tstring_content'>webrick</span><span class='tstring_end'>]</span></span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="MINIMAL_STRIP_STDLIB-constant" class="">MINIMAL_STRIP_STDLIB =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Stdlib directories safe to strip in minimal mode.
+These are development/network/security modules not needed for local GUI apps.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='qwords_beg'>%w[</span><span class='words_sep'>
+  </span><span class='tstring_content'>openssl</span><span class='words_sep'> </span><span class='tstring_content'>net</span><span class='words_sep'> </span><span class='tstring_content'>fiddle</span><span class='words_sep'> </span><span class='tstring_content'>ripper</span><span class='words_sep'>
+  </span><span class='tstring_content'>mkmf</span><span class='words_sep'> </span><span class='tstring_content'>irb</span><span class='words_sep'> </span><span class='tstring_content'>rdoc</span><span class='words_sep'> </span><span class='tstring_content'>racc/cparse</span><span class='words_sep'>
+  </span><span class='tstring_content'>rinda</span><span class='words_sep'> </span><span class='tstring_content'>drb</span><span class='words_sep'> </span><span class='tstring_content'>nkf</span><span class='words_sep'> </span><span class='tstring_content'>coverage</span><span class='words_sep'> </span><span class='tstring_content'>getoptlong</span><span class='words_sep'>
+  </span><span class='tstring_content'>optparse</span><span class='words_sep'> </span><span class='tstring_content'>syslog</span><span class='words_sep'> </span><span class='tstring_content'>cgi</span><span class='words_sep'>
+  </span><span class='tstring_content'>psych</span><span class='words_sep'> </span><span class='tstring_content'>yaml</span><span class='words_sep'>
+</span><span class='tstring_end'>]</span></span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="MINIMAL_STRIP_FILES-constant" class="">MINIMAL_STRIP_FILES =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Stdlib files safe to remove in minimal mode.
+These are development/network/CLI tools not needed for GUI apps:</p>
+
+<ul>
+<li>mkmf, profiler, debug, tracer: development/debugging tools</li>
+<li>rdoc, irb: documentation/REPL</li>
+<li>getoptlong, optparse: CLI argument parsing (we use simple args)</li>
+<li>resolv, ipaddr: DNS/IP parsing (webview uses localhost)</li>
+<li>pstore: persistent storage (not used by Scarpe)</li>
+<li>open-uri: HTTP downloads (only used by packager, not at runtime)</li>
+<li>pp, prettyprint: pretty printing (nice for debug but not essential)</li>
+</ul>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='qwords_beg'>%w[</span><span class='words_sep'>
+  </span><span class='tstring_content'>mkmf.rb</span><span class='words_sep'> </span><span class='tstring_content'>rdoc.rb</span><span class='words_sep'> </span><span class='tstring_content'>irb.rb</span><span class='words_sep'> </span><span class='tstring_content'>tracer.rb</span><span class='words_sep'> </span><span class='tstring_content'>debug.rb</span><span class='words_sep'>
+  </span><span class='tstring_content'>benchmark.rb</span><span class='words_sep'> </span><span class='tstring_content'>profile.rb</span><span class='words_sep'> </span><span class='tstring_content'>profiler.rb</span><span class='words_sep'>
+  </span><span class='tstring_content'>getoptlong.rb</span><span class='words_sep'> </span><span class='tstring_content'>coverage.rb</span><span class='words_sep'> </span><span class='tstring_content'>optparse.rb</span><span class='words_sep'>
+  </span><span class='tstring_content'>resolv.rb</span><span class='words_sep'> </span><span class='tstring_content'>ipaddr.rb</span><span class='words_sep'> </span><span class='tstring_content'>pstore.rb</span><span class='words_sep'> </span><span class='tstring_content'>open-uri.rb</span><span class='words_sep'>
+  </span><span class='tstring_content'>pp.rb</span><span class='words_sep'> </span><span class='tstring_content'>prettyprint.rb</span><span class='words_sep'> </span><span class='tstring_content'>tsort.rb</span><span class='words_sep'> </span><span class='tstring_content'>cgi.rb</span><span class='words_sep'>
+</span><span class='tstring_end'>]</span></span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+    </dl>
+  
+
+
+
+
+
+
+
+  
+    <h2>
+      Class Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#packager_for-class_method" title="packager_for (class method)">.<strong>packager_for</strong>(options, env: ENV)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>A native package when asked with --native, or when SCARPE_DISPLAY_SERVICE says the app runs native.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#parse_args-class_method" title="parse_args (class method)">.<strong>parse_args</strong>(args)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#print_usage-class_method" title="print_usage (class method)">.<strong>print_usage</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#run-class_method" title="run (class method)">.<strong>run</strong>(args)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>--- Class-level entry point for CLI ---.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+    <h2>
+      Instance Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#app_path-instance_method" title="#app_path (instance method)">#<strong>app_path</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#appdir_path-instance_method" title="#appdir_path (instance method)">#<strong>appdir_path</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#appimage_path-instance_method" title="#appimage_path (instance method)">#<strong>appimage_path</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#build!-instance_method" title="#build! (instance method)">#<strong>build!</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#build_linux!-instance_method" title="#build_linux! (instance method)">#<strong>build_linux!</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#build_macos!-instance_method" title="#build_macos! (instance method)">#<strong>build_macos!</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#build_windows!-instance_method" title="#build_windows! (instance method)">#<strong>build_windows!</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">#<strong>initialize</strong>(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false, minimal: false, target_os: nil, skip_webview_check: false, includes: [])  &#x21d2; Package </a>
+    
+
+    
+  </span>
+  
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>A new instance of Package.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#output_path-instance_method" title="#output_path (instance method)">#<strong>output_path</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#windows_exe_path-instance_method" title="#windows_exe_path (instance method)">#<strong>windows_exe_path</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#windows_output_path-instance_method" title="#windows_output_path (instance method)">#<strong>windows_output_path</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+<div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <h3 class="signature first" id="initialize-instance_method">
+  
+    #<strong>initialize</strong>(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false, minimal: false, target_os: nil, skip_webview_check: false, includes: [])  &#x21d2; <tt><span class='object_link'><a href="" title="Scarpe::Package (class)">Package</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns a new instance of Package.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/package.rb', line 158</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='id identifier rubyid_app_file'>app_file</span><span class='comma'>,</span> <span class='label'>name:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>icon:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>arch:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>output_dir:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>verbose:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>dev:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>sign:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>dmg:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>universal:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>minimal:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>target_os:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>skip_webview_check:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>includes:</span> <span class='lbracket'>[</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+  <span class='ivar'>@app_file</span> <span class='op'>=</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_expand_path'>expand_path</span><span class='lparen'>(</span><span class='id identifier rubyid_app_file'>app_file</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>App file not found: </span><span class='embexpr_beg'>#{</span><span class='ivar'>@app_file</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_exist?'>exist?</span><span class='lparen'>(</span><span class='ivar'>@app_file</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>App file must be a .rb file: </span><span class='embexpr_beg'>#{</span><span class='ivar'>@app_file</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='ivar'>@app_file</span><span class='period'>.</span><span class='id identifier rubyid_end_with?'>end_with?</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>.rb</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+
+  <span class='ivar'>@includes</span> <span class='op'>=</span> <span class='const'>Array</span><span class='lparen'>(</span><span class='id identifier rubyid_includes'>includes</span><span class='rparen'>)</span>
+  <span class='ivar'>@name</span> <span class='op'>=</span> <span class='id identifier rubyid_sanitize_name'>sanitize_name</span><span class='lparen'>(</span><span class='id identifier rubyid_name'>name</span> <span class='op'>||</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_basename'>basename</span><span class='lparen'>(</span><span class='id identifier rubyid_app_file'>app_file</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>.rb</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='rparen'>)</span>
+  <span class='ivar'>@icon</span> <span class='op'>=</span> <span class='id identifier rubyid_icon'>icon</span> <span class='op'>?</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_expand_path'>expand_path</span><span class='lparen'>(</span><span class='id identifier rubyid_icon'>icon</span><span class='rparen'>)</span> <span class='op'>:</span> <span class='kw'>nil</span>
+  <span class='ivar'>@arch</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="#ARCH_MAP-constant" title="Scarpe::Package::ARCH_MAP (constant)">ARCH_MAP</a></span></span><span class='lbracket'>[</span><span class='id identifier rubyid_arch'>arch</span> <span class='op'>||</span> <span class='id identifier rubyid_detect_arch'>detect_arch</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='id identifier rubyid_raise'>raise</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Unsupported architecture: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_arch'>arch</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='ivar'>@target_os</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="#TARGET_OS_MAP-constant" title="Scarpe::Package::TARGET_OS_MAP (constant)">TARGET_OS_MAP</a></span></span><span class='lbracket'>[</span><span class='id identifier rubyid_target_os'>target_os</span> <span class='op'>||</span> <span class='id identifier rubyid_detect_os'>detect_os</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='id identifier rubyid_raise'>raise</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Unsupported OS: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_target_os'>target_os</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='ivar'>@output_dir</span> <span class='op'>=</span> <span class='id identifier rubyid_output_dir'>output_dir</span> <span class='op'>?</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_expand_path'>expand_path</span><span class='lparen'>(</span><span class='id identifier rubyid_output_dir'>output_dir</span><span class='rparen'>)</span> <span class='op'>:</span> <span class='const'>Dir</span><span class='period'>.</span><span class='id identifier rubyid_pwd'>pwd</span>
+  <span class='ivar'>@verbose</span> <span class='op'>=</span> <span class='id identifier rubyid_verbose'>verbose</span>
+  <span class='ivar'>@dev</span> <span class='op'>=</span> <span class='id identifier rubyid_dev'>dev</span>
+  <span class='ivar'>@sign</span> <span class='op'>=</span> <span class='id identifier rubyid_sign'>sign</span>
+  <span class='ivar'>@dmg</span> <span class='op'>=</span> <span class='id identifier rubyid_dmg'>dmg</span>
+  <span class='ivar'>@universal</span> <span class='op'>=</span> <span class='id identifier rubyid_universal'>universal</span>
+  <span class='ivar'>@minimal</span> <span class='op'>=</span> <span class='id identifier rubyid_minimal'>minimal</span>
+  <span class='ivar'>@skip_webview_check</span> <span class='op'>=</span> <span class='id identifier rubyid_skip_webview_check'>skip_webview_check</span>
+
+  <span class='comment'># Validate options
+</span>  <span class='kw'>if</span> <span class='ivar'>@target_os</span> <span class='op'>!=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>macos</span><span class='tstring_end'>&quot;</span></span> <span class='op'>&amp;&amp;</span> <span class='ivar'>@includes</span><span class='period'>.</span><span class='id identifier rubyid_any?'>any?</span>
+    <span class='id identifier rubyid_warn'>warn</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>⚠️  --include is only carried into macOS builds so far (ignored for </span><span class='embexpr_beg'>#{</span><span class='ivar'>@target_os</span><span class='embexpr_end'>}</span><span class='tstring_content'>)</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+  <span class='kw'>if</span> <span class='ivar'>@target_os</span> <span class='op'>!=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>macos</span><span class='tstring_end'>&quot;</span></span> <span class='op'>&amp;&amp;</span> <span class='lparen'>(</span><span class='ivar'>@sign</span> <span class='op'>||</span> <span class='ivar'>@dmg</span> <span class='op'>||</span> <span class='ivar'>@universal</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_warn'>warn</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>⚠️  --sign, --dmg, and --universal are macOS-only options (ignored for </span><span class='embexpr_beg'>#{</span><span class='ivar'>@target_os</span><span class='embexpr_end'>}</span><span class='tstring_content'>)</span><span class='tstring_end'>&quot;</span></span>
+    <span class='ivar'>@sign</span> <span class='op'>=</span> <span class='kw'>false</span>
+    <span class='ivar'>@dmg</span> <span class='op'>=</span> <span class='kw'>false</span>
+    <span class='ivar'>@universal</span> <span class='op'>=</span> <span class='kw'>false</span>
+  <span class='kw'>end</span>
+
+  <span class='comment'># Windows-specific validation
+</span>  <span class='kw'>if</span> <span class='ivar'>@target_os</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>windows</span><span class='tstring_end'>&quot;</span></span> <span class='op'>&amp;&amp;</span> <span class='ivar'>@arch</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>arm64</span><span class='tstring_end'>&quot;</span></span> <span class='op'>&amp;&amp;</span> <span class='const'><span class='object_link'><a href="#TRAVELING_RUBY_VERSION-constant" title="Scarpe::Package::TRAVELING_RUBY_VERSION (constant)">TRAVELING_RUBY_VERSION</a></span></span> <span class='op'>&lt;</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>3.4.7</span><span class='tstring_end'>&quot;</span></span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Windows arm64 requires Ruby 3.4.7+ (current: </span><span class='embexpr_beg'>#{</span><span class='const'><span class='object_link'><a href="#TRAVELING_RUBY_VERSION-constant" title="Scarpe::Package::TRAVELING_RUBY_VERSION (constant)">TRAVELING_RUBY_VERSION</a></span></span><span class='embexpr_end'>}</span><span class='tstring_content'>)</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='ivar'>@cache_dir</span> <span class='op'>=</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='const'>Dir</span><span class='period'>.</span><span class='id identifier rubyid_home'>home</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>.scarpe</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>packager-cache</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+  <span class='ivar'>@bundle_id</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>com.scarpe.</span><span class='embexpr_beg'>#{</span><span class='ivar'>@name</span><span class='period'>.</span><span class='id identifier rubyid_downcase'>downcase</span><span class='period'>.</span><span class='id identifier rubyid_gsub'>gsub</span><span class='lparen'>(</span><span class='tstring'><span class='regexp_beg'>/</span><span class='tstring_content'>[^a-z0-9]</span><span class='regexp_end'>/</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+
+  <span class='kw'>if</span> <span class='ivar'>@dev</span>
+    <span class='ivar'>@scarpe_root</span> <span class='op'>=</span> <span class='id identifier rubyid_find_scarpe_root'>find_scarpe_root</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Cannot find Scarpe source root (expected lib/scarpe/)</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='ivar'>@scarpe_root</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+
+  <div id="class_method_details" class="method_details_list">
+    <h2>Class Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="packager_for-class_method">
+  
+    .<strong>packager_for</strong>(options, env: ENV)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>A native package when asked with --native, or when SCARPE_DISPLAY_SERVICE says the app runs native.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+2801
+2802
+2803
+2804
+2805
+2806
+2807
+2808</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/package.rb', line 2801</span>
+
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_packager_for'>packager_for</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='comma'>,</span> <span class='label'>env:</span> <span class='const'>ENV</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_shared'>shared</span> <span class='op'>=</span> <span class='id identifier rubyid_options'>options</span><span class='period'>.</span><span class='id identifier rubyid_slice'>slice</span><span class='lparen'>(</span><span class='symbol'>:name</span><span class='comma'>,</span> <span class='symbol'>:icon</span><span class='comma'>,</span> <span class='symbol'>:arch</span><span class='comma'>,</span> <span class='symbol'>:output_dir</span><span class='comma'>,</span> <span class='symbol'>:verbose</span><span class='comma'>,</span> <span class='symbol'>:dev</span><span class='comma'>,</span> <span class='symbol'>:sign</span><span class='comma'>,</span> <span class='symbol'>:dmg</span><span class='comma'>,</span> <span class='symbol'>:universal</span><span class='comma'>,</span> <span class='symbol'>:minimal</span><span class='comma'>,</span> <span class='symbol'>:target_os</span><span class='comma'>,</span> <span class='symbol'>:includes</span><span class='rparen'>)</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:native</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='id identifier rubyid_env'>env</span><span class='lbracket'>[</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>SCARPE_DISPLAY_SERVICE</span><span class='tstring_end'>&quot;</span></span><span class='rbracket'>]</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>native</span><span class='tstring_end'>&quot;</span></span>
+    <span class='const'><span class='object_link'><a href="Package/Native.html" title="Scarpe::Package::Native (class)">Native</a></span></span><span class='period'>.</span><span class='id identifier rubyid_new'><span class='object_link'><a href="Package/Native.html#initialize-instance_method" title="Scarpe::Package::Native#initialize (method)">new</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:app_file</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>install_dir:</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:install_dir</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='const'><span class='object_link'><a href="Package/Native.html" title="Scarpe::Package::Native (class)">Native</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Package/Native.html#INSTALL_DIR-constant" title="Scarpe::Package::Native::INSTALL_DIR (constant)">INSTALL_DIR</a></span></span><span class='comma'>,</span> <span class='label'>bytecode:</span> <span class='id identifier rubyid_options'>options</span><span class='period'>.</span><span class='id identifier rubyid_fetch'>fetch</span><span class='lparen'>(</span><span class='symbol'>:bytecode</span><span class='comma'>,</span> <span class='kw'>true</span><span class='rparen'>)</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_shared'>shared</span><span class='rparen'>)</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:app_file</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>skip_webview_check:</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:skip_webview_check</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_shared'>shared</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="parse_args-class_method">
+  
+    .<strong>parse_args</strong>(args)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+2810
+2811
+2812
+2813
+2814
+2815
+2816
+2817
+2818
+2819
+2820
+2821
+2822
+2823
+2824
+2825
+2826
+2827
+2828
+2829
+2830
+2831
+2832
+2833
+2834
+2835
+2836
+2837
+2838
+2839
+2840
+2841
+2842
+2843
+2844
+2845
+2846
+2847
+2848
+2849
+2850
+2851
+2852
+2853
+2854
+2855
+2856
+2857
+2858
+2859
+2860
+2861
+2862
+2863
+2864
+2865
+2866
+2867
+2868
+2869
+2870
+2871
+2872
+2873
+2874
+2875
+2876
+2877
+2878
+2879
+2880
+2881
+2882
+2883
+2884
+2885</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/package.rb', line 2810</span>
+
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_parse_args'>parse_args</span><span class='lparen'>(</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='id identifier rubyid_remaining'>remaining</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+
+  <span class='id identifier rubyid_i'>i</span> <span class='op'>=</span> <span class='int'>0</span>
+  <span class='kw'>while</span> <span class='id identifier rubyid_i'>i</span> <span class='op'>&lt;</span> <span class='id identifier rubyid_args'>args</span><span class='period'>.</span><span class='id identifier rubyid_length'>length</span>
+    <span class='kw'>case</span> <span class='id identifier rubyid_args'>args</span><span class='lbracket'>[</span><span class='id identifier rubyid_i'>i</span><span class='rbracket'>]</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--name</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>-n</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:name</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_args'>args</span><span class='lbracket'>[</span><span class='id identifier rubyid_i'>i</span> <span class='op'>+</span> <span class='int'>1</span><span class='rbracket'>]</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>2</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--icon</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>-i</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:icon</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_args'>args</span><span class='lbracket'>[</span><span class='id identifier rubyid_i'>i</span> <span class='op'>+</span> <span class='int'>1</span><span class='rbracket'>]</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>2</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--arch</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>-a</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:arch</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_args'>args</span><span class='lbracket'>[</span><span class='id identifier rubyid_i'>i</span> <span class='op'>+</span> <span class='int'>1</span><span class='rbracket'>]</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>2</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--output</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>-o</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:output_dir</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_args'>args</span><span class='lbracket'>[</span><span class='id identifier rubyid_i'>i</span> <span class='op'>+</span> <span class='int'>1</span><span class='rbracket'>]</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>2</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--verbose</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>-V</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:verbose</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='kw'>true</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>1</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--dev</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:dev</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='kw'>true</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>1</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--sign</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>-s</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:sign</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='kw'>true</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>1</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--dmg</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:dmg</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='kw'>true</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>1</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--universal</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>-u</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:universal</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='kw'>true</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>1</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--minimal</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>-m</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:minimal</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='kw'>true</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>1</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--target</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>-t</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:target_os</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_args'>args</span><span class='lbracket'>[</span><span class='id identifier rubyid_i'>i</span> <span class='op'>+</span> <span class='int'>1</span><span class='rbracket'>]</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>2</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--linux</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:target_os</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>linux</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>1</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--linux-musl</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:target_os</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>linux-musl</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>1</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--windows</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:target_os</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>windows</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>1</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--skip-webview-check</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:skip_webview_check</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='kw'>true</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>1</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--native</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:native</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='kw'>true</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>1</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--install-dir</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:install_dir</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_args'>args</span><span class='lbracket'>[</span><span class='id identifier rubyid_i'>i</span> <span class='op'>+</span> <span class='int'>1</span><span class='rbracket'>]</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>2</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--no-bytecode</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:bytecode</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='kw'>false</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>1</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--include</span><span class='tstring_end'>&quot;</span></span>
+      <span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:includes</span><span class='rbracket'>]</span> <span class='op'>||=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span><span class='rparen'>)</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_args'>args</span><span class='lbracket'>[</span><span class='id identifier rubyid_i'>i</span> <span class='op'>+</span> <span class='int'>1</span><span class='rbracket'>]</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>2</span>
+    <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>--help</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>-h</span><span class='tstring_end'>&quot;</span></span>
+      <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:help</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='kw'>true</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>1</span>
+    <span class='kw'>else</span>
+      <span class='id identifier rubyid_remaining'>remaining</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_args'>args</span><span class='lbracket'>[</span><span class='id identifier rubyid_i'>i</span><span class='rbracket'>]</span>
+      <span class='id identifier rubyid_i'>i</span> <span class='op'>+=</span> <span class='int'>1</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:app_file</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_remaining'>remaining</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span>
+  <span class='id identifier rubyid_options'>options</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="print_usage-class_method">
+  
+    .<strong>print_usage</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+2887
+2888
+2889
+2890
+2891
+2892
+2893
+2894
+2895
+2896
+2897
+2898
+2899
+2900
+2901
+2902
+2903
+2904
+2905
+2906
+2907
+2908
+2909
+2910
+2911
+2912
+2913
+2914
+2915
+2916
+2917
+2918
+2919
+2920
+2921
+2922
+2923
+2924
+2925
+2926
+2927
+2928
+2929
+2930
+2931
+2932
+2933
+2934
+2935
+2936
+2937
+2938
+2939
+2940
+2941
+2942
+2943
+2944
+2945
+2946
+2947
+2948
+2949
+2950
+2951
+2952
+2953
+2954
+2955
+2956
+2957
+2958
+2959
+2960
+2961
+2962
+2963
+2964</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/package.rb', line 2887</span>
+
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_print_usage'>print_usage</span>
+  <span class='id identifier rubyid_puts'>puts</span> <span class='heredoc_beg'>&lt;&lt;~USAGE</span>
+<span class='tstring_content'>    Usage: scarpe package &lt;app.rb&gt; [OPTIONS]
+</span><span class='tstring_content'>
+</span><span class='tstring_content'>    Package a Shoes/Scarpe application as a standalone executable.
+</span><span class='tstring_content'>
+</span><span class='tstring_content'>    Output formats:
+</span><span class='tstring_content'>      macOS (default):  .app bundle (optionally as .dmg disk image)
+</span><span class='tstring_content'>      Linux:            AppImage or .tar.gz bundle
+</span><span class='tstring_content'>      Windows:          Folder with .bat launcher (+ .zip for distribution)
+</span><span class='tstring_content'>
+</span><span class='tstring_content'>    Options:
+</span><span class='tstring_content'>      -n, --name NAME       Application name (default: derived from filename)
+</span><span class='tstring_content'>      -i, --icon FILE       Application icon (.icns/.png for macOS, .png/.svg for Linux)
+</span><span class='tstring_content'>      -a, --arch ARCH       Target architecture: x86_64 or arm64 (default: current)
+</span><span class='tstring_content'>      -t, --target OS       Target OS: macos, linux, linux-musl, windows (default: current)
+</span><span class='tstring_content'>          --linux           Shortcut for --target linux
+</span><span class='tstring_content'>          --linux-musl      Shortcut for --target linux-musl (Alpine/Docker)
+</span><span class='tstring_content'>          --windows         Shortcut for --target windows
+</span><span class='tstring_content'>      -o, --output DIR      Output directory (default: current directory)
+</span><span class='tstring_content'>      -V, --verbose         Show detailed progress
+</span><span class='tstring_content'>          --dev             Use local development Scarpe source (not published gems)
+</span><span class='tstring_content'>          --include PATH    Also carry this file or folder beside the app (macOS; repeatable).
+</span><span class='tstring_content'>                            Lands where the app&#39;s own relative paths expect it
+</span><span class='tstring_content'>      -m, --minimal         Strip optional gems &amp; SSL for smallest build
+</span><span class='tstring_content'>                            Removes: nokogiri, sqlite3, fastimage, SSL/crypto
+</span><span class='tstring_content'>                            Apps using download/Image auto-size won&#39;t work
+</span><span class='tstring_content'>          --skip-webview-check  Skip webview extension check (for testing builds)
+</span><span class='tstring_content'>
+</span><span class='tstring_content'>    macOS-specific options:
+</span><span class='tstring_content'>      -s, --sign            Ad-hoc code sign the .app (reduces Gatekeeper warnings)
+</span><span class='tstring_content'>          --dmg             Also create a .dmg disk image for distribution
+</span><span class='tstring_content'>      -u, --universal       Build universal binary (x86_64 + arm64)
+</span><span class='tstring_content'>
+</span><span class='tstring_content'>    Native display service (macOS; also chosen by SCARPE_DISPLAY_SERVICE=native):
+</span><span class='tstring_content'>          --native          Draw with the Rust display service instead of a webview.
+</span><span class='tstring_content'>                            Bundles Ruby, Lacci, the shim and the release scarpe-native
+</span><span class='tstring_content'>                            binary; always ad-hoc signed. See docs/native_packaging.md
+</span><span class='tstring_content'>          --install-dir DIR Where the app will be installed (default /Applications);
+</span><span class='tstring_content'>                            its Ruby is precompiled for that place
+</span><span class='tstring_content'>          --no-bytecode     Skip precompiling Ruby to bytecode
+</span><span class='tstring_content'>
+</span><span class='tstring_content'>      -h, --help            Show this help
+</span><span class='tstring_content'>
+</span><span class='tstring_content'>    Examples:
+</span><span class='tstring_content'>      # macOS
+</span><span class='tstring_content'>      scarpe package myapp.rb
+</span><span class='tstring_content'>      scarpe package myapp.rb --name &quot;My App&quot; --icon icon.png --sign
+</span><span class='tstring_content'>      scarpe package myapp.rb --minimal --sign --dmg
+</span><span class='tstring_content'>      scarpe package myapp.rb --universal --sign --dmg
+</span><span class='tstring_content'>      scarpe package myapp.rb --native --dmg
+</span><span class='tstring_content'>
+</span><span class='tstring_content'>      # Linux
+</span><span class='tstring_content'>      scarpe package myapp.rb --linux
+</span><span class='tstring_content'>      scarpe package myapp.rb --linux --minimal
+</span><span class='tstring_content'>      scarpe package myapp.rb --target linux-musl --arch arm64
+</span><span class='tstring_content'>
+</span><span class='tstring_content'>      # Windows (cross-build from macOS/Linux)
+</span><span class='tstring_content'>      scarpe package myapp.rb --windows
+</span><span class='tstring_content'>      scarpe package myapp.rb --windows --minimal
+</span><span class='tstring_content'>      scarpe package myapp.rb --windows --arch arm64  # Windows ARM
+</span><span class='tstring_content'>
+</span><span class='tstring_content'>    The packaged app requires no Ruby installation to run.
+</span><span class='tstring_content'>    First run downloads and caches the Ruby runtime (~58MB).
+</span><span class='tstring_content'>
+</span><span class='tstring_content'>    Linux packaging notes:
+</span><span class='tstring_content'>      - Requires WebKitGTK on the target system (libwebkit2gtk-4.1-0)
+</span><span class='tstring_content'>      - Requires pre-built webview extension (compile with --verbose for instructions)
+</span><span class='tstring_content'>      - AppImage creation requires appimagetool (falls back to .tar.gz if not found)
+</span><span class='tstring_content'>
+</span><span class='tstring_content'>    Windows packaging notes:
+</span><span class='tstring_content'>      - Requires WebView2 Runtime on the target system (pre-installed on Windows 11)
+</span><span class='tstring_content'>      - Windows 10 users must install WebView2: https://go.microsoft.com/fwlink/p/?LinkId=2124703
+</span><span class='tstring_content'>      - Requires pre-built webview.dll extension (compile with --verbose for instructions)
+</span><span class='tstring_content'>      - Cross-build support: build Windows packages from macOS/Linux
+</span><span class='tstring_content'>      - Creates MyApp/ folder + MyApp.zip for distribution
+</span><span class='heredoc_end'>  USAGE
+</span><span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="run-class_method">
+  
+    .<strong>run</strong>(args)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>--- Class-level entry point for CLI ---</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+2785
+2786
+2787
+2788
+2789
+2790
+2791
+2792
+2793
+2794
+2795
+2796
+2797
+2798</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/package.rb', line 2785</span>
+
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_run'>run</span><span class='lparen'>(</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_options'>options</span> <span class='op'>=</span> <span class='id identifier rubyid_parse_args'>parse_args</span><span class='lparen'>(</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
+
+  <span class='kw'>if</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:help</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:app_file</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+    <span class='id identifier rubyid_print_usage'>print_usage</span>
+    <span class='id identifier rubyid_exit'>exit</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='lbracket'>[</span><span class='symbol'>:help</span><span class='rbracket'>]</span> <span class='op'>?</span> <span class='int'>0</span> <span class='op'>:</span> <span class='int'>1</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_packager_for'>packager_for</span><span class='lparen'>(</span><span class='id identifier rubyid_options'>options</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_build!'>build!</span>
+<span class='kw'>rescue</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+  <span class='gvar'>$stderr</span><span class='period'>.</span><span class='id identifier rubyid_puts'>puts</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>❌ Packaging failed: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_e'>e</span><span class='period'>.</span><span class='id identifier rubyid_message'>message</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='gvar'>$stderr</span><span class='period'>.</span><span class='id identifier rubyid_puts'>puts</span> <span class='id identifier rubyid_e'>e</span><span class='period'>.</span><span class='id identifier rubyid_backtrace'>backtrace</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span><span class='lparen'>(</span><span class='int'>5</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_map'>map</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_l'>l</span><span class='op'>|</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_l'>l</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span> <span class='rbrace'>}</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>\n</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_options'>options</span><span class='op'>&amp;.</span><span class='id identifier rubyid_dig'>dig</span><span class='lparen'>(</span><span class='symbol'>:verbose</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_exit'>exit</span> <span class='int'>1</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="app_path-instance_method">
+  
+    #<strong>app_path</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+344
+345
+346</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/package.rb', line 344</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_app_path'>app_path</span>
+  <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='ivar'>@output_dir</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='ivar'>@name</span><span class='embexpr_end'>}</span><span class='tstring_content'>.app</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="appdir_path-instance_method">
+  
+    #<strong>appdir_path</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+352
+353
+354</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/package.rb', line 352</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_appdir_path'>appdir_path</span>
+  <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='ivar'>@output_dir</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='ivar'>@name</span><span class='embexpr_end'>}</span><span class='tstring_content'>.AppDir</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="appimage_path-instance_method">
+  
+    #<strong>appimage_path</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+348
+349
+350</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/package.rb', line 348</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_appimage_path'>appimage_path</span>
+  <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='ivar'>@output_dir</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='ivar'>@name</span><span class='embexpr_end'>}</span><span class='tstring_content'>-</span><span class='embexpr_beg'>#{</span><span class='ivar'>@arch</span><span class='embexpr_end'>}</span><span class='tstring_content'>.AppImage</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="build!-instance_method">
+  
+    #<strong>build!</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/package.rb', line 202</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_build!'>build!</span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>🔨 Scarpe Packager</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   App:    </span><span class='embexpr_beg'>#{</span><span class='ivar'>@app_file</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   Name:   </span><span class='embexpr_beg'>#{</span><span class='ivar'>@name</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   Arch:   </span><span class='embexpr_beg'>#{</span><span class='ivar'>@arch</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   Target: </span><span class='embexpr_beg'>#{</span><span class='ivar'>@target_os</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   Mode:   </span><span class='embexpr_beg'>#{</span><span class='ivar'>@minimal</span> <span class='op'>?</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>minimal</span><span class='tstring_end'>&quot;</span></span> <span class='op'>:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>full</span><span class='tstring_end'>&quot;</span></span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   Output: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_output_path'>output_path</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span>
+
+  <span class='kw'>case</span> <span class='ivar'>@target_os</span>
+  <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>macos</span><span class='tstring_end'>&quot;</span></span>
+    <span class='id identifier rubyid_build_macos!'>build_macos!</span>
+  <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>linux</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>linux-musl</span><span class='tstring_end'>&quot;</span></span>
+    <span class='id identifier rubyid_build_linux!'>build_linux!</span>
+  <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>windows</span><span class='tstring_end'>&quot;</span></span>
+    <span class='id identifier rubyid_build_windows!'>build_windows!</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Unsupported target OS: </span><span class='embexpr_beg'>#{</span><span class='ivar'>@target_os</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="build_linux!-instance_method">
+  
+    #<strong>build_linux!</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/package.rb', line 264</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_build_linux!'>build_linux!</span>
+  <span class='id identifier rubyid_ensure_runtime_cached'>ensure_runtime_cached</span>
+  <span class='id identifier rubyid_create_appimage_structure'>create_appimage_structure</span>
+  <span class='id identifier rubyid_copy_ruby_runtime_linux'>copy_ruby_runtime_linux</span>
+  <span class='id identifier rubyid_copy_gems_linux'>copy_gems_linux</span>
+  <span class='id identifier rubyid_copy_native_extensions_linux'>copy_native_extensions_linux</span>
+  <span class='id identifier rubyid_copy_webview_extension_linux'>copy_webview_extension_linux</span>
+  <span class='id identifier rubyid_copy_user_app_linux'>copy_user_app_linux</span>
+  <span class='id identifier rubyid_write_boot_script_linux'>write_boot_script_linux</span>
+  <span class='id identifier rubyid_write_apprun_script'>write_apprun_script</span>
+  <span class='id identifier rubyid_write_desktop_file'>write_desktop_file</span>
+  <span class='id identifier rubyid_copy_icon_linux'>copy_icon_linux</span> <span class='kw'>if</span> <span class='ivar'>@icon</span>
+  <span class='id identifier rubyid_strip_unnecessary_files_linux'>strip_unnecessary_files_linux</span>
+
+  <span class='id identifier rubyid_appimage_path'>appimage_path</span> <span class='op'>=</span> <span class='id identifier rubyid_create_appimage'>create_appimage</span>
+  <span class='id identifier rubyid_size'>size</span> <span class='op'>=</span> <span class='backtick'>`</span><span class='tstring_content'>du -sh &quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_appimage_path'>appimage_path</span><span class='embexpr_end'>}</span><span class='tstring_content'>&quot; 2&gt;/dev/null</span><span class='tstring_end'>`</span></span><span class='period'>.</span><span class='id identifier rubyid_strip'>strip</span><span class='period'>.</span><span class='id identifier rubyid_split'>split</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>\t</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span> <span class='op'>||</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>unknown</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>✅ Created </span><span class='embexpr_beg'>#{</span><span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_basename'>basename</span><span class='lparen'>(</span><span class='id identifier rubyid_appimage_path'>appimage_path</span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_content'> (</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_size'>size</span><span class='embexpr_end'>}</span><span class='tstring_content'>)</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   To run:  chmod +x </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_appimage_path'>appimage_path</span><span class='embexpr_end'>}</span><span class='tstring_content'> &amp;&amp; ./</span><span class='embexpr_beg'>#{</span><span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_basename'>basename</span><span class='lparen'>(</span><span class='id identifier rubyid_appimage_path'>appimage_path</span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   ⚠️  Requires WebKitGTK installed on the target system:</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>      Ubuntu/Debian: sudo apt install libwebkit2gtk-4.1-0</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>      Fedora:        sudo dnf install webkit2gtk4.1</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>      Arch:          sudo pacman -S webkit2gtk</span><span class='tstring_end'>&quot;</span></span>
+
+  <span class='id identifier rubyid_appimage_path'>appimage_path</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="build_macos!-instance_method">
+  
+    #<strong>build_macos!</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/package.rb', line 224</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_build_macos!'>build_macos!</span>
+  <span class='id identifier rubyid_ensure_runtime_cached'>ensure_runtime_cached</span>
+  <span class='id identifier rubyid_create_bundle_structure'>create_bundle_structure</span>
+  <span class='id identifier rubyid_copy_ruby_runtime'>copy_ruby_runtime</span>
+  <span class='id identifier rubyid_copy_gems'>copy_gems</span>
+  <span class='id identifier rubyid_copy_native_extensions'>copy_native_extensions</span>
+  <span class='id identifier rubyid_copy_webview_extension'>copy_webview_extension</span>
+  <span class='id identifier rubyid_copy_user_app'>copy_user_app</span>
+  <span class='id identifier rubyid_write_boot_script'>write_boot_script</span>
+  <span class='id identifier rubyid_write_launcher'>write_launcher</span>
+  <span class='id identifier rubyid_write_info_plist'>write_info_plist</span>
+  <span class='id identifier rubyid_copy_icon'>copy_icon</span> <span class='kw'>if</span> <span class='ivar'>@icon</span>
+  <span class='id identifier rubyid_strip_unnecessary_files'>strip_unnecessary_files</span>
+  <span class='id identifier rubyid_sign_bundle'>sign_bundle</span> <span class='kw'>if</span> <span class='ivar'>@sign</span>
+  <span class='id identifier rubyid_result'>result</span> <span class='op'>=</span> <span class='id identifier rubyid_create_dmg'>create_dmg</span> <span class='kw'>if</span> <span class='ivar'>@dmg</span>
+
+  <span class='id identifier rubyid_size'>size</span> <span class='op'>=</span> <span class='backtick'>`</span><span class='tstring_content'>du -sh &quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_app_path'>app_path</span><span class='embexpr_end'>}</span><span class='tstring_content'>&quot; 2&gt;/dev/null</span><span class='tstring_end'>`</span></span><span class='period'>.</span><span class='id identifier rubyid_strip'>strip</span><span class='period'>.</span><span class='id identifier rubyid_split'>split</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>\t</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span> <span class='op'>||</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>unknown</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>✅ Created </span><span class='embexpr_beg'>#{</span><span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_basename'>basename</span><span class='lparen'>(</span><span class='id identifier rubyid_app_path'>app_path</span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_content'> (</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_size'>size</span><span class='embexpr_end'>}</span><span class='tstring_content'>)</span><span class='tstring_end'>&quot;</span></span>
+
+  <span class='kw'>if</span> <span class='id identifier rubyid_result'>result</span> <span class='op'>&amp;&amp;</span> <span class='ivar'>@dmg</span>
+    <span class='id identifier rubyid_dmg_size'>dmg_size</span> <span class='op'>=</span> <span class='backtick'>`</span><span class='tstring_content'>du -sh &quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_result'>result</span><span class='embexpr_end'>}</span><span class='tstring_content'>&quot; 2&gt;/dev/null</span><span class='tstring_end'>`</span></span><span class='period'>.</span><span class='id identifier rubyid_strip'>strip</span><span class='period'>.</span><span class='id identifier rubyid_split'>split</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>\t</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_first'>first</span> <span class='op'>||</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>unknown</span><span class='tstring_end'>&quot;</span></span>
+    <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>✅ Created </span><span class='embexpr_beg'>#{</span><span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_basename'>basename</span><span class='lparen'>(</span><span class='id identifier rubyid_result'>result</span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_content'> (</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_dmg_size'>dmg_size</span><span class='embexpr_end'>}</span><span class='tstring_content'>)</span><span class='tstring_end'>&quot;</span></span>
+    <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span>
+    <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   To install: open </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_result'>result</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span>
+    <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   To run:  open </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_app_path'>app_path</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+    <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   Or:      </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_app_path'>app_path</span><span class='embexpr_end'>}</span><span class='tstring_content'>/Contents/MacOS/scarpe-launcher</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='kw'>unless</span> <span class='ivar'>@sign</span>
+    <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span>
+    <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   ⚠️  Unsigned app — right-click → Open to bypass Gatekeeper.</span><span class='tstring_end'>&quot;</span></span>
+    <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   Tip: use --sign for ad-hoc code signing (no Apple Developer account needed).</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='ivar'>@dmg</span> <span class='op'>?</span> <span class='id identifier rubyid_result'>result</span> <span class='op'>:</span> <span class='id identifier rubyid_app_path'>app_path</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="build_windows!-instance_method">
+  
+    #<strong>build_windows!</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/package.rb', line 293</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_build_windows!'>build_windows!</span>
+  <span class='id identifier rubyid_ensure_runtime_cached'>ensure_runtime_cached</span>
+  <span class='id identifier rubyid_create_windows_structure'>create_windows_structure</span>
+  <span class='id identifier rubyid_copy_ruby_runtime_windows'>copy_ruby_runtime_windows</span>
+  <span class='id identifier rubyid_copy_gems_windows'>copy_gems_windows</span>
+  <span class='id identifier rubyid_copy_native_extensions_windows'>copy_native_extensions_windows</span>
+  <span class='id identifier rubyid_copy_webview_extension_windows'>copy_webview_extension_windows</span>
+  <span class='id identifier rubyid_copy_user_app_windows'>copy_user_app_windows</span>
+  <span class='id identifier rubyid_write_boot_script_windows'>write_boot_script_windows</span>
+  <span class='id identifier rubyid_write_windows_launcher'>write_windows_launcher</span>
+  <span class='id identifier rubyid_copy_icon_windows'>copy_icon_windows</span> <span class='kw'>if</span> <span class='ivar'>@icon</span>
+  <span class='id identifier rubyid_strip_unnecessary_files_windows'>strip_unnecessary_files_windows</span>
+
+  <span class='id identifier rubyid_result'>result</span> <span class='op'>=</span> <span class='id identifier rubyid_create_windows_zip'>create_windows_zip</span>
+
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>✅ Created </span><span class='embexpr_beg'>#{</span><span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_basename'>basename</span><span class='lparen'>(</span><span class='id identifier rubyid_windows_output_path'>windows_output_path</span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_content'>/</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   To run: Double-click </span><span class='embexpr_beg'>#{</span><span class='ivar'>@name</span><span class='embexpr_end'>}</span><span class='tstring_content'>.bat</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   Or:     </span><span class='embexpr_beg'>#{</span><span class='ivar'>@name</span><span class='embexpr_end'>}</span><span class='tstring_content'>\\ruby\\bin\\ruby.exe </span><span class='embexpr_beg'>#{</span><span class='ivar'>@name</span><span class='embexpr_end'>}</span><span class='tstring_content'>\\app\\boot.rb</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   ⚠️  Requires WebView2 Runtime installed on the target system:</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>      Windows 11: Pre-installed</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>      Windows 10: Download from https://developer.microsoft.com/en-us/microsoft-edge/webview2/</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_log'>log</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>   📦 Distribution: Share the </span><span class='embexpr_beg'>#{</span><span class='ivar'>@name</span><span class='embexpr_end'>}</span><span class='tstring_content'> folder or </span><span class='embexpr_beg'>#{</span><span class='ivar'>@name</span><span class='embexpr_end'>}</span><span class='tstring_content'>.zip</span><span class='tstring_end'>&quot;</span></span>
+
+  <span class='id identifier rubyid_result'>result</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="output_path-instance_method">
+  
+    #<strong>output_path</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/package.rb', line 323</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_output_path'>output_path</span>
+  <span class='kw'>case</span> <span class='ivar'>@target_os</span>
+  <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>macos</span><span class='tstring_end'>&quot;</span></span>
+    <span class='id identifier rubyid_app_path'>app_path</span>
+  <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>linux</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>linux-musl</span><span class='tstring_end'>&quot;</span></span>
+    <span class='id identifier rubyid_appimage_path'>appimage_path</span>
+  <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>windows</span><span class='tstring_end'>&quot;</span></span>
+    <span class='id identifier rubyid_windows_output_path'>windows_output_path</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Unknown target OS: </span><span class='embexpr_beg'>#{</span><span class='ivar'>@target_os</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="windows_exe_path-instance_method">
+  
+    #<strong>windows_exe_path</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+340
+341
+342</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/package.rb', line 340</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_windows_exe_path'>windows_exe_path</span>
+  <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='id identifier rubyid_windows_output_path'>windows_output_path</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='ivar'>@name</span><span class='embexpr_end'>}</span><span class='tstring_content'>.bat</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="windows_output_path-instance_method">
+  
+    #<strong>windows_output_path</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+336
+337
+338</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/scarpe/package.rb', line 336</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_windows_output_path'>windows_output_path</span>
+  <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_join'>join</span><span class='lparen'>(</span><span class='ivar'>@output_dir</span><span class='comma'>,</span> <span class='ivar'>@name</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Thu Oct  1 22:25:22 2026 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.38 (ruby-3.2.0).
+</div>
+
+    </div>
+  </body>
+</html>

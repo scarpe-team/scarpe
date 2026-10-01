@@ -1,0 +1,2394 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Class: Shoes
+  
+    &mdash; Documentation by YARD 0.9.38
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Shoes";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="_index.html">Index (S)</a> &raquo;
+    
+    
+    <span class="title">Shoes</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="docpages_list_link"
+        href="docpages_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Class: Shoes
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+  <dl>
+    <dt>Inherits:</dt>
+    <dd>
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">Shoes</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+    </dd>
+  </dl>
+  
+
+  
+  
+  <dl>
+      <dt>Extended by:</dt>
+      <dd><span class='object_link'><a href="Shoes/Colors.html" title="Shoes::Colors (module)">Colors</a></span></dd>
+  </dl>
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lacci/lib/shoes.rb<span class="defines">,<br />
+  lacci/lib/shoes.rb,<br /> lacci/lib/shoes/app.rb,<br /> lacci/lib/shoes/art.rb,<br /> lacci/lib/shoes/log.rb,<br /> lacci/lib/shoes-spec.rb,<br /> lacci/lib/shoes/color.rb,<br /> lacci/lib/shoes/border.rb,<br /> lacci/lib/shoes/colors.rb,<br /> lacci/lib/shoes/errors.rb,<br /> lacci/lib/shoes/manual.rb,<br /> lacci/lib/shoes/console.rb,<br /> lacci/lib/shoes/pattern.rb,<br /> lacci/lib/shoes/program.rb,<br /> lacci/lib/shoes/download.rb,<br /> lacci/lib/shoes/drawable.rb,<br /> lacci/lib/shoes/changelog.rb,<br /> lacci/lib/shoes/constants.rb,<br /> lacci/lib/shoes/font_file.rb,<br /> lacci/lib/shoes/background.rb,<br /> lacci/lib/shoes/draw_context.rb,<br /> lacci/lib/shoes/error_report.rb,<br /> lacci/lib/shoes/drawables/arc.rb,<br /> lacci/lib/shoes/drawables/flow.rb,<br /> lacci/lib/shoes/drawables/line.rb,<br /> lacci/lib/shoes/drawables/link.rb,<br /> lacci/lib/shoes/drawables/mask.rb,<br /> lacci/lib/shoes/drawables/oval.rb,<br /> lacci/lib/shoes/drawables/para.rb,<br /> lacci/lib/shoes/drawables/para.rb,<br /> lacci/lib/shoes/drawables/rect.rb,<br /> lacci/lib/shoes/drawables/star.rb,<br /> lacci/lib/shoes/display_service.rb,<br /> lacci/lib/shoes/drawables/arrow.rb,<br /> lacci/lib/shoes/drawables/check.rb,<br /> lacci/lib/shoes/drawables/image.rb,<br /> lacci/lib/shoes/drawables/radio.rb,<br /> lacci/lib/shoes/drawables/shape.rb,<br /> lacci/lib/shoes/drawables/stack.rb,<br /> lacci/lib/shoes/drawables/video.rb,<br /> lacci/lib/shoes/drawables/border.rb,<br /> lacci/lib/shoes/drawables/button.rb,<br /> lacci/lib/shoes/drawables/edit_box.rb,<br /> lacci/lib/shoes/drawables/list_box.rb,<br /> lacci/lib/shoes/drawables/progress.rb,<br /> lacci/lib/shoes/drawables/edit_line.rb,<br /> lacci/lib/shoes/drawables/focusable.rb,<br /> lacci/lib/shoes/drawables/background.rb,<br /> lacci/lib/shoes/drawables/document_root.rb,<br /> lacci/lib/shoes/drawables/text_drawable.rb,<br /> lacci/lib/shoes/drawables/subscription_item.rb</span>
+</dd>
+  </dl>
+  
+</div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>Lacci Shoes apps operate in multiple layers. A Shoes drawable tree exists as fairly
+plain, simple Ruby objects. And then a display-service drawable tree integrates with
+the display technology. This lets us use Ruby as our API while
+not tying it too closely to the limitations of Webview, WASM, LibUI, etc.</p>
+
+<h2 id="choosing-display-services">Choosing Display Services</h2>
+
+<p>Before running a Lacci app, you can set SCARPE_DISPLAY_SERVICE. If you
+set it to &quot;whatever_service&quot;, Scarpe will require &quot;scarpe/whatever_service&quot;,
+which can be supplied by the Scarpe gem or another Scarpe-based gem.
+Currently leaving the environment variable empty is equivalent to requesting
+local Webview.</p>
+
+<h2 id="events">Events</h2>
+
+<p>Events are a lot of what tie the Shoes drawables and the display service together.</p>
+
+<p>Shoes drawables <em>expect</em> to operate in a fairly &quot;hands off&quot; mode where they record
+to an event queue to send to the display service, and the display service records
+events to send back.</p>
+
+<p>When a Shoes handler takes an action (e.g. some_para.replace(),) the relevant
+call will be dispatched as a :display event, to be sent to the display service.
+And when a display-side event occurs (e.g. user pushes a button,) it will be
+dispatched as a :shoes event, to be sent to the Shoes tree of drawables.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><h2>Defined Under Namespace</h2>
+<p class="children">
+  
+    
+      <strong class="modules">Modules:</strong> <span class='object_link'><a href="Shoes/Art.html" title="Shoes::Art (module)">Art</a></span>, <span class='object_link'><a href="Shoes/Builtins.html" title="Shoes::Builtins (module)">Builtins</a></span>, <span class='object_link'><a href="Shoes/Colors.html" title="Shoes::Colors (module)">Colors</a></span>, <span class='object_link'><a href="Shoes/Constants.html" title="Shoes::Constants (module)">Constants</a></span>, <span class='object_link'><a href="Shoes/DrawContext.html" title="Shoes::DrawContext (module)">DrawContext</a></span>, <span class='object_link'><a href="Shoes/ErrorReport.html" title="Shoes::ErrorReport (module)">ErrorReport</a></span>, <span class='object_link'><a href="Shoes/Errors.html" title="Shoes::Errors (module)">Errors</a></span>, <span class='object_link'><a href="Shoes/Focusable.html" title="Shoes::Focusable (module)">Focusable</a></span>, <span class='object_link'><a href="Shoes/FontFile.html" title="Shoes::FontFile (module)">FontFile</a></span>, <span class='object_link'><a href="Shoes/HasBackground.html" title="Shoes::HasBackground (module)">HasBackground</a></span>, <span class='object_link'><a href="Shoes/Log.html" title="Shoes::Log (module)">Log</a></span>, <span class='object_link'><a href="Shoes/Pattern.html" title="Shoes::Pattern (module)">Pattern</a></span>, <span class='object_link'><a href="Shoes/Spec.html" title="Shoes::Spec (module)">Spec</a></span>, <span class='object_link'><a href="Shoes/TextDecoration.html" title="Shoes::TextDecoration (module)">TextDecoration</a></span>
+    
+  
+    
+      <strong class="classes">Classes:</strong> <span class='object_link'><a href="Shoes/Animation.html" title="Shoes::Animation (class)">Animation</a></span>, <span class='object_link'><a href="Shoes/App.html" title="Shoes::App (class)">App</a></span>, <span class='object_link'><a href="Shoes/Arc.html" title="Shoes::Arc (class)">Arc</a></span>, <span class='object_link'><a href="Shoes/Arrow.html" title="Shoes::Arrow (class)">Arrow</a></span>, <span class='object_link'><a href="Shoes/Background.html" title="Shoes::Background (class)">Background</a></span>, <span class='object_link'><a href="Shoes/Border.html" title="Shoes::Border (class)">Border</a></span>, <span class='object_link'><a href="Shoes/Button.html" title="Shoes::Button (class)">Button</a></span>, <span class='object_link'><a href="Shoes/Changelog.html" title="Shoes::Changelog (class)">Changelog</a></span>, <span class='object_link'><a href="Shoes/Check.html" title="Shoes::Check (class)">Check</a></span>, <span class='object_link'><a href="Shoes/Color.html" title="Shoes::Color (class)">Color</a></span>, <span class='object_link'><a href="Shoes/Console.html" title="Shoes::Console (class)">Console</a></span>, <span class='object_link'><a href="Shoes/DisplayService.html" title="Shoes::DisplayService (class)">DisplayService</a></span>, <span class='object_link'><a href="Shoes/DocumentRoot.html" title="Shoes::DocumentRoot (class)">DocumentRoot</a></span>, <span class='object_link'><a href="Shoes/Drawable.html" title="Shoes::Drawable (class)">Drawable</a></span>, <span class='object_link'><a href="Shoes/EditBox.html" title="Shoes::EditBox (class)">EditBox</a></span>, <span class='object_link'><a href="Shoes/EditLine.html" title="Shoes::EditLine (class)">EditLine</a></span>, <span class='object_link'><a href="Shoes/Error.html" title="Shoes::Error (class)">Error</a></span>, <span class='object_link'><a href="Shoes/Every.html" title="Shoes::Every (class)">Every</a></span>, <span class='object_link'><a href="Shoes/Flow.html" title="Shoes::Flow (class)">Flow</a></span>, <span class='object_link'><a href="Shoes/Image.html" title="Shoes::Image (class)">Image</a></span>, <span class='object_link'><a href="Shoes/Line.html" title="Shoes::Line (class)">Line</a></span>, <span class='object_link'><a href="Shoes/Link.html" title="Shoes::Link (class)">Link</a></span>, <span class='object_link'><a href="Shoes/LinkHover.html" title="Shoes::LinkHover (class)">LinkHover</a></span>, <span class='object_link'><a href="Shoes/Linkable.html" title="Shoes::Linkable (class)">Linkable</a></span>, <span class='object_link'><a href="Shoes/ListBox.html" title="Shoes::ListBox (class)">ListBox</a></span>, <span class='object_link'><a href="Shoes/LoggedWrapper.html" title="Shoes::LoggedWrapper (class)">LoggedWrapper</a></span>, <span class='object_link'><a href="Shoes/Manual.html" title="Shoes::Manual (class)">Manual</a></span>, <span class='object_link'><a href="Shoes/Mask.html" title="Shoes::Mask (class)">Mask</a></span>, <span class='object_link'><a href="Shoes/Oval.html" title="Shoes::Oval (class)">Oval</a></span>, <span class='object_link'><a href="Shoes/Para.html" title="Shoes::Para (class)">Para</a></span>, <span class='object_link'><a href="Shoes/Program.html" title="Shoes::Program (class)">Program</a></span>, <span class='object_link'><a href="Shoes/Progress.html" title="Shoes::Progress (class)">Progress</a></span>, <span class='object_link'><a href="Shoes/Radio.html" title="Shoes::Radio (class)">Radio</a></span>, <span class='object_link'><a href="Shoes/Rect.html" title="Shoes::Rect (class)">Rect</a></span>, <span class='object_link'><a href="Shoes/Shape.html" title="Shoes::Shape (class)">Shape</a></span>, <span class='object_link'><a href="Shoes/Slot.html" title="Shoes::Slot (class)">Slot</a></span>, <span class='object_link'><a href="Shoes/SpecInstance.html" title="Shoes::SpecInstance (class)">SpecInstance</a></span>, <span class='object_link'><a href="Shoes/SpecProxy.html" title="Shoes::SpecProxy (class)">SpecProxy</a></span>, <span class='object_link'><a href="Shoes/Stack.html" title="Shoes::Stack (class)">Stack</a></span>, <span class='object_link'><a href="Shoes/Star.html" title="Shoes::Star (class)">Star</a></span>, <span class='object_link'><a href="Shoes/SubscriptionItem.html" title="Shoes::SubscriptionItem (class)">SubscriptionItem</a></span>, <span class='object_link'><a href="Shoes/TextDrawable.html" title="Shoes::TextDrawable (class)">TextDrawable</a></span>, <span class='object_link'><a href="Shoes/Timer.html" title="Shoes::Timer (class)">Timer</a></span>, <span class='object_link'><a href="Shoes/TurtleCanvas.html" title="Shoes::TurtleCanvas (class)">TurtleCanvas</a></span>, <span class='object_link'><a href="Shoes/Video.html" title="Shoes::Video (class)">Video</a></span>, <span class='object_link'><a href="Shoes/Widget.html" title="Shoes::Widget (class)">Widget</a></span>
+    
+  
+</p>
+
+  
+    <h2>
+      Constant Summary
+      <small><a href="#" class="constants_summary_toggle">collapse</a></small>
+    </h2>
+
+    <dl class="constants">
+      
+        <dt id="TEXT_MODES-constant" class="">TEXT_MODES =
+          
+        </dt>
+        <dd><pre class="code"><span class='qsymbols_beg'>%i[</span><span class='tstring_content'>scarpe</span><span class='words_sep'> </span><span class='tstring_content'>shoes3</span><span class='tstring_end'>]</span></span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="LOG_LEVELS-constant" class="">LOG_LEVELS =
+          
+        </dt>
+        <dd><pre class="code"><span class='lbracket'>[</span><span class='symbol'>:debug</span><span class='comma'>,</span> <span class='symbol'>:info</span><span class='comma'>,</span> <span class='symbol'>:warn</span><span class='comma'>,</span> <span class='symbol'>:error</span><span class='comma'>,</span> <span class='symbol'>:fatal</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_freeze'>freeze</span></pre></dd>
+      
+        <dt id="COLORS-constant" class="">COLORS =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Shoes3 exposes Shoes::COLORS at the top level for apps like Hackety Hack</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='const'><span class='object_link'><a href="Shoes/Colors.html" title="Shoes::Colors (module)">Colors</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/Colors.html#COLORS-constant" title="Shoes::Colors::COLORS (constant)">COLORS</a></span></span></pre></dd>
+      
+        <dt id="RELEASE_INFO-constant" class="">RELEASE_INFO =
+          
+        </dt>
+        <dd><pre class="code"><span class='id identifier rubyid_changelog_instance'>changelog_instance</span><span class='period'>.</span><span class='id identifier rubyid_get_latest_release_info'>get_latest_release_info</span></pre></dd>
+      
+        <dt id="RELEASE_NAME-constant" class="">RELEASE_NAME =
+          
+        </dt>
+        <dd><pre class="code"></pre></dd>
+      
+        <dt id="RELEASE_ID-constant" class="">RELEASE_ID =
+          
+        </dt>
+        <dd><pre class="code"></pre></dd>
+      
+        <dt id="RELEASE_BUILD_DATE-constant" class="">RELEASE_BUILD_DATE =
+          
+        </dt>
+        <dd><pre class="code"></pre></dd>
+      
+        <dt id="RELEASE_TYPE-constant" class="">RELEASE_TYPE =
+          <div class="docstring">
+  <div class="discussion">
+    <p>This isn&#39;t really a thing any more</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>LOOSE_SHOES</span><span class='tstring_end'>&quot;</span></span></pre></dd>
+      
+        <dt id="REVISION-constant" class="">REVISION =
+          
+        </dt>
+        <dd><pre class="code"></pre></dd>
+      
+        <dt id="VERSION-constant" class="">VERSION =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Shoes version string for compatibility (Shoes::VERSION)</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>0.5.0</span><span class='tstring_end'>&quot;</span></span></pre></dd>
+      
+    </dl>
+  
+
+
+
+
+  <h2>Class Attribute Summary <small><a href="#" class="summary_toggle">collapse</a></small></h2>
+  <ul class="summary">
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#APPS-class_method" title="APPS (class method)">.<strong>APPS</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Returns the value of attribute APPS.</p>
+</div></span>
+  
+</li>
+
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#pending_app_class-class_method" title="pending_app_class (class method)">.<strong>pending_app_class</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Track the most recently defined Shoes subclass for the inheritance pattern e.g., class Book &lt; Shoes; end; Shoes.app.</p>
+</div></span>
+  
+</li>
+
+    
+  </ul>
+
+
+
+
+  
+    <h2>
+      Class Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#add_file_loader-class_method" title="add_file_loader (class method)">.<strong>add_file_loader</strong>(loader)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#app-class_method" title="app (class method)">.<strong>app</strong>(styles = {}, **keywords, &amp;app_code_body)  &#x21d2; Shoes::App </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Creates a Shoes app with a new window.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#class_routes-class_method" title="class_routes (class method)">.<strong>class_routes</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Get the routes defined on this class.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#default_file_loaders-class_method" title="default_file_loaders (class method)">.<strong>default_file_loaders</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#default_text_drawable_with-class_method" title="default_text_drawable_with (class method)">.<strong>default_text_drawable_with</strong>(element)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#error_hooks-class_method" title="error_hooks (class method)">.<strong>error_hooks</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>The blocks Shoes.on_error was given.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#file_loaders-class_method" title="file_loaders (class method)">.<strong>file_loaders</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#inherited-class_method" title="inherited (class method)">.<strong>inherited</strong>(subclass)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>When someone does <code>class MyApp &lt; Shoes</code>, track it.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#on_error-class_method" title="on_error (class method)">.<strong>on_error</strong>(&amp;block)  &#x21d2; Proc </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Hands every error a handler, a timer or the program&#39;s startup raises to the block, on the event loop, as a Hash (Shoes::ErrorReport): &quot;class&quot;, &quot;message&quot;, &quot;backtrace&quot;, &quot;path&quot;, &quot;line&quot; and &quot;during&quot;.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#p-class_method" title="p (class method)">.<strong>p</strong>(object)  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Debug print method from Shoes3 — prints to stdout with &quot;&gt;&gt; &quot; prefix.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#quit-class_method" title="quit (class method)">.<strong>quit</strong>  &#x21d2; void </a>
+    
+
+    
+      (also: exit)
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Quit the Shoes application.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#report_error-class_method" title="report_error (class method)">.<strong>report_error</strong>(error, during:, program: nil)  &#x21d2; Hash </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Display services call this when a handler, a timer or a startup raises: the console lists the error, and every Shoes.on_error block hears of it.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#reset_file_loaders-class_method" title="reset_file_loaders (class method)">.<strong>reset_file_loaders</strong>  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#run_app-class_method" title="run_app (class method)">.<strong>run_app</strong>(relative_path, dir: nil)  &#x21d2; void </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Load a Shoes app from a file.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#run_program-class_method" title="run_program (class method)">.<strong>run_program</strong>(path, dir: nil, args: [])  &#x21d2; Shoes::Program </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Starts the Shoes program in the file at path, and hands back a Shoes::Program to follow it with.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#set_file_loaders-class_method" title="set_file_loaders (class method)">.<strong>set_file_loaders</strong>(loaders)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#setup-class_method" title="setup (class method)">.<strong>setup</strong>(&amp;block)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>In Shoes3, Shoes.setup installs gems.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#show_console-class_method" title="show_console (class method)">.<strong>show_console</strong>  &#x21d2; Shoes::App </a>
+    
+
+    
+      (also: show_log)
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Opens the Shoes console (Shoes::Console), which Alt-/ opens too (Cmd-/ on a Mac).</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#show_manual-class_method" title="show_manual (class method)">.<strong>show_manual</strong>(section = nil)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Opens the manual in a window of its own, as Shoes 3 did, at <code>section</code> when one is named (ledger K7).</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#text_mode-class_method" title="text_mode (class method)">.<strong>text_mode</strong>  &#x21d2; Symbol </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>How text is sized and set, for every window the program opens.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#text_mode=-class_method" title="text_mode= (class method)">.<strong>text_mode=</strong>(mode)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#url-class_method" title="url (class method)">.<strong>url</strong>(path, method_name)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Class-level url method for defining routes in Shoes subclasses e.g., class Book &lt; Shoes; url &#39;/&#39;, :index; end.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods included from <span class='object_link'><a href="Shoes/Colors.html" title="Shoes::Colors (module)">Colors</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="Shoes/Colors.html#gradient-instance_method" title="Shoes::Colors#gradient (method)">gradient</a></span>, <span class='object_link'><a href="Shoes/Colors.html#gray-instance_method" title="Shoes::Colors#gray (method)">gray</a></span>, <span class='object_link'><a href="Shoes/Colors.html#rgb-instance_method" title="Shoes::Colors#rgb (method)">rgb</a></span>, <span class='object_link'><a href="Shoes/Colors.html#to_rgb-instance_method" title="Shoes::Colors#to_rgb (method)">to_rgb</a></span></p>
+
+  <div id="class_attr_details" class="attr_details">
+    <h2>Class Attribute Details</h2>
+    
+      
+      <span id="APPS=-class_method"></span>
+      <div class="method_details first">
+  <h3 class="signature first" id="APPS-class_method">
+  
+    .<strong>APPS</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns the value of attribute APPS.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+75
+76
+77</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 75</span>
+
+<span class='kw'>def</span> <span class='const'>APPS</span>
+  <span class='ivar'>@APPS</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      
+      <span id="pending_app_class=-class_method"></span>
+      <div class="method_details ">
+  <h3 class="signature " id="pending_app_class-class_method">
+  
+    .<strong>pending_app_class</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Track the most recently defined Shoes subclass for the inheritance pattern
+e.g., class Book &lt; Shoes; end; Shoes.app</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+79
+80
+81</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 79</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_pending_app_class'>pending_app_class</span>
+  <span class='ivar'>@pending_app_class</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+
+  <div id="class_method_details" class="method_details_list">
+    <h2>Class Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="add_file_loader-class_method">
+  
+    .<strong>add_file_loader</strong>(loader)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+363
+364
+365</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 363</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_add_file_loader'>add_file_loader</span><span class='lparen'>(</span><span class='id identifier rubyid_loader'>loader</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_file_loaders'>file_loaders</span><span class='period'>.</span><span class='id identifier rubyid_prepend'>prepend</span><span class='lparen'>(</span><span class='id identifier rubyid_loader'>loader</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="app-class_method">
+  
+    .<strong>app</strong>(styles = {}, **keywords, &amp;app_code_body)  &#x21d2; <tt><span class='object_link'><a href="Shoes/App.html" title="Shoes::App (class)">Shoes::App</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Creates a Shoes app with a new window. The block parameter is used to create
+drawables and set up handlers. Arguments are passed to Shoes::App.new internally.</p>
+
+<p>The styles come as keywords, or as one Hash, the way Ruby 1.9 programs passed them
+(Hackety Hack&#39;s turtle: Shoes.app opts), which Ruby 3 hands over as a positional
+argument (ledger A10). Keywords given beside a Hash win.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+  <div class="examples">
+    <h4 class="tag_title">Examples:</h4>
+    
+      
+        <h5 class="example_title"><div class='inline'><p>Simple one-button app</p>
+</div></h5>
+      
+      <pre class="example code"><code><span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span><span class='period'>.</span><span class='id identifier rubyid_app'>app</span><span class='lparen'>(</span><span class='label'>title:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Button!</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>width:</span> <span class='int'>200</span><span class='comma'>,</span> <span class='label'>height:</span> <span class='int'>200</span><span class='rparen'>)</span> <span class='kw'>do</span>
+  <span class='ivar'>@p</span> <span class='op'>=</span> <span class='id identifier rubyid_para'>para</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Press it NOW!</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_button'>button</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>clicky</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='lbrace'>{</span> <span class='ivar'>@p</span><span class='period'>.</span><span class='id identifier rubyid_replace'>replace</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>You pressed it! CELEBRATION!</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span> <span class='rbrace'>}</span>
+<span class='kw'>end</span></code></pre>
+    
+  </div>
+<p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>styles</span>
+      
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>{}</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>the styles below, as a Hash</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>title</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The new app window title</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>width</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The new app window width</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>height</span>
+      
+      
+        <span class='type'>(<tt>Integer</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The new app window height</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>resizable</span>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Whether the app window should be resizeable</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>features</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>, <tt>Array&lt;Symbol&gt;</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Additional Shoes extensions requested by the app</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="Shoes/App.html" title="Shoes::App (class)">Shoes::App</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the new app (manual 859, ledger A3)</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+  <p class="tag_title">See Also:</p>
+  <ul class="see">
+    
+      <li>Shoes::App#new</li>
+    
+  </ul>
+<p class="tag_title">Incompatibilities with Shoes:</p>
+<ul class="incompatibility">
+  
+    <li>
+      
+      
+      
+      
+        
+        <div class='inline'><p>In Shoes3, this method will return normally.
+In Scarpe, after the block is executed, the method will not return and Scarpe
+will retain control of execution until the window is closed and the app quits.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+171
+172
+173
+174
+175
+176
+177</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 171</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_app'>app</span><span class='lparen'>(</span><span class='id identifier rubyid_styles'>styles</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_keywords'>keywords</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_app_code_body'>app_code_body</span><span class='rparen'>)</span>
+  <span class='kw'>unless</span> <span class='id identifier rubyid_styles'>styles</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>Hash</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'>ArgumentError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Shoes.app takes its styles as keywords or a Hash, not </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_styles'>styles</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_open_app'>open_app</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_styles'>styles</span><span class='period'>.</span><span class='id identifier rubyid_transform_keys'>transform_keys</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:to_sym</span><span class='rparen'>)</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_keywords'>keywords</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_app_code_body'>app_code_body</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="class_routes-class_method">
+  
+    .<strong>class_routes</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Get the routes defined on this class</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+142
+143
+144</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 142</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_class_routes'>class_routes</span>
+  <span class='ivar'>@class_routes</span> <span class='op'>||=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="default_file_loaders-class_method">
+  
+    .<strong>default_file_loaders</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+349
+350
+351
+352
+353
+354
+355
+356
+357</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 349</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_default_file_loaders'>default_file_loaders</span>
+  <span class='lbracket'>[</span>
+    <span class='comment'># By default we will always try to load any file, regardless of extension, as a Shoes Ruby file.
+</span>    <span class='id identifier rubyid_proc'>proc</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_path'>path</span><span class='op'>|</span>
+      <span class='id identifier rubyid_load'>load</span> <span class='id identifier rubyid_path'>path</span>
+      <span class='kw'>true</span>
+    <span class='kw'>end</span>
+  <span class='rbracket'>]</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="default_text_drawable_with-class_method">
+  
+    .<strong>default_text_drawable_with</strong>(element)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/drawables/text_drawable.rb', line 133</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_default_text_drawable_with'>default_text_drawable_with</span><span class='lparen'>(</span><span class='id identifier rubyid_element'>element</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_class_name'>class_name</span> <span class='op'>=</span> <span class='id identifier rubyid_element'>element</span><span class='period'>.</span><span class='id identifier rubyid_capitalize'>capitalize</span>
+
+  <span class='id identifier rubyid_drawable_class'>drawable_class</span> <span class='op'>=</span> <span class='const'>Class</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/TextDrawable.html" title="Shoes::TextDrawable (class)">TextDrawable</a></span></span><span class='rparen'>)</span> <span class='kw'>do</span>
+    <span class='id identifier rubyid_shoes_events'>shoes_events</span> <span class='comment'># No specific events
+</span>
+    <span class='id identifier rubyid_init_args'>init_args</span> <span class='comment'># We&#39;re going to pass an empty array to super
+</span>  <span class='kw'>end</span>
+  <span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span><span class='period'>.</span><span class='id identifier rubyid_const_set'>const_set</span> <span class='id identifier rubyid_class_name'>class_name</span><span class='comma'>,</span> <span class='id identifier rubyid_drawable_class'>drawable_class</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="error_hooks-class_method">
+  
+    .<strong>error_hooks</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>The blocks Shoes.on_error was given.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+296
+297
+298</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 296</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_error_hooks'>error_hooks</span>
+  <span class='ivar'>@error_hooks</span> <span class='op'>||=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="file_loaders-class_method">
+  
+    .<strong>file_loaders</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+359
+360
+361</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 359</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_file_loaders'>file_loaders</span>
+  <span class='ivar'>@file_loaders</span> <span class='op'>||=</span> <span class='id identifier rubyid_default_file_loaders'>default_file_loaders</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="inherited-class_method">
+  
+    .<strong>inherited</strong>(subclass)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>When someone does <code>class MyApp &lt; Shoes</code>, track it</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+82
+83
+84
+85
+86
+87
+88
+89</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 82</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_inherited'>inherited</span><span class='lparen'>(</span><span class='id identifier rubyid_subclass'>subclass</span><span class='rparen'>)</span>
+  <span class='comment'># Only track direct subclasses of Shoes, not Shoes::App, Shoes::Drawable, etc.
+</span>  <span class='comment'># Those have their own inheritance tracking
+</span>  <span class='kw'>if</span> <span class='kw'>self</span> <span class='op'>==</span> <span class='op'>::</span><span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span>
+    <span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span><span class='period'>.</span><span class='id identifier rubyid_pending_app_class'><span class='object_link'><a href="#pending_app_class-class_method" title="Shoes.pending_app_class (method)">pending_app_class</a></span></span> <span class='op'>=</span> <span class='id identifier rubyid_subclass'>subclass</span>
+  <span class='kw'>end</span>
+  <span class='kw'>super</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="on_error-class_method">
+  
+    .<strong>on_error</strong>(&amp;block)  &#x21d2; <tt>Proc</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Hands every error a handler, a timer or the program&#39;s startup raises to the block, on
+the event loop, as a Hash (Shoes::ErrorReport): &quot;class&quot;, &quot;message&quot;, &quot;backtrace&quot;,
+&quot;path&quot;, &quot;line&quot; and &quot;during&quot;. The error is still logged and the program keeps going,
+as it does with no block. Each call adds a block. A Scarpe extension (ledger K9).</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Proc</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the block</p>
+</div>
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>ArgumentError</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+288
+289
+290
+291
+292
+293</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 288</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_on_error'>on_error</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'>ArgumentError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Shoes.on_error needs a block</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='id identifier rubyid_block'>block</span>
+
+  <span class='id identifier rubyid_error_hooks'>error_hooks</span> <span class='op'>&lt;&lt;</span> <span class='id identifier rubyid_block'>block</span>
+  <span class='id identifier rubyid_block'>block</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="p-class_method">
+  
+    .<strong>p</strong>(object)  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Debug print method from Shoes3 — prints to stdout with &quot;&gt;&gt; &quot; prefix.
+Useful for debugging within Shoes apps.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>object</span>
+      
+      
+        <span class='type'>(<tt>Object</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the object to print</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+124
+125
+126</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 124</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_p'>p</span><span class='lparen'>(</span><span class='id identifier rubyid_object'>object</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_puts'>puts</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>&gt;&gt; </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_object'>object</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="quit-class_method">
+  
+    .<strong>quit</strong>  &#x21d2; <tt>void</tt> 
+  
+
+  
+    <span class="aliases">Also known as:
+    <span class="names"><span id='exit-class_method'>exit</span></span>
+    </span>
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Quit the Shoes application. Destroys all running Shoes apps.
+In Shoes3 this was the standard way to exit from a button callback.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+379
+380
+381</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 379</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_quit'>quit</span>
+  <span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span><span class='period'>.</span><span class='const'><span class='object_link'><a href="#APPS-class_method" title="Shoes.APPS (method)">APPS</a></span></span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:destroy</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="report_error-class_method">
+  
+    .<strong>report_error</strong>(error, during:, program: nil)  &#x21d2; <tt>Hash</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Display services call this when a handler, a timer or a startup raises: the console
+lists the error, and every Shoes.on_error block hears of it. A block that raises is
+logged and the others still run.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>during</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>&quot;startup&quot;, &quot;handler&quot;, &quot;timer&quot; or &quot;exit&quot;</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>program</span>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>the program&#39;s main file, for the report&#39;s path and line</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Hash</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the report</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 307</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_report_error'>report_error</span><span class='lparen'>(</span><span class='id identifier rubyid_error'>error</span><span class='comma'>,</span> <span class='label'>during:</span><span class='comma'>,</span> <span class='label'>program:</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_err'>err</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/ErrorReport.html" title="Shoes::ErrorReport (module)">ErrorReport</a></span></span><span class='period'>.</span><span class='id identifier rubyid_from'><span class='object_link'><a href="Shoes/ErrorReport.html#from-class_method" title="Shoes::ErrorReport.from (method)">from</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_error'>error</span><span class='comma'>,</span> <span class='label'>during:</span> <span class='id identifier rubyid_during'>during</span><span class='comma'>,</span> <span class='label'>program:</span> <span class='id identifier rubyid_program'>program</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/Console.html" title="Shoes::Console (class)">Console</a></span></span><span class='period'>.</span><span class='id identifier rubyid_report'><span class='object_link'><a href="Shoes/Console.html#report-class_method" title="Shoes::Console.report (method)">report</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_err'>err</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_error_hooks'>error_hooks</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_hook'>hook</span><span class='op'>|</span>
+    <span class='id identifier rubyid_hook'>hook</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='id identifier rubyid_err'>err</span><span class='rparen'>)</span>
+  <span class='kw'>rescue</span> <span class='const'>StandardError</span><span class='comma'>,</span> <span class='const'>ScriptError</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+    <span class='id identifier rubyid_said'>said</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>A Shoes.on_error block raised </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_e'>e</span><span class='period'>.</span><span class='id identifier rubyid_class'>class</span><span class='embexpr_end'>}</span><span class='tstring_content'>: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_e'>e</span><span class='period'>.</span><span class='id identifier rubyid_message'>message</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+    <span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/Log.html" title="Shoes::Log (module)">Log</a></span></span><span class='period'>.</span><span class='id identifier rubyid_instance'><span class='object_link'><a href="Shoes/Log.html#instance-class_method" title="Shoes::Log.instance (method)">instance</a></span></span> <span class='op'>?</span> <span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/Log.html" title="Shoes::Log (module)">Log</a></span></span><span class='period'>.</span><span class='id identifier rubyid_logger'><span class='object_link'><a href="Shoes/Log.html#logger-class_method" title="Shoes::Log.logger (method)">logger</a></span></span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Shoes</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_error'>error</span><span class='lparen'>(</span><span class='id identifier rubyid_said'>said</span><span class='rparen'>)</span> <span class='op'>:</span> <span class='id identifier rubyid_warn'>warn</span><span class='lparen'>(</span><span class='id identifier rubyid_said'>said</span><span class='rparen'>)</span>
+  <span class='kw'>end</span>
+  <span class='id identifier rubyid_err'>err</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="reset_file_loaders-class_method">
+  
+    .<strong>reset_file_loaders</strong>  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+367
+368
+369</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 367</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_reset_file_loaders'>reset_file_loaders</span>
+  <span class='ivar'>@file_loaders</span> <span class='op'>=</span> <span class='id identifier rubyid_default_file_loaders'>default_file_loaders</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="run_app-class_method">
+  
+    .<strong>run_app</strong>(relative_path, dir: nil)  &#x21d2; <tt>void</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note returns_void">This method returns an undefined value.</p><p>Load a Shoes app from a file. By default, this will load old-style Shoes apps
+from a .rb file with all the appropriate libraries loaded. By setting one or
+more loaders, a Lacci-based display library can accept new file formats as
+well, not just raw Shoes .rb files.</p>
+
+<p>An error that stops the file loading reaches Shoes.on_error as &quot;startup&quot; first, then
+goes on up as before.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>relative_path</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The current-dir-relative path to the file</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>dir</span>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>nil</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>the directory to run in; the file&#39;s own by default</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+  <p class="tag_title">See Also:</p>
+  <ul class="see">
+    
+      <li><span class='object_link'><a href="#add_file_loader-class_method" title="Shoes.add_file_loader (method)">add_file_loader</a></span></li>
+    
+  </ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 254</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_run_app'>run_app</span><span class='lparen'>(</span><span class='id identifier rubyid_relative_path'>relative_path</span><span class='comma'>,</span> <span class='label'>dir:</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_path'>path</span> <span class='op'>=</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_expand_path'>expand_path</span> <span class='id identifier rubyid_relative_path'>relative_path</span>
+  <span class='id identifier rubyid_file_dir'>file_dir</span> <span class='op'>=</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_dirname'>dirname</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+
+  <span class='comment'># Shoes assumes we&#39;re starting from the app code&#39;s path
+</span>  <span class='const'>Dir</span><span class='period'>.</span><span class='id identifier rubyid_chdir'>chdir</span><span class='lparen'>(</span><span class='id identifier rubyid_dir'>dir</span> <span class='op'>||</span> <span class='id identifier rubyid_file_dir'>file_dir</span><span class='rparen'>)</span>
+
+  <span class='comment'># Shoes3 adds the app directory to the load path so that
+</span>  <span class='comment'># require &#39;app/boot&#39; style calls work from the app&#39;s directory
+</span>  <span class='gvar'>$LOAD_PATH</span><span class='period'>.</span><span class='id identifier rubyid_unshift'>unshift</span><span class='lparen'>(</span><span class='id identifier rubyid_file_dir'>file_dir</span><span class='rparen'>)</span> <span class='kw'>unless</span> <span class='gvar'>$LOAD_PATH</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_file_dir'>file_dir</span><span class='rparen'>)</span>
+
+  <span class='id identifier rubyid_loaded'>loaded</span> <span class='op'>=</span> <span class='kw'>false</span>
+  <span class='kw'>begin</span>
+    <span class='id identifier rubyid_file_loaders'>file_loaders</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_loader'>loader</span><span class='op'>|</span>
+      <span class='kw'>if</span> <span class='id identifier rubyid_loader'>loader</span><span class='period'>.</span><span class='id identifier rubyid_call'>call</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+        <span class='id identifier rubyid_loaded'>loaded</span> <span class='op'>=</span> <span class='kw'>true</span>
+        <span class='kw'>break</span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+  <span class='kw'>rescue</span> <span class='const'>StandardError</span><span class='comma'>,</span> <span class='const'>ScriptError</span><span class='comma'>,</span> <span class='const'>SystemStackError</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_e'>e</span>
+    <span class='id identifier rubyid_report_error'>report_error</span><span class='lparen'>(</span><span class='id identifier rubyid_e'>e</span><span class='comma'>,</span> <span class='label'>during:</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>startup</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='label'>program:</span> <span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_raise'>raise</span>
+  <span class='kw'>end</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Could not find a file loader for </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_path'>path</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_content'>!</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='id identifier rubyid_loaded'>loaded</span>
+
+  <span class='kw'>nil</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="run_program-class_method">
+  
+    .<strong>run_program</strong>(path, dir: nil, args: [])  &#x21d2; <tt><span class='object_link'><a href="Shoes/Program.html" title="Shoes::Program (class)">Shoes::Program</a></span></tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Starts the Shoes program in the file at path, and hands back a Shoes::Program to follow
+it with. The native display runs it in a process of its own on the same Ruby and
+Scarpe, so an endless loop in it freezes only it, and stop ends it; other displays run
+it inside this process, with a warning (Shoes::Program::InProcess). A Scarpe extension
+(ledger K10).</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>path</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>the program&#39;s file</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>dir</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>the directory it runs in (its own, by default)</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>args</span>
+      
+      
+        <span class='type'>(<tt>Array&lt;String&gt;</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>[]</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>its ARGV</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="Shoes/Program.html" title="Shoes::Program (class)">Shoes::Program</a></span></tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Errno::ENOENT</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 329</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_run_program'>run_program</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='comma'>,</span> <span class='label'>dir:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>args:</span> <span class='lbracket'>[</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_path'>path</span> <span class='op'>=</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_expand_path'>expand_path</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'>Errno</span><span class='op'>::</span><span class='const'>ENOENT</span><span class='comma'>,</span> <span class='id identifier rubyid_path'>path</span> <span class='kw'>unless</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_file?'>file?</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span>
+
+  <span class='id identifier rubyid_dir'>dir</span> <span class='op'>=</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_expand_path'>expand_path</span><span class='lparen'>(</span><span class='id identifier rubyid_dir'>dir</span> <span class='op'>||</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_dirname'>dirname</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='rparen'>)</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_args'>args</span> <span class='op'>=</span> <span class='const'>Array</span><span class='lparen'>(</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_map'>map</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:to_s</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_service'>service</span> <span class='op'>=</span> <span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/DisplayService.html" title="Shoes::DisplayService (class)">DisplayService</a></span></span><span class='period'>.</span><span class='id identifier rubyid_display_service'><span class='object_link'><a href="Shoes/DisplayService.html#display_service-class_method" title="Shoes::DisplayService.display_service (method)">display_service</a></span></span>
+  <span class='kw'>return</span> <span class='id identifier rubyid_service'>service</span><span class='period'>.</span><span class='id identifier rubyid_run_program'>run_program</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='comma'>,</span> <span class='label'>dir:</span> <span class='id identifier rubyid_dir'>dir</span><span class='comma'>,</span> <span class='label'>args:</span> <span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_service'>service</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='symbol'>:run_program</span><span class='rparen'>)</span>
+
+  <span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/Program.html" title="Shoes::Program (class)">Program</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/Program/InProcess.html" title="Shoes::Program::InProcess (class)">InProcess</a></span></span><span class='period'>.</span><span class='id identifier rubyid_run'><span class='object_link'><a href="Shoes/Program/InProcess.html#run-class_method" title="Shoes::Program::InProcess.run (method)">run</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='comma'>,</span> <span class='label'>dir:</span> <span class='id identifier rubyid_dir'>dir</span><span class='comma'>,</span> <span class='label'>args:</span> <span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="set_file_loaders-class_method">
+  
+    .<strong>set_file_loaders</strong>(loaders)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+371
+372
+373</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 371</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_set_file_loaders'>set_file_loaders</span><span class='lparen'>(</span><span class='id identifier rubyid_loaders'>loaders</span><span class='rparen'>)</span>
+  <span class='ivar'>@file_loaders</span> <span class='op'>=</span> <span class='id identifier rubyid_loaders'>loaders</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="setup-class_method">
+  
+    .<strong>setup</strong>(&amp;block)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>In Shoes3, Shoes.setup installs gems. In Scarpe, this is a no-op stub
+since gems are managed via Bundler. The block is simply yielded for compatibility.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+115
+116
+117</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 115</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_setup'>setup</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_block'>block</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_block'>block</span><span class='op'>&amp;.</span><span class='id identifier rubyid_call'>call</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="show_console-class_method">
+  
+    .<strong>show_console</strong>  &#x21d2; <tt><span class='object_link'><a href="Shoes/App.html" title="Shoes::App (class)">Shoes::App</a></span></tt> 
+  
+
+  
+    <span class="aliases">Also known as:
+    <span class="names"><span id='show_log-class_method'>show_log</span></span>
+    </span>
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Opens the Shoes console (Shoes::Console), which Alt-/ opens too (Cmd-/ on a Mac).</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt><span class='object_link'><a href="Shoes/App.html" title="Shoes::App (class)">Shoes::App</a></span></tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>its window</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+344
+345
+346</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 344</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_show_console'>show_console</span>
+  <span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/Console.html" title="Shoes::Console (class)">Console</a></span></span><span class='period'>.</span><span class='id identifier rubyid_show'><span class='object_link'><a href="Shoes/Console.html#show-class_method" title="Shoes::Console.show (method)">show</a></span></span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="show_manual-class_method">
+  
+    .<strong>show_manual</strong>(section = nil)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Opens the manual in a window of its own, as Shoes 3 did, at <code>section</code> when one is
+named (ledger K7). It never opens a browser.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+386
+387
+388
+389</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 386</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_show_manual'>show_manual</span><span class='lparen'>(</span><span class='id identifier rubyid_section'>section</span> <span class='op'>=</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_require_relative'>require_relative</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>shoes/manual</span><span class='tstring_end'>&quot;</span></span>
+  <span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/Manual.html" title="Shoes::Manual (class)">Manual</a></span></span><span class='period'>.</span><span class='id identifier rubyid_show'><span class='object_link'><a href="Shoes/Manual.html#show-class_method" title="Shoes::Manual.show (method)">show</a></span></span><span class='lparen'>(</span><span class='id identifier rubyid_section'>section</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="text_mode-class_method">
+  
+    .<strong>text_mode</strong>  &#x21d2; <tt>Symbol</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>How text is sized and set, for every window the program opens. :scarpe, the default,
+reads a text size as pixels and sets text in the system&#39;s sans (ledger M14). :shoes3 sets
+it as Shoes 3 did: a size is points at 96 dpi, so a para&#39;s 12 draws 16 px tall, and a text
+block that names no face gets Arial (s3t_textblock.c:293, s3_world.c:46-48). It is for
+programs laid out for Shoes 3&#39;s text, such as Hackety Hack; set it before the first window.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>:scarpe or :shoes3</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+100
+101
+102</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 100</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_text_mode'>text_mode</span>
+  <span class='ivar'>@text_mode</span> <span class='op'>||</span> <span class='symbol'>:scarpe</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="text_mode=-class_method">
+  
+    .<strong>text_mode=</strong>(mode)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>mode</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>, <tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>:scarpe or :shoes3</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Raises:</p>
+<ul class="raise">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>ArgumentError</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+105
+106
+107
+108
+109
+110
+111</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 105</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_text_mode='>text_mode=</span><span class='lparen'>(</span><span class='id identifier rubyid_mode'>mode</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_mode'>mode</span> <span class='op'>=</span> <span class='id identifier rubyid_mode'>mode</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='period'>.</span><span class='id identifier rubyid_delete_prefix'>delete_prefix</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>:</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='const'>ArgumentError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Shoes.text_mode is :scarpe or :shoes3, not </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_mode'>mode</span><span class='period'>.</span><span class='id identifier rubyid_inspect'>inspect</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='const'><span class='object_link'><a href="#TEXT_MODES-constant" title="Shoes::TEXT_MODES (constant)">TEXT_MODES</a></span></span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='id identifier rubyid_mode'>mode</span><span class='rparen'>)</span>
+
+  <span class='ivar'>@text_mode</span> <span class='op'>=</span> <span class='id identifier rubyid_mode'>mode</span>
+  <span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/DisplayService.html" title="Shoes::DisplayService (class)">DisplayService</a></span></span><span class='period'>.</span><span class='id identifier rubyid_dispatch_event'><span class='object_link'><a href="Shoes/DisplayService.html#dispatch_event-class_method" title="Shoes::DisplayService.dispatch_event (method)">dispatch_event</a></span></span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>text_mode</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='id identifier rubyid_mode'>mode</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='kw'>defined?</span><span class='lparen'>(</span><span class='const'><span class='object_link'><a href="" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/DisplayService.html" title="Shoes::DisplayService (class)">DisplayService</a></span></span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="url-class_method">
+  
+    .<strong>url</strong>(path, method_name)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Class-level url method for defining routes in Shoes subclasses
+e.g., class Book &lt; Shoes; url &#39;/&#39;, :index; end</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes.rb', line 130</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_url'>url</span><span class='lparen'>(</span><span class='id identifier rubyid_path'>path</span><span class='comma'>,</span> <span class='id identifier rubyid_method_name'>method_name</span><span class='rparen'>)</span>
+  <span class='ivar'>@class_routes</span> <span class='op'>||=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_path'>path</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>String</span><span class='rparen'>)</span> <span class='op'>&amp;&amp;</span> <span class='id identifier rubyid_path'>path</span><span class='period'>.</span><span class='id identifier rubyid_include?'>include?</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>(</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+    <span class='comment'># Convert string patterns like &#39;/page/(\d+)&#39; to regex
+</span>    <span class='id identifier rubyid_regex'>regex</span> <span class='op'>=</span> <span class='const'>Regexp</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>^</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_path'>path</span><span class='period'>.</span><span class='id identifier rubyid_gsub'>gsub</span><span class='lparen'>(</span><span class='tstring'><span class='regexp_beg'>/</span><span class='tstring_content'>\(.*?\)</span><span class='regexp_end'>/</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>(.*?)</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span><span class='embexpr_end'>}</span><span class='tstring_content'>$</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+    <span class='ivar'>@class_routes</span><span class='lbracket'>[</span><span class='id identifier rubyid_regex'>regex</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_method_name'>method_name</span>
+  <span class='kw'>else</span>
+    <span class='ivar'>@class_routes</span><span class='lbracket'>[</span><span class='id identifier rubyid_path'>path</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_method_name'>method_name</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Thu Oct  1 22:25:23 2026 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.38 (ruby-3.2.0).
+</div>
+
+    </div>
+  </body>
+</html>

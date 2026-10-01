@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>
+  Module: Turtle
+  
+    &mdash; Documentation by YARD 0.9.38
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" />
+
+<script type="text/javascript">
+  pathId = "Turtle";
+  relpath = '';
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div class="nav_wrap">
+      <iframe id="nav" src="class_list.html?1"></iframe>
+      <div id="resizer"></div>
+    </div>
+
+    <div id="main" tabindex="-1">
+      <div id="header">
+        <div id="menu">
+  
+    <a href="_index.html">Index (T)</a> &raquo;
+    
+    
+    <span class="title">Turtle</span>
+  
+</div>
+
+        <div id="search">
+  
+    <a class="full_list_link" id="docpages_list_link"
+        href="docpages_list.html">
+
+        <svg width="24" height="24">
+          <rect x="0" y="4" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="12" width="24" height="4" rx="1" ry="1"></rect>
+          <rect x="0" y="20" width="24" height="4" rx="1" ry="1"></rect>
+        </svg>
+    </a>
+  
+</div>
+        <div class="clear"></div>
+      </div>
+
+      <div id="content"><h1>Module: Turtle
+  
+  
+  
+</h1>
+<div class="box_info">
+  
+
+  
+  
+  
+  
+  
+
+  
+
+  
+  <dl>
+    <dt>Defined in:</dt>
+    <dd>lacci/lib/shoes/turtle.rb</dd>
+  </dl>
+  
+</div>
+
+
+
+
+
+
+
+
+  
+    <h2>
+      Class Method Summary
+      <small><a href="#" class="summary_toggle">collapse</a></small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#draw-class_method" title="draw (class method)">.<strong>draw</strong>(opts = {}, &amp;blk)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#start-class_method" title="start (class method)">.<strong>start</strong>(opts = {}, &amp;blk)  &#x21d2; Object </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+
+  <div id="class_method_details" class="method_details_list">
+    <h2>Class Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="draw-class_method">
+  
+    .<strong>draw</strong>(opts = {}, &amp;blk)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+281
+282
+283
+284</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/turtle.rb', line 281</span>
+
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_draw'>draw</span><span class='lparen'>(</span><span class='id identifier rubyid_opts'>opts</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_blk'>blk</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:draw</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='kw'>true</span>
+  <span class='id identifier rubyid_start'>start</span><span class='lparen'>(</span><span class='id identifier rubyid_opts'>opts</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_blk'>blk</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="start-class_method">
+  
+    .<strong>start</strong>(opts = {}, &amp;blk)  &#x21d2; <tt>Object</tt> 
+  
+
+  
+
+  
+</h3><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lacci/lib/shoes/turtle.rb', line 286</span>
+
+<span class='kw'>def</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_start'>start</span><span class='lparen'>(</span><span class='id identifier rubyid_opts'>opts</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_blk'>blk</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_w'>w</span> <span class='op'>=</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:width</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='const'><span class='object_link'><a href="Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/TurtleCanvas.html" title="Shoes::TurtleCanvas (class)">TurtleCanvas</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/TurtleCanvas.html#WIDTH-constant" title="Shoes::TurtleCanvas::WIDTH (constant)">WIDTH</a></span></span>
+  <span class='id identifier rubyid_h'>h</span> <span class='op'>=</span> <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:height</span><span class='rbracket'>]</span> <span class='op'>||</span> <span class='const'><span class='object_link'><a href="Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/TurtleCanvas.html" title="Shoes::TurtleCanvas (class)">TurtleCanvas</a></span></span><span class='op'>::</span><span class='const'><span class='object_link'><a href="Shoes/TurtleCanvas.html#HEIGHT-constant" title="Shoes::TurtleCanvas::HEIGHT (constant)">HEIGHT</a></span></span>
+  <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:width</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_w'>w</span> <span class='op'>+</span> <span class='int'>20</span>
+  <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:height</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_h'>h</span> <span class='op'>+</span> <span class='lparen'>(</span><span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:draw</span><span class='rbracket'>]</span> <span class='op'>?</span> <span class='int'>60</span> <span class='op'>:</span> <span class='int'>130</span><span class='rparen'>)</span>
+
+  <span class='id identifier rubyid_is_draw'>is_draw</span> <span class='op'>=</span> <span class='id identifier rubyid_opts'>opts</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='symbol'>:draw</span><span class='rparen'>)</span>
+  <span class='const'><span class='object_link'><a href="Shoes.html" title="Shoes (class)">Shoes</a></span></span><span class='period'>.</span><span class='id identifier rubyid_app'><span class='object_link'><a href="Shoes.html#app-class_method" title="Shoes.app (method)">app</a></span></span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_opts'>opts</span><span class='rparen'>)</span> <span class='kw'>do</span>
+    <span class='id identifier rubyid_extend'>extend</span> <span class='const'><span class='object_link'><a href="" title="Turtle (module)">Turtle</a></span></span>
+    <span class='ivar'>@block</span> <span class='op'>=</span> <span class='id identifier rubyid_blk'>blk</span>
+
+    <span class='kw'>unless</span> <span class='id identifier rubyid_is_draw'>is_draw</span>
+      <span class='comment'># Hackety Hack&#39;s turtle placed the swatch with :top =&gt; 5 alone, and Shoes 3 kept its x
+</span>      <span class='comment'># where the flow stood, after the label; native puts it at the slot&#39;s left edge, over the
+</span>      <span class='comment'># label (ledger C17), so it sits in the flow instead, 5 px down.
+</span>      <span class='id identifier rubyid_para'>para</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>pen: </span><span class='tstring_end'>&quot;</span></span>
+      <span class='ivar'>@pen_info</span> <span class='op'>=</span> <span class='id identifier rubyid_stack'>stack</span> <span class='symbol'>:margin_top</span> <span class='op'>=&gt;</span> <span class='int'>5</span><span class='comma'>,</span> <span class='symbol'>:width</span> <span class='op'>=&gt;</span> <span class='int'>40</span><span class='comma'>,</span> <span class='symbol'>:height</span> <span class='op'>=&gt;</span> <span class='int'>25</span> <span class='kw'>do</span>
+        <span class='id identifier rubyid_background'>background</span> <span class='id identifier rubyid_white'>white</span>
+        <span class='id identifier rubyid_line'>line</span> <span class='int'>5</span><span class='comma'>,</span> <span class='int'>10</span><span class='comma'>,</span> <span class='int'>35</span><span class='comma'>,</span> <span class='int'>10</span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+
+    <span class='id identifier rubyid_button'>button</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>save...</span><span class='tstring_end'>&quot;</span></span><span class='comma'>,</span> <span class='symbol'>:width</span> <span class='op'>=&gt;</span> <span class='int'>100</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_filename'>filename</span> <span class='op'>=</span> <span class='id identifier rubyid_ask_save_file'>ask_save_file</span>
+      <span class='kw'>unless</span> <span class='id identifier rubyid_filename'>filename</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+        <span class='id identifier rubyid_filename'>filename</span> <span class='op'>+=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>.pdf</span><span class='tstring_end'>&quot;</span></span> <span class='kw'>unless</span> <span class='id identifier rubyid_filename'>filename</span> <span class='op'>=~</span> <span class='tstring'><span class='regexp_beg'>/</span><span class='tstring_content'>\.pdf$</span><span class='regexp_end'>/</span></span>
+        <span class='id identifier rubyid_alert'>alert</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Save not yet supported (would save to </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_filename'>filename</span><span class='embexpr_end'>}</span><span class='tstring_content'>)</span><span class='tstring_end'>&quot;</span></span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+
+    <span class='id identifier rubyid_stack'>stack</span> <span class='symbol'>:height</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_h'>h</span> <span class='op'>+</span> <span class='int'>20</span> <span class='kw'>do</span>
+      <span class='id identifier rubyid_background'>background</span> <span class='id identifier rubyid_gray'>gray</span>
+      <span class='id identifier rubyid_stack'>stack</span> <span class='symbol'>:top</span> <span class='op'>=&gt;</span> <span class='int'>10</span><span class='comma'>,</span> <span class='symbol'>:left</span> <span class='op'>=&gt;</span> <span class='int'>10</span><span class='comma'>,</span> <span class='symbol'>:width</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_w'>w</span><span class='comma'>,</span> <span class='symbol'>:height</span> <span class='op'>=&gt;</span> <span class='id identifier rubyid_h'>h</span> <span class='kw'>do</span>
+        <span class='id identifier rubyid_background'>background</span> <span class='id identifier rubyid_white'>white</span>
+        <span class='ivar'>@canvas</span> <span class='op'>=</span> <span class='id identifier rubyid_turtle_canvas'>turtle_canvas</span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+
+    <span class='kw'>if</span> <span class='id identifier rubyid_is_draw'>is_draw</span>
+      <span class='id identifier rubyid_draw_all'>draw_all</span>
+    <span class='kw'>else</span>
+      <span class='id identifier rubyid_draw_controls'>draw_controls</span>
+      <span class='ivar'>@interactive_thread</span> <span class='op'>=</span> <span class='const'>Thread</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span> <span class='kw'>do</span>
+        <span class='id identifier rubyid_sleep'>sleep</span> <span class='float'>0.1</span>
+        <span class='ivar'>@canvas</span><span class='period'>.</span><span class='id identifier rubyid_instance_eval'>instance_eval</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='id identifier rubyid_blk'>blk</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='id identifier rubyid_blk'>blk</span>
+        <span class='ivar'>@next_command</span><span class='op'>&amp;.</span><span class='id identifier rubyid_replace'>replace</span><span class='lparen'>(</span><span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>(END)</span><span class='tstring_end'>&quot;</span></span><span class='rparen'>)</span>
+      <span class='kw'>end</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+      <div id="footer">
+  Generated on Thu Oct  1 22:25:22 2026 by
+  <a href="https://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.9.38 (ruby-3.2.0).
+</div>
+
+    </div>
+  </body>
+</html>
