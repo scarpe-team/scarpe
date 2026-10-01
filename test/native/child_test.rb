@@ -87,6 +87,7 @@ class ChildTest < Minitest::Test
   # string through /bin/sh when it holds a parenthesis ("(Rust)" is a syntax error there) and
   # splits it at spaces otherwise ("For Noah.app" becomes a missing ".../For").
   def test_a_bundle_named_with_spaces_and_parentheses_starts_it_with_no_flags
+    skip_on_windows("a macOS bundle's binary has no .exe for Windows to start")
     ["ZARKING (Rust).app", "For Noah.app"].each do |bundle|
       binary = File.join(@dir, bundle, "Contents", "MacOS", "scarpe-native")
       FileUtils.mkdir_p(File.dirname(binary))

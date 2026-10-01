@@ -76,12 +76,15 @@ module SpecSuite
     end
 
     # Windows programs need a few of the system's own variables (Winsock, for one, will not start
-    # without SystemRoot), and look for temp and home under Windows' names.
+    # without SystemRoot), and look for temp and home under Windows' names. Windows matches names in
+    # any case, and MSYS bash (the CI shell) hands them on upper-cased.
+    WINDOWS_SYSTEM_ENV = %w[SystemRoot windir SystemDrive ComSpec PATHEXT NUMBER_OF_PROCESSORS PROCESSOR_ARCHITECTURE OS].freeze
+
     def windows_env
       return {} unless Gem.win_platform?
 
-      system = %w[SystemRoot windir SystemDrive ComSpec PATHEXT NUMBER_OF_PROCESSORS PROCESSOR_ARCHITECTURE OS]
-      ENV.to_h.slice(*system).merge("TEMP" => tmp, "TMP" => tmp, "USERPROFILE" => home)
+      system = ENV.to_h.select { |name, _| WINDOWS_SYSTEM_ENV.any? { |wanted| wanted.casecmp?(name) } }
+      system.merge("TEMP" => tmp, "TMP" => tmp, "USERPROFILE" => home)
     end
   end
 

@@ -45,6 +45,7 @@ class PackageTest < Minitest::Test
   end
 
   def test_bytecode_is_compiled_for_the_install_dir
+    skip_on_windows_for_mac_paths
     packager = Scarpe::Package::Native.new(@app, install_dir: "/Applications", target_os: "macos")
 
     assert_equal "/Applications/HelloApp.app/Contents/Resources", packager.installed_resources
@@ -142,6 +143,7 @@ class PackageTest < Minitest::Test
 
   # sanitize_name turned "ZARKING (Rust)" into ZarkingRust.app and "For Noah" into ForNoah.app.
   def test_a_native_package_keeps_the_name_it_was_given
+    skip_on_windows_for_mac_paths
     packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, name: "ZARKING (Rust)", target_os: "macos")
 
     assert_equal "ZARKING (Rust).app", File.basename(packager.app_path)
@@ -153,6 +155,7 @@ class PackageTest < Minitest::Test
   end
 
   def test_the_info_plist_holds_a_given_name_whole
+    skip "Windows keeps no < or > in a file name" if Gem.win_platform?
     packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, name: "Salt & <Pepper>", target_os: "macos")
     FileUtils.mkdir_p(File.join(packager.app_path, "Contents"))
     packager.send(:write_info_plist)
@@ -209,6 +212,11 @@ class PackageTest < Minitest::Test
   end
 
   private
+
+  # A macOS package's paths are Unix paths, which File.expand_path gives a drive letter on Windows.
+  def skip_on_windows_for_mac_paths
+    skip "macOS packages are not built on Windows" if Gem.win_platform?
+  end
 
   def render_launcher(name: nil)
     output = scratch_dir

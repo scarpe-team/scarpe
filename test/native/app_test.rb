@@ -276,7 +276,7 @@ class AppTest < Minitest::Test
     end
     assert_clean_exit(run)
     path = run.of_type("font").first["path"]
-    assert path.start_with?("/")
+    assert File.absolute_path?(path), path
     assert path.end_with?("/fonts/Fancy.ttf")
   end
 
@@ -405,6 +405,7 @@ class AppTest < Minitest::Test
   end
 
   def test_ctrl_c_quits_the_child_and_exits
+    skip_on_windows("a console's Ctrl-C reaches a process group, not one pid")
     run = run_app(<<~RUBY, script: [{ "on" => "run", "signal_parent" => "INT" }])
       Shoes.app { para "hi" }
     RUBY
@@ -425,7 +426,7 @@ class AppTest < Minitest::Test
     assert_match(/\Aclick "Go" -> #4 at 50,30/, lines[0])
     assert_includes lines, "#3 Para 0,0 100x20 \"Gone\""
     assert_includes lines, "#4 Button 0,20 100x20 \"Go\""
-    assert_match(%r{\Ashot /.*/#{File.basename(run.dir)}/out\.png \(600x500\)\z}, lines.last)
+    assert_match(%r{\Ashot (?:[A-Z]:)?/.*/#{File.basename(run.dir)}/out\.png \(600x500\)\z}, lines.last)
   end
 
   def test_peek_waits_in_real_time_and_resizes_first
@@ -457,7 +458,7 @@ class AppTest < Minitest::Test
   def test_peek_with_nothing_to_do_saves_peek_png_here
     run = run_app("Shoes.app { para 'hi' }", argv: ->(app) { ["peek", app, "--size", "300x200"] })
     assert_clean_exit(run)
-    assert_match(%r{\Ashot /.*/#{File.basename(run.dir)}/peek\.png \(300x200\)\n\z}, run.stdout)
+    assert_match(%r{\Ashot (?:[A-Z]:)?/.*/#{File.basename(run.dir)}/peek\.png \(300x200\)\n\z}, run.stdout)
   end
 
   def test_peek_reports_a_missed_click
