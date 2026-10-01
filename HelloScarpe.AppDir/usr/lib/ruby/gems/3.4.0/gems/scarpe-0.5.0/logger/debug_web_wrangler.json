@@ -1,4 +1,0 @@
-{
-    "default": "warn",
-    "Webview::WebWrangler": ["debug", "logger/web_wrangler.log"]
-}
