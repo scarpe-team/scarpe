@@ -157,7 +157,8 @@ pub fn paint(
     canvas.fill_gradient(r, RADIUS, top, bottom, clip);
     canvas.stroke_rounded(r, RADIUS, Color::rgba(0, 0, 0, 38), 1.0, clip);
     let inner = Rect::new(r.x + 2.0, r.y, r.w - 4.0, r.h);
-    let inner_clip = clip.and_then(|c| c.intersect(&inner)).or(Some(inner));
+    let Some(visible) = clip.map_or(Some(inner), |c| c.intersect(&inner)) else { return };
+    let inner_clip = Some(visible);
     if let Some(tb) = label {
         text::draw_shaped(canvas, engine, &tb.shaped, tb.x, tb.y, inner_clip, None);
     }

@@ -97,6 +97,36 @@ fn widgets() {
 }
 
 #[test]
+fn button_text_and_icons_stay_inside_their_slot() {
+    let icon = std::fs::canonicalize("tests/fixtures/assets/shoes-icon.png").unwrap();
+    let path = std::env::temp_dir().join(format!("scarpe-button-clipping-{}.png", std::process::id()));
+    let snapshot = |h: &mut Harness| {
+        h.value(json!({"op": "snapshot", "path": path.to_string_lossy(), "scale": 1}));
+        let img = image::open(&path).unwrap().to_rgba8();
+        let _ = std::fs::remove_file(&path);
+        img
+    };
+    for (text, icon) in [("CLIPPED", Value::Null), ("", json!(icon.to_string_lossy()))] {
+        for top in [0, -20, -40] {
+            let mut h = Harness::new();
+            h.feed(&common::app(240, 150, &[
+                common::create(3, "Stack", 2, json!({"left": 20, "top": 60, "width": 200, "height": 60})),
+                common::create(4, "Button", 3, json!({"left": 0, "top": top, "width": 160, "height": 40, "text": text, "icon": icon})),
+            ]));
+            let actual = snapshot(&mut h);
+            h.feed(&json!({"t": "props", "id": 4, "props": {"text": "", "icon": null}}).to_string());
+            let blank = snapshot(&mut h);
+            for (x, y, pixel) in actual.enumerate_pixels() {
+                if !(20..220).contains(&x) || !(60..120).contains(&y) {
+                    assert_eq!(pixel, blank.get_pixel(x, y), "button content escaped its slot at {x},{y} (top: {top}, text: {text:?})");
+                }
+            }
+            assert_eq!(actual != blank, top > -40, "visible button content must still draw (top: {top}, text: {text:?})");
+        }
+    }
+}
+
+#[test]
 fn rich_text() {
     check("rich_text");
 }
