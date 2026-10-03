@@ -395,7 +395,9 @@ fn app_opacity_makes_the_window_see_through() {
 
 /// A solid 16x16 icon on disk.
 fn red_icon() -> String {
-    let path = std::env::temp_dir().join(format!("scarpe-art-input-icon-{}.png", std::process::id()));
+    static NEXT_ICON: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let n = NEXT_ICON.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let path = std::env::temp_dir().join(format!("scarpe-art-input-icon-{}-{n}.png", std::process::id()));
     image::RgbaImage::from_pixel(16, 16, image::Rgba([255, 0, 0, 255])).save(&path).expect("icon");
     path.to_string_lossy().into_owned()
 }
@@ -421,6 +423,94 @@ fn a_button_draws_its_icon_beside_its_label() {
     let (rx, ry, rw, rh) = (right["x"].as_f64().unwrap(), right["y"].as_f64().unwrap(), right["w"].as_f64().unwrap(), right["h"].as_f64().unwrap());
     assert_eq!(rgb(&mut h, rx + rw - 14.0 - 8.0, ry + rh / 2.0), RED, "icon_pos: right puts it after the label");
     let _ = std::fs::remove_file(icon);
+}
+
+// ---- Button alignment ----
+
+fn button_label(h: &mut Harness) -> scarpe_native::layout::Rect {
+    h.layout();
+    let label = &h.rt.views[&1].layout.as_ref().unwrap().texts[&3];
+    scarpe_native::layout::Rect::new(label.x, label.y, label.shaped.width, label.shaped.height)
+}
+
+fn painted_icon(h: &mut Harness) -> scarpe_native::layout::Rect {
+    let picture = h.rt.picture(1, 1.0).unwrap();
+    let points: Vec<_> = picture.pixels().iter().enumerate().filter_map(|(i, p)| {
+        (p.red() > p.green().saturating_add(100) && p.red() > p.blue().saturating_add(100))
+            .then_some((i as u32 % picture.width(), i as u32 / picture.width()))
+    }).collect();
+    assert!(!points.is_empty(), "the icon was painted");
+    let x = points.iter().map(|p| p.0).min().unwrap();
+    let y = points.iter().map(|p| p.1).min().unwrap();
+    let right = points.iter().map(|p| p.0).max().unwrap() + 1;
+    let bottom = points.iter().map(|p| p.1).max().unwrap() + 1;
+    scarpe_native::layout::Rect::new(x as f32, y as f32, (right - x) as f32, (bottom - y) as f32)
+}
+
+#[test]
+fn button_labels_accept_alignment_and_default_to_center() {
+    for text in ["Menu", "المكتبة"] {
+        let mut h = Harness::new();
+        h.feed(&app(300, 100, &[create(3, "Button", 2, json!({"text": text, "left": 20, "width": 240}))]));
+        let original = button_label(&mut h);
+        assert!((original.center().0 - 140.0).abs() < 0.01);
+        for align in [json!("left"), json!("right"), json!("center"), Value::Null, json!("unknown")] {
+            h.feed(&json!({"t": "props", "id": 3, "props": {"align": align}}).to_string());
+            let label = button_label(&mut h);
+            let expected = match align.as_str() { Some("left") => 34.0, Some("right") => 246.0 - label.w, _ => original.x };
+            assert!((label.x - expected).abs() < 0.01, "{text}, {align}: {label:?}");
+            assert_eq!((label.y, label.w, label.h), (original.y, original.w, original.h));
+        }
+    }
+}
+
+#[test]
+fn button_alignment_moves_the_label_and_each_icon_position_together() {
+    let icon = red_icon();
+    for text in ["Library", "i", ""] {
+        for position in ["left", "right", "top", "bottom"] {
+            let mut h = Harness::new();
+            h.feed(&app(300, 150, &[create(3, "Button", 2, json!({"text": text, "icon": icon, "icon_pos": position, "left": 20, "top": 20, "width": 240, "height": 72}))]));
+            let original_label = button_label(&mut h);
+            let original_icon = painted_icon(&mut h);
+            for align in ["left", "right", "center"] {
+                h.feed(&json!({"t": "props", "id": 3, "props": {"align": align}}).to_string());
+                let label = button_label(&mut h);
+                let icon = painted_icon(&mut h);
+                let content = if text.is_empty() { icon } else { label.union(&icon) };
+                let edge = match align { "left" => content.x, "right" => content.right(), _ => content.center().0 };
+                let expected = match align { "left" => 34.0, "right" => 246.0, _ => 140.0 };
+                assert!((edge - expected).abs() <= 1.0, "{text}, {position}, {align}: {content:?}");
+                assert!(((label.x - original_label.x) - (icon.x - original_icon.x)).abs() <= 1.0, "the label and icon move by the same amount");
+                assert_eq!((label.y, icon.y), (original_label.y, original_icon.y), "horizontal alignment keeps icon_pos");
+                assert_eq!((label.w, label.h), (original_label.w, original_label.h));
+            }
+        }
+    }
+    let _ = std::fs::remove_file(icon);
+}
+
+#[test]
+fn button_alignment_preserves_automatic_size_and_handles_narrow_buttons() {
+    let mut h = Harness::new();
+    h.feed(&app(400, 100, &[create(3, "Button", 2, json!({"text": "A long menu label", "left": 20}))]));
+    let original = h.node(|n| n["id"] == 3);
+    for align in ["left", "right", "center"] {
+        h.feed(&json!({"t": "props", "id": 3, "props": {"align": align}}).to_string());
+        assert_eq!(h.node(|n| n["id"] == 3), original, "alignment keeps the automatic button size");
+    }
+    let natural = button_label(&mut h).w;
+    for (width, padding) in [(natural + 10.0, 5.0), (40.0, 0.0)] {
+        for align in ["left", "right"] {
+            h.feed(&json!({"t": "props", "id": 3, "props": {"width": width, "align": align}}).to_string());
+            let label = button_label(&mut h);
+            assert_eq!(label.w, natural, "alignment keeps the label's natural width");
+            let edge = if align == "left" { label.x } else { label.right() };
+            let expected = if align == "left" { 20.0 + padding } else { 20.0 + width - padding };
+            assert!((edge - expected).abs() < 0.01, "{align}, width {width}: {label:?}");
+            h.rt.picture(1, 1.0).unwrap();
+        }
+    }
 }
 
 // ---- Widget polish (DESIGN look and feel, ledger C4) ----

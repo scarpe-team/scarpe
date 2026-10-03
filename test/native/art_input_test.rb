@@ -31,6 +31,34 @@ class ArtInputTest < Minitest::Test
     assert_nil Scarpe::Native::Normalize.prop("Button", "icon", nil)
   end
 
+  def test_button_alignment_reaches_the_renderer_and_keeps_activation
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        $clicks = 0
+        @go = button("Go", width: 240, height: 40, align: "right", text_color: "#d02020") { $clicks += 1 }
+      end
+    APP
+      go = button
+      assert_equal "right", go.align
+      ink_at = (200...232).to_a.product((8...32).to_a).find do |x, y|
+        r, g, b = pixel_at(x, y)
+        r > g + 40 && r > b + 40
+      end
+      refute_nil ink_at, "the label is painted on the right"
+      go.obj.align = "left"
+      wait_frames
+      assert_equal "left", go.align
+      r, g, b = pixel_at(*ink_at)
+      refute r > g + 40 && r > b + 40, "the label moved away from the right"
+      click_on go
+      assert_equal 1, $clicks, "the button's center remains clickable"
+      press_key :tab # Buttons take Enter only after receiving keyboard focus.
+      press_key :enter
+      assert_equal 2, $clicks, "keyboard activation still works"
+    TEST
+    assert_spec_passed(run)
+  end
+
   # spec app.close failed with "is not visible": a click by id always went to the first window.
   def test_a_drawable_in_a_second_window_can_be_found_and_clicked
     run = run_real(TWO_WINDOWS, test_code: <<~TEST)
