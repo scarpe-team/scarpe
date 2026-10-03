@@ -644,15 +644,28 @@ fn readonly_fields_take_focus_but_not_edits() {
 
 #[test]
 fn disabled_controls_ignore_the_pointer_and_tab() {
-    let mut h = Harness::new();
-    h.feed(&app(300, 100, &[
-        create(3, "Button", 2, json!({"text": "Off", "state": "disabled"})),
-        create(4, "Button", 2, json!({"text": "On"})),
-    ]));
-    let (evs, _) = h.req(json!({"op": "click", "target": {"id": 3}}));
-    assert!(named(&events(&evs), "click").is_empty());
-    h.req(json!({"op": "key", "key": "tab"}));
-    assert_eq!(h.value(json!({"op": "focused"})), json!(4));
+    for kind in ["Button", "EditLine"] {
+        for color in [Value::Null, json!("#2c2828"), json!({"rgba": [0, 0, 0, 0]})] {
+            let mut h = Harness::new();
+            h.feed(&app(300, 100, &[
+                create(3, kind, 2, json!({"text": "Off", "disabled_color": color})),
+                create(4, "Button", 2, json!({"text": "On"})),
+            ]));
+            h.value(json!({"op": "key", "key": "tab"}));
+            assert_eq!(h.value(json!({"op": "focused"})), json!(3));
+            h.feed(&json!({"t": "props", "id": 3, "props": {"state": "disabled"}}).to_string());
+            for op in [json!({"op": "key", "key": "enter"}), json!({"op": "key", "key": " "}), json!({"op": "type", "text": "x"}), json!({"op": "click", "target": {"id": 3}})] {
+                let (evs, _) = h.req(op);
+                let evs = events(&evs);
+                for name in ["click", "change", "finish"] {
+                    assert!(named(&evs, name).is_empty(), "{kind}, {color}: disabled controls ignore activation and edits");
+                }
+            }
+            assert_eq!(h.node(|n| n["id"] == 3)["text"], "Off");
+            h.value(json!({"op": "key", "key": "tab"}));
+            assert_eq!(h.value(json!({"op": "focused"})), json!(4));
+        }
+    }
 }
 
 #[test]

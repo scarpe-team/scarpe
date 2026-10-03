@@ -112,7 +112,12 @@ pub fn paint(
     }
     if disabled(node) {
         let r = lbox.rect;
-        canvas.fill_rect(Rect::new(r.x - 4.0, r.y - 4.0, r.w + 8.0, r.h + 8.0), Color::rgba(255, 255, 255, 140), lbox.clip);
+        if let Some(color) = node.props.color("disabled_color").filter(|_| matches!(node.kind, Kind::Button | Kind::EditLine)) {
+            // Keep the tint inside the control; alpha zero disables only the overlay.
+            canvas.fill_rounded(r, 6.0, color.fade(140.0 / 255.0), lbox.clip);
+        } else {
+            canvas.fill_rect(Rect::new(r.x - 4.0, r.y - 4.0, r.w + 8.0, r.h + 8.0), Color::rgba(255, 255, 255, 140), lbox.clip);
+        }
     }
 }
 

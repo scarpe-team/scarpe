@@ -31,6 +31,35 @@ class ArtInputTest < Minitest::Test
     assert_nil Scarpe::Native::Normalize.prop("Button", "icon", nil)
   end
 
+  def test_disabled_colors_reach_buttons_and_fields_and_can_change_at_runtime
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        background "#202020"
+        button "", left: 20, top: 20, width: 80, height: 36, state: "disabled", disabled_color: rgb(0, 0, 0, 0)
+        edit_line "", left: 20, top: 70, width: 80, height: 36, state: "disabled", disabled_color: "transparent"
+      end
+    APP
+      [button, edit_line].each do |control|
+        box = layout_of(control)
+        point = [box.x + 20, box.y + 18]
+        original = pixel_at(*point)
+        assert_operator original.first, :>, 230
+        control.obj.disabled_color = "#202020"
+        wait_frames
+        assert_equal "#202020", control.disabled_color
+        assert_operator pixel_at(*point).first, :<, original.first - 80
+        assert_equal [32, 32, 32], pixel_at(box.x - 2, box.y + 18).first(3)
+        control.obj.disabled_color = [0, 0, 0, 0]
+        wait_frames
+        assert_equal original, pixel_at(*point)
+        control.obj.disabled_color = nil
+        wait_frames
+        assert_operator pixel_at(box.x - 2, box.y + 18).first, :>, 150
+      end
+    TEST
+    assert_spec_passed(run)
+  end
+
   # spec app.close failed with "is not visible": a click by id always went to the first window.
   def test_a_drawable_in_a_second_window_can_be_found_and_clicked
     run = run_real(TWO_WINDOWS, test_code: <<~TEST)

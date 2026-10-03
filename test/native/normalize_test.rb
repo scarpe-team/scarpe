@@ -262,7 +262,7 @@ class NormalizeTest < Minitest::Test
   end
 
   def test_every_color_key_is_normalized
-    %w[fill stroke color text_color background_color border_color undercolor strikecolor].each do |key|
+    %w[fill stroke color text_color background_color border_color undercolor strikecolor disabled_color].each do |key|
       assert_equal rgba(255, 0, 0, 255), N.prop("Para", key, "red"), key
     end
   end
