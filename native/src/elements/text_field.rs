@@ -6,7 +6,7 @@ use crate::input::{Clipboard, Key, KeyInput, Named};
 use crate::layout::Rect;
 use crate::paint::text::{caret_position, selection_rects};
 use crate::style::Color;
-use crate::text::FamilyName;
+use crate::text::{rich::TextStyle, FamilyName};
 use cosmic_text::{Action, Attrs, Buffer, Cursor, Edit, Editor, FontSystem, Metrics, Motion, Selection, Shaping, Style, Weight, Wrap};
 use std::collections::VecDeque;
 
@@ -140,6 +140,15 @@ impl TextField {
 
     pub fn line_height(&self) -> f32 {
         line_height(self.size)
+    }
+
+    /// A painted hint uses the same resolved face and size as the editor's text.
+    pub(super) fn text_style(&self, color: Color) -> TextStyle {
+        let mut style = TextStyle::new(self.size, color);
+        style.family = self.face.family.clone();
+        style.weight = self.face.weight;
+        style.italic = self.face.italic;
+        style
     }
 
     pub fn editor_buffer<R>(&self, f: impl FnOnce(&Buffer) -> R) -> R {

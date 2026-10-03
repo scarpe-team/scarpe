@@ -270,3 +270,117 @@ fn a_fields_font_keeps_its_weight_and_slant() {
     assert!(bold.len() * 10 > plain.len() * 13, "bold puts down at least 30% more ink: {} against {}", plain.len(), bold.len());
     assert!(lean(&italic) > lean(&plain) + 0.5, "italic leans right: {:.2} against {:.2}", lean(&plain), lean(&italic));
 }
+
+// ---- Placeholders ----
+
+/// Red hint pixels, excluding the default frame, caret and text colours.
+fn hint_ink(h: &mut Harness) -> Vec<(usize, usize)> {
+    let picture = h.rt.picture(1, 1.0).unwrap();
+    let width = picture.width() as usize;
+    picture.pixels().iter().enumerate().filter_map(|(i, p)| {
+        (p.red() > p.green().saturating_add(40) && p.red() > p.blue().saturating_add(40)).then_some((i % width, i / width))
+    }).collect()
+}
+
+#[test]
+fn a_placeholder_shows_only_while_the_field_is_empty() {
+    for secret in [false, true] {
+        let mut h = field("EditLine", json!({"placeholder": "Search books", "placeholder_color": "#d02020", "secret": secret}));
+        let hint = hint_ink(&mut h);
+        assert!(!hint.is_empty(), "the empty field shows its hint");
+        assert_eq!(h.node(|n| n["id"] == 3)["text"], json!(""));
+        assert_eq!(typed(&mut h, "book"), ["b", "bo", "boo", "book"]);
+        assert!(hint_ink(&mut h).is_empty(), "typing hides the hint before Ruby echoes the text");
+        assert_eq!(key(&mut h, ":control_z"), [""]);
+        assert_eq!(hint_ink(&mut h), hint, "undo restores the empty field's hint");
+        assert_eq!(key(&mut h, ":control_y"), ["book"]);
+        assert!(hint_ink(&mut h).is_empty());
+        key(&mut h, ":control_a");
+        assert_eq!(key(&mut h, "backspace"), [""]);
+        assert_eq!(hint_ink(&mut h), hint);
+    }
+}
+
+#[test]
+fn a_placeholder_never_becomes_a_value_clipboard_text_or_undo_step() {
+    let mut h = field("EditLine", json!({"placeholder": "Search books", "placeholder_color": "#d02020"}));
+    assert!(!hint_ink(&mut h).is_empty());
+    assert_eq!(h.value(json!({"op": "a11y"}))["children"][0]["value"], json!(""));
+    h.value(json!({"op": "click", "target": {"id": 4}}));
+    typed(&mut h, "kept");
+    key(&mut h, ":control_a");
+    key(&mut h, ":control_c");
+    h.value(json!({"op": "click", "target": {"id": 3}}));
+    key(&mut h, ":control_a");
+    key(&mut h, ":control_c");
+    assert!(key(&mut h, ":control_z").is_empty());
+    assert_eq!(h.node(|n| n["id"] == 3)["text"], json!(""));
+    h.value(json!({"op": "click", "target": {"id": 4}}));
+    key(&mut h, ":control_end");
+    assert_eq!(key(&mut h, ":control_v"), ["keptkept"], "copying an empty field leaves the clipboard alone");
+}
+
+#[test]
+fn placeholder_text_and_colour_can_change_or_be_cleared() {
+    let mut h = field("EditLine", json!({"text": ""}));
+    let blank = h.rt.picture(1, 1.0).unwrap();
+    h.feed(&json!({"t": "props", "id": 3, "props": {"placeholder": "Search books"}}).to_string());
+    let muted = h.rt.picture(1, 1.0).unwrap();
+    assert!(muted.data() != blank.data(), "there is a default hint colour");
+    h.feed(&json!({"t": "props", "id": 3, "props": {"placeholder_color": "#d02020"}}).to_string());
+    let first = hint_ink(&mut h);
+    assert!(!first.is_empty(), "the explicit colour paints the hint");
+    h.feed(&json!({"t": "props", "id": 3, "props": {"placeholder": "Author"}}).to_string());
+    assert_ne!(hint_ink(&mut h), first, "changing the hint repaints it");
+    h.feed(&json!({"t": "props", "id": 3, "props": {"placeholder": "Search books", "placeholder_color": null}}).to_string());
+    assert!(h.rt.picture(1, 1.0).unwrap().data() == muted.data(), "clearing the colour restores the default");
+    for props in [json!({"placeholder_color": "#00000000"}), json!({"placeholder": ""}), json!({"placeholder": null})] {
+        h.feed(&json!({"t": "props", "id": 3, "props": {"placeholder": "Search books", "placeholder_color": "#d02020"}}).to_string());
+        h.feed(&json!({"t": "props", "id": 3, "props": props}).to_string());
+        assert!(h.rt.picture(1, 1.0).unwrap().data() == blank.data(), "an invisible or absent hint paints nothing");
+    }
+}
+
+#[test]
+fn placeholders_use_the_fields_font_and_baseline() {
+    for font in ["13px", "Fira Mono bold 18px", "Fira Mono italic 18px"] {
+        let mut actual = field("EditLine", json!({"text": "Hint", "font": font, "height": 44, "stroke": "#d02020"}));
+        actual.value(json!({"op": "click", "target": {"id": 4}}));
+        let letters = hint_ink(&mut actual);
+        assert!(!letters.is_empty());
+        let mut hint = field("EditLine", json!({"placeholder": "Hint", "font": font, "height": 44, "placeholder_color": "#d02020"}));
+        assert_eq!(hint_ink(&mut hint), letters, "{font}: the hint uses the same face, size and baseline as typed text");
+    }
+}
+
+#[test]
+fn placeholders_follow_left_center_and_right_alignment() {
+    for hint in ["Search", "ابحث"] {
+        let mut h = field("EditLine", json!({"placeholder": hint, "placeholder_color": "#d02020", "width": 240}));
+        for (align, left, right) in [(Value::Null, 8, 70), (json!("center"), 80, 160), (json!("right"), 160, 232)] {
+            h.feed(&json!({"t": "props", "id": 3, "props": {"align": align}}).to_string());
+            let ink = hint_ink(&mut h);
+            assert!(!ink.is_empty());
+            assert!(ink.iter().all(|&(x, _)| x >= left && x < right), "{hint}, {align}: the hint follows the field's alignment");
+        }
+    }
+}
+
+#[test]
+fn long_placeholders_stay_inside_the_field_and_ancestor_clip() {
+    for hint in ["Search books ".repeat(20), "ابحث عن كتاب ".repeat(20), "Search\nsecond line".to_string()] {
+        let mut h = field("EditLine", json!({"placeholder": hint, "placeholder_color": "#d02020", "width": 80, "height": 56}));
+        let ink = hint_ink(&mut h);
+        assert!(!ink.is_empty());
+        assert!(ink.iter().all(|&(x, y)| (8..72).contains(&x) && (20..36).contains(&y)), "the hint is clipped to the single text line");
+    }
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "Stack", 2, json!({"width": 100, "height": 16, "scroll": true})),
+        create(4, "EditLine", 3, json!({"placeholder": "Search books everywhere", "placeholder_color": "#d02020", "width": 200})),
+        create(5, "EditLine", 3, json!({"placeholder": "Hidden", "placeholder_color": "#d02020", "width": 200, "top": 40})),
+    ]));
+    let ink = hint_ink(&mut h);
+    assert!(!ink.is_empty(), "the partly clipped field still paints");
+    assert!(ink.iter().all(|&(x, y)| x < 100 && y < 16), "hints never paint outside the scroll area");
+}
