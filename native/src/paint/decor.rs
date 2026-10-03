@@ -51,7 +51,7 @@ pub fn scrollbars(canvas: &mut Canvas, layout: &Layout) {
         let track = v.h - 4.0;
         let thumb = (track * v.h / s.content_height).max(24.0).min(track);
         let y = v.y + 2.0 + (track - thumb) * (s.top / s.max_top());
-        let bar = Rect::new(v.right() - 8.0, y, 5.0, thumb);
+        let bar = Rect::new(if s.rtl { v.x + 3.0 } else { v.right() - 8.0 }, y, 5.0, thumb);
         canvas.fill_rounded(bar, 2.5, SCROLLBAR, clip.or(Some(v)));
     }
 }

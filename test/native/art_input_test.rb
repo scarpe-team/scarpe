@@ -31,6 +31,38 @@ class ArtInputTest < Minitest::Test
     assert_nil Scarpe::Native::Normalize.prop("Button", "icon", nil)
   end
 
+  def test_scrollbar_direction_reaches_the_renderer_and_updates_while_scrolled
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app(width: 200, height: 120) do
+        stack(left: 20, top: 20, width: 80, height: 60, scroll: true, direction: "rtl") do
+          stack(width: 80, height: 180)
+        end
+      end
+    APP
+      area = stack(scroll: true)
+      assert_equal "rtl", area.direction
+      assert_equal [165, 165, 165], pixel_at(25, 30).first(3)
+      assert_equal [255, 255, 255], pixel_at(94, 30).first(3)
+      wheel(60, x: 50, y: 40)
+      assert_equal 60, area.scroll_top
+      area.obj.direction = "ltr"
+      wait_frames
+      assert_equal [165, 165, 165], pixel_at(94, 50).first(3)
+      assert_equal [255, 255, 255], pixel_at(25, 50).first(3)
+      assert_equal 60, area.scroll_top
+      area.obj.direction = "rtl"
+      area.obj.scroll_top = area.scroll_max
+      wait_frames
+      assert_equal 120, area.scroll_top
+      assert_equal [165, 165, 165], pixel_at(25, 70).first(3)
+      area.obj.direction = nil
+      wait_frames
+      assert_equal [165, 165, 165], pixel_at(94, 70).first(3)
+      assert_equal [255, 255, 255], pixel_at(25, 70).first(3)
+    TEST
+    assert_spec_passed(run)
+  end
+
   # spec app.close failed with "is not visible": a click by id always went to the first window.
   def test_a_drawable_in_a_second_window_can_be_found_and_clicked
     run = run_real(TWO_WINDOWS, test_code: <<~TEST)

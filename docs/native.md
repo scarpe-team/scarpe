@@ -176,6 +176,22 @@ a11y_action check("@keep"), :click
 The cases in `spec/accessibility/` show the rest, and DESIGN section 12 lists exactly what each
 drawable becomes.
 
+## Scrollbar direction
+
+Native scrolling `stack` and `flow` containers accept `direction: "rtl"` to put their overlay
+scrollbar on the left. Omitting `direction`, or setting it to `"ltr"` or `nil`, keeps the default
+scrollbar on the right.
+
+```ruby
+@results = stack(height: 200, scroll: true, direction: "rtl") do
+  20.times { |i| para "Item #{i}" }
+end
+@results.direction = "ltr"
+```
+
+This controls the scrollbar side. It can change at runtime without resetting the scroll
+position, and the thumb is still shown only when the content overflows.
+
 ## Running a program in a process of its own
 
 `Shoes.run_program` starts another Shoes program, in a process of its own on the same Ruby and
