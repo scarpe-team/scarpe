@@ -251,6 +251,9 @@ impl TextField {
         });
         self.editor.shape_as_needed(fs, false);
         self.clamp_offset();
+        if !self.multiline {
+            self.scroll_to_caret();
+        }
     }
 
     /// Keeps the scroll offset inside the text, without chasing the caret
