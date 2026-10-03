@@ -17,7 +17,8 @@ pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox) {
         Some(f) => {
             let w = (r.w * f.clamp(0.0, 1.0)).max(if f > 0.0 { h } else { 0.0 });
             if w > 0.0 {
-                canvas.fill_rounded(Rect::new(track.x, track.y, w, h), h / 2.0, ACCENT, lbox.clip);
+                let x = if node.props.str("direction") == Some("rtl") { track.right() - w } else { track.x };
+                canvas.fill_rounded(Rect::new(x, track.y, w, h), h / 2.0, ACCENT, lbox.clip);
             }
         }
         None => canvas.fill_rounded(Rect::new(track.x + r.w * 0.1, track.y, r.w * 0.35, h), h / 2.0, ACCENT.fade(0.55), lbox.clip),

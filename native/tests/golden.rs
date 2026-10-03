@@ -97,6 +97,29 @@ fn widgets() {
 }
 
 #[test]
+fn progress_fills_from_the_left_unless_rtl_is_requested() {
+    let filled = json!([10, 132, 255, 255]);
+    let track = json!([229, 229, 234, 255]);
+    for (direction, left, right) in [(None, &filled, &track), (Some("ltr"), &filled, &track), (Some("rtl"), &track, &filled)] {
+        let mut h = Harness::new();
+        let mut props = json!({"left": 10, "top": 10, "width": 200, "height": 8, "fraction": 0.25});
+        if let Some(direction) = direction {
+            props["direction"] = json!(direction);
+        }
+        h.feed(&common::app(240, 40, &[common::create(3, "Progress", 2, props)]));
+        assert_eq!(h.value(json!({"op": "pixel", "x": 30, "y": 14})), *left, "direction: {direction:?}");
+        assert_eq!(h.value(json!({"op": "pixel", "x": 180, "y": 14})), *right, "direction: {direction:?}");
+
+        for (fraction, expected) in [(0.0, &track), (1.0, &filled)] {
+            h.feed(&json!({"t": "props", "id": 3, "props": {"fraction": fraction}}).to_string());
+            for x in [30, 180] {
+                assert_eq!(h.value(json!({"op": "pixel", "x": x, "y": 14})), *expected, "direction: {direction:?}, fraction: {fraction}");
+            }
+        }
+    }
+}
+
+#[test]
 fn rich_text() {
     check("rich_text");
 }
