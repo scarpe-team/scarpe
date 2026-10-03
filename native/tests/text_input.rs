@@ -227,6 +227,45 @@ fn the_input_method_follows_the_focused_fields_caret() {
     assert_eq!(h.rt.text_input_area(1), None, "a readonly field takes nothing");
 }
 
+// ---- Resizing ----
+
+#[test]
+fn resizing_an_edit_line_keeps_the_caret_visible() {
+    for query in ["long query ".repeat(15), "كلمات البحث ".repeat(15)] {
+        for motion in [":control_home", ":control_end"] {
+            let mut h = field("EditLine", json!({"text": "", "width": 1.0}));
+            typed(&mut h, &query);
+            key(&mut h, motion);
+            for width in [300, 120, 400, 80] {
+                h.value(json!({"op": "resize", "w": width, "h": 200}));
+                h.value(json!({"op": "frames", "n": 1}));
+                // Check before another key moves the caret and hides the resize bug.
+                let field = &h.rt.views[&1].ui.fields[&3];
+                let caret = field.caret().unwrap();
+                assert!(caret.x >= field.inner.x - 0.1 && caret.right() <= field.inner.right(),
+                    "{query:?}, {motion}, width {width}: caret {caret:?}, text area {:?}", field.inner);
+            }
+            let expected = if motion == ":control_home" { format!("!{query}") } else { format!("{query}!") };
+            assert_eq!(typed(&mut h, "!"), [expected], "resizing keeps the editing position");
+            assert_eq!(key(&mut h, ":control_z"), [query.as_str()]);
+        }
+    }
+}
+
+#[test]
+fn resizing_an_edit_box_preserves_manual_scrolling() {
+    let text: String = (1..=30).map(|i| format!("line {i}\n")).collect();
+    let mut h = field("EditBox", json!({"text": text, "width": 1.0, "height": 80}));
+    key(&mut h, ":control_home");
+    h.value(json!({"op": "wheel", "dy": 60, "x": 40, "y": 40}));
+    h.value(json!({"op": "frames", "n": 1}));
+    let top = h.rt.views[&1].ui.fields[&3].offset.1;
+    assert!(top > 0.0, "the wheel scrolled away from the caret");
+    h.value(json!({"op": "resize", "w": 200, "h": 200}));
+    h.value(json!({"op": "frames", "n": 1}));
+    assert_eq!(h.rt.views[&1].ui.fields[&3].offset.1, top, "a multiline field must not jump back to its caret");
+}
+
 // ---- Fonts ----
 
 /// The dark pixels of a field's text, at 1x, as (x, y) points.
