@@ -141,6 +141,32 @@ Shoes.text_mode = :shoes3
 Sizes are then points (`"18px"` stays pixels), and text that names no face is set in Arial, as
 Shoes 3 set it. Every window the program opens follows it. Hackety Hack asks for it.
 
+## Toggle switches
+
+On the native display, `check(variant: "switch")` draws an on/off switch. It uses the same
+`checked`, `checked?`, click callback, keyboard activation (Space or Enter with keyboard focus),
+and disabled state as a checkbox. The callback sees the new checked state.
+
+```ruby
+flow do
+  @diacritics = check(variant: "switch", checked: true,
+    color: "#ae4721", background_color: "#4a4543", direction: "rtl") do |control|
+    puts control.checked?
+  end
+  para "Show diacritics"
+end
+```
+
+`color` sets the on track and `background_color` the off track; both preserve the supplied
+alpha. Their defaults are accent blue and gray, with a white thumb. LTR is the default: on
+puts the thumb on the right. `direction: "rtl"` mirrors the thumb positions. These styles,
+`checked`, and `variant` can change at runtime. Setting `variant` to `nil` restores a checkbox
+and keeps its checked state. Plain `check` and unknown variants use the original checkbox.
+
+The default size is 40 by 28 px. The track stays centered in larger controls and shrinks to fit
+smaller ones. Screen readers receive a switch role and its on/off state, named by the text
+after it, or by a nonblank `tooltip` when there is no adjacent label.
+
 ## Screen readers
 
 Scarpe draws its own buttons, fields and text, so no control of the operating system is there to

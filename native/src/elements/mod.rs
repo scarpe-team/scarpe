@@ -46,6 +46,7 @@ pub struct WidgetState {
 pub fn intrinsic_size(node: &Node, text: &mut TextEngine, images: &mut ImageCache) -> (f32, f32) {
     match node.kind {
         Kind::Button => button::size(node, text),
+        Kind::Check if check::is_switch(node) => check::SWITCH_SIZE,
         Kind::Check | Kind::Radio => (18.0, 18.0),
         Kind::EditLine => (200.0, 28.0),
         Kind::EditBox => (200.0, 108.0),

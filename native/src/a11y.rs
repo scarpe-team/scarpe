@@ -14,7 +14,7 @@
 
 use crate::dialogs::{self, Modal, ModalKind, SWATCHES};
 use crate::doc::{Doc, Kind, Node as DocNode};
-use crate::elements::{disabled, list_box, readonly, text_field};
+use crate::elements::{check, disabled, list_box, readonly, text_field};
 use crate::input::ViewState;
 use crate::layout::{Layout, Rect};
 use crate::props::{Id, TextItem};
@@ -197,9 +197,18 @@ impl Builder<'_> {
                 Some(n)
             }
             Kind::Check | Kind::Radio => {
-                let mut n = Node::new(if node.kind == Kind::Check { Role::CheckBox } else { Role::RadioButton });
+                let role = if node.kind == Kind::Radio { Role::RadioButton }
+                    else if check::is_switch(node) { Role::Switch }
+                    else { Role::CheckBox };
+                let mut n = Node::new(role);
                 n.set_toggled(if node.props.truthy("checked") { Toggled::True } else { Toggled::False });
-                n.set_labelled_by(self.label_beside(after).into_iter().collect::<Vec<_>>());
+                let label = self.label_beside(after);
+                n.set_labelled_by(label.into_iter().collect::<Vec<_>>());
+                if role == Role::Switch && label.is_none() {
+                    if let Some(tip) = tooltip(node) {
+                        n.set_label(tip);
+                    }
+                }
                 works(&mut n, node, &[Action::Click, Action::Focus]);
                 Some(n)
             }
