@@ -1,8 +1,8 @@
-//! button: a rounded push button with a soft gradient, border and shadow, and
+//! button: a rounded push button with a soft gradient, border and shadow, or a flat variant, and
 //! Shoes 3.3's optional `icon:` beside its label (`icon_pos:` left, right, top, bottom).
 
 use super::image::{self, ImageCache};
-use super::{focus_ring, text_on, Label, WidgetState, CONTROL_TEXT_SIZE};
+use super::{focus_ring, text_on, Label, WidgetState, CONTROL_TEXT_SIZE, FIELD_BORDER, FOCUS_RING};
 use std::path::Path;
 use crate::doc::Node;
 use crate::input::{Key, KeyInput, Named};
@@ -140,22 +140,40 @@ pub fn paint(
 ) {
     let (bx, r) = (lbox.rect, face(lbox.rect));
     let clip = lbox.clip;
-    if state.focused {
-        focus_ring(canvas, r, RADIUS, clip);
-    }
-    canvas.fill_rounded(Rect::new(bx.x, bx.y + 0.5, bx.w, bx.h - 0.5), RADIUS + 0.5, Color::rgba(0, 0, 0, 14), clip);
-    canvas.fill_rounded(Rect::new(r.x, r.y + 1.0, r.w, r.h), RADIUS, Color::rgba(0, 0, 0, 22), clip);
-    let (top, bottom) = match surface(node) {
-        Some(c) => {
-            let shade = if state.pressed { 0.82 } else if state.hovered { 1.04 } else { 1.0 };
-            (tint(c, shade * 1.06), tint(c, shade * 0.96))
+    if let Some(variant @ ("solid" | "outline" | "ghost")) = node.props.str("variant") {
+        if state.focused {
+            // Stroke the outer halo so it does not fill a transparent button's centre.
+            let halo = Rect::new(r.x - 3.0, r.y - 3.0, r.w + 6.0, r.h + 6.0);
+            canvas.stroke_rounded(halo, RADIUS + 3.0, FOCUS_RING, 3.0, clip);
         }
-        None if state.pressed => (Color::rgb(0xdc, 0xdc, 0xe2), Color::rgb(0xd0, 0xd0, 0xd8)),
-        None if state.hovered => (Color::WHITE, Color::rgb(0xf2, 0xf2, 0xf6)),
-        None => (Color::WHITE, Color::rgb(0xee, 0xee, 0xf1)),
-    };
-    canvas.fill_gradient(r, RADIUS, top, bottom, clip);
-    canvas.stroke_rounded(r, RADIUS, Color::rgba(0, 0, 0, 38), 1.0, clip);
+        let color = node.props.color("color").unwrap_or(if variant == "ghost" { Color::TRANSPARENT } else { Color::WHITE });
+        let fill = if color.is_invisible() {
+            label_color(node).with_alpha(if state.pressed { 24 } else if state.hovered { 12 } else { 0 })
+        } else {
+            flat_tint(color, if state.pressed { 0.08 } else if state.hovered { 0.04 } else { 0.0 })
+        };
+        canvas.fill_rounded(r, RADIUS, fill, clip);
+        if variant == "outline" {
+            canvas.stroke_rounded(r, RADIUS, node.props.color("border_color").unwrap_or(FIELD_BORDER), 1.0, clip);
+        }
+    } else {
+        if state.focused {
+            focus_ring(canvas, r, RADIUS, clip);
+        }
+        canvas.fill_rounded(Rect::new(bx.x, bx.y + 0.5, bx.w, bx.h - 0.5), RADIUS + 0.5, Color::rgba(0, 0, 0, 14), clip);
+        canvas.fill_rounded(Rect::new(r.x, r.y + 1.0, r.w, r.h), RADIUS, Color::rgba(0, 0, 0, 22), clip);
+        let (top, bottom) = match surface(node) {
+            Some(c) => {
+                let shade = if state.pressed { 0.82 } else if state.hovered { 1.04 } else { 1.0 };
+                (tint(c, shade * 1.06), tint(c, shade * 0.96))
+            }
+            None if state.pressed => (Color::rgb(0xdc, 0xdc, 0xe2), Color::rgb(0xd0, 0xd0, 0xd8)),
+            None if state.hovered => (Color::WHITE, Color::rgb(0xf2, 0xf2, 0xf6)),
+            None => (Color::WHITE, Color::rgb(0xee, 0xee, 0xf1)),
+        };
+        canvas.fill_gradient(r, RADIUS, top, bottom, clip);
+        canvas.stroke_rounded(r, RADIUS, Color::rgba(0, 0, 0, 38), 1.0, clip);
+    }
     let inner = Rect::new(r.x + 2.0, r.y, r.w - 4.0, r.h);
     let inner_clip = clip.and_then(|c| c.intersect(&inner)).or(Some(inner));
     if let Some(tb) = label {
@@ -169,5 +187,12 @@ pub fn paint(
 
 fn tint(c: Color, factor: f32) -> Color {
     let f = |v: u8| ((v as f32) * factor).round().clamp(0.0, 255.0) as u8;
+    Color::rgba(f(c.r), f(c.g), f(c.b), c.a)
+}
+
+/// Lighten dark fills and darken light ones, preserving alpha and feedback even on black.
+fn flat_tint(c: Color, amount: f32) -> Color {
+    let target = if c.luminance() < 0.55 { 255.0 } else { 0.0 };
+    let f = |v: u8| (v as f32 + (target - v as f32) * amount).round() as u8;
     Color::rgba(f(c.r), f(c.g), f(c.b), c.a)
 }

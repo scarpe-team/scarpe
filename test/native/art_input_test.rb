@@ -31,6 +31,79 @@ class ArtInputTest < Minitest::Test
     assert_nil Scarpe::Native::Normalize.prop("Button", "icon", nil)
   end
 
+  def test_button_variants_and_theme_colors_can_change_at_runtime
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app(width: 240, height: 220) do
+        background "#202020"
+        @solid = button "Save", variant: :solid, color: "#ae4721", text_color: white, left: 20, top: 20, width: 100, height: 36
+        @outline = button "Cancel", variant: "outline", color: "transparent", border_color: "#abcdef", text_color: white, left: 20, top: 80, width: 100, height: 36
+        @ghost = button "More", variant: :ghost, text_color: white, left: 20, top: 140, width: 100, height: 36
+      end
+    APP
+      assert_equal [174, 71, 33, 255], pixel_at(40, 26)
+      assert_equal [174, 71, 33, 255], pixel_at(40, 47)
+      assert_equal [171, 205, 239, 255], pixel_at(40, 80)
+      assert_equal [32, 32, 32, 255], pixel_at(40, 86)
+      assert_equal [32, 32, 32, 255], pixel_at(40, 146)
+
+      button("@outline").obj.border_color = "#ff0000"
+      button("@solid").obj.variant = :ghost
+      button("@solid").obj.color = "transparent"
+      wait_frames
+      assert_equal [255, 0, 0, 255], pixel_at(40, 80)
+      assert_equal [32, 32, 32, 255], pixel_at(40, 26)
+
+      button("@ghost").obj.color = "#ae4721"
+      wait_frames
+      assert_equal [174, 71, 33, 255], pixel_at(40, 146), "selected ghost uses its explicit fill"
+      button("@solid").obj.variant = nil
+      button("@solid").obj.color = nil
+      wait_frames
+      refute_equal pixel_at(40, 26), pixel_at(40, 47), "removing the variant restores the gradient"
+    TEST
+    assert_spec_passed(run)
+  end
+
+  def test_button_variants_keep_mouse_keyboard_accessibility_and_disabled_behavior
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app(width: 240, height: 260) do
+        @count = 0
+        @note = para "0", top: 210
+        %i[solid outline ghost].each_with_index do |variant, index|
+          button(variant.to_s, variant: variant, left: 20, top: 20 + index * 60, width: 100, height: 36) do
+            @count += 1
+            @note.replace(@count.to_s)
+          end
+        end
+      end
+    APP
+      %w[solid outline ghost].each_with_index do |variant, index|
+        control = button(variant)
+        node = a11y_nodes.find { |n| n[:name] == variant }
+        assert_equal "button", node[:role]
+        control.trigger_click
+        control.obj.focus
+        wait_frames
+        assert_equal control.linkable_id, focused_drawable.linkable_id
+        press_key("enter")
+        press_key("space")
+        a11y_action control, :click
+        assert_equal ((index + 1) * 4).to_s, para("@note").text
+
+        control.obj.state = "disabled"
+        wait_frames
+        rect = layout_of(control)
+        click_at(rect.x + 5, rect.y + 5)
+        press_key("enter")
+        press_key("space")
+        error = assert_raises(Scarpe::Native::AutomationError) { a11y_action control, :click }
+        assert_match(/disabled/, error.message)
+        assert_equal ((index + 1) * 4).to_s, para("@note").text, "disabled variants cannot activate"
+      end
+    TEST
+    assert_spec_passed(run)
+  end
+
   # spec app.close failed with "is not visible": a click by id always went to the first window.
   def test_a_drawable_in_a_second_window_can_be_found_and_clicked
     run = run_real(TWO_WINDOWS, test_code: <<~TEST)

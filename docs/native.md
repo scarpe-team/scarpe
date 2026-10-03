@@ -114,6 +114,24 @@ a step failed (a click on something covered, say) or the script never started an
 `--fonts bundled` swaps the system fonts for Inter and Fira Mono, which ship with Scarpe, so a
 picture comes out the same on every machine.
 
+## Button variants
+
+Native buttons accept `variant: :solid`, `:outline`, or `:ghost` (strings work too).
+They use flat fills without the classic gradient or shadow. Solid and outline default to
+white; outline adds a 1 px `border_color` (default `#c7c7cc`). Ghost defaults to transparent,
+but accepts an explicit `color` for selected actions. `color` and `border_color` retain alpha.
+
+```ruby
+button "Save", variant: :solid, color: "#ae4721", text_color: white
+button "Cancel", variant: :outline, color: "#fffaf4", border_color: "#d8cfc4"
+button "More", variant: :ghost, text_color: "#ae4721"
+```
+
+Hover and press subtly shade the fill; transparent fills use `text_color` (or the usual label
+color) for feedback. Set it to a light color on dark backgrounds. Keyboard focus, activation,
+icons and disabled behavior work as on ordinary buttons. Styles can change at runtime;
+omitting `variant`, setting it to `nil`, or using an unknown value keeps the classic appearance.
+
 ## Where a number puts a slot
 
 Slots, text and images read `left`, `top`, `width` and `height` the way Shoes 3 does. A position

@@ -5,6 +5,7 @@ class Shoes
     include Shoes::Focusable
 
     shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size, :tooltip, :icon, :icon_pos, :font, :stroke
+    shoes_styles :variant, :border_color
     shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
     shoes_events :click
 
@@ -18,6 +19,8 @@ class Shoes
     # @param left [Integer] The position of the left edge of the button relative to its parent widget.
     # @param size [Integer] The font size of the button text.
     # @param color [String] The background color of the button.
+    # @param variant [String, Symbol] Native appearance: solid, outline or ghost; unset keeps the classic button.
+    # @param border_color [String] The native outline variant's border color.
     # @param padding_top [Integer] The padding above the button text.
     # @param padding_bottom [Integer] The padding below the button text.
     # @param text_color [String] The color of the button text.
