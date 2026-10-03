@@ -423,6 +423,119 @@ fn a_button_draws_its_icon_beside_its_label() {
     let _ = std::fs::remove_file(icon);
 }
 
+#[test]
+fn flat_button_variants_use_exact_fills_without_gradients_or_shadows() {
+    for variant in ["solid", "outline", "ghost"] {
+        let mut h = Harness::new();
+        h.feed(&app(200, 100, &[
+            create(3, "Button", 2, json!({"text": "", "variant": variant, "color": "#ae4721", "left": 20, "top": 20, "width": 80, "height": 36})),
+        ]));
+        assert_eq!(rgb(&mut h, 40.0, 26.0), [174, 71, 33], "{variant} uses the supplied fill, including selected ghosts");
+        assert_eq!(rgb(&mut h, 40.0, 47.0), [174, 71, 33], "{variant} has no gradient");
+        assert_eq!(rgb(&mut h, 40.0, 55.0), WHITE, "{variant} has no shadow");
+
+        h.feed(&format!("{}\n{{\"t\":\"flush\"}}\n", json!({"t": "props", "id": 3, "props": {"color": {"rgba": [255, 0, 0, 128]}}})));
+        assert_eq!(rgb(&mut h, 40.0, 40.0), [255, 127, 127], "{variant} preserves fill alpha");
+    }
+}
+
+#[test]
+fn outline_button_variants_have_a_themeable_optional_border() {
+    let mut h = Harness::new();
+    h.feed(&app(200, 100, &[
+        create(3, "Button", 2, json!({"text": "", "variant": "outline", "left": 20, "top": 20, "width": 80, "height": 36})),
+    ]));
+    assert_eq!(rgb(&mut h, 40.0, 40.0), WHITE, "the default fill is flat white");
+    assert_eq!(rgb(&mut h, 40.0, 20.0), [199, 199, 204], "the default outline is the field border");
+    for (border, expected) in [(json!("#ae4721"), [174, 71, 33]), (json!({"rgba": [255, 0, 0, 128]}), [255, 127, 127]), (json!({"rgba": [0, 0, 0, 0]}), WHITE)] {
+        h.feed(&format!("{}\n{{\"t\":\"flush\"}}\n", json!({"t": "props", "id": 3, "props": {"border_color": border}})));
+        assert_eq!(rgb(&mut h, 40.0, 20.0), expected);
+    }
+    h.feed("{\"t\":\"props\",\"id\":3,\"props\":{\"variant\":\"solid\",\"border_color\":\"#ff0000\"}}\n{\"t\":\"flush\"}\n");
+    assert_eq!(rgb(&mut h, 40.0, 40.0), WHITE, "solid also defaults to white");
+    assert_eq!(rgb(&mut h, 40.0, 20.0), WHITE, "solid has no border");
+}
+
+#[test]
+fn flat_button_variants_show_hover_and_press_on_light_and_dark_fills() {
+    for variant in ["solid", "outline", "ghost"] {
+        for color in ["#ffffff", "#000000"] {
+            let mut h = Harness::new();
+            h.feed(&app(200, 100, &[
+                create(3, "Button", 2, json!({"text": "", "variant": variant, "color": color, "left": 20, "top": 20, "width": 80, "height": 36})),
+            ]));
+            let resting = rgb(&mut h, 40.0, 40.0);
+            h.value(json!({"op": "mouse", "action": "move", "x": 40, "y": 40}));
+            let hovered = rgb(&mut h, 40.0, 40.0);
+            assert_ne!(hovered, resting, "hover on {variant} {color}");
+            h.value(json!({"op": "mouse", "action": "down", "x": 40, "y": 40}));
+            let pressed = rgb(&mut h, 40.0, 40.0);
+            assert_ne!(pressed, hovered, "press on {variant} {color}");
+            assert_ne!(pressed, resting);
+            h.value(json!({"op": "mouse", "action": "up", "x": 40, "y": 40}));
+            assert_eq!(rgb(&mut h, 40.0, 40.0), hovered);
+            h.value(json!({"op": "mouse", "action": "move", "x": 150, "y": 80}));
+            assert_eq!(rgb(&mut h, 40.0, 40.0), resting);
+        }
+    }
+}
+
+#[test]
+fn ghost_button_variants_are_clear_with_feedback_and_an_unfilled_focus_ring() {
+    for (background, text_color) in [("#ffffff", "#000000"), ("#202020", "#ffffff")] {
+        for color in [Value::Null, json!({"rgba": [0, 0, 0, 0]})] {
+            let mut h = Harness::new();
+            h.feed(&app(200, 100, &[
+                create(3, "Background", 2, json!({"fill": background})),
+                create(4, "Button", 2, json!({"text": "", "variant": "ghost", "color": color, "text_color": text_color, "left": 20, "top": 20, "width": 80, "height": 36})),
+            ]));
+            let backdrop = rgb(&mut h, 150.0, 40.0);
+            assert_eq!(rgb(&mut h, 40.0, 40.0), backdrop, "ghosts default to transparent");
+            h.value(json!({"op": "mouse", "action": "move", "x": 40, "y": 40}));
+            let hovered = rgb(&mut h, 40.0, 40.0);
+            assert_ne!(hovered, backdrop, "the theme's label color supplies feedback");
+            h.value(json!({"op": "mouse", "action": "down", "x": 40, "y": 40}));
+            let pressed = rgb(&mut h, 40.0, 40.0);
+            assert_ne!(pressed, hovered);
+            assert_ne!(pressed, backdrop);
+            h.value(json!({"op": "mouse", "action": "up", "x": 40, "y": 40}));
+            h.value(json!({"op": "mouse", "action": "move", "x": 150, "y": 80}));
+            h.feed("{\"t\":\"focus\",\"id\":4}\n");
+            assert_ne!(rgb(&mut h, 19.0, 40.0), backdrop, "keyboard focus is visible outside the face");
+            assert_eq!(rgb(&mut h, 40.0, 40.0), backdrop, "focus must not fill the transparent face");
+        }
+    }
+}
+
+#[test]
+fn button_variants_keep_label_and_icon_geometry_and_fall_back_to_the_original() {
+    let icon = red_icon();
+    let mut h = Harness::new();
+    h.feed(&app(200, 100, &[
+        create(3, "Button", 2, json!({"text": "Info", "icon": icon, "color": "#eeeeee", "left": 20, "top": 20})),
+    ]));
+    let original = h.rt.picture(1, 1.0).unwrap();
+    let bounds = h.node(|n| n["id"] == 3);
+    for variant in [json!("solid"), json!("outline"), json!("ghost"), json!("unknown"), Value::Null] {
+        h.feed(&format!("{}\n{{\"t\":\"flush\"}}\n", json!({"t": "props", "id": 3, "props": {"variant": variant}})));
+        assert_eq!(h.node(|n| n["id"] == 3), bounds, "variants do not change layout");
+        let frame = h.rt.picture(1, 1.0).unwrap();
+        if variant == "unknown" || variant.is_null() {
+            assert_eq!(frame.data(), original.data(), "unrecognized or removed variants retain the old appearance");
+        } else {
+            for y in 0..original.height() {
+                for x in 0..original.width() {
+                    let p = original.pixel(x, y).unwrap();
+                    if (p.red() == 255 && p.green() == 0 && p.blue() == 0) || (p.red(), p.green(), p.blue()) == (29, 29, 31) {
+                        assert_eq!(frame.pixel(x, y), Some(p), "the icon and label stay in place");
+                    }
+                }
+            }
+        }
+    }
+    let _ = std::fs::remove_file(icon);
+}
+
 // ---- Widget polish (DESIGN look and feel, ledger C4) ----
 
 #[test]

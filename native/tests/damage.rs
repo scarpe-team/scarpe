@@ -189,6 +189,37 @@ fn hovering_and_pressing_a_button_repaints_the_button() {
 }
 
 #[test]
+fn button_variants_repaint_surfaces_focus_and_interaction_states() {
+    for scale in [1.0, 1.25, 2.0] {
+        let mut h = Harness::new();
+        busy_scene(&mut h);
+        let mut window = Window::open(&mut h, scale);
+        let button = h.node(|n| n["id"] == 9);
+        let (x, y) = (button["x"].as_f64().unwrap() as f32 + 10.0, button["y"].as_f64().unwrap() as f32 + 10.0);
+        for variant in ["solid", "outline", "ghost", "unknown"] {
+            props(&mut h, 9, json!({"variant": variant, "color": null}));
+            assert!(partial(&window.repaint(&mut h), &window, 0.2), "variant at {scale}x");
+            for action in ["move", "down", "up"] {
+                mouse(&mut h, action, x, y);
+                window.repaint(&mut h);
+            }
+            mouse(&mut h, "move", 5.0, 300.0);
+            window.repaint(&mut h);
+            h.feed("{\"t\":\"focus\",\"id\":9}\n");
+            window.repaint(&mut h);
+            for changes in [json!({"color": {"rgba": [174, 71, 33, 128]}}), json!({"border_color": "#ff0000"}), json!({"state": "disabled"}), json!({"state": null})] {
+                props(&mut h, 9, changes);
+                window.repaint(&mut h);
+            }
+            h.value(json!({"op": "key", "key": "tab"}));
+            window.repaint(&mut h);
+        }
+        props(&mut h, 9, json!({"variant": null}));
+        window.repaint(&mut h);
+    }
+}
+
+#[test]
 fn typing_into_a_field_repaints_the_field() {
     let mut h = Harness::new();
     busy_scene(&mut h);
