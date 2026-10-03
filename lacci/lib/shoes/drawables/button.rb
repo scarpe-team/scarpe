@@ -5,6 +5,7 @@ class Shoes
     include Shoes::Focusable
 
     shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size, :tooltip, :icon, :icon_pos, :font, :stroke
+    shoes_styles :align
     shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
     shoes_events :click
 

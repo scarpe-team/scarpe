@@ -50,19 +50,33 @@ fn icon_pos(node: &Node) -> Option<IconPos> {
 
 /// Where the label goes inside a (w, h) button, and the icon's box, both from its corner.
 fn arrange(node: &Node, w: f32, h: f32, label: (f32, f32)) -> ((f32, f32), Option<Rect>) {
-    let centred = ((w - label.0) / 2.0, (h - label.1) / 2.0);
-    let Some(pos) = icon_pos(node) else { return (centred, None) };
+    let pos = icon_pos(node);
     let gap = if label.0 > 0.0 { ICON_GAP } else { 0.0 };
+    let content_w = match pos {
+        Some(IconPos::Left | IconPos::Right) => ICON + gap + label.0,
+        Some(IconPos::Top | IconPos::Bottom) => ICON.max(label.0),
+        None => label.0,
+    };
+    let spare = w - content_w;
+    let padding = PAD_X.min(spare.max(0.0) / 2.0);
+    // Move the whole group from its usual centre; keep the icon's position within it.
+    let dx = match node.props.str("align") {
+        Some("left") => padding - spare / 2.0,
+        Some("right") => spare / 2.0 - padding,
+        _ => 0.0,
+    };
+    let centred = ((w - label.0) / 2.0 + dx, (h - label.1) / 2.0);
+    let Some(pos) = pos else { return (centred, None) };
     match pos {
         IconPos::Left | IconPos::Right => {
-            let start = (w - (ICON + gap + label.0)) / 2.0;
+            let start = (w - (ICON + gap + label.0)) / 2.0 + dx;
             let (icon_x, text_x) = if pos == IconPos::Left { (start, start + ICON + gap) } else { (start + label.0 + gap, start) };
             ((text_x, centred.1), Some(Rect::new(icon_x, (h - ICON) / 2.0, ICON, ICON)))
         }
         IconPos::Top | IconPos::Bottom => {
             let start = (h - (ICON + gap + label.1)) / 2.0;
             let (icon_y, text_y) = if pos == IconPos::Top { (start, start + ICON + gap) } else { (start + label.1 + gap, start) };
-            ((centred.0, text_y), Some(Rect::new((w - ICON) / 2.0, icon_y, ICON, ICON)))
+            ((centred.0, text_y), Some(Rect::new((w - ICON) / 2.0 + dx, icon_y, ICON, ICON)))
         }
     }
 }

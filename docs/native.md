@@ -127,6 +127,17 @@ across and `width: 0.5` half as wide. Art (`rect`, `oval`, `shape` and the rest)
 number as pixels, Floats included. DESIGN section 6 has the whole rule, and ledger C1, C10, C15
 and C18 say why.
 
+## Button content alignment
+
+Native buttons accept `align: "left"`, `"center"` or `"right"`; center is the default.
+Alignment moves the label and icon together within the button. `icon_pos` still places the icon
+to the left, right, top or bottom of the label. The button's size and click area stay the same.
+
+```ruby
+@menu = button "Library", width: 240, align: "right"
+@menu.align = "left"
+```
+
 ## Text sizes, and Shoes 3's text
 
 A text size is pixels: `para` is 12 px tall and `title` 34, as the manual says (ledger M14).
