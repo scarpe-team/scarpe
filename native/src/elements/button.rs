@@ -2,7 +2,7 @@
 //! Shoes 3.3's optional `icon:` beside its label (`icon_pos:` left, right, top, bottom).
 
 use super::image::{self, ImageCache};
-use super::{focus_ring, text_on, Label, WidgetState, CONTROL_TEXT_SIZE};
+use super::{focus_outline, focus_ring, text_on, Label, WidgetState, ACCENT, CONTROL_TEXT_SIZE};
 use std::path::Path;
 use crate::doc::Node;
 use crate::input::{Key, KeyInput, Named};
@@ -140,7 +140,8 @@ pub fn paint(
 ) {
     let (bx, r) = (lbox.rect, face(lbox.rect));
     let clip = lbox.clip;
-    if state.focused {
+    let inset = state.focused && node.props.truthy("focus_inset");
+    if state.focused && !inset {
         focus_ring(canvas, r, RADIUS, clip);
     }
     canvas.fill_rounded(Rect::new(bx.x, bx.y + 0.5, bx.w, bx.h - 0.5), RADIUS + 0.5, Color::rgba(0, 0, 0, 14), clip);
@@ -164,6 +165,9 @@ pub fn paint(
     let label_size = label.map_or((0.0, 0.0), |tb| (tb.shaped.width, tb.shaped.height));
     if let (Some(icon), Some(img)) = (arrange(node, bx.w, bx.h - SHADOW, label_size).1, icon_path(node).and_then(|p| images.get(Path::new(p)))) {
         image::draw_fitted(canvas, &img, icon.translate(bx.x, bx.y), inner_clip);
+    }
+    if inset {
+        focus_outline(canvas, r, RADIUS, ACCENT, clip);
     }
 }
 

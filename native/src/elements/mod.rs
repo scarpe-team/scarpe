@@ -128,6 +128,12 @@ pub fn focus_ring_in(canvas: &mut Canvas, rect: Rect, radius: f32, color: Color,
     canvas.fill_rounded(halo, radius + 3.0, color.with_alpha(FOCUS_RING.a), clip);
 }
 
+/// A focus outline inside a control, visible even when its slot clips at its edges.
+pub fn focus_outline(canvas: &mut Canvas, rect: Rect, radius: f32, color: Color, clip: Option<Rect>) {
+    let inside = Rect::new(rect.x + 1.0, rect.y + 1.0, (rect.w - 2.0).max(0.0), (rect.h - 2.0).max(0.0));
+    canvas.stroke_rounded(inside, (radius - 1.0).max(0.0), color, 2.0, clip);
+}
+
 /// Picks readable text for a coloured surface.
 pub fn text_on(surface: Color) -> Color {
     if surface.luminance() < 0.55 {

@@ -6,6 +6,7 @@ class Shoes
 
     shoes_styles :text, :width, :font, :tooltip, :stroke, :secret
     shoes_styles :fill, :border_color # the box and its edge, in the page's colours (ledger G17)
+    shoes_styles :focus_inset
     shoes_style :change # the handler (manual 1123-1128, ledger G10)
     shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
     shoes_events :change, :finish

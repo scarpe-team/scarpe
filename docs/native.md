@@ -114,6 +114,21 @@ a step failed (a click on something covered, say) or the script never started an
 `--fonts bundled` swaps the system fonts for Inter and Fira Mono, which ship with Scarpe, so a
 picture comes out the same on every machine.
 
+## Inset focus outlines
+
+Native `button` and `edit_line` accept `focus_inset: true` to draw the focus outline inside the
+control. This keeps it visible in rows and panels that clip at the control's edges. The outline
+uses the control's existing focus color and takes no extra layout space.
+
+```ruby
+button "Search", focus_inset: true
+@query = edit_line "", focus_inset: true
+@query.focus_inset = false
+```
+
+The default is the existing outer halo; `false` or `nil` restores it at runtime. Buttons show
+focus after Tab or `focus`, and text fields also show it after a click, as usual.
+
 ## Where a number puts a slot
 
 Slots, text and images read `left`, `top`, `width` and `height` the way Shoes 3 does. A position

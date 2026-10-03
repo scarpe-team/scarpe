@@ -440,6 +440,61 @@ fn control_shadows_stay_inside_their_boxes() {
     }
 }
 
+/// Focus stays visible when a fixed-height slot clips at the control's edges.
+#[test]
+fn inset_focus_outlines_remain_visible_in_tightly_clipped_rows() {
+    for kind in ["Button", "EditLine"] {
+        let mut h = Harness::new();
+        h.feed(&app(200, 100, &[
+            create(3, "Stack", 2, json!({"left": 10, "top": 10, "width": 160, "height": 40})),
+            create(4, kind, 3, json!({"text": "", "width": 160, "height": 40, "focus_inset": true})),
+        ]));
+        let geometry = h.node(|n| n["id"] == 4);
+        h.value(json!({"op": "key", "key": "tab"}));
+        assert_eq!(h.value(json!({"op": "focused"})), json!(4));
+        assert_eq!(h.node(|n| n["id"] == 4), geometry, "focus does not change layout");
+        for scale in [1.0, 1.25, 2.0] {
+            let picture = h.rt.picture(1, scale).unwrap();
+            // Look just inside each edge; the button's face sits above its shadow.
+            for (x, y, dx, dy) in [(90.0, 10.0, 0.0, 1.0), (10.0, 30.0, 1.0, 0.0), (169.0, 30.0, -1.0, 0.0), (90.0, 49.0, 0.0, -1.0)] {
+                let painted = (0..(4.0 * scale) as u32).any(|offset| {
+                    let px = (x * scale + offset as f32 * dx).floor() as u32;
+                    let py = (y * scale + offset as f32 * dy).floor() as u32;
+                    let ink = picture.pixel(px, py).unwrap();
+                    ink.blue() > ink.red().saturating_add(100) && ink.blue() > ink.green().saturating_add(40)
+                });
+                assert!(painted, "{kind} at {scale}x: missing focus edge at {x},{y}");
+            }
+        }
+    }
+}
+
+#[test]
+fn inset_focus_is_opt_in_and_uses_the_existing_focus_color() {
+    for kind in ["Button", "EditLine"] {
+        let mut h = Harness::new();
+        h.feed(&app(200, 100, &[create(3, kind, 2, json!({"text": "", "left": 20, "top": 20, "width": 80, "height": 40, "stroke": "#ae4721"}))]));
+        let geometry = h.node(|n| n["id"] == 3);
+        let unfocused = h.rt.picture(1, 1.0).unwrap();
+        h.feed(&json!({"t": "props", "id": 3, "props": {"focus_inset": true}}).to_string());
+        assert!(h.rt.picture(1, 1.0).unwrap().data() == unfocused.data(), "no outline without focus");
+        h.feed(&json!({"t": "props", "id": 3, "props": {"focus_inset": null}}).to_string());
+        h.value(json!({"op": "key", "key": "tab"}));
+        let default = h.rt.picture(1, 1.0).unwrap();
+        assert_ne!(rgb(&mut h, 18.0, 40.0), WHITE, "the default halo reaches outside the control");
+
+        h.feed(&json!({"t": "props", "id": 3, "props": {"focus_inset": true}}).to_string());
+        assert_eq!(rgb(&mut h, 18.0, 40.0), WHITE, "the inset outline stays inside the control");
+        let color = if kind == "Button" { [10, 132, 255] } else { [174, 71, 33] };
+        assert_eq!(rgb(&mut h, 60.0, 22.0), color, "{kind} keeps its focus color");
+        assert_eq!(h.node(|n| n["id"] == 3), geometry, "changing the style does not move the control");
+        for value in [json!(false), Value::Null] {
+            h.feed(&json!({"t": "props", "id": 3, "props": {"focus_inset": value}}).to_string());
+            assert!(h.rt.picture(1, 1.0).unwrap().data() == default.data(), "{value} restores the original focus rendering");
+        }
+    }
+}
+
 /// DESIGN: check boxes are accent blue when on, even at the middle of the box.
 #[test]
 fn a_checked_box_is_accent_blue_in_the_middle() {
