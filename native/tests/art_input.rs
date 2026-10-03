@@ -423,6 +423,61 @@ fn a_button_draws_its_icon_beside_its_label() {
     let _ = std::fs::remove_file(icon);
 }
 
+// ---- Scrollbar direction ----
+
+#[test]
+fn scrollbar_direction_defaults_to_ltr_and_can_change_while_scrolled() {
+    for kind in ["Stack", "Flow"] {
+        let mut h = Harness::new();
+        h.feed(&app(200, 120, &[
+            create(3, kind, 2, json!({"left": 20, "top": 20, "width": 80, "height": 60, "scroll": true})),
+            create(4, "Stack", 3, json!({"width": 80, "height": 180})),
+        ]));
+        assert_eq!(rgb(&mut h, 94.0, 30.0), [165; 3], "the default thumb is on the right");
+        assert_eq!(rgb(&mut h, 25.0, 30.0), WHITE);
+        h.value(json!({"op": "wheel", "dy": 60, "x": 50, "y": 40}));
+        let layout = h.layout();
+        assert_eq!(h.node(|n| n["id"] == 4)["y"], json!(-40.0));
+        for direction in [json!("rtl"), json!("ltr"), json!("rtl"), Value::Null, json!("rtl"), json!("unknown")] {
+            h.feed(&json!({"t": "props", "id": 3, "props": {"direction": direction}}).to_string());
+            let (thumb, empty) = if direction == "rtl" { (25.0, 94.0) } else { (94.0, 25.0) };
+            assert_eq!(rgb(&mut h, thumb, 50.0), [165; 3], "{kind}, {direction}: the thumb changes sides");
+            assert_eq!(rgb(&mut h, empty, 50.0), WHITE, "the other side is clear");
+            assert_eq!(rgb(&mut h, thumb, 30.0), WHITE, "the thumb follows the scroll offset");
+            assert_eq!(h.layout(), layout, "direction preserves content geometry and scroll position");
+        }
+
+        h.feed(&json!({"t": "props", "id": 3, "props": {"direction": "rtl"}}).to_string());
+        h.feed(&json!({"t": "scroll_to", "id": 3, "top": 9999}).to_string());
+        assert_eq!(h.node(|n| n["id"] == 4)["y"], json!(-100.0), "programmatic scrolling still clamps");
+        assert_eq!(rgb(&mut h, 25.0, 70.0), [165; 3]);
+        h.value(json!({"op": "wheel", "dy": -9999, "x": 50, "y": 40}));
+        assert_eq!(h.node(|n| n["id"] == 4)["y"], json!(20.0));
+        assert_eq!(rgb(&mut h, 25.0, 30.0), [165; 3]);
+        h.feed(&json!({"t": "props", "id": 4, "props": {"height": 40}}).to_string());
+        assert_eq!(rgb(&mut h, 25.0, 30.0), WHITE, "no thumb when the content fits");
+    }
+}
+
+#[test]
+fn rtl_scrollbars_stay_inside_their_ancestors_clip() {
+    for kind in ["Stack", "Flow"] {
+        let mut h = Harness::new();
+        h.feed(&app(200, 120, &[
+            create(3, "Stack", 2, json!({"left": 20, "top": 20, "width": 80, "height": 40})),
+            create(4, kind, 3, json!({"left": 0, "top": 0, "width": 80, "height": 60, "scroll": true, "direction": "rtl"})),
+            create(5, "Stack", 4, json!({"width": 80, "height": 180})),
+        ]));
+        h.feed(&json!({"t": "scroll_to", "id": 4, "top": 60}).to_string());
+        assert_eq!(rgb(&mut h, 25.0, 50.0), [165; 3]);
+        assert_eq!(rgb(&mut h, 25.0, 61.0), WHITE, "the thumb is clipped below the parent");
+        assert_eq!(rgb(&mut h, 94.0, 50.0), WHITE, "RTL has no right-hand thumb");
+        h.feed(&json!({"t": "props", "id": 4, "props": {"left": -10}}).to_string());
+        assert_eq!(rgb(&mut h, 15.0, 50.0), WHITE, "the thumb is clipped to the left of the parent");
+        assert_eq!(rgb(&mut h, 25.0, 50.0), WHITE, "the thumb left its old position");
+    }
+}
+
 // ---- Widget polish (DESIGN look and feel, ledger C4) ----
 
 #[test]

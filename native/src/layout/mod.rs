@@ -123,6 +123,7 @@ pub struct Scroller {
     pub viewport: Rect,
     pub content_height: f32,
     pub top: f32,
+    pub rtl: bool,
 }
 
 impl Scroller {
@@ -733,7 +734,8 @@ impl Engine<'_> {
             return;
         }
         let doc = self.doc;
-        let mut scroller = Scroller { viewport, content_height, top: 0.0 };
+        let rtl = doc.get(slot).is_some_and(|n| n.props.str("direction") == Some("rtl"));
+        let mut scroller = Scroller { viewport, content_height, top: 0.0, rtl };
         scroller.top = self.scroll.get(&slot).copied().unwrap_or(0.0).clamp(0.0, scroller.max_top());
         if scroller.top != 0.0 {
             for &child in doc.children(slot) {

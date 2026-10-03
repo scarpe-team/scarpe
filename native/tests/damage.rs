@@ -249,6 +249,27 @@ fn scrolling_repaints_everything() {
     assert_eq!(window.repaint(&mut h), Repaint::Everything);
 }
 
+#[test]
+fn scrollbar_direction_changes_repaint_both_sides() {
+    for scale in [1.0, 1.25, 2.0] {
+        let mut h = Harness::new();
+        h.feed(&app(200, 120, &[
+            create(3, "Stack", 2, json!({"left": 20, "top": 20, "width": 80, "height": 60, "scroll": true})),
+            create(4, "Stack", 3, json!({"height": 180})),
+        ]));
+        h.value(json!({"op": "wheel", "dy": 60, "x": 50, "y": 40}));
+        let mut window = Window::open(&mut h, scale);
+        let default = window.frame.clone();
+        for direction in [json!("rtl"), json!("ltr"), json!("rtl"), Value::Null] {
+            let before = window.frame.clone();
+            props(&mut h, 3, json!({"direction": direction}));
+            window.repaint(&mut h);
+            assert!(window.frame.data() != before.data(), "{direction} moves the visible thumb at {scale}x");
+        }
+        assert!(window.frame.data() == default.data(), "nil restores the original picture");
+    }
+}
+
 /// Turned, scaled or skewed art repaints the box its transform turns it into, grown by how
 /// far its stroke and points can reach once stretched. Any transform used to repaint the whole
 /// window, so one star turned once made every later twinkle a full repaint
