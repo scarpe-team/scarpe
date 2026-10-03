@@ -440,6 +440,62 @@ fn control_shadows_stay_inside_their_boxes() {
     }
 }
 
+#[test]
+fn disabled_controls_can_dim_into_a_dark_surface_and_restore_the_default() {
+    for kind in ["Button", "EditLine"] {
+        let mut h = Harness::new();
+        h.feed(&app(200, 100, &[
+            create(3, "Background", 2, json!({"fill": "#202020"})),
+            create(4, kind, 2, json!({"text": "", "left": 20, "top": 20, "width": 80, "height": 36, "color": "#2c2828", "fill": "#2c2828"})),
+        ]));
+        let geometry = h.node(|n| n["id"] == 4);
+        let enabled = h.rt.picture(1, 1.0).unwrap();
+        h.feed(&json!({"t": "props", "id": 4, "props": {"state": "disabled"}}).to_string());
+        let default = h.rt.picture(1, 1.0).unwrap();
+        assert!(rgb(&mut h, 18.0, 38.0).iter().all(|c| *c > 150), "the default white overlay extends outside the control");
+
+        h.feed(&json!({"t": "props", "id": 4, "props": {"disabled_color": "#2c2828"}}).to_string());
+        let center = rgb(&mut h, 40.0, 38.0);
+        assert!(center.iter().zip([44, 40, 40]).all(|(a, b)| (a - b).abs() <= 2), "{kind} stays dark: {center:?}");
+        assert_eq!(rgb(&mut h, 18.0, 38.0), [32, 32, 32], "the custom overlay stays inside the control");
+        assert_eq!(rgb(&mut h, 20.0, 20.0), [32, 32, 32], "its corner stays rounded");
+        assert_eq!(h.node(|n| n["id"] == 4), geometry, "styling does not change layout");
+
+        h.feed(&json!({"t": "props", "id": 4, "props": {"state": null}}).to_string());
+        assert!(h.rt.picture(1, 1.0).unwrap().data() == enabled.data(), "enabled controls ignore disabled_color");
+        for color in [Value::Null, json!("not-a-color")] {
+            h.feed(&json!({"t": "props", "id": 4, "props": {"state": "disabled", "disabled_color": color}}).to_string());
+            assert!(h.rt.picture(1, 1.0).unwrap().data() == default.data(), "{color} restores the original overlay");
+        }
+    }
+}
+
+#[test]
+fn disabled_overlay_colors_respect_alpha_and_parent_clipping() {
+    for kind in ["Button", "EditLine"] {
+        let mut h = Harness::new();
+        h.feed(&app(200, 100, &[
+            create(3, "Background", 2, json!({"fill": "#202020"})),
+            create(4, "Stack", 2, json!({"left": 20, "top": 20, "width": 40, "height": 36})),
+            create(5, kind, 4, json!({"text": "", "width": 80, "height": 36})),
+        ]));
+        let enabled = h.rt.picture(1, 1.0).unwrap();
+        let original = rgb(&mut h, 40.0, 38.0);
+        h.feed(&json!({"t": "props", "id": 5, "props": {"state": "disabled", "disabled_color": {"rgba": [0, 0, 0, 0]}}}).to_string());
+        assert!(h.rt.picture(1, 1.0).unwrap().data() == enabled.data(), "transparent disables the overlay, not the control");
+
+        h.feed(&json!({"t": "props", "id": 5, "props": {"disabled_color": {"rgba": [0, 0, 0, 128]}}}).to_string());
+        let half = rgb(&mut h, 40.0, 38.0);
+        h.feed(&json!({"t": "props", "id": 5, "props": {"disabled_color": "black"}}).to_string());
+        let full = rgb(&mut h, 40.0, 38.0);
+        for i in 0..3 {
+            assert!(full[i] < half[i] && half[i] < original[i], "{kind}: alpha controls the overlay strength");
+            assert!((half[i] * 2 - original[i] - full[i]).abs() <= 2, "half alpha blends halfway");
+        }
+        assert_eq!(rgb(&mut h, 65.0, 38.0), [32, 32, 32], "the overlay respects the parent's clip");
+    }
+}
+
 /// DESIGN: check boxes are accent blue when on, even at the middle of the box.
 #[test]
 fn a_checked_box_is_accent_blue_in_the_middle() {

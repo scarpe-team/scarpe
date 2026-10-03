@@ -141,6 +141,21 @@ Shoes.text_mode = :shoes3
 Sizes are then points (`"18px"` stays pixels), and text that names no face is set in Arial, as
 Shoes 3 set it. Every window the program opens follows it. Hackety Hack asks for it.
 
+## Disabled control colors
+
+Native buttons and `edit_line` accept `disabled_color`, the tint drawn over a disabled control.
+It uses the usual disabled opacity, multiplied by the color's own alpha, and stays inside the
+control's rounded bounds. Omitting it or setting it to `nil` keeps the original white overlay.
+
+```ruby
+button "Next", state: "disabled", color: "#2c2828", disabled_color: "#2c2828"
+@search = edit_line "", state: "disabled", fill: "#2c2828", disabled_color: "#2c2828"
+@search.disabled_color = "transparent"
+```
+
+A transparent color removes the overlay while the control still ignores input. The property
+can change at runtime and has no effect while the control is enabled.
+
 ## Screen readers
 
 Scarpe draws its own buttons, fields and text, so no control of the operating system is there to
