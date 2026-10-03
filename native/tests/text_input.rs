@@ -270,3 +270,132 @@ fn a_fields_font_keeps_its_weight_and_slant() {
     assert!(bold.len() * 10 > plain.len() * 13, "bold puts down at least 30% more ink: {} against {}", plain.len(), bold.len());
     assert!(lean(&italic) > lean(&plain) + 0.5, "italic leans right: {:.2} against {:.2}", lean(&plain), lean(&italic));
 }
+
+// ---- Single-line alignment ----
+
+#[test]
+fn an_empty_lines_caret_obeys_alignment_and_defaults_to_left() {
+    for (align, expected) in [(Value::Null, 28.0), (json!("left"), 28.0), (json!("center"), 119.0), (json!("right"), 210.0), (json!("unknown"), 28.0)] {
+        let mut h = field("EditLine", json!({"text": "", "left": 20, "top": 40, "width": 200, "align": align}));
+        h.value(json!({"op": "frames", "n": 1}));
+        let caret = h.rt.text_input_area(1).unwrap();
+        assert!((caret.x - expected).abs() < 1.0, "{align}: {caret:?}");
+        h.feed(&json!({"t": "props", "id": 3, "props": {"align": null}}).to_string());
+        h.value(json!({"op": "frames", "n": 1}));
+        assert!((h.rt.text_input_area(1).unwrap().x - 28.0).abs() < 1.0, "clearing alignment restores the default");
+    }
+}
+
+#[test]
+fn aligned_ink_clicks_and_selection_share_the_same_position() {
+    for (align, left, right) in [("center", 90.0, 145.0), ("right", 180.0, 231.0)] {
+        let mut h = field("EditLine", json!({"text": "hello", "width": 240, "align": align}));
+        h.value(json!({"op": "click", "target": {"id": 4}}));
+        let dark = ink(&mut h, 3);
+        assert!(!dark.is_empty());
+        assert!(dark.iter().all(|p| p.0 as f64 > left && (p.0 as f64) < right), "{align}: the word is painted in its aligned position");
+        h.value(json!({"op": "click", "target": {"x": right, "y": 14}}));
+        assert_eq!(typed(&mut h, "!"), ["hello!"], "{align}: clicking after the ink puts the caret at the end");
+        key(&mut h, ":control_a");
+        h.value(json!({"op": "frames", "n": 1}));
+        let selection = h.rt.views[&1].ui.fields[&3].selection();
+        assert!(!selection.is_empty());
+        assert!(selection.iter().all(|r| f64::from(r.x) > left && f64::from(r.right()) <= right), "{align}: {selection:?}");
+        key(&mut h, ":control_c");
+        assert_eq!(key(&mut h, "backspace"), [""]);
+        assert_eq!(key(&mut h, ":control_z"), ["hello!"]);
+        h.value(json!({"op": "click", "target": {"id": 4}}));
+        assert_eq!(key(&mut h, ":control_v"), ["hello!"]);
+    }
+}
+
+#[test]
+fn aligned_arabic_runs_keep_logical_text_when_editing() {
+    let mut h = field("EditLine", json!({"text": "", "width": 240, "align": "right"}));
+    let query = "العلم 123 Ruby";
+    typed(&mut h, query);
+    key(&mut h, ":control_home");
+    h.value(json!({"op": "frames", "n": 1}));
+    let start = h.rt.text_input_area(1).unwrap();
+    assert!((start.x - 230.0).abs() < 1.0, "the Arabic paragraph starts at the right: {start:?}");
+    assert_eq!(typed(&mut h, "و"), [format!("و{query}")]);
+    assert_eq!(key(&mut h, ":control_z"), [query]);
+    key(&mut h, ":control_a");
+    key(&mut h, ":control_c");
+    h.value(json!({"op": "click", "target": {"id": 4}}));
+    assert_eq!(key(&mut h, ":control_v"), [query], "copy preserves Arabic, Latin and digit order");
+}
+
+#[test]
+fn aligned_long_lines_scroll_and_realign_after_deletion() {
+    for align in ["left", "center", "right"] {
+        for query in ["long query ".repeat(15), "كلمات البحث ".repeat(15)] {
+            let mut h = field("EditLine", json!({"text": "", "width": 1.0, "align": align}));
+            typed(&mut h, &query);
+            for width in [300, 120, 400] {
+                h.value(json!({"op": "resize", "w": width, "h": 200}));
+                h.value(json!({"op": "frames", "n": 1}));
+                for motion in [":control_home", ":control_end"] {
+                    key(&mut h, motion);
+                    h.value(json!({"op": "frames", "n": 1}));
+                    let f = &h.rt.views[&1].ui.fields[&3];
+                    let caret = f.caret().unwrap();
+                    assert!(caret.x >= f.inner.x - 0.1 && caret.right() <= f.inner.right(), "{align}, {width}, {motion}: {caret:?}, {:?}", f.inner);
+                }
+            }
+            key(&mut h, ":control_a");
+            assert_eq!(key(&mut h, "backspace"), [""]);
+            h.value(json!({"op": "frames", "n": 1}));
+            let expected = match align { "center" => 199.0, "right" => 390.0, _ => 8.0 };
+            assert!((h.rt.text_input_area(1).unwrap().x - expected).abs() < 1.0, "{align}: an emptied line realigns");
+            assert_eq!(key(&mut h, ":control_z"), [query.as_str()]);
+        }
+    }
+}
+
+#[test]
+fn changing_alignment_preserves_selection_and_undo() {
+    let mut h = field("EditLine", json!({"text": "", "width": 240}));
+    typed(&mut h, "hello");
+    key(&mut h, "shift_left");
+    let messages = h.feed(&json!({"t": "props", "id": 3, "props": {"align": "right"}}).to_string());
+    assert!(named(&events(&messages), "change").is_empty(), "alignment is not an edit");
+    assert_eq!(typed(&mut h, "!"), ["hell!"]);
+    assert_eq!(key(&mut h, ":control_z"), ["hello"]);
+    assert_eq!(key(&mut h, ":control_z"), [""]);
+    h.value(json!({"op": "frames", "n": 1}));
+    assert!((h.rt.text_input_area(1).unwrap().x - 230.0).abs() < 1.0);
+}
+
+#[test]
+fn aligned_secret_fields_move_bullets_caret_and_clicks_together() {
+    let mut h = field("EditLine", json!({"text": "abc", "width": 240, "secret": true, "align": "right"}));
+    h.value(json!({"op": "click", "target": {"id": 4}}));
+    let dark = ink(&mut h, 3);
+    assert!(!dark.is_empty());
+    assert!(dark.iter().all(|p| p.0 > 190 && p.0 < 234), "the bullets are painted at the right");
+    h.value(json!({"op": "click", "target": {"x": 190, "y": 14}}));
+    assert_eq!(typed(&mut h, "d"), ["dabc"], "clicking before the bullets inserts at the start");
+    key(&mut h, ":control_end");
+    h.value(json!({"op": "frames", "n": 1}));
+    let f = &h.rt.views[&1].ui.fields[&3];
+    assert!((f.caret().unwrap().x - 230.0).abs() < 1.0);
+    key(&mut h, ":control_a");
+    let selection = h.rt.views[&1].ui.fields[&3].selection();
+    assert!(!selection.is_empty());
+    assert!(selection.iter().all(|r| r.x > 180.0 && r.right() <= 231.0), "the selection covers the bullets: {selection:?}");
+    assert_eq!(key(&mut h, "backspace"), [""]);
+}
+
+#[test]
+fn an_edit_box_keeps_its_existing_alignment() {
+    let mut h = field("EditBox", json!({"text": "one\ntwo", "width": 240}));
+    key(&mut h, ":control_a");
+    h.value(json!({"op": "frames", "n": 1}));
+    let caret = h.rt.text_input_area(1).unwrap();
+    let selection = h.rt.views[&1].ui.fields[&3].selection();
+    h.feed(&json!({"t": "props", "id": 3, "props": {"align": "right"}}).to_string());
+    h.value(json!({"op": "frames", "n": 1}));
+    assert_eq!(h.rt.text_input_area(1).unwrap(), caret);
+    assert_eq!(h.rt.views[&1].ui.fields[&3].selection(), selection);
+}

@@ -12,6 +12,28 @@ class TextInputTest < Minitest::Test
     skip_without_real_binary
   end
 
+  def test_edit_line_alignment_reaches_the_renderer_and_can_change
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        @line = edit_line "hello", width: 240, align: "right"
+      end
+    APP
+      line = edit_line
+      assert_equal "right", line.align
+      click_at 120, 14
+      type_text "*"
+      assert_equal "*hello", line.text, "the middle of the field is before the right-aligned word"
+      line.obj.align = "left"
+      wait_frames
+      click_at 160, 14
+      type_text "!"
+      assert_equal "*hello!", line.text, "clicking past the left-aligned word inserts at its end"
+      press_key :control_z
+      assert_equal "*hello", line.text
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_undo_and_redo_reach_the_app_as_changes
     run = run_real(<<~APP, test_code: <<~TEST)
       Shoes.app do
