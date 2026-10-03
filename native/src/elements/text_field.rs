@@ -7,7 +7,7 @@ use crate::layout::Rect;
 use crate::paint::text::{caret_position, selection_rects};
 use crate::style::Color;
 use crate::text::FamilyName;
-use cosmic_text::{Action, Attrs, Buffer, Cursor, Edit, Editor, FontSystem, Metrics, Motion, Selection, Shaping, Style, Weight, Wrap};
+use cosmic_text::{Action, Align, Attrs, Buffer, Cursor, Edit, Editor, FontSystem, Metrics, Motion, Selection, Shaping, Style, Weight, Wrap};
 use std::collections::VecDeque;
 
 pub const BULLET: char = '\u{2022}';
@@ -75,6 +75,7 @@ pub struct TextField {
     pub size: f32,
     pub color: Color,
     face: Face,
+    align: Align,
     bullet_w: f32,
     history: History,
     /// Texts sent in `change` events that Lacci has not echoed back yet. Echoes can trail
@@ -129,6 +130,7 @@ impl TextField {
             size,
             color,
             face,
+            align: Align::Left,
             bullet_w,
             history: History::default(),
             unechoed: VecDeque::new(),
@@ -261,8 +263,22 @@ impl TextField {
         self.offset.1 = self.offset.1.clamp(0.0, (ch - self.inner.h).max(0.0));
     }
 
+    /// Single-line text keeps its natural width so long RTL and LTR lines scroll in the
+    /// same coordinates. Align the whole line in the remaining room, including an empty
+    /// line's caret. Painting, hit testing and selection all use this origin.
+    pub fn origin(&self) -> (f32, f32) {
+        let spare = if self.multiline { 0.0 } else { (self.inner.w - 2.0 - self.content_size().0).max(0.0) };
+        let aligned = match self.align {
+            Align::Right => spare,
+            Align::Center => spare / 2.0,
+            _ => 0.0,
+        };
+        (self.inner.x + aligned - self.offset.0, self.inner.y - self.offset.1)
+    }
+
     fn local(&self, x: f32, y: f32) -> (f32, f32) {
-        (x - self.inner.x + self.offset.0, y - self.inner.y + self.offset.1)
+        let (ox, oy) = self.origin();
+        (x - ox, y - oy)
     }
 
     /// A press in the field: click places the caret, a double click selects a
@@ -526,13 +542,15 @@ impl TextField {
     /// The caret in window coordinates.
     pub fn caret(&self) -> Option<Rect> {
         let (x, top, h) = self.caret_local()?;
-        Some(Rect::new(self.inner.x + x - self.offset.0, self.inner.y + top - self.offset.1, 1.0, h))
+        let (ox, oy) = self.origin();
+        Some(Rect::new(ox + x, oy + top, 1.0, h))
     }
 
     /// Selection rectangles in window coordinates.
     pub fn selection(&self) -> Vec<Rect> {
         let Some((start, end)) = self.editor.selection_bounds() else { return Vec::new() };
-        let shift = |r: Rect| r.translate(self.inner.x - self.offset.0, self.inner.y - self.offset.1);
+        let (ox, oy) = self.origin();
+        let shift = |r: Rect| r.translate(ox, oy);
         if self.secret {
             let (a, b) = (self.chars_before(start) as f32 * self.bullet_w, self.chars_before(end) as f32 * self.bullet_w);
             return vec![shift(Rect::new(a, 0.0, b - a, self.line_height()))];
@@ -615,7 +633,7 @@ pub fn ensure<'v>(
     node: &crate::doc::Node,
     fonts: &mut crate::text::Fonts,
 ) -> &'v mut TextField {
-    fields.entry(node.id).or_insert_with(|| {
+    let field = fields.entry(node.id).or_insert_with(|| {
         let p = &node.props;
         let mut face = Face::plain(FamilyName::Sans);
         let mut size = super::CONTROL_TEXT_SIZE;
@@ -634,5 +652,12 @@ pub fn ensure<'v>(
         let multiline = node.kind == crate::doc::Kind::EditBox;
         let text = p.text("text").unwrap_or_default();
         TextField::new(&mut fonts.system, &text, multiline, p.truthy("secret"), face, size, color)
-    })
+    });
+    // Updating alignment does not rebuild the editor or lose its selection and history.
+    field.align = match node.props.str("align") {
+        Some("right") => Align::Right,
+        Some("center") => Align::Center,
+        _ => Align::Left,
+    };
+    field
 }

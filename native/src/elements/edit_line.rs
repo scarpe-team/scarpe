@@ -80,7 +80,7 @@ pub fn draw_field(
     for r in field.selection() {
         canvas.fill_rect(r, selection, clip);
     }
-    let (x, y) = (field.inner.x - field.offset.0, field.inner.y - field.offset.1);
+    let (x, y) = field.origin();
     if field.secret {
         let shaped = text.shape(&RichText::plain(&field.bullets(), TextStyle::new(field.size, field.color)), None);
         draw_shaped(canvas, text, &shaped, x, y, clip, None);

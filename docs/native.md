@@ -141,6 +141,18 @@ Shoes.text_mode = :shoes3
 Sizes are then points (`"18px"` stays pixels), and text that names no face is set in Arial, as
 Shoes 3 set it. Every window the program opens follows it. Hackety Hack asks for it.
 
+## Text field alignment
+
+Native `edit_line` fields accept `align: "left"`, `"center"` or `"right"`; left is the default.
+The text, cursor, selection and mouse clicks share the chosen alignment, including empty and
+secret fields. Long lines scroll horizontally. Changing `align` preserves selection and undo history.
+
+```ruby
+@query = edit_line "", align: "right"
+@page = edit_line "1", width: 76, align: "center"
+@query.align = "left"
+```
+
 ## Screen readers
 
 Scarpe draws its own buttons, fields and text, so no control of the operating system is there to
