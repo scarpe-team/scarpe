@@ -85,6 +85,111 @@ fn flow_packs_left_to_right_and_wraps() {
 }
 
 #[test]
+fn rtl_flow_wraps_from_the_right_and_preserves_source_order() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"direction": "rtl"}));
+    let ids: Vec<Id> = (0..3).map(|_| s.add("Button", flow, json!({"text": "x", "width": 80, "height": 20}))).collect();
+    let hidden = s.add("Button", flow, json!({"width": 100, "hidden": true}));
+    for (width, positions) in [(200.0, [(120.0, 0.0), (40.0, 0.0), (120.0, 20.0)]), (240.0, [(160.0, 0.0), (80.0, 0.0), (0.0, 0.0)])] {
+        let l = s.layout(width, 200.0);
+        for (&id, (x, y)) in ids.iter().zip(positions) {
+            assert_eq!(r(&l, id), Rect::new(x, y, 80.0, 20.0));
+        }
+        assert_eq!(r(&l, flow).h, positions[2].1 + 20.0);
+        assert_eq!(l.order.iter().copied().filter(|id| ids.contains(id)).collect::<Vec<_>>(), ids);
+        assert!(l.rect(hidden).is_none());
+    }
+    for direction in [json!("ltr"), json!("unknown"), Value::Null] {
+        s.doc.set_props(flow, json!({"direction": direction}).as_object().unwrap().clone());
+        let l = s.layout(200.0, 200.0);
+        assert_eq!(r(&l, ids[0]), Rect::new(0.0, 0.0, 80.0, 20.0), "RTL is opt-in");
+        assert_eq!(r(&l, ids[1]), Rect::new(80.0, 0.0, 80.0, 20.0));
+        assert_eq!(r(&l, ids[2]), Rect::new(0.0, 20.0, 80.0, 20.0));
+    }
+}
+
+#[test]
+fn rtl_flow_keeps_physical_margins_padding_and_positioned_children() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"direction": "rtl", "left": 20, "top": 10, "width": 220, "padding": [10, 20, 5, 7]}));
+    let first = s.add("Button", flow, json!({"width": 80, "height": 30, "margin": [5, 2, 15, 3], "displace_left": 3}));
+    let second = s.add("Button", flow, json!({"width": 100, "height": 20, "margin_left": 7, "margin_right": 9}));
+    let wide = s.add("Button", flow, json!({"width": 250, "height": 10}));
+    let placed = s.add("Button", flow, json!({"left": 4, "top": 40, "width": 40, "height": 10}));
+    let pinned = s.add("Button", flow, json!({"attach": "window", "left": 3, "top": 2, "width": 10, "height": 10}));
+    let l = s.layout(400.0, 200.0);
+    assert_eq!(r(&l, first), Rect::new(148.0, 17.0, 60.0, 25.0), "right margin stays right; displacement still moves right");
+    assert_eq!(r(&l, second), Rect::new(47.0, 15.0, 84.0, 20.0));
+    assert_eq!(r(&l, wide), Rect::new(-30.0, 45.0, 250.0, 10.0), "oversized children anchor to the right on a new row");
+    assert_eq!(r(&l, flow).h, 52.0);
+    assert_eq!(r(&l, placed), Rect::new(34.0, 55.0, 40.0, 10.0), "explicit coordinates stay physical");
+    assert_eq!(r(&l, pinned), Rect::new(3.0, 2.0, 10.0, 10.0), "window attachments stay in window coordinates");
+}
+
+#[test]
+fn rtl_flow_nested_slots_keep_their_own_direction_and_scroll_coordinates() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"direction": "rtl", "left": 20, "top": 10, "width": 200}));
+    let panel = s.add("Stack", flow, json!({"width": 100, "height": 40, "padding": 4, "scroll": true, "direction": "rtl"}));
+    let bg = s.add("Background", panel, json!({"fill": "#eeeeee"}));
+    let ltr = s.add("Flow", panel, json!({"width": 80, "height": 20}));
+    let a = s.add("Button", ltr, json!({"width": 30, "height": 20, "text": "A"}));
+    let b = s.add("Button", ltr, json!({"width": 30, "height": 20}));
+    let rtl = s.add("Flow", panel, json!({"direction": "rtl", "width": 80, "height": 20}));
+    let c = s.add("Button", rtl, json!({"width": 30, "height": 20}));
+    let d = s.add("Button", rtl, json!({"width": 30, "height": 20}));
+    let mut l = s.layout(300.0, 200.0);
+    assert_eq!(r(&l, panel), Rect::new(120.0, 10.0, 100.0, 40.0));
+    assert_eq!(r(&l, bg), r(&l, panel));
+    assert_eq!(r(&l, a), Rect::new(124.0, 14.0, 30.0, 20.0), "nested flows default to LTR");
+    assert_eq!(r(&l, b).x, 154.0);
+    assert_eq!(r(&l, c), Rect::new(174.0, 34.0, 30.0, 20.0), "nested flows can opt in independently");
+    assert_eq!(r(&l, d).x, 144.0);
+    assert_eq!(l.scrollers[&panel].viewport, r(&l, panel));
+    assert_eq!(l.boxes[&c].clip.unwrap(), Rect::new(124.0, 34.0, 80.0, 16.0));
+    let text_x = l.texts[&a].x;
+    assert!(text_x >= r(&l, a).x && text_x < r(&l, a).right());
+    assert_eq!(l.scroll(&s.doc, panel, 8.0), Some(8.0));
+    assert_eq!(r(&l, c).y, 26.0);
+    assert_eq!(l.texts[&a].x, text_x);
+    assert_eq!(r(&l, bg), r(&l, panel), "scrolling leaves the panel background in place");
+}
+
+#[test]
+fn rtl_flow_text_wraps_in_separate_boxes_without_overlapping_controls() {
+    for text in ["An English paragraph that wraps across several lines beside other controls.", "هذه فقرة عربية طويلة تلتف على عدة أسطر بجانب عناصر التحكم الأخرى."] {
+        let mut s = Scene::new();
+        let flow = s.add("Flow", ROOT, json!({"direction": "rtl", "width": 160}));
+        let button = s.add("Button", flow, json!({"width": 60, "height": 20}));
+        let label = s.add("Para", flow, json!({"text_items": ["Label"]}));
+        let long = s.add("Para", flow, json!({"text_items": [text]}));
+        let after = s.add("Button", flow, json!({"width": 40, "height": 20}));
+        let l = s.layout(300.0, 200.0);
+        assert_eq!(r(&l, label).right(), r(&l, button).x - 4.0, "the label fits to the left of the button");
+        assert!(r(&l, long).y >= r(&l, button).bottom(), "a wrapping text box starts a new row");
+        assert_eq!(r(&l, long).x, 4.0);
+        assert_eq!(r(&l, long).w, 152.0);
+        assert!(r(&l, after).y >= r(&l, long).bottom(), "controls do not overlap the paragraph's last line");
+        assert!(l.texts[&long].shaped.buffer.layout_runs().count() > 1);
+        assert_eq!(l.texts[&long].x, r(&l, long).x);
+    }
+}
+
+#[test]
+fn rtl_flow_respects_explicit_text_width_and_alignment() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"direction": "rtl", "width": 200}));
+    s.add("Button", flow, json!({"width": 60, "height": 20}));
+    let trimmed = s.add("Para", flow, json!({"text_items": ["Hello"], "width": 180, "wrap": "trim"}));
+    let right = s.add("Para", flow, json!({"text_items": ["Right"], "width": 180, "align": "right"}));
+    let l = s.layout(300.0, 200.0);
+    assert_eq!(r(&l, trimmed).w, 172.0, "an explicit text box does not shrink to fit beside an earlier child");
+    assert_eq!(r(&l, trimmed).y, 24.0);
+    assert!((line_starts(&l, trimmed)[0] - r(&l, trimmed).x).abs() < 0.5, "text stays left aligned by default");
+    assert!(line_starts(&l, right)[0] > r(&l, right).x + 100.0, "explicit right alignment still applies");
+}
+
+#[test]
 fn width_forms() {
     let mut s = Scene::new();
     let half = s.add("Stack", ROOT, json!({"width": 0.5, "height": 10}));
