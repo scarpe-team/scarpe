@@ -28,6 +28,56 @@ fn field(kind: &str, props: Value) -> Harness {
     h
 }
 
+// ---- Focus notifications ----
+
+fn focus_changes(messages: &[Value]) -> Vec<(Value, Value)> {
+    events(messages).into_iter().filter(|(name, _, _)| name == "focus_changed").map(|(_, id, args)| (id, args)).collect()
+}
+
+#[test]
+fn edit_lines_report_focus_changes_from_clicks_and_tab() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "EditLine", 2, json!({"left": 10, "top": 10, "width": 200})),
+        create(4, "EditLine", 2, json!({"left": 10, "top": 50, "width": 200})),
+    ]));
+    let (messages, _) = h.req(json!({"op": "click", "target": {"id": 3}}));
+    assert_eq!(focus_changes(&messages), vec![(json!(3), json!([true]))]);
+    let (messages, _) = h.req(json!({"op": "click", "target": {"id": 3}}));
+    assert!(focus_changes(&messages).is_empty(), "clicking the focused field is not a focus change");
+    let (messages, _) = h.req(json!({"op": "key", "key": "tab"}));
+    assert_eq!(focus_changes(&messages), vec![(json!(3), json!([false])), (json!(4), json!([true]))]);
+    let (messages, _) = h.req(json!({"op": "key", "key": "shift_tab"}));
+    assert_eq!(focus_changes(&messages), vec![(json!(4), json!([false])), (json!(3), json!([true]))]);
+    let (messages, _) = h.req(json!({"op": "click", "target": {"x": 280, "y": 180}}));
+    assert_eq!(focus_changes(&messages), vec![(json!(3), json!([false]))]);
+    assert_eq!(h.value(json!({"op": "focused"})), Value::Null);
+    let (messages, _) = h.req(json!({"op": "click", "target": {"x": 280, "y": 180}}));
+    assert!(focus_changes(&messages).is_empty());
+}
+
+#[test]
+fn edit_lines_report_programmatic_focus_without_duplicates() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "EditLine", 2, json!({"width": 200})),
+        create(4, "Button", 2, json!({"text": "Other"})),
+        create(5, "EditBox", 2, json!({"width": 200})),
+    ]));
+    for (id, expected) in [
+        (3, vec![(json!(3), json!([true]))]),
+        (3, vec![]),
+        (4, vec![(json!(3), json!([false]))]),
+        (5, vec![]),
+        (3, vec![(json!(3), json!([true]))]),
+        (5, vec![(json!(3), json!([false]))]),
+    ] {
+        let messages = h.feed(&json!({"t": "focus", "id": id}).to_string());
+        assert_eq!(focus_changes(&messages), expected, "focus target: {id}");
+        assert_eq!(h.value(json!({"op": "focused"})), json!(id));
+    }
+}
+
 // ---- Undo and redo ----
 
 /// Cmd-Z undoes a run of typing at once, Cmd-Shift-Z (`:alt_Z` by Shoes' name, Q5) redoes
