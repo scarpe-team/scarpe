@@ -83,6 +83,15 @@ fn a_button_is_named_by_its_label() {
 }
 
 #[test]
+fn buttons_without_text_are_named_by_their_tooltip() {
+    for text in [json!(null), json!(""), json!(" \t")] {
+        let mut h = Harness::new();
+        h.feed(&app(200, 100, &[create(3, "Button", 2, json!({"text": text, "tooltip": "Copy page"}))]));
+        assert_eq!(one(&mut h, "button")["name"], json!("Copy page"));
+    }
+}
+
+#[test]
 fn checks_and_radios_carry_their_state_and_the_text_after_them() {
     let mut h = Harness::new();
     h.feed(&app(300, 200, &[
@@ -111,7 +120,7 @@ fn fields_show_their_text_named_by_the_text_before_them() {
     let mut h = Harness::new();
     h.feed(&app(400, 300, &[
         para(3, 2, json!(["Name"])),
-        create(4, "EditLine", 2, json!({"text": "Nick"})),
+        create(4, "EditLine", 2, json!({"text": "Nick", "tooltip": "Enter your name"})),
         create(5, "EditBox", 2, json!({"text": "two\nlines", "state": "readonly"})),
     ]));
     let line = one(&mut h, "text_input");
@@ -125,6 +134,15 @@ fn fields_show_their_text_named_by_the_text_before_them() {
     h.value(json!({"op": "type", "text": "!"}));
     let line = one(&mut h, "text_input");
     assert_eq!((line["value"].as_str(), &line["focused"]), (Some("Nick!"), &json!(true)));
+}
+
+#[test]
+fn fields_without_labels_are_named_by_their_tooltip() {
+    for (kind, role) in [("EditLine", "text_input"), ("EditBox", "multiline_text_input")] {
+        let mut h = Harness::new();
+        h.feed(&app(200, 100, &[create(3, kind, 2, json!({"text": "", "tooltip": "Search books"}))]));
+        assert_eq!(one(&mut h, role)["name"], json!("Search books"));
+    }
 }
 
 #[test]

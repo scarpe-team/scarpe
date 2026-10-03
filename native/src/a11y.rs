@@ -192,7 +192,7 @@ impl Builder<'_> {
             Kind::Para | Kind::TextDrawable => self.text_block(id),
             Kind::Button => {
                 let mut n = Node::new(Role::Button);
-                n.set_label(node.props.text("text").unwrap_or_default());
+                n.set_label(node.props.text("text").filter(|t| !t.trim().is_empty()).or_else(|| tooltip(node)).unwrap_or_default());
                 works(&mut n, node, &[Action::Click, Action::Focus]);
                 Some(n)
             }
@@ -329,7 +329,11 @@ impl Builder<'_> {
         let mut n = Node::new(role);
         let text = self.view.fields.get(&node.id).map(|f| f.text()).or_else(|| node.props.text("text")).unwrap_or_default();
         n.set_value(if secret { text.chars().map(|_| text_field::BULLET).collect() } else { text });
-        n.set_labelled_by(self.label_beside(before).into_iter().collect::<Vec<_>>());
+        if let Some(label) = self.label_beside(before) {
+            n.set_labelled_by(vec![label]);
+        } else if let Some(label) = tooltip(node) {
+            n.set_label(label);
+        }
         if readonly(node) {
             n.set_read_only();
             works(&mut n, node, &[Action::Click, Action::Focus]);
