@@ -141,6 +141,20 @@ Shoes.text_mode = :shoes3
 Sizes are then points (`"18px"` stays pixels), and text that names no face is set in Arial, as
 Shoes 3 set it. Every window the program opens follows it. Hackety Hack asks for it.
 
+## Text field placeholders
+
+Native `edit_line` fields can show a hint while empty, including while focused:
+
+```ruby
+@query = edit_line "", placeholder: "Search books…", placeholder_color: "#777777"
+@query.placeholder = "Search authors…"
+```
+
+The optional `placeholder_color` defaults to a muted version of the text colour. Hints use the
+field's font and alignment, and long hints are shortened with an ellipsis. Typing hides the hint;
+clearing the field restores it. The hint is separate from `text`, clipboard contents and undo history.
+Set `placeholder` to `nil` or `""` to remove it.
+
 ## Screen readers
 
 Scarpe draws its own buttons, fields and text, so no control of the operating system is there to

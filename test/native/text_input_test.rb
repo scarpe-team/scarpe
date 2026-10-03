@@ -12,6 +12,39 @@ class TextInputTest < Minitest::Test
     skip_without_real_binary
   end
 
+  def test_placeholders_are_styles_and_do_not_change_the_fields_value
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        $changes = []
+        @line = edit_line placeholder: "Search books", placeholder_color: "#d02020" do |line|
+          $changes << line.text
+        end
+      end
+    APP
+      line = edit_line
+      assert_equal "Search books", line.placeholder
+      assert_equal "#d02020", line.placeholder_color
+      assert_equal "", line.text
+      hint_at = (8...150).to_a.product((6...22).to_a).find do |x, y|
+        r, g, b = pixel_at(x, y)
+        r > g + 40 && r > b + 40
+      end
+      refute_nil hint_at, "the hint reaches the native renderer"
+      line.obj.placeholder = "Author"
+      line.obj.placeholder_color = "#00000000"
+      wait_frames
+      assert_equal [255, 255, 255, 255], pixel_at(*hint_at)
+      assert_empty $changes
+      click_on line
+      type_text "book"
+      assert_equal "book", line.text
+      press_key :control_z
+      assert_equal "", line.text
+      assert_equal ["b", "bo", "boo", "book", ""], $changes
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_undo_and_redo_reach_the_app_as_changes
     run = run_real(<<~APP, test_code: <<~TEST)
       Shoes.app do

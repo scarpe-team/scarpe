@@ -8,7 +8,7 @@ use crate::layout::{LBox, Rect};
 use crate::paint::text::{draw_buffer, draw_shaped, SELECTION};
 use crate::paint::Canvas;
 use crate::style::Color;
-use crate::text::rich::TextStyle;
+use crate::text::rich::{Align, TextStyle, WrapMode};
 use crate::text::{RichText, TextEngine};
 
 pub const RADIUS: f32 = 6.0;
@@ -24,6 +24,21 @@ pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, state: WidgetState, 
     let field = text_field::ensure(&mut view.fields, node, &mut text.fonts);
     let inner = inner_rect(r, field.line_height());
     field.fit(&mut text.fonts.system, inner);
+    if let Some(hint) = node.props.str("placeholder").filter(|hint| !hint.is_empty() && field.text().is_empty()) {
+        if let Some(clip) = lbox.clip.map_or(Some(inner), |c| c.intersect(&inner)) {
+            let color = node.props.color("placeholder_color").unwrap_or(field.color.fade(0.55));
+            let mut rich = RichText::plain(hint, field.text_style(color));
+            rich.line_height = field.line_height();
+            rich.wrap = WrapMode::Trim;
+            rich.align = match node.props.str("align") {
+                Some("center") => Align::Center,
+                Some("right") => Align::Right,
+                _ => Align::Left,
+            };
+            let shaped = text.shape(&rich, Some((inner.w - 2.0).max(1.0)));
+            draw_shaped(canvas, text, &shaped, inner.x, inner.y, Some(clip), None);
+        }
+    }
     draw_field(canvas, field, Rect::new(r.x + 3.0, r.y + 1.0, r.w - 6.0, r.h - 2.0), lbox.clip, state.focused, colors.accent, text);
 }
 
