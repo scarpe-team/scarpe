@@ -249,6 +249,24 @@ fn scrolling_repaints_everything() {
     assert_eq!(window.repaint(&mut h), Repaint::Everything);
 }
 
+#[test]
+fn scrollbar_color_changes_repaint_the_existing_frame() {
+    for scale in [1.0, 1.25, 2.0] {
+        let mut h = Harness::new();
+        h.feed(&app(200, 120, &[
+            create(3, "Stack", 2, json!({"left": 20, "top": 20, "width": 80, "height": 60, "scroll": true, "scrollbar_color": "red"})),
+            create(4, "Stack", 3, json!({"height": 180})),
+        ]));
+        let mut window = Window::open(&mut h, scale);
+        for color in [json!("blue"), json!({"rgba": [0, 0, 255, 128]}), json!({"rgba": [0, 0, 0, 0]}), Value::Null] {
+            let before = window.frame.clone();
+            props(&mut h, 3, json!({"scrollbar_color": color}));
+            window.repaint(&mut h);
+            assert!(window.frame.data() != before.data(), "{color} changes the visible scrollbar at {scale}x");
+        }
+    }
+}
+
 /// Turned, scaled or skewed art repaints the box its transform turns it into, grown by how
 /// far its stroke and points can reach once stretched. Any transform used to repaint the whole
 /// window, so one star turned once made every later twinkle a full repaint

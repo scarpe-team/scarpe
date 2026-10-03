@@ -423,6 +423,72 @@ fn a_button_draws_its_icon_beside_its_label() {
     let _ = std::fs::remove_file(icon);
 }
 
+// ---- Scrollbar colors ----
+
+#[test]
+fn scrollbar_colors_respect_alpha_and_restore_the_default() {
+    for kind in ["Stack", "Flow"] {
+        for (background, base, half) in [("#ffffff", [255, 255, 255], [218, 216, 215]), ("#202020", [32, 32, 32], [107, 105, 104])] {
+            let mut h = Harness::new();
+            h.feed(&app(200, 120, &[
+                create(3, "Background", 2, json!({"fill": background})),
+                create(4, kind, 2, json!({"left": 20, "top": 20, "width": 80, "height": 60, "scroll": true})),
+                create(5, "Stack", 4, json!({"width": 80, "height": 180})),
+            ]));
+            let layout = h.layout();
+            let default = h.rt.picture(1, 1.0).unwrap();
+            let expected = if background == "#ffffff" { 165 } else { 21 };
+            assert!(rgb(&mut h, 94.0, 30.0).iter().all(|c| (c - expected).abs() <= 1), "the default is translucent black");
+            for (color, expected) in [
+                (json!("#b6b2b0"), [182, 178, 176]),
+                (json!({"rgba": [182, 178, 176, 128]}), half),
+                (json!({"rgba": [0, 0, 0, 0]}), base),
+            ] {
+                h.feed(&json!({"t": "props", "id": 4, "props": {"scrollbar_color": color}}).to_string());
+                let actual = rgb(&mut h, 94.0, 30.0);
+                assert!(actual.iter().zip(expected).all(|(a, b)| (a - b).abs() <= 1), "{kind}, {background}, {color}: {actual:?}");
+                assert_eq!(rgb(&mut h, 24.0, 30.0), base, "the scrollbar stays on the right");
+                assert_eq!(h.layout(), layout, "color does not change layout");
+            }
+            for color in [Value::Null, json!("not-a-color")] {
+                h.feed(&json!({"t": "props", "id": 4, "props": {"scrollbar_color": color}}).to_string());
+                assert!(h.rt.picture(1, 1.0).unwrap().data() == default.data(), "{color} restores the original scrollbar");
+            }
+        }
+    }
+}
+
+#[test]
+fn colored_scrollbars_follow_scrolling_and_require_overflow() {
+    for kind in ["Stack", "Flow"] {
+        let mut h = Harness::new();
+        h.feed(&app(200, 120, &[
+            create(3, kind, 2, json!({"left": 20, "top": 20, "width": 80, "height": 60, "scroll": true, "scrollbar_color": "red"})),
+            create(4, "Stack", 3, json!({"width": 80, "height": 180})),
+        ]));
+        assert_eq!(rgb(&mut h, 94.0, 30.0), RED);
+        h.value(json!({"op": "wheel", "dy": 60, "x": 30, "y": 40}));
+        assert_eq!(h.node(|n| n["id"] == 4)["y"], json!(-40.0));
+        assert_eq!(rgb(&mut h, 94.0, 30.0), WHITE, "the thumb left its original position");
+        assert_eq!(rgb(&mut h, 94.0, 50.0), RED, "the thumb follows the wheel");
+
+        h.feed(&json!({"t": "props", "id": 3, "props": {"scrollbar_color": "blue"}}).to_string());
+        assert_eq!(rgb(&mut h, 94.0, 50.0), [0, 0, 255]);
+        assert_eq!(h.node(|n| n["id"] == 4)["y"], json!(-40.0), "restyling keeps the scroll offset");
+        h.feed(&json!({"t": "scroll_to", "id": 3, "top": 9999}).to_string());
+        assert_eq!(h.node(|n| n["id"] == 4)["y"], json!(-100.0), "scrolling still clamps at the end");
+        assert_eq!(rgb(&mut h, 94.0, 70.0), [0, 0, 255]);
+
+        h.feed(&json!({"t": "props", "id": 3, "props": {"scrollbar_color": {"rgba": [0, 0, 0, 0]}}}).to_string());
+        h.value(json!({"op": "wheel", "dy": -9999, "x": 30, "y": 40}));
+        assert_eq!(h.node(|n| n["id"] == 4)["y"], json!(20.0), "transparent scrollbars still scroll");
+        assert_eq!(rgb(&mut h, 94.0, 30.0), WHITE);
+        h.feed(&json!({"t": "props", "id": 4, "props": {"height": 40}}).to_string());
+        h.feed(&json!({"t": "props", "id": 3, "props": {"scrollbar_color": "blue"}}).to_string());
+        assert_eq!(rgb(&mut h, 94.0, 30.0), WHITE, "no thumb when the content fits");
+    }
+}
+
 // ---- Widget polish (DESIGN look and feel, ledger C4) ----
 
 #[test]

@@ -12,7 +12,7 @@ use crate::elements::{self, image::ImageCache};
 use crate::limits;
 use crate::paint::shapes;
 use crate::props::{Edges, Id};
-use crate::style::Dim;
+use crate::style::{Color, Dim};
 use crate::text::{rich, RichText, ShapedText, TextEngine};
 use std::collections::HashMap;
 
@@ -123,6 +123,7 @@ pub struct Scroller {
     pub viewport: Rect,
     pub content_height: f32,
     pub top: f32,
+    pub color: Option<Color>,
 }
 
 impl Scroller {
@@ -733,7 +734,8 @@ impl Engine<'_> {
             return;
         }
         let doc = self.doc;
-        let mut scroller = Scroller { viewport, content_height, top: 0.0 };
+        let color = doc.get(slot).and_then(|n| n.props.color("scrollbar_color"));
+        let mut scroller = Scroller { viewport, content_height, top: 0.0, color };
         scroller.top = self.scroll.get(&slot).copied().unwrap_or(0.0).clamp(0.0, scroller.max_top());
         if scroller.top != 0.0 {
             for &child in doc.children(slot) {

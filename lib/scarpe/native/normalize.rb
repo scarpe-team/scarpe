@@ -8,7 +8,7 @@ require "fileutils"
 module Scarpe::Native::Normalize
   extend self
 
-  COLOR_KEYS = %w[fill stroke color text_color background_color border_color undercolor strikecolor].freeze
+  COLOR_KEYS = %w[fill stroke color text_color background_color border_color undercolor strikecolor scrollbar_color].freeze
   IMAGE_EXTENSIONS = %w[.png .jpg .jpeg .gif .bmp .webp .svg .tif .tiff .ico].freeze
   TRANSPARENT = { "rgba" => [0, 0, 0, 0] }.freeze
 
