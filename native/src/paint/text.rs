@@ -91,7 +91,7 @@ fn draw_highlights(canvas: &mut Canvas, run: &LayoutRun, x: f32, y: f32, metas: 
     for glyph in run.glyphs {
         let highlight = meta_of(metas, glyph.metadata).and_then(|m| m.highlight);
         match (highlight, current) {
-            (Some(c), Some((cur, x0, _))) if c == cur => current = Some((cur, x0, glyph.x + glyph.w)),
+            (Some(c), Some((cur, x0, x1))) if c == cur => current = Some((cur, x0.min(glyph.x), x1.max(glyph.x + glyph.w))),
             (Some(c), _) => {
                 flush(canvas, current.take());
                 current = Some((c, glyph.x, glyph.x + glyph.w));

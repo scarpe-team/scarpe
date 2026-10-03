@@ -102,6 +102,25 @@ fn rich_text() {
 }
 
 #[test]
+fn arabic_span_highlight_covers_multiple_glyphs() {
+    let mut h = Harness::new();
+    h.feed(&common::app(360, 120, &[
+        common::create(3, "Span", 2, json!({"text_items": ["العلم"], "fill": {"rgba": [174, 71, 33, 255]}})),
+        common::create(4, "Para", 2, json!({"text_items": [3], "left": 20, "top": 20, "width": 320, "size": 32, "align": "right"})),
+    ]));
+    let path = std::env::temp_dir().join(format!("scarpe-native-arabic-highlight-{}.png", std::process::id()));
+    h.value(json!({"op": "snapshot", "path": path.to_string_lossy(), "scale": 1}));
+    let img = image::open(&path).expect("snapshot png").to_rgba8();
+    let _ = std::fs::remove_file(&path);
+
+    let colored: Vec<_> = img.enumerate_pixels().filter(|(_, _, pixel)| pixel.0 == [174, 71, 33, 255]).collect();
+    assert!(colored.len() > 500, "the Arabic word needs a visible highlight, got {} pixels", colored.len());
+    let left = colored.iter().map(|(x, _, _)| *x).min().unwrap();
+    let right = colored.iter().map(|(x, _, _)| *x).max().unwrap();
+    assert!(right - left > 40, "the highlight must span more than one glyph");
+}
+
+#[test]
 fn scroll() {
     check("scroll");
 }
