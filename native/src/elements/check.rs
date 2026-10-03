@@ -1,7 +1,7 @@
-//! check: a rounded box that fills with the accent colour and a tick when on.
+//! check: a rounded box with a tick, or an opt-in switch with an on/off thumb.
 //! Lacci toggles `checked` itself and echoes it; the box only draws the echo.
 
-use super::{focus_ring, WidgetState, ACCENT};
+use super::{focus_ring, focus_ring_in, WidgetState, ACCENT, FIELD_BORDER};
 use crate::doc::Node;
 use crate::input::KeyInput;
 use crate::layout::{LBox, Rect};
@@ -10,6 +10,11 @@ use crate::style::Color;
 use tiny_skia::{LineCap, LineJoin, PathBuilder, Shader, Stroke, Transform};
 
 pub const BOX: f32 = 16.0;
+pub const SWITCH_SIZE: (f32, f32) = (40.0, 28.0);
+
+pub fn is_switch(node: &Node) -> bool {
+    node.props.str("variant") == Some("switch")
+}
 
 pub fn box_rect(r: Rect) -> Rect {
     Rect::new(r.x + (r.w - BOX) / 2.0, r.y + (r.h - BOX) / 2.0, BOX, BOX)
@@ -22,6 +27,10 @@ pub fn activates(key: &KeyInput) -> bool {
 }
 
 pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, state: WidgetState) {
+    if is_switch(node) {
+        paint_switch(canvas, node, lbox, state);
+        return;
+    }
     let b = box_rect(lbox.rect);
     let clip = lbox.clip;
     if state.focused {
@@ -46,4 +55,24 @@ pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, state: WidgetState) 
         let border = if state.hovered { Color::rgb(0x8e, 0x8e, 0x93) } else { Color::rgb(0xae, 0xae, 0xb2) };
         canvas.stroke_rounded(b, 4.0, border, 1.0, clip);
     }
+}
+
+fn paint_switch(canvas: &mut Canvas, node: &Node, lbox: &LBox, state: WidgetState) {
+    let r = lbox.rect;
+    // Keep the natural track size in a larger box, and fit proportionally in a smaller one.
+    let scale = (r.w / SWITCH_SIZE.0).min(r.h / SWITCH_SIZE.1).clamp(0.0, 1.0);
+    if scale <= 0.0 {
+        return;
+    }
+    let track = Rect::new(r.x + (r.w - 36.0 * scale) / 2.0, r.y + (r.h - 20.0 * scale) / 2.0, 36.0 * scale, 20.0 * scale);
+    let checked = node.props.truthy("checked");
+    let accent = node.props.color("color").unwrap_or(ACCENT);
+    let fill = if checked { accent } else { node.props.color("background_color").unwrap_or(FIELD_BORDER) };
+    if state.focused {
+        focus_ring_in(canvas, track, 10.0 * scale, accent, lbox.clip);
+    }
+    canvas.fill_rounded(track, 10.0 * scale, fill, lbox.clip);
+    let on_right = checked != (node.props.str("direction") == Some("rtl"));
+    let thumb = Rect::new(track.x + if on_right { 18.0 * scale } else { 2.0 * scale }, track.y + 2.0 * scale, 16.0 * scale, 16.0 * scale);
+    canvas.fill_rounded(thumb, 8.0 * scale, Color::WHITE, lbox.clip);
 }

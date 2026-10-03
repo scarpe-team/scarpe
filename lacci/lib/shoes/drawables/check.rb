@@ -5,6 +5,7 @@ class Shoes
     include Shoes::Focusable
 
     shoes_styles :checked
+    shoes_styles :variant, :color, :background_color, :direction, :tooltip
     shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
     shoes_events :click
 

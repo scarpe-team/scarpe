@@ -107,6 +107,56 @@ fn checks_and_radios_carry_their_state_and_the_text_after_them() {
 }
 
 #[test]
+fn switches_expose_their_role_state_and_actions() {
+    let mut h = Harness::new();
+    h.feed(&app(200, 100, &[create(3, "Check", 2, json!({"variant": "switch", "tooltip": "Show diacritics", "checked": true}))]));
+    let switch = one(&mut h, "switch");
+    assert_eq!(switch["name"], "Show diacritics");
+    assert_eq!(switch["toggled"], true);
+    assert_eq!(switch["actions"], json!(["click", "focus"]));
+    assert_eq!(switch["bounds"], json!([0.0, 0.0, 40.0, 28.0]));
+    let (evs, reply) = act(&mut h, &json!(3), "click", None);
+    assert_eq!(reply["error"], Value::Null);
+    assert_eq!(named(&evs, "click").len(), 1);
+    h.feed(&json!({"t": "props", "id": 3, "props": {"checked": false}}).to_string());
+    assert_eq!(one(&mut h, "switch")["toggled"], false);
+    let (_, reply) = act(&mut h, &json!(3), "focus", None);
+    assert_eq!(reply["error"], Value::Null);
+    assert_eq!(one(&mut h, "switch")["focused"], true);
+    h.feed(&json!({"t": "props", "id": 3, "props": {"state": "disabled"}}).to_string());
+    let disabled = one(&mut h, "switch");
+    assert_eq!(disabled["disabled"], true);
+    assert!(disabled.get("actions").is_none());
+    let (evs, reply) = act(&mut h, &json!(3), "click", None);
+    assert!(reply["error"].as_str().unwrap().contains("disabled"));
+    assert!(named(&evs, "click").is_empty());
+}
+
+#[test]
+fn switch_names_prefer_visible_labels_and_other_controls_keep_their_roles() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "Flow", 2, json!({})),
+        create(4, "Check", 3, json!({"variant": "switch", "tooltip": "Extra details"})),
+        para(5, 3, json!(["Visible label"])),
+        create(6, "Check", 2, json!({"variant": "switch", "tooltip": "Show diacritics"})),
+        create(7, "Check", 2, json!({"tooltip": "Ordinary checkbox"})),
+        create(8, "Radio", 2, json!({"variant": "switch"})),
+        create(9, "Check", 2, json!({"variant": "switch", "tooltip": " \t "})),
+    ]));
+    let switches = with_role(&mut h, "switch");
+    assert_eq!(switches.len(), 3);
+    assert_eq!(switches[0]["name"], "Visible label");
+    assert_eq!(switches[0]["description"], "Extra details");
+    assert_eq!(switches[1]["name"], "Show diacritics");
+    assert!(switches[2].get("name").is_none(), "blank tooltips do not become names");
+    assert!(one(&mut h, "check_box").get("name").is_none(), "ordinary checkboxes keep their naming behavior");
+    assert_eq!(one(&mut h, "radio_button")["id"], 8);
+    h.feed(&json!({"t": "props", "id": 4, "props": {"variant": null}}).to_string());
+    assert_eq!(with_role(&mut h, "check_box")[0]["name"], "Visible label");
+}
+
+#[test]
 fn fields_show_their_text_named_by_the_text_before_them() {
     let mut h = Harness::new();
     h.feed(&app(400, 300, &[

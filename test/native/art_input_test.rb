@@ -31,6 +31,76 @@ class ArtInputTest < Minitest::Test
     assert_nil Scarpe::Native::Normalize.prop("Button", "icon", nil)
   end
 
+  def test_switches_reuse_check_callbacks_keyboard_and_disabled_behavior
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app(width: 240, height: 120) do
+        @calls = 0
+        @said = para "0", left: 80, top: 20
+        @toggle = check(left: 20, top: 20, variant: :switch, tooltip: "Show diacritics",
+          color: rgb(174, 71, 33), background_color: "#4a4543") do |control|
+          @calls += 1
+          @said.replace "\#{@calls}:\#{control.checked?}"
+        end
+        @next = button "Next", left: 20, top: 70
+      end
+    APP
+      toggle = check("@toggle")
+      node = -> { a11y_nodes.find { |n| n[:id] == toggle.linkable_id } }
+      said = -> { para("@said").text }
+      assert_equal [40, 28], layout_of(toggle).to_a.last(2)
+      assert_equal ["switch", "Show diacritics", false], node.call.values_at(:role, :name, :toggled)
+      assert_equal [255, 255, 255], pixel_at(32, 34).first(3)
+      assert_equal [74, 69, 67], pixel_at(48, 34).first(3)
+      toggle.trigger_click
+      assert toggle.checked?
+      assert_equal "1:true", said.call, "the handler sees the new checked state exactly once"
+      assert_equal [174, 71, 33], pixel_at(32, 34).first(3)
+      toggle.obj.focus
+      wait_frames
+      press_key("space")
+      refute toggle.checked?
+      assert_equal "2:false", said.call
+      press_key("enter")
+      assert_equal "3:true", said.call
+      a11y_action toggle, :click
+      assert_equal "4:false", said.call
+      assert_equal false, node.call[:toggled]
+
+      toggle.obj.checked = true
+      toggle.obj.direction = :rtl
+      wait_frames
+      assert_equal "4:false", said.call, "programmatic updates do not invoke the click handler"
+      assert_equal true, node.call[:toggled]
+      assert_equal [255, 255, 255], pixel_at(32, 34).first(3)
+      assert_equal [174, 71, 33], pixel_at(48, 34).first(3)
+      toggle.obj.color = "red"
+      wait_frames
+      assert_equal [255, 0, 0], pixel_at(48, 34).first(3)
+      toggle.obj.variant = nil
+      wait_frames
+      assert_equal "check_box", node.call[:role]
+      assert_equal [18, 18], layout_of(toggle).to_a.last(2)
+      assert toggle.checked?
+      toggle.obj.variant = :switch
+      toggle.obj.state = "disabled"
+      wait_frames
+      assert_equal "switch", node.call[:role]
+      assert_equal [40, 28], layout_of(toggle).to_a.last(2)
+      assert_equal true, node.call[:disabled]
+      assert_nil node.call[:actions]
+      toggle.trigger_click
+      press_key("space")
+      assert_equal "4:false", said.call, "disabled switches ignore the pointer and keys"
+      press_key("tab")
+      assert_equal button("@next").linkable_id, focused_drawable.linkable_id
+      toggle.obj.state = nil
+      wait_frames
+      a11y_action toggle, :click
+      assert_equal "5:false", said.call
+    TEST
+    assert_spec_passed(run)
+  end
+
   # spec app.close failed with "is not visible": a click by id always went to the first window.
   def test_a_drawable_in_a_second_window_can_be_found_and_clicked
     run = run_real(TWO_WINDOWS, test_code: <<~TEST)

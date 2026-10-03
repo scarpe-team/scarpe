@@ -423,6 +423,96 @@ fn a_button_draws_its_icon_beside_its_label() {
     let _ = std::fs::remove_file(icon);
 }
 
+// ---- Switch variant of Check ----
+
+#[test]
+fn switches_use_theme_colors_and_mirror_only_when_rtl_is_requested() {
+    for direction in [Value::Null, json!("ltr"), json!("unknown"), json!("rtl")] {
+        let mut h = Harness::new();
+        h.feed(&app(120, 80, &[create(3, "Check", 2, json!({"left": 20, "top": 20, "variant": "switch"}))]));
+        let node = h.node(|n| n["id"] == 3);
+        assert_eq!((node["w"].clone(), node["h"].clone()), (json!(40.0), json!(28.0)));
+        assert_eq!(rgb(&mut h, 32.0, 34.0), WHITE, "off starts on the left");
+        assert_eq!(rgb(&mut h, 48.0, 34.0), [199, 199, 204], "the default off track");
+        h.feed(&json!({"t": "props", "id": 3, "props": {
+            "direction": direction, "color": "#ae4721", "background_color": "#4a4543"
+        }}).to_string());
+        for checked in [true, false] {
+            h.feed(&json!({"t": "props", "id": 3, "props": {"checked": checked}}).to_string());
+            let (thumb, track) = if checked != (direction == "rtl") { (48.0, 32.0) } else { (32.0, 48.0) };
+            assert_eq!(rgb(&mut h, thumb, 34.0), WHITE, "{direction}, checked={checked}");
+            assert_eq!(rgb(&mut h, track, 34.0), if checked { [174, 71, 33] } else { [74, 69, 67] });
+            h.feed(&json!({"t": "props", "id": 3, "props": {
+                "color": {"rgba": [174, 71, 33, 128]}, "background_color": {"rgba": [174, 71, 33, 128]}
+            }}).to_string());
+            assert!(rgb(&mut h, track, 34.0).iter().zip([214, 163, 144]).all(|(a, b)| (a - b).abs() <= 1), "supplied alpha is preserved");
+            h.feed(&json!({"t": "props", "id": 3, "props": {
+                "color": {"rgba": [0, 0, 0, 0]}, "background_color": {"rgba": [0, 0, 0, 0]}
+            }}).to_string());
+            assert_eq!(rgb(&mut h, track, 34.0), WHITE);
+            h.feed(&json!({"t": "props", "id": 3, "props": {"color": null, "background_color": null}}).to_string());
+            assert_eq!(rgb(&mut h, track, 34.0), if checked { [10, 132, 255] } else { [199, 199, 204] });
+            h.feed(&json!({"t": "props", "id": 3, "props": {"color": "#ae4721", "background_color": "#4a4543"}}).to_string());
+        }
+    }
+}
+
+#[test]
+fn switch_variants_are_opt_in_and_restore_the_original_checkbox() {
+    for kind in ["Check", "Radio"] {
+        let mut h = Harness::new();
+        h.feed(&app(120, 80, &[create(3, kind, 2, json!({"left": 20, "top": 20, "checked": true}))]));
+        let default = h.rt.picture(1, 1.0).unwrap();
+        for variant in [json!("unknown"), json!("switch"), Value::Null] {
+            h.feed(&json!({"t": "props", "id": 3, "props": {
+                "variant": variant, "color": "red", "background_color": "blue", "direction": "rtl"
+            }}).to_string());
+            let node = h.node(|n| n["id"] == 3);
+            let picture = h.rt.picture(1, 1.0).unwrap();
+            if kind == "Check" && variant == "switch" {
+                assert_eq!((node["w"].clone(), node["h"].clone()), (json!(40.0), json!(28.0)));
+                assert_eq!(rgb(&mut h, 48.0, 34.0), RED, "changing appearance keeps checked=true");
+            } else {
+                assert_eq!((node["w"].clone(), node["h"].clone()), (json!(18.0), json!(18.0)));
+                assert!(picture.data() == default.data(), "{kind}, {variant}: the original control is unchanged");
+            }
+        }
+    }
+}
+
+#[test]
+fn switches_fit_small_boxes_respect_clips_and_show_keyboard_focus() {
+    let mut h = Harness::new();
+    h.feed(&app(160, 100, &[create(3, "Check", 2, json!({"left": 20, "top": 20, "variant": "switch", "checked": true}))]));
+    for (w, height) in [(40, 28), (20, 14), (80, 56), (0, 28), (40, 0)] {
+        h.feed(&json!({"t": "props", "id": 3, "props": {"width": w, "height": height}}).to_string());
+        let picture = h.rt.picture(1, 1.0).unwrap();
+        let mut ink = 0;
+        for (i, pixel) in picture.pixels().iter().enumerate() {
+            if [pixel.red(), pixel.green(), pixel.blue()] == [255; 3] { continue; }
+            let (x, y) = (i as i32 % 160, i as i32 / 160);
+            assert!(x >= 20 && x < 20 + w && y >= 20 && y < 20 + height, "{w}x{height}: ink outside the control at {x},{y}");
+            ink += 1;
+        }
+        assert_eq!(ink > 0, w > 0 && height > 0);
+    }
+    h.feed(&json!({"t": "props", "id": 3, "props": {"width": 40, "height": 28}}).to_string());
+    assert_eq!(rgb(&mut h, 21.0, 34.0), WHITE);
+    h.value(json!({"op": "key", "key": "tab"}));
+    assert_eq!(h.value(json!({"op": "focused"})), json!(3));
+    assert_ne!(rgb(&mut h, 21.0, 34.0), WHITE, "keyboard focus is visible around the track");
+
+    let mut h = Harness::new();
+    h.feed(&app(160, 100, &[
+        create(3, "Stack", 2, json!({"left": 20, "top": 20, "width": 26, "height": 20})),
+        create(4, "Check", 3, json!({"variant": "switch", "checked": true})),
+    ]));
+    h.value(json!({"op": "key", "key": "tab"}));
+    assert_eq!(rgb(&mut h, 32.0, 34.0), [10, 132, 255]);
+    assert_eq!(rgb(&mut h, 52.0, 34.0), WHITE, "the thumb stays inside the parent clip");
+    assert_eq!(rgb(&mut h, 32.0, 42.0), WHITE, "the track and focus ring stay inside the parent clip");
+}
+
 // ---- Widget polish (DESIGN look and feel, ledger C4) ----
 
 #[test]

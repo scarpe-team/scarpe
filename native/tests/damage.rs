@@ -209,6 +209,29 @@ fn typing_into_a_field_repaints_the_field() {
 }
 
 #[test]
+fn switch_state_style_and_variant_changes_repaint_without_stale_pixels() {
+    for scale in [1.0, 1.25, 2.0] {
+        let mut h = Harness::new();
+        h.feed(&app(200, 100, &[create(3, "Check", 2, json!({"left": 20, "top": 20, "variant": "switch"}))]));
+        let mut window = Window::open(&mut h, scale);
+        for change in [
+            json!({"checked": true}), json!({"direction": "rtl"}),
+            json!({"color": {"rgba": [174, 71, 33, 128]}}),
+            json!({"checked": false, "background_color": "#4a4543"}),
+            json!({"variant": null}), json!({"variant": "switch"}),
+            json!({"width": 20, "height": 14}), json!({"state": "disabled"}), json!({"state": null}),
+        ] {
+            let before = window.frame.clone();
+            props(&mut h, 3, change.clone());
+            window.repaint(&mut h);
+            assert!(window.frame.data() != before.data(), "{change} changes the switch at {scale}x");
+        }
+        h.value(json!({"op": "key", "key": "tab"}));
+        window.repaint(&mut h);
+    }
+}
+
+#[test]
 fn hovering_a_link_recolours_only_its_para() {
     let mut h = Harness::new();
     h.scene("rich_text");
