@@ -1,7 +1,7 @@
 //! edit_line: a single-line text field. Every edit sends `change [text]`.
 
 use super::text_field::{self, TextField};
-use super::{focus_ring_in, WidgetState, ACCENT, FIELD_BORDER};
+use super::{focus_outline, focus_ring_in, WidgetState, ACCENT, FIELD_BORDER};
 use crate::doc::Node;
 use crate::input::ViewState;
 use crate::layout::{LBox, Rect};
@@ -20,11 +20,15 @@ pub fn inner_rect(r: Rect, line_h: f32) -> Rect {
 pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, state: WidgetState, view: &mut ViewState, text: &mut TextEngine) {
     let r = lbox.rect;
     let colors = Colors::of(node);
-    frame(canvas, &colors, r, lbox.clip, state.focused);
+    let inset = state.focused && node.props.truthy("focus_inset");
+    frame(canvas, &colors, r, lbox.clip, state.focused && !inset);
     let field = text_field::ensure(&mut view.fields, node, &mut text.fonts);
     let inner = inner_rect(r, field.line_height());
     field.fit(&mut text.fonts.system, inner);
     draw_field(canvas, field, Rect::new(r.x + 3.0, r.y + 1.0, r.w - 6.0, r.h - 2.0), lbox.clip, state.focused, colors.accent, text);
+    if inset {
+        focus_outline(canvas, r, RADIUS, colors.accent, lbox.clip);
+    }
 }
 
 /// A field's colours (ledger G17). `fill` paints the box and `border_color` draws its edge. The

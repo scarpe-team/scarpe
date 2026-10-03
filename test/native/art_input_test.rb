@@ -31,6 +31,43 @@ class ArtInputTest < Minitest::Test
     assert_nil Scarpe::Native::Normalize.prop("Button", "icon", nil)
   end
 
+  def test_inset_focus_reaches_controls_and_preserves_clicks_typing_and_tab
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        $clicks = 0
+        button("Go", left: 20, top: 20, width: 160, height: 40, focus_inset: true) { $clicks += 1 }
+        edit_line "", left: 20, top: 80, width: 160, height: 40, focus_inset: true
+      end
+    APP
+      go, field = button, edit_line
+      click_on go
+      assert_equal 1, $clicks
+      press_key :tab
+      assert_equal field.linkable_id, focused_drawable.linkable_id
+      type_text "Book"
+      assert_equal "Book", field.text
+      press_key :shift_tab
+      press_key :enter
+      assert_equal 2, $clicks
+      blue_at = ->(x, y) { r, g, b = pixel_at(x, y); b > r + 100 && b > g + 40 }
+      [go, field].each do |control|
+        control.obj.focus
+        wait_frames
+        assert_equal true, control.focus_inset
+        box = layout_of(control)
+        point = [box.x + box.w / 2, box.y + 2]
+        assert blue_at.call(*point), "the outline is inside the control"
+        control.obj.focus_inset = false
+        wait_frames
+        refute blue_at.call(*point), "false restores the outer halo"
+        control.obj.focus_inset = true
+        wait_frames
+        assert blue_at.call(*point), "the outline can be enabled at runtime"
+      end
+    TEST
+    assert_spec_passed(run)
+  end
+
   # spec app.close failed with "is not visible": a click by id always went to the first window.
   def test_a_drawable_in_a_second_window_can_be_found_and_clicked
     run = run_real(TWO_WINDOWS, test_code: <<~TEST)
