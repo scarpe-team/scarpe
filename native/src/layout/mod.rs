@@ -228,6 +228,8 @@ enum Attach {
 /// Where the next in-flow child goes, relative to the slot's content box.
 #[derive(Default)]
 struct Cursor {
+    /// In RTL flows, x is the distance consumed from the content's right edge.
+    rtl: bool,
     x: f32,
     /// The top of the current row.
     y: f32,
@@ -348,7 +350,10 @@ impl Engine<'_> {
 
     fn children_within_depth(&mut self, slot: Id, flow: bool, content: Rect, avail_h: f32) -> (f32, Vec<Id>) {
         let doc = self.doc;
-        let mut cursor = Cursor::default();
+        let mut cursor = Cursor {
+            rtl: flow && doc.get(slot).is_some_and(|node| node.props.str("direction") == Some("rtl")),
+            ..Cursor::default()
+        };
         let mut later = Vec::new();
         for &child in doc.children(slot) {
             let Some(node) = doc.get(child) else { continue };
@@ -366,7 +371,9 @@ impl Engine<'_> {
     }
 
     fn place_in_flow(&mut self, node: &Node, flow: bool, content: Rect, cursor: &mut Cursor, avail_h: f32) {
-        if flow {
+        // Paragraph continuation indents from the left. RTL flows pack text as individual
+        // boxes, leaving glyph direction and alignment to each text block.
+        if flow && !cursor.rtl {
             if let Some(rich) = self.flowing_text(node) {
                 return self.place_paragraph(node, &rich, content, cursor, avail_h);
             }
@@ -383,7 +390,7 @@ impl Engine<'_> {
             cursor.new_row();
             width = self.width_for(node, flow, parent, content.w, &m);
         }
-        let x = content.x + cursor.x + m.left;
+        let x = if cursor.rtl { content.right() - cursor.x - m.right - width } else { content.x + cursor.x + m.left };
         let y = content.y + cursor.y + m.top;
         // A slot with no height of its own beside what came before it on the row reaches down to
         // the bottom of that, as Shoes 3 grows it to its parent's end (s3_canvas.c:639-642).
@@ -481,7 +488,7 @@ impl Engine<'_> {
     /// text (:207-210), so it sits on the line instead of starting a row (ledger C7). Hackety
     /// Hack puts every program's and lesson's name beside its icon this way.
     fn line_beside(&mut self, node: &Node, m: &Edges, width: f32, content: Rect, cursor: &Cursor) -> Option<(RichText, f32)> {
-        if !is_text(node) || node.props.has("height") {
+        if cursor.rtl || !is_text(node) || node.props.has("height") {
             return None;
         }
         let rich = rich::resolve_block(self.doc, &self.text.fonts, node.id)?;

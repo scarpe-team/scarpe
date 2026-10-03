@@ -127,6 +127,28 @@ across and `width: 0.5` half as wide. Art (`rect`, `oval`, `shape` and the rest)
 number as pixels, Floats included. DESIGN section 6 has the whole rule, and ledger C1, C10, C15
 and C18 say why.
 
+## Right-to-left flows
+
+With the native display, `flow(direction: :rtl)` places its children from right to left and
+starts each wrapped row at the right edge. Strings work too; omitted, `nil`, `:ltr`, or unknown
+directions retain the usual left-to-right layout. The style can change at runtime.
+
+```ruby
+flow(direction: :rtl) do
+  button "الأول", width: 100
+  button "الثاني", width: 100
+end
+```
+
+Source order, keyboard navigation and screen-reader order stay the same. Each nested flow
+chooses its own direction; stacks still arrange children vertically. Margins, padding and
+explicit `left`/`right` positions keep their physical meanings. Use `margin_left` for a gap
+after a child in an RTL row.
+
+Direction controls child placement, not text alignment or glyph order. In an RTL flow, each
+text block wraps within its own box; use spans in one `para` for continuous text, and
+`align: "right"` to right-align that text.
+
 ## Text sizes, and Shoes 3's text
 
 A text size is pixels: `para` is 12 px tall and `title` 34, as the manual says (ledger M14).

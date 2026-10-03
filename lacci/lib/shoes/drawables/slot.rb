@@ -11,6 +11,7 @@ class Shoes::Slot < Shoes::Drawable
   # - :center — center the slot
   # - another_drawable — position relative to that element
   shoes_styles :attach
+  shoes_styles :direction # native flow child placement: :ltr (default) or :rtl
 
   # fill, stroke, rotate, translate... for the shapes drawn in this slot
   include Shoes::DrawContext

@@ -231,6 +231,79 @@ class EndToEndTest < Minitest::Test
     assert_spec_passed(run)
   end
 
+  def test_rtl_flow_keeps_clicks_focus_and_accessibility_in_source_order
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app(width: 300, height: 200) do
+        @note = para "None", top: 120
+        @row = flow(left: 20, top: 20, width: 220, direction: :rtl) do
+          %w[First Second Third].each do |name|
+            button(name, width: 80, height: 30) { @note.replace(name) }
+          end
+        end
+      end
+    APP
+      assert_equal [160, 20, 80, 30], layout_of(button("First")).to_a
+      assert_equal [80, 20, 80, 30], layout_of(button("Second")).to_a
+      assert_equal [160, 50, 80, 30], layout_of(button("Third")).to_a
+      assert_equal %w[First Second Third], flow("@row").contents.map(&:text)
+      nodes = a11y_nodes.select { |n| n[:role] == "button" }
+      assert_equal %w[First Second Third], nodes.map { |n| n[:name] }
+      nodes.each { |n| assert_equal layout_of(button(n[:name])).to_a, n[:bounds] }
+
+      %w[First Second Third].each do |name|
+        press_key("tab")
+        assert_equal button(name).linkable_id, focused_drawable.linkable_id
+        press_key("enter")
+        assert_equal name, para("@note").text
+      end
+      press_key("shift_tab")
+      assert_equal button("Second").linkable_id, focused_drawable.linkable_id
+      click_at(200, 35)
+      assert_equal "First", para("@note").text, "pointer hit-testing follows the RTL layout"
+      click_at(120, 35)
+      assert_equal "Second", para("@note").text
+      a11y_action button("Third"), :click
+      assert_equal "Third", para("@note").text
+    TEST
+    assert_spec_passed(run)
+  end
+
+  def test_rtl_flow_can_change_direction_resize_and_hide_children
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app(width: 240, height: 200) do
+        @row = flow(direction: "rtl") do
+          %w[First Second Third].each { |name| button name, width: 80, height: 30 }
+        end
+      end
+    APP
+      rect = ->(name) { layout_of(button(name)).to_a }
+      assert_equal [160, 0, 80, 30], rect["First"]
+      assert_equal [0, 0, 80, 30], rect["Third"]
+      resize_window(170, 200)
+      assert_equal [90, 0, 80, 30], rect["First"]
+      assert_equal [10, 0, 80, 30], rect["Second"]
+      assert_equal [90, 30, 80, 30], rect["Third"]
+      button("Second").hide
+      wait_frames
+      assert_equal [10, 0, 80, 30], rect["Third"], "hidden children leave no gap"
+      button("Second").show
+      wait_frames
+      assert_equal [90, 30, 80, 30], rect["Third"]
+
+      [:ltr, :unknown, nil].each do |direction|
+        flow("@row").obj.direction = direction
+        wait_frames
+        assert_equal [0, 0, 80, 30], rect["First"]
+        assert_equal [0, 30, 80, 30], rect["Third"]
+      end
+      flow("@row").obj.direction = :rtl
+      wait_frames
+      assert_equal [90, 0, 80, 30], rect["First"]
+      assert_equal %w[First Second Third], flow("@row").contents.map(&:text)
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_children_land_where_lacci_put_them
     run = run_real(<<~APP, test_code: <<~TEST)
       Shoes.app do

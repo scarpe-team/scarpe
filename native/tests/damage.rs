@@ -189,6 +189,38 @@ fn hovering_and_pressing_a_button_repaints_the_button() {
 }
 
 #[test]
+fn rtl_flow_direction_changes_repaint_nested_scrolled_content() {
+    for scale in [1.0, 1.25, 2.0] {
+        let mut h = Harness::new();
+        h.feed(&app(400, 300, &[
+            create(3, "Background", 2, json!({"fill": "#faf0dc"})),
+            create(4, "Flow", 2, json!({"left": 20, "top": 20, "width": 260, "height": 140, "padding": 8, "scroll": true})),
+            create(5, "Stack", 4, json!({"width": 110, "height": 180})),
+            create(6, "Background", 5, json!({"fill": "#e0f0ff"})),
+            create(7, "Button", 5, json!({"text": "First", "width": 80, "height": 30})),
+            create(8, "Para", 5, json!({"text_items": ["Nested text"], "width": 100})),
+            create(9, "Stack", 4, json!({"width": 110, "height": 50})),
+            create(10, "Background", 9, json!({"fill": "#f0e0e0"})),
+            create(11, "Button", 9, json!({"text": "Second", "width": 80, "height": 30})),
+            create(12, "Button", 4, json!({"text": "Wrapped", "width": 140, "height": 30})),
+        ]));
+        let mut window = Window::open(&mut h, scale);
+        h.feed("{\"t\":\"focus\",\"id\":7}\n");
+        window.repaint(&mut h);
+        for direction in [json!("rtl"), json!("ltr"), Value::Null, json!("rtl")] {
+            props(&mut h, 4, json!({"direction": direction}));
+            window.repaint(&mut h);
+            props(&mut h, 4, json!({"scroll_top": 40}));
+            window.repaint(&mut h);
+            props(&mut h, 4, json!({"width": 180}));
+            window.repaint(&mut h);
+            props(&mut h, 4, json!({"width": 260, "scroll_top": 0}));
+            window.repaint(&mut h);
+        }
+    }
+}
+
+#[test]
 fn typing_into_a_field_repaints_the_field() {
     let mut h = Harness::new();
     busy_scene(&mut h);
