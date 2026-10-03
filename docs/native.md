@@ -176,6 +176,22 @@ a11y_action check("@keep"), :click
 The cases in `spec/accessibility/` show the rest, and DESIGN section 12 lists exactly what each
 drawable becomes.
 
+## Scrollbar colors
+
+Native scrolling `stack` and `flow` containers accept `scrollbar_color` for their overlay thumb.
+Custom colors use their supplied alpha; omitting the property or setting it to `nil` keeps the
+default translucent black. The thumb is still shown only when the content overflows.
+
+```ruby
+@results = stack(height: 200, scroll: true, scrollbar_color: rgb(182, 178, 176, 0.65)) do
+  20.times { |i| para "Item #{i}" }
+end
+@results.scrollbar_color = nil
+```
+
+The color can change at runtime without resetting the scroll position. `"transparent"` hides
+the thumb while the container continues to scroll.
+
 ## Running a program in a process of its own
 
 `Shoes.run_program` starts another Shoes program, in a process of its own on the same Ruby and
