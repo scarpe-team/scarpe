@@ -97,6 +97,19 @@ fn widgets() {
 }
 
 #[test]
+fn progress_uses_its_colors_for_determinate_and_idle_segments() {
+    for (fraction, filled) in [(json!(0.5), json!([255, 0, 0, 255])), (Value::Null, json!([140, 0, 0, 255]))] {
+        let mut h = Harness::new();
+        h.feed(&common::app(240, 40, &[
+            common::create(3, "Progress", 2, json!({"left": 10, "top": 10, "width": 200, "height": 8,
+                "fraction": fraction, "color": {"rgba": [255, 0, 0, 255]}, "background_color": {"rgba": [0, 0, 0, 255]}})),
+        ]));
+        assert_eq!(h.value(json!({"op": "pixel", "x": 60, "y": 14})), filled);
+        assert_eq!(h.value(json!({"op": "pixel", "x": 180, "y": 14})), json!([0, 0, 0, 255]));
+    }
+}
+
+#[test]
 fn rich_text() {
     check("rich_text");
 }

@@ -2,7 +2,7 @@
 
 class Shoes
   class Progress < Shoes::Drawable
-    shoes_styles :fraction
+    shoes_styles :fraction, :color, :background_color
 
     # fraction is a decimal from the start (ledger M5; Shoes 3 gives 0.0)
     Shoes::Drawable.drawable_default_styles[Shoes::Progress][:fraction] = 0.0
