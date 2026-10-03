@@ -127,6 +127,24 @@ across and `width: 0.5` half as wide. Art (`rect`, `oval`, `shape` and the rest)
 number as pixels, Floats included. DESIGN section 6 has the whole rule, and ledger C1, C10, C15
 and C18 say why.
 
+## Centering a flow's children vertically
+
+With the native display, `flow(valign: :center)` centers each child's margin box within its
+row. A single row uses the flow's explicit height, less padding; wrapped rows use their own
+tallest child. Children keep their natural heights, and nested content moves with its parent.
+
+```ruby
+flow(height: 48, valign: :center) do
+  para "Search", margin: 0
+  edit_line width: 200
+  button "Go"
+end
+```
+
+Strings work too, and `valign` can change at runtime. Omitted, `nil`, `:top`, and unknown values
+keep the usual alignment. Stacks and explicitly positioned children keep their placement.
+Centered text blocks wrap within their own boxes; use spans in one `para` for continuous text.
+
 ## Text sizes, and Shoes 3's text
 
 A text size is pixels: `para` is 12 px tall and `title` 34, as the manual says (ledger M14).

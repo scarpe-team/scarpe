@@ -189,6 +189,37 @@ fn hovering_and_pressing_a_button_repaints_the_button() {
 }
 
 #[test]
+fn centered_flow_repaints_nested_content_focus_and_wrapped_rows() {
+    for scale in [1.0, 1.25, 2.0] {
+        let mut h = Harness::new();
+        h.feed(&app(400, 300, &[
+            create(3, "Background", 2, json!({"fill": "#faf0dc"})),
+            create(4, "Flow", 2, json!({"left": 20, "top": 20, "width": 280, "height": 120, "padding": 10})),
+            create(5, "Button", 4, json!({"text": "Tall", "width": 80, "height": 60})),
+            create(6, "Stack", 4, json!({"width": 80, "height": 24, "scroll": true})),
+            create(7, "Background", 6, json!({"fill": "#e0f0ff"})),
+            create(8, "EditLine", 6, json!({"text": "Field", "width": 70, "height": 28})),
+            create(9, "Button", 4, json!({"text": "Short", "width": 80, "height": 40})),
+        ]));
+        let mut window = Window::open(&mut h, scale);
+        h.feed("{\"t\":\"focus\",\"id\":8}\n");
+        window.repaint(&mut h);
+        for valign in [json!("center"), json!("top"), Value::Null, json!("center")] {
+            props(&mut h, 4, json!({"valign": valign}));
+            window.repaint(&mut h);
+            props(&mut h, 6, json!({"scroll_top": 4}));
+            window.repaint(&mut h);
+            props(&mut h, 4, json!({"width": 180}));
+            window.repaint(&mut h);
+            props(&mut h, 4, json!({"width": 280, "height": 140}));
+            window.repaint(&mut h);
+            props(&mut h, 6, json!({"scroll_top": 0}));
+            window.repaint(&mut h);
+        }
+    }
+}
+
+#[test]
 fn typing_into_a_field_repaints_the_field() {
     let mut h = Harness::new();
     busy_scene(&mut h);

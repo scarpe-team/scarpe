@@ -228,6 +228,9 @@ enum Attach {
 /// Where the next in-flow child goes, relative to the slot's content box.
 #[derive(Default)]
 struct Cursor {
+    center: bool,
+    /// Distinguishes wrapped rows even when their height is zero.
+    row: usize,
     x: f32,
     /// The top of the current row.
     y: f32,
@@ -239,6 +242,7 @@ struct Cursor {
 
 impl Cursor {
     fn new_row(&mut self) {
+        self.row += 1;
         self.y += self.row_h;
         self.x = 0.0;
         self.row_h = 0.0;
@@ -348,7 +352,11 @@ impl Engine<'_> {
 
     fn children_within_depth(&mut self, slot: Id, flow: bool, content: Rect, avail_h: f32) -> (f32, Vec<Id>) {
         let doc = self.doc;
-        let mut cursor = Cursor::default();
+        let mut cursor = Cursor {
+            center: flow && doc.get(slot).is_some_and(|node| node.props.str("valign") == Some("center")),
+            ..Cursor::default()
+        };
+        let mut rows: Vec<(f32, Vec<Id>)> = Vec::new();
         let mut later = Vec::new();
         for &child in doc.children(slot) {
             let Some(node) = doc.get(child) else { continue };
@@ -358,15 +366,44 @@ impl Engine<'_> {
             match role(node) {
                 Role::Skip | Role::Subscription => {}
                 Role::OutOfFlow => later.push(child),
-                Role::InFlow => self.place_in_flow(node, flow, content, &mut cursor, avail_h),
+                Role::InFlow => {
+                    self.place_in_flow(node, flow, content, &mut cursor, avail_h);
+                    if cursor.center {
+                        if rows.len() == cursor.row {
+                            rows.push((0.0, Vec::new()));
+                        }
+                        let row = &mut rows[cursor.row];
+                        row.0 = cursor.row_h;
+                        row.1.push(child);
+                    }
+                }
             }
         }
-        let used = if flow { cursor.y + cursor.row_h } else { cursor.y };
+        let mut used = if flow { cursor.y + cursor.row_h } else { cursor.y };
+        // A single row can use a fixed flow's spare height. Wrapped rows keep their own
+        // heights; oversized content stays reachable by scrolling from the top.
+        if rows.len() == 1 && doc.get(slot).and_then(|node| node.props.dim("height")).is_some() {
+            rows[0].0 = rows[0].0.max(avail_h);
+            used = used.max(avail_h);
+        }
+        for (height, children) in rows {
+            for child in children {
+                if let (Some(node), Some(rect)) = (doc.get(child), self.out.rect(child)) {
+                    let dy = (height - rect.h - margins_of(node, content.w).vertical()) / 2.0;
+                    // Add to the laid-out position so margins and explicit displacement survive.
+                    if dy != 0.0 {
+                        self.translate_subtree(child, 0.0, dy);
+                    }
+                }
+            }
+        }
         (used, later)
     }
 
     fn place_in_flow(&mut self, node: &Node, flow: bool, content: Rect, cursor: &mut Cursor, avail_h: f32) {
-        if flow {
+        // Centered children are boxes, including text: paragraph continuation would split
+        // one child over multiple rows and make moving it overlap its neighbours.
+        if flow && !cursor.center {
             if let Some(rich) = self.flowing_text(node) {
                 return self.place_paragraph(node, &rich, content, cursor, avail_h);
             }
@@ -387,7 +424,7 @@ impl Engine<'_> {
         let y = content.y + cursor.y + m.top;
         // A slot with no height of its own beside what came before it on the row reaches down to
         // the bottom of that, as Shoes 3 grows it to its parent's end (s3_canvas.c:639-642).
-        self.row_floor = (flow && cursor.x > 0.0 && node.kind.is_slot()).then(|| cursor.row_h - m.vertical());
+        self.row_floor = (flow && !cursor.center && cursor.x > 0.0 && node.kind.is_slot()).then(|| cursor.row_h - m.vertical());
         let h = self.place_box(node, x, y, width, parent, &m);
         self.row_floor = None;
         if flow {
@@ -481,7 +518,7 @@ impl Engine<'_> {
     /// text (:207-210), so it sits on the line instead of starting a row (ledger C7). Hackety
     /// Hack puts every program's and lesson's name beside its icon this way.
     fn line_beside(&mut self, node: &Node, m: &Edges, width: f32, content: Rect, cursor: &Cursor) -> Option<(RichText, f32)> {
-        if !is_text(node) || node.props.has("height") {
+        if cursor.center || !is_text(node) || node.props.has("height") {
             return None;
         }
         let rich = rich::resolve_block(self.doc, &self.text.fonts, node.id)?;

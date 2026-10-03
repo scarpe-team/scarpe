@@ -231,6 +231,75 @@ class EndToEndTest < Minitest::Test
     assert_spec_passed(run)
   end
 
+  def test_centered_flow_keeps_clicks_keyboard_and_accessibility_at_the_new_positions
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app(width: 320, height: 220) do
+        @note = para "None", top: 130
+        flow(left: 20, top: 20, width: 260, height: 80, padding: 10, valign: :center) do
+          button("Tall", width: 80, height: 40) { @note.replace("Tall") }
+          button("Short", width: 80, height: 20) { @note.replace("Short") }
+          @field = edit_line(width: 80, height: 28) { |field| @note.replace(field.text) }
+        end
+      end
+    APP
+      assert_equal [30, 40, 80, 40], layout_of(button("Tall")).to_a
+      assert_equal [110, 50, 80, 20], layout_of(button("Short")).to_a
+      assert_equal [190, 46, 80, 28], layout_of(edit_line).to_a
+      %w[Tall Short].each do |name|
+        node = a11y_nodes.find { |n| n[:name] == name && n[:role] == "button" }
+        assert_equal layout_of(button(name)).to_a, node[:bounds]
+        press_key("tab")
+        assert_equal button(name).linkable_id, focused_drawable.linkable_id
+        press_key("enter")
+        assert_equal name, para("@note").text
+      end
+      press_key("tab")
+      assert_equal edit_line.linkable_id, focused_drawable.linkable_id
+      type_text("Hello")
+      assert_equal "Hello", para("@note").text
+      click_at(120, 55)
+      assert_equal "Short", para("@note").text, "hit-testing follows the centered control"
+      a11y_action button("Tall"), :click
+      assert_equal "Tall", para("@note").text
+    TEST
+    assert_spec_passed(run)
+  end
+
+  def test_centered_flow_updates_when_alignment_width_height_or_visibility_changes
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app(width: 320, height: 220) do
+        @row = flow(width: 180, height: 100, valign: "center") do
+          button "Tall", width: 60, height: 40
+          button "Short", width: 60, height: 20
+          button "Third", width: 60, height: 60
+        end
+      end
+    APP
+      tops = -> { %w[Tall Short Third].map { |name| layout_of(button(name)).y } }
+      assert_equal [30, 40, 20], tops.call
+      [:top, :unknown, nil].each do |alignment|
+        flow("@row").obj.valign = alignment
+        wait_frames
+        assert_equal [0, 0, 0], tops.call, "the usual alignment is the fallback"
+      end
+      flow("@row").obj.valign = :center
+      flow("@row").obj.width = 120
+      wait_frames
+      assert_equal [0, 10, 40], tops.call, "each wrapped row centers independently"
+      button("Tall").hide
+      wait_frames
+      assert_equal [40, 20], %w[Short Third].map { |name| layout_of(button(name)).y }
+      button("Tall").show
+      flow("@row").obj.height = 140
+      wait_frames
+      assert_equal [0, 10, 40], tops.call, "spare height does not spread wrapped rows"
+      flow("@row").obj.width = 180
+      wait_frames
+      assert_equal [50, 60, 40], tops.call, "a single row uses the new fixed height"
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_children_land_where_lacci_put_them
     run = run_real(<<~APP, test_code: <<~TEST)
       Shoes.app do

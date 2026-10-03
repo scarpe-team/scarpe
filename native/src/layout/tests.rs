@@ -85,6 +85,117 @@ fn flow_packs_left_to_right_and_wraps() {
 }
 
 #[test]
+fn centered_flow_uses_each_rows_height_and_remeasures_on_resize() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"valign": "center"}));
+    let ids: Vec<Id> = [20, 40, 60, 20].iter().map(|h| s.add("Button", flow, json!({"width": 80, "height": h}))).collect();
+    let hidden = s.add("Button", flow, json!({"width": 80, "height": 200, "hidden": true}));
+    let l = s.layout(160.0, 200.0);
+    for (&id, rect) in ids.iter().zip([
+        Rect::new(0.0, 10.0, 80.0, 20.0), Rect::new(80.0, 0.0, 80.0, 40.0),
+        Rect::new(0.0, 40.0, 80.0, 60.0), Rect::new(80.0, 60.0, 80.0, 20.0),
+    ]) {
+        assert_eq!(r(&l, id), rect);
+    }
+    assert_eq!(r(&l, flow).h, 100.0);
+    assert!(l.rect(hidden).is_none());
+    let wide = s.layout(320.0, 200.0);
+    for (&id, y) in ids.iter().zip([20.0, 10.0, 0.0, 20.0]) {
+        assert_eq!(r(&wide, id).y, y);
+    }
+    assert_eq!(r(&wide, flow).h, 60.0);
+    assert_eq!(wide.order.iter().copied().filter(|id| ids.contains(id)).collect::<Vec<_>>(), ids);
+    for valign in [json!("top"), json!("unknown"), Value::Null] {
+        s.doc.set_props(flow, json!({"valign": valign}).as_object().unwrap().clone());
+        let top = s.layout(160.0, 200.0);
+        assert_eq!(r(&top, ids[0]).y, 0.0, "centering is opt-in");
+        assert_eq!(r(&top, ids[3]).y, 40.0);
+    }
+}
+
+#[test]
+fn centered_flow_respects_padding_margins_displacement_and_fixed_height() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"valign": "center", "left": 20, "top": 10, "width": 240, "height": 100, "padding": [10, 20, 5, 15]}));
+    let short = s.add("Button", flow, json!({"width": 80, "height": 40, "margin_top": 6, "margin_bottom": 14, "displace_top": 3}));
+    let tall = s.add("Button", flow, json!({"width": 80, "height": 60}));
+    let placed = s.add("Button", flow, json!({"left": 4, "top": 7, "width": 20, "height": 10}));
+    let pinned = s.add("Button", flow, json!({"attach": "window", "left": 3, "top": 2, "width": 10, "height": 10}));
+    let l = s.layout(400.0, 200.0);
+    assert_eq!(r(&l, short), Rect::new(30.0, 44.0, 80.0, 20.0), "center the margin box, then preserve displacement");
+    assert_eq!(r(&l, tall), Rect::new(110.0, 25.0, 80.0, 60.0));
+    assert_eq!(r(&l, placed), Rect::new(34.0, 22.0, 20.0, 10.0));
+    assert_eq!(r(&l, pinned), Rect::new(3.0, 2.0, 10.0, 10.0));
+    assert_eq!(l.content_heights[&flow], 100.0, "the centered row occupies the fixed content height");
+    s.doc.set_props(flow, json!({"width": 130}).as_object().unwrap().clone());
+    let wrapped = s.layout(400.0, 200.0);
+    assert_eq!(r(&wrapped, short).y, 24.0, "wrapped rows use their own natural heights");
+    assert_eq!(r(&wrapped, tall).y, 55.0);
+}
+
+#[test]
+fn centered_flow_keeps_short_slots_natural_and_moves_their_whole_subtree() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"valign": "center", "width": 300}));
+    s.add("Button", flow, json!({"width": 60, "height": 80}));
+    let panel = s.add("Stack", flow, json!({"width": 100, "padding": 4}));
+    let bg = s.add("Background", panel, json!({"fill": "#eeeeee"}));
+    let nested = s.add("Button", panel, json!({"text": "Child", "width": 80, "height": 20}));
+    let scroll = s.add("Stack", flow, json!({"width": 100, "height": 40, "scroll": true}));
+    let inside = s.add("Button", scroll, json!({"width": 80, "height": 60}));
+    let mut l = s.layout(400.0, 200.0);
+    assert_eq!(r(&l, panel), Rect::new(60.0, 26.0, 100.0, 28.0), "a short slot keeps its natural height");
+    assert_eq!(r(&l, bg), r(&l, panel));
+    assert_eq!(r(&l, nested), Rect::new(64.0, 30.0, 80.0, 20.0));
+    assert!(l.texts[&nested].y >= r(&l, nested).y, "the button label moves too");
+    assert_eq!(r(&l, scroll), Rect::new(160.0, 20.0, 100.0, 40.0));
+    assert_eq!(l.scrollers[&scroll].viewport, r(&l, scroll));
+    assert_eq!(l.boxes[&inside].clip, Some(r(&l, scroll)));
+    assert_eq!(l.scroll(&s.doc, scroll, 10.0), Some(10.0));
+    assert_eq!(r(&l, inside).y, 10.0);
+    assert_eq!(l.boxes[&inside].clip, Some(r(&l, scroll)));
+}
+
+#[test]
+fn centered_flow_text_boxes_wrap_without_overlapping_or_changing_glyphs() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"valign": "center", "width": 240}));
+    let button = s.add("Button", flow, json!({"width": 60, "height": 60}));
+    let short = s.add("Para", flow, json!({"text_items": ["Label"], "margin": 0}));
+    let long = s.add("Para", flow, json!({"text_items": [LONG], "width": 180, "margin": 0}));
+    let after = s.add("Button", flow, json!({"width": 60, "height": 20}));
+    let l = s.layout(300.0, 300.0);
+    assert!((r(&l, short).center().1 - r(&l, button).center().1).abs() < 0.01);
+    assert_eq!(r(&l, short).x, 60.0);
+    assert_eq!(r(&l, long).y, 60.0, "a wrapping paragraph starts a new row");
+    assert!((r(&l, after).center().1 - r(&l, long).center().1).abs() < 0.01);
+    assert_eq!(l.texts[&long].shaped.text(), LONG);
+    assert!(l.texts[&long].shaped.buffer.layout_runs().count() > 1);
+    assert!((line_starts(&l, long)[0] - r(&l, long).x).abs() < 0.5, "text alignment stays the same");
+}
+
+#[test]
+fn centered_flow_handles_empty_zero_height_and_overflowing_rows() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"valign": "center", "width": 80, "height": 60, "scroll": true}));
+    assert_eq!(s.layout(200.0, 200.0).content_heights[&flow], 0.0);
+    let zero = s.add("Stack", flow, json!({"width": 80, "height": 0}));
+    let next = s.add("Button", flow, json!({"width": 80, "height": 20}));
+    let l = s.layout(200.0, 200.0);
+    assert_eq!(r(&l, zero).y, 0.0);
+    assert_eq!(r(&l, next).y, 0.0, "zero-height wrapped rows do not become a single fixed-height row");
+    s.doc.set_props(zero, json!({"hidden": true}).as_object().unwrap().clone());
+    s.doc.set_props(next, json!({"height": 100}).as_object().unwrap().clone());
+    let l = s.layout(200.0, 200.0);
+    assert_eq!(r(&l, next).y, 0.0, "oversized content does not move above the viewport");
+    assert_eq!(l.scrollers[&flow].max_top(), 40.0);
+    let stack = s.add("Stack", ROOT, json!({"valign": "center", "height": 100, "width": 80}));
+    let child = s.add("Button", stack, json!({"height": 20, "width": 80}));
+    let l = s.layout(200.0, 200.0);
+    assert_eq!(r(&l, child).y, r(&l, stack).y, "valign affects flows, not stacks");
+}
+
+#[test]
 fn width_forms() {
     let mut s = Scene::new();
     let half = s.add("Stack", ROOT, json!({"width": 0.5, "height": 10}));

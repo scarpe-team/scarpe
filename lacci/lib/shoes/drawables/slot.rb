@@ -11,6 +11,7 @@ class Shoes::Slot < Shoes::Drawable
   # - :center — center the slot
   # - another_drawable — position relative to that element
   shoes_styles :attach
+  shoes_styles :valign # native flows: :center opts into vertical centering within each row
 
   # fill, stroke, rotate, translate... for the shapes drawn in this slot
   include Shoes::DrawContext
