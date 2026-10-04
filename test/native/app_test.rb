@@ -78,6 +78,28 @@ class AppTest < Minitest::Test
     assert_equal({ "parent" => stack_id, "index" => 0 }, prepended.slice("parent", "index"))
   end
 
+  def test_font_names_reach_the_renderer_as_separate_family_weight_and_style
+    run = run_app(<<~RUBY, script: CLOSE_ON_RUN)
+      Shoes.app do
+        para "Medium", font: "Example Serif Medium"
+        para "Numeric", font: "Example Serif 500"
+        title "Semibold", font: "Inter SemiBold"
+        para "Bold italic", font: "Fira Mono Bold Italic 20px"
+        para "Quoted family", font: '"Example Medium 2", serif SemiBold 18px'
+      end
+    RUBY
+    assert_clean_exit(run)
+
+    props = run.creates("Para").map { |para| para["props"] }
+    assert_equal({ "family" => "Example Serif", "font_weight" => "500" }, props[0].slice("family", "font_weight"))
+    assert_equal props[0].slice("family", "font_weight"), props[1].slice("family", "font_weight")
+    assert_equal({ "family" => "Inter", "font_weight" => "600" }, props[2].slice("family", "font_weight"))
+    assert_equal({ "family" => "Fira Mono", "font_weight" => "bold", "emphasis" => "italic", "size" => "20px" },
+      props[3].slice("family", "font_weight", "emphasis", "size"))
+    assert_equal({ "family" => '"Example Medium 2", serif', "font_weight" => "600", "size" => "18px" },
+      props[4].slice("family", "font_weight", "size"))
+  end
+
   def test_ruby_timers_fire_at_the_right_counts_in_real_time
     run = run_app(<<~RUBY)
       Shoes.app do
