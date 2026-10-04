@@ -85,6 +85,198 @@ fn flow_packs_left_to_right_and_wraps() {
 }
 
 #[test]
+fn height_groups_align_sections_and_move_later_rows_after_the_columns_grow() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"align_heights": true}));
+    let mut cards = Vec::new();
+    let mut titles = Vec::new();
+    let mut authors = Vec::new();
+    let mut footers = Vec::new();
+    for (title_height, author_height) in [(20, 60), (60, 20), (10, 10)] {
+        let card = s.add("Stack", flow, json!({"width": 180}));
+        cards.push(card);
+        let title = s.add("Stack", card, json!({"height_group": "title"}));
+        s.add("Stack", title, json!({"height": title_height}));
+        titles.push(title);
+        let author = s.add("Stack", card, json!({"height_group": "author", "margin_top": 8}));
+        s.add("Stack", author, json!({"height": author_height}));
+        authors.push(author);
+        footers.push(s.add("Stack", card, json!({"height": 30})));
+    }
+    let below = s.add("Stack", ROOT, json!({"height": 20}));
+    let l = s.layout(360.0, 600.0);
+    for i in 0..2 {
+        assert_eq!(r(&l, titles[i]).h, 60.0);
+        assert_eq!((r(&l, authors[i]).y, r(&l, authors[i]).h), (68.0, 60.0));
+        assert_eq!(r(&l, footers[i]).y, 128.0);
+        assert_eq!(r(&l, cards[i]).h, 158.0);
+    }
+    assert_eq!(r(&l, cards[2]), Rect::new(0.0, 158.0, 180.0, 58.0));
+    assert_eq!(r(&l, below).y, 216.0);
+    let narrow = s.layout(180.0, 600.0);
+    assert_eq!(r(&narrow, titles[0]).h, 20.0, "each wrapped row has independent groups");
+    assert_eq!(r(&narrow, cards[0]).h, 118.0);
+    assert_eq!(r(&narrow, cards[1]).h, 118.0);
+    assert_eq!(r(&narrow, cards[2]).y, 236.0);
+}
+
+#[test]
+fn height_groups_remeasure_wrapped_text_and_shrink_after_text_font_or_membership_changes() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"align_heights": true}));
+    let mut titles = Vec::new();
+    let mut texts = Vec::new();
+    for text in ["Short", "A longer book title that wraps onto several lines at a narrow width"] {
+        let card = s.add("Stack", flow, json!({"width": 0.5}));
+        let title = s.add("Stack", card, json!({"height_group": "title", "padding": 4}));
+        texts.push(s.add("Para", title, json!({"text_items": [text], "margin": 0})));
+        titles.push(title);
+    }
+    let wide = s.layout(400.0, 600.0);
+    assert_eq!(r(&wide, titles[0]).h, r(&wide, titles[1]).h);
+    let narrow = s.layout(160.0, 600.0);
+    assert_eq!(r(&narrow, titles[0]).h, r(&narrow, titles[1]).h);
+    assert!(r(&narrow, titles[0]).h > r(&wide, titles[0]).h);
+    assert_near(r(&s.layout(400.0, 600.0), titles[0]), r(&wide, titles[0]));
+    s.doc.set_props(texts[1], json!({"text_items": ["Short"]}).as_object().unwrap().clone());
+    let small = s.layout(400.0, 600.0);
+    assert!(r(&small, titles[0]).h < r(&wide, titles[0]).h);
+    s.doc.set_props(texts[1], json!({"size": 30}).as_object().unwrap().clone());
+    let large = s.layout(400.0, 600.0);
+    assert_eq!(r(&large, titles[0]).h, r(&large, titles[1]).h);
+    assert!(r(&large, titles[0]).h > r(&small, titles[0]).h);
+    s.doc.set_props(titles[1], json!({"height_group": "other"}).as_object().unwrap().clone());
+    let separate = s.layout(400.0, 600.0);
+    assert_eq!(r(&separate, titles[0]).h, r(&small, titles[0]).h);
+    s.doc.set_props(titles[1], json!({"height_group": "title", "hidden": true}).as_object().unwrap().clone());
+    assert_eq!(r(&s.layout(400.0, 600.0), titles[0]).h, r(&small, titles[0]).h);
+}
+
+#[test]
+fn height_groups_keep_nested_grids_and_grouped_sections_independent() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"align_heights": true, "width": 400}));
+    let mut outer = Vec::new();
+    let mut inner = Vec::new();
+    for heights in [[20, 10, 30], [40, 80, 20]] {
+        let card = s.add("Stack", flow, json!({"width": 200}));
+        let title = s.add("Stack", card, json!({"height_group": "title"}));
+        outer.push(title);
+        s.add("Stack", title, json!({"height": heights[0]}));
+        let grid = s.add("Flow", card, json!({"align_heights": true}));
+        for height in &heights[1..] {
+            let title = s.add("Stack", grid, json!({"width": 100, "height_group": "title"}));
+            s.add("Stack", title, json!({"height": height}));
+            inner.push(title);
+        }
+    }
+    let l = s.layout(400.0, 600.0);
+    assert_eq!(outer.iter().map(|id| r(&l, *id).h).collect::<Vec<_>>(), [40.0, 40.0]);
+    assert_eq!(inner.iter().map(|id| r(&l, *id).h).collect::<Vec<_>>(), [30.0, 30.0, 80.0, 80.0]);
+
+    // A named section is a boundary too: its internals cannot set a peer section's height.
+    let nested = s.add("Stack", outer[0], json!({"height_group": "title"}));
+    s.add("Stack", nested, json!({"height": 5}));
+    let l = s.layout(400.0, 600.0);
+    assert_eq!(r(&l, nested).h, 5.0);
+    assert_eq!(r(&l, outer[0]).h, 40.0);
+}
+
+#[test]
+fn height_groups_do_not_inherit_an_unrelated_groups_row_floor_on_the_second_pass() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"align_heights": true, "width": 400}));
+    let mut sections = Vec::new();
+    for (kind, heights) in [("Flow", [20, 40]), ("Stack", [80, 10])] {
+        let card = s.add(kind, flow, json!({"width": 200}));
+        for (group, height) in ["title", "author"].iter().zip(heights) {
+            let section = s.add("Stack", card, json!({"width": 100, "height_group": group}));
+            s.add("Stack", section, json!({"height": height}));
+            sections.push(section);
+        }
+    }
+    let l = s.layout(400.0, 400.0);
+    assert_eq!(sections.iter().map(|id| r(&l, *id).h).collect::<Vec<_>>(), [80.0, 40.0, 80.0, 40.0]);
+}
+
+#[test]
+fn height_groups_respect_fixed_sizes_and_ignore_hidden_and_positioned_members() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"align_heights": true, "width": 500}));
+    let mut groups = Vec::new();
+    for height in [20, 40] {
+        let member = s.add("Stack", flow, json!({"width": 100, "height_group": "title"}));
+        s.add("Stack", member, json!({"height": height}));
+        groups.push(member);
+    }
+    let fixed = s.add("Stack", flow, json!({"width": 100, "height": 200, "height_group": "title"}));
+    let positioned = s.add("Stack", flow, json!({"left": 0, "top": 0, "height_group": "title"}));
+    let inside_positioned = s.add("Stack", positioned, json!({"height_group": "title"}));
+    s.add("Stack", inside_positioned, json!({"height": 300}));
+    let hidden = s.add("Stack", flow, json!({"hidden": true, "height_group": "title"}));
+    s.add("Stack", hidden, json!({"height": 400}));
+    let control = s.add("Button", flow, json!({"width": 100, "height": 30, "text": "Go", "height_group": "title"}));
+    let other = s.add("Stack", flow, json!({"width": 100, "height_group": "other"}));
+    s.add("Stack", other, json!({"height": 10}));
+    let l = s.layout(500.0, 600.0);
+    assert_eq!((r(&l, groups[0]).h, r(&l, groups[1]).h), (40.0, 40.0));
+    assert_eq!(r(&l, fixed).h, 200.0);
+    assert_eq!(r(&l, inside_positioned).h, 300.0);
+    assert!(l.rect(hidden).is_none());
+    assert_eq!(r(&l, control).h, 30.0);
+    assert_eq!(r(&l, other).h, 10.0, "unrelated groups keep their own heights");
+}
+
+#[test]
+fn height_groups_preserve_margins_displacement_decor_scrolling_and_bottom_placement() {
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"align_heights": true, "width": 200}));
+    let card = s.add("Stack", flow, json!({"width": 100, "padding": 5, "displace_left": 3, "displace_top": 7}));
+    let background = s.add("Background", card, json!({"fill": "#fff"}));
+    let title = s.add("Stack", card, json!({"height_group": "title", "padding": 2, "margin_bottom": 6}));
+    s.add("Stack", title, json!({"height": 10}));
+    let footer = s.add("Stack", card, json!({"bottom": 0, "height": 20, "scroll": true}));
+    let scrolling = s.add("Stack", footer, json!({"height": 50}));
+    s.scroll.insert(footer, 10.0);
+    let sibling = s.add("Stack", flow, json!({"width": 100, "padding": 5}));
+    let tall = s.add("Stack", sibling, json!({"height_group": "title", "padding": 2, "margin_bottom": 6}));
+    s.add("Stack", tall, json!({"height": 60}));
+    let attached = s.add("Button", card, json!({"attach": footer, "left": 0, "top": 0, "width": 20, "height": 10, "text": "A"}));
+    let l = s.layout(400.0, 400.0);
+    assert_eq!(r(&l, card), Rect::new(3.0, 7.0, 100.0, 80.0));
+    assert_eq!(r(&l, title), Rect::new(8.0, 12.0, 90.0, 64.0));
+    assert_eq!(r(&l, background), r(&l, card));
+    assert_eq!(r(&l, footer), Rect::new(8.0, 62.0, 90.0, 20.0));
+    assert_eq!(r(&l, scrolling).y, 52.0, "the scroll offset is applied once");
+    assert_eq!(l.scrollers[&footer].viewport, r(&l, footer));
+    assert_eq!(l.boxes[&scrolling].clip, Some(r(&l, footer)));
+    assert_eq!(r(&l, attached), Rect::new(8.0, 62.0, 20.0, 10.0));
+}
+
+#[test]
+fn height_groups_are_opt_in_and_keep_zero_height_rows_separate() {
+    for (kind, enabled) in [("Flow", Value::Null), ("Flow", json!(false)), ("Stack", json!(true))] {
+        let mut s = Scene::new();
+        let parent = s.add(kind, ROOT, json!({"align_heights": enabled}));
+        let short = s.add("Stack", parent, json!({"width": 100, "height_group": "title"}));
+        s.add("Stack", short, json!({"height": 20}));
+        let tall = s.add("Stack", parent, json!({"width": 100, "height_group": "title"}));
+        s.add("Stack", tall, json!({"height": 80}));
+        let l = s.layout(400.0, 400.0);
+        assert_eq!(r(&l, short).h, 20.0);
+        assert_eq!(r(&l, tall).h, 80.0);
+    }
+    let mut s = Scene::new();
+    let flow = s.add("Flow", ROOT, json!({"align_heights": true, "width": 100}));
+    let empty = s.add("Stack", flow, json!({"width": 100, "height_group": "title"}));
+    let full = s.add("Stack", flow, json!({"width": 100, "height_group": "title"}));
+    s.add("Stack", full, json!({"height": 40}));
+    let l = s.layout(400.0, 400.0);
+    assert_eq!(r(&l, empty).h, 0.0);
+    assert_eq!(r(&l, full).h, 40.0);
+}
+
+#[test]
 fn width_forms() {
     let mut s = Scene::new();
     let half = s.add("Stack", ROOT, json!({"width": 0.5, "height": 10}));

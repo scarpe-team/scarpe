@@ -127,6 +127,35 @@ across and `width: 0.5` half as wide. Art (`rect`, `oval`, `shape` and the rest)
 number as pixels, Floats included. DESIGN section 6 has the whole rule, and ledger C1, C10, C15
 and C18 say why.
 
+## Matching section heights across cards
+
+With the native display, `flow(align_heights: true)` gives auto-height containers with the
+same `height_group` equal heights within each row. For example, reserving the same height for
+book titles keeps the author names and buttons below them aligned:
+
+```ruby
+flow(align_heights: true) do
+  ["Short title", "A longer title\non two lines"].each do |title|
+    stack(width: 0.5, padding: 12) do
+      stack(height_group: :title) { para title }
+      para "Author name"
+      button "Read"
+    end
+  end
+end
+```
+
+Names can be symbols or strings; `nil` and empty names do not form a group. Matching heights
+include padding and exclude margins. Explicit heights opt a container out, and hidden or
+positioned containers do not participate. Each wrapped row has independent groups, measured
+again after content, font, or width changes so heights can shrink as well as grow.
+
+Only the outermost named sections participate in a row's groups. Use a nested
+`flow(align_heights: true)` to group sections inside a named container; nested flows keep
+independent groups. Omitted, `false`, or `nil` `align_heights` preserves the usual layout, and
+stacks ignore it. Both styles can change at runtime. Direct text children of an enabled flow
+wrap within their own boxes; use spans in one `para` for continuous text.
+
 ## Text sizes, and Shoes 3's text
 
 A text size is pixels: `para` is 12 px tall and `title` 34, as the manual says (ledger M14).

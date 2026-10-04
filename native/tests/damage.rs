@@ -102,6 +102,42 @@ fn nothing_changed_repaints_nothing() {
 }
 
 #[test]
+fn height_groups_repaint_sections_and_following_rows_after_reflow() {
+    for scale in [1.0, 1.25, 2.0] {
+        let mut h = Harness::new();
+        h.feed(&app(400, 400, &[
+            create(3, "Flow", 2, json!({"align_heights": true, "width": 360, "margin": 10})),
+            create(4, "Stack", 3, json!({"width": 170, "margin": 4})),
+            create(5, "Stack", 4, json!({"height_group": "title", "padding": 4})),
+            create(6, "Background", 5, json!({"fill": "#ddeeff"})),
+            create(7, "Para", 5, json!({"text_items": ["Short title"]})),
+            create(8, "Button", 4, json!({"text": "First"})),
+            create(9, "Stack", 3, json!({"width": 170, "margin": 4})),
+            create(10, "Stack", 9, json!({"height_group": "title", "padding": 4})),
+            create(11, "Para", 10, json!({"text_items": ["A longer title\nwith more lines"]})),
+            create(12, "Button", 9, json!({"text": "Second"})),
+            create(13, "Para", 2, json!({"text_items": ["Below the grid"]})),
+        ]));
+        let mut window = Window::open(&mut h, scale);
+        for (id, changes) in [
+            (11, json!({"size": 24})),
+            (11, json!({"text_items": ["Short"], "size": 12})),
+            (3, json!({"align_heights": false})),
+            (3, json!({"align_heights": true})),
+            (11, json!({"text_items": ["Long again\nwith two lines"]})),
+            (3, json!({"width": 190})),
+            (3, json!({"width": 360})),
+            (5, json!({"height_group": "other"})),
+            (10, json!({"hidden": true})),
+        ] {
+            props(&mut h, id, changes);
+            window.repaint(&mut h);
+        }
+        assert_eq!(window.repaint(&mut h), Repaint::Nothing);
+    }
+}
+
+#[test]
 fn moving_a_shape_repaints_where_it_was_and_where_it_is() {
     let mut h = Harness::new();
     busy_scene(&mut h);

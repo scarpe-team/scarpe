@@ -14,7 +14,7 @@ use crate::paint::shapes;
 use crate::props::{Edges, Id};
 use crate::style::Dim;
 use crate::text::{rich, RichText, ShapedText, TextEngine};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Rect {
@@ -197,6 +197,8 @@ pub fn layout(inputs: Inputs, root: Id, size: (f32, f32)) -> Layout {
         attached: Vec::new(),
         depth: 0,
         row_floor: None,
+        minimum_heights: HashMap::new(),
+        aligned_flows: HashSet::new(),
     };
     engine.text.begin_layout(root);
     engine.root(root, size);
@@ -217,6 +219,10 @@ struct Engine<'a> {
     /// The height a slot about to be placed in a flow reaches down to at least: the bottom of
     /// what came before it on its row (ledger C16). Taken by the next slot.
     row_floor: Option<f32>,
+    /// Group minimums last only for this layout, so text edits and resizing can shrink them.
+    minimum_heights: HashMap<Id, f32>,
+    /// Nested scopes measure once; an outer scope's second pass reuses their minimums.
+    aligned_flows: HashSet<Id>,
 }
 
 #[derive(Clone, Copy)]
@@ -228,6 +234,9 @@ enum Attach {
 /// Where the next in-flow child goes, relative to the slot's content box.
 #[derive(Default)]
 struct Cursor {
+    align_heights: bool,
+    /// Distinguishes wrapped rows even when their height is zero.
+    row: usize,
     x: f32,
     /// The top of the current row.
     y: f32,
@@ -239,6 +248,7 @@ struct Cursor {
 
 impl Cursor {
     fn new_row(&mut self) {
+        self.row += 1;
         self.y += self.row_h;
         self.x = 0.0;
         self.row_h = 0.0;
@@ -348,7 +358,11 @@ impl Engine<'_> {
 
     fn children_within_depth(&mut self, slot: Id, flow: bool, content: Rect, avail_h: f32) -> (f32, Vec<Id>) {
         let doc = self.doc;
-        let mut cursor = Cursor::default();
+        let align_heights = flow && doc.get(slot).is_some_and(|node| node.props.truthy("align_heights"));
+        let measure = align_heights && self.aligned_flows.insert(slot);
+        let attached_start = self.attached.len();
+        let mut cursor = Cursor { align_heights, ..Cursor::default() };
+        let mut rows: Vec<Vec<Id>> = Vec::new();
         let mut later = Vec::new();
         for &child in doc.children(slot) {
             let Some(node) = doc.get(child) else { continue };
@@ -358,15 +372,66 @@ impl Engine<'_> {
             match role(node) {
                 Role::Skip | Role::Subscription => {}
                 Role::OutOfFlow => later.push(child),
-                Role::InFlow => self.place_in_flow(node, flow, content, &mut cursor, avail_h),
+                Role::InFlow => {
+                    self.place_in_flow(node, flow, content, &mut cursor, avail_h);
+                    if measure {
+                        if rows.len() == cursor.row {
+                            rows.push(Vec::new());
+                        }
+                        rows[cursor.row].push(child);
+                    }
+                }
             }
+        }
+        let mut grew = false;
+        for children in rows {
+            grew |= self.align_height_groups(&children);
+        }
+        if grew {
+            // Reflow at the measured widths so growing sections move following content,
+            // rows, decor and positioned children. Discard attachments from the first pass.
+            self.attached.truncate(attached_start);
+            return self.children_within_depth(slot, flow, content, avail_h);
         }
         let used = if flow { cursor.y + cursor.row_h } else { cursor.y };
         (used, later)
     }
 
+    fn align_height_groups(&mut self, children: &[Id]) -> bool {
+        let doc = self.doc;
+        let mut groups: HashMap<&str, (f32, Vec<Id>)> = HashMap::new();
+        let mut pending = children.to_vec();
+        while let Some(id) = pending.pop() {
+            let Some(node) = doc.get(id) else { continue };
+            if hidden(node) || !node.kind.is_slot() || !matches!(role(node), Role::InFlow) {
+                continue;
+            }
+            let Some(rect) = self.out.rect(id) else { continue };
+            if let Some(group) = node.props.str("height_group").filter(|name| !name.is_empty()) {
+                if node.props.dim("height").is_none() {
+                    let entry = groups.entry(group).or_default();
+                    entry.0 = entry.0.max(rect.h);
+                    entry.1.push(id);
+                }
+                // A named section is a boundary: grouping both it and its descendants
+                // could make its required height depend on itself.
+            } else if !(matches!(node.kind, Kind::Flow | Kind::Widget | Kind::Mask) && node.props.truthy("align_heights")) {
+                pending.extend(doc.children(id));
+            }
+        }
+        let mut grew = false;
+        for (height, ids) in groups.into_values() {
+            for id in ids {
+                grew |= self.out.rect(id).is_some_and(|rect| rect.h < height);
+                self.minimum_heights.insert(id, height);
+            }
+        }
+        grew
+    }
+
     fn place_in_flow(&mut self, node: &Node, flow: bool, content: Rect, cursor: &mut Cursor, avail_h: f32) {
-        if flow {
+        // Grouped rows need independent boxes: paragraph continuation can span rows.
+        if flow && !cursor.align_heights {
             if let Some(rich) = self.flowing_text(node) {
                 return self.place_paragraph(node, &rich, content, cursor, avail_h);
             }
@@ -387,7 +452,9 @@ impl Engine<'_> {
         let y = content.y + cursor.y + m.top;
         // A slot with no height of its own beside what came before it on the row reaches down to
         // the bottom of that, as Shoes 3 grows it to its parent's end (s3_canvas.c:639-642).
-        self.row_floor = (flow && cursor.x > 0.0 && node.kind.is_slot()).then(|| cursor.row_h - m.vertical());
+        // A measured group has its own minimum, independent of an unrelated group's growth.
+        let grouped = self.minimum_heights.contains_key(&node.id);
+        self.row_floor = (flow && !cursor.align_heights && !grouped && cursor.x > 0.0 && node.kind.is_slot()).then(|| cursor.row_h - m.vertical());
         let h = self.place_box(node, x, y, width, parent, &m);
         self.row_floor = None;
         if flow {
@@ -481,7 +548,7 @@ impl Engine<'_> {
     /// text (:207-210), so it sits on the line instead of starting a row (ledger C7). Hackety
     /// Hack puts every program's and lesson's name beside its icon this way.
     fn line_beside(&mut self, node: &Node, m: &Edges, width: f32, content: Rect, cursor: &Cursor) -> Option<(RichText, f32)> {
-        if !is_text(node) || node.props.has("height") {
+        if cursor.align_heights || !is_text(node) || node.props.has("height") {
             return None;
         }
         let rich = rich::resolve_block(self.doc, &self.text.fonts, node.id)?;
@@ -595,7 +662,8 @@ impl Engine<'_> {
         let avail_h = explicit_h.map(|h| (h - padding.vertical()).max(0.0)).unwrap_or(parent.1);
         let flow = matches!(node.kind, Kind::Flow | Kind::DocumentRoot | Kind::Widget | Kind::Mask);
         let (used, later) = self.children(node.id, flow, content, avail_h);
-        let h = explicit_h.unwrap_or((used + padding.vertical()).max(floor));
+        let minimum = self.minimum_heights.get(&node.id).copied().unwrap_or(0.0);
+        let h = explicit_h.unwrap_or((used + padding.vertical()).max(floor).max(minimum));
         let slot_box = Rect::new(frame.x, frame.y, frame.w, h);
         self.record(node, slot_box, parent);
         self.out.content_heights.insert(node.id, used + padding.vertical());

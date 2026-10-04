@@ -231,6 +231,72 @@ class EndToEndTest < Minitest::Test
     assert_spec_passed(run)
   end
 
+  def test_height_groups_align_book_sections_and_update_through_the_ruby_styles
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app(width: 400, height: 400) do
+        $opened = nil
+        @grid = flow(width: 360, align_heights: true) do
+          @first = stack(width: 180) do
+            @first_title = stack(height_group: :title) do
+              background "#ddeeff"
+              para "One", margin: 0, size: 16
+            end
+            @first_author = stack(height_group: :author) { para "First\nauthor", margin: 0 }
+            button("Open first", width: 160) { $opened = :first }
+          end
+          @second = stack(width: 180) do
+            @second_title = stack(height_group: "title") { @long_title = para "A title\nwith two lines", margin: 0, size: 16 }
+            @second_author = stack(height_group: "author") { para "Second author", margin: 0 }
+            button("Open second", width: 160) { $opened = :second }
+          end
+        end
+      end
+    APP
+      title1 = -> { layout_of(stack("@first_title")) }
+      title2 = -> { layout_of(stack("@second_title")) }
+      author1 = -> { layout_of(stack("@first_author")) }
+      author2 = -> { layout_of(stack("@second_author")) }
+      assert_equal title1.call.h, title2.call.h
+      assert_equal author1.call.y, author2.call.y
+      assert_equal author1.call.h, author2.call.h
+      assert_equal layout_of(button("Open first")).y, layout_of(button("Open second")).y
+      assert_equal [221, 238, 255], pixel_at(150, title1.call.h - 2).first(3)
+      click_on("Open first")
+      assert_equal :first, $opened
+      original_height = title1.call.h
+
+      flow("@grid").obj.align_heights = false
+      wait_frames 2
+      assert_operator title1.call.h, :<, title2.call.h
+      refute_equal author1.call.y, author2.call.y
+      flow("@grid").obj.align_heights = true
+      wait_frames 2
+      assert_equal original_height, title1.call.h
+
+      stack("@first_title").obj.height_group = :other
+      wait_frames 2
+      assert_operator title1.call.h, :<, title2.call.h
+      stack("@first_title").obj.height_group = "title"
+      para("@long_title").replace("Short")
+      wait_frames 2
+      assert_equal title1.call.h, title2.call.h
+      assert_operator title1.call.h, :<, original_height
+      click_on("Open second")
+      assert_equal :second, $opened
+
+      para("@long_title").replace("A title\nwith two lines")
+      flow("@grid").obj.width = 180
+      wait_frames 2
+      assert_operator title1.call.h, :<, title2.call.h, "groups belong to each wrapped row"
+      assert_equal layout_of(stack("@first")).h, layout_of(stack("@second")).y
+      flow("@grid").obj.width = 360
+      wait_frames 2
+      assert_equal original_height, title1.call.h
+      assert_equal author1.call.y, author2.call.y
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_children_land_where_lacci_put_them
     run = run_real(<<~APP, test_code: <<~TEST)
       Shoes.app do
