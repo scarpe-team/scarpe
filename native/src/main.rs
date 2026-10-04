@@ -1,6 +1,9 @@
 //! scarpe-native [--headless] [--scale F] [--fonts system|bundled] [--trace]
 //!               [--exit-after SECS] [--inactive] [--ghost]
 
+// The Ruby shim supplies stdio pipes; a desktop launch must not create a console window.
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+
 use scarpe_native::runtime::Options;
 use scarpe_native::text::FontMode;
 use std::time::Duration;

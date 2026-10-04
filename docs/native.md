@@ -45,6 +45,10 @@ window's event loop wants the main thread), lets one binary serve every Ruby ver
 Rust crash arrives in Ruby as an ordinary error that carries the end of Rust's stderr. The same
 binary opens windows, runs headless for tests, and ships inside packaged apps.
 
+On Windows, the renderer uses the GUI subsystem so a desktop launch does not create an extra
+console window. The Ruby shim still supplies its protocol pipes and captures stderr. Capture or
+redirect stdout/stderr when running renderer commands such as `--help` directly.
+
 ## Quick start
 
 You need Ruby 3.2 or newer and a Rust toolchain (`cargo`, Rust 1.89 or newer). The work has been
