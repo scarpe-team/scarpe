@@ -106,71 +106,50 @@ module Scarpe::Components::Calzini
 
 
   def parse_font(props)
-
-    def contains_number?(str)
-      !!(str =~ /\d/)
-    end
-    def contains_only_numbers?(string)
-      /^\d+\z/ =~ string
-    end
-  
-
     input = props["font"]
     regex = /\s+(?=(?:[^']*'[^']*')*[^']*$)(?![^']*,[^']*')/
     result = input.split(regex)
-   
+
     fs = "normal"
     fv = "normal"
     fw = "normal"
     fss = "medium"
-    ff = "Arial"
-    
+    family = []
+
     fos = ["italic", "oblique"]
     fov = ["small-caps", "initial", "inherit"]
     fow = ["bold", "bolder", "lighter", "100", "200", "300", "400", "500", "600", "700", "800", "900"]
+    # Pango weight names accepted by the native renderer, expressed as CSS weights.
+    named_weights = {
+      "thin" => "100", "hairline" => "100",
+      "ultralight" => "200", "extralight" => "200", "light" => "300",
+      "regular" => "400", "book" => "400", "medium" => "500",
+      "semibold" => "600", "demibold" => "600", "strong" => "700",
+      "ultrabold" => "800", "extrabold" => "800", "heavy" => "900", "black" => "900",
+    }
     foss = ["xx-small", "x-small", "small","large", "x-large", "xx-large", "smaller", "larger"]
-    
+
     result.each do |i|
-      if fos.include?(i)
-        fs = i
-        next
-      elsif fov.include?(i)
-        fv = i
-        next
-      elsif fow.include?(i)
-        fw = i
-        next
-      elsif foss.include?(i)
-        fss = i
-        next
-      else
-        if contains_number?(i)
-
-          if contains_only_numbers?(i)
-              fss = i + "px"
-          else
-              fss = i
-          end
-
-        elsif i != "normal" && i != "medium" && i.strip != ""
-
-          if ff == "Arial"
-
-            ff = i
-
-          else
-            
-            ff = ff+ i
-
-          end
-        end
+      keyword = i.downcase
+      if fos.include?(keyword)
+        fs = keyword
+      elsif fov.include?(keyword)
+        fv = keyword
+      elsif fow.include?(keyword)
+        fw = keyword
+      elsif named_weights.key?(keyword) && (keyword != "black" || !family.empty?)
+        # As in the native parser, a leading Black can name a family (Black Chancery).
+        fw = named_weights[keyword]
+      elsif foss.include?(keyword)
+        fss = keyword
+      elsif i.match?(/\d/) && !i.start_with?("'")
+        fss = i.match?(/\A\d+\z/) ? "#{i}px" : i
+      elsif keyword != "normal" && !i.strip.empty?
+        family << i
       end
-      
     end
-    
 
-    "#{fs} #{fv} #{fw} #{fss} #{ff}"
-    
+    "#{fs} #{fv} #{fw} #{fss} #{family.empty? ? "Arial" : family.join(" ")}"
   end
 
   def para_font_size(props)
