@@ -1,11 +1,12 @@
 # Packaging a Shoes app for the native display service
 
-`scarpe package --native` turns a Shoes app into a macOS `.app` (and a `.dmg`) that draws with
-Scarpe's Rust display service: no webview, no WebKit, no Ruby needed on the machine that runs it.
+`scarpe package --native` turns a Shoes app into a macOS `.app` (and a `.dmg`) or a Windows
+folder and ZIP that draw with Scarpe's Rust display service. No Ruby or webview runtime is
+needed on the machine that runs it. [Windows builds](#windows) are described below.
 The design lives in `native/DESIGN.md` section 11; this page is how to use it, what ends up
 inside, and what it measured.
 
-## Package an app
+## Package an app on macOS
 
 ```sh
 scarpe package myapp.rb --native --dmg
@@ -17,7 +18,7 @@ myapp.rb` does the same.
 
 | option | what it does |
 |---|---|
-| `--native` | package for the Rust display service (macOS only for now) |
+| `--native` | package for the Rust display service |
 | `--dmg` | also make a compressed disk image with an `/Applications` link |
 | `--install-dir DIR` | where the app will live once installed (default `/Applications`); its Ruby is precompiled for that place, see [Bytecode](#bytecode) |
 | `--no-bytecode` | skip precompiling |
@@ -208,9 +209,64 @@ error there. The shim now starts the renderer without a shell, and `rake native_
 stand-in from bundles named `ZARKING (Rust).app` and `For Noah.app` with no flags. The log above is
 where to look when a double-click shows nothing.
 
+## Windows
+
+Build on Windows x64 with Ruby, Rust 1.89+ using the MSVC toolchain, and the Visual Studio
+Build Tools / Windows SDK installed. Run from an x64 developer command prompt so `mt.exe`,
+`rc.exe`, and the MSVC linker are on PATH. The people running the finished app need none of
+these tools. The UTF-8 runtime manifests require Windows 10 version 1903 or newer.
+
+```sh
+scarpe package myapp.rb --native --windows --arch x86_64 --name "My App" --include lib --icon app.ico --output dist
+```
+
+This produces `dist/My App/` and `dist/My App-x86_64-windows.zip`. Extract the ZIP and open
+`My App.exe`. It is the application launcher, not an installer. The folder can move, including
+to paths containing spaces or Arabic text. No WebView2, installed Ruby, Rust, or shell is used
+at launch.
+
+```text
+My App/
+  My App.exe             GUI launcher, with an embedded icon when --icon names an .ico
+  scarpe-native.exe      native renderer
+  ruby/                  Traveling Ruby, standard library, DLLs and CA certificates
+  scarpe/                Scarpe, Lacci, components, manual and vendored Ruby libraries
+  app/main.rb            application entry point
+  app/                   assets and files named with --include
+  runtime/gems/          isolated GEM_HOME / GEM_PATH
+  licenses/              bundled fonts and vendored-library licenses
+  boot.rb                same native bootstrap used on macOS
+```
+
+The packager checks the renderer's Windows x64 executable header, builds a GUI launcher with
+the static C runtime, and verifies that the bundled Ruby can load Scarpe before making the ZIP.
+It builds the renderer with `-C target-feature=+crt-static`; `SCARPE_NATIVE_BIN` can supply an
+already-built, self-contained Windows x64 renderer instead. Both `ruby.exe` and `rubyw.exe`
+retain their original manifests with UTF-8 enabled. The launcher starts Ruby detached from
+any console and resolves every bundle path from its own location.
+
+Output goes to `%LOCALAPPDATA%\My App\launcher.log` (the temporary directory is the fallback
+when `LOCALAPPDATA` is absent). Missing files and child failures produce a startup-error dialog
+and a nonzero exit code; `SCARPE_NATIVE_HEADLESS=1` suppresses the dialog for automation.
+
+Windows packages use Ruby source, without the macOS fixed-install-path bytecode optimization.
+`--minimal`, native ARM64 packages, installer generation and signing Windows executables are
+not included. Application-specific gem dependencies are not collected automatically; the
+native packager still vendors only FastImage and base64, as it does on macOS.
+
+The Windows packaging CI job builds and extracts a real ZIP, deletes the original source and
+bundle, and runs the extracted application headlessly from a Unicode path with no developer
+tools on PATH. It checks the first rendered frame, font and image loading, console absence,
+startup-failure exit codes, and missing-file diagnostics. To run that test on Windows:
+
+```powershell
+$env:SCARPE_WINDOWS_PACKAGE_TESTS = "1"
+ruby -Ilib test/package/native_windows_package_test.rb
+```
+
 ## Not done yet
 
-- Universal (`x86_64` + `arm64`) builds, Linux and Windows native packages.
+- Universal (`x86_64` + `arm64`) builds, Linux native packages and Windows ARM64 packages.
 - Notarisation. The app is ad-hoc signed, so a downloaded copy needs right-click, Open the first time.
 - A Ruby runtime with YJIT.
 - Bytecode for an app run from somewhere other than `--install-dir` (it loads source there). A

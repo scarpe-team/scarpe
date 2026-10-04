@@ -5,7 +5,7 @@ require "scarpe/package"
 require "minitest/mock"
 
 # `scarpe package` choosing between webview and native, and the pieces a native build writes.
-# Native packages are macOS apps, so the tests ask for one by name (--target macos) and run the
+# These tests ask for macOS packages by name (--target macos) and run the
 # same on a Linux host; only what needs macOS tools checks the host.
 class PackageTest < Minitest::Test
   include PackageTestHelpers
@@ -28,7 +28,7 @@ class PackageTest < Minitest::Test
     assert_instance_of Scarpe::Package, Scarpe::Package.packager_for(options, env: {})
   end
 
-  def test_native_packages_are_for_macos
+  def test_native_linux_packages_are_not_supported
     error = assert_raises(RuntimeError) { Scarpe::Package::Native.new(@app, target_os: "linux") }
     assert_match(/macOS/, error.message)
   end

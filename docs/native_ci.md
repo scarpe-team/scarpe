@@ -371,6 +371,16 @@ The native jobs were green in run 3, and in run 4 all but Ruby 4.0 on macOS, who
 loosened since. Next, make the two Rust jobs on macOS and Linux and the four Ruby jobs
 required checks in the branch protection for `main`.
 
+## Windows packaging
+
+The `Native Windows package` job uses Ruby 3.4.7, Rust 1.89 and the MSVC/Windows SDK tools on
+`windows-2025`. It runs the Windows packager unit tests, then builds a real native bundle and
+ZIP and checks the extracted app under a Unicode path without a system Ruby on PATH. The
+renderer stays headless; startup-error dialogs are suppressed. The test also checks font and
+image loading, the GUI subsystem on both executables, Ruby's lack of a console, argument
+forwarding, and failure logs/exit codes. Its report, first-frame PNG and launcher logs are
+uploaded as `native-windows-package-results`, including when the job fails.
+
 ## Later
 
 - **Formatting.** `cargo fmt --check` would fail in 1,168 places, because the crate uses longer

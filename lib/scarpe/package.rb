@@ -175,7 +175,7 @@ module Scarpe
       @skip_webview_check = skip_webview_check
 
       # Validate options
-      if @target_os != "macos" && @includes.any?
+      if !supports_includes? && @includes.any?
         warn "⚠️  --include is only carried into macOS builds so far (ignored for #{@target_os})"
       end
       if @target_os != "macos" && (@sign || @dmg || @universal)
@@ -536,7 +536,9 @@ module Scarpe
     def extract_runtime
       log "📦 Extracting runtime..."
       FileUtils.mkdir_p(runtime_cache_path)
-      system("tar", "xzf", tarball_cache_path, "-C", runtime_cache_path)
+      # GNU tar (on RubyInstaller's PATH) treats the C: in an absolute Windows archive path
+      # as a remote host. Open the archive by its basename from the cache directory instead.
+      system("tar", "xzf", File.basename(tarball_cache_path), "-C", runtime_cache_path, chdir: @cache_dir)
       raise "Extraction failed!" unless $?.success?
       log "   Extracted to #{runtime_cache_path}"
     end
@@ -924,10 +926,14 @@ module Scarpe
       vlog "  ✅ Copied #{File.basename(webview_bundle)} from #{File.dirname(webview_bundle)}"
     end
 
-    def copy_user_app
+    def supports_includes?
+      @target_os == "macos"
+    end
+
+    def copy_user_app(destination: File.join(app_path, "Contents/Resources/app"), entrypoint: File.basename(@app_file))
       log "📄 Copying user application..."
-      dst_app = File.join(app_path, "Contents/Resources/app")
-      FileUtils.cp(@app_file, dst_app)
+      dst_app = destination
+      FileUtils.cp(@app_file, File.join(dst_app, entrypoint))
 
       app_dir = File.dirname(@app_file)
 
@@ -2760,17 +2766,25 @@ module Scarpe
       zip_path = File.join(@output_dir, "#{@name}-#{@arch}-windows.zip")
       FileUtils.rm_f(zip_path)
 
-      # Use PowerShell's Compress-Archive on Windows, or zip on Unix
+      # Use PowerShell on Windows, or zip on Unix
       if Gem.win_platform?
-        # On Windows
-        ps_command = "Compress-Archive -Path '#{windows_output_path}' -DestinationPath '#{zip_path}' -Force"
-        system("powershell", "-Command", ps_command, [:out, :err] => @verbose ? $stdout : File::NULL)
+        # .NET treats both paths literally, including brackets in the destination directory.
+        # Compress-Archive can fail there even when its source uses -LiteralPath.
+        source = windows_output_path.gsub("'", "''")
+        destination = zip_path.gsub("'", "''")
+        ps_command = "$ErrorActionPreference = 'Stop'; Add-Type -AssemblyName System.IO.Compression.FileSystem; " \
+          "[System.IO.Compression.ZipFile]::CreateFromDirectory('#{source}', '#{destination}', " \
+          "[System.IO.Compression.CompressionLevel]::Optimal, $true)"
+        output, status = Open3.capture2e("powershell", "-NoProfile", "-NonInteractive", "-Command", ps_command)
+        vlog output
+        success = status.success?
       else
         # On macOS/Linux (cross-building)
-        Dir.chdir(@output_dir) do
+        success = Dir.chdir(@output_dir) do
           system("zip", "-r", "-q", zip_path, File.basename(windows_output_path), [:out, :err] => @verbose ? $stdout : File::NULL)
         end
       end
+      raise "Could not create Windows archive #{zip_path}\n#{output}" unless success && File.file?(zip_path)
 
       if File.exist?(zip_path)
         zip_size = (File.size(zip_path) / 1024.0 / 1024.0).round(1)
@@ -2893,11 +2907,12 @@ module Scarpe
         Output formats:
           macOS (default):  .app bundle (optionally as .dmg disk image)
           Linux:            AppImage or .tar.gz bundle
-          Windows:          Folder with .bat launcher (+ .zip for distribution)
+          Windows:          Folder and .zip (.exe launcher with --native, otherwise .bat)
 
         Options:
           -n, --name NAME       Application name (default: derived from filename)
-          -i, --icon FILE       Application icon (.icns/.png for macOS, .png/.svg for Linux)
+          -i, --icon FILE       Application icon (.icns/.png for macOS, .png/.svg for Linux,
+                                .ico for native Windows)
           -a, --arch ARCH       Target architecture: x86_64 or arm64 (default: current)
           -t, --target OS       Target OS: macos, linux, linux-musl, windows (default: current)
               --linux           Shortcut for --target linux
@@ -2906,7 +2921,7 @@ module Scarpe
           -o, --output DIR      Output directory (default: current directory)
           -V, --verbose         Show detailed progress
               --dev             Use local development Scarpe source (not published gems)
-              --include PATH    Also carry this file or folder beside the app (macOS; repeatable).
+              --include PATH    Also carry this file or folder (macOS or native Windows; repeatable).
                                 Lands where the app's own relative paths expect it
           -m, --minimal         Strip optional gems & SSL for smallest build
                                 Removes: nokogiri, sqlite3, fastimage, SSL/crypto
@@ -2918,13 +2933,14 @@ module Scarpe
               --dmg             Also create a .dmg disk image for distribution
           -u, --universal       Build universal binary (x86_64 + arm64)
 
-        Native display service (macOS; also chosen by SCARPE_DISPLAY_SERVICE=native):
+        Native display service (macOS and Windows; also chosen by SCARPE_DISPLAY_SERVICE=native):
               --native          Draw with the Rust display service instead of a webview.
                                 Bundles Ruby, Lacci, the shim and the release scarpe-native
-                                binary; always ad-hoc signed. See docs/native_packaging.md
-              --install-dir DIR Where the app will be installed (default /Applications);
+                                binary. macOS apps are ad-hoc signed; Windows builds need Rust
+                                MSVC and the Windows SDK. See docs/native_packaging.md
+              --install-dir DIR Where the macOS app will be installed (default /Applications);
                                 its Ruby is precompiled for that place
-              --no-bytecode     Skip precompiling Ruby to bytecode
+              --no-bytecode     Skip precompiling Ruby to bytecode (macOS only)
 
           -h, --help            Show this help
 

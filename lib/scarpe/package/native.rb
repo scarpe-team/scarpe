@@ -7,7 +7,7 @@ require_relative "bytecode"
 
 module Scarpe
   class Package
-    # `scarpe package --native`: a macOS .app that draws with the Rust display service
+    # `scarpe package --native`: a macOS .app or Windows folder drawing with the Rust display service
     # (native/DESIGN.md section 11, docs/native_packaging.md). Next to the webview build it leaves
     # out WebKit, the gems and the webview extension, and carries instead:
     #
@@ -19,6 +19,7 @@ module Scarpe
     #   Contents/Resources/app/            the app and its assets
     #   Contents/Resources/runtime/ruby/   Traveling Ruby, stripped as for any build
     #
+    # The Windows layout and launcher are implemented in native_windows.rb.
     # Scarpe comes straight from the source tree this packager lives in, never from an installed
     # gem, so what you run in development is what ships.
     class Native < Package
@@ -31,7 +32,7 @@ module Scarpe
       # The webview display service and the packager itself stay behind (paths under lib/).
       LEAVE_OUT = %w[
         scarpe/wv scarpe/wv.rb scarpe/wv_local.rb scarpe/wv_relay.rb scarpe/assets.rb
-        scarpe/package.rb scarpe/package/native.rb scarpe/extension.rb
+        scarpe/package.rb scarpe/package/native.rb scarpe/package/native_windows.rb scarpe/extension.rb
       ].freeze
       # Shipped beside the sources, at the same paths: Lacci reads its release name from
       # CHANGELOG.md, and Shoes.show_manual draws its window from docs/static/manual.md (ledger K7).
@@ -51,8 +52,12 @@ module Scarpe
 
       def initialize(app_file, install_dir: INSTALL_DIR, bytecode: true, **options)
         super(app_file, **options)
-        raise "Native packaging makes macOS apps for now (not #{@target_os})" unless @target_os == "macos"
+        raise "Native packaging supports macOS and Windows (not #{@target_os})" unless %w[macos windows].include?(@target_os)
         raise "Native packaging builds one architecture (#{@arch}); --universal is not supported yet" if @universal
+        if @target_os == "windows"
+          raise "Native Windows packaging supports x86_64 for now" unless @arch == "x86_64"
+          raise "--minimal is not supported for native Windows packages yet" if @minimal
+        end
 
         # A name given with --name is what Finder, the Dock and the disk image show, so it stays as
         # written ("ZARKING (Rust)", "For Noah") less what a file name cannot hold. A name made from
@@ -61,11 +66,12 @@ module Scarpe
           @name = given
           @bundle_id = "com.scarpe.#{given.downcase.gsub(/[^a-z0-9]/, "").then { |id| id.empty? ? "app" : id }}"
         end
+        @name = windows_package_name(@name) if @target_os == "windows"
 
         @scarpe_root ||= find_scarpe_root || raise("Cannot find the Scarpe source (lib/scarpe and lacci/lib)")
         @install_dir = install_dir
-        @bytecode = bytecode
-        @sign = true # Apple silicon runs nothing unsigned, and stripping the binary drops its signature.
+        @bytecode = bytecode && @target_os == "macos"
+        @sign = @target_os == "macos" # Apple silicon runs nothing unsigned.
       end
 
       def build_macos!
@@ -91,14 +97,14 @@ module Scarpe
       # The environment the bundled Ruby runs in, with res standing for Contents/Resources: written
       # into the launcher as "$RES", and a real path when the packager runs that Ruby itself.
       def runtime_env(res)
-        ruby_lib = "#{res}/runtime/ruby/lib/ruby"
+        ruby_lib = @target_os == "windows" ? "#{res}/ruby/lib/ruby" : "#{res}/runtime/ruby/lib/ruby"
         stdlib = [
           "site_ruby/#{RUBY_ABI}", "site_ruby/#{RUBY_ABI}/#{ruby_platform_dir}", "site_ruby",
           "vendor_ruby/#{RUBY_ABI}", "vendor_ruby/#{RUBY_ABI}/#{ruby_platform_dir}", "vendor_ruby",
           RUBY_ABI, "#{RUBY_ABI}/#{ruby_platform_dir}",
         ]
         {
-          "RUBYLIB" => (load_dirs.map { |dir| "#{res}/scarpe/#{dir}" } + stdlib.map { |dir| "#{ruby_lib}/#{dir}" }).join(":"),
+          "RUBYLIB" => (load_dirs.map { |dir| "#{res}/scarpe/#{dir}" } + stdlib.map { |dir| "#{ruby_lib}/#{dir}" }).join(@target_os == "windows" ? ";" : ":"),
           "GEM_HOME" => "#{res}/runtime/gems",
           "GEM_PATH" => "#{res}/runtime/gems",
           "SCARPE_DISPLAY_SERVICE" => "native",
@@ -113,6 +119,10 @@ module Scarpe
 
       private
 
+      def supports_includes?
+        %w[macos windows].include?(@target_os)
+      end
+
       # A --name as a bundle name: slashes, colons and control characters cannot be in a file
       # name, and a leading dot would hide the app.
       def given_name(name)
@@ -126,11 +136,11 @@ module Scarpe
       end
 
       def resources_path
-        File.join(app_path, "Contents", "Resources")
+        @target_os == "windows" ? windows_output_path : File.join(app_path, "Contents", "Resources")
       end
 
       def binary_path
-        File.join(app_path, "Contents", "MacOS", BINARY)
+        @target_os == "windows" ? File.join(windows_output_path, "#{BINARY}.exe") : File.join(app_path, "Contents", "MacOS", BINARY)
       end
 
       def copy_scarpe_sources
@@ -179,7 +189,9 @@ module Scarpe
         check_binary_arch(source)
         FileUtils.cp(source, binary_path)
         FileUtils.chmod(0o755, binary_path)
-        log "   ⚠️  strip failed; shipping the binary unstripped" unless system("strip", "-x", binary_path, [:out, :err] => File::NULL)
+        if @target_os == "macos"
+          log "   ⚠️  strip failed; shipping the binary unstripped" unless system("strip", "-x", binary_path, [:out, :err] => File::NULL)
+        end
 
         licenses = File.join(resources_path, "licenses")
         FileUtils.mkdir_p(licenses)
@@ -193,8 +205,8 @@ module Scarpe
         return File.expand_path(explicit) unless explicit.empty?
 
         crate = File.join(@scarpe_root, "native")
-        binary = File.join(crate, "target", "release", BINARY)
-        build_native_binary(crate) if stale?(binary, crate)
+        binary = File.join(crate, "target", "release", "#{BINARY}#{'.exe' if @target_os == 'windows'}")
+        build_native_binary(crate) if @target_os == "windows" || stale?(binary, crate)
         binary
       end
 
@@ -208,11 +220,20 @@ module Scarpe
 
       def build_native_binary(crate)
         log "🦀 Building #{BINARY} (cargo build --release)..."
+        if @target_os == "windows"
+          cargo = ENV["CARGO"] || "cargo"
+          env = { "RUSTFLAGS" => [ENV["RUSTFLAGS"], "-C target-feature=+crt-static"].compact.join(" ") }
+          env["CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER"] = windows_linker if windows_linker
+          system(env, cargo, "build", "--release", "--locked", chdir: crate) || raise("cargo build --release failed in #{crate}")
+          return
+        end
         cargo = ENV["CARGO"] || (system("which cargo", out: File::NULL) ? "cargo" : File.expand_path("~/.cargo/bin/cargo"))
         system(cargo, "build", "--release", chdir: crate) || raise("cargo build --release failed in #{crate}")
       end
 
       def check_binary_arch(binary)
+        return check_windows_binary(binary) if @target_os == "windows"
+
         archs = `lipo -archs #{Shellwords.escape(binary)} 2>/dev/null`.split
         raise "#{binary} is not a macOS executable (is SCARPE_NATIVE_BIN pointing at a stand-in?)" if archs.empty?
         raise "#{binary} is built for #{archs.join(", ")}, not #{@arch}" unless archs.include?(@arch)
@@ -303,3 +324,5 @@ module Scarpe
     end
   end
 end
+
+require_relative "native_windows"

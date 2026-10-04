@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 # Boots an app packaged by `scarpe package --native` (docs/native_packaging.md). The launcher
-# (Contents/MacOS/scarpe-launcher) has set up Traveling Ruby, put Scarpe, Lacci and
+# (Contents/MacOS/scarpe-launcher, or the Windows .exe) has set up Traveling Ruby, put Scarpe, Lacci and
 # scarpe-components on RUBYLIB, pointed SCARPE_NATIVE_BIN at the Rust binary beside it, and passes
-# the app's file name. This is Contents/Resources/boot.rb, so __dir__ is the bundle's Resources.
+# the app's file name. __dir__ is Contents/Resources on macOS and the bundle root on Windows.
 
 # A packaged app knows its display service, whatever the environment it was started from says.
 ENV["SCARPE_DISPLAY_SERVICE"] = "native"

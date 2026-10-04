@@ -73,6 +73,56 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+  windows_package:
+    name: Native Windows package
+    runs-on: windows-2025
+    timeout-minutes: 30
+    env:
+      RUSTFLAGS: -C target-feature=+crt-static
+      SCARPE_NATIVE_HEADLESS: "1"
+      SCARPE_WINDOWS_PACKAGE_TESTS: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4.7"
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - uses: dtolnay/rust-toolchain@1.89
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: native
+          shared-key: native-windows-package
+          cache-on-failure: true
+      - uses: actions/cache@v6
+        with:
+          path: ~/.scarpe/packager-cache
+          key: traveling-ruby-20251122-3.4.7-windows-x86_64
+      # These tests load the packager directly; no webview gem or GUI library is installed.
+      - name: Install package test dependencies
+        run: |
+          gem install minitest --version '~> 5.0' --no-document
+          gem install fastimage --version '~> 2.2' --no-document
+          gem install base64 --no-document
+      - name: Stub desktop side effects
+        shell: bash
+        run: echo "$GITHUB_WORKSPACE/spec/support/fakebin" >> "$GITHUB_PATH"
+      - name: Package unit tests
+        run: ruby -Ilib test/package/windows_package_test.rb
+      - name: Build, extract and run a native Windows package
+        env:
+          SCARPE_WINDOWS_PACKAGE_RESULTS: ${{ runner.temp }}/windows-package-results
+        run: ruby -Ilib test/package/native_windows_package_test.rb
+      - name: Keep the package verification results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: native-windows-package-results
+          path: ${{ runner.temp }}/windows-package-results/
+          if-no-files-found: ignore
+          retention-days: 14
+
   ruby:
     name: Ruby ${{ matrix.ruby }} on ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
