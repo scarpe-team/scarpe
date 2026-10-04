@@ -102,6 +102,40 @@ fn nothing_changed_repaints_nothing() {
 }
 
 #[test]
+fn stretched_cards_repaint_after_height_wrapping_and_alignment_changes() {
+    for scale in [1.0, 1.25, 2.0] {
+        let mut h = Harness::new();
+        h.feed(&app(400, 320, &[
+            create(3, "Flow", 2, json!({"width": 360, "valign": "stretch", "margin": 10})),
+            create(4, "Stack", 3, json!({"width": 170, "margin": 4})),
+            create(5, "Background", 4, json!({"fill": "#ddeeff", "curve": 8})),
+            create(6, "Border", 4, json!({"stroke": "#446688", "curve": 8})),
+            create(7, "Para", 4, json!({"text_items": ["Short card"]})),
+            create(8, "Button", 4, json!({"text": "Open", "bottom": 0, "height": 28})),
+            create(9, "Stack", 3, json!({"width": 170, "margin": 4})),
+            create(10, "Background", 9, json!({"fill": "#ffeedd"})),
+            create(11, "Stack", 9, json!({"height": 120})),
+            create(12, "Para", 2, json!({"text_items": ["Below the cards"]})),
+        ]));
+        let mut window = Window::open(&mut h, scale);
+        for (id, changes) in [
+            (11, json!({"height": 180})),
+            (11, json!({"height": 50})),
+            (3, json!({"valign": null})),
+            (3, json!({"valign": "stretch"})),
+            (3, json!({"width": 190})),
+            (3, json!({"width": 360})),
+            (4, json!({"displace_top": 7, "displace_left": 3})),
+            (11, json!({"height": 100})),
+        ] {
+            props(&mut h, id, changes);
+            window.repaint(&mut h);
+        }
+        assert_eq!(window.repaint(&mut h), Repaint::Nothing);
+    }
+}
+
+#[test]
 fn moving_a_shape_repaints_where_it_was_and_where_it_is() {
     let mut h = Harness::new();
     busy_scene(&mut h);

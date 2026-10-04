@@ -11,6 +11,7 @@ class Shoes::Slot < Shoes::Drawable
   # - :center — center the slot
   # - another_drawable — position relative to that element
   shoes_styles :attach
+  shoes_styles :valign # native flows: :stretch gives auto-height columns equal row heights
 
   # fill, stroke, rotate, translate... for the shapes drawn in this slot
   include Shoes::DrawContext

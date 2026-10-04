@@ -127,6 +127,25 @@ across and `width: 0.5` half as wide. Art (`rect`, `oval`, `shape` and the rest)
 number as pixels, Floats included. DESIGN section 6 has the whole rule, and ledger C1, C10, C15
 and C18 say why.
 
+## Equal-height columns in a flow
+
+With the native display, `flow(valign: :stretch)` grows auto-height child containers to the
+tallest margin box in each row. Backgrounds, borders, and bottom-positioned footers use the
+stretched height. Explicit child heights, text, and controls keep their sizes.
+
+```ruby
+flow(valign: :stretch) do
+  stack(width: 0.5, margin: 8) { background "#eef"; para "Short card" }
+  stack(width: 0.5, margin: 8) { background "#efe"; para "A longer card\nwith two lines" }
+end
+```
+
+A single row fills the flow's explicit height, less padding; wrapped rows use their own
+natural heights. Heights are measured anew when content or width changes, so cards can shrink
+again. Strings work too, and `valign` can change at runtime. Omitted, `nil`, and unknown values
+keep the usual layout. Stacks and positioned children keep their placement. Text in a
+stretching flow wraps within its own box; use spans in one `para` for continuous text.
+
 ## Text sizes, and Shoes 3's text
 
 A text size is pixels: `para` is 12 px tall and `title` 34, as the manual says (ledger M14).

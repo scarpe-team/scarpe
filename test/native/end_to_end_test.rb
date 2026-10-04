@@ -231,6 +231,62 @@ class EndToEndTest < Minitest::Test
     assert_spec_passed(run)
   end
 
+  def test_stretch_flows_resize_cards_and_keep_their_footers_clickable
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app(width: 400, height: 360) do
+        $opened = 0
+        @row = flow(width: 360, valign: :stretch) do
+          @short = stack(width: 180) do
+            background "#eeddcc"
+            @short_content = stack(height: 60)
+            @open = button("Open", bottom: 0, width: 100, height: 28) { $opened += 1 }
+          end
+          @tall = stack(width: 180) do
+            background "#ddeeff"
+            @tall_content = stack(height: 140)
+          end
+        end
+      end
+    APP
+      short = -> { layout_of(stack("@short")) }
+      tall = -> { layout_of(stack("@tall")) }
+      footer = -> { layout_of(button("@open")) }
+      assert_equal [140, 140], [short.call.h, tall.call.h]
+      assert_equal 112, footer.call.y
+      assert_equal [238, 221, 204], pixel_at(10, 100).first(3), "the background fills the stretched card"
+      click_on("Open")
+      assert_equal 1, $opened
+
+      flow("@row").obj.valign = nil
+      wait_frames 2
+      assert_equal [60, 140], [short.call.h, tall.call.h]
+      assert_equal 32, footer.call.y
+      assert_equal [255, 255, 255], pixel_at(10, 100).first(3)
+
+      flow("@row").obj.valign = "stretch"
+      wait_frames 2
+      assert_equal 140, short.call.h
+      flow("@row").obj.width = 180
+      wait_frames 2
+      assert_equal [60, 60, 140], [short.call.h, tall.call.y, tall.call.h]
+      assert_equal 32, footer.call.y
+      click_on("Open")
+      assert_equal 2, $opened
+
+      flow("@row").obj.width = 360
+      stack("@tall_content").obj.height = 40
+      wait_frames 2
+      assert_equal [60, 60], [short.call.h, tall.call.h], "old stretched heights do not stick"
+      stack("@short_content").obj.height = 10
+      wait_frames 2
+      assert_equal [40, 40], [short.call.h, tall.call.h]
+      stack("@short").obj.height = 30
+      wait_frames 2
+      assert_equal [30, 40], [short.call.h, tall.call.h], "an explicit height takes precedence"
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_children_land_where_lacci_put_them
     run = run_real(<<~APP, test_code: <<~TEST)
       Shoes.app do

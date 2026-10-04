@@ -197,6 +197,7 @@ pub fn layout(inputs: Inputs, root: Id, size: (f32, f32)) -> Layout {
         attached: Vec::new(),
         depth: 0,
         row_floor: None,
+        stretch_slots: HashMap::new(),
     };
     engine.text.begin_layout(root);
     engine.root(root, size);
@@ -217,6 +218,9 @@ struct Engine<'a> {
     /// The height a slot about to be placed in a flow reaches down to at least: the bottom of
     /// what came before it on its row (ledger C16). Taken by the next slot.
     row_floor: Option<f32>,
+    /// Auto-height columns measured in a stretching row. Their decor and positioned
+    /// children wait for the row's final height, avoiding a second layout of their content.
+    stretch_slots: HashMap<Id, Vec<Id>>,
 }
 
 #[derive(Clone, Copy)]
@@ -228,6 +232,9 @@ enum Attach {
 /// Where the next in-flow child goes, relative to the slot's content box.
 #[derive(Default)]
 struct Cursor {
+    stretch: bool,
+    /// Distinguishes wrapped rows even when their height is zero.
+    row: usize,
     x: f32,
     /// The top of the current row.
     y: f32,
@@ -239,6 +246,7 @@ struct Cursor {
 
 impl Cursor {
     fn new_row(&mut self) {
+        self.row += 1;
         self.y += self.row_h;
         self.x = 0.0;
         self.row_h = 0.0;
@@ -348,7 +356,11 @@ impl Engine<'_> {
 
     fn children_within_depth(&mut self, slot: Id, flow: bool, content: Rect, avail_h: f32) -> (f32, Vec<Id>) {
         let doc = self.doc;
-        let mut cursor = Cursor::default();
+        let mut cursor = Cursor {
+            stretch: flow && doc.get(slot).is_some_and(|node| node.props.str("valign") == Some("stretch")),
+            ..Cursor::default()
+        };
+        let mut rows: Vec<(f32, Vec<Id>)> = Vec::new();
         let mut later = Vec::new();
         for &child in doc.children(slot) {
             let Some(node) = doc.get(child) else { continue };
@@ -358,15 +370,54 @@ impl Engine<'_> {
             match role(node) {
                 Role::Skip | Role::Subscription => {}
                 Role::OutOfFlow => later.push(child),
-                Role::InFlow => self.place_in_flow(node, flow, content, &mut cursor, avail_h),
+                Role::InFlow => {
+                    if cursor.stretch && node.kind.is_slot() && node.props.dim("height").is_none() {
+                        self.stretch_slots.insert(child, Vec::new());
+                    }
+                    self.place_in_flow(node, flow, content, &mut cursor, avail_h);
+                    if cursor.stretch {
+                        if rows.len() == cursor.row {
+                            rows.push((0.0, Vec::new()));
+                        }
+                        let row = &mut rows[cursor.row];
+                        row.0 = cursor.row_h;
+                        row.1.push(child);
+                    }
+                }
             }
         }
-        let used = if flow { cursor.y + cursor.row_h } else { cursor.y };
+        let mut used = if flow { cursor.y + cursor.row_h } else { cursor.y };
+        // A single row fills a fixed flow's content height; wrapped rows use their own
+        // tallest child. Natural content can still grow past a fixed height and scroll.
+        if rows.len() == 1 && doc.get(slot).and_then(|node| node.props.dim("height")).is_some() {
+            rows[0].0 = rows[0].0.max(avail_h);
+            used = used.max(avail_h);
+        }
+        for (height, children) in rows {
+            for child in children {
+                if let Some(node) = doc.get(child) {
+                    self.stretch_slot(node, height - margins_of(node, content.w).vertical());
+                }
+            }
+        }
         (used, later)
     }
 
+    fn stretch_slot(&mut self, node: &Node, height: f32) {
+        let Some(later) = self.stretch_slots.remove(&node.id) else { return };
+        let Some(b) = self.out.boxes.get_mut(&node.id) else { return };
+        b.rect.h = b.rect.h.max(height);
+        let (frame, avail_h) = (b.rect, b.parent_size.1);
+        let padding = node.props.padding(frame.w);
+        // As with the legacy row floor, stretching changes the slot's outer height;
+        // its in-flow content keeps its natural layout and scroll-height measurement.
+        self.place_later(&later, frame, frame.inset(&padding), avail_h);
+        self.displace(node);
+    }
+
     fn place_in_flow(&mut self, node: &Node, flow: bool, content: Rect, cursor: &mut Cursor, avail_h: f32) {
-        if flow {
+        // Stretching rows need independent boxes: paragraph continuation can span rows.
+        if flow && !cursor.stretch {
             if let Some(rich) = self.flowing_text(node) {
                 return self.place_paragraph(node, &rich, content, cursor, avail_h);
             }
@@ -387,7 +438,7 @@ impl Engine<'_> {
         let y = content.y + cursor.y + m.top;
         // A slot with no height of its own beside what came before it on the row reaches down to
         // the bottom of that, as Shoes 3 grows it to its parent's end (s3_canvas.c:639-642).
-        self.row_floor = (flow && cursor.x > 0.0 && node.kind.is_slot()).then(|| cursor.row_h - m.vertical());
+        self.row_floor = (flow && !cursor.stretch && cursor.x > 0.0 && node.kind.is_slot()).then(|| cursor.row_h - m.vertical());
         let h = self.place_box(node, x, y, width, parent, &m);
         self.row_floor = None;
         if flow {
@@ -481,7 +532,7 @@ impl Engine<'_> {
     /// text (:207-210), so it sits on the line instead of starting a row (ledger C7). Hackety
     /// Hack puts every program's and lesson's name beside its icon this way.
     fn line_beside(&mut self, node: &Node, m: &Edges, width: f32, content: Rect, cursor: &Cursor) -> Option<(RichText, f32)> {
-        if !is_text(node) || node.props.has("height") {
+        if cursor.stretch || !is_text(node) || node.props.has("height") {
             return None;
         }
         let rich = rich::resolve_block(self.doc, &self.text.fonts, node.id)?;
@@ -599,6 +650,10 @@ impl Engine<'_> {
         let slot_box = Rect::new(frame.x, frame.y, frame.w, h);
         self.record(node, slot_box, parent);
         self.out.content_heights.insert(node.id, used + padding.vertical());
+        if let Some(pending) = self.stretch_slots.get_mut(&node.id) {
+            *pending = later;
+            return h;
+        }
         let content = Rect::new(content.x, content.y, content.w, (h - padding.vertical()).max(0.0));
         self.place_later(&later, slot_box, content, avail_h);
         let scrolls = node.props.truthy("scroll") && explicit_h.is_some();
