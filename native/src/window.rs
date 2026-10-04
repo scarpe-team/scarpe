@@ -29,7 +29,7 @@ use winit::event::{ElementState, Ime, KeyEvent, MouseButton, MouseScrollDelta, W
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy};
 use winit::keyboard::{Key as WKey, ModifiersState, NamedKey};
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
-use winit::window::{CursorIcon, Window, WindowId};
+use winit::window::{CursorIcon, Icon, Window, WindowAttributes, WindowId};
 
 pub enum UserEvent {
     /// Every complete line stdin had ready, so a batch wakes the loop once.
@@ -192,6 +192,7 @@ impl Shell {
             .with_inner_size(LogicalSize::new(view.size.0 as f64, view.size.1 as f64))
             .with_resizable(resizable)
             .with_visible(false);
+        let attrs = with_app_icon(attrs, props.str("icon"));
         let attrs = if self.ghost { ghost::attributes(attrs) } else { attrs.with_active(!self.inactive) };
         let window = match el.create_window(attrs) {
             Ok(w) => Rc::new(w),
@@ -436,6 +437,19 @@ fn tell_screen_reader(rt: &mut Runtime, win: &mut Win) {
     let (app, scale) = (win.app, win.window.scale_factor() as f32);
     let Win { a11y, mirror, .. } = win;
     a11y.update_if_active(|| mirror.update(rt.a11y_tree(app, scale)));
+}
+
+/// Window creation only. Unreadable icons leave the platform's defaults in place.
+fn with_app_icon(attrs: WindowAttributes, path: Option<&str>) -> WindowAttributes {
+    let Some(rgba) = path.filter(|p| !p.is_empty()).and_then(|p| crate::elements::image::decode_rgba(std::path::Path::new(p))) else { return attrs };
+    let (width, height) = rgba.dimensions();
+    let Ok(icon) = Icon::from_rgba(rgba.into_raw(), width, height) else { return attrs };
+    #[cfg(target_os = "windows")]
+    let attrs = {
+        use winit::platform::windows::WindowAttributesExtWindows;
+        attrs.with_taskbar_icon(Some(icon.clone()))
+    };
+    attrs.with_window_icon(Some(icon))
 }
 
 /// Puts a window that was created hidden on screen the way winit opens one: key and in front,
@@ -784,6 +798,53 @@ fn spawn_and_reap(mut command: std::process::Command) -> std::io::Result<u32> {
 mod tests {
     use super::*;
     use winit::keyboard::SmolStr;
+
+    fn icon_scratch(name: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!("scarpe-app-icon-{}-{name}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn app_icon_loads_a_png_by_content_and_preserves_other_window_attributes() {
+        let dir = icon_scratch("valid");
+        let path = dir.join("الجامع.data");
+        image::RgbaImage::from_pixel(32, 32, image::Rgba([200, 100, 50, 128])).save_with_format(&path, image::ImageFormat::Png).unwrap();
+        let attrs = WindowAttributes::default().with_title("Books").with_resizable(false).with_visible(false);
+        let attrs = with_app_icon(attrs, path.to_str());
+        assert!(attrs.window_icon.is_some());
+        assert_eq!(attrs.title, "Books");
+        assert!(!attrs.resizable);
+        assert!(!attrs.visible);
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn app_icon_keeps_the_default_when_missing_or_unreadable() {
+        let dir = icon_scratch("invalid");
+        let missing = dir.join("missing.png");
+        let corrupt = dir.join("corrupt.png");
+        std::fs::write(&corrupt, b"not an image").unwrap();
+        for path in [None, Some(""), missing.to_str(), corrupt.to_str(), dir.to_str()] {
+            let attrs = with_app_icon(WindowAttributes::default(), path);
+            assert!(attrs.window_icon.is_none(), "{path:?}");
+        }
+        #[cfg(unix)]
+        assert!(with_app_icon(WindowAttributes::default(), Some("/dev/zero")).window_icon.is_none());
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn app_icon_uses_the_renderers_image_size_limits() {
+        let dir = icon_scratch("limits");
+        let large = dir.join("large.png");
+        std::fs::File::create(&large).unwrap().set_len(crate::limits::MAX_IMAGE_BYTES + 1).unwrap();
+        assert!(with_app_icon(WindowAttributes::default(), large.to_str()).window_icon.is_none());
+        let wide = dir.join("wide.png");
+        image::RgbaImage::new(crate::limits::MAX_IMAGE_SIDE + 1, 1).save(&wide).unwrap();
+        assert!(with_app_icon(WindowAttributes::default(), wide.to_str()).window_icon.is_none());
+        std::fs::remove_dir_all(dir).unwrap();
+    }
 
     fn chr(s: &str) -> WKey {
         WKey::Character(SmolStr::new(s))

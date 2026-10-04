@@ -45,6 +45,32 @@ class AppTest < Minitest::Test
     assert_equal [{ "t" => "props", "id" => para_id, "props" => { "text_items" => ["clicked"] } }], run.of_type("props")
   end
 
+  def test_app_icon_reaches_the_renderer_relative_to_the_app_directory
+    ["icon: 'assets/الجامع.png'", "{ 'icon' => 'assets/الجامع.png' }"].each do |options|
+      run = run_app("Shoes.app(#{options}) { para 'Books' }", script: CLOSE_ON_RUN)
+      assert_clean_exit(run)
+      assert_equal File.join(run.dir, "assets/الجامع.png"), run.creates("App").first["props"]["icon"]
+    end
+  end
+
+  def test_an_app_without_an_icon_keeps_the_default
+    ["", "icon: nil"].each do |options|
+      run = run_app("Shoes.app(#{options}) { para 'Books' }", script: CLOSE_ON_RUN)
+      assert_clean_exit(run)
+      assert_nil run.creates("App").first["props"]["icon"]
+    end
+  end
+
+  def test_a_child_window_can_supply_its_own_icon
+    run = run_app(<<~RUBY, script: [{ "on" => "run", "match" => { "app" => 1 }, "emit" => [{ "t" => "closed", "app" => 3 }, { "t" => "closed", "app" => 1 }] }])
+      Shoes.app(icon: "main.png") do
+        window(icon: "child.png") { para "Child" }
+      end
+    RUBY
+    assert_clean_exit(run)
+    assert_equal ["main.png", "child.png"].map { |name| File.join(run.dir, name) }, run.creates("App").map { |app| app["props"]["icon"] }
+  end
+
   def test_create_props_are_normalized
     run = run_app(<<~RUBY, script: CLOSE_ON_RUN)
       Shoes.app do

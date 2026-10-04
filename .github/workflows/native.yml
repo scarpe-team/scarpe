@@ -64,6 +64,10 @@ jobs:
       - name: Tests
         working-directory: native
         run: cargo test --release --locked
+      - name: Windows window and taskbar icon pixels
+        if: runner.os == 'Windows'
+        working-directory: native
+        run: cargo test --release --locked --test windows_icons -- --ignored
       - name: Keep the pictures a golden test failed on
         if: failure()
         uses: actions/upload-artifact@v7

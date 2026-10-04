@@ -45,3 +45,7 @@ opt-level = 3
 # Colour-space matching on the window (window.rs). Already in the tree through softbuffer and rfd.
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
+
+# Read back the real Windows icon handles in the opt-in window test.
+[target.'cfg(windows)'.dev-dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_UI_WindowsAndMessaging"] }

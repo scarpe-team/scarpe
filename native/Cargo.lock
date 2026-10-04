@@ -2055,6 +2055,7 @@ dependencies = [
  "softbuffer",
  "swash",
  "tiny-skia 0.12.0",
+ "windows-sys 0.61.2",
  "winit",
 ]
 

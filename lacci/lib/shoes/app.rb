@@ -24,7 +24,7 @@ class Shoes
     # `owner` method returns the parent app.
     attr_reader :owner
 
-    shoes_styles :title, :width, :height, :resizable, :features, :opacity, :cursor, :owner
+    shoes_styles :title, :width, :height, :icon, :resizable, :features, :opacity, :cursor, :owner
 
     # This is defined to avoid the linkable-id check in the Shoes-style method_missing def'n
     attr_reader :features
@@ -56,6 +56,7 @@ class Shoes
       title: DEFAULT_TITLE,
       width: DEFAULT_WIDTH,
       height: DEFAULT_HEIGHT,
+      icon: nil,
       resizable: true,
       features: [],
       owner: nil,

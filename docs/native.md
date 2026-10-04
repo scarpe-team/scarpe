@@ -127,6 +127,24 @@ across and `width: 0.5` half as wide. Art (`rect`, `oval`, `shape` and the rest)
 number as pixels, Floats included. DESIGN section 6 has the whole rule, and ledger C1, C10, C15
 and C18 say why.
 
+## Window icons
+
+Pass `icon:` when creating an app or a child window:
+
+```ruby
+Shoes.app(title: "Books", icon: "assets/app-icon.png") do
+  button("Reader") { window(title: "Reader", icon: "assets/reader-icon.png") { para "A book" } }
+end
+```
+
+Paths are relative to the app's directory. PNG supports transparency; JPEG, GIF (first frame),
+and BMP work too. The icon is read when the window is created. Omitted, `nil`, missing,
+unsupported, or invalid images leave the platform's default icon in place.
+
+The native display applies this to window icons on Windows and X11, and to the Windows taskbar
+icon. macOS and Wayland do not support this per-window option through the native backend.
+For a packaged macOS app's icon, use the [packager's `--icon` option](native_packaging.md).
+
 ## Text sizes, and Shoes 3's text
 
 A text size is pixels: `para` is 12 px tall and `title` 34, as the manual says (ledger M14).

@@ -124,10 +124,11 @@ impl ImageCache {
     }
 }
 
-/// Decodes an image file, whatever its extension says, within limits::MAX_IMAGE_SIDE and
+/// Decodes straight RGBA for window icons and the premultiplied painting cache below.
+/// Reads an image file, whatever its extension says, within limits::MAX_IMAGE_SIDE and
 /// MAX_IMAGE_BYTES. None for anything else, including what is not a plain file: a FIFO
 /// would block the display on open and /dev/zero would never end.
-fn decode(path: &Path) -> Option<Pixmap> {
+pub(crate) fn decode_rgba(path: &Path) -> Option<image::RgbaImage> {
     if !crate::limits::readable_file(path, crate::limits::MAX_IMAGE_BYTES) {
         return None;
     }
@@ -137,7 +138,11 @@ fn decode(path: &Path) -> Option<Pixmap> {
     bounds.max_image_height = Some(crate::limits::MAX_IMAGE_SIDE);
     bounds.max_alloc = Some(crate::limits::MAX_IMAGE_BYTES);
     reader.limits(bounds);
-    let rgba = reader.decode().ok()?.to_rgba8();
+    Some(reader.decode().ok()?.to_rgba8())
+}
+
+fn decode(path: &Path) -> Option<Pixmap> {
+    let rgba = decode_rgba(path)?;
     let (w, h) = rgba.dimensions();
     let mut data = rgba.into_raw();
     for px in data.chunks_exact_mut(4) {
@@ -260,4 +265,21 @@ pub fn draw_fitted(canvas: &mut Canvas, img: &Pixmap, r: Rect, clip: Option<Rect
 fn placeholder(canvas: &mut Canvas, r: Rect, clip: Option<Rect>) {
     canvas.fill_rounded(r, 4.0, Color::rgb(0xf2, 0xf2, 0xf7), clip);
     canvas.stroke_rounded(r, 4.0, Color::rgb(0xd1, 0xd1, 0xd6), 1.0, clip);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn app_icons_keep_straight_alpha_while_painting_premultiplies() {
+        let path = std::env::temp_dir().join(format!("scarpe-icon-alpha-{}.png", std::process::id()));
+        let pixels = vec![200, 100, 50, 128, 90, 60, 30, 0];
+        image::RgbaImage::from_raw(2, 1, pixels.clone()).unwrap().save(&path).unwrap();
+        let rgba = decode_rgba(&path).unwrap();
+        assert_eq!(rgba.dimensions(), (2, 1));
+        assert_eq!(rgba.into_raw(), pixels, "window icons need the original RGBA colors");
+        assert_eq!(decode(&path).unwrap().data(), &[100, 50, 25, 128, 0, 0, 0, 0]);
+        std::fs::remove_file(path).unwrap();
+    }
 }

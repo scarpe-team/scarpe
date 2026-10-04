@@ -32,6 +32,12 @@ A Ruby job that fails uploads `spec/results/` (the results files, the spec snaps
 example gallery) and `logger/*.log`. A Rust job that fails uploads what its golden tests drew,
 from `native/target/tmp/golden-actual/`. Both are kept for 14 days.
 
+The Windows Rust job also runs `cargo test --release --locked --test windows_icons -- --ignored`.
+This starts the renderer with `--ghost`, reads the small and big `WM_GETICON` handles, and
+compares their RGBA pixels with a PNG, including transparent and translucent pixels. The window
+stays off-screen and inactive. This test is ignored in ordinary runs because it needs a Windows
+desktop session; it does not run on Linux or macOS.
+
 The three older workflows are the webview ones. They changed only where the runners had moved
 under them:
 

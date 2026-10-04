@@ -164,6 +164,7 @@ class Shoes
     # @param title [String] The new app window title
     # @param width [Integer] The new app window width
     # @param height [Integer] The new app window height
+    # @param icon [String,nil] Image path for the native window icon at creation
     # @param resizable [Boolean] Whether the app window should be resizeable
     # @param features [Symbol,Array<Symbol>] Additional Shoes extensions requested by the app
     # @return [Shoes::App] the new app (manual 859, ledger A3)
@@ -182,6 +183,7 @@ class Shoes
       title: Shoes::App::DEFAULT_TITLE,
       width: Shoes::App::DEFAULT_WIDTH,
       height: Shoes::App::DEFAULT_HEIGHT,
+      icon: nil,
       resizable: true,
       features: [],
       margin: nil,
@@ -190,7 +192,7 @@ class Shoes
       &app_code_body
     )
       f = [features].flatten # Make sure this is a list, not a single symbol
-      app = Shoes::App.new(title:, width:, height:, resizable:, features: f, owner:, &app_code_body)
+      app = Shoes::App.new(title:, width:, height:, icon:, resizable:, features: f, owner:, &app_code_body)
 
       # If there's a pending Shoes subclass (e.g., class Book < Shoes), use it
       if Shoes.pending_app_class
