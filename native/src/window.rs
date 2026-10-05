@@ -27,7 +27,7 @@ use winit::application::ApplicationHandler;
 use winit::dpi::{LogicalPosition, LogicalSize};
 use winit::event::{ElementState, Ime, KeyEvent, MouseButton, MouseScrollDelta, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy};
-use winit::keyboard::{Key as WKey, ModifiersState, NamedKey};
+use winit::keyboard::{Key as WKey, KeyCode, ModifiersState, NamedKey, PhysicalKey};
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
 use winit::window::{CursorIcon, Window, WindowId};
 
@@ -670,7 +670,36 @@ fn modifiers(state: ModifiersState) -> Modifiers {
 }
 
 fn key_input(event: &KeyEvent, state: ModifiersState) -> Option<KeyInput> {
-    key_from(&event.logical_key, &event.key_without_modifiers(), event.text.as_deref(), modifiers(state))
+    key_from_layout(&event.logical_key, &event.key_without_modifiers(), event.physical_key, event.text.as_deref(), modifiers(state))
+}
+
+/// Ctrl/Cmd on a non-ASCII key prefers the platform's ASCII translation, then the
+/// physical letter or bracket key. Ordinary typing and Alt/AltGr keep their layout.
+fn key_from_layout(logical: &WKey, bare: &WKey, physical: PhysicalKey, text: Option<&str>, m: Modifiers) -> Option<KeyInput> {
+    if (m.ctrl || m.command) && !m.alt && matches!(bare, WKey::Character(c) if !c.is_ascii()) {
+        let latin = match logical {
+            // Ignore Caps Lock; key_from folds Shift into the resulting bare key.
+            WKey::Character(c) if c.len() == 1 && c.chars().all(|c| c.is_ascii_graphic()) => Some(c.to_ascii_lowercase()),
+            _ => {
+                const LETTERS: [KeyCode; 26] = [
+                    KeyCode::KeyA, KeyCode::KeyB, KeyCode::KeyC, KeyCode::KeyD, KeyCode::KeyE, KeyCode::KeyF, KeyCode::KeyG,
+                    KeyCode::KeyH, KeyCode::KeyI, KeyCode::KeyJ, KeyCode::KeyK, KeyCode::KeyL, KeyCode::KeyM, KeyCode::KeyN,
+                    KeyCode::KeyO, KeyCode::KeyP, KeyCode::KeyQ, KeyCode::KeyR, KeyCode::KeyS, KeyCode::KeyT, KeyCode::KeyU,
+                    KeyCode::KeyV, KeyCode::KeyW, KeyCode::KeyX, KeyCode::KeyY, KeyCode::KeyZ,
+                ];
+                match physical {
+                    PhysicalKey::Code(KeyCode::BracketLeft) => Some("[".into()),
+                    PhysicalKey::Code(KeyCode::BracketRight) => Some("]".into()),
+                    PhysicalKey::Code(code) => LETTERS.iter().position(|c| *c == code).map(|i| ((b'a' + i as u8) as char).to_string()),
+                    _ => None,
+                }
+            }
+        };
+        if let Some(latin) = latin {
+            return key_from(logical, &WKey::Character(latin.into()), text, m);
+        }
+    }
+    key_from(logical, bare, text, m)
 }
 
 /// A winit key press as Shoes sees it. With Control, Alt or Command held a character
@@ -791,6 +820,78 @@ mod tests {
 
     fn name(logical: WKey, bare: WKey, text: Option<&str>, m: Modifiers) -> Option<String> {
         key_from(&logical, &bare, text, m).and_then(|k| k.shoes_name())
+    }
+
+    #[test]
+    fn non_latin_shortcuts_use_physical_letters_and_brackets() {
+        // The F position on Arabic, Cyrillic, Greek and Hebrew layouts, plus editing shortcuts.
+        for (bare, code, latin) in [
+            ("ب", KeyCode::KeyF, "f"), ("а", KeyCode::KeyF, "f"),
+            ("φ", KeyCode::KeyF, "f"), ("כ", KeyCode::KeyF, "f"),
+            ("ش", KeyCode::KeyA, "a"), ("ؤ", KeyCode::KeyC, "c"),
+            ("ر", KeyCode::KeyV, "v"), ("ء", KeyCode::KeyX, "x"), ("ئ", KeyCode::KeyZ, "z"),
+            ("ج", KeyCode::BracketLeft, "["), ("د", KeyCode::BracketRight, "]"),
+        ] {
+            for command in [false, true] {
+                let m = Modifiers { ctrl: !command, command, ..Modifiers::default() };
+                let key = key_from_layout(&chr(bare), &chr(bare), PhysicalKey::Code(code), Some(bare), m).unwrap();
+                assert_eq!(key.key, Key::Char(latin.into()), "{bare}");
+                assert_eq!(key.shoes_name(), Some(format!(":{}{latin}", if command { "alt_" } else { "control_" })));
+                assert!(key.shortcut());
+                assert!(key.text.is_none(), "a shortcut must not insert text");
+            }
+        }
+        let shifted = key_from_layout(&chr("ب"), &chr("ب"), PhysicalKey::Code(KeyCode::KeyF), None,
+            Modifiers { ctrl: true, shift: true, ..Modifiers::default() }).unwrap();
+        assert_eq!(shifted.shoes_name().as_deref(), Some(":control_F"));
+    }
+
+    #[test]
+    fn platform_latin_shortcuts_take_precedence_and_ignore_caps_lock() {
+        for command in [false, true] {
+            for shift in [false, true] {
+                let m = Modifiers { ctrl: !command, command, shift, ..Modifiers::default() };
+                for logical in ["a", "A"] {
+                    let key = key_from_layout(&chr(logical), &chr("ب"), PhysicalKey::Code(KeyCode::KeyF), None, m).unwrap();
+                    assert_eq!(key.key, Key::Char(if shift { "A" } else { "a" }.into()));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn latin_layout_shortcuts_keep_their_logical_letters() {
+        // AZERTY, QWERTZ and Dvorak: the letter matters, not its QWERTY position.
+        for (bare, code) in [("a", KeyCode::KeyQ), ("z", KeyCode::KeyY), ("c", KeyCode::KeyI)] {
+            for command in [false, true] {
+                let m = Modifiers { ctrl: !command, command, ..Modifiers::default() };
+                let key = key_from_layout(&chr(bare), &chr(bare), PhysicalKey::Code(code), None, m).unwrap();
+                assert_eq!(key.key, Key::Char(bare.into()));
+            }
+        }
+    }
+
+    #[test]
+    fn text_alt_and_unmapped_keys_keep_their_existing_meaning() {
+        for text in ["ب", "а", "φ", "כ", "لا"] {
+            let key = key_from_layout(&chr(text), &chr(text), PhysicalKey::Code(KeyCode::KeyF), Some(text), Modifiers::default()).unwrap();
+            assert_eq!(key.key, Key::Char(text.into()));
+            assert_eq!(key.text.as_deref(), Some(text));
+        }
+        for ctrl in [false, true] {
+            let key = key_from_layout(&chr("@"), &chr("ب"), PhysicalKey::Code(KeyCode::KeyF), Some("@"),
+                Modifiers { ctrl, alt: true, ..Modifiers::default() }).unwrap();
+            assert_eq!(key.key, Key::Char("ب".into()), "leave Alt/AltGr combinations alone");
+        }
+        let ctrl = Modifiers { ctrl: true, ..Modifiers::default() };
+        for physical in [PhysicalKey::Code(KeyCode::Digit1), PhysicalKey::Unidentified(winit::keyboard::NativeKeyCode::Unidentified)] {
+            let key = key_from_layout(&chr("ب"), &chr("ب"), physical, None, ctrl).unwrap();
+            assert_eq!(key.key, Key::Char("ب".into()));
+        }
+        let enter = WKey::Named(NamedKey::Enter);
+        let key = key_from_layout(&enter, &enter, PhysicalKey::Code(KeyCode::Enter), Some("\r"), ctrl).unwrap();
+        assert_eq!(key.shoes_name().as_deref(), Some(":control_enter"));
+        assert!(key_from_layout(&WKey::Dead(Some('ب')), &chr("ب"), PhysicalKey::Code(KeyCode::KeyF), None, ctrl).is_none());
     }
 
     #[test]

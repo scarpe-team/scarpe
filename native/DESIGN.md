@@ -187,6 +187,9 @@ not true. Mouse buttons are 1 = left, 2 = middle, 3 = right (manual numbering).
 - Modifiers prefix in the order `control_`, `shift_`, `alt_` (shift only for non-printables). A modified printable key is a Symbol: `:control_a`, `:alt_q`. Modified return: `:control_enter`, `:shift_enter`.
 - Shift folds into characters the way a US keyboard types them (manual 2223-2227): Shift-7 is `"&"`,
   Shift-Alt-7 is `:alt_&`, Control-Shift-a is `:control_A`. Automation's `key` op folds `shift_7` the same way.
+- In a window, Ctrl/Cmd shortcuts without Alt on a non-ASCII bare key use the platform's ASCII
+  character when available, otherwise the physical A-Z or bracket key. Shift still applies;
+  Caps Lock does not. ASCII layout keys, ordinary typing and IME commits keep their existing meaning.
 - On the wire a Symbol travels as a String starting with `":"` (`":left"`); Lacci's SubscriptionItem turns it back into a Symbol. Plain printable keys travel as themselves, the colon key as `":"` (ledger H1).
 - On macOS, Cmd is named `alt_`, as Shoes 3's Cocoa backend did (ledger H1, Q5 ruled 27 Sep 2026):
   Cmd-q arrives as `:alt_q`, which is what the example editors bind. In text fields Cmd still works
