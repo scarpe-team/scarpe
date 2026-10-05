@@ -65,8 +65,17 @@ module Scarpe::Native
     end
 
     # dy in logical pixels, positive scrolls down; at (x, y), or where the pointer is.
-    def wheel(dy, x: nil, y: nil)
-      request(:wheel, dy: dy, x: x, y: y, app: @app)
+    def wheel(dy, x: nil, y: nil, ctrl: false)
+      request(:wheel, dy: dy, x: x, y: y, ctrl: ctrl, app: @app)
+    end
+
+    def pinch(factor, phase: :moved, x: nil, y: nil)
+      request(:pinch, factor: factor, phase: phase.to_s, x: x, y: y, app: @app)
+    end
+
+    # Through the real HWND, including MK_CONTROL, client coordinates and winit.
+    def windows_zoom_wheel(delta, x:, y:)
+      request(:windows_zoom_wheel, delta: delta, x: x, y: y, app: @app)
     end
 
     def layout(app: app_id)

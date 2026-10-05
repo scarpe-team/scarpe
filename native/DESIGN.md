@@ -129,7 +129,9 @@ that last ran or had input, else the first running one.
 | `mouse` | `action` (move down up), `x`, `y`, `button` | low-level pointer event through the real path |
 | `type` | `text` | inserts text into the focused input as real key events, one character at a time |
 | `key` | `key` (a Shoes name, e.g. "left", "\n", "a", ":control_a"; also `command_`, `cmd_`, `super_`, `ctrl_`, `option_` prefixes) | synthesises a key press |
-| `wheel` | `dy`, `x`, `y` (optional) | wheel event, section 12 |
+| `wheel` | `dy`, `x`, `y` (optional), `ctrl` (default false) | wheel event, section 12; Control-wheel zooms an interested slot, otherwise scrolls normally |
+| `pinch` | `factor`, `phase` (started moved ended cancelled wheel), optional `x`, `y`, `app` | incremental scale delivered as `pinch` to the nearest slot with `has_pinch`; args `[factor, phase, local_x, local_y]`; capture ends on interruption or removal |
+| `windows_zoom_wheel` | signed 16-bit `delta`, `x`, `y`, optional `app` | Windows-window test injection through the live HWND with per-message Control; no global keyboard, cursor or focus changes; error headlessly or on other platforms |
 | `resize` | `w`, `h` | resize the window/canvas; Rust answers with a `resize` message too |
 | `pixel` | `x`, `y` | `[r,g,b,a]` at logical point; error outside the window |
 | `frames` | `n` | reply after n frames have been laid out and painted (sync point); value = frames painted so far |

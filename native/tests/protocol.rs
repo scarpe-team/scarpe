@@ -406,6 +406,157 @@ fn wheel_items_get_delta_up_positive() {
     assert_eq!(named(&events(&evs), "wheel")[0].2, json!([30.0, 10, 20]));
 }
 
+fn pinch_scene() -> Harness {
+    let mut h = Harness::new();
+    h.feed(&app(500, 300, &[
+        create(3, "Stack", 2, json!({"left":20,"top":30,"width":180,"height":200,"scroll":true,"has_pinch":true})),
+        create(4, "Stack", 3, json!({"width":180,"height":1000})),
+        create(5, "Para", 4, json!({"text":"Page"})),
+        create(6, "Stack", 2, json!({"left":250,"top":30,"width":180,"height":200,"scroll":true})),
+        create(7, "Stack", 6, json!({"width":180,"height":1000})),
+    ]));
+    h
+}
+
+#[test]
+fn pinch_routes_to_the_nearest_slot_with_fractional_local_coordinates() {
+    let mut h = pinch_scene();
+    h.feed(&create(8, "Stack", 4, json!({"left":10,"top":50,"width":100,"height":100,"has_pinch":true})).to_string());
+    let (msgs, _) = h.req(json!({"op":"pinch","factor":1.0,"phase":"started","x":45.25,"y":105.5}));
+    assert_eq!(named(&events(&msgs), "pinch").len(), 1);
+    assert_eq!(named(&events(&msgs), "pinch")[0].1, json!(8));
+    assert_eq!(named(&events(&msgs), "pinch")[0].2, json!([1.0,"started",15.25,25.5]));
+    let (msgs, _) = h.req(json!({"op":"pinch","factor":1.03,"phase":"moved","x":45.25,"y":105.5}));
+    assert_eq!(named(&events(&msgs), "pinch")[0].2, json!([1.03,"moved",15.25,25.5]));
+    assert!(msgs.iter().all(|m| m["t"] != "scroll"));
+    let (msgs, _) = h.req(json!({"op":"pinch","factor":1.0,"phase":"ended","x":45.25,"y":105.5}));
+    assert_eq!(named(&events(&msgs), "pinch")[0].2[1], "ended");
+    let (msgs, _) = h.req(json!({"op":"pinch","factor":2.0,"phase":"moved","x":45.25,"y":105.5}));
+    assert!(named(&events(&msgs), "pinch").is_empty(), "no late deltas after ending");
+}
+
+#[test]
+fn pinch_cannot_cross_panes_or_resume_after_removal_or_normal_scrolling() {
+    let mut h = pinch_scene();
+    h.req(json!({"op":"pinch","factor":1.0,"phase":"started","x":100,"y":100}));
+    let (msgs, _) = h.req(json!({"op":"pinch","factor":1.2,"phase":"moved","x":300,"y":100}));
+    assert_eq!(named(&events(&msgs), "pinch")[0].2[1], "cancelled");
+    let (msgs, _) = h.req(json!({"op":"pinch","factor":1.2,"phase":"moved","x":100,"y":100}));
+    assert!(named(&events(&msgs), "pinch").is_empty());
+    h.req(json!({"op":"pinch","factor":1.0,"phase":"started","x":300,"y":100}));
+    let (msgs, _) = h.req(json!({"op":"pinch","factor":1.2,"phase":"moved","x":100,"y":100}));
+    assert!(named(&events(&msgs), "pinch").is_empty(), "gestures begun in text cannot become PDF zoom");
+    h.req(json!({"op":"pinch","factor":1.0,"phase":"started","x":100,"y":100}));
+    let (msgs, _) = h.req(json!({"op":"wheel","dy":40,"x":100,"y":100}));
+    assert_eq!(named(&events(&msgs), "pinch")[0].2[1], "cancelled");
+    assert!(msgs.iter().any(|m| m["t"] == "scroll" && m["id"] == 3 && m["top"] == 40));
+    h.req(json!({"op":"pinch","factor":1.0,"phase":"started","x":100,"y":100}));
+    h.feed("{\"t\":\"destroy\",\"id\":3}");
+    h.feed(&create(9, "Stack", 2, json!({"left":20,"top":30,"width":180,"height":200,"has_pinch":true})).to_string());
+    let (msgs, _) = h.req(json!({"op":"pinch","factor":1.2,"phase":"moved","x":100,"y":100}));
+    assert!(named(&events(&msgs), "pinch").is_empty(), "new views cannot inherit old captures");
+}
+
+#[test]
+fn pinch_respects_overlays_clipping_disabled_and_inert_slots() {
+    for props in [json!({"inert":true}), json!({"state":"disabled"}), json!({"hidden":true})] {
+        let mut h = pinch_scene();
+        h.feed(&json!({"t":"props","id":3,"props":props}).to_string());
+        let (msgs, _) = h.req(json!({"op":"pinch","factor":1.2,"phase":"started","x":100,"y":100}));
+        assert!(named(&events(&msgs), "pinch").is_empty(), "{props}");
+    }
+    let mut h = pinch_scene();
+    h.feed(&create(8, "Stack", 2, json!({"left":20,"top":30,"width":180,"height":200})).to_string());
+    let (msgs, _) = h.req(json!({"op":"pinch","factor":1.2,"phase":"started","x":100,"y":100}));
+    assert!(named(&events(&msgs), "pinch").is_empty(), "overlay must intercept hit testing");
+    let (msgs, _) = h.req(json!({"op":"pinch","factor":1.2,"phase":"started","x":100,"y":260}));
+    assert!(named(&events(&msgs), "pinch").is_empty(), "offscreen child cannot receive a gesture");
+}
+
+#[test]
+fn windows_touchpad_message_flags_preserve_signed_and_high_resolution_zoom() {
+    use scarpe_native::input::windows_zoom_delta;
+    let mut h = pinch_scene();
+    for raw in [120_i16, -120, 1, -1, 30, -30, i16::MIN, i16::MAX] {
+        let packed = ((raw as u16 as usize) << 16) | 0x0008;
+        let dy = windows_zoom_delta(packed).expect("message Control flag works without a held key");
+        assert_eq!(dy, -(raw as f32) / 120.0 * 40.0);
+        h.rt.zoom_wheel(1, dy, Some((100.0, 100.0)));
+        let msgs = h.rt.out.take_captured();
+        let e = events(&msgs);
+        let pinch = named(&e, "pinch");
+        assert_eq!(pinch.len(), 1);
+        let factor = pinch[0].2[0].as_f64().unwrap();
+        assert!(factor.is_finite() && factor > 0.0);
+        assert_eq!(factor > 1.0, raw > 0);
+        assert!(msgs.iter().all(|m| m["t"] != "scroll"), "zoom must not also scroll");
+        assert_eq!(windows_zoom_delta(packed & !0x0008), None, "ordinary wheels retain scrolling");
+    }
+    let (msgs, _) = h.req(json!({"op":"wheel","dy":40,"ctrl":true,"x":300,"y":100}));
+    assert!(named(&events(&msgs), "pinch").is_empty(), "text pane is not a zoom target");
+    assert!(msgs.iter().any(|m| m["t"] == "scroll" && m["id"] == 6 && m["top"] == 40), "unhandled Control-wheel still scrolls");
+}
+
+#[test]
+fn invalid_pinch_deltas_never_leak_into_geometry_and_cancel_always_ends_capture() {
+    use scarpe_native::input::PinchPhase;
+    let mut h = pinch_scene();
+    h.rt.pinch(1, f64::NAN, PinchPhase::Started, Some((100.0, 100.0)));
+    let msgs = h.rt.out.take_captured();
+    assert_eq!(named(&events(&msgs), "pinch")[0].2, json!([1.0,"started",80.0,70.0]));
+    for bad in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, 0.0, -1.0] {
+        h.rt.pinch(1, bad, PinchPhase::Moved, Some((100.0, 100.0)));
+        assert!(h.rt.out.take_captured().is_empty());
+    }
+    h.rt.pinch(1, f64::NAN, PinchPhase::Ended, Some((100.0, 100.0)));
+    let msgs = h.rt.out.take_captured();
+    assert_eq!(named(&events(&msgs), "pinch")[0].2, json!([1.0,"ended",80.0,70.0]));
+    h.rt.pinch(1, 2.0, PinchPhase::Moved, Some((100.0, 100.0)));
+    assert!(h.rt.out.take_captured().is_empty());
+    let (_, reply) = h.req(json!({"op":"pinch","factor":1.1,"phase":"bogus","x":100,"y":100}));
+    assert!(!reply["error"].is_null());
+}
+
+#[test]
+fn clicks_and_resizes_cancel_gestures_before_the_next_delta() {
+    for action in [json!({"op":"mouse","action":"down","x":100,"y":100}), json!({"op":"resize","w":600,"h":400})] {
+        let mut h = pinch_scene();
+        h.req(json!({"op":"pinch","factor":1.0,"phase":"started","x":100,"y":100}));
+        let (msgs, _) = h.req(action);
+        assert_eq!(named(&events(&msgs), "pinch")[0].2[1], "cancelled");
+        h.req(json!({"op":"mouse","action":"up","x":100,"y":100}));
+        let (msgs, _) = h.req(json!({"op":"pinch","factor":1.3,"phase":"moved","x":100,"y":100}));
+        assert!(named(&events(&msgs), "pinch").is_empty());
+    }
+}
+
+#[test]
+fn pinch_cancellation_does_not_need_a_pointer_and_cannot_resume() {
+    use scarpe_native::input::PinchPhase;
+    for leave in [false, true] {
+        let mut h = pinch_scene();
+        h.req(json!({"op":"pinch","factor":1.0,"phase":"started","x":100,"y":100}));
+        if leave { h.rt.pointer_left(1); } else { h.rt.pinch(1, f64::NAN, PinchPhase::Cancelled, None); }
+        let msgs = h.rt.out.take_captured();
+        assert_eq!(named(&events(&msgs), "pinch")[0].2[1], "cancelled");
+        let (msgs, _) = h.req(json!({"op":"pinch","factor":1.5,"phase":"moved","x":100,"y":100}));
+        assert!(named(&events(&msgs), "pinch").is_empty());
+    }
+}
+
+#[test]
+fn removing_a_pinch_handler_restores_wheel_scrolling() {
+    let mut h = pinch_scene();
+    h.req(json!({"op":"pinch","factor":1.0,"phase":"started","x":100,"y":100}));
+    h.feed(&json!({"t":"props","id":3,"props":{"has_pinch":false}}).to_string());
+    let (msgs, _) = h.req(json!({"op":"wheel","ctrl":true,"dy":40,"x":100,"y":100}));
+    let e = events(&msgs);
+    let pinch = named(&e, "pinch");
+    assert_eq!(pinch.len(), 1);
+    assert_eq!(pinch[0].2[1], "cancelled");
+    assert!(msgs.iter().any(|m| m["t"] == "scroll" && m["id"] == 3 && m["top"] == 40));
+}
+
 #[test]
 fn headless_dialogs_answer_without_opening() {
     let mut h = Harness::new();

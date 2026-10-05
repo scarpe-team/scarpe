@@ -6,9 +6,11 @@
 mod ghost;
 mod pacing;
 mod voiceover;
+#[cfg(target_os = "windows")]
+mod zoom_wheel;
 
 use crate::a11y::Mirror;
-use crate::input::{us_shifted, CursorShape, Key, KeyInput, Modifiers, Named};
+use crate::input::{us_shifted, CursorShape, Key, KeyInput, Modifiers, Named, PinchPhase};
 use crate::paint::damage::FrameMemory;
 use crate::props::Id;
 use crate::protocol::{Outbox, Outgoing};
@@ -25,7 +27,7 @@ use std::time::{Duration, Instant};
 use tiny_skia::Pixmap;
 use winit::application::ApplicationHandler;
 use winit::dpi::{LogicalPosition, LogicalSize};
-use winit::event::{ElementState, Ime, KeyEvent, MouseButton, MouseScrollDelta, WindowEvent};
+use winit::event::{ElementState, Ime, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase, WindowEvent};
 use winit::event_loop::{ActiveEventLoop, ControlFlow, EventLoop, EventLoopProxy};
 use winit::keyboard::{Key as WKey, ModifiersState, NamedKey};
 use winit::platform::modifier_supplement::KeyEventExtModifierSupplement;
@@ -37,6 +39,8 @@ pub enum UserEvent {
     Eof,
     /// A screen reader wants a window's whole tree, or asks something of a node.
     A11y(accesskit_winit::Event),
+    #[cfg(target_os = "windows")]
+    ZoomWheel { window: WindowId, dy: f32, x: f64, y: f64, req: Option<u64> },
 }
 
 /// A window's screen reader handlers, which AccessKit calls on whatever thread its platform uses.
@@ -91,6 +95,9 @@ struct Win {
     a11y: accesskit_winit::Adapter,
     /// What the screen reader was last sent, so a frame sends only what changed.
     mirror: Mirror,
+    // Drop the subclass while its HWND and callback context are still alive.
+    #[cfg(target_os = "windows")]
+    _zoom_wheel: Option<zoom_wheel::Hook>,
     window: Rc<Window>,
     // Declared before the context so it is dropped first.
     surface: softbuffer::Surface<Rc<Window>, Rc<Window>>,
@@ -248,6 +255,8 @@ impl Shell {
                 app,
                 a11y,
                 mirror,
+                #[cfg(target_os = "windows")]
+                _zoom_wheel: zoom_wheel::Hook::install(&window, self.proxy.clone()),
                 window,
                 surface,
                 _context: context,
@@ -265,6 +274,16 @@ impl Shell {
     fn apply_effects(&mut self, el: &ActiveEventLoop) {
         for effect in std::mem::take(&mut self.rt.effects) {
             match effect {
+                Effect::WindowsZoomWheel { req, app, delta, x, y } => {
+                    #[cfg(target_os = "windows")]
+                    let sent = self.window_for(app).is_some_and(|win| win._zoom_wheel.as_ref()
+                        .is_some_and(|hook| hook.inject(req, delta, x as f64 * win.window.scale_factor(), y as f64 * win.window.scale_factor())));
+                    #[cfg(not(target_os = "windows"))]
+                    let sent = { let _ = (app, delta, x, y); false };
+                    if !sent {
+                        self.rt.out.send(Outgoing::error(req, "unable to inject Windows zoom message", serde_json::Value::Null));
+                    }
+                }
                 Effect::OpenWindow(app) => {
                     self.open_window(el, app);
                 }
@@ -486,6 +505,16 @@ impl ApplicationHandler<UserEvent> for Shell {
                 return;
             }
             UserEvent::A11y(event) => self.a11y_event(event),
+            #[cfg(target_os = "windows")]
+            UserEvent::ZoomWheel { window, dy, x, y, req } => {
+                self.rt.stats.input();
+                if let Some(win) = self.windows.get(&window) {
+                    let scale = win.window.scale_factor();
+                    self.rt.mid_batch = false;
+                    self.rt.zoom_wheel(win.app, dy, Some(((x / scale) as f32, (y / scale) as f32)));
+                }
+                if let Some(req) = req { self.rt.out.send(Outgoing::reply(req, serde_json::Value::Null)); }
+            }
         }
         self.settle(el);
     }
@@ -513,6 +542,7 @@ impl ApplicationHandler<UserEvent> for Shell {
             }
             WindowEvent::ScaleFactorChanged { .. } => self.rt.request_redraw(app),
             WindowEvent::Focused(true) => self.rt.active_app = Some(app),
+            WindowEvent::Focused(false) => self.rt.cancel_pinch(app),
             WindowEvent::CursorMoved { position, .. } => {
                 let p = position.to_logical::<f64>(scale);
                 self.rt.pointer_move(app, p.x as f32, p.y as f32);
@@ -537,7 +567,17 @@ impl ApplicationHandler<UserEvent> for Shell {
                     MouseScrollDelta::LineDelta(_, y) => -y * 40.0,
                     MouseScrollDelta::PixelDelta(p) => -(p.to_logical::<f64>(scale).y as f32),
                 };
-                self.rt.wheel(app, dy, None);
+                if win.modifiers.control_key() { self.rt.zoom_wheel(app, dy, None); } else { self.rt.wheel(app, dy, None); }
+            }
+            WindowEvent::PinchGesture { delta, phase, .. } => {
+                self.rt.stats.input();
+                let phase = match phase {
+                    TouchPhase::Started => PinchPhase::Started,
+                    TouchPhase::Moved => PinchPhase::Moved,
+                    TouchPhase::Ended => PinchPhase::Ended,
+                    TouchPhase::Cancelled => PinchPhase::Cancelled,
+                };
+                self.rt.pinch(app, 1.0 + delta, phase, None);
             }
             WindowEvent::ModifiersChanged(m) => {
                 let state = m.state();

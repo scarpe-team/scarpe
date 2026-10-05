@@ -4,13 +4,14 @@ class Shoes::Slot < Shoes::Drawable
   # @incompatibility Shoes uses #content, not #children, for this. Scarpe does both.
   attr_reader :children
 
-  shoes_events :full_redraw_request
+  shoes_events :full_redraw_request, :pinch
 
   # :attach controls positioning anchor. Values:
   # - Window — position relative to window (absolute positioning)
   # - :center — center the slot
   # - another_drawable — position relative to that element
   shoes_styles :attach
+  shoes_styles :has_pinch
 
   # fill, stroke, rotate, translate... for the shapes drawn in this slot
   include Shoes::DrawContext
@@ -90,6 +91,17 @@ class Shoes::Slot < Shoes::Drawable
   def scroll_top=(top)
     @scroll_top = top.to_i
     send_self_event(top.to_i, event_name: "scroll_top")
+  end
+
+  # Observe incremental zoom, its phase, and logical coordinates in the visible slot.
+  # Replaces the previous handler; calling without a block stops observing gestures.
+  # @yield [Float, String, Float, Float] scale, phase, x, y
+  # @return [self]
+  def on_pinch(&block)
+    @pinch_handler = block
+    listen_for("pinch") { |scale, phase, x, y| @pinch_handler&.call(scale, phase, x, y) }
+    self.has_pinch = !!block
+    self
   end
 
   # We use method_missing for drawable-creating methods like "button".

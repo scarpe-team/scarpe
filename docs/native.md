@@ -141,6 +141,35 @@ Shoes.text_mode = :shoes3
 Sizes are then points (`"18px"` stays pixels), and text that names no face is set in Arial, as
 Shoes 3 set it. Every window the program opens follows it. Hackety Hack asks for it.
 
+## Pinch and zoom input
+
+Slots can observe zoom gestures without implementing a particular zoom policy:
+
+```ruby
+canvas = stack(width: 400, height: 300) { para "Zoom here" }
+canvas.on_pinch do |factor, phase, x, y|
+  # factor is incremental; x/y are logical pixels within the visible slot.
+  # Apply your own zoom limits and preserve the document point at x/y.
+end
+```
+
+Phases are strings: `"started"`, `"moved"`, `"ended"`, `"cancelled"`, and `"wheel"`.
+The native display forwards macOS trackpad magnification and converts Ctrl+wheel,
+including Windows touchpads' synthetic Control-wheel messages, to zoom factors.
+Each wheel event is independent. Physical trackpad support elsewhere depends on the
+window system; Ctrl+wheel is available on all platforms.
+
+The nearest interested slot receives the gesture. A captured gesture is cancelled
+when it crosses into another pane, the pointer leaves the window, focus is lost,
+the window resizes, or a pointer press or ordinary wheel event interrupts it.
+Hidden, disabled and inert targets, popups and modal dialogs do not receive zoom.
+Removing a slot clears its capture. Repeated `on_pinch` calls replace the handler;
+`on_pinch` without a block removes it. Ordinary scrolling is preserved, including
+Ctrl+wheel over a slot with no zoom handler. A cancellation carries factor `1.0`
+and coordinates `0, 0`; it does not request a scale change.
+
+Automation uses `pinch(factor, phase: :started, x:, y:)` and `wheel(dy, ctrl: true, x:, y:)`.
+
 ## Screen readers
 
 Scarpe draws its own buttons, fields and text, so no control of the operating system is there to

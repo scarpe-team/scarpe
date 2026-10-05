@@ -80,7 +80,9 @@ pub enum Op {
     Mouse { action: MouseAction, x: f32, y: f32, button: u8, app: Option<Id> },
     Type { text: String, app: Option<Id> },
     Key { key: String, app: Option<Id> },
-    Wheel { dy: f32, x: Option<f32>, y: Option<f32>, app: Option<Id> },
+    Wheel { dy: f32, x: Option<f32>, y: Option<f32>, ctrl: bool, app: Option<Id> },
+    Pinch { factor: f64, phase: crate::input::PinchPhase, x: Option<f32>, y: Option<f32>, app: Option<Id> },
+    WindowsZoomWheel { delta: i16, x: f32, y: f32, app: Option<Id> },
     Resize { app: Option<Id>, w: f32, h: f32 },
     Pixel { x: f32, y: f32, app: Option<Id> },
     Frames { n: u32, app: Option<Id> },
@@ -241,7 +243,16 @@ fn op_fields(obj: &Map<String, Value>) -> Result<Op, ParseError> {
         },
         "type" => Op::Type { text: required(s(obj, "text"), "text")?, app },
         "key" => Op::Key { key: required(s(obj, "key"), "key")?, app },
-        "wheel" => Op::Wheel { dy: required(f(obj, "dy"), "dy")?, x: f(obj, "x"), y: f(obj, "y"), app },
+        "wheel" => Op::Wheel { dy: required(f(obj, "dy"), "dy")?, x: f(obj, "x"), y: f(obj, "y"), ctrl: obj.get("ctrl").and_then(Value::as_bool).unwrap_or(false), app },
+        "pinch" => Op::Pinch {
+            factor: required(obj.get("factor").and_then(Value::as_f64), "factor")?,
+            phase: serde_json::from_value(obj.get("phase").cloned().unwrap_or(Value::Null)).map_err(|_| ParseError::Message("invalid pinch phase".into()))?,
+            x: f(obj, "x"), y: f(obj, "y"), app,
+        },
+        "windows_zoom_wheel" => Op::WindowsZoomWheel {
+            delta: required(obj.get("delta").and_then(Value::as_i64).and_then(|v| i16::try_from(v).ok()), "signed wheel delta")?,
+            x: required(f(obj, "x"), "x")?, y: required(f(obj, "y"), "y")?, app,
+        },
         "resize" => Op::Resize { app, w: required(f(obj, "w"), "w")?, h: required(f(obj, "h"), "h")? },
         "pixel" => Op::Pixel { x: required(f(obj, "x"), "x")?, y: required(f(obj, "y"), "y")?, app },
         "frames" => Op::Frames { n: obj.get("n").and_then(Value::as_u64).unwrap_or(1).min(u32::MAX as u64) as u32, app },
@@ -467,7 +478,7 @@ mod tests {
         );
         assert_eq!(op(r#"{"t":"req","req":1,"op":"type","text":"hi"}"#), Op::Type { text: "hi".into(), app: None });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"key","key":"left"}"#), Op::Key { key: "left".into(), app: None });
-        assert_eq!(op(r#"{"t":"req","req":1,"op":"wheel","dy":30}"#), Op::Wheel { dy: 30.0, x: None, y: None, app: None });
+        assert_eq!(op(r#"{"t":"req","req":1,"op":"wheel","dy":30}"#), Op::Wheel { dy: 30.0, x: None, y: None, ctrl: false, app: None });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"resize","w":300,"h":200}"#), Op::Resize { app: None, w: 300.0, h: 200.0 });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"pixel","x":1,"y":2}"#), Op::Pixel { x: 1.0, y: 2.0, app: None });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"frames","n":3}"#), Op::Frames { n: 3, app: None });

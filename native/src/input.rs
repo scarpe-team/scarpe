@@ -17,6 +17,16 @@ use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PinchPhase { Started, Moved, Ended, Cancelled, Wheel }
+
+/// Windows Precision Touchpads can synthesize MK_CONTROL in WM_MOUSEWHEEL without
+/// changing GetKeyState(VK_CONTROL). Read the message, not the keyboard state.
+pub fn windows_zoom_delta(wparam: usize) -> Option<f32> {
+    (wparam & 0x0008 != 0).then(|| -((wparam >> 16) as u16 as i16 as f32) / 120.0 * 40.0)
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Key {
     Char(String),
@@ -327,6 +337,7 @@ pub struct ViewState {
     pub tooltip: Option<Tooltip>,
     pub modal: Option<crate::dialogs::Modal>,
     pub scroll: HashMap<Id, f32>,
+    pinch_target: Option<Id>,
     pub cursor: CursorShape,
     last_click: Option<(Instant, f32, f32, u32)>,
 }
@@ -357,6 +368,7 @@ impl ViewState {
         }
         self.fields.retain(|id, _| !gone(id));
         self.scroll.retain(|id, _| !gone(id));
+        if self.pinch_target.is_some_and(|id| gone(&id)) { self.pinch_target = None; }
     }
 
     fn click_count(&mut self, x: f32, y: f32) -> u32 {
@@ -712,6 +724,7 @@ impl Runtime {
     }
 
     pub fn pointer_left(&mut self, app: Id) {
+        self.cancel_pinch(app);
         if !self.views.contains_key(&app) {
             return;
         }
@@ -721,6 +734,7 @@ impl Runtime {
     }
 
     pub fn pointer_down(&mut self, app: Id, button: u8) {
+        self.cancel_pinch(app);
         let Some((x, y)) = self.views.get(&app).and_then(|v| v.ui.pointer) else { return };
         self.ensure_layout(app);
         self.views.get_mut(&app).expect("view").ui.buttons |= 1 << (button - 1);
@@ -927,7 +941,65 @@ impl Runtime {
         self.out.event("change", Some(list_box), vec![Value::String(item.to_string())]);
     }
 
+    pub fn cancel_pinch(&mut self, app: Id) {
+        if let Some(target) = self.views.get_mut(&app).and_then(|v| v.ui.pinch_target.take()) {
+            self.out.event("pinch", Some(target), vec![json!(1.0), json!("cancelled"), json!(0.0), json!(0.0)]);
+        }
+    }
+
+    /// A gesture belongs to the slot where it began. Moving into another pane,
+    /// scrolling, opening an overlay or removing that slot ends the capture.
+    pub fn pinch(&mut self, app: Id, factor: f64, phase: PinchPhase, at: Option<(f32, f32)>) -> bool {
+        if phase == PinchPhase::Cancelled {
+            self.cancel_pinch(app);
+            return false;
+        }
+        self.ensure_layout(app);
+        let Some(view) = self.views.get(&app) else { return false };
+        let Some((x, y)) = at.or(view.ui.pointer) else { return false };
+        if !x.is_finite() || !y.is_finite() { return false; }
+        let blocked = view.ui.modal.is_some() || view.ui.popup.is_some() || view.ui.buttons != 0;
+        let target = if blocked { None } else {
+            self.hit(app, x, y).and_then(|hit| {
+                let chain = chain(&self.doc, &hit);
+                // Respect an inactive subtree even when the event's owner is further up.
+                if chain.iter().any(|id| self.doc.get(*id).is_some_and(|n| n.props.truthy("inert"))) { return None; }
+                chain.into_iter().find(|id| self.doc.get(*id).is_some_and(|n|
+                    n.kind.is_slot() && n.props.truthy("has_pinch") && !crate::elements::disabled(n)))
+            })
+        };
+        if matches!(phase, PinchPhase::Started | PinchPhase::Wheel) {
+            self.cancel_pinch(app);
+            if phase == PinchPhase::Started {
+                self.views.get_mut(&app).expect("view").ui.pinch_target = target;
+            }
+        } else if target != self.views[&app].ui.pinch_target {
+            self.cancel_pinch(app);
+            return false;
+        }
+        if phase == PinchPhase::Ended {
+            self.views.get_mut(&app).expect("view").ui.pinch_target = None;
+        }
+        let Some(target) = target else { return false };
+        if !factor.is_finite() || factor <= 0.0 {
+            // Still deliver termination, even when the OS's final delta is invalid.
+            if !matches!(phase, PinchPhase::Started | PinchPhase::Ended) { return false; }
+        }
+        let Some(rect) = self.views[&app].layout.as_ref().and_then(|l| l.rect(target)) else { return false };
+        let factor = if factor.is_finite() && factor > 0.0 { factor } else { 1.0 };
+        self.out.event("pinch", Some(target), vec![json!(factor), json!(phase), json!(x - rect.x), json!(y - rect.y)]);
+        true
+    }
+
+    pub fn zoom_wheel(&mut self, app: Id, dy: f32, at: Option<(f32, f32)>) {
+        if !dy.is_finite() || dy == 0.0 { return; }
+        if !self.pinch(app, (-f64::from(dy) * 0.003).clamp(-4.0, 4.0).exp(), PinchPhase::Wheel, at) {
+            self.wheel(app, dy, at);
+        }
+    }
+
     pub fn wheel(&mut self, app: Id, dy: f32, at: Option<(f32, f32)>) {
+        self.cancel_pinch(app);
         self.ensure_layout(app);
         let Some(view) = self.views.get_mut(&app) else { return };
         let (x, y) = at.or(view.ui.pointer).unwrap_or((0.0, 0.0));

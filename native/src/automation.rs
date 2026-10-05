@@ -93,7 +93,7 @@ impl Runtime {
                 self.key_input(app, input);
                 Ok(Some(Value::Null))
             }
-            Op::Wheel { dy, x, y, app } => {
+            Op::Wheel { dy, x, y, ctrl, app } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;
                 let at = match (x, y) {
                     (Some(x), Some(y)) => {
@@ -102,8 +102,21 @@ impl Runtime {
                     }
                     _ => None,
                 };
-                self.wheel(app, dy, at);
+                if ctrl { self.zoom_wheel(app, dy, at); } else { self.wheel(app, dy, at); }
                 Ok(Some(Value::Null))
+            }
+            Op::Pinch { factor, phase, x, y, app } => {
+                let app = self.app_for(app).ok_or_else(no_app)?;
+                self.pinch(app, factor, phase, x.zip(y));
+                Ok(Some(Value::Null))
+            }
+            Op::WindowsZoomWheel { delta, x, y, app } => {
+                let app = self.app_for(app).ok_or_else(no_app)?;
+                if self.opts.headless || !cfg!(target_os = "windows") || !x.is_finite() || !y.is_finite() {
+                    return Err(("requires a Windows window and finite coordinates".into(), Value::Null));
+                }
+                self.effects.push(Effect::WindowsZoomWheel { req, app, delta, x, y });
+                Ok(None)
             }
             Op::Resize { app, w, h } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;

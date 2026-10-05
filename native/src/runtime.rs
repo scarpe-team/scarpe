@@ -60,6 +60,8 @@ pub enum Effect {
     /// Read the window's accessibility as AppKit hands it to VoiceOver, after acting on the
     /// element with a title, and answer `req` (a11y ops with `platform`).
     PlatformA11y { req: u64, app: Id, act: Option<crate::a11y::PlatformAct> },
+    /// Inject a per-message Control wheel through the live HWND, for gesture checks.
+    WindowsZoomWheel { req: u64, app: Id, delta: i16, x: f32, y: f32 },
 }
 
 pub struct AppView {
@@ -606,6 +608,7 @@ impl Runtime {
         view.layout = None;
         view.dirty = true;
         view.ui.popup = None;
+        self.cancel_pinch(app);
         if notify {
             self.out.send(Outgoing::Resize { app, w: w.round() as i64, h: h.round() as i64 });
         }
