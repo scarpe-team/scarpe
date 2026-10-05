@@ -64,3 +64,23 @@ as a Hash with String keys (`class`, `message`, `backtrace`, `path`, `line`, `du
 the log line and the Shoes console's entry. The program goes on as before. Approved by Nick
 Schwaderer on 28 Sep 2026, so an app can show its own errors in its own words; Shoes 3 only put
 them in its console.
+
+## Native minimum window sizes
+
+`Shoes.app` accepts optional `min_width:` and `min_height:` limits for the native window's
+content area, in logical pixels:
+
+```ruby
+app = Shoes.app(width: 1160, height: 820, min_width: 800, min_height: 600) do
+  para "A resizable reader"
+end
+```
+
+Each limit is independent. The native display applies them to the initial size, user resizing,
+and programmatic resizing (including headless runs). Change a limit with `app.min_width = 640`
+or `app.style(min_width: 640)`; setting it to `nil` removes it. Changing limits keeps the current
+size unless the window must grow to meet a new minimum.
+
+Limits must be numeric and at least 1; they are capped at the renderer's 10,000-pixel maximum.
+Invalid or omitted values mean no app minimum on that axis. Existing defaults are unchanged,
+and other displays ignore these limits.

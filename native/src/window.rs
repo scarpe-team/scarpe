@@ -13,7 +13,7 @@ use crate::paint::damage::FrameMemory;
 use crate::props::Id;
 use crate::protocol::{Outbox, Outgoing};
 use crate::runtime::stats::{self, Phase};
-use crate::runtime::{load_fonts, Effect, Options, Runtime, QUIT_GRACE};
+use crate::runtime::{app_min_size, load_fonts, Effect, Options, Runtime, QUIT_GRACE};
 use crate::text::FontMode;
 use pacing::Pacing;
 use std::collections::HashMap;
@@ -192,6 +192,12 @@ impl Shell {
             .with_inner_size(LogicalSize::new(view.size.0 as f64, view.size.1 as f64))
             .with_resizable(resizable)
             .with_visible(false);
+        let minimum = app_min_size(&props.0);
+        let attrs = if minimum != (0.0, 0.0) {
+            attrs.with_min_inner_size(LogicalSize::new(minimum.0 as f64, minimum.1 as f64))
+        } else {
+            attrs
+        };
         let attrs = if self.ghost { ghost::attributes(attrs) } else { attrs.with_active(!self.inactive) };
         let window = match el.create_window(attrs) {
             Ok(w) => Rc::new(w),
@@ -277,6 +283,12 @@ impl Shell {
                 Effect::ResizeWindow(app, w, h) => {
                     if let Some(win) = self.window_for(app) {
                         let _ = win.window.request_inner_size(LogicalSize::new(w as f64, h as f64));
+                    }
+                }
+                Effect::SetMinimumSize(app, w, h) => {
+                    if let Some(win) = self.window_for(app) {
+                        let minimum = ((w, h) != (0.0, 0.0)).then_some(LogicalSize::new(w as f64, h as f64));
+                        win.window.set_min_inner_size(minimum);
                     }
                 }
                 Effect::Cursor(app, shape) => {

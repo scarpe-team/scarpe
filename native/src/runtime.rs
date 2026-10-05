@@ -51,6 +51,8 @@ pub enum Effect {
     CloseWindow(Id),
     SetTitle(Id, String),
     ResizeWindow(Id, f32, f32),
+    /// Zero on an axis removes the app's minimum for that axis.
+    SetMinimumSize(Id, f32, f32),
     Cursor(Id, CursorShape),
     /// App `opacity`, 0.0 (clear) to 1.0.
     Opacity(Id, f32),
@@ -268,6 +270,7 @@ impl Runtime {
         self.stats.mark("first_create");
         let is_app = c.kind == "App";
         let size = app_size(&c.props);
+        let has_minimum = is_app && app_min_size(&c.props) != (0.0, 0.0);
         let doc_root = c.doc_root.unwrap_or(c.id + 1);
         self.doc.create(NewNode {
             id: c.id,
@@ -283,6 +286,9 @@ impl Runtime {
         if is_app {
             let scale = self.default_scale();
             self.views.insert(c.id, AppView::new(c.id, doc_root, size, scale));
+            if has_minimum {
+                self.out.send(Outgoing::Resize { app: c.id, w: size.0.round() as i64, h: size.1.round() as i64 });
+            }
         }
         self.invalidate();
     }
@@ -291,6 +297,7 @@ impl Runtime {
         let new_text = props.get("text").map(crate::props::value_text);
         let title = props.get("title").map(crate::props::value_text);
         let resized = props.contains_key("width") || props.contains_key("height");
+        let minimum_changed = props.contains_key("min_width") || props.contains_key("min_height");
         let restyled = ["font", "stroke", "secret"].iter().any(|k| props.contains_key(*k));
         let opacity = props.get("opacity").and_then(Value::as_f64).map(|o| o as f32);
         let recursor = props.contains_key("cursor");
@@ -303,6 +310,10 @@ impl Runtime {
         let kind = self.doc.get(id).map(|n| n.kind.clone());
         match kind {
             Some(Kind::App) => {
+                let minimum = self.doc.get(id).map(|n| app_min_size(&n.props.0)).unwrap_or_default();
+                if minimum_changed {
+                    self.effects.push(Effect::SetMinimumSize(id, minimum.0, minimum.1));
+                }
                 if let Some(title) = title {
                     self.effects.push(Effect::SetTitle(id, title));
                 }
@@ -315,6 +326,21 @@ impl Runtime {
                         view.size = size;
                     }
                     self.effects.push(Effect::ResizeWindow(id, size.0, size.1));
+                    if minimum != (0.0, 0.0) {
+                        // Ruby may have just set a dimension below its minimum, even if the
+                        // view was already at the limit and the OS sends no resize event.
+                        self.out.send(Outgoing::Resize { app: id, w: size.0.round() as i64, h: size.1.round() as i64 });
+                    }
+                } else if minimum_changed {
+                    if let Some(before) = self.views.get(&id).map(|v| v.size) {
+                        // A minimum change grows the current size only when needed. The
+                        // original width/height props may predate a resize by the user.
+                        self.resize_view(id, before.0, before.1, true);
+                        let size = self.views[&id].size;
+                        if size != before {
+                            self.effects.push(Effect::ResizeWindow(id, size.0, size.1));
+                        }
+                    }
                 }
             }
             Some(Kind::EditLine) | Some(Kind::EditBox) => {
@@ -598,6 +624,8 @@ impl Runtime {
     /// a minimised window) keeps the last; a huge one is capped at limits::MAX_SIDE.
     pub fn resize_view(&mut self, app: Id, w: f32, h: f32, notify: bool) {
         let (Some(w), Some(h)) = (limits::side(w), limits::side(h)) else { return };
+        let minimum = self.doc.get(app).map(|n| app_min_size(&n.props.0)).unwrap_or_default();
+        let (w, h) = (w.max(minimum.0), h.max(minimum.1));
         let Some(view) = self.views.get_mut(&app) else { return };
         if view.size == (w, h) {
             return;
@@ -680,8 +708,15 @@ fn is_input(op: &Op) -> bool {
     matches!(op, Op::Click { .. } | Op::Mouse { .. } | Op::Type { .. } | Op::Key { .. } | Op::Wheel { .. } | Op::A11yAction { .. })
 }
 
-/// The App's `width` and `height`, each finite, positive and at most limits::MAX_SIDE.
+/// The App's `width` and `height`, bounded by its minimums and limits::MAX_SIDE.
 pub fn app_size(props: &Map<String, Value>) -> (f32, f32) {
     let num = |k: &str, d: f32| props.get(k).and_then(Value::as_f64).and_then(|v| limits::side(v as f32)).unwrap_or(d);
-    (num("width", DEFAULT_SIZE.0), num("height", DEFAULT_SIZE.1))
+    let minimum = app_min_size(props);
+    (num("width", DEFAULT_SIZE.0).max(minimum.0), num("height", DEFAULT_SIZE.1).max(minimum.1))
+}
+
+/// Optional App minimums in logical pixels; zero means no app minimum on that axis.
+pub fn app_min_size(props: &Map<String, Value>) -> (f32, f32) {
+    let num = |key: &str| props.get(key).and_then(Value::as_f64).and_then(|v| limits::side(v as f32)).unwrap_or(0.0);
+    (num("min_width"), num("min_height"))
 }

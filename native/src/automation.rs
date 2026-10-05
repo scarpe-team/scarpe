@@ -110,10 +110,11 @@ impl Runtime {
                 let (Some(w), Some(h)) = (limits::side(w), limits::side(h)) else {
                     return Err((format!("{w}x{h} is not a window size"), Value::Null));
                 };
+                self.resize_view(app, w, h, true);
                 if !self.opts.headless {
+                    let (w, h) = self.views[&app].size;
                     self.effects.push(Effect::ResizeWindow(app, w, h));
                 }
-                self.resize_view(app, w, h, true);
                 Ok(Some(Value::Null))
             }
             Op::Pixel { x, y, app } => {

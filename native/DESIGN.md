@@ -443,6 +443,14 @@ Units are logical pixels (f32). Window content size = App `width` x `height`; an
 neither opens at 600x500, titled "Shoes" (Shoes 3 and Shoes 4, ledger A1, Q1). Lacci's own default
 moved there the same day, so apps normally send it.
 
+App props `min_width` and `min_height` optionally bound the content size on each axis, in
+logical pixels. Finite numbers of at least 1 are capped at `limits::MAX_SIDE`; absent, null,
+or invalid values mean no app minimum. They apply to creation, `width`/`height` props, native
+resize events and `req resize`, including headless runs. `props` can update or clear either
+limit: keep the current size unless it must grow, and remove the OS constraint when both
+limits are cleared. The native window uses the same limits through winit. Ruby receives the
+constrained dimensions through `resize` messages.
+
 - **Dimensions** for width/height/margins: Integer = px; negative Integer = parent inner
   size minus |v|; Float in (0, 1] = fraction of parent inner size (1.0 = 100%); Float in (-1, 0) =
   the parent less that fraction; any other Float is px, because Ruby code often computes widths like
