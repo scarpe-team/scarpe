@@ -896,9 +896,15 @@ impl Runtime {
     pub fn set_focus(&mut self, app: Id, id: Option<Id>) {
         let Some(view) = self.views.get_mut(&app) else { return };
         if view.ui.focus != id {
+            if let Some(previous) = view.ui.focus.filter(|i| self.doc.get(*i).is_some_and(|n| n.kind == Kind::Button)) {
+                self.out.event("focus_changed", Some(previous), vec![json!(false)]);
+            }
             view.ui.focus = id;
             if let Some(node) = id.and_then(|i| self.doc.get(i)).filter(|n| n.kind.is_text_input()) {
                 text_field::ensure(&mut view.ui.fields, node, &mut self.text.fonts);
+            }
+            if let Some(button) = id.filter(|i| self.doc.get(*i).is_some_and(|n| n.kind == Kind::Button)) {
+                self.out.event("focus_changed", Some(button), vec![json!(true)]);
             }
             self.request_redraw(app);
         }

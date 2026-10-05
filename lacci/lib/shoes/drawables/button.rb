@@ -6,7 +6,7 @@ class Shoes
 
     shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size, :tooltip, :icon, :icon_pos, :font, :stroke
     shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
-    shoes_events :click
+    shoes_events :click, :focus_changed
 
     opt_init_args :text
     # Creates a new Button object.
@@ -44,6 +44,10 @@ class Shoes
         @click&.call(self)
       end
 
+      bind_self_event("focus_changed") do |focused|
+        @focus_changed&.call(self, focused)
+      end
+
       create_display_drawable
     end
 
@@ -54,6 +58,13 @@ class Shoes
     def click(&block)
       @click = block
       self
+    end
+
+    # Run a proc when native keyboard focus enters or leaves this button.
+    #
+    # @param handler [Proc, nil] called with the button and true (focused) or false (blurred)
+    def focus_changed=(handler)
+      @focus_changed = handler
     end
   end
 end

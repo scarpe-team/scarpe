@@ -141,6 +141,22 @@ Shoes.text_mode = :shoes3
 Sizes are then points (`"18px"` stays pixels), and text that names no face is set in Arial, as
 Shoes 3 set it. Every window the program opens follows it. Hackety Hack asks for it.
 
+## Button focus callbacks
+
+Use `Button#focus_changed=` to react when a button gains or loses focus in the native
+display, including mouse clicks, Tab/Shift-Tab and calls to `focus`. The callback receives
+the button and `true` for focus or `false` for blur. For example, a timed notification can
+pause its expiry while its Close or Retry button has focus:
+
+```ruby
+@close = button("Close") { dismiss_notification }
+@close.focus_changed = proc { |_button, focused| @notification_focused = focused }
+```
+
+When focus moves between buttons, the old button receives `false` before the new one
+receives `true`. Focusing the same button again sends no notification. Assign `nil` to
+remove the callback. Callbacks track control focus within each window.
+
 ## Screen readers
 
 Scarpe draws its own buttons, fields and text, so no control of the operating system is there to
