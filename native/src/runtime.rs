@@ -73,6 +73,8 @@ pub struct AppView {
     pub running: bool,
     /// None when the document changed since the last layout.
     pub layout: Option<Layout>,
+    /// Existing geometry moved in place; send its new rects at the next flush.
+    pub layout_moved: bool,
     pub ui: ViewState,
     /// Needs a repaint.
     pub dirty: bool,
@@ -93,6 +95,7 @@ impl AppView {
             scale,
             running: false,
             layout: None,
+            layout_moved: false,
             ui: ViewState::default(),
             dirty: true,
             frames: 0,
@@ -288,6 +291,11 @@ impl Runtime {
     }
 
     fn set_props(&mut self, id: Id, props: Map<String, Value>) {
+        let displacement = |doc: &Doc| doc.get(id).map(|node| (
+            node.props.f32("displace_left").unwrap_or(0.0),
+            node.props.f32("displace_top").unwrap_or(0.0),
+        )).unwrap_or_default();
+        let before_displacement = displacement(&self.doc);
         let new_text = props.get("text").map(crate::props::value_text);
         let title = props.get("title").map(crate::props::value_text);
         let resized = props.contains_key("width") || props.contains_key("height");
@@ -295,11 +303,14 @@ impl Runtime {
         let opacity = props.get("opacity").and_then(Value::as_f64).map(|o| o as f32);
         let recursor = props.contains_key("cursor");
         self.pictures_to_check |= ["url", "icon", "fill", "stroke", "draw_context"].iter().any(|k| props.contains_key(*k));
-        let looks_only = self.doc.get(id).is_some_and(|n| props.keys().all(|key| changes_only_looks(&n.kind, key)));
+        let keeps_layout = self.doc.get(id).is_some_and(|n| props.keys().all(|key|
+            changes_only_looks(&n.kind, key) || matches!(key.as_str(), "displace_left" | "displace_top")));
         if !self.doc.set_props(id, props) {
             return;
         }
         self.revisions.touch(id);
+        let after_displacement = displacement(&self.doc);
+        let delta = (after_displacement.0 - before_displacement.0, after_displacement.1 - before_displacement.1);
         let kind = self.doc.get(id).map(|n| n.kind.clone());
         match kind {
             Some(Kind::App) => {
@@ -343,9 +354,17 @@ impl Runtime {
         for app in changed {
             let Some(view) = self.views.get_mut(&app) else { continue };
             view.dirty = true;
-            if !looks_only {
-                // Else paint reads these straight from the props: the layout stands and the node repaints.
+            if !keeps_layout {
+                // Size, flow or shaping changed: translation cannot reuse this layout.
                 view.layout = None;
+            } else if delta != (0.0, 0.0) {
+                if let Some(layout) = &mut view.layout {
+                    if layout.displace(&self.doc, id, before_displacement) {
+                        view.layout_moved = true;
+                    } else {
+                        view.layout = None;
+                    }
+                }
             }
         }
     }
@@ -481,9 +500,12 @@ impl Runtime {
         self.images.next_batch();
         self.let_go_of_loose_spans();
         self.let_go_of_unshown_pictures();
-        let running: Vec<Id> = self.views.iter().filter(|(_, v)| v.running && v.layout.is_none()).map(|(id, _)| *id).collect();
+        let running: Vec<Id> = self.views.iter().filter(|(_, v)| v.running && (v.layout.is_none() || v.layout_moved)).map(|(id, _)| *id).collect();
         for app in running {
             self.ensure_layout(app);
+            if self.views[&app].layout_moved {
+                self.push_layout(app);
+            }
         }
     }
 
@@ -526,6 +548,7 @@ impl Runtime {
     pub(crate) fn push_layout(&mut self, app: Id) {
         let Some(view) = self.views.get_mut(&app) else { return };
         let Some(layout) = view.layout.as_ref() else { return };
+        view.layout_moved = false;
         let mut told = HashMap::with_capacity(layout.boxes.len());
         let mut rects = Vec::new();
         for (&id, b) in &layout.boxes {

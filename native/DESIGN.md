@@ -532,6 +532,10 @@ moved there the same day, so apps normally send it.
   M19), so `background ..., height: 150, bottom: 150` runs along the slot's foot with its top
   151 px up, and a picture keeps the size it is given as its measure.
   `displace_left/top` shifts a laid-out element (and what it holds) visually without affecting others.
+  Updating only displacement and paint-only properties translates existing non-art geometry,
+  text positions, clipping and scrollbars without reshaping text or rerunning layout. Ruby receives
+  the moved rectangles at the batch flush. Art, attachments and changes affecting flow use a fresh
+  layout; clearing a displacement restores its undisplaced position.
 - `hidden: true` removes the element from layout and painting.
 - `attach: "window"` positions relative to the window instead of the slot; `attach` with a
   drawable's id positions relative to that drawable's top-left corner (ledger C11).

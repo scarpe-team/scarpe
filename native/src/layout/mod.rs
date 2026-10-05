@@ -149,21 +149,43 @@ pub struct Layout {
     /// Something is placed against the window or another drawable (`attach`): it does not
     /// scroll with its slot, so a scroll lays everything out again.
     attached: bool,
-    /// Where things were laid out, kept from the first scroll after a layout (Layout::scroll).
+    /// Stable positions before the first in-place scroll or displacement.
     as_laid_out: Option<Box<AsLaidOut>>,
 }
 
-/// A layout's positions before anything scrolled it in place. Each scroll places what moves
-/// from here by the scrollers' total change, so the offsets never add up rounding errors.
+/// A layout's positions before in-place movement. Always place from here using total scroll
+/// and displacement changes, so repeated fractional updates cannot accumulate rounding errors.
 #[derive(Clone, Default)]
 struct AsLaidOut {
     boxes: HashMap<Id, LBox>,
     texts: HashMap<Id, (f32, f32)>,
     scrollers: HashMap<Id, Scroller>,
     clips: HashMap<Id, Rect>,
+    /// Original properties of nodes displaced since these positions were recorded.
+    displacements: HashMap<Id, (f32, f32)>,
 }
 
 impl Layout {
+    /// Translate existing geometry without reshaping text or changing flow. Art displacement
+    /// is applied before transforms and shape unions; attachments also need a fresh layout.
+    pub fn displace(&mut self, doc: &Doc, id: Id, previous: (f32, f32)) -> bool {
+        if self.attached || id == self.root ||
+            !self.boxes.contains_key(&id) || doc.get(id).is_none_or(|n| n.kind.is_art() || n.kind.is_decor()) {
+            return false;
+        }
+        let node = doc.get(id).expect("laid-out node");
+        let from = self.as_laid_out.as_ref().and_then(|base| base.displacements.get(&id)).copied().unwrap_or(previous);
+        if !(node.props.f32("displace_left").unwrap_or(0.0) - from.0).is_finite() ||
+            !(node.props.f32("displace_top").unwrap_or(0.0) - from.1).is_finite() {
+            return false;
+        }
+        self.keep_positions();
+        self.as_laid_out.as_mut().expect("positions").displacements.entry(id).or_insert(previous);
+        self.place_from_baseline(doc);
+        self.assign_clips(doc, self.root, None);
+        true
+    }
+
     pub fn rect(&self, id: Id) -> Option<Rect> {
         self.boxes.get(&id).map(|b| b.rect)
     }
@@ -764,44 +786,53 @@ impl Layout {
         if top == scroller.top {
             return Some(top);
         }
-        if self.as_laid_out.is_none() {
-            let texts = self.texts.iter().map(|(id, t)| (*id, (t.x, t.y))).collect();
-            let kept = AsLaidOut { boxes: self.boxes.clone(), texts, scrollers: self.scrollers.clone(), clips: self.clips.clone() };
-            self.as_laid_out = Some(Box::new(kept));
-        }
+        self.keep_positions();
         if let Some(scroller) = self.scrollers.get_mut(&slot) {
             scroller.top = top;
         }
-        self.place_scrolled(doc);
+        self.place_from_baseline(doc);
         self.assign_clips(doc, self.root, None);
         Some(top)
     }
 
-    /// Puts everything where the scrollers' tops now put it: where it was laid out, moved by how
-    /// far each scroller above it has scrolled since. A slot's own backgrounds stay put; the
+    fn keep_positions(&mut self) {
+        if self.as_laid_out.is_none() {
+            let texts = self.texts.iter().map(|(id, t)| (*id, (t.x, t.y))).collect();
+            let kept = AsLaidOut { boxes: self.boxes.clone(), texts, scrollers: self.scrollers.clone(),
+                clips: self.clips.clone(), displacements: HashMap::new() };
+            self.as_laid_out = Some(Box::new(kept));
+        }
+    }
+
+    /// Place from stable geometry using displacement and the scroll offsets of ancestors.
+    /// A slot's own backgrounds move with its displacement, but not its scroll offset; the
     /// window's scroll with the document, as a fresh layout does (Engine::scroll_subtree).
-    fn place_scrolled(&mut self, doc: &Doc) {
+    fn place_from_baseline(&mut self, doc: &Doc) {
         let Some(laid_out) = self.as_laid_out.take() else { return };
-        let mut stack = vec![(self.root, 0.0f32)];
-        while let Some((id, dy)) = stack.pop() {
+        let mut stack = vec![(self.root, 0.0f32, 0.0f32)];
+        while let Some((id, mut dx, mut dy)) = stack.pop() {
+            if let (Some(from), Some(node)) = (laid_out.displacements.get(&id), doc.get(id)) {
+                dx += node.props.f32("displace_left").unwrap_or(0.0) - from.0;
+                dy += node.props.f32("displace_top").unwrap_or(0.0) - from.1;
+            }
             if let Some(b) = laid_out.boxes.get(&id) {
-                let placed = LBox { rect: b.rect.translate(0.0, dy), clip: None, origin: (b.origin.0, b.origin.1 + dy), parent_size: b.parent_size };
+                let placed = LBox { rect: b.rect.translate(dx, dy), clip: None, origin: (b.origin.0 + dx, b.origin.1 + dy), parent_size: b.parent_size };
                 self.boxes.insert(id, placed);
             }
             if let (Some((x, y)), Some(t)) = (laid_out.texts.get(&id), self.texts.get_mut(&id)) {
-                (t.x, t.y) = (*x, *y + dy);
+                (t.x, t.y) = (*x + dx, *y + dy);
             }
             if let Some(c) = laid_out.clips.get(&id) {
-                self.clips.insert(id, c.translate(0.0, dy));
+                self.clips.insert(id, c.translate(dx, dy));
             }
             let mut scrolled = 0.0;
             if let (Some(was), Some(now)) = (laid_out.scrollers.get(&id), self.scrollers.get_mut(&id)) {
-                now.viewport = was.viewport.translate(0.0, dy);
+                now.viewport = was.viewport.translate(dx, dy);
                 scrolled = was.top - now.top;
             }
             for &child in doc.children(id).iter().filter(|c| laid_out.boxes.contains_key(c)) {
                 let moves = id == self.root || !doc.get(child).is_some_and(|c| c.kind.is_decor());
-                stack.push((child, if moves { dy + scrolled } else { dy }));
+                stack.push((child, dx, if moves { dy + scrolled } else { dy }));
             }
         }
         self.as_laid_out = Some(laid_out);

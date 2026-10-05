@@ -138,6 +138,90 @@ fn same_layout(kept: &scarpe_native::layout::Layout, fresh: &scarpe_native::layo
     }
 }
 
+#[test]
+fn displacement_preserves_text_and_geometry_and_reports_it_at_flush() {
+    let mut h = Harness::new();
+    scrolling_scene(&mut h);
+    let before = h.rt.layout_of(APP).unwrap().clone();
+    let count = layouts_so_far(&h);
+    let msgs = h.feed(&json!({"t":"props","id":3,"props":{"displace_left":8,"displace_top":-4}}).to_string());
+    assert!(msgs.iter().all(|m| m["t"] != "layout"), "batch has not ended");
+    let msgs = h.feed("{\"t\":\"flush\"}");
+    assert!(msgs.iter().any(|m| m["t"] == "layout"), "Ruby receives translated geometry");
+    let kept = h.rt.layout_of(APP).unwrap().clone();
+    assert_eq!(layouts_so_far(&h), count);
+    assert_eq!(kept.rect(6), before.rect(6).map(|r| r.translate(8.0, -4.0)));
+    assert!(std::rc::Rc::ptr_eq(&before.texts[&6].shaped.buffer, &kept.texts[&6].shaped.buffer));
+    let kept_picture = picture(&mut h);
+    same_layout(&kept, &fresh_layout(&mut h), "displaced slot");
+    assert_eq!(kept_picture, picture(&mut h), "translated painting equals a fresh layout");
+}
+
+#[test]
+fn displacement_and_scrolling_compose_and_null_restores_the_position() {
+    let mut h = Harness::new();
+    scrolling_scene(&mut h);
+    let count = layouts_so_far(&h);
+    h.feed("{\"t\":\"scroll_to\",\"id\":3,\"top\":40}\n{\"t\":\"flush\"}");
+    props(&mut h, 3, json!({"displace_left":5.5,"displace_top":-3.25}));
+    h.feed("{\"t\":\"scroll_to\",\"id\":10,\"top\":18}\n{\"t\":\"flush\"}");
+    props(&mut h, 6, json!({"displace_left":"2.5","displace_top":"7"}));
+    props(&mut h, 3, json!({"displace_left":null,"displace_top":null}));
+    h.feed("{\"t\":\"scroll_to\",\"id\":3,\"top\":10}\n{\"t\":\"flush\"}");
+    assert_eq!(layouts_so_far(&h), count, "all steps reuse layout");
+    let kept = h.rt.layout_of(APP).unwrap().clone();
+    same_layout(&kept, &fresh_layout(&mut h), "scroll/displace/clear/scroll");
+    props(&mut h, 6, json!({"displace_left":"invalid","displace_top":null}));
+    let kept = h.rt.layout_of(APP).unwrap().clone();
+    same_layout(&kept, &fresh_layout(&mut h), "invalid values use layout's zero default");
+}
+
+#[test]
+fn repeated_fractional_displacement_does_not_accumulate_rounding_error() {
+    let mut h = Harness::new();
+    scrolling_scene(&mut h);
+    let count = layouts_so_far(&h);
+    for step in 0..1000 {
+        props(&mut h, 3, json!({"displace_left":step as f32 * 0.1,"displace_top":step as f32 * 0.1}));
+    }
+    props(&mut h, 3, json!({"displace_left":null,"displace_top":null}));
+    assert_eq!(layouts_so_far(&h), count);
+    let kept = h.rt.layout_of(APP).unwrap().clone();
+    same_layout(&kept, &fresh_layout(&mut h), "fractional motion returns to the original position");
+}
+
+#[test]
+fn displaced_controls_are_hit_at_their_new_position() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(3, "Button", 2, json!({"left":10,"top":10,"width":70,"height":30,"text":"Move"}))]));
+    props(&mut h, 3, json!({"displace_left":100,"displace_top":50}));
+    let (old, _) = h.req(json!({"op":"click","target":{"x":20,"y":20}}));
+    assert!(common::named(&common::events(&old), "click").is_empty());
+    let (new, _) = h.req(json!({"op":"click","target":{"x":120,"y":70}}));
+    assert_eq!(common::named(&common::events(&new), "click")[0].1, json!(3));
+}
+
+#[test]
+fn displacement_uses_fresh_layout_for_art_attachments_and_size_changes() {
+    for attached in [false, true] {
+        let mut h = Harness::new();
+        scrolling_scene(&mut h);
+        if attached {
+            h.feed(&create(400, "Stack", 2, json!({"attach":3,"left":10,"top":10,"width":20,"height":20})).to_string());
+            h.rt.layout_of(APP);
+        }
+        let count = layouts_so_far(&h);
+        let id = if attached { 3 } else { 7 };
+        props(&mut h, id, json!({"displace_left":14,"displace_top":7}));
+        assert!(layouts_so_far(&h) > count, "art/attachments keep their full layout semantics");
+        let kept = h.rt.layout_of(APP).unwrap().clone();
+        same_layout(&kept, &fresh_layout(&mut h), "fallback");
+        let count = layouts_so_far(&h);
+        props(&mut h, 3, json!({"displace_left":0,"width":250}));
+        assert!(layouts_so_far(&h) > count, "size changes still reflow");
+    }
+}
+
 /// A wheel step moves what the slot holds in the layout that stands. It used to throw the
 /// layout away and lay the whole window out again: 9 ms, and a push of every rect, per tick
 /// on a 5000-row list. What it leaves equals a layout made from scratch at that scroll.
