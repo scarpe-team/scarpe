@@ -549,13 +549,13 @@ impl Runtime {
         self.views.get(&app)?.layout.as_ref()
     }
 
-    fn paint_into(&mut self, app: Id, pm: &mut Pixmap, scale: f32) {
+    fn paint_into(&mut self, app: Id, pm: &mut Pixmap, scale: f32, now: Instant) {
         self.ensure_layout(app);
         let Some(view) = self.views.get_mut(&app) else { return };
         let AppView { layout, ui, frames, .. } = view;
         let Some(layout) = layout.as_ref() else { return };
         let started = Instant::now();
-        let mut scene = Scene { doc: &self.doc, layout, view: ui, text: &mut self.text, images: &mut self.images };
+        let mut scene = Scene { doc: &self.doc, layout, view: ui, text: &mut self.text, images: &mut self.images, now };
         paint::paint(&mut scene, pm, scale);
         *frames += 1;
         self.stats.since(Phase::Paint, started);
@@ -573,7 +573,7 @@ impl Runtime {
 
     /// Paints `app` for its window: the view is clean afterwards.
     pub fn render(&mut self, app: Id, pm: &mut Pixmap, scale: f32) {
-        self.paint_into(app, pm, scale);
+        self.paint_into(app, pm, scale, Instant::now());
         if let Some(view) = self.views.get_mut(&app) {
             view.dirty = false;
         }
@@ -584,11 +584,12 @@ impl Runtime {
     pub fn picture(&mut self, app: Id, scale: f32) -> Option<Pixmap> {
         let (w, h) = limits::picture_size(self.views.get(&app)?.size, scale)?;
         let mut pm = Pixmap::new(w, h)?;
-        self.paint_into(app, &mut pm, scale);
+        let now = Instant::now();
+        self.paint_into(app, &mut pm, scale, now);
         if self.opts.headless {
             self.stats.frame_shown();
             if self.damage == DamageMode::Check {
-                self.check_partial_repaint(app, &pm, scale);
+                self.check_partial_repaint(app, &pm, scale, now);
             }
         }
         Some(pm)

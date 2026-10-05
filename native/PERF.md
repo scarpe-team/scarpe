@@ -196,8 +196,10 @@ further (a new transform, a shadow) grows that function too; check mode says whe
 After the lanes merged (27 Sep), `damage.rs` has 19 tests: a tooltip, a masked slot, a shape block
 member and an image canvas child each move and repaint in part, and the mask and canvas tests
 also compare the whole frame with a full paint, which catches a layer that forgets where its rect
-sits. A tooltip now repaints the whole frame, like a popup, from the moment the pointer rests on
-its owner. The check-mode sweep over all 434 examples (the 424 plus the bench apps) verified 1441
+sits. A visible tooltip repaints the whole frame, like a popup, including the frame that hides
+it. While its delay is pending, unrelated changes still repaint only their damaged rectangles.
+Damage planning, painting, and check-mode reference paints share one time sample so a tooltip
+cannot become visible halfway through a partial repaint. The check-mode sweep over all 434 examples (the 424 plus the bench apps) verified 1441
 repaints (413 partial): no mismatch, no panic.
 
 ## After the merge: the layout push-back

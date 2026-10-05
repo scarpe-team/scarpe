@@ -53,8 +53,8 @@ pub fn owner(doc: &Doc, hover_chain: &[Id]) -> Option<(Id, String)> {
     })
 }
 
-pub fn paint(canvas: &mut Canvas, tip: Option<&mut Tooltip>, text: &mut TextEngine, window: (f32, f32)) {
-    let Some(tip) = tip.filter(|t| t.visible(Instant::now())) else { return };
+pub fn paint(canvas: &mut Canvas, tip: Option<&mut Tooltip>, text: &mut TextEngine, window: (f32, f32), now: Instant) {
+    let Some(tip) = tip.filter(|t| t.visible(now)) else { return };
     tip.shown = true;
     let shaped = text.shape(&RichText::plain(&tip.text, TextStyle::new(TEXT_SIZE, INK)), Some(MAX_WIDTH));
     let (w, h) = (shaped.width.ceil() + PAD.0 * 2.0, shaped.height.ceil() + PAD.1 * 2.0);

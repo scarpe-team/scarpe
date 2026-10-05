@@ -39,10 +39,11 @@ impl Runtime {
         }
         self.ensure_layout(app);
         let started = Instant::now();
+        let now = started;
         let Some(view) = self.views.get_mut(&app) else { return Repaint::Nothing };
         let AppView { layout, ui, frames, dirty, .. } = view;
         let Some(layout) = layout.as_ref() else { return Repaint::Nothing };
-        let mut scene = Scene { doc: &self.doc, layout, view: ui, text: &mut self.text, images: &mut self.images };
+        let mut scene = Scene { doc: &self.doc, layout, view: ui, text: &mut self.text, images: &mut self.images, now };
         let plan = damage::repaint(&mut scene, frame, scale, memory, &self.revisions);
         *frames += 1;
         *dirty = false;
@@ -51,19 +52,19 @@ impl Runtime {
         self.count_resampled_images();
         self.count_repaint(&plan, (frame.width(), frame.height()));
         if self.damage == DamageMode::Check {
-            self.check_repaint(app, &plan, frame, scale);
+            self.check_repaint(app, &plan, frame, scale, now);
         }
         plan
     }
 
     /// SCARPE_NATIVE_DAMAGE=check: verifies a repaint against full paints, says so on stderr
     /// when it went wrong, and puts the full paint on screen instead.
-    fn check_repaint(&mut self, app: Id, plan: &Repaint, frame: &mut Pixmap, scale: f32) {
-        let Some(full) = self.full_picture(app, scale) else { return };
+    fn check_repaint(&mut self, app: Id, plan: &Repaint, frame: &mut Pixmap, scale: f32, now: Instant) {
+        let Some(full) = self.full_picture(app, scale, now) else { return };
         let before = self.last_full.remove(&app).filter(|b| b.width() == full.width() && b.height() == full.height());
         if let Some(before) = before {
             self.stats.count("damage_checks", 1);
-            if let Err(problem) = self.verify_repaint(app, plan, frame, scale, &full, &before) {
+            if let Err(problem) = self.verify_repaint_at(app, plan, frame, scale, &full, &before, now) {
                 eprintln!("[scarpe-native] damage check: {problem}");
                 self.stats.count("damage_mismatches", 1);
                 frame.data_mut().copy_from_slice(full.data());
@@ -74,10 +75,15 @@ impl Runtime {
 
     /// paint::damage::verify for one app's current scene.
     pub fn verify_repaint(&mut self, app: Id, plan: &Repaint, frame: &Pixmap, scale: f32, full: &Pixmap, before: &Pixmap) -> Result<(), String> {
+        self.verify_repaint_at(app, plan, frame, scale, full, before, Instant::now())
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn verify_repaint_at(&mut self, app: Id, plan: &Repaint, frame: &Pixmap, scale: f32, full: &Pixmap, before: &Pixmap, now: Instant) -> Result<(), String> {
         let Some(view) = self.views.get_mut(&app) else { return Ok(()) };
         let AppView { layout, ui, .. } = view;
         let Some(layout) = layout.as_ref() else { return Ok(()) };
-        let mut scene = Scene { doc: &self.doc, layout, view: ui, text: &mut self.text, images: &mut self.images };
+        let mut scene = Scene { doc: &self.doc, layout, view: ui, text: &mut self.text, images: &mut self.images, now };
         damage::verify(&mut scene, plan, frame, scale, full, before)
     }
 
@@ -93,7 +99,7 @@ impl Runtime {
 
     /// Headless SCARPE_NATIVE_DAMAGE=check: repaints a kept frame in part, as a window would,
     /// and verifies it whenever a picture is painted.
-    pub(super) fn check_partial_repaint(&mut self, app: Id, full: &Pixmap, scale: f32) {
+    pub(super) fn check_partial_repaint(&mut self, app: Id, full: &Pixmap, scale: f32, now: Instant) {
         let (mut frame, mut memory) = match self.checked_frames.remove(&app) {
             Some(kept) if kept.0.width() == full.width() && kept.0.height() == full.height() => kept,
             _ => (full.clone(), FrameMemory::default()),
@@ -102,21 +108,21 @@ impl Runtime {
             let Some(view) = self.views.get_mut(&app) else { return };
             let AppView { layout, ui, .. } = view;
             let Some(layout) = layout.as_ref() else { return };
-            let mut scene = Scene { doc: &self.doc, layout, view: ui, text: &mut self.text, images: &mut self.images };
+            let mut scene = Scene { doc: &self.doc, layout, view: ui, text: &mut self.text, images: &mut self.images, now };
             damage::repaint(&mut scene, &mut frame, scale, &mut memory, &self.revisions)
         };
         self.count_repaint(&plan, (frame.width(), frame.height()));
-        self.check_repaint(app, &plan, &mut frame, scale);
+        self.check_repaint(app, &plan, &mut frame, scale, now);
         self.checked_frames.insert(app, (frame, memory));
     }
 
     /// A full paint that leaves the view's frame count alone.
-    fn full_picture(&mut self, app: Id, scale: f32) -> Option<Pixmap> {
+    fn full_picture(&mut self, app: Id, scale: f32, now: Instant) -> Option<Pixmap> {
         let view = self.views.get_mut(&app)?;
         let (w, h) = crate::limits::picture_size(view.size, scale)?;
         let mut pm = Pixmap::new(w, h)?;
         let AppView { layout, ui, .. } = view;
-        let mut scene = Scene { doc: &self.doc, layout: layout.as_ref()?, view: ui, text: &mut self.text, images: &mut self.images };
+        let mut scene = Scene { doc: &self.doc, layout: layout.as_ref()?, view: ui, text: &mut self.text, images: &mut self.images, now };
         paint::paint(&mut scene, &mut pm, scale);
         Some(pm)
     }

@@ -416,6 +416,58 @@ fn a_tooltip_shows_and_hides_without_stale_pixels() {
     assert_eq!(window.repaint(&mut h), Repaint::Nothing, "then nothing is left to paint");
 }
 
+#[test]
+fn pending_tooltips_keep_changes_partial_until_the_bubble_is_visible() {
+    use std::time::{Duration, Instant};
+    let mut h = Harness::new();
+    busy_scene(&mut h);
+    props(&mut h, 9, json!({"tooltip":"Press"}));
+    let mut window = Window::open(&mut h, 2.0);
+    let r = h.rt.layout_of(APP).unwrap().rect(9).unwrap();
+    mouse(&mut h, "move", r.x + 10.0, r.y + 10.0);
+    h.rt.views.get_mut(&APP).unwrap().ui.tooltip.as_mut().unwrap().due = Instant::now() + Duration::from_secs(60);
+    for red in [80, 100, 120] {
+        props(&mut h, 9, json!({"color":{"rgba":[red,40,50,255]}}));
+        assert!(partial(&window.repaint(&mut h), &window, 0.15), "the pending bubble paints nothing");
+    }
+    assert_eq!(window.repaint(&mut h), Repaint::Nothing);
+    assert!(!h.rt.views[&APP].ui.tooltip.as_ref().unwrap().shown);
+    assert!(h.rt.tooltip_due().is_some(), "the normal tooltip wake-up remains scheduled");
+    h.rt.views.get_mut(&APP).unwrap().ui.tooltip.as_mut().unwrap().due = Instant::now();
+    assert_eq!(window.repaint(&mut h), Repaint::Everything, "the bubble appears in a full frame");
+    assert!(h.rt.views[&APP].ui.tooltip.as_ref().unwrap().shown);
+    mouse(&mut h, "down", r.x + 10.0, r.y + 10.0);
+    assert_eq!(window.repaint(&mut h), Repaint::Everything, "dismissal erases the whole bubble");
+    assert_eq!(window.repaint(&mut h), Repaint::Nothing);
+}
+
+#[test]
+fn tooltip_painting_uses_the_damage_plans_time_even_after_the_deadline() {
+    use scarpe_native::elements::tooltip::Tooltip;
+    use scarpe_native::paint::{damage, Scene};
+    use std::time::{Duration, Instant};
+    let mut h = Harness::new();
+    busy_scene(&mut h);
+    let mut frame = h.rt.picture(APP, 1.0).unwrap();
+    let before = frame.clone();
+    let mut memory = FrameMemory::default();
+    let at = Instant::now() - Duration::from_secs(2);
+    let due = at + Duration::from_secs(1); // Already due in wall time, after this frame's sampled time.
+    let view = h.rt.views.get_mut(&APP).unwrap();
+    view.ui.tooltip = Some(Tooltip::new(9, "Press".into(), (50.0, 100.0), due));
+    let mut scene = Scene {
+        doc: &h.rt.doc, layout: view.layout.as_ref().unwrap(), view: &mut view.ui,
+        text: &mut h.rt.text, images: &mut h.rt.images, now: at,
+    };
+    assert_eq!(damage::repaint(&mut scene, &mut frame, 1.0, &mut memory, &h.rt.revisions), Repaint::Everything);
+    assert_eq!(frame.data(), before.data(), "a deadline reached during painting cannot add an unplanned tooltip");
+    assert!(!scene.view.tooltip.as_ref().unwrap().shown);
+    scene.now = due;
+    assert_eq!(damage::repaint(&mut scene, &mut frame, 1.0, &mut memory, &h.rt.revisions), Repaint::Everything);
+    assert_ne!(frame.data(), before.data());
+    assert!(scene.view.tooltip.as_ref().unwrap().shown);
+}
+
 /// Whether the frame looks like a full paint. `verify` checks a repainted rect against the
 /// same rect painted with no node skipped, so a rect that paints wrong both ways (a layer
 /// that forgets where the rect sits) needs this look at the whole picture as well. Edges a

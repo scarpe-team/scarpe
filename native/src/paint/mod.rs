@@ -387,6 +387,8 @@ pub struct Scene<'a> {
     pub view: &'a mut ViewState,
     pub text: &'a mut TextEngine,
     pub images: &'a mut ImageCache,
+    /// One time sample for damage planning and every paint of this frame.
+    pub now: std::time::Instant,
 }
 
 /// Paints the whole app: nodes in tree order, then overlays (scrollbars,
@@ -404,7 +406,7 @@ pub fn paint_nodes(scene: &mut Scene, mut canvas: Canvas, only: Option<Rect>) {
     decor::scrollbars(&mut canvas, layout);
     elements::list_box::paint_popup(&mut canvas, scene.view, scene.text);
     if scene.view.popup.is_none() {
-        elements::tooltip::paint(&mut canvas, scene.view.tooltip.as_mut(), scene.text, layout.size);
+        elements::tooltip::paint(&mut canvas, scene.view.tooltip.as_mut(), scene.text, layout.size, scene.now);
     }
     crate::dialogs::paint_modal(&mut canvas, scene.view, scene.text, layout.size);
 }

@@ -157,7 +157,7 @@ struct Look {
 /// Brings `frame` up to date with `scene`, painting as little as it can.
 pub fn repaint(scene: &mut Scene, frame: &mut Pixmap, scale: f32, memory: &mut FrameMemory, revisions: &Revisions) -> Repaint {
     let hovered: HashSet<Id> = scene.view.hover_chain.iter().copied().collect();
-    let mut now = look_at(scene.doc, scene.layout, scene.view, &hovered, (frame.width(), frame.height()), scale, revisions.now());
+    let mut now = look_at(scene, &hovered, (frame.width(), frame.height()), scale, revisions.now());
     let plan = match &memory.last {
         Some(before) => plan(before, &now, &changed_since(before, &now, scene.doc, revisions)),
         None => Repaint::Everything,
@@ -347,7 +347,8 @@ fn same_text(a: &Option<Rc<Buffer>>, b: &Option<Rc<Buffer>>) -> bool {
     }
 }
 
-fn look_at(doc: &Doc, layout: &Layout, view: &ViewState, hovered: &HashSet<Id>, size: (u32, u32), scale: f32, revision: u64) -> Frame {
+fn look_at(scene: &Scene, hovered: &HashSet<Id>, size: (u32, u32), scale: f32, revision: u64) -> Frame {
+    let (doc, layout, view) = (scene.doc, scene.layout, &*scene.view);
     let mut nodes = HashMap::with_capacity(layout.order.len());
     for &id in &layout.order {
         let (Some(node), Some(lbox)) = (doc.get(id), layout.boxes.get(&id)) else { continue };
@@ -365,9 +366,9 @@ fn look_at(doc: &Doc, layout: &Layout, view: &ViewState, hovered: &HashSet<Id>, 
         revision,
         size,
         scale,
-        // A tooltip counts from when the pointer rests on its owner, not only once it shows, so
-        // the frame that brings it up is painted whole.
-        overlaid: view.popup.is_some() || view.modal.is_some() || view.tooltip.as_ref().is_some_and(|t| !t.dismissed),
+        // Pending tooltips paint nothing. Sample the same time as painting so a deadline
+        // crossed during this frame cannot add an overlay to a partial repaint.
+        overlaid: view.popup.is_some() || view.modal.is_some() || view.tooltip.as_ref().is_some_and(|t| t.visible(scene.now)),
         scrolling: scrolling(layout),
         order: layout.order.clone(),
         nodes,
