@@ -145,6 +145,17 @@ An unknown op, or one missing a field, gets a reply whose `error` says so.
 Ordering guarantee: every `event` caused by a request is written before that request's `reply`.
 Rust processes `req`s after an implicit flush of everything received before them.
 
+Rust's Outbox serializes each batch in order and queues its bytes for a dedicated
+stdout writer. Up to 32 chunks of 64 KiB (2 MiB, plus one chunk being written) can
+wait before backpressure reaches the render thread. Chunk boundaries do not change
+NDJSON framing, Unicode, or the rule that events precede their request's reply.
+This absorbs brief Ruby pauses; it does not remove backpressure from a permanently
+stalled reader. Broken pipes mark the Outbox closed and release blocked senders.
+At normal shutdown the writer drains queued bytes. If a connected parent stops
+reading, shutdown waits at most two seconds, then abandons delivery as the renderer
+exits. Serialization and the pending message batch retain their existing allocations;
+the 2 MiB bound applies to the writer queue, not total process memory.
+
 ### 4.2 Rust -> Ruby
 
 | t | fields | shim action |
@@ -546,6 +557,7 @@ src/main.rs        CLI: scarpe-native [--headless] [--scale F] [--fonts system|b
                    [--exit-after SECS] [--inactive] [--ghost] [--version] [--help]
 src/lib.rs         pub mods below
 src/protocol.rs    serde types for 4.1/4.2; Outbox (buffered stdout writer, flush per message batch)
+src/protocol/output.rs ordered, byte-bounded stdout queue and shutdown drain
 src/doc.rs         Doc { nodes, apps }, Node { id, kind: Kind, class, props: Props, parent, children },
                    Kind enum (App DocumentRoot Stack Flow Widget Mask Para TextDrawable Code Del Em
                    Strong Span Sub Sup Ins Link Button Check Radio EditLine EditBox ListBox Progress Slider

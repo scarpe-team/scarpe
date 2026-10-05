@@ -18,10 +18,10 @@ pub fn run(opts: Options, exit_after: Option<Duration>) -> i32 {
 /// Answers every line `input` has until it ends, Ruby quits the last app or stdout closes.
 /// Returns the exit code.
 ///
-/// `input` is read on a thread of its own, as in a window. This thread blocks writing stdout
-/// whenever Ruby is busy and not reading (Shoes-Spec's `advance` reads only at its next
-/// request); meanwhile stdin keeps draining into memory, so Ruby never blocks writing to us
-/// and neither side waits on the other for good.
+/// `input` is read on a thread of its own, as in a window. Outbox queues a bounded
+/// amount of stdout on a writer thread so brief Ruby pauses do not stop rendering.
+/// If output backpressure eventually blocks this thread, stdin still drains, so
+/// Ruby can finish a batch and resume reading without a two-way pipe deadlock.
 pub fn serve(rt: &mut Runtime, input: impl Read + Send + 'static, exit_after: Option<Duration>) -> i32 {
     let (batches, arrived) = mpsc::channel();
     std::thread::spawn(move || read_batches(input, |batch| batches.send(batch).is_ok()));

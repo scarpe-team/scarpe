@@ -3,7 +3,8 @@
 use crate::props::Id;
 use serde::Serialize;
 use serde_json::{json, Map, Value};
-use std::io::Write;
+mod output;
+use output::OutputWriter;
 
 pub const VERSION: u32 = 1;
 
@@ -332,7 +333,7 @@ impl Outgoing {
 }
 
 enum Sink {
-    Stdout,
+    Stdout(OutputWriter),
     Capture,
 }
 
@@ -349,7 +350,7 @@ pub struct Outbox {
 
 impl Outbox {
     pub fn stdout(trace: bool) -> Self {
-        Outbox { pending: Vec::new(), sink: Sink::Stdout, captured: Vec::new(), trace, broken: false }
+        Outbox { pending: Vec::new(), sink: Sink::Stdout(OutputWriter::new(std::io::stdout())), captured: Vec::new(), trace, broken: false }
     }
 
     /// For tests: keeps every message as JSON instead of writing it.
@@ -370,13 +371,14 @@ impl Outbox {
     }
 
     pub fn flush(&mut self) {
+        if let Sink::Stdout(writer) = &self.sink { self.broken |= writer.failed(); }
         if self.pending.is_empty() {
             return;
         }
         let pending = std::mem::take(&mut self.pending);
-        match self.sink {
+        match &self.sink {
             Sink::Capture => self.captured.extend(pending.iter().map(|m| serde_json::to_value(m).unwrap_or(json!(null)))),
-            Sink::Stdout => {
+            Sink::Stdout(writer) => {
                 let mut out = String::new();
                 for msg in &pending {
                     if let Ok(line) = serde_json::to_string(msg) {
@@ -387,9 +389,7 @@ impl Outbox {
                         out.push('\n');
                     }
                 }
-                let stdout = std::io::stdout();
-                let mut lock = stdout.lock();
-                if lock.write_all(out.as_bytes()).and_then(|_| lock.flush()).is_err() {
+                if !writer.send(out.as_bytes()) {
                     self.broken = true;
                 }
             }
