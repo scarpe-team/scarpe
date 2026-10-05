@@ -20,7 +20,7 @@ use crate::layout::{Layout, Rect};
 use crate::props::{Id, TextItem};
 use crate::runtime::Runtime;
 use crate::text::TextEngine;
-use accesskit::{Action, ActionData, ActionRequest, Affine, HasPopup, Node, NodeId, Role, Toggled, Tree, TreeId, TreeUpdate};
+use accesskit::{Action, ActionData, ActionRequest, Affine, HasPopup, Live, Node, NodeId, Role, Toggled, Tree, TreeId, TreeUpdate};
 use serde_json::{json, Map, Value};
 use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -241,6 +241,9 @@ impl Builder<'_> {
         }
         if let Some(tip) = tooltip(node) {
             n.set_description(tip);
+        }
+        if node.props.str("live") == Some("polite") {
+            n.set_live(Live::Polite);
         }
         self.nodes.push((nid, n));
         Some(nid)
@@ -696,6 +699,9 @@ fn describe(node: &accesskit_consumer::Node) -> Value {
     }
     if let Some(description) = node.description() {
         out.insert("description".into(), json!(description));
+    }
+    if node.live() == Live::Polite {
+        out.insert("live".into(), json!("polite"));
     }
     if let Some(toggled) = node.toggled() {
         out.insert("toggled".into(), if toggled == Toggled::Mixed { json!("mixed") } else { json!(toggled == Toggled::True) });

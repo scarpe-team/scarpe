@@ -87,6 +87,66 @@ class A11yTest < Minitest::Test
     assert_spec_passed(run)
   end
 
+  def test_polite_live_regions_follow_ruby_updates_without_moving_focus
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        @status = para "Online", live: "polite"
+        @download = button "Download", live: :polite
+        @ordinary = para "Ordinary text"
+      end
+    APP
+      status = para("@status")
+      download = button("@download")
+      node_for = ->(drawable) { a11y_nodes.find { |node| node[:id] == drawable.linkable_id } }
+      assert_equal "polite", node_for.call(status)[:live]
+      assert_equal "polite", node_for.call(download)[:live], "symbols serialize as strings"
+      refute node_for.call(para("@ordinary")).key?(:live)
+
+      a11y_action download, :focus
+      status.text = "متاح دون اتصال"
+      download.text = "Downloaded"
+      wait_frames
+      assert_equal ["متاح دون اتصال", "polite"], node_for.call(status).values_at(:value, :live)
+      assert_equal ["Downloaded", "polite"], node_for.call(download).values_at(:name, :live)
+      assert_equal download.linkable_id, focused_drawable.linkable_id
+
+      status.live = nil
+      download.style(live: nil)
+      wait_frames
+      refute node_for.call(status).key?(:live)
+      refute node_for.call(download).key?(:live)
+
+      status.style(live: :polite)
+      download.live = "polite"
+      wait_frames
+      assert_equal "polite", node_for.call(status)[:live]
+      assert_equal "polite", node_for.call(download)[:live]
+      assert_equal download.linkable_id, focused_drawable.linkable_id
+    TEST
+    assert_spec_passed(run)
+  end
+
+  def test_text_inherits_the_live_region_of_its_slot
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        @notifications = stack(live: :polite) do
+          @notice = para "Export complete", live: "polite"
+        end
+      end
+    APP
+      notice = para("@notice")
+      node = -> { a11y_nodes.find { |n| n[:id] == notice.linkable_id } }
+      assert_equal "polite", node.call[:live]
+      notice.live = nil
+      wait_frames
+      assert_equal "polite", node.call[:live], "clearing the child's marker still inherits the slot's"
+      stack("@notifications").live = nil
+      wait_frames
+      refute node.call.key?(:live)
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_peek_prints_what_a_screen_reader_meets
     run = run_real(<<~APP, argv: ->(app) { ["peek", app, "--a11y"] })
       Shoes.app(title: "Order") do

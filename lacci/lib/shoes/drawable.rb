@@ -324,6 +324,9 @@ class Shoes
     # Tooltip text shown on hover (HTML title attribute)
     shoes_style :tooltip
 
+    # Polite screen-reader announcements in the native display.
+    shoes_style :live
+
     # The click handler is this style (manual 1144-1151, ledger G10): click: proc { }
     # when the drawable is made, or whatever block click was last given.
     shoes_style :click

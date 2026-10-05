@@ -164,6 +164,20 @@ image "chart.png", alt: "Sales by month, rising"
 button "Save", tooltip: "Saves to your Documents folder"   # read after the name
 ```
 
+Use `live: "polite"` (or `live: :polite`) for status text that changes without moving keyboard
+focus. It requests an announcement when the screen reader can speak without interrupting:
+
+```ruby
+@status = para "Online", live: "polite"
+button("Work offline") { @status.text = "Available offline" }
+```
+
+The setting can also be changed with `@status.live = "polite"` or `@status.style(live: "polite")`.
+Set it to `nil` to remove the drawable's own marker. A slot such as `stack(live: "polite")`
+passes the setting to its descendants; clearing a child's marker still lets it inherit from
+the slot. `a11y_nodes` reports the effective setting as `live: "polite"`, including inheritance.
+AccessKit, the platform and the screen reader control the timing of announcements.
+
 Nothing is built for a screen reader until one asks, so an app nobody reads aloud pays nothing.
 Tests can read the tree and act on it the way a screen reader does:
 

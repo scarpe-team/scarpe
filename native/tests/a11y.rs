@@ -4,7 +4,7 @@
 
 mod common;
 
-use accesskit::TreeUpdate;
+use accesskit::{Live, TreeUpdate};
 use accesskit_consumer::{Node as SeenNode, Tree, TreeChangeHandler};
 use common::{app, create, events, named, Harness};
 use scarpe_native::a11y::{self, Mirror};
@@ -80,6 +80,49 @@ fn a_button_is_named_by_its_label() {
     assert_eq!(button["actions"], json!(["click", "focus"]));
     let laid = h.node(|n| n["id"] == 3);
     assert_eq!(button["bounds"], json!([laid["x"], laid["y"], laid["w"], laid["h"]]), "where the layout put it");
+}
+
+#[test]
+fn polite_live_regions_are_opt_in() {
+    let mut h = Harness::new();
+    h.feed(&app(400, 400, &[
+        create(3, "Para", 2, json!({"text_items": ["Online"], "live": "polite"})),
+        create(4, "Button", 2, json!({"text": "Download", "live": "polite"})),
+        para(5, 2, json!(["Ordinary text"])),
+        create(6, "Para", 2, json!({"text_items": ["Cleared"], "live": null})),
+        create(7, "Para", 2, json!({"text_items": ["Unknown"], "live": "unknown"})),
+        create(8, "Para", 2, json!({"text_items": ["Boolean"], "live": true})),
+    ]));
+    let all = nodes(&mut h);
+    for id in 3..=8 {
+        let node = all.iter().find(|n| n["id"] == id).unwrap();
+        if id <= 4 {
+            assert_eq!(node["live"], json!("polite"));
+        } else {
+            assert!(node.get("live").is_none(), "only polite opts in: {node}");
+        }
+    }
+}
+
+#[test]
+fn text_inherits_a_slots_live_region_even_when_the_slot_is_filtered_out() {
+    let mut h = Harness::new();
+    h.feed(&app(400, 200, &[
+        create(3, "Stack", 2, json!({"live": "polite"})),
+        para(4, 3, json!(["Download complete"])),
+    ]));
+    let mut adapter = Adapter::new();
+    let first = adapter.push(&mut h);
+    let child = first.nodes.iter().find(|(id, _)| id.0 == 4).unwrap();
+    assert_eq!(child.1.live(), None, "the marker belongs to the slot");
+    assert_eq!(tree(&mut h)["children"][0]["id"], json!(4), "the slot is a transparent container");
+    assert_eq!(one(&mut h, "label")["live"], json!("polite"), "inspection reports the inherited marker");
+    adapter.in_step(&mut h);
+
+    h.feed(&format!("{}\n{}\n", json!({"t":"props","id":3,"props":{"live":null}}), json!({"t":"flush"})));
+    adapter.push(&mut h);
+    assert!(one(&mut h, "label").get("live").is_none());
+    adapter.in_step(&mut h);
 }
 
 #[test]
@@ -485,6 +528,35 @@ fn after_the_first_update_a_window_sends_only_what_changed() {
     assert_eq!(update.nodes.iter().map(|(id, _)| id.0).collect::<Vec<_>>(), vec![4], "only the check");
     assert!(update.tree.is_none());
     adapter.in_step(&mut h);
+}
+
+#[test]
+fn live_region_updates_reach_the_adapter_without_moving_focus() {
+    let mut h = Harness::new();
+    h.feed(&app(400, 200, &[
+        create(3, "Para", 2, json!({"text_items": ["Online"], "live": "polite", "width": 320, "height": 32})),
+        create(4, "Button", 2, json!({"text": "Download", "live": "polite", "left": 0, "top": 60, "width": 180})),
+    ]));
+    h.feed(&format!("{}\n{}\n", json!({"t":"focus","id":4}), json!({"t":"flush"})));
+    let mut adapter = Adapter::new();
+    adapter.push(&mut h);
+    let steps = [
+        (3, json!({"text_items": ["متاح دون اتصال"]}), Some(Live::Polite), "متاح دون اتصال"),
+        (4, json!({"text": "Downloaded"}), Some(Live::Polite), "Downloaded"),
+        (3, json!({"live": null}), None, "متاح دون اتصال"),
+        (3, json!({"live": "polite"}), Some(Live::Polite), "متاح دون اتصال"),
+    ];
+    for (id, props, live, text) in steps {
+        h.feed(&format!("{}\n{}\n", json!({"t":"props","id":id,"props":props}), json!({"t":"flush"})));
+        let update = adapter.push(&mut h);
+        assert_eq!(update.nodes.iter().map(|(id, _)| id.0).collect::<Vec<_>>(), vec![id], "only the changed drawable is sent");
+        let changed = &update.nodes[0].1;
+        assert_eq!(changed.live(), live);
+        assert_eq!(changed.value().or_else(|| changed.label()), Some(text));
+        assert_eq!(update.focus.0, 4, "announcements do not take focus");
+        adapter.in_step(&mut h);
+        assert!(adapter.push(&mut h).nodes.is_empty(), "unchanged frames send no repeated update");
+    }
 }
 
 /// A Linux adapter stops and starts with the screen reader, and takes the tree whole again: its
