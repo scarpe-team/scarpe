@@ -92,6 +92,27 @@ class Shoes::Slot < Shoes::Drawable
     send_self_event(top.to_i, event_name: "scroll_top")
   end
 
+  # Observe scroll offsets reported by the native display. The block keeps its self and
+  # sees the new scroll_top. Replaces the previous handler; no block removes it.
+  # Assigning scroll_top from Ruby does not call this handler.
+  #
+  # @yield [top] the new offset in pixels
+  # @return [self]
+  def on_scroll(&block)
+    @scroll_handler = block
+    self
+  end
+
+  # The display reports a scroll without echoing a scroll_top= command back to it.
+  def scrolled_to(top)
+    return if destroyed
+
+    top = top.to_i
+    changed = scroll_top != top
+    @scroll_top = top
+    @scroll_handler&.call(top) if changed
+  end
+
   # We use method_missing for drawable-creating methods like "button".
   # The parent's method_missing will auto-create Shoes style getters and setters.
   # This is similar to the method_missing in Shoes::App, but differs in where
@@ -175,6 +196,7 @@ class Shoes::Slot < Shoes::Drawable
   # (Clock, Pong, long-running dashboards). Children destroy first so each
   # detaches its own DOM node before this slot's removal.
   def destroy
+    @scroll_handler = nil
     fire_finish_callbacks
     @children&.dup&.each(&:destroy)
     super

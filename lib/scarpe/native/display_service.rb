@@ -162,7 +162,7 @@ module Scarpe::Native
       when "para_hit" then Shoes::DisplayService.para_hit_cache[message["id"]] = message["value"]
       when "layout" then laid_out(message["rects"])
       when "resize" then resized(message["app"], message["w"], message["h"])
-      when "scroll" then lacci_drawable(message["id"])&.instance_variable_set(:@scroll_top, message["top"])
+      when "scroll" then scrolled(message["id"], message["top"])
       when "closed" then closed(message["app"])
       when "log" then log_from_child(message["level"].to_s, message["msg"])
       when "console" then guarded("console key") { Shoes.show_console }
@@ -363,6 +363,17 @@ module Scarpe::Native
     def pointer_moved(app_id, state)
       Shoes::DisplayService.mouse_state = state
       Shoes::DisplayService.app_mouse_states[app_id] = state if app_id
+    end
+
+    # A queued scroll may outlive its slot or window. Only a slot still paired with the
+    # renderer can receive it; update its offset before calling the app's handler.
+    def scrolled(id, top)
+      return unless display_drawable(id)
+
+      slot = lacci_drawable(id)
+      return unless slot.is_a?(Shoes::Slot)
+
+      guarded("scroll handler for #{id.inspect}") { slot.scrolled_to(top) }
     end
 
     # Where Rust laid things out, [x, y, w, h, scroll_height] in window pixels by id, for

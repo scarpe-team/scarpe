@@ -154,7 +154,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 | `mouse` | `app`, `state` [held, x, y] (held is 1 while the left button is down; window px, rounded) | `Shoes::DisplayService.mouse_state = state`, and the app's own in `app_mouse_states`: each app's `mouse` reads the pointer as it was last over its window, [0, 0, 0] before it ever was, as Shoes 3 keeps `app->mousex` |
 | `para_hit` | `id`, `value` | `para_hit_cache[id] = value` (Integer keys) |
 | `resize` | `app`, `w`, `h` (Integers) | set the App's `@width`/`@height` ivars directly (no prop_change echo) |
-| `scroll` | `id`, `top` (Integer) | set the slot's `@scroll_top` directly |
+| `scroll` | `id`, `top` (Integer) | update the slot's `scroll_top` without echoing a command, then call its `on_scroll` handler if the offset changed; ignore removed/unpaired slots |
 | `layout` | `app`, `rects`: `[[id, x, y, w, h, scroll_h], ...]` | `Shoes::DisplayService.layout_cache[id] = [x, y, w, h, scroll_h]` (Integer keys; the shim defines the accessor if Lacci lacks it and deletes ids on destroy). Sent after every layout pass, before its frame is presented and before the reply of any request that caused it: every laid-out node on an app's first layout, then only those whose rect changed, sorted by id. Window logical px, rounded to 1/100; `scroll_h` is a slot's content height, padding included, else `h`. Art reports its transformed box. Destroyed ids are simply not sent again (contract a; ledger A4, C5) |
 | `closed` | `app` | user closed a window: close that app, as `App#close` does (`quit {app}`, and it leaves `Shoes.APPS`), or every app if it was the last |
 | `console` | `app` | Alt-/ was pressed in that app's window (Cmd-/ on a Mac, 4.4): `Shoes.show_console` (5.6). The app hears no keypress for it |
@@ -847,6 +847,13 @@ change the code and this list together.
   was laid out by the scrollers' offsets, rather than laying the window out again; Ruby still
   hears every rect that moved (contract a), so a slot of 5000 rows re-sends 5000 rects a tick.
   A layout with anything `attach`ed lays out again instead.
+- **Scroll callbacks.** `slot.on_scroll { |top| ... }` registers one Ruby handler for native
+  `scroll` reports; registering again replaces it, and omitting the block removes it. The
+  offset is updated before the handler runs, unchanged offsets (including an initial zero)
+  are silent, and `scroll_top=` stays silent. The block keeps its self and errors go through
+  the native shim's usual handler guard. A slot's `clear` preserves its handler; destruction
+  releases it. The shim ignores queued reports for removed slots or closed windows before
+  calling into Lacci. No new protocol message or subscription item is needed.
 - **Hit-testing.** Nothing is hit outside the window, so moving the pointer to (-1, -1) leaves every
   drawable including the DocumentRoot. Backgrounds and borders never catch the pointer. A clipped
   slot's hidden part catches nothing.

@@ -141,6 +141,31 @@ Shoes.text_mode = :shoes3
 Sizes are then points (`"18px"` stays pixels), and text that names no face is set in Arial, as
 Shoes 3 set it. Every window the program opens follows it. Hackety Hack asks for it.
 
+## Reacting to scrolling
+
+Use `slot.on_scroll` to refresh visible content when the native display reports a new scroll
+offset, without polling `scroll_top`:
+
+```ruby
+Shoes.app do
+  @position = para "At the top"
+  @list = stack(height: 180, scroll: true) do
+    100.times { |i| para "Row #{i}" }
+  end
+  @list.on_scroll { |offset| @position.text = "Scrolled #{offset} pixels" }
+end
+```
+
+The block receives the integer offset in pixels, with `slot.scroll_top` already updated. It
+keeps the `self` it was defined with and runs only when the reported offset changes. This works
+for stacks, flows, and the window's `app.document_root`; nested slots notify their own handler.
+Assigning `slot.scroll_top = ...` from Ruby does not invoke the callback.
+
+Calling `on_scroll` again replaces the handler; calling it without a block removes it. Both
+return the slot. Clearing a slot's contents keeps its handler, while removing the slot stops
+notifications. Handler errors follow the usual `Shoes.on_error` reporting, and automation
+surfaces them to its caller.
+
 ## Screen readers
 
 Scarpe draws its own buttons, fields and text, so no control of the operating system is there to
