@@ -293,7 +293,7 @@ impl Runtime {
         let resized = props.contains_key("width") || props.contains_key("height");
         let restyled = ["font", "stroke", "secret"].iter().any(|k| props.contains_key(*k));
         let opacity = props.get("opacity").and_then(Value::as_f64).map(|o| o as f32);
-        let recursor = props.contains_key("cursor");
+        let recursor = ["cursor", "selectable", "state"].iter().any(|key| props.contains_key(*key));
         self.pictures_to_check |= ["url", "icon", "fill", "stroke", "draw_context"].iter().any(|k| props.contains_key(*k));
         let looks_only = self.doc.get(id).is_some_and(|n| props.keys().all(|key| changes_only_looks(&n.kind, key)));
         if !self.doc.set_props(id, props) {
@@ -515,6 +515,18 @@ impl Runtime {
         let started = Instant::now();
         let inputs = Inputs { doc: &self.doc, text: &mut self.text, images: &mut self.images, scroll: &view.ui.scroll };
         view.layout = Some(layout::layout(inputs, view.doc_root, view.size));
+        if let Some(selection) = view.ui.selection.as_mut() {
+            let id = selection.id;
+            let text = self.doc.get(id).filter(|n| crate::selection::selectable(n))
+                .and_then(|_| view.layout.as_ref()?.texts.get(&id));
+            if let Some(tb) = text {
+                selection.sync(tb);
+            } else {
+                view.ui.selection = None;
+                if view.ui.focus == Some(id) { view.ui.focus = None; }
+                if view.ui.pressed.as_ref().is_some_and(|p| p.target == id) { view.ui.pressed = None; }
+            }
+        }
         self.stats.since(Phase::Layout, started);
         self.stats.mark("first_layout");
         self.push_layout(app);

@@ -141,6 +141,28 @@ Shoes.text_mode = :shoes3
 Sizes are then points (`"18px"` stays pixels), and text that names no face is set in Arial, as
 Shoes 3 set it. Every window the program opens follows it. Hackety Hack asks for it.
 
+## Selecting paragraph text
+
+Native paragraphs can opt into selection with `selectable: true`:
+
+```ruby
+para "Select and copy this passage.", selectable: true
+```
+
+Drag to select a passage, double-click a word, or triple-click a line. Shift-click
+extends the selection. Tab or `focus` can focus the paragraph; Shift with the arrow,
+Home, or End keys extends the range, and Ctrl/Cmd+A and Ctrl/Cmd+C select all and copy.
+Escape clears a selection, then reaches the app on the next press. Other app
+shortcuts, such as Ctrl/Cmd+F, still work. Typing and editing commands do not change
+the paragraph or invoke app key handlers. Links retain their normal click behavior.
+
+Selection covers one paragraph at a time, including its rich text, and copies plain
+text with its original Unicode characters and line breaks. Resizing or restyling
+preserves the range; changing its text clears it. Disabling selection, disabling or
+hiding the paragraph, or removing it clears its native selection state. Ordinary
+paragraphs keep their existing behavior. The programmatic `cursor` and `marker`
+properties remain independent of interactive selection.
+
 ## Screen readers
 
 Scarpe draws its own buttons, fields and text, so no control of the operating system is there to
@@ -480,8 +502,8 @@ As of 28 Sep 2026. Each has more detail in the ledger or in DESIGN.
 - **Text.** The stretch styles (condensed, expanded) are not drawn (ledger F5): the text engine varies
   only a font's weight. Small capitals are the font's own, or drawn as smaller capitals when it has none.
 - **Screen readers.** Only checked on macOS, in-process through AppKit, never by a person with
-  VoiceOver on. A field reads whole: its caret and selection are not exposed, so a screen reader
-  cannot move through its text a letter at a time. Click handlers on slots and shapes, radio
+  VoiceOver on. Fields and selectable paragraphs read whole: their caret and selection are not
+  exposed, so a screen reader cannot move through their text a letter at a time. Click handlers on slots and shapes, radio
   groups and scrolling a node into view are not exposed either.
 - **Programs.** `on_output` hears what a program writes through Ruby's `$stdout` and `$stderr`;
   a command it runs, or C code writing to the descriptors, writes to the app's own output

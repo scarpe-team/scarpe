@@ -506,6 +506,13 @@ moved there the same day, so apps normally send it.
   A para's `marker` range is then bright yellow behind the text and its caret black, as Shoes 3
   drew them (s3t_textblock.c:187-197, 479-483), where the default is a blue tint over the text
   and a caret in the text's colour.
+- **Selectable paragraphs** opt in with `selectable: true`. Their shaped buffer feeds a
+  read-only cosmic-text editor for mouse and keyboard selection; Tab and accessibility
+  focus can enter them. One paragraph per window owns the active native selection. Layout
+  changes preserve its logical range when the text is unchanged; replacement resets it,
+  and hiding, disabling or destroying the paragraph discards it. Selection and keyboard
+  caret state participate in damage tracking. The existing `text_cursor`/`text_marker`
+  properties are independent and are never rewritten by interactive selection.
 - **Widgets** have intrinsic sizes (research 02 section 13): button = its label's width plus 14 px
   each side by its line height plus 12 px, at least 28 px each way (more with an icon); edit_line 200x28, edit_box 200x108,
   list_box 200x28, progress 200x14 (manual sizes, ledger C4), check/radio 18x18, slider 160x20,

@@ -72,6 +72,26 @@ fn partial(plan: &Repaint, window: &Window, most: f64) -> bool {
     matches!(plan, Repaint::Rects(_)) && (plan.pixels((window.frame.width(), window.frame.height())) as f64) < most * window.pixels() as f64
 }
 
+#[test]
+fn paragraph_selection_and_keyboard_caret_repaint_without_stale_highlights() {
+    let mut h = Harness::new();
+    h.feed(&app(500, 400, &[
+        create(3, "Para", 2, json!({"left":20,"top":20,"width":200,"text_items":["Select this paragraph"],"selectable":true})),
+        create(4, "Button", 2, json!({"left":300,"top":300,"text":"Unchanged"})),
+    ]));
+    let mut window = Window::open(&mut h, 2.0);
+    for key in ["tab", "control_a", "shift_left", "escape", "tab", "shift_tab"] {
+        h.value(json!({"op":"key","key":key}));
+        assert!(matches!(window.repaint(&mut h), Repaint::Rects(_)), "{key} updates the paragraph");
+    }
+    h.value(json!({"op":"key","key":"control_a"}));
+    window.repaint(&mut h);
+    props(&mut h, 3, json!({"text_items":["New words"]}));
+    window.repaint(&mut h);
+    props(&mut h, 3, json!({"selectable":false}));
+    window.repaint(&mut h);
+}
+
 /// Gradient backdrop, a card of text, translucent ovals, a button and a field.
 fn busy_scene(h: &mut Harness) {
     let body = vec![

@@ -17,6 +17,7 @@ pub mod paint;
 pub mod props;
 pub mod protocol;
 pub mod runtime;
+pub mod selection;
 pub mod style;
 pub mod text;
 pub mod window;

@@ -386,6 +386,13 @@ fn fingerprint(node: &Node, lbox: &LBox, text: Option<&TextBox>, view: &ViewStat
         // A hovered link changes colour, which only the paras holding it show.
         view.hover_link.filter(|link| tb.shaped.metas.iter().any(|m| m.link == Some(*link))).hash(&mut h);
     }
+    if node.kind == Kind::Para {
+        let selection = view.selection.as_ref().filter(|s| s.id == node.id);
+        selection.map(|s| (
+            s.bounds().map(|(a, b)| (cursor_bits(a), cursor_bits(b))),
+            cursor_bits(s.cursor()), view.focus == Some(node.id) && view.focus_visible,
+        )).hash(&mut h);
+    }
     if shows_widget_state(&node.kind) {
         let focused = view.focus == Some(node.id);
         let pressed = view.pressed.as_ref().is_some_and(|p| p.target == node.id);
