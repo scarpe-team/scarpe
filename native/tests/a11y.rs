@@ -35,7 +35,7 @@ fn with_role(h: &mut Harness, role: &str) -> Vec<Value> {
 
 /// What Ruby sends for an `ask` or `ask_color` (DESIGN 4.1 `dialog`).
 fn asking(kind: &str, message: &str, default: Value) -> DialogRequest {
-    DialogRequest { kind: kind.into(), message: message.into(), default, title: None, secret: false }
+    DialogRequest { kind: kind.into(), message: message.into(), default, ..Default::default() }
 }
 
 fn one(h: &mut Harness, role: &str) -> Value {

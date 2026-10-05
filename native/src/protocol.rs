@@ -60,15 +60,19 @@ pub enum MouseAction {
 }
 
 /// A builtin dialog Ruby is blocked on (DESIGN 4.1 `dialog`).
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct DialogRequest {
     pub kind: String,
     pub message: String,
     pub default: Value,
-    /// `ask`'s `title:`: the title of a dialog in a window of its own, and a heading.
+    /// `title:` for `ask` (also a heading) or a native Save dialog.
     pub title: Option<String>,
     /// `ask`'s `secret:`: the answer is typed as bullets.
     pub secret: bool,
+    /// `ask_save_file` options: suggested filename, starting directory and extension filter.
+    pub file_name: Option<String>,
+    pub directory: Option<String>,
+    pub extensions: Vec<String>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -223,6 +227,11 @@ fn op_fields(obj: &Map<String, Value>) -> Result<Op, ParseError> {
             default: obj.get("default").cloned().unwrap_or(Value::Null),
             title: s(obj, "title"),
             secret: obj.get("secret").is_some_and(|v| !matches!(v, Value::Null | Value::Bool(false))),
+            file_name: s(obj, "file_name"),
+            directory: s(obj, "directory"),
+            extensions: obj.get("extensions").and_then(Value::as_array)
+                .map(|v| v.iter().filter_map(Value::as_str).map(str::to_owned).collect())
+                .unwrap_or_default(),
         }),
         "layout" => Op::Layout { app },
         "snapshot" => Op::Snapshot { path: required(s(obj, "path"), "path")?, app, scale: f(obj, "scale") },
@@ -441,11 +450,11 @@ mod tests {
         };
         assert_eq!(
             op(r#"{"t":"req","req":1,"op":"dialog","kind":"ask","message":"Name?","default":null}"#),
-            Op::Dialog(DialogRequest { kind: "ask".into(), message: "Name?".into(), default: Value::Null, title: None, secret: false })
+            Op::Dialog(DialogRequest { kind: "ask".into(), message: "Name?".into(), ..Default::default() })
         );
         assert_eq!(
             op(r#"{"t":"req","req":1,"op":"dialog","kind":"ask","message":"PIN?","title":"Bank","secret":true}"#),
-            Op::Dialog(DialogRequest { kind: "ask".into(), message: "PIN?".into(), default: Value::Null, title: Some("Bank".into()), secret: true })
+            Op::Dialog(DialogRequest { kind: "ask".into(), message: "PIN?".into(), title: Some("Bank".into()), secret: true, ..Default::default() })
         );
         assert_eq!(op(r#"{"t":"req","req":1,"op":"layout"}"#), Op::Layout { app: None });
         assert_eq!(

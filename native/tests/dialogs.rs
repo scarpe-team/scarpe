@@ -99,6 +99,46 @@ fn native_dialogs_are_left_to_the_window_layer() {
     assert_eq!(reply(&rt.out.take_captured(), 1).unwrap()["cancelled"], json!(false));
 }
 
+#[test]
+fn save_file_options_reach_the_window_layer_and_cancel_normally() {
+    // Queue the window effect without creating a window or a system clipboard connection.
+    let mut rt = Runtime::headless_for_tests();
+    rt.opts.headless = false;
+    let msgs = send(&mut rt, json!({
+        "t": "req", "req": 1, "op": "dialog", "kind": "ask_save_file",
+        "file_name": "كتاب.pdf", "directory": "/tmp/تصدير",
+        "extensions": ["pdf", "txt"], "title": "حفظ الكتاب"
+    }));
+    assert!(reply(&msgs, 1).is_none(), "the answer waits for the OS dialog");
+    let dialog = rt.effects.iter().find_map(|effect| match effect {
+        Effect::Dialog { req: 1, dialog } => Some(dialog),
+        _ => None,
+    }).expect("a native dialog request");
+    assert_eq!(dialog.kind, "ask_save_file");
+    assert_eq!(dialog.file_name.as_deref(), Some("كتاب.pdf"));
+    assert_eq!(dialog.directory.as_deref(), Some("/tmp/تصدير"));
+    assert_eq!(dialog.extensions, ["pdf", "txt"]);
+    assert_eq!(dialog.title.as_deref(), Some("حفظ الكتاب"));
+
+    rt.dialog_answered(1, Value::Null, true);
+    let answer = reply(&rt.out.take_captured(), 1).expect("answered");
+    assert_eq!(answer["value"], Value::Null);
+    assert_eq!(answer["cancelled"], json!(true));
+}
+
+#[test]
+fn save_options_never_open_a_dialog_headlessly() {
+    let mut h = common::Harness::new();
+    let (_, answer) = h.req(json!({
+        "op": "dialog", "kind": "ask_save_file", "file_name": "book.pdf",
+        "directory": "/tmp", "extensions": ["pdf"], "title": "Export book"
+    }));
+    assert_eq!(answer["error"], Value::Null);
+    assert_eq!(answer["value"], Value::Null);
+    assert_eq!(answer["cancelled"], json!(true));
+    assert!(h.rt.effects.iter().all(|effect| !matches!(effect, Effect::Dialog { .. })));
+}
+
 /// The modal after typing `text` into an `ask` with these extra fields, and the answer Return gives.
 fn asked(extra: Value, text: &str) -> (Vec<u8>, Value) {
     let mut rt = windowed_runtime();

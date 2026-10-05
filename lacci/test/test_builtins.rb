@@ -78,4 +78,20 @@ class TestBuiltins < NienteTest
       assert_equal [["Password?", { secret: true, title: "Log in" }], ["Name?"]], $asked
     SHOES_SPEC
   end
+
+  def test_save_file_passes_options_without_changing_the_plain_call
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        define_singleton_method(:native_builtin_fallback) { |*_args| :fell_back }
+        $saves = []
+        Shoes::DisplayService.subscribe_to_event("builtin", nil) do |cmd_name, args|
+          $saves << args if cmd_name == "ask_save_file"
+        end
+        @answers = [ask_save_file(filename: "كتاب.pdf", directory: "/tmp", extensions: ["pdf"], title: "Export"), ask_save_file]
+      end
+    SHOES_APP
+      assert_equal [[nil, { filename: "كتاب.pdf", directory: "/tmp", extensions: ["pdf"], title: "Export" }], []], $saves
+      assert_equal [nil, nil], Shoes.APPS.first.instance_variable_get(:@answers)
+    SHOES_SPEC
+  end
 end

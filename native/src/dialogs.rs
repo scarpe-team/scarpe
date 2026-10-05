@@ -39,13 +39,14 @@ pub fn reply(req: u64, value: Value, cancelled: bool) -> Outgoing {
 }
 
 /// Native dialogs, run on the main thread while the event loop waits.
-pub fn native(kind: &str, message: &str, default: &Value) -> (Value, bool) {
+pub fn native(request: &DialogRequest) -> (Value, bool) {
     use rfd::{FileDialog, MessageButtons, MessageDialog, MessageDialogResult};
+    let (kind, message, default) = (request.kind.as_str(), request.message.as_str(), &request.default);
     let path = |p: Option<std::path::PathBuf>| match p {
         Some(p) => (Value::String(p.to_string_lossy().into_owned()), false),
         None => (Value::Null, true),
     };
-    let start = default.as_str().map(std::path::PathBuf::from);
+    let start = request.directory.as_deref().or(default.as_str()).map(std::path::PathBuf::from);
     let with_dir = |d: FileDialog| match &start {
         Some(p) if p.is_dir() => d.set_directory(p),
         _ => d,
@@ -61,7 +62,16 @@ pub fn native(kind: &str, message: &str, default: &Value) -> (Value, bool) {
             (Value::Bool(yes), !yes)
         }
         "ask_open_file" => path(with_dir(FileDialog::new().set_title(message)).pick_file()),
-        "ask_save_file" => path(with_dir(FileDialog::new().set_title(message)).save_file()),
+        "ask_save_file" => {
+            let mut dialog = with_dir(FileDialog::new().set_title(request.title.as_deref().unwrap_or(message)));
+            if let Some(name) = &request.file_name {
+                dialog = dialog.set_file_name(name);
+            }
+            if !request.extensions.is_empty() {
+                dialog = dialog.add_filter(request.extensions.join(", "), &request.extensions);
+            }
+            path(dialog.save_file())
+        }
         "ask_open_folder" | "ask_save_folder" => path(with_dir(FileDialog::new().set_title(message)).pick_folder()),
         _ => (Value::Null, true),
     }

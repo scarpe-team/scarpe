@@ -48,8 +48,13 @@ module Shoes::Builtins
     shoes_builtin("ask_open_file")
   end
 
-  def ask_save_file()
-    shoes_builtin("ask_save_file")
+  # On the native display, filename: suggests a name, directory: starts in a folder,
+  # extensions: is an array of extensions without dots, and title: names the dialog.
+  # @return [String, nil] the selected path, or nil on Cancel
+  def ask_save_file(**options)
+    return shoes_builtin("ask_save_file") if options.empty?
+
+    shoes_builtin("ask_save_file", nil, options)
   end
 
   def ask_open_folder()

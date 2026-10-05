@@ -140,6 +140,12 @@ that last ran or had input, else the first running one.
 | `a11y_action` | `id` (a node's), `action` (click focus set_value expand collapse), `value` (for set_value), `app`; or `platform: true` with `name` (an element's title) | acts on the node as a screen reader does, through the path a click or key takes; the events it causes come first. Error when the node cannot do it (disabled, readonly, no such item). `platform: true` acts through AppKit in a macOS window |
 | `ping` | | `"pong"` |
 
+For `dialog` with `kind: "ask_save_file"`, optional `file_name`, `directory`, `extensions`
+(an array of extensions without dots), and `title` configure the native Save dialog. These
+are Ruby's `filename:`, `directory:`, `extensions:`, and `title:` options. The directory must
+exist; when omitted, a string `default` remains the starting-directory fallback. Missing or
+empty `extensions` adds no filter. Headless saves still answer null with `cancelled: true`.
+
 An unknown op, or one missing a field, gets a reply whose `error` says so.
 
 Ordering guarantee: every `event` caused by a request is written before that request's `reply`.

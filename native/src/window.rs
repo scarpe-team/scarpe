@@ -309,7 +309,7 @@ impl Shell {
                     }
                 }
                 Effect::Dialog { req, dialog } => {
-                    let (value, cancelled) = crate::dialogs::native(&dialog.kind, &dialog.message, &dialog.default);
+                    let (value, cancelled) = crate::dialogs::native(&dialog);
                     self.rt.dialog_answered(req, value, cancelled);
                 }
                 Effect::OpenUrl(url) => {

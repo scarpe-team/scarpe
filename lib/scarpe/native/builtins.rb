@@ -61,7 +61,7 @@ module Scarpe::Native
       return @standing_answers[kind] if @standing_answers.key?(kind)
       return QUIET_ANSWERS[kind] unless @interactive
 
-      reply = @service.child.request(:dialog, kind: kind, message: message&.to_s, default: nil, **ask_options(options))
+      reply = @service.child.request(:dialog, kind: kind, message: message&.to_s, default: nil, **dialog_options(options))
       if reply["error"]
         @log.warn("The #{kind} dialog failed: #{reply["error"]}")
         return QUIET_ANSWERS[kind]
@@ -72,13 +72,15 @@ module Scarpe::Native
       reply["value"]
     end
 
-    # ask's options, which Lacci hands over beside the message (ledger K1): Rust masks a secret
-    # answer as it is typed and heads the dialog with the title.
-    def ask_options(options)
+    # Lacci hands options over beside the message: ask's secret/title (ledger K1),
+    # or the Save dialog's suggested name, starting folder, filter and title.
+    def dialog_options(options)
       return {} unless options.is_a?(Hash)
 
       options = options.transform_keys(&:to_s)
-      { secret: (true if options["secret"]), title: options["title"]&.to_s }.compact
+      { secret: (true if options["secret"]), title: options["title"]&.to_s,
+        file_name: options["filename"]&.to_s, directory: options["directory"]&.to_s,
+        extensions: options["extensions"]&.map(&:to_s) }.compact
     end
   end
 end

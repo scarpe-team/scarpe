@@ -64,3 +64,20 @@ as a Hash with String keys (`class`, `message`, `backtrace`, `path`, `line`, `du
 the log line and the Shoes console's entry. The program goes on as before. Approved by Nick
 Schwaderer on 28 Sep 2026, so an app can show its own errors in its own words; Shoes 3 only put
 them in its console.
+
+## Native Save dialog options
+
+On the native display, `ask_save_file` accepts optional settings for the OS Save dialog:
+
+```ruby
+path = ask_save_file(filename: "book.pdf", directory: Dir.home,
+  extensions: ["pdf"], title: "Export book")
+```
+
+`filename:` suggests a name the user can edit, `directory:` starts in an existing folder,
+`extensions:` filters by an array of extensions without dots (an empty array means no filter),
+and `title:` names the dialog. Filtering and automatic extension appending follow the native
+platform's behavior. The result is the chosen path, or `nil` on Cancel.
+
+A plain `ask_save_file` keeps its existing behavior. Other displays ignore these options;
+headless native runs return `nil` unless the answer is stubbed with `stub_dialog`.
