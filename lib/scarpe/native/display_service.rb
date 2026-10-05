@@ -138,6 +138,11 @@ module Scarpe::Native
       answer(:para_caret, id: id).last
     end
 
+    def para_selection(id)
+      answered, value = answer(:para_selection, id: id)
+      answered && value.is_a?(String) ? value : ""
+    end
+
     def register_font(font)
       path = Normalize.font_path(font)
       child.post(t: "font", path: path) if path

@@ -3,6 +3,14 @@
 require_relative "test_helper"
 
 class TestTextDrawables < NienteTest
+  def test_selected_text_is_empty_when_the_display_cannot_query_selection
+    run_test_niente_code(<<~'SHOES_APP', app_test_code: <<~'SHOES_SPEC')
+      Shoes.app { @text = para "A passage", selectable: true }
+    SHOES_APP
+      assert_equal "", Shoes.APPS.first.instance_variable_get(:@text).selected_text
+    SHOES_SPEC
+  end
+
   def test_simple_button
     run_test_niente_code(<<~'SHOES_APP', app_test_code: <<~'SHOES_SPEC')
       Shoes.app do

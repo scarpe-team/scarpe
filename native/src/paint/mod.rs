@@ -491,6 +491,20 @@ fn paint_node(scene: &mut Scene, canvas: &mut Canvas, id: Id, only: Option<Rect>
                 if mode == crate::text::TextMode::Shoes3 {
                     text::draw_para_selection(canvas, node, tb, clip, text::SHOES3_SELECTION);
                 }
+                if let Some(selection) = scene.view.selection.as_ref().filter(|s| s.id == id) {
+                    if let Some((a, b)) = selection.bounds() {
+                        for r in text::selection_rects(&tb.shaped.buffer, a, b) {
+                            let (top, height) = tb.shaped.line_box(r.y, r.h);
+                            canvas.fill_rect(Rect::new(tb.x + r.x, tb.y + top, r.w, height), text::SELECTION, clip);
+                        }
+                    } else if scene.view.focus == Some(id) && scene.view.focus_visible && node.props.get("text_cursor").is_none_or(|v| v.is_null()) {
+                        if let Some((x, y, h)) = text::caret_position(&tb.shaped.buffer, selection.cursor()) {
+                            let (y, h) = tb.shaped.line_box(y, h);
+                            let color = tb.shaped.metas.first().map_or(crate::text::rich::INK, |m| m.color);
+                            canvas.fill_rect(Rect::new(tb.x + x, tb.y + y, 1.0, h), color, clip);
+                        }
+                    }
+                }
                 text::draw_shaped(canvas, scene.text, &tb.shaped, tb.x, tb.y, clip, hover);
                 text::draw_para_cursor(canvas, node, tb, clip, mode);
             }

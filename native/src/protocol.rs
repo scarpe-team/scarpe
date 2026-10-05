@@ -91,6 +91,8 @@ pub enum Op {
     /// Para#cursor_top and #cursor_left: where para `id`'s caret sits, in the frame of the slot
     /// that scrolls it, or null when it has no caret (ledger F14).
     ParaCaret { id: Id },
+    /// The paragraph's current selected plain text, or null when it has no selection.
+    ParaSelection { id: Id },
     /// The accessibility tree, as a screen reader meets it (a11y.rs). `platform`: as AppKit hands
     /// it to VoiceOver, read from the window itself (macOS windows only).
     A11y { app: Option<Id>, platform: bool },
@@ -248,6 +250,7 @@ fn op_fields(obj: &Map<String, Value>) -> Result<Op, ParseError> {
         "focused" => Op::Focused { app },
         "para_hit" => Op::ParaHit { id: required(id(obj, "id"), "id")?, x: required(f(obj, "x"), "x")?, y: required(f(obj, "y"), "y")? },
         "para_caret" => Op::ParaCaret { id: required(id(obj, "id"), "id")? },
+        "para_selection" => Op::ParaSelection { id: required(id(obj, "id"), "id")? },
         "a11y" => Op::A11y { app, platform: platform(obj) },
         "a11y_action" => Op::A11yAction {
             target: if platform(obj) {

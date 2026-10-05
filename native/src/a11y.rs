@@ -236,6 +236,9 @@ impl Builder<'_> {
             self.seen.remove(&nid);
             return None;
         };
+        if crate::selection::selectable(node) {
+            n.add_action(Action::Focus);
+        }
         if let Some(r) = self.layout.rect(id) {
             n.set_bounds(bounds(r));
         }
@@ -528,7 +531,7 @@ impl Runtime {
                 self.follow_link(id);
             }
             (Kind::EditLine | Kind::EditBox, Action::Click) => self.a11y_focus(app, id),
-            (k, Action::Focus) if k.is_focusable() => self.a11y_focus(app, id),
+            (k, Action::Focus) if k.is_focusable() || self.doc.get(id).is_some_and(crate::selection::selectable) => self.a11y_focus(app, id),
             (Kind::EditLine | Kind::EditBox, Action::SetValue) if !locked => {
                 let text = value.ok_or("set_value needs a value")?;
                 self.a11y_type(app, id, &text);

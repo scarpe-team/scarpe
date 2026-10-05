@@ -2,6 +2,7 @@
 require_relative 'font_helper.rb'
 class Shoes
   class Para < Shoes::Drawable 
+    include Shoes::Focusable
   include FontHelper
     shoes_styles :text_items, :size, :family, :font_weight, :font, :font_variant, :emphasis, :kerning, :weight, :wrap
     shoes_style(:stroke) { |val, _name| Shoes::Colors.to_rgb(val) }
@@ -17,6 +18,8 @@ class Shoes
     # text_cursor: integer character position of the caret, or nil (no cursor)
     # text_marker: integer character position of the selection anchor, or nil (no selection)
     shoes_styles :text_cursor, :text_marker
+    # Native display: let readers select and copy this paragraph without editing it.
+    shoes_styles :selectable
 
     include TextDecoration
 
@@ -239,6 +242,14 @@ class Shoes
       return display.para_hit(linkable_id, x, y) if display.respond_to?(:para_hit)
 
       Shoes::DisplayService.para_hit_cache[linkable_id]
+    end
+
+    # Read the user's selection as plain text without changing selection or the clipboard.
+    # Empty when this paragraph has no selection or the display does not support querying it.
+    # @return [String]
+    def selected_text
+      display = Shoes::DisplayService.display_service
+      display.respond_to?(:para_selection) ? display.para_selection(linkable_id).to_s : ""
     end
 
     # The top of the caret's line, measured in the slot that scrolls the para, so it compares

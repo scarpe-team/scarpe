@@ -136,6 +136,7 @@ that last ran or had input, else the first running one.
 | `focused` | | id of the focused input or null |
 | `para_hit` | `id` (a para's), `x`, `y` (window coordinates) | the index of the character under the point, as Pango's `xy_to_index` gives Shoes 3's `Para#hit`: the first of the line left of the text, the last past its end; null off the para's box (ledger F14) |
 | `para_caret` | `id` (a para's) | `{left, top, height}` of the para's caret in whole pixels, measured from the content origin of the slot that scrolls the para (the window's when none does), so `top` compares with that slot's `scroll_top`; null when the para has no `text_cursor` (ledger F14) |
+| `para_selection` | `id` (a para's) | current user-selected plain text for that paragraph, or null for no selection; preserves clipboard and focus; pending changes are flushed first |
 | `a11y` | `app`, `platform` (default false) | the accessibility tree as a screen reader meets it (section 12, "Screen readers"): the window's node with its `children`. Each node has `id` and `role` (AccessKit's, snake_case: `button`, `check_box`, `label`...) and, when set, `name`, `value`, `description`, `toggled`, `numeric` `{value, min, max}`, `expanded`, `selected`, `url`, `level`, `focused`, `disabled`, `read_only`, `modal`, `actions`, `bounds` `[x, y, w, h]` (window coordinates). `platform: true` in a macOS window reads what AppKit hands VoiceOver instead: `role`, `subrole`, `title`, `value`, `help`; elsewhere it is an error |
 | `a11y_action` | `id` (a node's), `action` (click focus set_value expand collapse), `value` (for set_value), `app`; or `platform: true` with `name` (an element's title) | acts on the node as a screen reader does, through the path a click or key takes; the events it causes come first. Error when the node cannot do it (disabled, readonly, no such item). `platform: true` acts through AppKit in a macOS window |
 | `ping` | | `"pong"` |
@@ -506,6 +507,13 @@ moved there the same day, so apps normally send it.
   A para's `marker` range is then bright yellow behind the text and its caret black, as Shoes 3
   drew them (s3t_textblock.c:187-197, 479-483), where the default is a blue tint over the text
   and a caret in the text's colour.
+- **Selectable paragraphs** opt in with `selectable: true`. Their shaped buffer feeds a
+  read-only cosmic-text editor for mouse and keyboard selection; Tab and accessibility
+  focus can enter them. One paragraph per window owns the active native selection. Layout
+  changes preserve its logical range when the text is unchanged; replacement resets it,
+  and hiding, disabling or destroying the paragraph discards it. Selection and keyboard
+  caret state participate in damage tracking. The existing `text_cursor`/`text_marker`
+  properties are independent and are never rewritten by interactive selection.
 - **Widgets** have intrinsic sizes (research 02 section 13): button = its label's width plus 14 px
   each side by its line height plus 12 px, at least 28 px each way (more with an icon); edit_line 200x28, edit_box 200x108,
   list_box 200x28, progress 200x14 (manual sizes, ledger C4), check/radio 18x18, slider 160x20,

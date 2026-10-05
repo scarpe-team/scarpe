@@ -261,6 +261,8 @@ pub enum PressKind {
     Click,
     /// A text field: dragging extends the selection.
     Field,
+    /// A selectable paragraph: dragging selects text without editing it.
+    Paragraph,
     /// Anything else (slots, text): no click of its own.
     Plain,
 }
@@ -323,6 +325,7 @@ pub struct ViewState {
     /// Focus arrived from the keyboard (tab, `focus`): buttons show their ring.
     pub focus_visible: bool,
     pub fields: HashMap<Id, TextField>,
+    pub selection: Option<crate::selection::ParagraphSelection>,
     pub popup: Option<Popup>,
     pub tooltip: Option<Tooltip>,
     pub modal: Option<crate::dialogs::Modal>,
@@ -354,6 +357,9 @@ impl ViewState {
         }
         if self.tooltip.as_ref().is_some_and(|t| gone(&t.owner)) {
             self.tooltip = None;
+        }
+        if self.selection.as_ref().is_some_and(|s| gone(&s.id)) {
+            self.selection = None;
         }
         self.fields.retain(|id, _| !gone(id));
         self.scroll.retain(|id, _| !gone(id));
@@ -484,6 +490,7 @@ fn cursor_of(node: &crate::doc::Node) -> Option<CursorShape> {
         _ if crate::elements::disabled(node) => None,
         Kind::Button | Kind::Check | Kind::Radio | Kind::ListBox => Some(CursorShape::Hand),
         Kind::EditLine | Kind::EditBox => Some(CursorShape::Text),
+        _ if crate::selection::selectable(node) => Some(CursorShape::Text),
         _ => None,
     }
 }
@@ -578,12 +585,22 @@ impl Runtime {
             }
             return;
         }
+        let mut dragged = false;
         if let Some(press) = view.ui.pressed.clone().filter(|p| p.kind == PressKind::Field) {
             if let Some(field) = view.ui.fields.get_mut(&press.target) {
                 field.drag(&mut self.text.fonts.system, x, y);
-                self.request_redraw(app);
+                dragged = true;
             }
         }
+        if view.ui.pressed.as_ref().is_some_and(|p| p.kind == PressKind::Paragraph) && view.ui.buttons & 1 != 0 {
+            if let Some(selection) = view.ui.selection.as_mut() {
+                if let Some(tb) = view.layout.as_ref().and_then(|l| l.texts.get(&selection.id)) {
+                    selection.drag(&mut self.text.fonts.system, tb, x, y);
+                    dragged = true;
+                }
+            }
+        }
+        if dragged { self.request_redraw(app); }
         let hit = self.hit(app, x, y);
         self.update_hover(app, hit, x, y, moved);
     }
@@ -745,7 +762,15 @@ impl Runtime {
         let shift = self.views[&app].ui.modifiers.shift;
         let clicks = self.views.get_mut(&app).expect("view").ui.click_count(x, y);
         let target = hit.link.unwrap_or(hit.node);
-        let (press_kind, consumed) = press_on(&kind, hit.link.is_some());
+        let selectable = button == 1 && hit.link.is_none() && self.doc.get(hit.node).is_some_and(crate::selection::selectable);
+        let (press_kind, consumed) = if selectable { (PressKind::Paragraph, true) } else { press_on(&kind, hit.link.is_some()) };
+        if selectable {
+            self.set_focus(app, Some(hit.node));
+            let view = self.views.get_mut(&app).expect("view");
+            if let (Some(selection), Some(tb)) = (view.ui.selection.as_mut(), view.layout.as_ref().and_then(|l| l.texts.get(&hit.node))) {
+                selection.press(&mut self.text.fonts.system, tb, x, y, clicks, shift);
+            }
+        }
         if hit.link.is_none() {
             match kind {
                 Kind::EditLine | Kind::EditBox => self.focus_field_at(app, hit.node, x, y, clicks, shift),
@@ -753,7 +778,7 @@ impl Runtime {
                 _ => {}
             }
         }
-        if kind.is_focusable() {
+        if kind.is_focusable() || selectable {
             self.set_focus(app, Some(hit.node));
             self.views.get_mut(&app).expect("view").ui.focus_visible = false;
         } else if !consumed {
@@ -827,7 +852,7 @@ impl Runtime {
             Some(n) => n.kind.clone(),
             None => Kind::Unknown(String::new()),
         };
-        press_on(&kind, hit.link.is_some()).1
+        press_on(&kind, hit.link.is_some()).1 || self.doc.get(hit.node).is_some_and(crate::selection::selectable)
     }
 
     pub fn pointer_up(&mut self, app: Id, button: u8) {
@@ -835,6 +860,10 @@ impl Runtime {
         self.views.get_mut(&app).expect("view").ui.buttons &= !(1 << (button - 1));
         self.send_mouse_state(app);
         if self.modal_pointer(app, x, y, crate::dialogs::PointerPhase::Up) {
+            return;
+        }
+        // Another mouse button must not release a paragraph's primary-button drag.
+        if self.views[&app].ui.pressed.as_ref().is_some_and(|p| p.kind == PressKind::Paragraph && p.button != button) {
             return;
         }
         let press = self.views.get_mut(&app).expect("view").ui.pressed.take();
@@ -894,7 +923,15 @@ impl Runtime {
     }
 
     pub fn set_focus(&mut self, app: Id, id: Option<Id>) {
+        self.ensure_layout(app);
         let Some(view) = self.views.get_mut(&app) else { return };
+        if let Some(id) = id.filter(|id| self.doc.get(*id).is_some_and(crate::selection::selectable)) {
+            if view.ui.selection.as_ref().is_none_or(|s| s.id != id) {
+                if let Some(tb) = view.layout.as_ref().and_then(|l| l.texts.get(&id)) {
+                    view.ui.selection = Some(crate::selection::ParagraphSelection::new(id, tb));
+                }
+            }
+        }
         if view.ui.focus != id {
             view.ui.focus = id;
             if let Some(node) = id.and_then(|i| self.doc.get(i)).filter(|n| n.kind.is_text_input()) {
@@ -1043,6 +1080,13 @@ impl Runtime {
         // pressed leaves Space, Return and the arrows to the app, as a Mac's controls do.
         let keyboard_focus = self.views[&app].ui.focus_visible;
         let mut send_keypress = true;
+        let view = self.views.get_mut(&app).expect("view");
+        if let Some(selection) = view.ui.selection.as_mut().filter(|s| Some(s.id) == focus) {
+            if selection.key(&mut self.text.fonts.system, &key, &mut self.clipboard) {
+                self.request_redraw(app);
+                return;
+            }
+        }
         match (focus, focus_kind) {
             (Some(id), Some(Kind::EditLine)) | (Some(id), Some(Kind::EditBox)) => {
                 if tab {
@@ -1130,7 +1174,7 @@ impl Runtime {
             .order
             .iter()
             .copied()
-            .filter(|id| self.doc.get(*id).is_some_and(|n| n.kind.is_focusable() && !crate::elements::disabled(n)) && layout.visible_rect(*id).is_some())
+            .filter(|id| self.doc.get(*id).is_some_and(|n| (n.kind.is_focusable() || crate::selection::selectable(n)) && !crate::elements::disabled(n)) && layout.visible_rect(*id).is_some())
             .collect();
         if order.is_empty() {
             return false;

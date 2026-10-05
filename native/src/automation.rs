@@ -157,6 +157,14 @@ impl Runtime {
                 self.ensure_layout(app);
                 Ok(Some(self.para_caret(app, id).unwrap_or(Value::Null)))
             }
+            Op::ParaSelection { id } => {
+                let app = self.owner_app(id).ok_or_else(no_app)?;
+                // Layout synchronizes selection with pending text/style changes.
+                self.ensure_layout(app);
+                let text = self.views.get(&app).and_then(|view| view.ui.selection.as_ref())
+                    .filter(|selection| selection.id == id).and_then(|selection| selection.text());
+                Ok(Some(text.map_or(Value::Null, Value::from)))
+            }
             Op::A11y { app, platform } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;
                 if platform {
