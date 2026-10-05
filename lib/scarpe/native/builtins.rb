@@ -45,6 +45,12 @@ module Scarpe::Native
     def answer(cmd_name, args)
       return dialog(cmd_name, args[0], args[1]) if DIALOGS.include?(cmd_name)
 
+      if cmd_name == "preferred_color_scheme"
+        reply = @service.child.request(:preferred_color_scheme)
+        value = reply["value"]
+        return reply["error"].nil? && %w[light dark].include?(value) ? value : nil
+      end
+
       if cmd_name == "font"
         @service.register_font(args.first)
       else

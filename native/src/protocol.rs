@@ -73,6 +73,7 @@ pub struct DialogRequest {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Op {
+    PreferredColorScheme,
     Dialog(DialogRequest),
     Layout { app: Option<Id> },
     Snapshot { path: String, app: Option<Id>, scale: Option<f32> },
@@ -217,6 +218,7 @@ fn op_fields(obj: &Map<String, Value>) -> Result<Op, ParseError> {
     let app = id(obj, "app");
     let op = obj.get("op").and_then(Value::as_str).unwrap_or("");
     Ok(match op {
+        "preferred_color_scheme" => Op::PreferredColorScheme,
         "dialog" => Op::Dialog(DialogRequest {
             kind: required(s(obj, "kind"), "kind")?,
             message: obj.get("message").map(crate::props::value_text).unwrap_or_default(),

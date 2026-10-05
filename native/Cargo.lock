@@ -2046,7 +2046,9 @@ dependencies = [
  "accesskit_consumer 0.38.0",
  "accesskit_winit",
  "arboard",
+ "async-io",
  "cosmic-text",
+ "futures-lite",
  "image",
  "objc2 0.6.4",
  "rfd",
@@ -2056,6 +2058,7 @@ dependencies = [
  "swash",
  "tiny-skia 0.12.0",
  "winit",
+ "zbus",
 ]
 
 [[package]]

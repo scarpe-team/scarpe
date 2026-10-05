@@ -34,6 +34,14 @@ class TestBuiltinResponse < Minitest::Test
 end
 
 class TestBuiltins < NienteTest
+  def test_color_scheme_is_nil_when_the_display_has_no_preference_query
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app { @scheme = preferred_color_scheme }
+    SHOES_APP
+      assert_nil Shoes.APPS.first.instance_variable_get(:@scheme)
+    SHOES_SPEC
+  end
+
   # Every test here replaces the osascript fallback on the app first,
   # so a regression can never open a real dialog.
   def test_nil_answer_does_not_fall_back

@@ -45,3 +45,10 @@ opt-level = 3
 # Colour-space matching on the window (window.rs). Already in the tree through softbuffer and rfd.
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
+
+# The desktop portal is shared by Linux desktops. These crates are already in the lockfile
+# through accessibility; the timer bounds the entire connection/query, including a missing bus.
+[target.'cfg(target_os = "linux")'.dependencies]
+zbus = { version = "5", default-features = false, features = ["async-io"] }
+async-io = "2"
+futures-lite = "2"

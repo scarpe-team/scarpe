@@ -6,6 +6,7 @@
 
 pub mod a11y;
 pub mod automation;
+pub mod color_scheme;
 pub mod dialogs;
 pub mod doc;
 pub mod elements;

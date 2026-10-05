@@ -234,6 +234,28 @@ program said with `debug`, `info` and `error` and Scarpe's own warnings. Press A
 (Cmd-/ on a Mac) to open it, or call `Shoes.show_console`. It never opens by itself, and Alt-/
 never reaches your `keypress` block, as the manual reserves it for Shoes.
 
+## System color scheme
+
+`preferred_color_scheme` returns `:light`, `:dark`, or `nil` when the desktop has no preference
+or its setting cannot be read. Use it inside `Shoes.app`, including before the window opens:
+
+```ruby
+Shoes.app do
+  scheme = preferred_color_scheme || :light
+  background(scheme == :dark ? "#202020" : "#ffffff")
+end
+```
+
+The native display reads Windows' `AppsUseLightTheme`, macOS' `AppleInterfaceStyle`, or Linux's
+desktop portal `org.freedesktop.appearance/color-scheme`. On macOS, an absent style means the
+default light appearance. An unavailable Linux portal or its "no preference" value returns
+`nil`; the entire portal query is limited to 250 ms. Unsupported displays/platforms and calls
+before display initialization also return `nil`.
+
+Each call queries again, including in headless mode. No shell command runs or OS setting changes.
+The app owns its palette, saved override, and when to recheck; this query does not automatically
+restyle widgets or subscribe to preference changes.
+
 ## Tests, the spec suite and the ledger
 
 There are four kinds of test. All of them run headless.

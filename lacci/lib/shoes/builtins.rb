@@ -5,6 +5,13 @@ require "open3"
 # Shoes has a number of built-in methods that are intended to be available everywhere,
 # in every Shoes and non-Shoes class, for every Shoes app.
 module Shoes::Builtins
+  # The desktop's preferred app appearance, queried each time. nil means there is no
+  # preference, the OS query failed, or the current display does not implement it.
+  # @return [Symbol, nil] :light, :dark, or nil
+  def preferred_color_scheme
+    { "light" => :light, "dark" => :dark }[shoes_builtin("preferred_color_scheme")]
+  end
+
   # Register the given font with Shoes so that text that wants it can use it.
   # Also add its families to the FONTS constant.
   #
