@@ -6,6 +6,7 @@ class Shoes
 
     shoes_styles :text, :width, :height, :top, :left, :color, :padding_top, :padding_bottom, :text_color, :size, :font_size, :tooltip, :icon, :icon_pos, :font, :stroke
     shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
+    shoes_style :toggled # true/false exposes a native toggle state; nil is an ordinary button
     shoes_events :click
 
     opt_init_args :text
@@ -21,6 +22,7 @@ class Shoes
     # @param padding_top [Integer] The padding above the button text.
     # @param padding_bottom [Integer] The padding below the button text.
     # @param text_color [String] The color of the button text.
+    # @param toggled [Boolean, nil] The optional toggle state exposed to native screen readers.
     # @yield A block of code to be executed when the button is clicked.
     # @return [Shoes::Button] the button object
     #

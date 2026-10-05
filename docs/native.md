@@ -164,6 +164,22 @@ image "chart.png", alt: "Sales by month, rising"
 button "Save", tooltip: "Saves to your Documents folder"   # read after the name
 ```
 
+Buttons that represent an on/off choice can expose their state to screen readers with
+`toggled: true` (on) or `toggled: false` (off). The app controls the state and appearance,
+and updates them in its normal click handler:
+
+```ruby
+Shoes.app do
+  button("Bookmark", toggled: false) do |button|
+    button.toggled = !button.toggled
+  end
+end
+```
+
+Changes through `button.toggled=` or `button.style(toggled: ...)` update the native
+accessibility tree. Assign `nil` to clear the toggle state and expose an ordinary button.
+Omitting `toggled:` also creates an ordinary button.
+
 Nothing is built for a screen reader until one asks, so an app nobody reads aloud pays nothing.
 Tests can read the tree and act on it the way a screen reader does:
 

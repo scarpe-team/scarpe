@@ -193,6 +193,9 @@ impl Builder<'_> {
             Kind::Button => {
                 let mut n = Node::new(Role::Button);
                 n.set_label(node.props.text("text").unwrap_or_default());
+                if let Some(toggled) = node.props.get("toggled").and_then(Value::as_bool) {
+                    n.set_toggled(if toggled { Toggled::True } else { Toggled::False });
+                }
                 works(&mut n, node, &[Action::Click, Action::Focus]);
                 Some(n)
             }

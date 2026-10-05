@@ -4,7 +4,7 @@
 
 mod common;
 
-use accesskit::TreeUpdate;
+use accesskit::{Toggled, TreeUpdate};
 use accesskit_consumer::{Node as SeenNode, Tree, TreeChangeHandler};
 use common::{app, create, events, named, Harness};
 use scarpe_native::a11y::{self, Mirror};
@@ -78,8 +78,31 @@ fn a_button_is_named_by_its_label() {
     assert_eq!(button["name"], json!("Save"));
     assert_eq!(button["description"], json!("Writes the file"), "the tooltip is read after the name");
     assert_eq!(button["actions"], json!(["click", "focus"]));
+    assert!(button.get("toggled").is_none(), "ordinary buttons have no toggle state");
     let laid = h.node(|n| n["id"] == 3);
     assert_eq!(button["bounds"], json!([laid["x"], laid["y"], laid["w"], laid["h"]]), "where the layout put it");
+}
+
+#[test]
+fn buttons_expose_only_explicit_boolean_toggle_states() {
+    for (toggled, expected) in [
+        (json!(true), Some(json!(true))),
+        (json!(false), Some(json!(false))),
+        (Value::Null, None),
+        (json!("false"), None),
+        (json!(1), None),
+    ] {
+        let mut h = Harness::new();
+        h.feed(&app(300, 200, &[create(3, "Button", 2, json!({"text": "Bookmark", "toggled": toggled}))]));
+        let button = one(&mut h, "button");
+        assert_eq!(button.get("toggled"), expected.as_ref(), "toggled: {toggled}");
+        assert_eq!(button["name"], json!("Bookmark"));
+        assert_eq!(button["actions"], json!(["click", "focus"]));
+        let (events, reply) = act(&mut h, &json!(3), "click", None);
+        assert_eq!(reply["error"], Value::Null);
+        assert_eq!(named(&events, "click"), vec![&("click".to_string(), json!(3), json!([]))]);
+        assert_eq!(one(&mut h, "button").get("toggled"), expected.as_ref(), "the app owns the toggle state");
+    }
 }
 
 #[test]
@@ -485,6 +508,25 @@ fn after_the_first_update_a_window_sends_only_what_changed() {
     assert_eq!(update.nodes.iter().map(|(id, _)| id.0).collect::<Vec<_>>(), vec![4], "only the check");
     assert!(update.tree.is_none());
     adapter.in_step(&mut h);
+}
+
+#[test]
+fn button_toggle_updates_reach_a_listening_screen_reader_without_moving_focus() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[create(3, "Button", 2, json!({"text": "Bookmark", "toggled": false}))]));
+    h.feed(r#"{"t":"focus","id":3}"#);
+    let mut adapter = Adapter::new();
+    adapter.push(&mut h);
+    for (toggled, expected) in [(json!(true), Some(Toggled::True)), (json!(false), Some(Toggled::False)), (Value::Null, None)] {
+        h.feed(&json!({"t": "props", "id": 3, "props": {"toggled": toggled}}).to_string());
+        let update = adapter.push(&mut h);
+        assert_eq!(update.nodes.iter().map(|(id, _)| id.0).collect::<Vec<_>>(), vec![3], "only the button changed");
+        assert_eq!(update.nodes[0].1.toggled(), expected, "toggled: {toggled}");
+        assert_eq!(update.focus, accesskit::NodeId(3));
+        assert_eq!(h.value(json!({"op": "focused"})), json!(3));
+        adapter.in_step(&mut h);
+        assert!(adapter.push(&mut h).nodes.is_empty(), "an unchanged state needs no further update");
+    }
 }
 
 /// A Linux adapter stops and starts with the screen reader, and takes the tree whole again: its

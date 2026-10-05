@@ -108,6 +108,61 @@ class A11yTest < Minitest::Test
     refute File.exist?(File.join(run.dir, "peek.png")), "--a11y is an output of its own, so no picture"
   end
 
+  def test_button_toggle_states_reach_screen_readers_and_can_be_cleared
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        @ordinary = button "Save"
+        @bookmark = button "Bookmark", toggled: false
+        button "Mute", toggled: true
+      end
+    APP
+      node_for = ->(control) { a11y_nodes.find { |node| node[:id] == control.linkable_id } }
+      control = button("@bookmark")
+      refute node_for.call(button("@ordinary")).key?(:toggled), "ordinary button"
+      assert_equal false, node_for.call(control)[:toggled]
+      assert_equal true, node_for.call(button("Mute"))[:toggled]
+      control.focus
+      wait_frames
+      control.obj.toggled = true
+      assert_equal true, node_for.call(control)[:toggled]
+      control.obj.style(toggled: false)
+      assert_equal false, node_for.call(control)[:toggled]
+      control.obj.toggled = nil
+      refute node_for.call(control).key?(:toggled), "nil restores an ordinary button"
+      assert_nil control.obj.toggled
+      assert_equal control.linkable_id, focused_drawable.linkable_id
+    TEST
+    assert_spec_passed(run)
+  end
+
+  def test_a_toggle_button_uses_its_ruby_click_handler
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        $clicks = []
+        @bookmark = button("Bookmark", toggled: false) do |control|
+          $clicks << control
+          control.toggled = !control.toggled
+        end
+      end
+    APP
+      control = button("@bookmark")
+      toggled = -> { a11y_nodes.find { |node| node[:id] == control.linkable_id }[:toggled] }
+      a11y_action control, :focus
+      a11y_action control, :click
+      assert_equal true, control.obj.toggled
+      assert_equal true, toggled.call
+      press_key "\\n"
+      assert_equal false, control.obj.toggled
+      assert_equal false, toggled.call
+      click_on control
+      assert_equal true, control.obj.toggled
+      assert_equal true, toggled.call
+      assert_equal [control.obj] * 3, $clicks
+      assert_equal control.linkable_id, focused_drawable.linkable_id
+    TEST
+    assert_spec_passed(run)
+  end
+
   # A real window (a ghost: nobody can see or click it) opens with its screen reader adapter in
   # place, and the tree reads the same there. Runs only with SCARPE_NATIVE_WINDOWED_TESTS=1.
   def test_a_window_carries_the_same_tree
