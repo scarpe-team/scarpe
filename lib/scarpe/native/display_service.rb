@@ -159,7 +159,8 @@ module Scarpe::Native
       case message["t"]
       when "event" then dispatch_from_child(message["name"], message["target"], message["args"] || [])
       when "mouse" then pointer_moved(message["app"], message["state"])
-      when "para_hit" then Shoes::DisplayService.para_hit_cache[message["id"]] = message["value"]
+      when "para_hit"
+        Shoes::DisplayService.para_hit_cache[message["id"]] = message["value"] if display_drawable(message["id"])
       when "layout" then laid_out(message["rects"])
       when "resize" then resized(message["app"], message["w"], message["h"])
       when "scroll" then lacci_drawable(message["id"])&.instance_variable_set(:@scroll_top, message["top"])
@@ -356,6 +357,8 @@ module Scarpe::Native
       timers.remove(id)
       @display_drawable_for.delete(id)
       Shoes::DisplayService.layout_cache.delete(id)
+      Shoes::DisplayService.para_hit_cache.delete(id)
+      Shoes::DisplayService.para_cursor_top_cache.delete(id)
     end
 
     # Each app keeps the pointer as it was last over its own window (Shoes 3's app->mousex), so a
@@ -369,7 +372,7 @@ module Scarpe::Native
     # Lacci's left, top, width, height and scroll_height to read.
     def laid_out(rects)
       cache = Shoes::DisplayService.layout_cache
-      Array(rects).each { |id, *rect| cache[id] = rect }
+      Array(rects).each { |id, *rect| cache[id] = rect if display_drawable(id) }
     end
 
     def reparent(id, parent_id)
