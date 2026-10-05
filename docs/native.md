@@ -164,6 +164,40 @@ image "chart.png", alt: "Sales by month, rising"
 button "Save", tooltip: "Saves to your Documents folder"   # read after the name
 ```
 
+Custom dialogs built from slots can describe their role and name to screen readers:
+
+```ruby
+@panel = stack(accessibility_role: :dialog, accessibility_label: "Export",
+  accessibility_modal: true) do
+  para "Export"
+  button "Save"
+end
+```
+
+These styles work on stacks, flows and custom widgets in the native display.
+`accessibility_role` accepts `:dialog` or `"dialog"`. Give each dialog an
+`accessibility_label` so a screen reader can identify it. `accessibility_modal: true`
+marks it as modal; omit it for a non-modal dialog. Nested dialogs keep their hierarchy,
+and hiding a slot removes it and its children from the accessibility tree until shown again.
+
+The metadata can change without rebuilding the controls or moving focus:
+
+```ruby
+@panel.accessibility_label = "Export complete"
+@panel.style(accessibility_modal: false)
+@panel.accessibility_label = nil  # nil or a blank string clears the explicit name
+@panel.accessibility_role = nil   # returns to an ordinary slot in the accessibility tree
+```
+
+An unknown or missing role leaves a slot transparent to screen readers; its children still
+appear. The label and modal flag only apply while the role is `dialog`, and `false` or `nil`
+clears the modal flag. These styles describe the dialog's semantics. App code must manage
+initial focus, keyboard navigation, background interaction and restoring focus when it closes.
+Only mark a dialog modal when the app enforces that behavior. The companion
+[`inert` proposal (#629)](https://github.com/scarpe-team/scarpe/pull/629) adds a way to block
+background subtrees and remove them from the accessibility tree; it is separate from this
+metadata and is not yet available on `main`.
+
 Nothing is built for a screen reader until one asks, so an app nobody reads aloud pays nothing.
 Tests can read the tree and act on it the way a screen reader does:
 

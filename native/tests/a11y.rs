@@ -4,7 +4,7 @@
 
 mod common;
 
-use accesskit::TreeUpdate;
+use accesskit::{Role, TreeUpdate};
 use accesskit_consumer::{Node as SeenNode, Tree, TreeChangeHandler};
 use common::{app, create, events, named, Harness};
 use scarpe_native::a11y::{self, Mirror};
@@ -80,6 +80,82 @@ fn a_button_is_named_by_its_label() {
     assert_eq!(button["actions"], json!(["click", "focus"]));
     let laid = h.node(|n| n["id"] == 3);
     assert_eq!(button["bounds"], json!([laid["x"], laid["y"], laid["w"], laid["h"]]), "where the layout put it");
+}
+
+#[test]
+fn custom_dialog_slots_expose_their_title_bounds_and_working_controls() {
+    for kind in ["Stack", "Flow", "Widget"] {
+        let mut h = Harness::new();
+        h.feed(&app(400, 300, &[
+            create(3, kind, 2, json!({"width":300,"height":180,"accessibility_role":"dialog","accessibility_label":"تصدير الكتاب","accessibility_modal":true})),
+            para(4, 3, json!(["Name"])),
+            create(5, "EditLine", 3, json!({"text":"Book","width":120})),
+            create(6, "Button", 3, json!({"text":"Save"})),
+        ]));
+        let dialog = one(&mut h, "dialog");
+        assert_eq!((dialog["id"].clone(), dialog["name"].clone(), dialog["modal"].clone()), (json!(3), json!("تصدير الكتاب"), json!(true)), "{kind}");
+        assert_eq!(dialog["children"].as_array().unwrap().iter().map(|n| n["role"].clone()).collect::<Vec<_>>(), vec![json!("label"), json!("text_input"), json!("button")]);
+        let laid = h.node(|n| n["id"] == 3);
+        assert_eq!(dialog["bounds"], json!([laid["x"], laid["y"], laid["w"], laid["h"]]));
+        assert!(dialog.get("actions").is_none(), "the panel's controls take actions");
+        assert_eq!(act(&mut h, &json!(5), "focus", None).1["error"], Value::Null);
+        let (events, reply) = act(&mut h, &json!(5), "set_value", Some("New title"));
+        assert_eq!(reply["error"], Value::Null);
+        assert_eq!(named(&events, "change")[0].2, json!(["New title"]));
+        assert_eq!(one(&mut h, "text_input")["focused"], json!(true));
+        assert_eq!(named(&act(&mut h, &json!(6), "click", None).0, "click")[0].1, json!(6));
+    }
+}
+
+#[test]
+fn dialog_roles_and_modality_are_separate_opt_ins() {
+    for role in [Value::Null, json!("unknown"), json!(true)] {
+        let mut h = Harness::new();
+        h.feed(&app(400, 300, &[
+            create(3, "Stack", 2, json!({"accessibility_role":role,"accessibility_label":"Ignored","accessibility_modal":true})),
+            create(4, "Button", 3, json!({"text":"Ordinary"})),
+            create(5, "Flow", 2, json!({"accessibility_role":"dialog","accessibility_label":"Find"})),
+            create(6, "Button", 5, json!({"text":"Find next"})),
+        ]));
+        let root = tree(&mut h);
+        assert_eq!(root["children"][0]["id"], json!(4), "ordinary slots stay transparent");
+        let dialog = one(&mut h, "dialog");
+        assert_eq!(dialog["name"], json!("Find"));
+        assert!(dialog.get("modal").is_none(), "a dialog is not automatically modal");
+        let update = h.rt.a11y_tree(1, 1.0);
+        let ordinary = &update.nodes.iter().find(|(id, _)| id.0 == 3).unwrap().1;
+        assert_eq!(ordinary.role(), Role::GenericContainer);
+        assert!(!ordinary.is_modal(), "modality applies only to a dialog role");
+    }
+}
+
+#[test]
+fn nested_dialogs_keep_their_hierarchy_and_hidden_panels_leave_the_tree() {
+    let mut h = Harness::new();
+    h.feed(&app(400, 300, &[
+        create(3, "Stack", 2, json!({"width":300,"height":240,"accessibility_role":"dialog","accessibility_label":"Export","accessibility_modal":true})),
+        create(4, "Flow", 3, json!({})),
+        create(5, "Button", 4, json!({"text":"Cancel"})),
+        create(6, "Stack", 3, json!({"accessibility_role":"dialog","accessibility_label":"Confirm","accessibility_modal":true})),
+        create(7, "Button", 6, json!({"text":"Replace"})),
+    ]));
+    let outer = tree(&mut h)["children"][0].clone();
+    assert_eq!(outer["name"], json!("Export"));
+    assert_eq!(outer["children"][0]["id"], json!(5), "unmarked slots do not inherit dialog metadata");
+    assert_eq!(outer["children"][1]["name"], json!("Confirm"));
+    assert_eq!(outer["children"][1]["children"][0]["id"], json!(7));
+    act(&mut h, &json!(5), "focus", None);
+    let mut adapter = Adapter::new();
+    adapter.push(&mut h);
+    for (id, hidden, visible_dialogs) in [(6, true, 1), (6, false, 2), (3, true, 0), (3, false, 2)] {
+        h.feed(&json!({"t":"props","id":id,"props":{"hidden":hidden}}).to_string());
+        adapter.push(&mut h);
+        adapter.in_step(&mut h);
+        assert_eq!(with_role(&mut h, "dialog").len(), visible_dialogs);
+        if id == 6 {
+            assert_eq!(nodes(&mut h).iter().find(|n| n["id"] == 5).unwrap()["focused"], json!(true));
+        }
+    }
 }
 
 #[test]
@@ -485,6 +561,38 @@ fn after_the_first_update_a_window_sends_only_what_changed() {
     assert_eq!(update.nodes.iter().map(|(id, _)| id.0).collect::<Vec<_>>(), vec![4], "only the check");
     assert!(update.tree.is_none());
     adapter.in_step(&mut h);
+}
+
+#[test]
+fn dialog_metadata_updates_and_clears_without_recreating_controls_or_moving_focus() {
+    let mut h = Harness::new();
+    h.feed(&app(400, 300, &[
+        create(3, "Stack", 2, json!({"width":300,"height":180})),
+        create(4, "Button", 3, json!({"text":"Save"})),
+    ]));
+    act(&mut h, &json!(4), "focus", None);
+    let mut adapter = Adapter::new();
+    adapter.push(&mut h);
+    let steps = [
+        (json!({"accessibility_role":"dialog","accessibility_label":"Export","accessibility_modal":true}), Role::Dialog, Some("Export"), true),
+        (json!({"accessibility_label":"تصدير الكتاب"}), Role::Dialog, Some("تصدير الكتاب"), true),
+        (json!({"accessibility_modal":false}), Role::Dialog, Some("تصدير الكتاب"), false),
+        (json!({"accessibility_label":null}), Role::Dialog, None, false),
+        (json!({"accessibility_role":null,"accessibility_modal":true}), Role::GenericContainer, None, false),
+        (json!({"accessibility_role":"dialog","accessibility_label":"Again","accessibility_modal":null}), Role::Dialog, Some("Again"), false),
+        (json!({"accessibility_label":"  \n "}), Role::Dialog, None, false),
+    ];
+    for (props, role, label, modal) in steps {
+        h.feed(&json!({"t":"props","id":3,"props":props}).to_string());
+        let update = adapter.push(&mut h);
+        assert_eq!(update.nodes.iter().map(|(id, _)| id.0).collect::<Vec<_>>(), vec![3]);
+        let panel = &update.nodes[0].1;
+        assert_eq!((panel.role(), panel.label(), panel.is_modal()), (role, label, modal));
+        assert_eq!(update.focus.0, 4);
+        assert_eq!(panel.children(), &[accesskit::NodeId(4)]);
+        adapter.in_step(&mut h);
+        assert!(adapter.push(&mut h).nodes.is_empty(), "unchanged metadata is not sent again");
+    }
 }
 
 /// A Linux adapter stops and starts with the screen reader, and takes the tree whole again: its

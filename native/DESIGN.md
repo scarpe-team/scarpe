@@ -969,7 +969,10 @@ change the code and this list together.
 - **Screen readers** (`src/a11y.rs`, ledger N1). Scarpe draws its own controls (Nick, 27 Sep 2026:
   "our buttons are OUR buttons"), so it tells screen readers what they are, through AccessKit. The
   tree follows the document: the window (named by the App's title) holds the laid-out slots as
-  containers a screen reader looks through; a text block is static text, its words its `value`,
+  containers a screen reader looks through. A slot with `accessibility_role: "dialog"` is a
+  dialog instead, named by its nonblank `accessibility_label` and modal only when
+  `accessibility_modal` is true. These styles describe custom dialogs; the app manages focus
+  and background interaction. A text block is static text, its words its `value`,
   or a heading at 48 px and up (level 1), 34 (2) and 26 (3), the sizes Scarpe's webview theme
   (Tiranti) tags h1 to h3; a text block with links is a paragraph of its runs of text and its
   links, each link a node with its URL. Buttons are named by their label; checks and radios carry

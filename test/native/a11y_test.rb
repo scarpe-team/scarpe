@@ -87,6 +87,79 @@ class A11yTest < Minitest::Test
     assert_spec_passed(run)
   end
 
+  def test_custom_dialog_metadata_follows_ruby_updates_and_keeps_controls_working
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        @panel = stack(width: 300, height: 180, accessibility_role: :dialog,
+          accessibility_label: "تصدير الكتاب", accessibility_modal: true) do
+          para "Name"
+          @name = edit_line "Book"
+          @save = button("Save") { @status.text = "saved" }
+        end
+        @status = para "ready"
+      end
+    APP
+      panel = stack("@panel")
+      node = -> { a11y_nodes.find { |n| n[:id] == panel.linkable_id } }
+      assert_equal ["dialog", "تصدير الكتاب", true], node.call.values_at(:role, :name, :modal)
+      assert_equal layout_of(panel).to_a, node.call[:bounds]
+      assert_equal %w[label text_input button], node.call[:children].map { |n| n[:role] }
+      a11y_action edit_line("@name"), :focus
+      a11y_action edit_line("@name"), :set_value, "New title"
+      assert_equal "New title", edit_line("@name").text
+      a11y_action button("@save"), :click
+      assert_equal "saved", para("@status").text
+
+      panel.accessibility_label = "Export options"
+      panel.style(accessibility_modal: false)
+      wait_frames
+      assert_equal "Export options", node.call[:name]
+      refute node.call.key?(:modal)
+      assert_equal edit_line("@name").linkable_id, focused_drawable.linkable_id
+      panel.style(accessibility_role: nil, accessibility_label: nil, accessibility_modal: nil)
+      wait_frames
+      assert_nil node.call, "clearing the role makes the slot transparent again"
+      assert_equal edit_line("@name").linkable_id, focused_drawable.linkable_id
+      panel.accessibility_role = "dialog"
+      panel.style(accessibility_label: "Export again", accessibility_modal: true)
+      wait_frames
+      assert_equal ["dialog", "Export again", true], node.call.values_at(:role, :name, :modal)
+      assert_equal "New title", edit_line("@name").text
+    TEST
+    assert_spec_passed(run)
+  end
+
+  def test_nested_custom_dialogs_follow_visibility_changes
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        @outer = flow(accessibility_role: "dialog", accessibility_label: "Export") do
+          @cancel = button "Cancel"
+          @inner = stack(accessibility_role: :dialog, accessibility_label: "Confirm", accessibility_modal: true) do
+            button "Replace"
+          end
+        end
+      end
+    APP
+      dialogs = -> { a11y_nodes.select { |n| n[:role] == "dialog" } }
+      assert_equal ["Export", "Confirm"], dialogs.call.map { |n| n[:name] }
+      refute dialogs.call.first.key?(:modal)
+      assert_equal true, dialogs.call.last[:modal]
+      assert_equal "dialog", dialogs.call.first[:children].last[:role]
+      a11y_action button("@cancel"), :focus
+      stack("@inner").hide
+      wait_frames
+      assert_equal ["Export"], dialogs.call.map { |n| n[:name] }
+      stack("@inner").show
+      wait_frames
+      assert_equal ["Export", "Confirm"], dialogs.call.map { |n| n[:name] }
+      assert_equal button("@cancel").linkable_id, focused_drawable.linkable_id
+      flow("@outer").hide
+      wait_frames
+      assert_empty dialogs.call
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_peek_prints_what_a_screen_reader_meets
     run = run_real(<<~APP, argv: ->(app) { ["peek", app, "--a11y"] })
       Shoes.app(title: "Order") do

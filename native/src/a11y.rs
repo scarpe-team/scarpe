@@ -185,7 +185,16 @@ impl Builder<'_> {
         }
         let built = match node.kind {
             Kind::DocumentRoot | Kind::Stack | Kind::Flow | Kind::Widget => {
-                let mut n = Node::new(Role::GenericContainer);
+                let dialog = node.props.str("accessibility_role") == Some("dialog");
+                let mut n = Node::new(if dialog { Role::Dialog } else { Role::GenericContainer });
+                if dialog {
+                    if let Some(label) = node.props.text("accessibility_label").filter(|s| !s.trim().is_empty()) {
+                        n.set_label(label);
+                    }
+                    if node.props.truthy("accessibility_modal") {
+                        n.set_modal();
+                    }
+                }
                 n.set_children(self.children(id));
                 Some(n)
             }

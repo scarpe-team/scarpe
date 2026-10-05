@@ -12,6 +12,10 @@ class Shoes::Slot < Shoes::Drawable
   # - another_drawable — position relative to that element
   shoes_styles :attach
 
+  # Native custom dialogs: role "dialog", an accessible name, and explicit modality.
+  # These describe the slot to screen readers; the app manages focus and interaction.
+  shoes_styles :accessibility_role, :accessibility_label, :accessibility_modal
+
   # fill, stroke, rotate, translate... for the shapes drawn in this slot
   include Shoes::DrawContext
 
