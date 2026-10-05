@@ -8,7 +8,7 @@ class Shoes
     shoes_styles :fill, :border_color # the box and its edge, in the page's colours (ledger G17)
     shoes_style :change # the handler (manual 1123-1128, ledger G10)
     shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
-    shoes_events :change, :finish
+    shoes_events :change, :finish, :focus_changed
 
     # text "returns a string of characters", empty ones included (ledger M5)
     Shoes::Drawable.drawable_default_styles[Shoes::EditLine][:text] = ""
@@ -31,6 +31,10 @@ class Shoes
         @finish&.call(self)
       end
 
+      bind_self_event("focus_changed") do |focused|
+        @focus_changed&.call(self, focused)
+      end
+
       create_display_drawable
     end
 
@@ -49,6 +53,13 @@ class Shoes
     # @param handler [Proc, nil] called with the edit line, holding its text
     def finish=(handler)
       @finish = handler
+    end
+
+    # Run a proc when native keyboard focus enters or leaves this line.
+    #
+    # @param handler [Proc, nil] called with the edit line and true (focused) or false (blurred)
+    def focus_changed=(handler)
+      @focus_changed = handler
     end
 
     # Override the auto-generated text= to fire the change callback. Firing change

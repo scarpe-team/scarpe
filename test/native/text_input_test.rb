@@ -12,6 +12,39 @@ class TextInputTest < Minitest::Test
     skip_without_real_binary
   end
 
+  def test_focus_changes_reach_edit_line_callbacks
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        $focus_changes = []
+        @first = edit_line "first"
+        @second = edit_line "second"
+        button "Other"
+        [@first, @second].each do |field|
+          field.focus_changed = proc { |line, focused| $focus_changes << [line, focused] }
+        end
+      end
+    APP
+      first, second = edit_line("@first"), edit_line("@second")
+      assert_empty $focus_changes
+      click_on first
+      assert_equal [[first.obj, true]], $focus_changes
+      click_on first
+      assert_equal [[first.obj, true]], $focus_changes, "no duplicate focus callback"
+      press_key :tab
+      assert_equal [[first.obj, true], [first.obj, false], [second.obj, true]], $focus_changes
+      $focus_changes.clear
+      first.focus
+      wait_frames
+      assert_equal [[second.obj, false], [first.obj, true]], $focus_changes
+      $focus_changes.clear
+      first.obj.focus_changed = nil
+      button.focus
+      wait_frames
+      assert_empty $focus_changes, "the callback can be removed"
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_undo_and_redo_reach_the_app_as_changes
     run = run_real(<<~APP, test_code: <<~TEST)
       Shoes.app do
