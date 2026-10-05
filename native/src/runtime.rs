@@ -293,7 +293,7 @@ impl Runtime {
         let resized = props.contains_key("width") || props.contains_key("height");
         let restyled = ["font", "stroke", "secret"].iter().any(|k| props.contains_key(*k));
         let opacity = props.get("opacity").and_then(Value::as_f64).map(|o| o as f32);
-        let recursor = props.contains_key("cursor");
+        let recursor = ["cursor", "has_click", "state"].iter().any(|key| props.contains_key(*key));
         self.pictures_to_check |= ["url", "icon", "fill", "stroke", "draw_context"].iter().any(|k| props.contains_key(*k));
         let looks_only = self.doc.get(id).is_some_and(|n| props.keys().all(|key| changes_only_looks(&n.kind, key)));
         if !self.doc.set_props(id, props) {

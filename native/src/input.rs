@@ -485,7 +485,7 @@ fn cursor_of(node: &crate::doc::Node) -> Option<CursorShape> {
         Kind::Button | Kind::Check | Kind::Radio | Kind::ListBox => Some(CursorShape::Hand),
         Kind::EditLine | Kind::EditBox => Some(CursorShape::Text),
         _ => None,
-    }
+    }.or_else(|| (!crate::elements::disabled(node) && node.props.truthy("has_click")).then_some(CursorShape::Hand))
 }
 
 /// How a press on a drawable of `kind` is taken, and whether it keeps it (DESIGN 4.3): a link,

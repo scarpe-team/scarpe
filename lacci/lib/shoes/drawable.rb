@@ -1003,12 +1003,14 @@ class Shoes
     # with has_click / has_release that presses on this drawable belong here.
     def listen_for_pointer(event_name)
       @pointer_events ||= {}
-      return if @pointer_events[event_name]
+      enabled = !!instance_variable_get("@#{event_name}")
+      return if @pointer_events[event_name] == enabled
 
-      @pointer_events[event_name] = bind_self_event(event_name) do |button, left, top, **_kwargs|
+      listen_for(event_name) do |button, left, top, **_kwargs|
         instance_variable_get("@#{event_name}")&.call(button, left, top)
-      end
-      send_shoes_event({ "has_#{event_name}" => true }, event_name: "prop_change", target: linkable_id)
+      end if enabled
+      @pointer_events[event_name] = enabled
+      send_shoes_event({ "has_#{event_name}" => enabled }, event_name: "prop_change", target: linkable_id)
     end
 
     public

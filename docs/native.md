@@ -141,6 +141,18 @@ Shoes.text_mode = :shoes3
 Sizes are then points (`"18px"` stays pixels), and text that names no face is set in Arial, as
 Shoes 3 set it. Every window the program opens follows it. Hackety Hack asks for it.
 
+## Cursors on clickable drawables
+
+An enabled drawable with a `click` block uses the hand cursor automatically,
+including images, shapes and slots. A drawable's explicit `cursor:` remains the
+first choice, and built-in cursors such as the text field's I-beam take precedence
+over a click handler. Changes apply even when the pointer is stationary.
+
+Calling a generic drawable's `click` without a block removes its handler and its
+automatic hand cursor. Disabled drawables do not acquire a hand from that handler;
+the usual ancestor/app cursor fallback still applies. Registering only a `release`
+handler does not request a hand cursor.
+
 ## Screen readers
 
 Scarpe draws its own buttons, fields and text, so no control of the operating system is there to

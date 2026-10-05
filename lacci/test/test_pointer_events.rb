@@ -5,6 +5,25 @@ require_relative "test_helper"
 # Manual: click { |button, left, top| } and release work on shapes and text
 # blocks too (manual.md:1144-1151, 2187-2193, 2277-2284). DESIGN.md section 10, item 9.
 class TestPointerEvents < NienteTest
+  def test_handlers_can_be_removed_and_reenabled_without_duplicate_callbacks
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app { @p = para "A passage" }
+    SHOES_APP
+      calls = []
+      para.click { calls << :click }.release { calls << :release }
+      para.click.release
+      assert_equal false, para.display.instance_variable_get(:@has_click)
+      assert_equal false, para.display.instance_variable_get(:@has_release)
+      Shoes::DisplayService.dispatch_event("click", para.linkable_id, 1, 0, 0)
+      Shoes::DisplayService.dispatch_event("release", para.linkable_id, 1, 0, 0)
+      assert_empty calls
+      3.times { para.click { calls << :current } }
+      para.trigger_click(1, 0, 0)
+      assert_equal [:current], calls
+      assert_equal true, para.display.instance_variable_get(:@has_click)
+    SHOES_SPEC
+  end
+
   def test_rect_click_and_release_get_button_and_position
     run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
       Shoes.app do
