@@ -476,6 +476,21 @@ impl Runtime {
         }
     }
 
+    /// Replacing pixels can change intrinsic sizes and paint without changing any props.
+    /// Include images, button icons, and picture fills/strokes in the damage revisions.
+    pub(crate) fn bitmap_changed(&mut self, key: &str) {
+        let mut used = false;
+        for node in self.doc.iter().filter(|node| {
+            crate::elements::image::shown_by(node).any(|path| path == std::path::Path::new(key))
+        }) {
+            self.revisions.touch(node.id);
+            used = true;
+        }
+        if used {
+            self.invalidate();
+        }
+    }
+
     /// End of a batch: lay out whatever changed.
     pub fn flush(&mut self) {
         self.images.next_batch();

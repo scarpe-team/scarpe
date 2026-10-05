@@ -127,6 +127,53 @@ across and `width: 0.5` half as wide. Art (`rect`, `oval`, `shape` and the rest)
 number as pixels, Floats included. DESIGN section 6 has the whole rule, and ledger C1, C10, C15
 and C18 say why.
 
+## Images from memory
+
+The native display accepts pixels from a PDF renderer, chart generator, or other Ruby code
+without writing an image file:
+
+```ruby
+Shoes.app do
+  bitmaps = Shoes::DisplayService.display_service
+  pixels = [255, 0, 0, 255, 0, 0, 255, 255].pack("C*")
+  key = bitmaps.cache_bitmap("memory:preview", width: 2, height: 1, pixels: pixels)
+  image key, width: 200, height: 100
+  button("Release preview") { bitmaps.release_bitmap(key) }
+end
+```
+
+`pixels` is a String of exactly `width * height * 4` bytes: rows from top to bottom,
+pixels from left to right, RGBA8 channels with straight (unpremultiplied) alpha, no row
+padding. Scarpe copies these bytes; changing the String afterwards does not change the
+picture. Upload again under the same key to replace it. `cache_bitmap` waits for acceptance
+and returns the key; invalid arguments raise `ArgumentError`, while a renderer rejection
+(including a full cache) raises `Scarpe::Native::BitmapError`. Failed uploads leave the
+previous picture intact. Call the API from app code, handing completed worker results back
+to the app as with other drawable changes.
+
+Keys start with `memory:`, followed by one or more ASCII letters, digits, `.`, `_`, `:`, or
+`-`, at most 200 bytes including the prefix. They name sources shared by every window in
+that renderer. Use them in `image`, button `icon:`, and image fills/strokes. Replacing a key
+refreshes existing uses, including their intrinsic sizes. `imagesize(key)`, `Image#size`,
+`full_width`, and `full_height` read the current uploaded dimensions. A memory key is never
+looked up on disk or downloaded.
+
+Removing a drawable keeps its original pixels ready for reuse, as a scrolling reader may
+need them again. `release_bitmap(key)` discards the original and resized copies, returning
+`true` if present or `false` if already absent. Existing images then show the usual missing
+image placeholder; uploading that key again refreshes them. For an absent key,
+`imagesize` returns `nil` and `Image#size` returns `[nil, nil]`. Renderer exit releases all
+bitmaps. These upload/release methods are native-only; other displays report no dimensions
+for memory keys.
+
+Uploads allow positive integer sides up to 16,384 pixels and at most 64 MiB of RGBA per
+image. The renderer keeps at most 128 MiB of bitmap originals and 1,024 keys; release unused
+keys before uploading more. It never silently evicts an original. Resized bitmap copies
+have a separate 64 MiB cache budget and are dropped when no drawable uses the key; when that
+budget is full, painting can resample directly from the original. These are retained cache
+limits, not a process memory cap: Ruby strings, JSON/base64 transport, replacement buffers,
+file-backed images, and framebuffers use additional memory.
+
 ## Text sizes, and Shoes 3's text
 
 A text size is pixels: `para` is 12 px tall and `title` 34, as the manual says (ledger M14).

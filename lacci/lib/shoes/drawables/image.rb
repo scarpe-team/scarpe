@@ -94,14 +94,14 @@ class Shoes
       self.url = new_path
     end
 
-    # The width stored in the file, whatever size the image is shown at (manual 3153-3156).
+    # The width stored in the source, whatever size the image is shown at (manual 3153-3156).
     #
     # @return [Integer, nil] nil for a canvas or a file that is not a picture
     def full_width
       size.first
     end
 
-    # The height stored in the file (manual 3143-3151). See #full_width.
+    # The height stored in the source (manual 3143-3151). See #full_width.
     #
     # @return [Integer, nil]
     def full_height
@@ -129,8 +129,7 @@ class Shoes
     end
 
     def size
-      require "fastimage"
-      width, height = FastImage.size(@url)
+      width, height = imagesize(@url)
 
       [width, height]
     end

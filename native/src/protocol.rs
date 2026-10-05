@@ -97,6 +97,10 @@ pub enum Op {
     /// What a screen reader asks of one node: click, focus, set_value, expand or collapse.
     A11yAction { target: A11yTarget, action: String, value: Option<String>, app: Option<Id> },
     Ping,
+    /// Caller-owned raw RGBA images, shared by all apps in this renderer.
+    CacheBitmap { key: String, width: u32, height: u32, rgba: String },
+    ReleaseBitmap { key: String },
+    BitmapSize { key: String },
     /// Anything we cannot run still gets a reply, with this error.
     Invalid(String),
 }
@@ -260,6 +264,14 @@ fn op_fields(obj: &Map<String, Value>) -> Result<Op, ParseError> {
             app,
         },
         "ping" => Op::Ping,
+        "cache_bitmap" => Op::CacheBitmap {
+            key: required(s(obj, "key"), "key")?,
+            width: required(obj.get("width").and_then(Value::as_u64).and_then(|n| u32::try_from(n).ok()), "width")?,
+            height: required(obj.get("height").and_then(Value::as_u64).and_then(|n| u32::try_from(n).ok()), "height")?,
+            rgba: required(s(obj, "rgba"), "rgba")?,
+        },
+        "release_bitmap" => Op::ReleaseBitmap { key: required(s(obj, "key"), "key")? },
+        "bitmap_size" => Op::BitmapSize { key: required(s(obj, "key"), "key")? },
         other => Op::Invalid(format!("unknown op `{other}`")),
     })
 }

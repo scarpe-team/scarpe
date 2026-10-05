@@ -45,6 +45,7 @@ module Scarpe::Native
   # and side-channel writes (DESIGN 4.2).
   class DisplayService < Shoes::DisplayService
     include Shoes::Log
+    include Bitmaps
 
     LIBRARY_DIRS = %w[lacci lib scarpe-components].map { |dir| File.join(ROOT, dir) + "/" }.freeze
     # An error report names the program's line, not Scarpe's or Ruby's own (Shoes::ErrorReport).

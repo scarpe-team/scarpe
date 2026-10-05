@@ -29,6 +29,19 @@ impl Runtime {
         let no_app = || ("no app to act on".to_string(), Value::Null);
         match op {
             Op::Ping => Ok(Some(json!("pong"))),
+            Op::CacheBitmap { key, width, height, rgba } => {
+                self.images.insert_rgba(&key, width, height, &rgba).map_err(|e| (e, Value::Null))?;
+                self.bitmap_changed(&key);
+                Ok(Some(json!(key)))
+            }
+            Op::ReleaseBitmap { key } => {
+                let existed = self.images.release_bitmap(&key).map_err(|e| (e, Value::Null))?;
+                if existed {
+                    self.bitmap_changed(&key);
+                }
+                Ok(Some(json!(existed)))
+            }
+            Op::BitmapSize { key } => self.images.bitmap_size(&key).map(|size| Some(json!(size))).map_err(|e| (e, Value::Null)),
             Op::Invalid(e) => Err((e, Value::Null)),
             Op::Dialog(dialog) => {
                 if self.opts.headless {

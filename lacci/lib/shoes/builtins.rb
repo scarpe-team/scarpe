@@ -65,11 +65,18 @@ module Shoes::Builtins
   end
 
   # The [width, height] stored in an image file, read without showing or caching the
-  # image (manual 2017-2023).
+  # image (manual 2017-2023). Native memory: keys query an already uploaded bitmap.
   #
   # @param path [String] a local image file
   # @return [Array(Integer, Integer), nil] nil if the file is not a picture
   def imagesize(path)
+    if path.is_a?(String) && path.start_with?("memory:")
+      display = Shoes::DisplayService.display_service
+      return display.bitmap_size(path) if display.respond_to?(:bitmap_size)
+
+      return nil
+    end
+
     require "fastimage"
     FastImage.size(path)
   end

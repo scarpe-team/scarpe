@@ -139,8 +139,18 @@ that last ran or had input, else the first running one.
 | `a11y` | `app`, `platform` (default false) | the accessibility tree as a screen reader meets it (section 12, "Screen readers"): the window's node with its `children`. Each node has `id` and `role` (AccessKit's, snake_case: `button`, `check_box`, `label`...) and, when set, `name`, `value`, `description`, `toggled`, `numeric` `{value, min, max}`, `expanded`, `selected`, `url`, `level`, `focused`, `disabled`, `read_only`, `modal`, `actions`, `bounds` `[x, y, w, h]` (window coordinates). `platform: true` in a macOS window reads what AppKit hands VoiceOver instead: `role`, `subrole`, `title`, `value`, `help`; elsewhere it is an error |
 | `a11y_action` | `id` (a node's), `action` (click focus set_value expand collapse), `value` (for set_value), `app`; or `platform: true` with `name` (an element's title) | acts on the node as a screen reader does, through the path a click or key takes; the events it causes come first. Error when the node cannot do it (disabled, readonly, no such item). `platform: true` acts through AppKit in a macOS window |
 | `ping` | | `"pong"` |
+| `cache_bitmap` | `key`, `width`, `height`, `rgba` (standard padded base64 of straight-alpha RGBA8) | key on acceptance; validates key/dimensions/byte length/budgets before replacing the cached original; error leaves the old source intact |
+| `release_bitmap` | `key` | true if an uploaded source was released, false if already absent |
+| `bitmap_size` | `key` | `[width,height]` of the uploaded original, or null when absent |
 
 An unknown op, or one missing a field, gets a reply whose `error` says so.
+
+Bitmap operations are synchronous and need no app/window. Keys are renderer-wide and start
+with `memory:` followed by one or more ASCII letters/digits or `._:-`, at most 200 bytes
+including the prefix. Separators are excluded so Path normalization cannot alias two keys.
+Rows are tightly packed RGBA8, top to bottom with straight alpha; the image cache premultiplies
+them for painting. Ruby exposes `DisplayService#cache_bitmap`, `#release_bitmap`, and
+`#bitmap_size`; `imagesize` and Image's intrinsic size accessors delegate to the last one.
 
 Ordering guarantee: every `event` caused by a request is written before that request's `reply`.
 Rust processes `req`s after an implicit flush of everything received before them.
@@ -837,6 +847,15 @@ change the code and this list together.
   shows any more are let go at the next flush. A picture drawn at another size than its own is
   resampled once for that size in device pixels and the copy kept with it (four sizes at most,
   none past 16 M pixels), and an unturned picture lands on whole device pixels.
+- **Memory images** use the same layout and paint paths under a `memory:` key, including icons
+  and image patterns. Their originals survive drawable removal until `release_bitmap` or
+  renderer exit. Replacement/release clears resized copies, invalidates layout, and touches
+  damage revisions for every drawable using that key. Unshown memory keys keep only originals.
+  Missing keys never reach the filesystem. `cache_bitmap` limits sides to 16,384 px and originals
+  to 64 MiB each, 128 MiB total, and 1,024 live keys. Resized bitmap copies retain at most 64 MiB
+  total; an uncached resize draws from the original. Those budgets exclude transient transport
+  and replacement buffers, file images, and framebuffers. `tests/bitmaps.rs` covers validation,
+  budgets, alpha, shared sources, virtualization, and partial repaint correctness.
 - **Gradients** follow Shoes 3: angle 0 runs top to bottom, 90 left to right, across the shape's
   box. A wire gradient without `angle` gets 0. Radial gradients are not drawn (Lacci's `gradient()`
   cannot ask for one).

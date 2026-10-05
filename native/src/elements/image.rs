@@ -1,10 +1,12 @@
 //! Images: decoding (png, jpeg, gif first frame, bmp) into premultiplied
-//! pixmaps, cached by path, and drawing them into their box.
+//! pixmaps, caller-owned RGBA bitmaps, and drawing them into their box.
 
 use crate::doc::Node;
 use crate::layout::{LBox, Rect};
+use crate::limits;
 use crate::paint::Canvas;
 use crate::style::{Color, Paint};
+use base64::Engine;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
@@ -15,7 +17,8 @@ use tiny_skia::{FilterQuality, IntSize, Pixmap, PixmapPaint, Transform};
 /// or its length), so an app that rewrites a picture and shows it again sees the new one, and
 /// a file that did not read (not there yet, not a picture) is tried again once it changes.
 /// A file is looked at once a batch at most (`next_batch`), not on every paint. Runtime::flush
-/// lets go of pictures nothing shows any more (`retain`).
+/// lets go of files nothing shows any more (`retain`). `memory:` originals remain until
+/// explicitly released, so removing a drawable does not discard caller-owned pixels.
 ///
 /// A picture shown bigger or smaller than its pixels is resampled once for the size it is shown
 /// at, and the copy kept with it (`at_size`): resampling a 211 px glow up to 844 device pixels
@@ -26,6 +29,9 @@ pub struct ImageCache {
     batch: u64,
     /// Copies made at a new size since the runtime last asked (`take_resampled`).
     resampled: u64,
+    memory_bytes: usize,
+    memory_sized_bytes: usize,
+    memory_entries: usize,
 }
 
 struct Entry {
@@ -57,7 +63,65 @@ impl FileStamp {
 }
 
 impl ImageCache {
+    /// Upload tightly packed, row-major, straight-alpha RGBA8. Validation and decoding finish
+    /// before replacing an existing key, so a rejected upload leaves its old pixels intact.
+    pub fn insert_rgba(&mut self, key: &str, width: u32, height: u32, encoded: &str) -> Result<(), String> {
+        validate_bitmap_key(key)?;
+        if width == 0 || height == 0 || width > limits::MAX_IMAGE_SIDE || height > limits::MAX_IMAGE_SIDE {
+            return Err(format!("bitmap dimensions must be integers in 1..={}", limits::MAX_IMAGE_SIDE));
+        }
+        let length = width as u64 * height as u64 * 4;
+        if length > limits::MAX_BITMAP_BYTES as u64 {
+            return Err("bitmap exceeds the 64 MiB upload limit".into());
+        }
+        let length = length as usize;
+        if encoded.len() != length.div_ceil(3) * 4 {
+            return Err("bitmap RGBA length does not match its dimensions".into());
+        }
+        let path = Path::new(key);
+        let old = self.entries.get(path);
+        let old_bytes = old.and_then(|entry| entry.image.as_ref()).map_or(0, |image| image.data().len());
+        if self.memory_bytes - old_bytes + length > limits::MAX_BITMAP_CACHE_BYTES {
+            return Err("bitmap cache exceeds 128 MiB; release unused bitmaps first".into());
+        }
+        if old.is_none() && self.memory_entries >= limits::MAX_BITMAP_ENTRIES {
+            return Err("bitmap cache exceeds 1024 keys; release unused bitmaps first".into());
+        }
+        let mut data = base64::engine::general_purpose::STANDARD.decode(encoded).map_err(|_| "bitmap RGBA is not valid base64")?;
+        if data.len() != length {
+            return Err("bitmap RGBA length does not match its dimensions".into());
+        }
+        premultiply(&mut data);
+        let image = Pixmap::from_vec(data, IntSize::from_wh(width, height).unwrap()).ok_or("invalid bitmap dimensions")?;
+        self.forget(path);
+        self.entries.insert(path.to_path_buf(), Entry { file: None, image: Some(Rc::new(image)), looked: self.batch, sized: Vec::new() });
+        self.memory_bytes += length;
+        self.memory_entries += 1;
+        Ok(())
+    }
+
+    /// A missing key is already released. Never interprets a key as a filesystem path.
+    pub fn release_bitmap(&mut self, key: &str) -> Result<bool, String> {
+        validate_bitmap_key(key)?;
+        let path = Path::new(key);
+        let existed = self.entries.contains_key(path);
+        self.forget(path);
+        Ok(existed)
+    }
+
+    pub fn bitmap_size(&self, key: &str) -> Result<Option<(u32, u32)>, String> {
+        validate_bitmap_key(key)?;
+        Ok(self
+            .entries
+            .get(Path::new(key))
+            .and_then(|entry| entry.image.as_ref())
+            .map(|image| (image.width(), image.height())))
+    }
+
     pub fn get(&mut self, path: &Path) -> Option<Rc<Pixmap>> {
+        if is_memory(path) {
+            return self.entries.get(path).and_then(|entry| entry.image.clone());
+        }
         let batch = self.batch;
         if let Some(entry) = self.entries.get_mut(path).filter(|entry| entry.looked == batch) {
             return entry.image.clone();
@@ -85,6 +149,13 @@ impl ImageCache {
             entry.sized.insert(0, copy.clone());
             return Some(copy);
         }
+        let memory = is_memory(path);
+        let bytes = w as usize * h as usize * 4;
+        let evicted = entry.sized.get(SIZES_KEPT - 1).map_or(0, |copy| copy.data().len());
+        if memory && self.memory_sized_bytes + bytes - evicted > limits::MAX_BITMAP_SIZED_BYTES {
+            // Draw from the original instead; a cache limit must not make an image disappear.
+            return None;
+        }
         let mut copy = Pixmap::new(w, h)?;
         let (sx, sy) = (w as f32 / image.width() as f32, h as f32 / image.height() as f32);
         let paint = PixmapPaint { quality: FilterQuality::Bicubic, ..PixmapPaint::default() };
@@ -92,6 +163,9 @@ impl ImageCache {
         let copy = Rc::new(copy);
         entry.sized.insert(0, copy.clone());
         entry.sized.truncate(SIZES_KEPT);
+        if memory {
+            self.memory_sized_bytes = self.memory_sized_bytes + bytes - evicted;
+        }
         self.resampled += 1;
         Some(copy)
     }
@@ -107,12 +181,36 @@ impl ImageCache {
     }
 
     pub fn forget(&mut self, path: &Path) {
-        self.entries.remove(path);
+        if let Some(entry) = self.entries.remove(path) {
+            if is_memory(path) {
+                self.memory_bytes -= entry.image.as_ref().map_or(0, |image| image.data().len());
+                self.memory_sized_bytes -= entry
+                    .sized
+                    .iter()
+                    .map(|copy| copy.data().len())
+                    .sum::<usize>();
+                self.memory_entries -= 1;
+            }
+        }
     }
 
-    /// Keeps only the pictures whose paths `shown` still wants.
+    /// Discard unshown files and resized copies. Caller-owned originals need explicit release.
     pub fn retain(&mut self, shown: impl Fn(&Path) -> bool) {
-        self.entries.retain(|path, _| shown(path));
+        self.entries.retain(|path, entry| {
+            if shown(path) {
+                return true;
+            }
+            if is_memory(path) {
+                self.memory_sized_bytes -= entry
+                    .sized
+                    .iter()
+                    .map(|copy| copy.data().len())
+                    .sum::<usize>();
+                entry.sized.clear();
+                return true;
+            }
+            false
+        });
     }
 
     pub fn len(&self) -> usize {
@@ -140,6 +238,29 @@ fn decode(path: &Path) -> Option<Pixmap> {
     let rgba = reader.decode().ok()?.to_rgba8();
     let (w, h) = rgba.dimensions();
     let mut data = rgba.into_raw();
+    premultiply(&mut data);
+    Pixmap::from_vec(data, IntSize::from_wh(w, h)?)
+}
+
+fn is_memory(path: &Path) -> bool {
+    path.to_str().is_some_and(|key| key.starts_with("memory:"))
+}
+
+/// No path separators: keys stay distinct under Path's platform-specific normalization.
+fn validate_bitmap_key(key: &str) -> Result<(), String> {
+    let suffix = key.strip_prefix("memory:").unwrap_or("");
+    if suffix.is_empty()
+        || key.len() > limits::MAX_BITMAP_KEY_BYTES
+        || !suffix
+            .bytes()
+            .all(|c| c.is_ascii_alphanumeric() || b"._:-".contains(&c))
+    {
+        return Err("bitmap key must be memory: followed by ASCII letters, digits, '.', '_', ':', or '-', at most 200 bytes total".into());
+    }
+    Ok(())
+}
+
+fn premultiply(data: &mut [u8]) {
     for px in data.chunks_exact_mut(4) {
         let a = px[3] as u32;
         if a < 255 {
@@ -148,7 +269,6 @@ fn decode(path: &Path) -> Option<Pixmap> {
             }
         }
     }
-    Pixmap::from_vec(data, IntSize::from_wh(w, h)?)
 }
 
 /// Every picture file `node` shows: an image's own, a button's icon, and a picture it is

@@ -23,6 +23,7 @@ Shoes.add_file_loader Scarpe::Components::SegmentedFileLoader.new
 
 require_relative "native/normalize"
 require_relative "native/child"
+require_relative "native/bitmaps"
 require_relative "native/timers"
 require_relative "native/builtins"
 require_relative "native/automation"

@@ -168,6 +168,8 @@ module Scarpe::Native::Normalize
   end
 
   def image_like?(text)
+    return true if text.start_with?("memory:")
+
     IMAGE_EXTENSIONS.include?(File.extname(text).downcase) || File.file?(File.expand_path(text))
   end
 
@@ -202,6 +204,8 @@ module Scarpe::Native::Normalize
     return url if url.nil? || url == ""
 
     url = url.to_s
+    return url if url.start_with?("memory:")
+
     url.match?(%r{\Ahttps?://}i) ? download(url) : File.expand_path(url)
   end
 

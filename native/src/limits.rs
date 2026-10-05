@@ -31,6 +31,14 @@ pub const MAX_IMAGE_BYTES: u64 = 256 * 1024 * 1024;
 /// The widest or tallest image that is decoded, in pixels.
 pub const MAX_IMAGE_SIDE: u32 = 16_384;
 
+/// Caller-owned RGBA images: per upload, retained originals, retained resizes, and keys.
+/// These bound the cache, not temporary JSON/base64 buffers or the whole process.
+pub const MAX_BITMAP_BYTES: usize = 64 * 1024 * 1024;
+pub const MAX_BITMAP_CACHE_BYTES: usize = 128 * 1024 * 1024;
+pub const MAX_BITMAP_SIZED_BYTES: usize = 64 * 1024 * 1024;
+pub const MAX_BITMAP_ENTRIES: usize = 1024;
+pub const MAX_BITMAP_KEY_BYTES: usize = 200;
+
 /// Text spans no text names any more that are kept in case Lacci names one again (Doc's span
 /// names): a few megabytes at most.
 pub const LOOSE_SPANS: usize = 10_000;
