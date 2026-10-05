@@ -618,7 +618,8 @@ box and its edge, and a `stroke:` that colours the text colours the caret and fo
 Links: #0066ee, underline, #003399 on hover, pointer cursor. Buttons, checks, radios and list boxes
 also show the pointing hand and text fields an I-beam; a drawable's own `cursor` style
 (`:hand_cursor`, `:text_cursor`, `:watch_cursor`, `:arrow_cursor`) wins, and the App's `cursor`
-covers the rest. Everything antialiased. Spike A
+covers the rest. Split-pane dividers can use `col-resize` / `ew-resize` (horizontal resize)
+or `row-resize` / `ns-resize` (vertical resize). Everything antialiased. Spike A
 (`native/research/07_spike_skia.md`, scene PNG) is the reference look.
 
 ## 8. Testing

@@ -375,6 +375,29 @@ fn the_pointer_follows_what_it_is_over() {
     assert_eq!(cursor_at(&mut h, 20.0, 20.0), Hand, "the button still says hand");
 }
 
+#[test]
+fn resize_cursors_apply_to_dividers_and_change_without_pointer_motion() {
+    use scarpe_native::input::CursorShape::{self, Arrow, ResizeHorizontal, ResizeVertical};
+    for (name, expected) in [("col-resize", ResizeHorizontal), ("ew-resize", ResizeHorizontal),
+        ("row-resize", ResizeVertical), ("ns-resize", ResizeVertical)] {
+        let mut h = Harness::new();
+        h.feed(&app(300, 200, &[
+            create(3, "Stack", 2, json!({"left":40,"top":10,"width":20,"height":150,"cursor":name})),
+        ]));
+        assert_eq!(cursor_at(&mut h, 50.0, 50.0), expected, "{name}");
+        assert_eq!(cursor_at(&mut h, 100.0, 50.0), Arrow);
+        h.feed(&json!({"t":"props","id":1,"props":{"cursor":name}}).to_string());
+        assert_eq!(h.rt.views[&1].ui.cursor, expected, "app cursor changes at once");
+        cursor_at(&mut h, 50.0, 50.0);
+        h.feed("{\"t\":\"props\",\"id\":3,\"props\":{\"cursor\":\"row-resize\"}}\n");
+        assert_eq!(h.rt.views[&1].ui.cursor, ResizeVertical);
+        h.feed("{\"t\":\"props\",\"id\":3,\"props\":{\"cursor\":null}}\n");
+        assert_eq!(h.rt.views[&1].ui.cursor, expected, "clearing restores the app cursor");
+        assert_eq!(CursorShape::parse(&format!(":{name}")), Some(expected));
+    }
+    assert_eq!(CursorShape::parse("diagonal-resize"), None);
+}
+
 /// shoes3-tests/opacity_test.rb: `app.opacity = 0.5` makes the whole window see-through.
 /// A picture of it keeps half of every pixel; a real window gets the Opacity effect.
 #[test]

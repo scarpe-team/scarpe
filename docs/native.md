@@ -234,6 +234,13 @@ program said with `debug`, `info` and `error` and Scarpe's own warnings. Press A
 (Cmd-/ on a Mac) to open it, or call `Shoes.show_console`. It never opens by itself, and Alt-/
 never reaches your `keypress` block, as the manual reserves it for Shoes.
 
+## Resize cursors
+
+Use `cursor: "col-resize"` (alias `"ew-resize"`) for a vertical divider that moves left/right,
+or `cursor: "row-resize"` (alias `"ns-resize"`) for a horizontal divider that moves up/down.
+These native cursor styles work on drawables and the app, including changes while the pointer
+is stationary. They change the pointer shape; the app implements dragging and resizing.
+
 ## Tests, the spec suite and the ledger
 
 There are four kinds of test. All of them run headless.

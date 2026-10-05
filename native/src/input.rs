@@ -281,6 +281,8 @@ pub enum CursorShape {
     Hand,
     Text,
     Wait,
+    ResizeHorizontal,
+    ResizeVertical,
 }
 
 impl CursorShape {
@@ -292,6 +294,8 @@ impl CursorShape {
             "hand" | "pointer" | "link" => Some(CursorShape::Hand),
             "text" | "ibeam" => Some(CursorShape::Text),
             "watch" | "wait" | "busy" => Some(CursorShape::Wait),
+            "col-resize" | "ew-resize" => Some(CursorShape::ResizeHorizontal),
+            "row-resize" | "ns-resize" => Some(CursorShape::ResizeVertical),
             _ => None,
         }
     }

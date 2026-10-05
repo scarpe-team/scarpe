@@ -286,6 +286,8 @@ impl Shell {
                             CursorShape::Hand => CursorIcon::Pointer,
                             CursorShape::Text => CursorIcon::Text,
                             CursorShape::Wait => CursorIcon::Wait,
+                            CursorShape::ResizeHorizontal => CursorIcon::ColResize,
+                            CursorShape::ResizeVertical => CursorIcon::RowResize,
                         });
                     }
                 }
