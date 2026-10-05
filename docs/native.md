@@ -234,6 +234,16 @@ program said with `debug`, `info` and `error` and Scarpe's own warnings. Press A
 (Cmd-/ on a Mac) to open it, or call `Shoes.show_console`. It never opens by itself, and Alt-/
 never reaches your `keypress` block, as the manual reserves it for Shoes.
 
+## Navigation input
+
+Native `keypress` blocks receive `:browser_back` and `:browser_forward` for browser navigation
+keys and mouse Back/Forward buttons. They reach the app even when an edit field has focus,
+without editing its text or moving focus. The app decides what navigation means.
+
+These mouse buttons do not trigger drawable clicks or releases. Back dismisses an open
+`list_box` menu first; modal dialogs consume navigation input. Automation accepts the key
+names `browser_back` / `browser_forward`, or mouse buttons `4` / `5`.
+
 ## Tests, the spec suite and the ledger
 
 There are four kinds of test. All of them run headless.

@@ -179,11 +179,15 @@ Rust processes `req`s after an implicit flush of everything received before them
 
 A SubscriptionItem hears events only while its parent slot is laid out and its `stopped` prop is
 not true. Mouse buttons are 1 = left, 2 = middle, 3 = right (manual numbering).
+Automation also accepts 4 = Back and 5 = Forward. These emit navigation keypresses on press,
+without drawable click/release events or changing an existing primary-button press.
 
 ### 4.4 Key names (manual, research 06 ledger "keypress" rows)
 
 - Printable characters: the String itself (`"a"`, `"A"`, `" "`, `"&"`).
 - Return: `"\n"`. Tab `:tab`, Backspace `:backspace`, Delete `:delete`, arrows `:left :right :up :down`, `:home :end :page_up :page_down :escape :insert :f1`..`:f12`.
+- Browser navigation: `:browser_back`, `:browser_forward`. Edit fields forward these to the app;
+  Back dismisses an open list-box popup first, and modal dialogs consume them.
 - Modifiers prefix in the order `control_`, `shift_`, `alt_` (shift only for non-printables). A modified printable key is a Symbol: `:control_a`, `:alt_q`. Modified return: `:control_enter`, `:shift_enter`.
 - Shift folds into characters the way a US keyboard types them (manual 2223-2227): Shift-7 is `"&"`,
   Shift-Alt-7 is `:alt_&`, Control-Shift-a is `:control_A`. Automation's `key` op folds `shift_7` the same way.

@@ -39,6 +39,8 @@ pub enum Named {
     PageUp,
     PageDown,
     Insert,
+    BrowserBack,
+    BrowserForward,
     F(u8),
 }
 
@@ -59,6 +61,8 @@ impl Named {
             Named::PageUp => "page_up".into(),
             Named::PageDown => "page_down".into(),
             Named::Insert => "insert".into(),
+            Named::BrowserBack => "browser_back".into(),
+            Named::BrowserForward => "browser_forward".into(),
             Named::F(n) => format!("f{n}"),
         }
     }
@@ -79,6 +83,8 @@ impl Named {
             "page_up" => Named::PageUp,
             "page_down" => Named::PageDown,
             "insert" => Named::Insert,
+            "browser_back" => Named::BrowserBack,
+            "browser_forward" => Named::BrowserForward,
             f if f.starts_with('f') && f.len() > 1 => Named::F(f[1..].parse().ok().filter(|n| (1..=12).contains(n))?),
             _ => return None,
         })
@@ -721,6 +727,11 @@ impl Runtime {
     }
 
     pub fn pointer_down(&mut self, app: Id, button: u8) {
+        // Navigation buttons are keys, not clicks on the control under the pointer.
+        if button == 4 || button == 5 {
+            self.key_input(app, KeyInput::named(if button == 4 { Named::BrowserBack } else { Named::BrowserForward }));
+            return;
+        }
         let Some((x, y)) = self.views.get(&app).and_then(|v| v.ui.pointer) else { return };
         self.ensure_layout(app);
         self.views.get_mut(&app).expect("view").ui.buttons |= 1 << (button - 1);
@@ -831,6 +842,10 @@ impl Runtime {
     }
 
     pub fn pointer_up(&mut self, app: Id, button: u8) {
+        // In particular, do not release a primary-button drag when a thumb button is lifted.
+        if button == 4 || button == 5 {
+            return;
+        }
         let Some((x, y)) = self.views.get(&app).and_then(|v| v.ui.pointer) else { return };
         self.views.get_mut(&app).expect("view").ui.buttons &= !(1 << (button - 1));
         self.send_mouse_state(app);
@@ -1071,7 +1086,7 @@ impl Runtime {
                     self.out.event("finish", Some(id), vec![]);
                 }
                 self.request_redraw(app);
-                send_keypress = key.key == Key::Named(Named::Escape) || key.modified();
+                send_keypress = matches!(key.key, Key::Named(Named::Escape | Named::BrowserBack | Named::BrowserForward)) || key.modified();
             }
             (Some(id), Some(Kind::Button)) if keyboard_focus && button::activates(&key) => {
                 self.out.event("click", Some(id), vec![]);
@@ -1108,7 +1123,7 @@ impl Runtime {
     fn popup_key(&mut self, app: Id, key: &KeyInput) -> bool {
         let view = self.views.get_mut(&app).expect("view");
         let Some(popup) = view.ui.popup.as_mut() else { return false };
-        match list_box::popup_key(popup, key) {
+        match if key.key == Key::Named(Named::BrowserBack) { PopupKey::Close } else { list_box::popup_key(popup, key) } {
             PopupKey::Choose(i) => {
                 let (id, item) = (popup.list_box, popup.items[i].clone());
                 view.ui.popup = None;

@@ -269,7 +269,7 @@ fn platform(obj: &Map<String, Value>) -> bool {
 }
 
 fn button(obj: &Map<String, Value>) -> u8 {
-    obj.get("button").and_then(Value::as_u64).unwrap_or(1).clamp(1, 3) as u8
+    obj.get("button").and_then(Value::as_u64).unwrap_or(1).clamp(1, 5) as u8
 }
 
 fn target(v: Option<&Value>) -> Result<Target, ParseError> {

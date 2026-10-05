@@ -524,6 +524,8 @@ impl ApplicationHandler<UserEvent> for Shell {
                     MouseButton::Left => 1,
                     MouseButton::Middle => 2,
                     MouseButton::Right => 3,
+                    MouseButton::Back => 4,
+                    MouseButton::Forward => 5,
                     _ => return,
                 };
                 self.rt.active_app = Some(app);
@@ -693,6 +695,8 @@ fn key_from(logical: &WKey, bare: &WKey, text: Option<&str>, m: Modifiers) -> Op
             NamedKey::PageUp => Key::Named(Named::PageUp),
             NamedKey::PageDown => Key::Named(Named::PageDown),
             NamedKey::Insert => Key::Named(Named::Insert),
+            NamedKey::BrowserBack => Key::Named(Named::BrowserBack),
+            NamedKey::BrowserForward => Key::Named(Named::BrowserForward),
             NamedKey::Space => Key::Char(" ".into()),
             NamedKey::F1 => Key::Named(Named::F(1)),
             NamedKey::F2 => Key::Named(Named::F(2)),
