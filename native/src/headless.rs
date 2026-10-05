@@ -27,8 +27,10 @@ pub fn serve(rt: &mut Runtime, input: impl Read + Send + 'static, exit_after: Op
     std::thread::spawn(move || read_batches(input, |batch| batches.send(batch).is_ok()));
     let mut closing_at = exit_after.map(|after| Instant::now() + after);
     let mut orphaned_at: Option<Instant> = None;
+    let mut last_frame = Instant::now();
     loop {
-        let due = closing_at.or(orphaned_at.map(|at| at + QUIT_GRACE));
+        let animation = rt.transitions_running(None).then_some(last_frame + Duration::from_secs_f64(1.0 / 60.0));
+        let due = [closing_at, orphaned_at.map(|at| at + QUIT_GRACE), animation].into_iter().flatten().min();
         let batch = match due {
             None => arrived.recv().map_err(|_| RecvTimeoutError::Disconnected),
             Some(at) => arrived.recv_timeout(at.saturating_duration_since(Instant::now())),
@@ -47,7 +49,8 @@ pub fn serve(rt: &mut Runtime, input: impl Read + Send + 'static, exit_after: Op
                     }
                 }
             }
-            Err(RecvTimeoutError::Timeout) if closing_at.take().is_some() => {
+            Err(RecvTimeoutError::Timeout) if closing_at.is_some_and(|at| Instant::now() >= at) => {
+                closing_at = None;
                 let running: Vec<_> = rt.views.iter().filter(|(_, view)| view.running).map(|(app, _)| *app).collect();
                 if running.is_empty() {
                     return 0;
@@ -58,8 +61,18 @@ pub fn serve(rt: &mut Runtime, input: impl Read + Send + 'static, exit_after: Op
                 orphaned_at = Some(Instant::now());
             }
             // Ruby never answered `closed` with `quit`.
-            Err(RecvTimeoutError::Timeout) => return 0,
+            Err(RecvTimeoutError::Timeout) if orphaned_at.is_some_and(|at| Instant::now() >= at + QUIT_GRACE) => return 0,
+            Err(RecvTimeoutError::Timeout) => {},
             Err(RecvTimeoutError::Disconnected) => break,
+        }
+        // Check after input too: a steady stream of Ruby messages must not
+        // starve animation. Frozen clocks only sample on explicit frame requests.
+        if rt.transitions_running(None) && last_frame.elapsed() >= Duration::from_secs_f64(1.0 / 60.0) {
+            last_frame = Instant::now();
+            let apps: Vec<_> = rt.views.keys().copied().filter(|app| rt.transitions_running(Some(*app))).collect();
+            for app in apps { rt.picture(app, rt.views[&app].scale); }
+            rt.out.flush();
+            if rt.out.broken { return 0; }
         }
     }
     rt.out.flush();

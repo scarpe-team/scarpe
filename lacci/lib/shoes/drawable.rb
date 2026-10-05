@@ -315,6 +315,10 @@ class Shoes
     # Shoes uses a "hidden" style property for hide/show
     shoes_style :hidden
 
+    # Native painting: fade this drawable and its contents together, from 0.0 to 1.0.
+    # Layout, input and accessibility are unchanged; nil restores full opacity.
+    shoes_style :opacity
+
     # Displace moves the drawable visually without affecting layout
     shoes_styles :displace_left, :displace_top
 
@@ -674,6 +678,18 @@ class Shoes
     # @return [self]
     def displace(left, top)
       set_styles(displace_left: left, displace_top: top)
+    end
+
+    # Animate numeric visual properties with the native renderer's cubic ease-out.
+    # Supports opacity, displace_left, displace_top, and Progress#fraction.
+    # Returns a Shoes::Transition; its completion block runs after the final frame.
+    # Other display services raise Shoes::Error until they support this API.
+    def transition(duration: 0.2, **properties, &complete)
+      service = Shoes::DisplayService.display_service
+      unless service.respond_to?(:transition)
+        raise Shoes::Error, "This display service does not support timed transitions"
+      end
+      service.transition(self, duration: duration, **properties, &complete)
     end
 
     private

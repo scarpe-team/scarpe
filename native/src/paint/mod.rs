@@ -16,6 +16,7 @@ use crate::style::{Color, Paint};
 use crate::text::raster::{self, PxClip};
 use crate::text::TextEngine;
 use cosmic_text::SwashImage;
+use std::collections::HashSet;
 use tiny_skia::{
     FillRule, FilterQuality, GradientStop, LinearGradient, Mask, MaskType, Path, PathBuilder, Pattern, Pixmap, PixmapPaint,
     Point, Shader, SpreadMode, Stroke, Transform,
@@ -380,6 +381,11 @@ pub fn fade(pm: &mut Pixmap, opacity: f32) {
     }
 }
 
+/// Opacity is local to a painted group, not inherited as a style on its children.
+pub(crate) fn opacity(node: &crate::doc::Node) -> f32 {
+    node.props.f32("opacity").filter(|v| v.is_finite()).unwrap_or(1.0).clamp(0.0, 1.0)
+}
+
 /// Everything painting needs besides the pixmap.
 pub struct Scene<'a> {
     pub doc: &'a Doc,
@@ -400,8 +406,13 @@ pub fn paint(scene: &mut Scene, pm: &mut Pixmap, scale: f32) {
 pub fn paint_nodes(scene: &mut Scene, mut canvas: Canvas, only: Option<Rect>) {
     canvas.pm.fill(BACKGROUND.to_skia());
     let layout = scene.layout;
-    paint_run(scene, &mut canvas, &layout.order, only, 0);
-    decor::scrollbars(&mut canvas, layout);
+    let mut scrollbars = HashSet::new();
+    paint_run(scene, &mut canvas, &layout.order, only, 0, &mut scrollbars);
+    for &id in layout.scrollers.keys() {
+        if !scrollbars.contains(&id) {
+            decor::scrollbar(&mut canvas, layout, id);
+        }
+    }
     elements::list_box::paint_popup(&mut canvas, scene.view, scene.text);
     if scene.view.popup.is_none() {
         elements::tooltip::paint(&mut canvas, scene.view.tooltip.as_mut(), scene.text, layout.size);
@@ -409,22 +420,75 @@ pub fn paint_nodes(scene: &mut Scene, mut canvas: Canvas, only: Option<Rect>) {
     crate::dialogs::paint_modal(&mut canvas, scene.view, scene.text, layout.size);
 }
 
-/// Paints a run of the paint order. A slot holding a mask paints the rest of its
-/// contents through the mask's alpha, as Shoes 3 does (s3_canvas.c:531-613). Masks nested
-/// deeper than limits::MAX_MASK_DEPTH paint unmasked: each level holds two frame-sized layers.
-fn paint_run(scene: &mut Scene, canvas: &mut Canvas, ids: &[Id], only: Option<Rect>, mask_depth: usize) {
+/// Masks and opacity isolate a subtree in a layer. They share the existing mask depth
+/// limit, so a document cannot make painting allocate an unbounded stack of pictures.
+fn paint_run(scene: &mut Scene, canvas: &mut Canvas, ids: &[Id], only: Option<Rect>, depth: usize, scrollbars: &mut HashSet<Id>) {
     let mut i = 0;
     while i < ids.len() {
-        let masks = if mask_depth < crate::limits::MAX_MASK_DEPTH { masks_in(scene, ids[i]) } else { Vec::new() };
+        let id = ids[i];
+        let opacity = scene.doc.get(id).map_or(1.0, opacity);
+        if opacity == 0.0 || (opacity < 1.0 && depth < crate::limits::MAX_MASK_DEPTH) {
+            let end = subtree_end(scene.doc, ids, i);
+            if opacity > 0.0 {
+                paint_translucent(scene, canvas, &ids[i..end], only, depth + 1, opacity, scrollbars);
+            }
+            // A scrollbar belongs to its slot's group. It must not be drawn again over
+            // the final frame, including when the whole group is transparent or clipped.
+            scrollbars.extend(scene.layout.scrollers.keys().copied().filter(|s| scene.doc.is_descendant_of(*s, id)));
+            i = end;
+            continue;
+        }
+        let masks = if depth < crate::limits::MAX_MASK_DEPTH { masks_in(scene, id) } else { Vec::new() };
         if masks.is_empty() {
-            paint_node(scene, canvas, ids[i], only);
+            paint_node(scene, canvas, id, only);
             i += 1;
         } else {
             let end = subtree_end(scene.doc, ids, i);
-            paint_masked(scene, canvas, &ids[i + 1..end], &masks, only, mask_depth + 1);
+            paint_masked(scene, canvas, &ids[i + 1..end], &masks, only, depth + 1, scrollbars);
             i = end;
         }
     }
+}
+
+/// Draw overlapping children at their own opacity, then fade the assembled group once.
+/// Allocate only its visible ink, padded for antialiasing, within the current canvas.
+fn paint_translucent(scene: &mut Scene, canvas: &mut Canvas, ids: &[Id], only: Option<Rect>, depth: usize, opacity: f32, scrollbars: &mut HashSet<Id>) {
+    let mut bounds: Option<Rect> = None;
+    for id in ids {
+        let (Some(node), Some(lbox)) = (scene.doc.get(*id), scene.layout.boxes.get(id)) else { continue };
+        let r = damage::paint_bounds(node, lbox, scene.layout.texts.get(id)).unwrap_or_else(|| canvas.visible());
+        bounds = Some(match bounds {
+            None => r,
+            Some(b) => {
+                let (x, y) = (b.x.min(r.x), b.y.min(r.y));
+                Rect::new(x, y, b.right().max(r.right()) - x, b.bottom().max(r.bottom()) - y)
+            }
+        });
+    }
+    let Some(b) = bounds else { return };
+    let (ox, oy) = canvas.origin;
+    let x = (b.x * canvas.scale - 4.0).floor().clamp(ox as f32, (ox + canvas.pm.width() as i32) as f32) as i32;
+    let y = (b.y * canvas.scale - 4.0).floor().clamp(oy as f32, (oy + canvas.pm.height() as i32) as f32) as i32;
+    let right = (b.right() * canvas.scale + 4.0).ceil().clamp(ox as f32, (ox + canvas.pm.width() as i32) as f32) as i32;
+    let bottom = (b.bottom() * canvas.scale + 4.0).ceil().clamp(oy as f32, (oy + canvas.pm.height() as i32) as f32) as i32;
+    if right <= x || bottom <= y {
+        return;
+    }
+    let Some(mut layer) = Pixmap::new((right - x) as u32, (bottom - y) as u32) else { return };
+    let mut local = Canvas::at(&mut layer, canvas.scale, (x, y));
+    let masks = if depth < crate::limits::MAX_MASK_DEPTH { masks_in(scene, ids[0]) } else { Vec::new() };
+    if masks.is_empty() {
+        paint_node(scene, &mut local, ids[0], only);
+        paint_run(scene, &mut local, &ids[1..], only, depth, scrollbars);
+    } else {
+        paint_masked(scene, &mut local, &ids[1..], &masks, only, depth + 1, scrollbars);
+    }
+    for &id in scene.layout.scrollers.keys() {
+        if scene.doc.is_descendant_of(id, ids[0]) && scrollbars.insert(id) {
+            decor::scrollbar(&mut local, scene.layout, id);
+        }
+    }
+    canvas.pm.draw_pixmap(x - ox, y - oy, layer.as_ref(), &PixmapPaint { opacity, ..PixmapPaint::default() }, Transform::identity(), None);
 }
 
 /// The laid-out Mask children of a slot.
@@ -450,13 +514,13 @@ fn subtree_end(doc: &Doc, ids: &[Id], start: usize) -> usize {
 /// Draws a masked slot's contents into one layer and its masks into another, then
 /// shows the contents only where the masks drew something. The layers cover what the
 /// canvas covers, so a partial repaint (paint::damage) masks just its own rect.
-fn paint_masked(scene: &mut Scene, canvas: &mut Canvas, contents: &[Id], masks: &[Id], only: Option<Rect>, mask_depth: usize) {
+fn paint_masked(scene: &mut Scene, canvas: &mut Canvas, contents: &[Id], masks: &[Id], only: Option<Rect>, depth: usize, scrollbars: &mut HashSet<Id>) {
     let doc = scene.doc;
     let (mask_ids, content_ids): (Vec<Id>, Vec<Id>) = contents.iter().partition(|id| masks.iter().any(|m| doc.is_descendant_of(**id, *m)));
     let (w, h) = (canvas.pm.width(), canvas.pm.height());
     let (Some(mut content), Some(mut alpha)) = (Pixmap::new(w, h), Pixmap::new(w, h)) else { return };
-    paint_run(scene, &mut Canvas::at(&mut content, canvas.scale, canvas.origin), &content_ids, only, mask_depth);
-    paint_run(scene, &mut Canvas::at(&mut alpha, canvas.scale, canvas.origin), &mask_ids, only, mask_depth);
+    paint_run(scene, &mut Canvas::at(&mut content, canvas.scale, canvas.origin), &content_ids, only, depth, scrollbars);
+    paint_run(scene, &mut Canvas::at(&mut alpha, canvas.scale, canvas.origin), &mask_ids, only, depth, scrollbars);
     let mask = Mask::from_pixmap(alpha.as_ref(), MaskType::Alpha);
     canvas.pm.draw_pixmap(0, 0, content.as_ref(), &PixmapPaint::default(), Transform::identity(), Some(&mask));
 }

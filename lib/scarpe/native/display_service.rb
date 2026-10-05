@@ -45,6 +45,7 @@ module Scarpe::Native
   # and side-channel writes (DESIGN 4.2).
   class DisplayService < Shoes::DisplayService
     include Shoes::Log
+    include Transitions
 
     LIBRARY_DIRS = %w[lacci lib scarpe-components].map { |dir| File.join(ROOT, dir) + "/" }.freeze
     # An error report names the program's line, not Scarpe's or Ruby's own (Shoes::ErrorReport).
@@ -69,7 +70,9 @@ module Scarpe::Native
 
       @headless = Scarpe::Native.truthy_env?("SCARPE_NATIVE_HEADLESS")
       @ghost = Scarpe::Native.truthy_env?("SCARPE_NATIVE_GHOST")
-      @clock = Clock.new
+      @clock = Clock.new { |at| child.post(t: "motion_clock", at: at) }
+      @transitions = {}
+      @transition_token = 0
       @timers = Timers.new
       @builtins = Builtins.new(self, interactive: !@headless && !@ghost)
       @automation = Automation.new(self)
@@ -163,6 +166,7 @@ module Scarpe::Native
       when "layout" then laid_out(message["rects"])
       when "resize" then resized(message["app"], message["w"], message["h"])
       when "scroll" then lacci_drawable(message["id"])&.instance_variable_set(:@scroll_top, message["top"])
+      when "transition_end" then transition_ended(message)
       when "closed" then closed(message["app"])
       when "log" then log_from_child(message["level"].to_s, message["msg"])
       when "console" then guarded("console key") { Shoes.show_console }
@@ -265,6 +269,7 @@ module Scarpe::Native
     # Programs Shoes.run_program started go first (their windows with them), then our renderer.
     def shutdown
       programs.stop_all
+      forget_all_transitions
       return unless @child
 
       @child.post(t: "quit", app: nil)
@@ -330,6 +335,7 @@ module Scarpe::Native
       display = display_drawable(id) or return
       changes = changes.to_h.transform_keys(&:to_s)
       props = Normalize.props(display.kind, changes)
+      cancel_transitions_for(id, props.keys, except: props.keys)
       display.update(props)
       @layout_owed = true
       child.post(t: "props", id: id, props: props)
@@ -353,6 +359,7 @@ module Scarpe::Native
     end
 
     def forget(id)
+      forget_transitions(id)
       timers.remove(id)
       @display_drawable_for.delete(id)
       Shoes::DisplayService.layout_cache.delete(id)
@@ -373,6 +380,7 @@ module Scarpe::Native
     end
 
     def reparent(id, parent_id)
+      display_drawable(id)&.subtree&.each { |node| cancel_transitions_for(node.id, Transitions::PROPERTIES) }
       index = index_in_parent(id)
       display_drawable(id)&.attach_to(display_drawable(parent_id), index)
       @layout_owed = true
@@ -392,9 +400,10 @@ module Scarpe::Native
     end
 
     # A nil-target destroy quits every app (Lacci binds every App to it). It can arrive from a
-    # signal trap, where Mutexes are off limits, so this only flips flags; the pump sends the quit.
+    # signal trap, where Mutexes are off limits, so this only changes Ruby state; the pump sends the quit.
     def quit_all
       @open_apps.transform_values! { false }
+      forget_all_transitions
     end
 
     # Apps are built and run inside one handler, so an app still unrun after a handler raised is

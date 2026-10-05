@@ -389,6 +389,7 @@ impl Shell {
         if let Some(view) = self.rt.views.get_mut(&win.app) {
             view.scale = scale;
         }
+        self.rt.advance_transitions(win.app);
         self.rt.repaint(win.app, pm, scale, &mut win.memory);
         // A layout done for this frame has told Ruby where things are: say it before showing it.
         self.rt.out.flush();
@@ -403,7 +404,7 @@ impl Shell {
         for (dst, px) in buffer.iter_mut().zip(pm.data().chunks_exact(4)) {
             *dst = ((px[0] as u32) << 16) | ((px[1] as u32) << 8) | (px[2] as u32);
         }
-        let _ = buffer.present();
+        if buffer.present().is_err() { return; }
         self.rt.stats.since(Phase::Present, presenting);
         let app = win.app;
         self.rt.frame_presented(app);
@@ -601,6 +602,7 @@ impl ApplicationHandler<UserEvent> for Shell {
         let tooltip_wake = tooltip.map(|(_, due)| due).filter(|due| *due > now);
         // Frames that waited for the display's next refresh (window::pacing).
         for win in self.windows.values_mut() {
+            if self.rt.transitions_running(Some(win.app)) { win.pacing.schedule_animation(now); }
             if win.pacing.take_due(now) {
                 win.window.request_redraw();
             }

@@ -110,3 +110,30 @@ fn exit_after_closes_the_canvas_like_a_window() {
     assert_eq!(said.ok().map(|line| serde_json::from_str::<Value>(&line).unwrap()), Some(json!({"t": "closed", "app": 1})), "Rust said the app closed");
     assert_eq!(status.code(), Some(0), "and left cleanly once Ruby quit it");
 }
+
+#[test]
+fn transitions_finish_without_more_input_and_do_not_consume_the_exit_deadline() {
+    let mut child = scarpe_native(&["--exit-after", "1"]);
+    let mut stdin = child.stdin.take().expect("stdin");
+    oval_app(&mut stdin).unwrap();
+    send(&mut stdin, json!({"t":"req","req":1,"op":"transition","id":3,"token":1,"duration":0.05,"props":{"opacity":0.0}})).unwrap();
+    let (sent, received) = mpsc::channel();
+    let stdout = child.stdout.take().unwrap();
+    std::thread::spawn(move || {
+        for line in BufReader::new(stdout).lines().map_while(Result::ok) {
+            if let Ok(message) = serde_json::from_str::<Value>(&line) {
+                if sent.send(message).is_err() { break; }
+            }
+        }
+    });
+    let mut completed = false;
+    let mut closed = false;
+    while let Ok(message) = received.recv_timeout(Duration::from_secs(5)) {
+        if message["t"] == "transition_end" { completed = message["completed"] == true && message["props"]["opacity"] == 0.0; }
+        if message["t"] == "closed" { closed = true; break; }
+    }
+    let _ = child.kill();
+    let _ = child.wait();
+    assert!(completed, "the final frame completed before the exit deadline, without more Ruby input");
+    assert!(closed, "animation wake-ups did not consume --exit-after");
+}

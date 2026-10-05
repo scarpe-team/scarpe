@@ -28,6 +28,11 @@ impl Runtime {
     fn run_op(&mut self, req: u64, op: Op) -> Result<Option<Value>, (String, Value)> {
         let no_app = || ("no app to act on".to_string(), Value::Null);
         match op {
+            Op::Transition { id, token, duration, props } => {
+                self.start_transition(id, token, duration, props).map_err(|e| (e, Value::Null))?;
+                Ok(Some(Value::Null))
+            }
+            Op::CancelTransition { id, token } => Ok(Some(Value::Object(self.cancel_transition(id, token)))),
             Op::Ping => Ok(Some(json!("pong"))),
             Op::Invalid(e) => Err((e, Value::Null)),
             Op::Dialog(dialog) => {

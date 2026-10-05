@@ -46,6 +46,12 @@ impl Pacing {
         false
     }
 
+    /// Request the next animation sample at the display rate. A late frame
+    /// starts a new interval; there is no burst of missed animation frames.
+    pub fn schedule_animation(&mut self, now: Instant) {
+        self.due.get_or_insert_with(|| self.started[0].map_or(now, |at| (at + self.interval).max(now)));
+    }
+
     pub fn due(&self) -> Option<Instant> {
         self.due
     }
@@ -100,5 +106,20 @@ mod tests {
         pacing.drawing(ms(t0, 1));
         assert!(!pacing.want_frame(ms(t0, 16)));
         assert!(pacing.want_frame(ms(t0, 17)));
+    }
+
+    #[test]
+    fn animation_deadlines_follow_the_display_and_skip_missed_frames() {
+        let mut pacing = Pacing::new(Some(60_000));
+        let t0 = Instant::now();
+        pacing.drawing(t0);
+        pacing.schedule_animation(ms(t0, 5));
+        assert!(!pacing.take_due(ms(t0, 16)));
+        assert!(pacing.take_due(ms(t0, 17)));
+        pacing.drawing(ms(t0, 100));
+        pacing.schedule_animation(ms(t0, 101));
+        assert!(!pacing.take_due(ms(t0, 116)));
+        assert!(pacing.take_due(ms(t0, 117)));
+        assert!(pacing.due().is_none(), "idle windows have no animation wake-up");
     }
 }

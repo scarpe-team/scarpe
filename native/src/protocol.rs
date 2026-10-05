@@ -21,6 +21,7 @@ pub enum Incoming {
     Font { path: String },
     /// How text is sized and set from now on (Lacci's `Shoes.text_mode`): "scarpe" or "shoes3".
     TextMode { mode: String },
+    MotionClock { at: Option<f64> },
     Flush,
     Req { req: u64, op: Op },
 }
@@ -73,6 +74,8 @@ pub struct DialogRequest {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Op {
+    Transition { id: Id, token: u64, duration: f64, props: Map<String, Value> },
+    CancelTransition { id: Id, token: u64 },
     Dialog(DialogRequest),
     Layout { app: Option<Id> },
     Snapshot { path: String, app: Option<Id>, scale: Option<f32> },
@@ -197,6 +200,13 @@ pub fn parse_line(line: &str) -> Result<Incoming, ParseError> {
         "scroll_to" => Incoming::ScrollTo { id: required(id(&obj, "id"), "id")?, top: f(&obj, "top").unwrap_or(0.0) },
         "font" => Incoming::Font { path: required(s(&obj, "path"), "path")? },
         "text_mode" => Incoming::TextMode { mode: required(s(&obj, "mode"), "mode")? },
+        "motion_clock" => Incoming::MotionClock {
+            at: match obj.get("at") {
+                Some(Value::Null) => None,
+                Some(v) => Some(required(v.as_f64().filter(|v| v.is_finite() && *v >= 0.0), "at")?),
+                None => return Err(ParseError::Message("missing `at`".into())),
+            },
+        },
         "flush" => Incoming::Flush,
         "req" => {
             let req = required(obj.get("req").and_then(Value::as_u64), "req")?;
@@ -217,6 +227,16 @@ fn op_fields(obj: &Map<String, Value>) -> Result<Op, ParseError> {
     let app = id(obj, "app");
     let op = obj.get("op").and_then(Value::as_str).unwrap_or("");
     Ok(match op {
+        "transition" => Op::Transition {
+            id: required(id(obj, "id"), "id")?,
+            token: required(obj.get("token").and_then(Value::as_u64), "token")?,
+            duration: required(obj.get("duration").and_then(Value::as_f64), "duration")?,
+            props: required(obj.get("props").and_then(Value::as_object).cloned(), "props")?,
+        },
+        "cancel_transition" => Op::CancelTransition {
+            id: required(id(obj, "id"), "id")?,
+            token: required(obj.get("token").and_then(Value::as_u64), "token")?,
+        },
         "dialog" => Op::Dialog(DialogRequest {
             kind: required(s(obj, "kind"), "kind")?,
             message: obj.get("message").map(crate::props::value_text).unwrap_or_default(),
@@ -300,6 +320,7 @@ pub enum Outgoing {
     /// Where laid-out nodes landed, `[id, x, y, w, h, scroll_h]` in window px: all of them
     /// after an app's first layout, then those whose rect changed (cross-lane contract a).
     Layout { app: Id, rects: Vec<(Id, f64, f64, f64, f64, f64)> },
+    TransitionEnd { token: u64, id: Id, props: Map<String, Value>, completed: bool },
     Closed { app: Id },
     /// Alt-/ (Cmd-/ on a Mac) in one of the app's windows: open the Shoes console (ledger H10).
     Console { app: Id },

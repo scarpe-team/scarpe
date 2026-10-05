@@ -19,7 +19,8 @@ pub const SCALES: RangeInclusive<f32> = 0.1..=8.0;
 /// the layout recursion needs stays small.
 pub const MAX_DEPTH: usize = 128;
 
-/// How deep masks may nest while painting: each level holds two layers the size of the frame.
+/// How deep mask and opacity groups may nest while painting. A mask holds two canvas-sized
+/// layers and opacity holds one, so they share the same bound on nested allocations.
 pub const MAX_MASK_DEPTH: usize = 4;
 
 /// Frames one `frames` request can wait for.

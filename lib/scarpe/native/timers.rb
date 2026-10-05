@@ -4,12 +4,20 @@ module Scarpe::Native
   # Monotonic time that tests can stop. Once frozen, it only moves when told to, so
   # Shoes-Spec's advance(seconds) fires exactly the timers due in that span.
   class Clock
+    def initialize(&changed)
+      @changed = changed
+    end
+
     def now
       @frozen_at || monotonic
     end
 
     def freeze!
-      @frozen_at ||= monotonic
+      unless frozen?
+        @frozen_at = monotonic
+        @changed&.call(@frozen_at)
+      end
+      @frozen_at
     end
 
     def frozen?
@@ -17,7 +25,10 @@ module Scarpe::Native
     end
 
     def travel_to(time)
-      @frozen_at = time if frozen? && time > @frozen_at
+      if frozen? && time > @frozen_at
+        @frozen_at = time
+        @changed&.call(@frozen_at)
+      end
     end
 
     private

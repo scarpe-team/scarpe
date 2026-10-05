@@ -150,6 +150,8 @@ struct Look {
     /// Where it can paint (logical px); None for a turned image, which may be anywhere.
     bounds: Option<Rect>,
     fingerprint: u64,
+    /// The enclosing opacity groups, including this node; a fade reaches overflowing children.
+    opacity_path: u64,
     /// Its shaped text, compared by pointer and held so the allocation cannot be reused.
     text: Option<Rc<Buffer>>,
 }
@@ -304,7 +306,8 @@ fn plan(before: &Frame, now: &Frame, changed: &Changed) -> Repaint {
     for (id, look) in &now.nodes {
         let old = before.nodes.get(id);
         let unchanged = old.is_some_and(|old| {
-            old.fingerprint == look.fingerprint && old.bounds == look.bounds && same_text(&old.text, &look.text) && !changed.contains(id)
+            old.fingerprint == look.fingerprint && old.opacity_path == look.opacity_path
+                && old.bounds == look.bounds && same_text(&old.text, &look.text) && !changed.contains(id)
         });
         if unchanged {
             continue;
@@ -348,15 +351,25 @@ fn same_text(a: &Option<Rc<Buffer>>, b: &Option<Rc<Buffer>>) -> bool {
 }
 
 fn look_at(doc: &Doc, layout: &Layout, view: &ViewState, hovered: &HashSet<Id>, size: (u32, u32), scale: f32, revision: u64) -> Frame {
-    let mut nodes = HashMap::with_capacity(layout.order.len());
+    let mut nodes: HashMap<Id, Look> = HashMap::with_capacity(layout.order.len());
     for &id in &layout.order {
         let (Some(node), Some(lbox)) = (doc.get(id), layout.boxes.get(&id)) else { continue };
         let text = layout.texts.get(&id);
+        // Paint order is pre-order, so the parent's path is already known. Ordinary
+        // opaque nodes pass it through without walking or allocating an ancestor chain.
+        let mut opacity_path = node.parent.and_then(|p| nodes.get(&p)).map_or(0, |p| p.opacity_path);
+        let opacity = super::opacity(node);
+        if opacity != 1.0 {
+            let mut h = DefaultHasher::new();
+            (opacity_path, id, opacity.to_bits()).hash(&mut h);
+            opacity_path = h.finish();
+        }
         nodes.insert(
             id,
             Look {
                 bounds: paint_bounds(node, lbox, text),
                 fingerprint: fingerprint(node, lbox, text, view, hovered),
+                opacity_path,
                 text: text.map(|tb| tb.shaped.buffer.clone()),
             },
         );
@@ -589,7 +602,7 @@ mod tests {
     }
 
     fn frame_of(painted: &[Id]) -> Frame {
-        let look = || Look { bounds: Some(Rect::new(0.0, 0.0, 10.0, 10.0)), fingerprint: 0, text: None };
+        let look = || Look { bounds: Some(Rect::new(0.0, 0.0, 10.0, 10.0)), fingerprint: 0, opacity_path: 0, text: None };
         Frame { revision: 0, size: (10, 10), scale: 1.0, overlaid: false, scrolling: 0, order: painted.to_vec(), nodes: painted.iter().map(|id| (*id, look())).collect() }
     }
 

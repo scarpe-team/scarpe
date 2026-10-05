@@ -30,6 +30,7 @@ require_relative "native/pump"
 require_relative "native/programs"
 require_relative "native/program_child"
 require_relative "native/display_drawable"
+require_relative "native/transitions"
 require_relative "native/display_service"
 
 # Shoes-Spec needs minitest, 10-45 ms to load (native/PERF.md), and only a spec run uses it: Lacci
