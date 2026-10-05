@@ -5,6 +5,13 @@ require "open3"
 # Shoes has a number of built-in methods that are intended to be available everywhere,
 # in every Shoes and non-Shoes class, for every Shoes app.
 module Shoes::Builtins
+  # Whether the native desktop requests reduced motion. Queries the current setting;
+  # unsupported displays/platforms and unavailable OS preferences return false.
+  # @return [Boolean]
+  def reduced_motion?
+    shoes_builtin("reduced_motion") == true
+  end
+
   # Register the given font with Shoes so that text that wants it can use it.
   # Also add its families to the FONTS constant.
   #

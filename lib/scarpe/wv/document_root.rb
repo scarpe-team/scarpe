@@ -15,6 +15,9 @@ module Scarpe::Webview
 
       bind_shoes_event(event_name: "builtin") do |cmd_name, args|
         case cmd_name
+        when "reduced_motion"
+          # This query is currently implemented by the native display only.
+          Shoes::DisplayService.set_builtin_response(false)
         when "font"
           @fonts << args[0]
           # Can't just create font_updater and alert_updater on initialize - not everything is set up

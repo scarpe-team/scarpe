@@ -141,6 +141,24 @@ Shoes.text_mode = :shoes3
 Sizes are then points (`"18px"` stays pixels), and text that names no face is set in Arial, as
 Shoes 3 set it. Every window the program opens follows it. Hackety Hack asks for it.
 
+## Reduce Motion preference
+
+`reduced_motion?` reads the current desktop accessibility preference:
+
+```ruby
+duration = reduced_motion? ? 0 : 0.15
+```
+
+The native display queries Windows' client-area animation setting or macOS'
+Reduce Motion setting directly, without a shell command. A disabled animation setting
+on Windows means `true`. Linux and other unsupported platforms, unavailable OS settings,
+and displays without this query return `false`; that fallback does not establish a user's
+preference. The method also works before a window opens and in headless mode.
+
+Each call queries again. Apps can recheck when starting an animation or periodically to
+notice settings changed while running. Scarpe does not poll or alter animations on the
+app's behalf, and does not change any OS setting.
+
 ## Screen readers
 
 Scarpe draws its own buttons, fields and text, so no control of the operating system is there to

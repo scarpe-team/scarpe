@@ -14,6 +14,7 @@ pub mod input;
 pub mod layout;
 pub mod limits;
 pub mod paint;
+pub mod preferences;
 pub mod props;
 pub mod protocol;
 pub mod runtime;

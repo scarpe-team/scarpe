@@ -6,6 +6,18 @@ use common::{app, create, events, named, Harness};
 use serde_json::{json, Value};
 
 #[test]
+fn reduced_motion_is_a_boolean_query_without_an_app_or_window() {
+    let mut h = Harness::new();
+    let value = h.value(json!({"op":"reduced_motion"}));
+    assert!(value.is_boolean());
+    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+    assert_eq!(value, json!(false), "unsupported desktops have an explicit false fallback");
+    assert!(h.rt.views.is_empty(), "querying does not create a window");
+    h.feed(&app(300, 200, &[]));
+    assert!(h.value(json!({"op":"reduced_motion"})).is_boolean());
+}
+
+#[test]
 fn hello_world_lays_out_a_para() {
     let mut h = Harness::new();
     let msgs = h.fixture("hello");

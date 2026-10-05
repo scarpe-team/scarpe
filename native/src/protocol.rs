@@ -97,6 +97,8 @@ pub enum Op {
     /// What a screen reader asks of one node: click, focus, set_value, expand or collapse.
     A11yAction { target: A11yTarget, action: String, value: Option<String>, app: Option<Id> },
     Ping,
+    /// OS Reduce Motion preference, independent of any app or window.
+    ReducedMotion,
     /// Anything we cannot run still gets a reply, with this error.
     Invalid(String),
 }
@@ -260,6 +262,7 @@ fn op_fields(obj: &Map<String, Value>) -> Result<Op, ParseError> {
             app,
         },
         "ping" => Op::Ping,
+        "reduced_motion" => Op::ReducedMotion,
         other => Op::Invalid(format!("unknown op `{other}`")),
     })
 }

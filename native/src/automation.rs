@@ -29,6 +29,7 @@ impl Runtime {
         let no_app = || ("no app to act on".to_string(), Value::Null);
         match op {
             Op::Ping => Ok(Some(json!("pong"))),
+            Op::ReducedMotion => Ok(Some(json!(crate::preferences::reduced_motion()))),
             Op::Invalid(e) => Err((e, Value::Null)),
             Op::Dialog(dialog) => {
                 if self.opts.headless {

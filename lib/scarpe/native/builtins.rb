@@ -45,6 +45,11 @@ module Scarpe::Native
     def answer(cmd_name, args)
       return dialog(cmd_name, args[0], args[1]) if DIALOGS.include?(cmd_name)
 
+      if cmd_name == "reduced_motion"
+        reply = @service.child.request(:reduced_motion)
+        return reply["error"].nil? && reply["value"] == true
+      end
+
       if cmd_name == "font"
         @service.register_font(args.first)
       else

@@ -34,6 +34,14 @@ class TestBuiltinResponse < Minitest::Test
 end
 
 class TestBuiltins < NienteTest
+  def test_reduced_motion_is_false_when_the_display_has_no_os_query
+    run_test_niente_code(<<~'APP', app_test_code: <<~'TEST')
+      Shoes.app { @preference = reduced_motion? }
+    APP
+      assert_equal false, Shoes.APPS.first.instance_variable_get(:@preference)
+    TEST
+  end
+
   # Every test here replaces the osascript fallback on the app first,
   # so a regression can never open a real dialog.
   def test_nil_answer_does_not_fall_back
