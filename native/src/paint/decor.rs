@@ -4,6 +4,7 @@ use super::{with_shader, Canvas};
 use crate::doc::Node;
 use crate::elements::image::ImageCache;
 use crate::layout::{LBox, Layout, Rect};
+use crate::scrollbar::Geometry;
 use crate::style::{Color, Paint};
 use tiny_skia::{FillRule, LineJoin, Stroke, Transform};
 
@@ -42,16 +43,9 @@ const SCROLLBAR: Color = Color::rgba(0, 0, 0, 90);
 
 /// A thin overlay thumb on every slot whose content overflows it.
 pub fn scrollbars(canvas: &mut Canvas, layout: &Layout) {
-    for (id, s) in &layout.scrollers {
-        if s.max_top() <= 0.5 {
-            continue;
+    for &id in layout.scrollers.keys() {
+        if let Some(g) = Geometry::for_slot(layout, id) {
+            canvas.fill_rounded(g.thumb, 2.5, SCROLLBAR, Some(g.clip));
         }
-        let v = s.viewport;
-        let clip = layout.boxes.get(id).and_then(|b| b.clip);
-        let track = v.h - 4.0;
-        let thumb = (track * v.h / s.content_height).max(24.0).min(track);
-        let y = v.y + 2.0 + (track - thumb) * (s.top / s.max_top());
-        let bar = Rect::new(v.right() - 8.0, y, 5.0, thumb);
-        canvas.fill_rounded(bar, 2.5, SCROLLBAR, clip.or(Some(v)));
     }
 }

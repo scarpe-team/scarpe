@@ -513,6 +513,7 @@ impl ApplicationHandler<UserEvent> for Shell {
             }
             WindowEvent::ScaleFactorChanged { .. } => self.rt.request_redraw(app),
             WindowEvent::Focused(true) => self.rt.active_app = Some(app),
+            WindowEvent::Focused(false) => self.rt.cancel_pointer_drag(app),
             WindowEvent::CursorMoved { position, .. } => {
                 let p = position.to_logical::<f64>(scale);
                 self.rt.pointer_move(app, p.x as f32, p.y as f32);

@@ -429,6 +429,67 @@ fn parts_never_collide_with_drawables() {
     assert_eq!(a11y::part_of(a11y::part(-10, 2)), Some((-10, 2)), "a dialog's own window has a negative id");
 }
 
+#[test]
+fn inert_subtrees_leave_the_adapter_and_reject_stale_control_link_and_option_actions() {
+    let mut h = Harness::new();
+    h.feed(&app(400, 300, &[
+        create(3, "Stack", 2, json!({"width":200,"height":200})),
+        span(5, "Link", json!({"text_items":["Read"],"has_block":true})),
+        para(4, 3, json!([5])),
+        create(6, "ListBox", 3, json!({"items":["Tea","Coffee"]})),
+        create(7, "EditLine", 3, json!({"text":"kept"})),
+        create(8, "Button", 2, json!({"text":"Dialog","left":240,"top":20})),
+    ]));
+    let option = one(&mut h, "combo_box")["children"][0]["id"].clone();
+    act(&mut h, &json!(7), "focus", None);
+    let mut adapter = Adapter::new();
+    adapter.push(&mut h);
+    h.feed(&json!({"t":"props","id":3,"props":{"inert":true}}).to_string());
+    adapter.push(&mut h);
+    adapter.in_step(&mut h);
+    assert_eq!(nodes(&mut h).iter().map(|n| n["id"].clone()).collect::<Vec<_>>(), vec![json!(1), json!(8)]);
+    for (id, action, value) in [
+        (json!(5), "click", None), (json!(6), "expand", None), (option, "click", None),
+        (json!(6), "set_value", Some("Coffee")), (json!(7), "focus", None), (json!(7), "set_value", Some("changed")),
+    ] {
+        let (events, reply) = act(&mut h, &id, action, value);
+        assert!(reply["error"].is_string(), "an old screen-reader reference is inactive: {reply}");
+        assert!(events.is_empty());
+    }
+    let (events, reply) = act(&mut h, &json!(8), "click", None);
+    assert_eq!(reply["error"], Value::Null);
+    assert_eq!(named(&events, "click")[0].1, json!(8));
+    h.feed(&json!({"t":"props","id":3,"props":{"inert":false}}).to_string());
+    adapter.push(&mut h);
+    adapter.in_step(&mut h);
+    assert_eq!(one(&mut h, "text_input")["value"], json!("kept"));
+    assert_eq!(act(&mut h, &json!(5), "click", None).1["error"], Value::Null);
+}
+
+#[test]
+fn inert_inline_spans_keep_their_ink_but_hide_their_text_and_links_from_accessibility() {
+    let mut h = Harness::new();
+    h.feed(&app(400, 200, &[
+        span(5, "Link", json!({"text_items":["Read"],"has_block":true})),
+        span(4, "Strong", json!({"text_items":[5]})),
+        para(3, 2, json!([4])),
+    ]));
+    let bounds = one(&mut h, "link")["bounds"].clone();
+    let x = bounds[0].as_f64().unwrap() + bounds[2].as_f64().unwrap() / 2.0;
+    let y = bounds[1].as_f64().unwrap() + bounds[3].as_f64().unwrap() / 2.0;
+    h.value(json!({"op":"mouse","action":"down","x":x,"y":y,"button":1}));
+    h.feed(&json!({"t":"props","id":4,"props":{"inert":true}}).to_string());
+    assert_eq!(h.node(|n| n["id"] == 3)["text"], json!("Read"));
+    assert_eq!(nodes(&mut h).len(), 1);
+    assert!(act(&mut h, &json!(5), "click", None).1["error"].is_string());
+    let (messages, _) = h.req(json!({"op":"click","target":{"id":5}}));
+    assert!(named(&events(&messages), "click").is_empty());
+    h.feed(&json!({"t":"props","id":4,"props":{"inert":null}}).to_string());
+    let (messages, _) = h.req(json!({"op":"mouse","action":"up","x":x,"y":y,"button":1}));
+    assert!(named(&events(&messages), "click").is_empty(), "the original press was cancelled");
+    assert_eq!(act(&mut h, &json!(5), "click", None).1["error"], Value::Null);
+}
+
 struct Quiet;
 
 impl TreeChangeHandler for Quiet {

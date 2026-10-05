@@ -843,10 +843,20 @@ change the code and this list together.
 - **Wheel.** `req wheel` takes `dy` in logical px with DOM sign: positive scrolls down (content
   moves up). The `wheel` event sent to subscription items carries `delta = -dy` (positive = up)
   and window coordinates. Scrolling a slot or the window also sends `scroll {id, top}`. A scroll
-  (wheel or `scroll_to`) moves what the slot holds within the layout that stands, from where it
+  (wheel, scrollbar or `scroll_to`) moves what the slot holds within the layout that stands, from where it
   was laid out by the scrollers' offsets, rather than laying the window out again; Ruby still
   hears every rect that moved (contract a), so a slot of 5000 rows re-sends 5000 rects a tick.
   A layout with anything `attach`ed lays out again instead.
+- **Scrollbars.** Painting and input share `scrollbar::Geometry`: a 5 px overlay thumb, at least
+  24 px tall (capped to the track), with a 12 px hit strip inside the viewport's right edge.
+  Both respect the viewport, ancestor clip and window bounds. A primary press on the thumb
+  captures its grab offset; motion maps the thumb's travel to the slot's scroll range, clamped
+  at both ends. A track press pages once by 90% of the viewport height. Both report `scroll`
+  and the moved layout rects, preserve focus, and consume the press and release. The innermost
+  eligible scroller in the hit chain wins; covering siblings block it. Capture ends on primary
+  release even without a pointer position. Losing focus, opening a popup/modal, removing the
+  slot, or a layout that hides/clips it out or removes overflow cancels the drag; its release
+  stays consumed. A fresh press can recover if the window never received the previous release.
 - **Hit-testing.** Nothing is hit outside the window, so moving the pointer to (-1, -1) leaves every
   drawable including the DocumentRoot. Backgrounds and borders never catch the pointer. A clipped
   slot's hidden part catches nothing.

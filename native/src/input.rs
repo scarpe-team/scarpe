@@ -13,6 +13,7 @@ use crate::layout::{Layout, TextBox};
 use crate::props::Id;
 use crate::protocol::Outgoing;
 use crate::runtime::{Effect, Runtime};
+use crate::scrollbar;
 use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
 use std::time::{Duration, Instant};
@@ -268,6 +269,8 @@ pub enum PressKind {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Press {
     pub target: Id,
+    /// Original hit ancestry, including inline spans that have no document parent.
+    pub chain: Vec<Id>,
     pub button: u8,
     pub kind: PressKind,
     /// An input widget or link took the press, so slot subscriptions stay quiet.
@@ -319,6 +322,7 @@ pub struct ViewState {
     pub hover_items: HashSet<Id>,
     pub hover_para: Option<(Id, Option<i64>)>,
     pub pressed: Option<Press>,
+    pub(crate) scrollbar_press: Option<scrollbar::Press>,
     pub focus: Option<Id>,
     /// Focus arrived from the keyboard (tab, `focus`): buttons show their ring.
     pub focus_visible: bool,
@@ -346,6 +350,9 @@ impl ViewState {
         if self.pressed.as_ref().is_some_and(|p| gone(&p.target)) {
             self.pressed = None;
         }
+        if self.scrollbar_press.and_then(|p| p.drag).is_some_and(|d| gone(&d.id)) {
+            self.cancel_scrollbar_drag();
+        }
         if self.focus.is_some_and(|id| gone(&id)) {
             self.focus = None;
         }
@@ -357,6 +364,16 @@ impl ViewState {
         }
         self.fields.retain(|id, _| !gone(id));
         self.scroll.retain(|id, _| !gone(id));
+    }
+
+    pub(crate) fn cancel_scrollbar_drag(&mut self) {
+        if let Some(press) = &mut self.scrollbar_press {
+            press.drag = None;
+        }
+    }
+
+    fn scrollbar_held(&self) -> bool {
+        self.scrollbar_press.is_some() && self.buttons & 1 != 0
     }
 
     fn click_count(&mut self, x: f32, y: f32) -> u32 {
@@ -388,11 +405,12 @@ pub fn hit_test(doc: &Doc, layout: &Layout, x: f32, y: f32) -> Option<Hit> {
     }
     if let Some(id) = layout.order.iter().rev().copied().find(|&id| covers(doc, layout, id, x, y)) {
         let node = doc.get(id)?;
-        let fragment = layout.texts.get(&id).filter(|_| matches!(node.kind, Kind::Para | Kind::TextDrawable)).and_then(|tb| span_at(tb, x, y));
+        let fragment = layout.texts.get(&id).filter(|_| matches!(node.kind, Kind::Para | Kind::TextDrawable)).and_then(|tb| span_at(tb, x, y))
+            .filter(|meta| !meta.spans.iter().any(|&span| doc.is_inert(span)));
         let (link, spans) = fragment.map(|m| (m.link, m.spans.clone())).unwrap_or_default();
         return Some(Hit { node: id, link, spans });
     }
-    layout.boxes.contains_key(&layout.root).then_some(Hit { node: layout.root, link: None, spans: Vec::new() })
+    (!doc.is_inert(layout.root) && layout.boxes.contains_key(&layout.root)).then_some(Hit { node: layout.root, link: None, spans: Vec::new() })
 }
 
 /// Every drawable under (x, y) that can catch the pointer, topmost first.
@@ -408,7 +426,7 @@ pub fn under(doc: &Doc, layout: &Layout, x: f32, y: f32) -> Vec<Id> {
 /// on the line.
 fn covers(doc: &Doc, layout: &Layout, id: Id, x: f32, y: f32) -> bool {
     let Some(node) = doc.get(id) else { return false };
-    if node.kind.is_decor() || id == layout.root {
+    if node.kind.is_decor() || id == layout.root || doc.is_inert(id) {
         return false;
     }
     let Some(b) = layout.boxes.get(&id) else { return false };
@@ -514,13 +532,45 @@ fn api(doc: &Doc, item: Id) -> Option<&str> {
 }
 
 impl Runtime {
+    /// A props change or reparent can make an ongoing interaction inert. Keep field and scroll
+    /// state, but drop focus, captures and popups so re-enabling cannot resume an old press.
+    pub(crate) fn clear_inert_input(&mut self) {
+        for app in self.views.keys().copied().collect::<Vec<_>>() {
+            if self.views[&app].ui.focus.is_some_and(|id| self.doc.is_inert(id)) {
+                self.set_focus(app, None);
+            }
+            let view = self.views.get_mut(&app).expect("view");
+            if view.ui.pressed.as_ref().is_some_and(|p| p.chain.iter().any(|&id| self.doc.is_inert(id))) {
+                view.ui.pressed = None;
+            }
+            if view.ui.scrollbar_press.and_then(|p| p.drag).is_some_and(|drag| self.doc.is_inert(drag.id)) {
+                view.ui.cancel_scrollbar_drag();
+            }
+            if view.ui.popup.as_ref().is_some_and(|p| self.doc.is_inert(p.list_box)) {
+                view.ui.popup = None;
+            }
+            let leaving: Vec<Id> = view.ui.hover_items.iter().copied().filter(|&id| self.doc.is_inert(id)).collect();
+            for id in leaving {
+                view.ui.hover_items.remove(&id);
+                if api(&self.doc, id) == Some("leave") {
+                    self.out.event("leave", Some(id), vec![]);
+                }
+            }
+            if let Some((x, y)) = view.ui.pointer {
+                let hit = view.layout.as_ref().and_then(|layout| hit_test(&self.doc, layout, x, y));
+                self.update_hover(app, hit, x, y, false);
+            }
+            self.request_redraw(app);
+        }
+    }
+
     /// Items of one api (click, motion, keypress...) with their parent slot's box.
     fn subscriptions(&self, app: Id, name: &str) -> Vec<(Id, crate::layout::LBox)> {
         let Some(layout) = self.views.get(&app).and_then(|v| v.layout.as_ref()) else { return Vec::new() };
         layout
             .subscriptions
             .iter()
-            .filter(|&&item| api(&self.doc, item) == Some(name))
+            .filter(|&&item| !self.doc.is_inert(item) && api(&self.doc, item) == Some(name))
             .filter_map(|&item| {
                 let parent = self.doc.get(item)?.parent?;
                 Some((item, layout.boxes.get(&parent)?.clone()))
@@ -575,6 +625,12 @@ impl Runtime {
                     popup.hovered = Some(i);
                     self.request_redraw(app);
                 }
+            }
+            return;
+        }
+        if view.ui.scrollbar_held() {
+            if moved {
+                self.drag_scrollbar(app, y);
             }
             return;
         }
@@ -678,7 +734,13 @@ impl Runtime {
     /// App's `cursor` (Shoes 3's `app.cursor = :watch_cursor`), else the arrow.
     pub fn refresh_cursor(&mut self, app: Id) {
         let Some(view) = self.views.get(&app) else { return };
-        let over = view.ui.hover_chain.iter().find_map(|id| self.doc.get(*id).and_then(cursor_of));
+        let on_scrollbar = view.ui.scrollbar_held()
+            || view.ui.pointer.is_some_and(|(x, y)| self.scrollbar_at(app, &view.ui.hover_chain, x, y).is_some());
+        let over = if on_scrollbar {
+            Some(CursorShape::Arrow)
+        } else {
+            view.ui.hover_chain.iter().find_map(|id| self.doc.get(*id).and_then(cursor_of))
+        };
         let cursor = over
             .or_else(|| self.doc.get(app).and_then(|n| n.props.str("cursor")).and_then(CursorShape::parse))
             .unwrap_or_default();
@@ -725,6 +787,12 @@ impl Runtime {
         self.ensure_layout(app);
         self.views.get_mut(&app).expect("view").ui.buttons |= 1 << (button - 1);
         self.send_mouse_state(app);
+        if button == 1 {
+            // A fresh press also recovers from a release the window never received.
+            self.views.get_mut(&app).expect("view").ui.scrollbar_press = None;
+        } else if self.views[&app].ui.scrollbar_held() {
+            return;
+        }
         if self.modal_pointer(app, x, y, crate::dialogs::PointerPhase::Down) {
             return;
         }
@@ -734,6 +802,9 @@ impl Runtime {
         }
         let Some(hit) = self.hit(app, x, y) else { return };
         let chain = chain(&self.doc, &hit);
+        if button == 1 && self.press_scrollbar(app, &chain, x, y) {
+            return;
+        }
         let kind = match self.doc.get(hit.node) {
             Some(n) if crate::elements::disabled(n) => Kind::Unknown("disabled".into()),
             Some(n) => n.kind.clone(),
@@ -759,7 +830,7 @@ impl Runtime {
         } else if !consumed {
             self.set_focus(app, None);
         }
-        self.views.get_mut(&app).expect("view").ui.pressed = Some(Press { target, button, kind: press_kind, consumed });
+        self.views.get_mut(&app).expect("view").ui.pressed = Some(Press { target, chain: chain.clone(), button, kind: press_kind, consumed });
         if !consumed {
             let args = vec![json!(button), json!(x.round() as i64), json!(y.round() as i64)];
             for id in self.listeners(app, &hit, &chain, x, y, "click") {
@@ -831,9 +902,24 @@ impl Runtime {
     }
 
     pub fn pointer_up(&mut self, app: Id, button: u8) {
-        let Some((x, y)) = self.views.get(&app).and_then(|v| v.ui.pointer) else { return };
-        self.views.get_mut(&app).expect("view").ui.buttons &= !(1 << (button - 1));
+        let Some(view) = self.views.get_mut(&app) else { return };
+        let captured = view.ui.scrollbar_press.is_some() && (button == 1 || view.ui.scrollbar_held());
+        view.ui.buttons &= !(1 << (button - 1));
+        if captured && button == 1 {
+            view.ui.scrollbar_press = None;
+        }
         self.send_mouse_state(app);
+        let Some((x, y)) = self.views[&app].ui.pointer else {
+            self.views.get_mut(&app).expect("view").ui.pressed = None;
+            return;
+        };
+        if captured {
+            if button == 1 {
+                let hit = self.hit(app, x, y);
+                self.update_hover(app, hit, x, y, false);
+            }
+            return;
+        }
         if self.modal_pointer(app, x, y, crate::dialogs::PointerPhase::Up) {
             return;
         }
@@ -894,6 +980,9 @@ impl Runtime {
     }
 
     pub fn set_focus(&mut self, app: Id, id: Option<Id>) {
+        if id.is_some_and(|id| self.doc.is_inert(id)) {
+            return;
+        }
         let Some(view) = self.views.get_mut(&app) else { return };
         if view.ui.focus != id {
             view.ui.focus = id;
@@ -911,6 +1000,78 @@ impl Runtime {
             return;
         }
         view.ui.popup = Some(Popup::open(node, anchor, view.size, &mut self.text));
+        view.ui.cancel_scrollbar_drag();
+        self.request_redraw(app);
+    }
+
+    /// The innermost scrollbar in the hit chain wins. A covering sibling cannot reach it.
+    fn scrollbar_at(&self, app: Id, chain: &[Id], x: f32, y: f32) -> Option<(Id, scrollbar::Geometry)> {
+        let layout = self.views.get(&app)?.layout.as_ref()?;
+        chain.iter().filter(|&&id| !self.doc.is_inert(id)).find_map(|&id| {
+            let g = scrollbar::Geometry::for_slot(layout, id)?;
+            g.contains(x, y).then_some((id, g))
+        })
+    }
+
+    fn press_scrollbar(&mut self, app: Id, chain: &[Id], x: f32, y: f32) -> bool {
+        let Some((id, g)) = self.scrollbar_at(app, chain, x, y) else { return false };
+        let on_thumb = y >= g.thumb.y && y < g.thumb.bottom();
+        let drag = (on_thumb && g.travel() > 0.0).then_some(scrollbar::Drag { id, grab: y - g.thumb.y });
+        let ui = &mut self.views.get_mut(&app).expect("view").ui;
+        ui.scrollbar_press = Some(scrollbar::Press { drag });
+        ui.pressed = None;
+        if let Some(tip) = ui.tooltip.as_mut() {
+            tip.dismissed = true;
+        }
+        if !on_thumb {
+            let s = &self.views[&app].layout.as_ref().expect("layout").scrollers[&id];
+            let direction = if y < g.thumb.y { -1.0 } else { 1.0 };
+            self.scroll_from_pointer(app, id, s.top + direction * s.viewport.h * 0.9);
+        }
+        self.refresh_cursor(app);
+        self.request_redraw(app);
+        true
+    }
+
+    /// A hidden, removed, clipped-out or no-longer-overflowing slot cannot regain a drag.
+    pub(crate) fn validate_scrollbar_drag(&mut self, app: Id) {
+        let Some(view) = self.views.get_mut(&app) else { return };
+        let Some(press) = view.ui.scrollbar_press.as_mut() else { return };
+        if let Some(drag) = press.drag.as_mut() {
+            match view.layout.as_ref().and_then(|l| scrollbar::Geometry::for_slot(l, drag.id)).filter(|g| g.travel() > 0.0 && !self.doc.is_inert(drag.id)) {
+                Some(g) => drag.grab = drag.grab.min(g.thumb.h),
+                None => press.drag = None,
+            }
+        }
+    }
+
+    fn drag_scrollbar(&mut self, app: Id, y: f32) {
+        self.validate_scrollbar_drag(app);
+        let view = &self.views[&app];
+        if let Some(drag) = view.ui.scrollbar_press.and_then(|p| p.drag) {
+            if let Some(g) = view.layout.as_ref().and_then(|l| scrollbar::Geometry::for_slot(l, drag.id)) {
+                self.scroll_from_pointer(app, drag.id, g.top_at(y, drag.grab));
+            }
+        }
+    }
+
+    fn scroll_from_pointer(&mut self, app: Id, id: Id, top: f32) {
+        let Some(s) = self.views.get(&app).and_then(|v| v.layout.as_ref()).and_then(|l| l.scrollers.get(&id)) else { return };
+        let top = top.clamp(0.0, s.max_top());
+        if top != s.top {
+            self.out.send(Outgoing::Scroll { id, top: top.round() as i64 });
+            self.scroll_slot(app, id, top);
+        }
+    }
+
+    /// Focus can leave before the matching release arrives (for example, on Alt-Tab).
+    pub fn cancel_pointer_drag(&mut self, app: Id) {
+        if let Some(view) = self.views.get_mut(&app) {
+            view.ui.cancel_scrollbar_drag();
+            view.ui.pressed = None;
+            view.ui.buttons = 0;
+        }
+        self.send_mouse_state(app);
         self.request_redraw(app);
     }
 
@@ -978,7 +1139,7 @@ impl Runtime {
     fn editable_focus(&self, app: Id) -> Option<Id> {
         let id = self.views.get(&app)?.ui.focus?;
         let node = self.doc.get(id).filter(|n| n.kind.is_text_input())?;
-        (!crate::elements::readonly(node) && !crate::elements::disabled(node)).then_some(id)
+        (!self.doc.is_inert(id) && !crate::elements::readonly(node) && !crate::elements::disabled(node)).then_some(id)
     }
 
     /// Text an input method committed (a dead key's accent, a word of Japanese): into the
@@ -1035,7 +1196,7 @@ impl Runtime {
         if self.popup_key(app, &key) {
             return;
         }
-        let focus = self.views[&app].ui.focus.filter(|id| self.doc.get(*id).is_some_and(|n| !crate::elements::disabled(n)));
+        let focus = self.views[&app].ui.focus.filter(|id| !self.doc.is_inert(*id) && self.doc.get(*id).is_some_and(|n| !crate::elements::disabled(n)));
         let focus_kind = focus.and_then(|id| self.doc.get(id)).map(|n| n.kind.clone());
         let tab = key.key == Key::Named(Named::Tab) && !key.modified();
         // A button, check, radio or list box takes keys only while it shows its focus ring,
@@ -1130,7 +1291,7 @@ impl Runtime {
             .order
             .iter()
             .copied()
-            .filter(|id| self.doc.get(*id).is_some_and(|n| n.kind.is_focusable() && !crate::elements::disabled(n)) && layout.visible_rect(*id).is_some())
+            .filter(|id| !self.doc.is_inert(*id) && self.doc.get(*id).is_some_and(|n| n.kind.is_focusable() && !crate::elements::disabled(n)) && layout.visible_rect(*id).is_some())
             .collect();
         if order.is_empty() {
             return false;

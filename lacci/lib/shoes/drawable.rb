@@ -324,6 +324,9 @@ class Shoes
     # Tooltip text shown on hover (HTML title attribute)
     shoes_style :tooltip
 
+    # Keep the subtree visible while disabling native input and accessibility.
+    shoes_style :inert
+
     # The click handler is this style (manual 1144-1151, ledger G10): click: proc { }
     # when the drawable is made, or whatever block click was last given.
     shoes_style :click

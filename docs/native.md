@@ -127,6 +127,21 @@ across and `width: 0.5` half as wide. Art (`rect`, `oval`, `shape` and the rest)
 number as pixels, Floats included. DESIGN section 6 has the whole rule, and ledger C1, C10, C15
 and C18 say why.
 
+## Scrolling
+
+The window and fixed-height slots with `scroll: true` show a thin scrollbar when their content
+overflows. Drag its thumb with the primary mouse button, or click the track above or below it
+to move by 90% of the viewport height. The wheel and Ruby's `slot.scroll_top = ...` work too;
+`slot.scroll_top` stays current after dragging or clicking the track.
+
+Scrollbar presses keep the current keyboard focus and consume the click and release, so a
+button or slot beneath the scrollbar does not activate. Nested scrollers use the innermost
+scrollbar under the pointer. Releasing the button ends the drag, including outside the window;
+hiding or removing the scroller, losing window focus, or opening a menu or modal cancels it.
+
+Making a scroller or its ancestor inert cancels an active scrollbar drag permanently;
+re-enabling it requires a new press. Reparenting into an inert subtree has the same effect.
+
 ## Text sizes, and Shoes 3's text
 
 A text size is pixels: `para` is 12 px tall and `title` 34, as the manual says (ledger M14).
@@ -175,6 +190,30 @@ a11y_action check("@keep"), :click
 
 The cases in `spec/accessibility/` show the rest, and DESIGN section 12 lists exactly what each
 drawable becomes.
+
+## Inert content
+
+Set `inert: true` on a drawable or slot to keep it visible while its entire subtree stops taking
+pointer, wheel, keyboard and screen-reader input. This is useful for content behind a custom
+dialog, or a view that is still being drawn while leaving the screen:
+
+```ruby
+@content = stack do
+  @search = edit_line ""
+  button("Search") { search(@search.text) }
+end
+@content.inert = true
+# When the dialog closes:
+@content.style(inert: false)
+@search.focus
+```
+
+Inert content keeps its layout, appearance, text and scroll position, but leaves the accessibility
+tree. Making a subtree inert clears any focus inside it, cancels an active press or selection
+drag, and closes its open list-box popup. Setting `inert` to `false` or `nil` removes that node's
+own setting; an inert ancestor still applies. Restoring interaction does not restore focus
+automatically. App-level handlers outside the subtree keep running, so custom dialogs still
+need to manage their own shortcuts and focus.
 
 ## Running a program in a process of its own
 

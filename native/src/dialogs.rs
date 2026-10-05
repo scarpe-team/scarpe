@@ -259,6 +259,7 @@ impl Runtime {
         }
         let modal = self.modal(req, dialog, false);
         if let Some(view) = self.views.get_mut(&app) {
+            view.ui.cancel_scrollbar_drag();
             view.ui.modal = Some(modal);
         }
         self.request_redraw(app);
