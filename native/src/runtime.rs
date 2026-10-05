@@ -213,6 +213,7 @@ impl Runtime {
             Incoming::Reparent { id, parent, index } => {
                 self.doc.reparent(id, parent, index);
                 self.revisions.touch(id);
+                self.clear_inert_input();
                 self.invalidate();
             }
             Incoming::Run { app } => self.run_app(app),
@@ -221,7 +222,7 @@ impl Runtime {
                 if let Some(app) = self.doc.app_of(id) {
                     self.ensure_layout(app);
                     self.set_focus(app, Some(id));
-                    if let Some(view) = self.views.get_mut(&app) {
+                    if let Some(view) = self.views.get_mut(&app).filter(|v| v.ui.focus == Some(id)) {
                         view.ui.focus_visible = true;
                     }
                 }
@@ -294,12 +295,16 @@ impl Runtime {
         let restyled = ["font", "stroke", "secret"].iter().any(|k| props.contains_key(*k));
         let opacity = props.get("opacity").and_then(Value::as_f64).map(|o| o as f32);
         let recursor = props.contains_key("cursor");
+        let reinert = props.contains_key("inert");
         self.pictures_to_check |= ["url", "icon", "fill", "stroke", "draw_context"].iter().any(|k| props.contains_key(*k));
         let looks_only = self.doc.get(id).is_some_and(|n| props.keys().all(|key| changes_only_looks(&n.kind, key)));
         if !self.doc.set_props(id, props) {
             return;
         }
         self.revisions.touch(id);
+        if reinert {
+            self.clear_inert_input();
+        }
         let kind = self.doc.get(id).map(|n| n.kind.clone());
         match kind {
             Some(Kind::App) => {
@@ -664,6 +669,9 @@ impl Runtime {
 /// paint reads them from the node itself. A line's strokewidth is not one (its box includes the
 /// stroke), nor is anything a Para shapes into its text.
 fn changes_only_looks(kind: &Kind, key: &str) -> bool {
+    if key == "inert" {
+        return true;
+    }
     match kind {
         k if k.is_art() => matches!(key, "fill" | "stroke" | "cap"),
         Kind::Background | Kind::Border => matches!(key, "fill" | "stroke" | "strokewidth" | "curve"),

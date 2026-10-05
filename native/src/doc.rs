@@ -460,6 +460,19 @@ impl Doc {
         out
     }
 
+    /// An inert node or ancestor keeps its subtree painted, but takes no input.
+    pub fn is_inert(&self, id: Id) -> bool {
+        let mut current = Some(id);
+        for _ in 0..=self.nodes.len() {
+            let Some(node) = current.and_then(|id| self.get(id)) else { return false };
+            if node.props.truthy("inert") {
+                return true;
+            }
+            current = node.parent;
+        }
+        false
+    }
+
     /// Whether `id` is `ancestor` or sits somewhere inside it.
     pub fn is_descendant_of(&self, id: Id, ancestor: Id) -> bool {
         let mut current = Some(id);

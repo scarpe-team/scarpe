@@ -268,6 +268,8 @@ pub enum PressKind {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Press {
     pub target: Id,
+    /// Original hit ancestry, including inline spans that have no document parent.
+    pub chain: Vec<Id>,
     pub button: u8,
     pub kind: PressKind,
     /// An input widget or link took the press, so slot subscriptions stay quiet.
@@ -388,11 +390,12 @@ pub fn hit_test(doc: &Doc, layout: &Layout, x: f32, y: f32) -> Option<Hit> {
     }
     if let Some(id) = layout.order.iter().rev().copied().find(|&id| covers(doc, layout, id, x, y)) {
         let node = doc.get(id)?;
-        let fragment = layout.texts.get(&id).filter(|_| matches!(node.kind, Kind::Para | Kind::TextDrawable)).and_then(|tb| span_at(tb, x, y));
+        let fragment = layout.texts.get(&id).filter(|_| matches!(node.kind, Kind::Para | Kind::TextDrawable)).and_then(|tb| span_at(tb, x, y))
+            .filter(|meta| !meta.spans.iter().any(|&span| doc.is_inert(span)));
         let (link, spans) = fragment.map(|m| (m.link, m.spans.clone())).unwrap_or_default();
         return Some(Hit { node: id, link, spans });
     }
-    layout.boxes.contains_key(&layout.root).then_some(Hit { node: layout.root, link: None, spans: Vec::new() })
+    (!doc.is_inert(layout.root) && layout.boxes.contains_key(&layout.root)).then_some(Hit { node: layout.root, link: None, spans: Vec::new() })
 }
 
 /// Every drawable under (x, y) that can catch the pointer, topmost first.
@@ -408,7 +411,7 @@ pub fn under(doc: &Doc, layout: &Layout, x: f32, y: f32) -> Vec<Id> {
 /// on the line.
 fn covers(doc: &Doc, layout: &Layout, id: Id, x: f32, y: f32) -> bool {
     let Some(node) = doc.get(id) else { return false };
-    if node.kind.is_decor() || id == layout.root {
+    if node.kind.is_decor() || id == layout.root || doc.is_inert(id) {
         return false;
     }
     let Some(b) = layout.boxes.get(&id) else { return false };
@@ -514,13 +517,42 @@ fn api(doc: &Doc, item: Id) -> Option<&str> {
 }
 
 impl Runtime {
+    /// A props change or reparent can make an ongoing interaction inert. Keep field and scroll
+    /// state, but drop focus, captures and popups so re-enabling cannot resume an old press.
+    pub(crate) fn clear_inert_input(&mut self) {
+        for app in self.views.keys().copied().collect::<Vec<_>>() {
+            if self.views[&app].ui.focus.is_some_and(|id| self.doc.is_inert(id)) {
+                self.set_focus(app, None);
+            }
+            let view = self.views.get_mut(&app).expect("view");
+            if view.ui.pressed.as_ref().is_some_and(|p| p.chain.iter().any(|&id| self.doc.is_inert(id))) {
+                view.ui.pressed = None;
+            }
+            if view.ui.popup.as_ref().is_some_and(|p| self.doc.is_inert(p.list_box)) {
+                view.ui.popup = None;
+            }
+            let leaving: Vec<Id> = view.ui.hover_items.iter().copied().filter(|&id| self.doc.is_inert(id)).collect();
+            for id in leaving {
+                view.ui.hover_items.remove(&id);
+                if api(&self.doc, id) == Some("leave") {
+                    self.out.event("leave", Some(id), vec![]);
+                }
+            }
+            if let Some((x, y)) = view.ui.pointer {
+                let hit = view.layout.as_ref().and_then(|layout| hit_test(&self.doc, layout, x, y));
+                self.update_hover(app, hit, x, y, false);
+            }
+            self.request_redraw(app);
+        }
+    }
+
     /// Items of one api (click, motion, keypress...) with their parent slot's box.
     fn subscriptions(&self, app: Id, name: &str) -> Vec<(Id, crate::layout::LBox)> {
         let Some(layout) = self.views.get(&app).and_then(|v| v.layout.as_ref()) else { return Vec::new() };
         layout
             .subscriptions
             .iter()
-            .filter(|&&item| api(&self.doc, item) == Some(name))
+            .filter(|&&item| !self.doc.is_inert(item) && api(&self.doc, item) == Some(name))
             .filter_map(|&item| {
                 let parent = self.doc.get(item)?.parent?;
                 Some((item, layout.boxes.get(&parent)?.clone()))
@@ -759,7 +791,7 @@ impl Runtime {
         } else if !consumed {
             self.set_focus(app, None);
         }
-        self.views.get_mut(&app).expect("view").ui.pressed = Some(Press { target, button, kind: press_kind, consumed });
+        self.views.get_mut(&app).expect("view").ui.pressed = Some(Press { target, chain: chain.clone(), button, kind: press_kind, consumed });
         if !consumed {
             let args = vec![json!(button), json!(x.round() as i64), json!(y.round() as i64)];
             for id in self.listeners(app, &hit, &chain, x, y, "click") {
@@ -894,6 +926,9 @@ impl Runtime {
     }
 
     pub fn set_focus(&mut self, app: Id, id: Option<Id>) {
+        if id.is_some_and(|id| self.doc.is_inert(id)) {
+            return;
+        }
         let Some(view) = self.views.get_mut(&app) else { return };
         if view.ui.focus != id {
             view.ui.focus = id;
@@ -978,7 +1013,7 @@ impl Runtime {
     fn editable_focus(&self, app: Id) -> Option<Id> {
         let id = self.views.get(&app)?.ui.focus?;
         let node = self.doc.get(id).filter(|n| n.kind.is_text_input())?;
-        (!crate::elements::readonly(node) && !crate::elements::disabled(node)).then_some(id)
+        (!self.doc.is_inert(id) && !crate::elements::readonly(node) && !crate::elements::disabled(node)).then_some(id)
     }
 
     /// Text an input method committed (a dead key's accent, a word of Japanese): into the
@@ -1035,7 +1070,7 @@ impl Runtime {
         if self.popup_key(app, &key) {
             return;
         }
-        let focus = self.views[&app].ui.focus.filter(|id| self.doc.get(*id).is_some_and(|n| !crate::elements::disabled(n)));
+        let focus = self.views[&app].ui.focus.filter(|id| !self.doc.is_inert(*id) && self.doc.get(*id).is_some_and(|n| !crate::elements::disabled(n)));
         let focus_kind = focus.and_then(|id| self.doc.get(id)).map(|n| n.kind.clone());
         let tab = key.key == Key::Named(Named::Tab) && !key.modified();
         // A button, check, radio or list box takes keys only while it shows its focus ring,
@@ -1130,7 +1165,7 @@ impl Runtime {
             .order
             .iter()
             .copied()
-            .filter(|id| self.doc.get(*id).is_some_and(|n| n.kind.is_focusable() && !crate::elements::disabled(n)) && layout.visible_rect(*id).is_some())
+            .filter(|id| !self.doc.is_inert(*id) && self.doc.get(*id).is_some_and(|n| n.kind.is_focusable() && !crate::elements::disabled(n)) && layout.visible_rect(*id).is_some())
             .collect();
         if order.is_empty() {
             return false;

@@ -115,7 +115,7 @@ fn text_runs(doc: &Doc, block: Id) -> Vec<Run> {
                 TextItem::Ref(span_id) => {
                     let Some(span) = doc.get(span_id) else { continue };
                     let inline = span.kind.is_span() || span.kind == Kind::TextDrawable;
-                    if path.contains(&span_id) || !inline || span.props.truthy("hidden") {
+                    if path.contains(&span_id) || !inline || span.props.truthy("hidden") || doc.is_inert(span_id) {
                         continue;
                     }
                     let link = if span.kind == Kind::Link { Some(span_id) } else { link };
@@ -152,7 +152,7 @@ impl Builder<'_> {
 
     /// Laid out, and something a person reads or works.
     fn takes_part(&self, id: Id) -> bool {
-        self.layout.boxes.contains_key(&id)
+        !self.doc.is_inert(id) && self.layout.boxes.contains_key(&id)
             && self.doc.get(id).is_some_and(|n| {
                 !(n.kind.is_art() || n.kind.is_decor() || matches!(n.kind, Kind::Mask | Kind::SubscriptionItem | Kind::App | Kind::Unknown(_)))
             })
@@ -177,6 +177,9 @@ impl Builder<'_> {
     }
 
     fn element(&mut self, id: Id, before: Option<Id>, after: Option<Id>) -> Option<NodeId> {
+        if self.doc.is_inert(id) {
+            return None;
+        }
         let nid = node_id(id)?;
         let doc = self.doc;
         let node = doc.get(id)?;
@@ -491,6 +494,11 @@ impl Runtime {
             return Err(format!("no app {app}"));
         }
         self.ensure_layout(app);
+        // An adapter may still hold a reference from before a subtree became inert. Check
+        // the exposed tree, including inline links and synthetic list-box options.
+        if !self.a11y_tree(app, 1.0).nodes.iter().any(|(id, _)| *id == request.target_node) {
+            return Err(format!("node {} is not in the accessibility tree", request.target_node.0));
+        }
         let value = match &request.data {
             Some(ActionData::Value(v)) => Some(v.to_string()),
             _ => None,

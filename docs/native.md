@@ -176,6 +176,30 @@ a11y_action check("@keep"), :click
 The cases in `spec/accessibility/` show the rest, and DESIGN section 12 lists exactly what each
 drawable becomes.
 
+## Inert content
+
+Set `inert: true` on a drawable or slot to keep it visible while its entire subtree stops taking
+pointer, wheel, keyboard and screen-reader input. This is useful for content behind a custom
+dialog, or a view that is still being drawn while leaving the screen:
+
+```ruby
+@content = stack do
+  @search = edit_line ""
+  button("Search") { search(@search.text) }
+end
+@content.inert = true
+# When the dialog closes:
+@content.style(inert: false)
+@search.focus
+```
+
+Inert content keeps its layout, appearance, text and scroll position, but leaves the accessibility
+tree. Making a subtree inert clears any focus inside it, cancels an active press or selection
+drag, and closes its open list-box popup. Setting `inert` to `false` or `nil` removes that node's
+own setting; an inert ancestor still applies. Restoring interaction does not restore focus
+automatically. App-level handlers outside the subtree keep running, so custom dialogs still
+need to manage their own shortcuts and focus.
+
 ## Running a program in a process of its own
 
 `Shoes.run_program` starts another Shoes program, in a process of its own on the same Ruby and
