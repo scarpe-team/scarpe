@@ -102,6 +102,50 @@ fn nothing_changed_repaints_nothing() {
 }
 
 #[test]
+fn changing_group_opacity_repaints_descendants_outside_the_slots_box() {
+    let mut h = Harness::new();
+    h.feed(&app(640, 400, &[
+        create(3, "Stack", 2, json!({"left":20,"top":20,"width":100})),
+        create(4, "Para", 3, json!({"text_items":["Text extends well below its short declared height."],"width":100,"height":5})),
+        create(5, "Rect", 3, json!({"left":190,"top":0,"width":40,"height":40,"fill":{"rgba":[255,0,0,255]}})),
+        create(6, "Stack", 3, json!({"left":260,"top":10,"width":90,"height":60,"opacity":0.5})),
+        create(7, "Background", 6, json!({"fill":{"rgba":[0,0,255,255]}})),
+    ]));
+    for scale in [1.0, 1.25, 2.0] {
+        let mut window = Window::open(&mut h, scale);
+        for opacity in [json!(0.5), json!(0), json!(0.75), Value::Null] {
+            props(&mut h, 3, json!({"opacity":opacity}));
+            let plan = window.repaint(&mut h);
+            assert!(partial(&plan, &window, 0.4), "{plan:?}");
+            assert!(looks_like_a_full_paint(&mut h, &window));
+            assert_eq!(window.repaint(&mut h), Repaint::Nothing);
+        }
+    }
+}
+
+#[test]
+fn children_changing_inside_a_faded_masked_group_repaint_in_part() {
+    let mut h = Harness::new();
+    h.feed(&app(640, 400, &[
+        create(3, "Stack", 2, json!({"left":100,"top":70,"width":240,"height":160,"opacity":0.5})),
+        create(4, "Background", 3, json!({"fill":{"rgba":[255,0,0,255]}})),
+        create(5, "Mask", 3, json!({"left":0,"top":0,"width":240,"height":160})),
+        create(6, "Rect", 5, json!({"left":10,"top":10,"width":100,"height":80,"fill":{"rgba":[0,0,0,255]}})),
+        create(7, "Button", 3, json!({"text":"Save","left":20,"top":20})),
+    ]));
+    let mut window = Window::open(&mut h, 2.0);
+    for (id, changes) in [
+        (6, json!({"left":60})), (4, json!({"fill":{"rgba":[0,0,255,255]}})),
+        (7, json!({"text":"Saved"})), (5, json!({"opacity":0.5})), (3, json!({"opacity":0})),
+        (3, json!({"opacity":0.75})), (3, json!({"hidden":true})), (3, json!({"hidden":false})),
+    ] {
+        props(&mut h, id, changes);
+        assert!(partial(&window.repaint(&mut h), &window, 0.5));
+        assert!(looks_like_a_full_paint(&mut h, &window));
+    }
+}
+
+#[test]
 fn moving_a_shape_repaints_where_it_was_and_where_it_is() {
     let mut h = Harness::new();
     busy_scene(&mut h);

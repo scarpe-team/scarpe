@@ -44,6 +44,10 @@ fn picture(h: &mut Harness) -> Vec<u8> {
 #[test]
 fn looks_only_changes_keep_a_layout_equal_to_a_fresh_one() {
     let changes = [
+        (3, json!({"opacity": 0.5})),
+        (5, json!({"opacity": 0.25})),
+        (8, json!({"opacity": 0})),
+        (9, json!({"opacity": 0.5})),
         (9, json!({"fill": {"rgba": [0, 120, 255, 255]}})),
         (10, json!({"stroke": {"rgba": [0, 150, 0, 255]}, "cap": "curve"})),
         (4, json!({"fill": {"rgba": [255, 230, 200, 255]}, "strokewidth": 3, "curve": 8})),

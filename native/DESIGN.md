@@ -913,6 +913,16 @@ change the code and this list together.
   The shim sends `icon` as an absolute path.
 - **App `opacity`** (0.0 to 1.0) makes the whole window see-through: NSWindow's alphaValue on macOS
   (other platforms stay opaque), and snapshots and `pixel` keep that share of every pixel's alpha.
+- **Drawable `opacity`** (native): a finite number clamped to 0.0 through 1.0; missing, nil or
+  invalid values mean 1.0. Slots and other painted subtrees composite their overlapping children
+  into one transparent layer, then blend it once at the requested opacity. The layer covers
+  only their visible ink, within the current canvas; nested groups apply their own opacity.
+  Scrollbars inside a faded group belong to that layer. Ordinary scrollbars, popups, tooltips
+  and built-in dialogs keep their overlay pass. Opacity changes neither layout, input nor
+  accessibility; zero skips painting the subtree. Text spans paint with their paragraph and
+  shape-block members with their combined path, so opacity belongs on that painted owner.
+  Opacity and masks share the existing four-level compositing limit: beyond it masks are
+  ignored and partial opacity is treated as 1.0; zero still skips the subtree.
 - **Tooltips.** A drawable's `tooltip` text (Shoes 3.3; Lacci gives every drawable the style) shows
   in a bubble below the pointer once it rests on that drawable: at once headless, so snapshots are
   deterministic, and after 600 ms in a window. A press hides it until the pointer moves on.
@@ -925,10 +935,12 @@ change the code and this list together.
   half the frame repaints it whole. Headless pictures and snapshots are always painted whole. A node must never paint outside `paint::damage::paint_bounds`: code that
   makes a node draw further (a new transform, a bigger shadow) grows that function too, or
   `SCARPE_NATIVE_DAMAGE=check` will say so. A masked slot's layers cover only the repainted rect,
-  so masks repaint in part like anything else.
+  so masks repaint in part like anything else. Each node also tracks its enclosing opacity
+  groups; fading a slot invalidates its descendants' ink, including any outside its own box.
 - **Looks-only changes keep the layout.** A check's `checked`, a field's echoed `text`, a shape's
   `fill`, `stroke` or `cap`, a background's or border's `fill`, `stroke`, `strokewidth` or `curve`,
-  a bar's `fraction` and a para's cursor and marker repaint without laying anything out again (`runtime.rs` `changes_only_looks`).
+  a bar's `fraction`, a para's cursor and marker, and a drawable's `opacity` repaint without
+  laying anything out again (`runtime.rs` `changes_only_looks`).
   Any other prop change lays out again only the app the node is drawn in (every app for a text
   span, which has no parent). The shaped-text cache keeps what each app's last layout used, so
   one window laying out never throws away another's text.
@@ -948,7 +960,7 @@ change the code and this list together.
   negative one keeps the last size, and `resize` answers with an error); a headless picture is
   at most 64 megapixels at a scale of 0.1 to 8, else `snapshot` says so; a `frames` request waits
   for at most 1,000. A node is never attached inside itself, so the tree has no loops; layout
-  stops 128 slots deep and masks stop masking 4 deep, so no document overflows the stack or piles
+  stops 128 slots deep and mask/opacity compositing stops 4 layers deep, so no document overflows the stack or piles
   up layers. Paths reaching more than a million device pixels out are not drawn (tiny-skia's
   fixed point panicked on a stroke 2^31 px wide); rects (backgrounds, borders, controls) are
   cut to the window first, so the part of a box millions of pixels tall that is on screen draws. Image and font files are read only when they

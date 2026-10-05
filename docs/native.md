@@ -127,6 +127,33 @@ across and `width: 0.5` half as wide. Art (`rect`, `oval`, `shape` and the rest)
 number as pixels, Floats included. DESIGN section 6 has the whole rule, and ledger C1, C10, C15
 and C18 say why.
 
+## Fading drawables and slots
+
+The native display accepts `opacity` on slots, text blocks, controls, images and shapes:
+
+```ruby
+@panel = stack(width: 240, opacity: 0.5) do
+  background "#203060"
+  para "Export complete", stroke: white
+  button "Close"
+end
+
+@panel.opacity = 0.25
+@panel.style(opacity: nil) # restores full opacity
+```
+
+`1.0` is fully opaque, `0.0` draws nothing, and numbers outside that range are clamped.
+The default is `1.0`. A slot and its children fade as one picture, including its scrollbar,
+so overlapping text and backgrounds keep their colors. Nested groups apply their own opacity
+inside the parent's picture. Apply opacity to a paragraph to fade its inline text together,
+or to a shape block to fade its combined path.
+
+Opacity updates repaint without laying out the app again. Even at zero, controls keep their
+focus, accept input and remain in the accessibility tree. Use `hide` when the contents should
+also leave layout and accessibility; a fade alone does not disable interaction. Built-in
+popups, tooltips and dialogs are separate overlays. `app.opacity` controls the transparency
+of the whole window, as described in the native design reference.
+
 ## Text sizes, and Shoes 3's text
 
 A text size is pixels: `para` is 12 px tall and `title` 34, as the manual says (ledger M14).

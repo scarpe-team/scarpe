@@ -315,6 +315,10 @@ class Shoes
     # Shoes uses a "hidden" style property for hide/show
     shoes_style :hidden
 
+    # Native painting: fade this drawable and its contents together, from 0.0 to 1.0.
+    # Layout, input and accessibility are unchanged; nil restores full opacity.
+    shoes_style :opacity
+
     # Displace moves the drawable visually without affecting layout
     shoes_styles :displace_left, :displace_top
 

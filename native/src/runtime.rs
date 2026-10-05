@@ -664,6 +664,9 @@ impl Runtime {
 /// paint reads them from the node itself. A line's strokewidth is not one (its box includes the
 /// stroke), nor is anything a Para shapes into its text.
 fn changes_only_looks(kind: &Kind, key: &str) -> bool {
+    if key == "opacity" {
+        return true;
+    }
     match kind {
         k if k.is_art() => matches!(key, "fill" | "stroke" | "cap"),
         Kind::Background | Kind::Border => matches!(key, "fill" | "stroke" | "strokewidth" | "curve"),
