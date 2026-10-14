@@ -92,6 +92,20 @@ class TestSSpecInfrastructure < ShoesSpecLoggedTest
     refute_match(/\(eval\):3:in /, error.message)
   end
 
+  def test_run_test_scarpe_app_uses_temp_export_file
+    test_output = File.expand_path(File.join(__dir__, "sspec.json"))
+    File.unlink(test_output) if File.exist?(test_output)
+
+    run_test_scarpe_code(<<~'SCARPE_APP', app_test_code: <<~'TEST_CODE')
+      Shoes.app do
+      end
+    SCARPE_APP
+      assert_equal true, true
+    TEST_CODE
+
+    refute File.exist?(test_output), "run_test_scarpe_app should not recreate test/sspec.json"
+  end
+
   def test_many_assertions
     run_scarpe_sspec_code(<<~'SSPEC', expect_assertions_min: 10)
       ---
