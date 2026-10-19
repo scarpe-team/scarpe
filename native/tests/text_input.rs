@@ -270,3 +270,33 @@ fn a_fields_font_keeps_its_weight_and_slant() {
     assert!(bold.len() * 10 > plain.len() * 13, "bold puts down at least 30% more ink: {} against {}", plain.len(), bold.len());
     assert!(lean(&italic) > lean(&plain) + 0.5, "italic leans right: {:.2} against {:.2}", lean(&plain), lean(&italic));
 }
+
+// ---- Inserting at the caret ----
+
+/// `edit_box.insert(text)` puts the text in at the caret, over a selection, as one undo step,
+/// and the field tells Ruby once; a field that is not focused keeps its caret for it, and a
+/// read-only one takes nothing (ledger G18).
+#[test]
+fn insert_puts_text_in_at_the_caret_as_one_undo_step() {
+    let mut h = field("EditBox", json!({"text": "Hello world"}));
+    let insert = |h: &mut Harness, id: u64, text: &str| -> Vec<String> {
+        let msgs = h.feed(&json!({"t": "insert", "id": id, "text": text}).to_string());
+        named(&events(&msgs), "change").iter().map(|e| e.2[0].as_str().unwrap_or_default().to_string()).collect()
+    };
+    key(&mut h, "home");
+    for _ in 0..5 {
+        key(&mut h, "right");
+    }
+    h.value(json!({"op": "click", "target": {"id": 4}}));
+    assert_eq!(insert(&mut h, 3, ", big"), ["Hello, big world"], "at the caret, though the field lost focus");
+    assert_eq!(insert(&mut h, 3, "!"), ["Hello, big! world"], "after what went in before");
+    h.value(json!({"op": "click", "target": {"id": 3}}));
+    assert_eq!(key(&mut h, ":command_z"), ["Hello, big world"], "each insert is one undo step");
+    key(&mut h, ":command_a");
+    assert_eq!(insert(&mut h, 3, "Bye"), ["Bye"], "over the selection");
+
+    let mut locked = Harness::new();
+    locked.feed(&app(300, 200, &[create(3, "EditBox", 2, json!({"text": "fixed", "state": "readonly"}))]));
+    let msgs = locked.feed(&json!({"t": "insert", "id": 3, "text": "x"}).to_string());
+    assert!(named(&events(&msgs), "change").is_empty(), "a read-only field takes nothing");
+}

@@ -1015,6 +1015,25 @@ impl Runtime {
         self.request_redraw(app);
     }
 
+    /// `edit_box.insert(text)` and `edit_line.insert(text)`: the text goes in at the field's
+    /// caret, over any selection, as one undo step, focused or not, and Ruby hears one `change`.
+    /// A read-only or disabled field takes nothing, as it takes no typing (ledger G18).
+    pub fn insert_text(&mut self, id: Id, text: &str) {
+        let Some(app) = self.doc.app_of(id) else { return };
+        self.ensure_layout(app);
+        let Some(node) = self.doc.get(id).filter(|n| n.kind.is_text_input()) else { return };
+        if crate::elements::readonly(node) || crate::elements::disabled(node) {
+            return;
+        }
+        let Some(view) = self.views.get_mut(&app) else { return };
+        let field = text_field::ensure(&mut view.ui.fields, node, &mut self.text.fonts);
+        if field.paste_in(&mut self.text.fonts.system, text) {
+            let text = field.reported();
+            self.out.event("change", Some(id), vec![Value::String(text)]);
+        }
+        self.request_redraw(app);
+    }
+
     /// Where an input method should show its candidates: the caret of the focused text field,
     /// in window coordinates. None when no field that takes text has focus; a secret field
     /// takes keys only, as a Mac's secure text field does.

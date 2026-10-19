@@ -17,6 +17,8 @@ pub enum Incoming {
     Run { app: Option<Id> },
     Quit { app: Option<Id> },
     Focus { id: Id },
+    /// `edit_box.insert(text)`: put `text` in at the field's caret, over any selection (ledger G18).
+    Insert { id: Id, text: String },
     ScrollTo { id: Id, top: f32 },
     Font { path: String },
     /// How text is sized and set from now on (Lacci's `Shoes.text_mode`): "scarpe" or "shoes3".
@@ -196,6 +198,7 @@ pub fn parse_line(line: &str) -> Result<Incoming, ParseError> {
         "run" => Incoming::Run { app: id(&obj, "app") },
         "quit" => Incoming::Quit { app: id(&obj, "app") },
         "focus" => Incoming::Focus { id: required(id(&obj, "id"), "id")? },
+        "insert" => Incoming::Insert { id: required(id(&obj, "id"), "id")?, text: required(s(&obj, "text"), "text")? },
         "scroll_to" => Incoming::ScrollTo { id: required(id(&obj, "id"), "id")?, top: f(&obj, "top").unwrap_or(0.0) },
         "font" => Incoming::Font { path: required(s(&obj, "path"), "path")? },
         "text_mode" => Incoming::TextMode { mode: required(s(&obj, "mode"), "mode")? },
@@ -429,6 +432,7 @@ mod tests {
         );
         assert_eq!(parse_line(r#"{"t":"run","app":1}"#).unwrap(), Incoming::Run { app: Some(1) });
         assert_eq!(parse_line(r#"{"t":"quit","app":null}"#).unwrap(), Incoming::Quit { app: None });
+        assert_eq!(parse_line(r#"{"t":"insert","id":9,"text":"![a](b.png)"}"#).unwrap(), Incoming::Insert { id: 9, text: "![a](b.png)".into() });
         assert_eq!(parse_line(r#"{"t":"focus","id":9}"#).unwrap(), Incoming::Focus { id: 9 });
         assert_eq!(parse_line(r#"{"t":"scroll_to","id":9,"top":40}"#).unwrap(), Incoming::ScrollTo { id: 9, top: 40.0 });
         assert_eq!(parse_line(r#"{"t":"font","path":"/a/b.ttf"}"#).unwrap(), Incoming::Font { path: "/a/b.ttf".into() });

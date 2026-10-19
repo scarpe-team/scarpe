@@ -232,6 +232,12 @@ impl TextField {
         self.edit(EditKind::Typing, |field| field.insert(fs, text))
     }
 
+    /// Text the app put in (`edit_box.insert`), over the selection, as a step of its own,
+    /// as a paste is.
+    pub fn paste_in(&mut self, fs: &mut FontSystem, text: &str) -> bool {
+        self.edit(EditKind::Other, |field| field.insert(fs, text))
+    }
+
     fn move_to_end(&mut self) {
         let end = self.editor.with_buffer(|b| {
             let last = b.lines.len().saturating_sub(1);

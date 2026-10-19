@@ -240,6 +240,7 @@ button("Save") { save }                              # Return or Space clicks a 
 @name = edit_line(width: 200) { |e| @hint.text = e.text }   # runs on every edit
 @name.finish = proc { |e| submit(e.text) }           # runs on Return in the field
 @notes = edit_box(width: 300, height: 120)
+@notes.insert "text"                                  # at the caret, over any selection, as a paste
 @done = check { |c| @hint.text = c.checked?.to_s }
 para "Done"                                          # the text beside a control names it for screen readers
 @done.checked = true                                 # ticks it without running its block

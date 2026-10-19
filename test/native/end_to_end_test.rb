@@ -190,6 +190,26 @@ class EndToEndTest < Minitest::Test
     assert_spec_passed(run)
   end
 
+  def test_insert_puts_text_in_at_the_caret
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        $changes = 0
+        @notes = edit_box("Hello world") { $changes += 1 }
+        @other = edit_line
+      end
+    APP
+      click_on(edit_box)
+      press_key("home")
+      5.times { press_key("right") }
+      click_on(edit_line)
+      edit_box.insert(", big")
+      wait_frames
+      assert_equal "Hello, big world", edit_box.text, "at the caret, though the box lost focus"
+      assert_equal 1, $changes
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_dialogs_answer_from_stubs_and_never_open
     run = run_real(<<~APP, test_code: <<~TEST)
       Shoes.app do

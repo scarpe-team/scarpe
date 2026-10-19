@@ -316,6 +316,7 @@ module Scarpe::Native
       on_drawable_bus("destroy") { |id| destroyed(id) }
       on_drawable_bus("parent") { |id, parent_id| reparent(id, parent_id) }
       on_drawable_bus("focus") { |id| child.post(t: "focus", id: id) }
+      on_drawable_bus("insert") { |id, text| child.post(t: "insert", id: id, text: text) }
       on_drawable_bus("scroll_top") { |id, top| child.post(t: "scroll_to", id: id, top: Normalize.value(top)) }
     end
 

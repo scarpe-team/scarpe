@@ -57,6 +57,20 @@ Shoes.app do
 end
 ```
 
+## Putting text in at the caret
+
+`edit_box.insert(text)` and `edit_line.insert(text)` put text in where the caret stands, over any
+selection, as a paste would: one undo step, and the change block runs once it is in (ledger G18).
+Proposed on 19 Oct 2026 and waiting on a maintainer's approval. With `drop`, below, a Markdown
+editor puts a dropped picture where the writer was typing:
+
+```ruby
+Shoes.app do
+  @notes = edit_box width: 400, height: 300
+  drop { |path| @notes.insert("![](#{path})") }
+end
+```
+
 ## Dropping files on a window
 
 `drop { |path| }`, on the app or any slot, gets the full path of each file dropped on the window

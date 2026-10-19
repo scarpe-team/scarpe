@@ -43,6 +43,17 @@ class Shoes
       self
     end
 
+    # Put text in at the caret, over any selection, as a paste would: one undo step, and the
+    # change block runs once the display has put it in. A read-only or disabled field takes
+    # nothing (EXT, ledger G18).
+    #
+    # @param text [String] what to put in
+    # @return [self]
+    def insert(text)
+      send_shoes_event(text.to_s, event_name: "insert", target: linkable_id)
+      self
+    end
+
     # Run a proc when Return is pressed in the line, so a one-line form can be sent from
     # the keyboard. Shoes 3.2.15 added it (s3t_edit_line.c:15, 42-49; ledger G16).
     #

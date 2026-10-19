@@ -226,6 +226,7 @@ impl Runtime {
                     }
                 }
             }
+            Incoming::Insert { id, text } => self.insert_text(id, &text),
             Incoming::ScrollTo { id, top } => {
                 if let Some(app) = self.doc.app_of(id) {
                     self.scroll_slot(app, id, top.max(0.0));

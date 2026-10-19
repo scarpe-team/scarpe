@@ -111,6 +111,7 @@ A line Rust cannot parse is answered with a `log` warning and otherwise ignored.
 | `run` | `app` (or null = the newest) | the app is complete enough to show: open its window (or headless canvas) |
 | `quit` | `app` (id or null = all) | close window(s); when none remain Rust exits 0 |
 | `focus` | `id` | give keyboard focus to a control, with a visible focus ring |
+| `insert` | `id`, `text` | put `text` in an edit line or edit box at its caret, over any selection, focused or not, as one undo step (as a paste is); answered by one `change` event. A read-only or disabled field takes nothing (ledger G18) |
 | `scroll_to` | `id`, `top` | set a scrollable slot's scroll offset (clamped at the next layout) |
 | `font` | `path` (absolute) | register a font file; family name(s) become usable |
 | `text_mode` | `mode` (`scarpe` or `shoes3`) | how text is sized and set from now on (Lacci's `Shoes.text_mode`, ledger M14): `shoes3` reads text sizes as points at 96 dpi and gives text blocks that name no face Arial; every window is laid out again. The shim sends it after `hello` when a program set it before its first window, and again whenever it changes |

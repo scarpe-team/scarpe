@@ -183,6 +183,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | G15 | Scarpe draws its own controls | EXT | | |
 | G16 | `edit_line.finish = proc` runs on Return | EXT | | |
 | G17 | Colours on edit lines and edit boxes | EXT | | |
+| G18 | `insert(text)` puts text in at a field's caret | EXT, proposed | | new 19 Oct |
 
 ### H. Events
 
@@ -1143,6 +1144,17 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci today:** until 28 Sep EditLine and EditBox declared `stroke` (the text's colour) but not `fill` or `border_color`, which were dropped as unknown keywords. Now both are styles of their own on both.
 - **Spec:** `element.edit_line__colors` (native): `fill:` paints the box and `border_color:` its edge, on an edit line and an edit box; a field given no colours stays white with a blue halo; once `stroke:` colours the text, the focus halo and the caret take that colour instead of blue. Lacci's `test_fields_keep_their_colours` pins the styles.
 - **Native:** `edit_line::Colors` reads `fill` (default white), `border_color` (default #c7c7cc) and `stroke` (default the accent blue) for the box, its edge, and the focused edge, halo and caret, as CSS's caret-color follows currentColor. The windowed `ask` dialog keeps the plain field. Webview ignores them.
+
+### G18. `insert(text)` puts text in at a field's caret
+
+**Ruling: EXT**, proposed 19 Oct 2026 and waiting on Nick's word (`docs/SCARPE_FEATURES.md`). `edit_box.insert(text)` and `edit_line.insert(text)` put `text` in where the caret stands, over any selection, as a paste would, and return the field.
+
+- **Manual:** silent. A field's `text` is read and replaced whole (manual 1470-1475); nothing reports or moves the caret.
+- **Shoes 3:** nothing puts text in at the caret. An edit box has `append`, which adds at the end, and `scroll_to_end` (`s3t_edit_box.c:11-18`); an edit line has `to_end`, which moves its caret to the end (`s3t_edit_line.c:16`). Nothing reads where the caret is.
+- **Why:** an app that adds to what someone is writing (a dropped picture in a Markdown editor, H11; a snippet from a menu) had to put it at the end, since Ruby cannot see the caret. Rust can.
+- **Lacci today:** until 19 Oct no `insert`. Lacci sends an `insert` event to the display, which puts the text in and answers with the field's usual `change`, so `text` and the change block follow a moment later, not before `insert` returns. Niente has no caret and ignores it.
+- **Spec:** no case: the manual has no entry to hang one on. **Tests:** `tests/text_input.rs` (`insert_puts_text_in_at_the_caret_as_one_undo_step`), `lacci/test/test_controls.rb` (`test_edit_box_and_edit_line_ask_the_display_to_insert`) and `test/native/end_to_end_test.rb` (`test_insert_puts_text_in_at_the_caret`).
+- **Native:** the shim posts `{t: "insert", id, text}` (DESIGN 4.2); Rust pastes it into the field at its caret, focused or not, as one undo step of its own (`input.rs` `insert_text`), and sends `change`. A read-only or disabled field takes nothing. **Webview:** `setRangeText` at the textarea's selection, then an `input` event, which its `oninput` turns into `change`; not exercised by a test, since the webview tests cannot run its JavaScript.
 
 ## H. Events
 
