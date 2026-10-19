@@ -968,6 +968,16 @@ impl Runtime {
         }
     }
 
+    /// A file dropped on the window: every `drop` block in it hears the path, as every
+    /// `keypress` block hears a key. winit 0.30 does not say where the file landed, so no slot
+    /// is singled out; several files arrive one event each (ledger H11).
+    pub fn drop_file(&mut self, app: Id, path: &str) {
+        self.ensure_layout(app);
+        for (item, _) in self.subscriptions(app, "drop") {
+            self.out.event("drop", Some(item), vec![json!(path)]);
+        }
+    }
+
     pub fn type_text(&mut self, app: Id, text: &str) {
         for c in text.chars() {
             self.key_input(app, KeyInput::char(c));

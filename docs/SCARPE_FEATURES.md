@@ -57,6 +57,22 @@ Shoes.app do
 end
 ```
 
+## Dropping files on a window
+
+`drop { |path| }`, on the app or any slot, gets the full path of each file dropped on the window
+from Finder or a file manager, one call a file. Every `drop` block in the window hears it: the
+native display is not told where the file landed (ledger H11). Proposed on 16 Oct 2026 and waiting
+on a maintainer's approval. On the native display only; a webview never learns the path, so there
+the block hears nothing. `scarpe peek --drop PATH` and Shoes-Spec's `drop_file(path)` drop one
+without a window.
+
+```ruby
+Shoes.app do
+  @name = para "Drop a file here"
+  drop { |path| @name.text = File.basename(path) }
+end
+```
+
 ## `Shoes.on_error`
 
 `Shoes.on_error { |err| }` hears every error a handler, a timer or the program's startup raises,

@@ -154,6 +154,7 @@ Everything above, plus the native API (DESIGN.md section 8):
 | `drag([x, y], [x, y], ...)` | press, move through the points with the button down, release at the last; no time passes |
 | `type_text(str)`, `press_key(name)` | keys into the focused input or the app (`"a"`, `:left`, `:control_a`, `"\n"`) |
 | `wheel(dy, x:, y:)` | scroll at window point (x, y); see below for the sign |
+| `drop_file(path)` | drop a file on the window, as Finder would: every `drop` block hears `path`, which need not exist (ledger H11) |
 | `layout_of(proxy)` | a Rect with `x`, `y`, `w`, `h` in window coordinates |
 | `layout_tree` | every laid-out node as a Hash with **Symbol** keys (`:id`, `:kind`, `:x`, `:y`, `:w`, `:h`, `:visible`, `:text`), in paint order |
 | `pixel_at(x, y)` | `[r, g, b, a]` |

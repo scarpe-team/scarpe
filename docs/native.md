@@ -104,6 +104,7 @@ kind, position and size in window pixels, and its text.
 | `--drag X,Y,X,Y...` | press at the first point, move through the rest a frame apart, release at the last |
 | `--type TEXT`, `--key NAME` | type into the focused field, or press one key (`"\n"`, `left`, `control_a`) |
 | `--wheel DY[,X,Y]` | scroll; positive `DY` scrolls down |
+| `--drop PATH` | drop a file on the window, as Finder would |
 | `--wait SECS` | let timers and animations run |
 | `--window N`, `--app ID` | send the steps after it to another window |
 | `--layout` | print every laid-out node |

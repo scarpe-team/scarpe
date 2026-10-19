@@ -198,6 +198,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | H8 | `start` and `finish` | MANUAL | | |
 | H9 | Slot event handlers survive `clear` | MANUAL | | |
 | H10 | Hotkeys the manual reserves for the console | MANUAL for Alt-/; OOS for the rest | | 28 Sep |
+| H11 | `drop` hears files dropped on the window | EXT, proposed | | new 16 Oct |
 
 ### I to L. Timers, navigation, built-ins, loader
 
@@ -1255,6 +1256,19 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Scarpe until 28 Sep:** had no console window; nothing reserved these keys, so an app received them like any other.
 - **Native:** since 28 Sep (the w10 scarpe lane) Rust answers `:alt_/` (Cmd-/ on a Mac, Q5) with a `console` message before a focused field or a `keypress` block sees it (`input.rs` `key_input`, DESIGN 4.2 and 4.4), and the shim opens the console (`Shoes.show_console`). **Test:** `tests/protocol.rs` (`alt_slash_asks_for_the_console_and_the_app_never_hears_it`) and `test/native/errors_test.rb`.
 - **Spec:** no case; `events.keypress.reserved_hotkeys` stays in its `UNTESTABLE.md` (Alt-. and Alt-? are still out of scope), and `builtins.console_hotkey` is checked by `test/native/errors_test.rb`, since opening a second window is more than a spec case asserts.
+
+### H11. `drop` hears files dropped on the window
+
+**Ruling: EXT**, proposed 16 Oct 2026 and waiting on Nick's word (`docs/SCARPE_FEATURES.md`). `drop { |path| }` on the app or a slot gets the full path of each file dropped on the window, one call a file. Every `drop` block in the window hears it, as every `keypress` block hears a key.
+
+- **Manual:** silent; "drop" only ever means a list box's drop-down (manual 2043, 3168-3169).
+- **Shoes 3:** none. The Cocoa view handles mouse drags only (`s3_cocoa.m:201-212`) and registers for no dragged types; the GTK backend sets up no drop target.
+- **Shoes 4:** none in `shoes-core`'s DSL.
+- **Examples:** none.
+- **Lacci / WV today:** until 16 Oct no `drop` method on App or Slot. Lacci now has one, and a SubscriptionItem `drop` that hands its block the path. The webview never learns a dropped file's path, so there a `drop` block hears nothing.
+- **Why every block, not the one under the pointer:** winit 0.30's `WindowEvent::DroppedFile` carries the path and no position, so Rust cannot say which slot the file landed on. Once winit reports where a file lands, only the slots under that point should hear it, as `wheel` (H7) does.
+- **Spec:** no case: the manual has no entry to hang one on. **Tests:** `tests/protocol.rs` (`a_dropped_file_reaches_every_drop_block`), `test/native/end_to_end_test.rb` (`test_drop_blocks_hear_each_dropped_file`) and `test/native/art_input_test.rb` (`test_peek_drops_a_file`).
+- **Native:** `DroppedFile` and `req drop {path}` send `drop` events `[path]` to every SubscriptionItem `drop` in the window (`input.rs` `drop_file`, DESIGN 4.1 and 4.3). A path that is not UTF-8 is logged and not sent. `scarpe peek --drop PATH` and Shoes-Spec's `drop_file(path)` make one.
 
 ## I. Timers
 

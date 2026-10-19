@@ -293,6 +293,22 @@ class EndToEndTest < Minitest::Test
     assert_spec_passed(run)
   end
 
+  def test_drop_blocks_hear_each_dropped_file
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app(width: 400, height: 300) do
+        $dropped = []
+        stack(width: 100) { drop { |path| $dropped << [:slot, path] } }
+        drop { |path| $dropped << [:app, path] }
+      end
+    APP
+      drop_file("/Users/me/Notes/a b.md")
+      drop_file("/tmp/pic.png")
+      assert_equal [[:app, "/Users/me/Notes/a b.md"], [:app, "/tmp/pic.png"]], $dropped.select { |who, _| who == :app }
+      assert_equal 4, $dropped.size, "the slot's block hears both too, wherever it sits"
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_a_scrolling_stack_scrolls_on_the_wheel_and_from_ruby
     run = run_real(<<~APP, test_code: <<~TEST)
       Shoes.app(width: 200, height: 200) do

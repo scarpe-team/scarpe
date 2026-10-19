@@ -43,7 +43,7 @@ class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Drawable
       @wrangler.one_shot_code("timer_#{@shoes_linkable_id}", delay) do
         send_self_event(event_name: @shoes_api_name) unless @stopped
       end
-    when "motion", "hover", "leave", "click", "release", "keypress", "wheel"
+    when "motion", "hover", "leave", "click", "release", "keypress", "wheel", "drop"
       # Wait for set_parent
     else
       raise Scarpe::UnknownShoesEventAPIError, "Unknown Shoes event API: #{@shoes_api_name}!"
@@ -176,6 +176,9 @@ class Scarpe::Webview::SubscriptionItem < Scarpe::Webview::Drawable
           "arguments[0].clientY",
         ),
       )
+    when "drop"
+      # A webview never learns a dropped file's path, so a drop block hears nothing here
+      # (ledger H11). The native display sends them.
     when "animate", "every", "timer"
       # These were handled in initialize(), ignore them here
     else

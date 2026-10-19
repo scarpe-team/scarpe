@@ -539,6 +539,14 @@ impl ApplicationHandler<UserEvent> for Shell {
                 };
                 self.rt.wheel(app, dy, None);
             }
+            WindowEvent::DroppedFile(path) => {
+                self.rt.stats.input();
+                self.rt.active_app = Some(app);
+                match path.to_str() {
+                    Some(path) => self.rt.drop_file(app, path),
+                    None => self.rt.out.send(Outgoing::Log { level: "warn".into(), msg: format!("dropped file {path:?} is not UTF-8; no drop event") }),
+                }
+            }
             WindowEvent::ModifiersChanged(m) => {
                 let state = m.state();
                 if let Some(win) = self.windows.get_mut(&id) {

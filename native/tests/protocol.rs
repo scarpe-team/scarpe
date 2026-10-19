@@ -210,6 +210,37 @@ fn keypress_names_follow_the_manual() {
     assert_eq!(typed, vec![json!("H"), json!("i")]);
 }
 
+/// A file dropped on the window reaches every `drop` block in it, wherever each one's slot
+/// sits, one event a file; a window with no `drop` block hears nothing (ledger H11).
+#[test]
+fn a_dropped_file_reaches_every_drop_block() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        create(3, "Stack", 2, json!({"width": 100, "height": 50})),
+        json!({"t": "create", "id": 4, "kind": "SubscriptionItem", "parent": 2, "props": {"shoes_api_name": "drop"}}),
+        json!({"t": "create", "id": 5, "kind": "SubscriptionItem", "parent": 3, "props": {"shoes_api_name": "drop"}}),
+        json!({"t": "create", "id": 6, "kind": "SubscriptionItem", "parent": 2, "props": {"shoes_api_name": "keypress"}}),
+    ]));
+    let dropped = |h: &mut Harness, path: &str| {
+        let (evs, reply) = h.req(json!({"op": "drop", "path": path}));
+        assert_eq!(reply["error"], Value::Null, "{reply:?}");
+        let mut heard: Vec<(Value, Value)> = named(&events(&evs), "drop").iter().map(|e| (e.1.clone(), e.2.clone())).collect();
+        heard.sort_by_key(|(id, _)| id.as_i64());
+        heard
+    };
+    assert_eq!(dropped(&mut h, "/Users/me/Notes/a b.md"), vec![
+        (json!(4), json!(["/Users/me/Notes/a b.md"])),
+        (json!(5), json!(["/Users/me/Notes/a b.md"])),
+    ]);
+    assert_eq!(dropped(&mut h, "/tmp/pic.png").len(), 2, "each file is an event of its own");
+
+    let mut quiet = Harness::new();
+    quiet.feed(&app(300, 200, &[create(3, "Button", 2, json!({"text": "Go"}))]));
+    let (evs, reply) = quiet.req(json!({"op": "drop", "path": "/tmp/a.md"}));
+    assert_eq!(reply["error"], Value::Null);
+    assert!(named(&events(&evs), "drop").is_empty() && named(&events(&evs), "click").is_empty());
+}
+
 /// Alt-/ (Cmd-/ on a Mac, which Shoes names alt_/, ledger Q5) opens the Shoes console, and the
 /// app never hears the key: Shoes 3's shoes_app_keypress runs Shoes.show_log for it before any
 /// keypress block (s3_app.c:773-776; manual 721-722, 2239-2240; ledger H10).

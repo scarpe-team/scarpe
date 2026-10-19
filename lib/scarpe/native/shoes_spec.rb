@@ -184,6 +184,11 @@ module Scarpe::Native
       automation.wheel(dy, x: x || app.width / 2.0, y: y || app.height / 2.0)
     end
 
+    # Drops a file on the window, as Finder would; the path need not exist.
+    def drop_file(path)
+      automation.drop(path)
+    end
+
     def layout_of(target)
       automation.rect_of(target_id(target))
     end
