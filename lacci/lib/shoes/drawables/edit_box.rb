@@ -6,6 +6,8 @@ class Shoes
 
     shoes_styles :text, :height, :width, :tooltip, :font, :stroke
     shoes_styles :fill, :border_color # the box and its edge, in the page's colours (ledger G17)
+    shoes_style :spelling
+    attr_reader :edit_context
     shoes_style :change # the handler (manual 1123-1128, ledger G10)
     shoes_style :state # nil, "readonly" or "disabled" (manual 1410-1421, ledger G4)
     shoes_events :change
@@ -20,11 +22,14 @@ class Shoes
       super
       @change = block if block
 
-      bind_self_event("change") do |new_text|
+      bind_self_event("change") do |new_text, context = {}|
+        @edit_context = context
         @setting_from_event = true
         self.text = new_text
         @setting_from_event = false
         @change&.call(self)
+      ensure
+        @edit_context = nil
       end
 
       create_display_drawable
@@ -64,6 +69,13 @@ class Shoes
     # @return [self]
     def insert(text)
       send_shoes_event(text.to_s, event_name: "insert", target: linkable_id)
+      self
+    end
+
+    # Replace an analyzed snapshot without losing the caret or undo history. A stale
+    # snapshot is ignored by the display rather than overwriting newer typing.
+    def replace_checked(expected, text)
+      send_shoes_event(expected, text, event_name: "replace_checked", target: linkable_id)
       self
     end
   end

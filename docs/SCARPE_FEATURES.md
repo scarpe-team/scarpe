@@ -5,6 +5,14 @@ title: Scarpe Features
 
 # Extending _why's Legacy
 
+## Proposed native editor spelling support
+
+`edit_box.spelling = { text: source, ranges: [[first_byte, last_byte], ...] }` draws red error underlines over UTF-8 byte ranges in a matching text snapshot. Stale snapshots are not drawn. The application supplies spelling analysis; Scarpe does not load dictionaries or choose corrections.
+
+During an edit box's change callback, `edit_box.edit_context` provides String-keyed `cursor` (a UTF-8 byte offset) and `autocorrect` (false for undo/redo and checked replacements). The callback still receives the edit box as before.
+
+`edit_box.replace_checked(expected, replacement)` requests a replacement only if the field still contains `expected`, is editable, has no selection, and its caret is outside the replaced span. It preserves the caret and records one undo step. Stale or unsafe requests leave the field unchanged. These native-only extensions are proposed for maintainer approval and build on the drop-files/insert work in PR #648.
+
 ![Would _why have a beard if he existed now](image.png)
 
 The leading mission for Scarpe has been to implement as much backwards compatibility as possible for _why's original

@@ -203,7 +203,7 @@ fn fill_px(canvas: &mut Canvas, x: f32, y: f32, w: f32, h: f32, color: Color, cl
 /// the glyphs. Only the waves the canvas and the clip can show are built, counted from x0 (in
 /// f64, so far along a span a wave still moves on), so a span miles wide costs no more than one
 /// the window can show, and a partial repaint draws the very waves a full one does.
-fn wavy(canvas: &mut Canvas, x0: f32, x1: f32, y: f32, size: f32, color: Color, px_clip: Option<crate::text::raster::PxClip>) {
+pub(crate) fn wavy(canvas: &mut Canvas, x0: f32, x1: f32, y: f32, size: f32, color: Color, px_clip: Option<crate::text::raster::PxClip>) {
     let amp = (size * 0.08).max(1.0);
     let step = amp as f64 * 2.0;
     let s = canvas.scale;

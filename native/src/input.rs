@@ -1009,8 +1009,7 @@ impl Runtime {
         let view = self.views.get_mut(&app).expect("view");
         let field = text_field::ensure(&mut view.ui.fields, node, &mut self.text.fonts);
         if field.type_in(&mut self.text.fonts.system, text) {
-            let text = field.reported();
-            self.out.event("change", Some(id), vec![Value::String(text)]);
+            self.out.event("change", Some(id), field.change_args(true));
         }
         self.request_redraw(app);
     }
@@ -1028,10 +1027,24 @@ impl Runtime {
         let Some(view) = self.views.get_mut(&app) else { return };
         let field = text_field::ensure(&mut view.ui.fields, node, &mut self.text.fonts);
         if field.paste_in(&mut self.text.fonts.system, text) {
-            let text = field.reported();
-            self.out.event("change", Some(id), vec![Value::String(text)]);
+            self.out.event("change", Some(id), field.change_args(true));
         }
         self.request_redraw(app);
+    }
+
+    pub fn replace_checked(&mut self, id: Id, expected: &str, text: &str) {
+        let Some(app) = self.doc.app_of(id) else { return };
+        self.ensure_layout(app);
+        let Some(node) = self.doc.get(id).filter(|n| n.kind.is_text_input()) else { return };
+        if crate::elements::readonly(node) || crate::elements::disabled(node) {
+            return;
+        }
+        let Some(view) = self.views.get_mut(&app) else { return };
+        let field = text_field::ensure(&mut view.ui.fields, node, &mut self.text.fonts);
+        if field.replace_checked(&mut self.text.fonts.system, expected, text) {
+            self.out.event("change", Some(id), field.change_args(false));
+            self.request_redraw(app);
+        }
     }
 
     /// Where an input method should show its candidates: the caret of the focused text field,
@@ -1088,11 +1101,12 @@ impl Runtime {
                     } else {
                         field.key(&mut self.text.fonts.system, &key, &mut self.clipboard)
                     };
-                    let text = if edited.changed { field.reported() } else { String::new() };
-                    (edited, text)
+                    let undo = key.shortcut() && matches!(&key.key, Key::Char(c) if matches!(c.to_lowercase().as_str(), "z" | "y"));
+                    let args = if edited.changed { field.change_args(!undo) } else { Vec::new() };
+                    (edited, args)
                 };
                 if edited.0.changed {
-                    self.out.event("change", Some(id), vec![Value::String(edited.1)]);
+                    self.out.event("change", Some(id), edited.1);
                 }
                 // Return in a one-line field runs its `finish` block (Shoes 3.2.15's
                 // `edit_line.finish = proc`, ledger G16).

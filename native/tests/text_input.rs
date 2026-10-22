@@ -300,3 +300,57 @@ fn insert_puts_text_in_at_the_caret_as_one_undo_step() {
     let msgs = locked.feed(&json!({"t": "insert", "id": 3, "text": "x"}).to_string());
     assert!(named(&events(&msgs), "change").is_empty(), "a read-only field takes nothing");
 }
+
+#[test]
+fn checked_replacement_preserves_unicode_caret_and_is_an_undo_step() {
+    let mut h = field("EditBox", json!({"text": ""}));
+    typed(&mut h, "café helo ");
+    h.feed(&json!({"t": "replace_checked", "id": 3, "expected": "café helo ", "text": "café hello "}).to_string());
+    assert_eq!(h.node(|n| n["id"] == 3)["text"], "café hello ");
+    assert_eq!(key(&mut h, ":command_z"), ["café helo "]);
+    assert_eq!(key(&mut h, ":command_shift_z"), ["café hello "]);
+    assert_eq!(typed(&mut h, "X"), ["café hello X"]);
+
+    key(&mut h, "home");
+    for _ in 0..5 {
+        key(&mut h, "right");
+    }
+    h.feed(&json!({"t": "replace_checked", "id": 3, "expected": "café hello X", "text": "café hullo X"}).to_string());
+    assert_eq!(typed(&mut h, "!"), ["café !hullo X"], "a correction after the caret leaves the caret alone");
+}
+
+#[test]
+fn checked_replacement_refuses_stale_text_selections_and_readonly_fields() {
+    let mut h = field("EditBox", json!({"text": "helo "}));
+    key(&mut h, "end");
+    let replace = json!({"t": "replace_checked", "id": 3, "expected": "helo ", "text": "hello "});
+    typed(&mut h, "x");
+    h.feed(&replace.to_string());
+    assert_eq!(h.node(|n| n["id"] == 3)["text"], "helo x");
+
+    key(&mut h, "backspace");
+    key(&mut h, ":command_a");
+    h.feed(&replace.to_string());
+    assert_eq!(h.node(|n| n["id"] == 3)["text"], "helo ");
+    key(&mut h, "end");
+    h.feed(&json!({"t": "props", "id": 3, "props": {"state": "readonly"}}).to_string());
+    h.feed(&replace.to_string());
+    assert_eq!(h.node(|n| n["id"] == 3)["text"], "helo ");
+}
+
+#[test]
+fn spelling_underlines_only_match_the_analyzed_snapshot() {
+    let mut h = field("EditBox", json!({"text": "helo", "width": 200, "height": 90}));
+    let path = std::env::temp_dir().join(format!("scarpe-spelling-{}.png", std::process::id()));
+    let screenshot = |h: &mut Harness| {
+        h.value(json!({"op": "snapshot", "path": path.display().to_string()}));
+        image::open(&path).unwrap().to_rgba8().pixels()
+            .filter(|p| p.0[0] as u16 > p.0[1] as u16 + 30 && p.0[0] as u16 > p.0[2] as u16 + 30).count()
+    };
+    let plain = screenshot(&mut h);
+    h.feed(&json!({"t": "props", "id": 3, "props": {"spelling": {"text": "helo", "ranges": [[0, 4]]}}}).to_string());
+    assert!(screenshot(&mut h) > plain, "the misspelling is visibly underlined");
+    typed(&mut h, "x");
+    assert_eq!(screenshot(&mut h), plain, "a stale analysis paints no underline");
+    std::fs::remove_file(path).unwrap();
+}

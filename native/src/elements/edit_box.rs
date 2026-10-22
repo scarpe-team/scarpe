@@ -22,6 +22,35 @@ pub fn paint(canvas: &mut Canvas, node: &Node, lbox: &LBox, state: WidgetState, 
     let inner = inner_rect(r);
     field.fit(&mut text.fonts.system, inner);
     draw_field(canvas, field, Rect::new(r.x + 3.0, r.y + 3.0, r.w - 6.0, r.h - 6.0), lbox.clip, state.focused, colors.accent, text);
+    if let Some(spelling) = node.props.get("spelling") {
+        let source = field.text();
+        // An analysis for an older snapshot must never underline newer text.
+        if spelling.get("text").and_then(serde_json::Value::as_str) == Some(source.as_str()) {
+            if let Some(ranges) = spelling.get("ranges").and_then(serde_json::Value::as_array) {
+                let clip = lbox.clip.map_or(Some(inner), |c| c.intersect(&inner));
+                if let Some(clip) = clip {
+                    let cursor = |offset: usize| {
+                        let before = &source[..offset];
+                        cosmic_text::Cursor::new(before.bytes().filter(|b| *b == b'\n').count(), offset - before.rfind('\n').map_or(0, |i| i + 1))
+                    };
+                    field.editor_buffer(|buffer| {
+                        for range in ranges {
+                            let Some(start) = range.get(0).and_then(serde_json::Value::as_u64).map(|n| n as usize) else { continue };
+                            let Some(end) = range.get(1).and_then(serde_json::Value::as_u64).map(|n| n as usize) else { continue };
+                            if start >= end || end > source.len() || !source.is_char_boundary(start) || !source.is_char_boundary(end) {
+                                continue;
+                            }
+                            for rect in crate::paint::text::selection_rects(buffer, cursor(start), cursor(end)) {
+                                let r = rect.translate(inner.x - field.offset.0, inner.y - field.offset.1);
+                                crate::paint::text::wavy(canvas, r.x, r.right(), r.bottom() - 2.0, field.size,
+                                    Color::rgb(0xe5, 0x39, 0x35), canvas.px_clip(Some(clip)));
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    }
     let (_, content_h) = field.content_size();
     if content_h > inner.h + 0.5 {
         let track = inner.h;

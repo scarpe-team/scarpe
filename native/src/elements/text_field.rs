@@ -160,6 +160,50 @@ impl TextField {
         text
     }
 
+    fn byte_offset(&self, cursor: Cursor) -> usize {
+        self.editor.with_buffer(|b| b.lines.iter().take(cursor.line).map(|l| l.text().len() + 1).sum::<usize>() + cursor.index)
+    }
+
+    pub fn edit_context(&self, autocorrect: bool) -> serde_json::Value {
+        serde_json::json!({ "cursor": self.byte_offset(self.editor.cursor()), "autocorrect": autocorrect })
+    }
+
+    pub fn change_args(&mut self, autocorrect: bool) -> Vec<serde_json::Value> {
+        let mut args = vec![serde_json::Value::String(self.reported())];
+        if self.multiline {
+            args.push(self.edit_context(autocorrect));
+        }
+        args
+    }
+
+    pub fn replace_checked(&mut self, fs: &mut FontSystem, expected: &str, text: &str) -> bool {
+        if self.text() != expected || text == expected || self.editor.selection() != Selection::None {
+            return false;
+        }
+        let prefix = expected.chars().zip(text.chars()).take_while(|(a, b)| a == b).map(|(c, _)| c.len_utf8()).sum::<usize>();
+        // Keep a common suffix so edits in the middle do not move the caret to the end.
+        let suffix = expected[prefix..].chars().rev().zip(text[prefix..].chars().rev())
+            .take_while(|(a, b)| a == b).map(|(c, _)| c.len_utf8()).sum::<usize>();
+        let old_end = expected.len() - suffix;
+        let new_end = text.len() - suffix;
+        let caret = self.byte_offset(self.editor.cursor());
+        if caret > prefix && caret < old_end {
+            return false;
+        }
+        let new_caret = if caret >= old_end { caret - old_end + new_end } else { caret };
+        self.edit(EditKind::Other, |field| {
+            field.replace_text(text);
+            let before = &text[..new_caret];
+            let line = before.bytes().filter(|b| *b == b'\n').count();
+            let line_start = before.rfind('\n').map_or(0, |i| i + 1);
+            field.editor.set_cursor(Cursor::new(line, new_caret - line_start));
+            field.editor.set_selection(Selection::None);
+            field.editor.shape_as_needed(fs, false);
+            field.scroll_to_caret();
+            true
+        })
+    }
+
     /// Applies text from Lacci. Its echo of our own edit, however late, is a no-op, so the caret
     /// and the undo history stay; text the app sets itself starts a new history, as a
     /// browser's field does.

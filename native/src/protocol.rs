@@ -19,6 +19,7 @@ pub enum Incoming {
     Focus { id: Id },
     /// `edit_box.insert(text)`: put `text` in at the field's caret, over any selection (ledger G18).
     Insert { id: Id, text: String },
+    ReplaceChecked { id: Id, expected: String, text: String },
     ScrollTo { id: Id, top: f32 },
     Font { path: String },
     /// How text is sized and set from now on (Lacci's `Shoes.text_mode`): "scarpe" or "shoes3".
@@ -198,6 +199,11 @@ pub fn parse_line(line: &str) -> Result<Incoming, ParseError> {
         "run" => Incoming::Run { app: id(&obj, "app") },
         "quit" => Incoming::Quit { app: id(&obj, "app") },
         "focus" => Incoming::Focus { id: required(id(&obj, "id"), "id")? },
+        "replace_checked" => Incoming::ReplaceChecked {
+            id: required(id(&obj, "id"), "id")?,
+            expected: required(s(&obj, "expected"), "expected")?,
+            text: required(s(&obj, "text"), "text")?,
+        },
         "insert" => Incoming::Insert { id: required(id(&obj, "id"), "id")?, text: required(s(&obj, "text"), "text")? },
         "scroll_to" => Incoming::ScrollTo { id: required(id(&obj, "id"), "id")?, top: f(&obj, "top").unwrap_or(0.0) },
         "font" => Incoming::Font { path: required(s(&obj, "path"), "path")? },
