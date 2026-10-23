@@ -23,6 +23,7 @@ myapp.rb` does the same.
 | `--no-bytecode` | skip precompiling |
 | `--minimal` | strip optional Ruby libraries: a 17.7 MB app instead of 32.4 MB; OpenSSL and FastImage go, so https image downloads and image sizes cannot work |
 | `--include PATH` | also carry a file or folder the app reads (repeatable): one inside the app's folder keeps its relative path, one elsewhere lands under its own name; an included `.rb` file is compiled like the app |
+| `--app-version VERSION` | the version Finder's Get Info shows, one to three numbers with dots (`1.2.3`); without it every package says 1.0.0 |
 | `--name NAME` | the name Finder, the Dock and the disk image show, kept as written (`"For Noah"`); without it the name comes from the file, CamelCased (`for_noah.rb` is `ForNoah`) |
 | `--icon`, `--output`, `--verbose` | as for any `scarpe package` build |
 

@@ -138,6 +138,10 @@ module Scarpe
       psych yaml
     ].freeze
 
+    # What Finder shows as the app's version (--app-version): CFBundleShortVersionString and
+    # CFBundleVersion both take one to three period-separated integers.
+    APP_VERSION = /\A\d+(\.\d+){0,2}\z/
+
     # Stdlib files safe to remove in minimal mode.
     # These are development/network/CLI tools not needed for GUI apps:
     # - mkmf, profiler, debug, tracer: development/debugging tools
@@ -155,7 +159,7 @@ module Scarpe
       pp.rb prettyprint.rb tsort.rb cgi.rb
     ].freeze
 
-    def initialize(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false, minimal: false, target_os: nil, skip_webview_check: false, includes: [])
+    def initialize(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false, minimal: false, target_os: nil, skip_webview_check: false, includes: [], app_version: nil)
       @app_file = File.expand_path(app_file)
       raise "App file not found: #{@app_file}" unless File.exist?(@app_file)
       raise "App file must be a .rb file: #{@app_file}" unless @app_file.end_with?(".rb")
@@ -178,6 +182,16 @@ module Scarpe
       if @target_os != "macos" && @includes.any?
         warn "⚠️  --include is only carried into macOS builds so far (ignored for #{@target_os})"
       end
+      @app_version = app_version&.to_s
+      if @app_version && @target_os != "macos"
+        warn "⚠️  --app-version is only written into macOS builds so far (ignored for #{@target_os})"
+        @app_version = nil
+      end
+      raise "--app-version needs a version, like 1.2.3" if @app_version&.empty?
+      if @app_version && @app_version !~ APP_VERSION
+        raise "--app-version #{@app_version}: macOS wants one to three numbers with dots, like 1.2.3"
+      end
+
       if @target_os != "macos" && (@sign || @dmg || @universal)
         warn "⚠️  --sign, --dmg, and --universal are macOS-only options (ignored for #{@target_os})"
         @sign = false
@@ -1080,9 +1094,9 @@ module Scarpe
             <key>CFBundlePackageType</key>
             <string>APPL</string>
             <key>CFBundleShortVersionString</key>
-            <string>1.0.0</string>
+            <string>#{@app_version || "1.0.0"}</string>
             <key>CFBundleVersion</key>
-            <string>1</string>
+            <string>#{@app_version || "1"}</string>
             <key>LSMinimumSystemVersion</key>
             <string>10.15</string>
             <key>NSHighResolutionCapable</key>
@@ -2799,7 +2813,7 @@ module Scarpe
 
     # A native package when asked with --native, or when SCARPE_DISPLAY_SERVICE says the app runs native.
     def self.packager_for(options, env: ENV)
-      shared = options.slice(:name, :icon, :arch, :output_dir, :verbose, :dev, :sign, :dmg, :universal, :minimal, :target_os, :includes)
+      shared = options.slice(:name, :icon, :arch, :output_dir, :verbose, :dev, :sign, :dmg, :universal, :minimal, :target_os, :includes, :app_version)
       if options[:native] || env["SCARPE_DISPLAY_SERVICE"] == "native"
         Native.new(options[:app_file], install_dir: options[:install_dir] || Native::INSTALL_DIR, bytecode: options.fetch(:bytecode, true), **shared)
       else
@@ -2871,6 +2885,13 @@ module Scarpe
         when "--include"
           (options[:includes] ||= []) << args[i + 1]
           i += 2
+        when "--app-version"
+          # "" when no value follows, so the packager says so instead of writing 1.0.0
+          options[:app_version] = args[i + 1].to_s
+          i += 2
+        when /\A--app-version=/
+          options[:app_version] = args[i].delete_prefix("--app-version=")
+          i += 1
         when "--help", "-h"
           options[:help] = true
           i += 1
@@ -2908,6 +2929,8 @@ module Scarpe
               --dev             Use local development Scarpe source (not published gems)
               --include PATH    Also carry this file or folder beside the app (macOS; repeatable).
                                 Lands where the app's own relative paths expect it
+              --app-version VERSION
+                                The version Finder shows, like 1.2.3 (macOS; default 1.0.0)
           -m, --minimal         Strip optional gems & SSL for smallest build
                                 Removes: nokogiri, sqlite3, fastimage, SSL/crypto
                                 Apps using download/Image auto-size won't work
