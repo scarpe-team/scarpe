@@ -252,11 +252,7 @@ impl Runtime {
                 Some(_) => {}
                 None => self.out.send(Outgoing::Log { level: "warn".into(), msg: format!("unknown text_mode {mode:?}; it is scarpe or shoes3") }),
             },
-            Incoming::Flush => {
-                self.flush();
-                // A batch may have made the first `drop` block a file opened at launch waits for.
-                self.deliver_opened();
-            }
+            Incoming::Flush => self.flush(),
             Incoming::Req { req, op } => {
                 self.flush();
                 if is_input(&op) {
@@ -494,6 +490,9 @@ impl Runtime {
         for app in running {
             self.ensure_layout(app);
         }
+        // A batch ends here, with a `flush` or ahead of a request, and may have made the first
+        // `drop` block a file opened at launch waits for.
+        self.deliver_opened();
     }
 
     /// Text spans no text has named for longest, past limits::LOOSE_SPANS (Doc's span names).

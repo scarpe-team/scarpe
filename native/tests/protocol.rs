@@ -263,6 +263,45 @@ fn an_opened_file_waits_for_a_drop_block_then_arrives_as_a_drop() {
     assert_eq!(named(&events(&evs), "drop").len(), 1, "and only once");
 }
 
+/// A batch ends ahead of a request as well as at `flush`, and Ruby sends no `flush` when a
+/// request has just written the batch out, so an opened file waits for either (ledger H11).
+#[test]
+fn an_opened_file_arrives_when_a_batch_ends_with_a_request() {
+    let mut h = Harness::new();
+    h.req(json!({"op": "open", "path": "/tmp/launch.md"}));
+    let without_flush: String = app(300, 200, &[
+        json!({"t": "create", "id": 4, "kind": "SubscriptionItem", "parent": 2, "props": {"shoes_api_name": "drop"}}),
+    ])
+    .lines()
+    .filter(|l| !l.contains(r#""t":"flush""#))
+    .map(|l| format!("{l}\n"))
+    .collect();
+    assert!(named(&events(&h.feed(&without_flush)), "drop").is_empty(), "the batch has not ended");
+    let (evs, _) = h.req(json!({"op": "focused"}));
+    assert_eq!(named(&events(&evs), "drop")[0].2, json!(["/tmp/launch.md"]));
+}
+
+/// A file opened while a batch is half applied waits for its end, so no layout is made of a
+/// document half built; a window the user closed never takes one (ledger H11).
+#[test]
+fn an_opened_file_waits_out_a_batch_and_skips_closed_windows() {
+    let mut h = Harness::new();
+    h.feed(&app(300, 200, &[
+        json!({"t": "create", "id": 4, "kind": "SubscriptionItem", "parent": 2, "props": {"shoes_api_name": "drop"}}),
+    ]));
+    h.feed(&create(5, "Para", 2, json!({"text": "half way"})).to_string());
+    h.rt.open_documents(vec!["/tmp/mid.md".into()]);
+    assert!(named(&events(&h.rt.out.take_captured()), "drop").is_empty(), "mid batch");
+    let msgs = h.feed(&json!({"t": "flush"}).to_string());
+    assert_eq!(named(&events(&msgs), "drop")[0].2, json!(["/tmp/mid.md"]), "at the batch's end");
+
+    h.rt.window_closed(1);
+    h.rt.out.take_captured();
+    h.rt.open_documents(vec!["/tmp/after.md".into()]);
+    assert!(named(&events(&h.rt.out.take_captured()), "drop").is_empty(), "the only window is closed");
+    assert_eq!(h.rt.opened, vec!["/tmp/after.md".to_string()], "so it waits");
+}
+
 /// Alt-/ (Cmd-/ on a Mac, which Shoes names alt_/, ledger Q5) opens the Shoes console, and the
 /// app never hears the key: Shoes 3's shoes_app_keypress runs Shoes.show_log for it before any
 /// keypress block (s3_app.c:773-776; manual 721-722, 2239-2240; ledger H10).

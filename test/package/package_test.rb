@@ -188,6 +188,18 @@ class PackageTest < Minitest::Test
     end
   end
 
+  def test_opens_reads_a_leading_dot_as_an_extension_and_wants_a_type
+    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, target_os: "macos",
+                                           opens: [".tar.gz", "public.archive"])
+    entry = packager.send(:document_types_plist_entry)
+    assert_includes entry, "<key>CFBundleTypeExtensions</key><array><string>tar.gz</string></array>"
+    assert_includes entry, "<key>LSItemContentTypes</key><array><string>public.archive</string></array>"
+
+    options = Scarpe::Package.parse_args([@app, "--native", "--target", "macos", "--opens"])
+    error = assert_raises(RuntimeError) { Scarpe::Package.packager_for(options, env: {}) }
+    assert_match(/--opens needs a type/, error.message)
+  end
+
   def test_a_package_that_opens_nothing_declares_no_document_types
     packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, target_os: "macos")
     FileUtils.mkdir_p(File.join(packager.app_path, "Contents"))

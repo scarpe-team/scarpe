@@ -161,7 +161,9 @@ module Scarpe
       raise "App file must be a .rb file: #{@app_file}" unless @app_file.end_with?(".rb")
 
       @includes = Array(includes)
-      @opens = Array(opens)
+      @opens = Array(opens).map(&:to_s)
+      raise "--opens needs a type, like md or net.daringfireball.markdown" if @opens.any?(&:empty?)
+
       @name = sanitize_name(name || File.basename(app_file, ".rb"))
       @icon = icon ? File.expand_path(icon) : nil
       @arch = ARCH_MAP[arch || detect_arch] || raise("Unsupported architecture: #{arch}")
@@ -1105,10 +1107,12 @@ module Scarpe
     end
 
     # What Finder may open with the app (--opens): file types by UTI (net.daringfireball.markdown,
-    # public.plain-text) and by extension (md). macOS skips CFBundleTypeExtensions in an entry
-    # that names content types, so each kind gets an entry of its own. The app takes the files
-    # without becoming their default ("Alternate"), so Open With lists it and a double-click
-    # still opens whatever opened them before. The native display hands them to `drop` blocks.
+    # public.plain-text) and by extension (md). A type with a dot is a UTI unless it starts with
+    # one, so an extension with dots in it is written with a leading dot (.tar.gz). macOS skips
+    # CFBundleTypeExtensions in an entry that names content types, so each kind gets an entry of
+    # its own. The app takes the files without becoming their default ("Alternate"), so Open
+    # With lists it and a double-click still opens whatever opened them before. The native
+    # display hands them to `drop` blocks.
     def document_types_plist_entry
       utis, extensions = @opens.partition { |type| type.include?(".") && !type.start_with?(".") }
       extensions = extensions.map { |ext| ext.delete_prefix(".") }
@@ -2899,7 +2903,8 @@ module Scarpe
           (options[:includes] ||= []) << args[i + 1]
           i += 2
         when "--opens"
-          (options[:opens] ||= []) << args[i + 1]
+          # "" when no type follows, so the packager says so before it copies anything
+          (options[:opens] ||= []) << args[i + 1].to_s
           i += 2
         when "--help", "-h"
           options[:help] = true
@@ -2956,8 +2961,8 @@ module Scarpe
                                 its Ruby is precompiled for that place
               --no-bytecode     Skip precompiling Ruby to bytecode
               --opens TYPE      Let Finder open this kind of file with the app (repeatable): a
-                                UTI (net.daringfireball.markdown) or an extension (md). Each
-                                file reaches the app's drop blocks
+                                UTI (net.daringfireball.markdown) or an extension (md, or
+                                .tar.gz when it has dots). Each file reaches the drop blocks
 
           -h, --help            Show this help
 

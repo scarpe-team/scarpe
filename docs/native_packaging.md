@@ -23,7 +23,7 @@ myapp.rb` does the same.
 | `--no-bytecode` | skip precompiling |
 | `--minimal` | strip optional Ruby libraries: a 17.7 MB app instead of 32.4 MB; OpenSSL and FastImage go, so https image downloads and image sizes cannot work |
 | `--include PATH` | also carry a file or folder the app reads (repeatable): one inside the app's folder keeps its relative path, one elsewhere lands under its own name; an included `.rb` file is compiled like the app |
-| `--opens TYPE` | let Finder open this kind of file with the app (repeatable): a UTI such as `net.daringfireball.markdown` or `public.plain-text`, or an extension such as `md`. The app is listed under Open With without becoming the default; each file it is handed reaches its `drop` blocks (ledger H11) |
+| `--opens TYPE` | let Finder open this kind of file with the app (repeatable): a UTI such as `net.daringfireball.markdown` or `public.plain-text`, or an extension such as `md` (one with dots in it takes a leading dot: `.tar.gz`). The app is listed under Open With without becoming the default; each file it is handed reaches its `drop` blocks (ledger H11) |
 | `--name NAME` | the name Finder, the Dock and the disk image show, kept as written (`"For Noah"`); without it the name comes from the file, CamelCased (`for_noah.rb` is `ForNoah`) |
 | `--icon`, `--output`, `--verbose` | as for any `scarpe package` build |
 

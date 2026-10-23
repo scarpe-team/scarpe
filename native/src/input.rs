@@ -983,18 +983,23 @@ impl Runtime {
     }
 
     /// Files the system asked the app to open. They reach the `drop` blocks of the window that
-    /// had input last, else of the first window that has one, as files dropped on it; until a
-    /// window has a `drop` block (an app Finder launched has not drawn yet) they wait (ledger H11).
+    /// had input last, else of the first window that has one, as files dropped on it. They wait
+    /// while no running window has a `drop` block (an app Finder launched has not drawn yet),
+    /// while that window's `ask` is up, and while a batch is half applied: the batch's end
+    /// (`flush`) hands them over (ledger H11).
     pub fn open_documents(&mut self, paths: Vec<String>) {
         self.opened.extend(paths);
-        self.deliver_opened();
+        if !self.mid_batch {
+            self.deliver_opened();
+        }
     }
 
     pub fn deliver_opened(&mut self) {
         if self.opened.is_empty() {
             return;
         }
-        let apps: Vec<Id> = self.active_app.into_iter().chain(self.views.keys().copied()).filter(|&app| !self.is_standalone(app)).collect();
+        let open = |rt: &Self, app: Id| rt.views.get(&app).is_some_and(|v| v.running && !v.standalone && v.ui.modal.is_none());
+        let apps: Vec<Id> = self.active_app.into_iter().chain(self.views.keys().copied()).filter(|&app| open(self, app)).collect();
         let Some(app) = apps.into_iter().find(|&app| {
             self.ensure_layout(app);
             !self.subscriptions(app, "drop").is_empty()
