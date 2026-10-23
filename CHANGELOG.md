@@ -28,6 +28,7 @@ straightforward as possible.
 - A negative `left` or `top` puts anything past its slot's near edge, as Shoes 3 read it (Nick's ruling of Q10, ledger C18): Hackety Hack's hand drops in from above the window again, and Ready sweeps the intro away to the left
 - `Shoes.on_error { |err| }` hears every error a handler, a timer or the startup raises, as a Hash; the Shoes console lists them, newest first, with what `debug`, `info` and `error` said, and opens with Alt-/ (Cmd-/ on a Mac) or `Shoes.show_console`, never by itself; the log says an error a timer raises every frame once, then how often
 - `Shoes.run_program(path)` runs a Shoes program in a process of its own and returns a `Shoes::Program` (`stop`, `on_output`, `on_error`, `on_exit`), so a program that never stops freezes only itself; a packaged app's launcher runs `SCARPE_RUN_FILE` instead of the app
+- `scarpe package --app-version VERSION` sets the version a macOS package shows in Finder (`CFBundleShortVersionString` and `CFBundleVersion`); without it, 1.0.0 as before
 ### Bugs Fixed
 - #569 link(click: "/path") now triggers internal navigation via visit(); paths like "/foo" also fall back to page(:foo) if no URL route matches
 - Support for `class MyApp < Shoes` inheritance pattern with URL routing

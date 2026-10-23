@@ -168,6 +168,44 @@ class PackageTest < Minitest::Test
     end
   end
 
+  # Every package said 1.0.0 in Finder's Get Info, whatever release it was.
+  def test_app_version_is_what_finder_shows
+    options = Scarpe::Package.parse_args([@app, "--native", "--app-version", "1.1.0", "--target", "macos",
+                                          "--output", scratch_dir])
+    assert_equal "1.1.0", options[:app_version]
+
+    packager = Scarpe::Package.packager_for(options, env: {})
+    FileUtils.mkdir_p(File.join(packager.app_path, "Contents"))
+    packager.send(:write_info_plist)
+    plist = File.join(packager.app_path, "Contents", "Info.plist")
+    written = File.read(plist)
+    assert_includes written, "<key>CFBundleShortVersionString</key>\n    <string>1.1.0</string>"
+    assert_includes written, "<key>CFBundleVersion</key>\n    <string>1.1.0</string>"
+    if RUBY_PLATFORM.include?("darwin")
+      version, = Open3.capture2("plutil", "-extract", "CFBundleShortVersionString", "raw", "-o", "-", plist)
+      assert_equal "1.1.0", version.strip
+    end
+  end
+
+  def test_without_app_version_a_package_keeps_the_old_default
+    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, target_os: "macos")
+    FileUtils.mkdir_p(File.join(packager.app_path, "Contents"))
+    packager.send(:write_info_plist)
+    written = File.read(File.join(packager.app_path, "Contents", "Info.plist"))
+
+    assert_includes written, "<key>CFBundleShortVersionString</key>\n    <string>1.0.0</string>"
+    assert_includes written, "<key>CFBundleVersion</key>\n    <string>1</string>"
+  end
+
+  def test_an_app_version_macos_cannot_read_stops_the_build
+    %w[v1.2 1.2.3.4 1.2-beta].each do |version|
+      error = assert_raises(RuntimeError, version) do
+        Scarpe::Package::Native.new(@app, output_dir: scratch_dir, target_os: "macos", app_version: version)
+      end
+      assert_match(/--app-version #{Regexp.escape(version)}/, error.message)
+    end
+  end
+
   # Builds share ~/.scarpe/packager-cache. Each used to stage its disk image in the same
   # dmg-staging folder and empty it first, under any other build still copying into it.
   def test_a_dmg_build_leaves_other_builds_staging_alone

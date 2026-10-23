@@ -635,6 +635,8 @@ bundle exec ruby exe/scarpe package ~/my_app/my_app.rb --native --dmg \
   temp folder); and the `images`, `assets`, `fonts` and `sounds` folders. Anything else needs
   `--include PATH` (repeatable; a path relative to the app's folder), including other `.rb` files
   the app requires.
+- `--app-version 1.2.0` is the version Finder's Get Info shows; without it every build says 1.0.0.
+  Give each release its own.
 - `--icon` takes a `.png` (turned into `.icns` with `sips` and `iconutil`) or an `.icns`. A
   path that does not exist is skipped without an error, so look for `Converted PNG to ICNS` in
   the output.
