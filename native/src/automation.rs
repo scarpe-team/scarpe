@@ -107,6 +107,8 @@ impl Runtime {
             }
             Op::Drop { path, app } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;
+                // A real drop is input to that window, so it becomes the active one (window.rs).
+                self.active_app = Some(app);
                 self.drop_file(app, &path);
                 Ok(Some(Value::Null))
             }

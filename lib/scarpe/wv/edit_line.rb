@@ -20,7 +20,7 @@ module Scarpe::Webview
         html_element.focus
       end
 
-      # edit_box.insert: at the caret, then the input event that reports the change (ledger G18)
+      # edit_line.insert: at the caret, then the input event that reports the change (ledger G18)
       bind_shoes_event(event_name: "insert", target: shoes_linkable_id) do |text|
         html_element.insert_text(text)
       end

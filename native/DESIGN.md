@@ -178,7 +178,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 | SubscriptionItem `hover`/`leave` | same | item id | `[]` on entering/leaving the parent slot box |
 | SubscriptionItem `keypress` | `keypress` | item id | `[key]`, see 4.4. Not sent while a text input has focus, except escape and modified keys; not sent for keys a focused control used |
 | SubscriptionItem `wheel` | `wheel` | item id | `[delta, x, y]`, delta > 0 = up |
-| a file dropped on the window (winit `DroppedFile`), or `req drop` | `drop` | item id | `[path]`, the file's full path, to every SubscriptionItem `drop` in the window wherever its slot sits: winit 0.30 does not say where the file landed. Several files arrive one event each. A path that is not UTF-8 is logged and not sent (ledger H11) |
+| a file dropped on the window (winit `DroppedFile`), or `req drop` | `drop` | item id | `[path]`, the file's full path, to every SubscriptionItem `drop` in the window wherever its slot sits: winit 0.30 does not say where the file landed. Several files arrive one event each. A path that is not UTF-8 is logged and not sent, and while an in-window modal is up a drop goes nowhere (ledger H11) |
 
 A SubscriptionItem hears events only while its parent slot is laid out and its `stopped` prop is
 not true. Mouse buttons are 1 = left, 2 = middle, 3 = right (manual numbering).

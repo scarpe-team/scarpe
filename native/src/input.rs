@@ -970,8 +970,12 @@ impl Runtime {
 
     /// A file dropped on the window: every `drop` block in it hears the path, as every
     /// `keypress` block hears a key. winit 0.30 does not say where the file landed, so no slot
-    /// is singled out; several files arrive one event each (ledger H11).
+    /// is singled out; several files arrive one event each. While an in-window `ask` is up the
+    /// app is waiting on it, so a drop goes nowhere, as a click beside the dialog does (ledger H11).
     pub fn drop_file(&mut self, app: Id, path: &str) {
+        if self.views.get(&app).is_some_and(|v| v.ui.modal.is_some()) {
+            return;
+        }
         self.ensure_layout(app);
         for (item, _) in self.subscriptions(app, "drop") {
             self.out.event("drop", Some(item), vec![json!(path)]);

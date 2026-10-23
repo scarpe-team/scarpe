@@ -1280,7 +1280,7 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Lacci / WV today:** until 16 Oct no `drop` method on App or Slot. Lacci now has one, and a SubscriptionItem `drop` that hands its block the path. The webview never learns a dropped file's path, so there a `drop` block hears nothing.
 - **Why every block, not the one under the pointer:** winit 0.30's `WindowEvent::DroppedFile` carries the path and no position, so Rust cannot say which slot the file landed on. Once winit reports where a file lands, only the slots under that point should hear it, as `wheel` (H7) does.
 - **Spec:** no case: the manual has no entry to hang one on. **Tests:** `tests/protocol.rs` (`a_dropped_file_reaches_every_drop_block`), `test/native/end_to_end_test.rb` (`test_drop_blocks_hear_each_dropped_file`) and `test/native/art_input_test.rb` (`test_peek_drops_a_file`).
-- **Native:** `DroppedFile` and `req drop {path}` send `drop` events `[path]` to every SubscriptionItem `drop` in the window (`input.rs` `drop_file`, DESIGN 4.1 and 4.3). A path that is not UTF-8 is logged and not sent. `scarpe peek --drop PATH` and Shoes-Spec's `drop_file(path)` make one.
+- **Native:** `DroppedFile` and `req drop {path}` send `drop` events `[path]` to every SubscriptionItem `drop` in the window (`input.rs` `drop_file`, DESIGN 4.1 and 4.3). A path that is not UTF-8 is logged and not sent. While an in-window `ask` or `ask_color` is up the app is waiting on it, so a drop goes nowhere, as a click beside the dialog does. `scarpe peek --drop PATH` and Shoes-Spec's `drop_file(path)` make one.
 
 ## I. Timers
 
