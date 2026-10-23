@@ -121,6 +121,9 @@ pub struct Runtime {
     pub active_app: Option<Id>,
     /// Set when Rust should exit with this code.
     pub exit: Option<i32>,
+    /// Files the system asked the app to open (Finder's Open With, a double-click, a drop on
+    /// the Dock icon) that no window's `drop` block has heard yet (ledger H11).
+    pub opened: Vec<String>,
     /// Document changes arrived and their `flush` has not: windows wait for it
     /// rather than show half a batch.
     pub mid_batch: bool,
@@ -157,6 +160,7 @@ impl Runtime {
             clipboard,
             active_app: None,
             exit: None,
+            opened: Vec::new(),
             mid_batch: false,
             pending_frames: Vec::new(),
             stats,
@@ -248,7 +252,11 @@ impl Runtime {
                 Some(_) => {}
                 None => self.out.send(Outgoing::Log { level: "warn".into(), msg: format!("unknown text_mode {mode:?}; it is scarpe or shoes3") }),
             },
-            Incoming::Flush => self.flush(),
+            Incoming::Flush => {
+                self.flush();
+                // A batch may have made the first `drop` block a file opened at launch waits for.
+                self.deliver_opened();
+            }
             Incoming::Req { req, op } => {
                 self.flush();
                 if is_input(&op) {
@@ -678,7 +686,7 @@ fn changes_only_looks(kind: &Kind, key: &str) -> bool {
 
 /// Requests that act like a person at the keyboard or mouse.
 fn is_input(op: &Op) -> bool {
-    matches!(op, Op::Click { .. } | Op::Mouse { .. } | Op::Type { .. } | Op::Key { .. } | Op::Wheel { .. } | Op::Drop { .. } | Op::A11yAction { .. })
+    matches!(op, Op::Click { .. } | Op::Mouse { .. } | Op::Type { .. } | Op::Key { .. } | Op::Wheel { .. } | Op::Drop { .. } | Op::Open { .. } | Op::A11yAction { .. })
 }
 
 /// The App's `width` and `height`, each finite, positive and at most limits::MAX_SIDE.

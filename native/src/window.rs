@@ -4,6 +4,8 @@
 //! Each window has an AccessKit adapter, so a screen reader can read and work it (a11y.rs).
 
 mod ghost;
+#[cfg(target_os = "macos")]
+mod open_documents;
 mod pacing;
 mod voiceover;
 
@@ -37,6 +39,8 @@ pub enum UserEvent {
     Eof,
     /// A screen reader wants a window's whole tree, or asks something of a node.
     A11y(accesskit_winit::Event),
+    /// Files the system asked the app to open (open_documents.rs).
+    Open(Vec<String>),
 }
 
 /// A window's screen reader handlers, which AccessKit calls on whatever thread its platform uses.
@@ -148,6 +152,9 @@ pub fn run(opts: Options, window_opts: WindowOptions) -> i32 {
     event_loop.set_control_flow(ControlFlow::Wait);
     let loop_built = Instant::now();
     let proxy = event_loop.create_proxy();
+    // Before the loop runs, so the file that launched the app is heard too.
+    #[cfg(target_os = "macos")]
+    open_documents::listen(proxy.clone());
     let stdin_proxy = proxy.clone();
     std::thread::spawn(move || read_stdin(stdin_proxy));
     let mut shell = Shell {
@@ -486,6 +493,7 @@ impl ApplicationHandler<UserEvent> for Shell {
                 return;
             }
             UserEvent::A11y(event) => self.a11y_event(event),
+            UserEvent::Open(paths) => self.rt.open_documents(paths),
         }
         self.settle(el);
     }

@@ -299,7 +299,7 @@ hover    { |slot| }
 leave    { |slot| }
 keypress { |key| }               # "a", "A", " ", "\n", :left, :escape, :tab, :f1, :control_s, :alt_q
 wheel    { |delta, x, y| }       # delta > 0 is up
-drop     { |path| }              # a file dropped on the window, its full path; once a file
+drop     { |path| }              # a file dropped on the window or opened from Finder, its full path; once a file
 @dot.click { |button, x, y| }    # art, images and text blocks take click and release too
 ```
 
@@ -639,6 +639,10 @@ bundle exec ruby exe/scarpe package ~/my_app/my_app.rb --native --dmg \
   temp folder); and the `images`, `assets`, `fonts` and `sounds` folders. Anything else needs
   `--include PATH` (repeatable; a path relative to the app's folder), including other `.rb` files
   the app requires.
+- An app that opens files says which with `--opens` (repeatable): a UTI
+  (`net.daringfireball.markdown`, `public.plain-text`) or an extension (`md`). Without it Finder
+  says the app "cannot open files in the Markdown format". Each file reaches the app's `drop`
+  blocks, the one that launched the app included.
 - `--icon` takes a `.png` (turned into `.icns` with `sips` and `iconutil`) or an `.icns`. A
   path that does not exist is skipped without an error, so look for `Converted PNG to ICNS` in
   the output.

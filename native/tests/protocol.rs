@@ -241,6 +241,28 @@ fn a_dropped_file_reaches_every_drop_block() {
     assert!(named(&events(&evs), "drop").is_empty() && named(&events(&evs), "click").is_empty());
 }
 
+/// A file the system asks the app to open (Finder's Open With) reaches the `drop` blocks as a
+/// dropped file would. One that launched the app arrives before any window exists, so it waits
+/// for the batch that makes the first `drop` block (ledger H11).
+#[test]
+fn an_opened_file_waits_for_a_drop_block_then_arrives_as_a_drop() {
+    let mut h = Harness::new();
+    let (evs, reply) = h.req(json!({"op": "open", "path": "/Users/me/Notes/launch.md"}));
+    assert_eq!(reply["error"], Value::Null, "{reply:?}");
+    assert!(named(&events(&evs), "drop").is_empty(), "no window yet");
+
+    let msgs = h.feed(&app(300, 200, &[
+        json!({"t": "create", "id": 4, "kind": "SubscriptionItem", "parent": 2, "props": {"shoes_api_name": "drop"}}),
+    ]));
+    let heard: Vec<(Value, Value)> = named(&events(&msgs), "drop").iter().map(|e| (e.1.clone(), e.2.clone())).collect();
+    assert_eq!(heard, vec![(json!(4), json!(["/Users/me/Notes/launch.md"]))], "delivered once the app's batch is in");
+
+    let (evs, _) = h.req(json!({"op": "open", "path": "/tmp/later.md"}));
+    assert_eq!(named(&events(&evs), "drop")[0].2, json!(["/tmp/later.md"]), "a running app hears it at once");
+    let (evs, _) = h.req(json!({"op": "open", "path": "/tmp/later.md"}));
+    assert_eq!(named(&events(&evs), "drop").len(), 1, "and only once");
+}
+
 /// Alt-/ (Cmd-/ on a Mac, which Shoes names alt_/, ledger Q5) opens the Shoes console, and the
 /// app never hears the key: Shoes 3's shoes_app_keypress runs Shoes.show_log for it before any
 /// keypress block (s3_app.c:773-776; manual 721-722, 2239-2240; ledger H10).

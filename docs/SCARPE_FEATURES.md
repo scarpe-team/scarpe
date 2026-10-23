@@ -80,6 +80,10 @@ on a maintainer's approval. On the native display only; a webview never learns t
 the block hears nothing. `scarpe peek --drop PATH` and Shoes-Spec's `drop_file(path)` drop one
 without a window.
 
+A packaged app built with `--opens` (a UTI such as `net.daringfireball.markdown`, or an
+extension such as `md`) is offered by Finder's Open With for those files. Each file Finder hands
+it, the one that launched it included, reaches the same `drop` blocks.
+
 ```ruby
 Shoes.app do
   @name = para "Drop a file here"

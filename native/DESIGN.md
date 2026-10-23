@@ -132,6 +132,7 @@ that last ran or had input, else the first running one.
 | `key` | `key` (a Shoes name, e.g. "left", "\n", "a", ":control_a"; also `command_`, `cmd_`, `super_`, `ctrl_`, `option_` prefixes) | synthesises a key press |
 | `wheel` | `dy`, `x`, `y` (optional) | wheel event, section 12 |
 | `drop` | `path` | a file dropped on the window, as Finder drops one: every SubscriptionItem `drop` in it hears `path` (ledger H11) |
+| `open` | `path` | a file the system asks the app to open, as `application:openURLs:` hands one over: queued, then sent as a `drop` (ledger H11) |
 | `resize` | `w`, `h` | resize the window/canvas; Rust answers with a `resize` message too |
 | `pixel` | `x`, `y` | `[r,g,b,a]` at logical point; error outside the window |
 | `frames` | `n` | reply after n frames have been laid out and painted (sync point); value = frames painted so far |
@@ -179,6 +180,7 @@ Rust processes `req`s after an implicit flush of everything received before them
 | SubscriptionItem `keypress` | `keypress` | item id | `[key]`, see 4.4. Not sent while a text input has focus, except escape and modified keys; not sent for keys a focused control used |
 | SubscriptionItem `wheel` | `wheel` | item id | `[delta, x, y]`, delta > 0 = up |
 | a file dropped on the window (winit `DroppedFile`), or `req drop` | `drop` | item id | `[path]`, the file's full path, to every SubscriptionItem `drop` in the window wherever its slot sits: winit 0.30 does not say where the file landed. Several files arrive one event each. A path that is not UTF-8 is logged and not sent, and while an in-window modal is up a drop goes nowhere (ledger H11) |
+| a file the system asks the app to open (macOS `application:openURLs:`: Finder's Open With, a double-click, the Dock icon), or `req open` | `drop` | item id | `[path]`, as for a dropped file, to the `drop` blocks of the window that had input last, else of the first window that has one. A file that launched the app arrives before any window, so it waits until a batch's `flush` makes the first `drop` block (`input.rs` `open_documents`). winit 0.30 does not implement the method, so `window/open_documents.rs` adds it to winit's app delegate class before the loop runs. The app must declare what it opens (`scarpe package --opens`) |
 
 A SubscriptionItem hears events only while its parent slot is laid out and its `stopped` prop is
 not true. Mouse buttons are 1 = left, 2 = middle, 3 = right (manual numbering).

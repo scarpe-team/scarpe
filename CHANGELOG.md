@@ -29,6 +29,7 @@ straightforward as possible.
 - `Shoes.on_error { |err| }` hears every error a handler, a timer or the startup raises, as a Hash; the Shoes console lists them, newest first, with what `debug`, `info` and `error` said, and opens with Alt-/ (Cmd-/ on a Mac) or `Shoes.show_console`, never by itself; the log says an error a timer raises every frame once, then how often
 - `Shoes.run_program(path)` runs a Shoes program in a process of its own and returns a `Shoes::Program` (`stop`, `on_output`, `on_error`, `on_exit`), so a program that never stops freezes only itself; a packaged app's launcher runs `SCARPE_RUN_FILE` instead of the app
 - `edit_box.insert(text)` and `edit_line.insert(text)` put text in at the caret, over any selection, as one undo step (ledger G18, proposed)
+- `scarpe package --native --opens TYPE` declares the files Finder may open with an app; each one, the file that launched it included, reaches its `drop` blocks (ledger H11, proposed)
 - `drop { |path| }` on the app or a slot hears each file dropped on a native window (ledger H11, proposed); `scarpe peek --drop PATH` and Shoes-Spec's `drop_file(path)` drop one headless
 ### Bugs Fixed
 - #569 link(click: "/path") now triggers internal navigation via visit(); paths like "/foo" also fall back to page(:foo) if no URL route matches

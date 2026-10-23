@@ -112,6 +112,10 @@ impl Runtime {
                 self.drop_file(app, &path);
                 Ok(Some(Value::Null))
             }
+            Op::Open { path } => {
+                self.open_documents(vec![path]);
+                Ok(Some(Value::Null))
+            }
             Op::Resize { app, w, h } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;
                 let (Some(w), Some(h)) = (limits::side(w), limits::side(h)) else {

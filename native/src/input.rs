@@ -982,6 +982,30 @@ impl Runtime {
         }
     }
 
+    /// Files the system asked the app to open. They reach the `drop` blocks of the window that
+    /// had input last, else of the first window that has one, as files dropped on it; until a
+    /// window has a `drop` block (an app Finder launched has not drawn yet) they wait (ledger H11).
+    pub fn open_documents(&mut self, paths: Vec<String>) {
+        self.opened.extend(paths);
+        self.deliver_opened();
+    }
+
+    pub fn deliver_opened(&mut self) {
+        if self.opened.is_empty() {
+            return;
+        }
+        let apps: Vec<Id> = self.active_app.into_iter().chain(self.views.keys().copied()).filter(|&app| !self.is_standalone(app)).collect();
+        let Some(app) = apps.into_iter().find(|&app| {
+            self.ensure_layout(app);
+            !self.subscriptions(app, "drop").is_empty()
+        }) else {
+            return;
+        };
+        for path in std::mem::take(&mut self.opened) {
+            self.drop_file(app, &path);
+        }
+    }
+
     pub fn type_text(&mut self, app: Id, text: &str) {
         for c in text.chars() {
             self.key_input(app, KeyInput::char(c));
