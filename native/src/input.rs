@@ -968,6 +968,20 @@ impl Runtime {
         }
     }
 
+    /// A file dropped on the window: every `drop` block in it hears the path, as every
+    /// `keypress` block hears a key. winit 0.30 does not say where the file landed, so no slot
+    /// is singled out; several files arrive one event each. While an in-window `ask` is up the
+    /// app is waiting on it, so a drop goes nowhere, as a click beside the dialog does (ledger H11).
+    pub fn drop_file(&mut self, app: Id, path: &str) {
+        if self.views.get(&app).is_some_and(|v| v.ui.modal.is_some()) {
+            return;
+        }
+        self.ensure_layout(app);
+        for (item, _) in self.subscriptions(app, "drop") {
+            self.out.event("drop", Some(item), vec![json!(path)]);
+        }
+    }
+
     pub fn type_text(&mut self, app: Id, text: &str) {
         for c in text.chars() {
             self.key_input(app, KeyInput::char(c));
@@ -999,6 +1013,25 @@ impl Runtime {
         let view = self.views.get_mut(&app).expect("view");
         let field = text_field::ensure(&mut view.ui.fields, node, &mut self.text.fonts);
         if field.type_in(&mut self.text.fonts.system, text) {
+            let text = field.reported();
+            self.out.event("change", Some(id), vec![Value::String(text)]);
+        }
+        self.request_redraw(app);
+    }
+
+    /// `edit_box.insert(text)` and `edit_line.insert(text)`: the text goes in at the field's
+    /// caret, over any selection, as one undo step, focused or not, and Ruby hears one `change`.
+    /// A read-only or disabled field takes nothing, as it takes no typing (ledger G18).
+    pub fn insert_text(&mut self, id: Id, text: &str) {
+        let Some(app) = self.doc.app_of(id) else { return };
+        self.ensure_layout(app);
+        let Some(node) = self.doc.get(id).filter(|n| n.kind.is_text_input()) else { return };
+        if crate::elements::readonly(node) || crate::elements::disabled(node) {
+            return;
+        }
+        let Some(view) = self.views.get_mut(&app) else { return };
+        let field = text_field::ensure(&mut view.ui.fields, node, &mut self.text.fonts);
+        if field.paste_in(&mut self.text.fonts.system, text) {
             let text = field.reported();
             self.out.event("change", Some(id), vec![Value::String(text)]);
         }

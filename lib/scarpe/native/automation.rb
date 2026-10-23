@@ -69,6 +69,11 @@ module Scarpe::Native
       request(:wheel, dy: dy, x: x, y: y, app: @app)
     end
 
+    # A file dropped on the window, as Finder drops one: every drop block hears the path.
+    def drop(path)
+      request(:drop, path: path.to_s, app: @app)
+    end
+
     def layout(app: app_id)
       Array(request(:layout, app: app)).map { |node| node.transform_keys(&:to_sym) }
     end

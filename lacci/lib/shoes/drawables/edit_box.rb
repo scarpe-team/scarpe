@@ -55,5 +55,16 @@ class Shoes
     def append(new_text)
       self.text = (self.text || "") + new_text
     end
+
+    # Put text in at the caret, over any selection, as a paste would: one undo step, and the
+    # change block runs once the display has put it in. A read-only or disabled field takes
+    # nothing (EXT, ledger G18).
+    #
+    # @param text [String] what to put in
+    # @return [self]
+    def insert(text)
+      send_shoes_event(text.to_s, event_name: "insert", target: linkable_id)
+      self
+    end
   end
 end

@@ -839,6 +839,15 @@ class Scarpe::Webview::WebWrangler
       end
     end
 
+    # Like on_each, for a JS function of the element: what needs the element more than once.
+    def call_on_each(function)
+      if @multi
+        @webwrangler.dom_change("Array.from(#{@selector}).forEach(#{function}); true")
+      else
+        @webwrangler.dom_change("(function(){ var e = #{@selector}; if(e) (#{function})(e); return true; })()")
+      end
+    end
+
     public
 
     # Return a promise that will be fulfilled when all changes scheduled via
@@ -855,6 +864,19 @@ class Scarpe::Webview::WebWrangler
     # @return [Scarpe::Promise] a promise that will be fulfilled when the change is complete
     def value=(new_value)
       on_each(".value = `" + new_value + "`")
+    end
+
+    # Put text in a text field at its caret, over any selection, and fire its input event as
+    # typing would, so its change handler hears it.
+    #
+    # @param text [String] the text to put in
+    def insert_text(text)
+      call_on_each(<<~JS)
+        (e) => {
+          e.setRangeText(#{JSON.generate(text.to_s)}, e.selectionStart, e.selectionEnd, "end");
+          e.dispatchEvent(new Event("input"));
+        }
+      JS
     end
 
     # Update the JS DOM element's inner_text. The given Ruby value will be converted to string and assigned in single-quotes.

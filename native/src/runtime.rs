@@ -226,6 +226,7 @@ impl Runtime {
                     }
                 }
             }
+            Incoming::Insert { id, text } => self.insert_text(id, &text),
             Incoming::ScrollTo { id, top } => {
                 if let Some(app) = self.doc.app_of(id) {
                     self.scroll_slot(app, id, top.max(0.0));
@@ -677,7 +678,7 @@ fn changes_only_looks(kind: &Kind, key: &str) -> bool {
 
 /// Requests that act like a person at the keyboard or mouse.
 fn is_input(op: &Op) -> bool {
-    matches!(op, Op::Click { .. } | Op::Mouse { .. } | Op::Type { .. } | Op::Key { .. } | Op::Wheel { .. } | Op::A11yAction { .. })
+    matches!(op, Op::Click { .. } | Op::Mouse { .. } | Op::Type { .. } | Op::Key { .. } | Op::Wheel { .. } | Op::Drop { .. } | Op::A11yAction { .. })
 }
 
 /// The App's `width` and `height`, each finite, positive and at most limits::MAX_SIDE.
