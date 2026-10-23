@@ -138,6 +138,10 @@ module Scarpe
       psych yaml
     ].freeze
 
+    # What Finder shows as the app's version (--app-version): CFBundleShortVersionString and
+    # CFBundleVersion both take one to three period-separated integers.
+    APP_VERSION = /\A\d+(\.\d+){0,2}\z/
+
     # Stdlib files safe to remove in minimal mode.
     # These are development/network/CLI tools not needed for GUI apps:
     # - mkmf, profiler, debug, tracer: development/debugging tools
@@ -147,10 +151,6 @@ module Scarpe
     # - pstore: persistent storage (not used by Scarpe)
     # - open-uri: HTTP downloads (only used by packager, not at runtime)
     # - pp, prettyprint: pretty printing (nice for debug but not essential)
-    # What Finder shows as the app's version (--app-version): CFBundleShortVersionString and
-    # CFBundleVersion both take one to three period-separated integers.
-    APP_VERSION = /\A\d+(\.\d+){0,2}\z/
-
     MINIMAL_STRIP_FILES = %w[
       mkmf.rb rdoc.rb irb.rb tracer.rb debug.rb
       benchmark.rb profile.rb profiler.rb
@@ -183,13 +183,15 @@ module Scarpe
         warn "⚠️  --include is only carried into macOS builds so far (ignored for #{@target_os})"
       end
       @app_version = app_version&.to_s
+      if @app_version && @target_os != "macos"
+        warn "⚠️  --app-version is only written into macOS builds so far (ignored for #{@target_os})"
+        @app_version = nil
+      end
+      raise "--app-version needs a version, like 1.2.3" if @app_version&.empty?
       if @app_version && @app_version !~ APP_VERSION
         raise "--app-version #{@app_version}: macOS wants one to three numbers with dots, like 1.2.3"
       end
 
-      if @target_os != "macos" && @app_version
-        warn "⚠️  --app-version is only written into macOS builds so far (ignored for #{@target_os})"
-      end
       if @target_os != "macos" && (@sign || @dmg || @universal)
         warn "⚠️  --sign, --dmg, and --universal are macOS-only options (ignored for #{@target_os})"
         @sign = false
@@ -2884,8 +2886,12 @@ module Scarpe
           (options[:includes] ||= []) << args[i + 1]
           i += 2
         when "--app-version"
-          options[:app_version] = args[i + 1]
+          # "" when no value follows, so the packager says so instead of writing 1.0.0
+          options[:app_version] = args[i + 1].to_s
           i += 2
+        when /\A--app-version=/
+          options[:app_version] = args[i].delete_prefix("--app-version=")
+          i += 1
         when "--help", "-h"
           options[:help] = true
           i += 1
@@ -2923,7 +2929,8 @@ module Scarpe
               --dev             Use local development Scarpe source (not published gems)
               --include PATH    Also carry this file or folder beside the app (macOS; repeatable).
                                 Lands where the app's own relative paths expect it
-              --app-version VERSION  The version Finder shows, like 1.2.3 (macOS; default 1.0.0)
+              --app-version VERSION
+                                The version Finder shows, like 1.2.3 (macOS; default 1.0.0)
           -m, --minimal         Strip optional gems & SSL for smallest build
                                 Removes: nokogiri, sqlite3, fastimage, SSL/crypto
                                 Apps using download/Image auto-size won't work

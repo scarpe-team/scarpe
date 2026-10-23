@@ -182,9 +182,30 @@ class PackageTest < Minitest::Test
     assert_includes written, "<key>CFBundleShortVersionString</key>\n    <string>1.1.0</string>"
     assert_includes written, "<key>CFBundleVersion</key>\n    <string>1.1.0</string>"
     if RUBY_PLATFORM.include?("darwin")
-      version, = Open3.capture2("plutil", "-extract", "CFBundleShortVersionString", "raw", "-o", "-", plist)
-      assert_equal "1.1.0", version.strip
+      assert system("plutil", "-lint", "-s", plist), "Info.plist does not parse"
+      %w[CFBundleShortVersionString CFBundleVersion].each do |key|
+        version, = Open3.capture2("plutil", "-extract", key, "raw", "-o", "-", plist)
+        assert_equal "1.1.0", version.strip, key
+      end
     end
+  end
+
+  def test_app_version_takes_an_equals_sign_and_wants_a_value
+    assert_equal "1.2.3", Scarpe::Package.parse_args([@app, "--app-version=1.2.3"])[:app_version]
+
+    options = Scarpe::Package.parse_args([@app, "--native", "--target", "macos", "--app-version"])
+    error = assert_raises(RuntimeError) { Scarpe::Package.packager_for(options, env: {}) }
+    assert_match(/--app-version needs a version/, error.message)
+  end
+
+  def test_other_targets_ignore_an_app_version_macos_could_not_read
+    packager = nil
+    _, err = capture_io do
+      packager = Scarpe::Package.new(@app, output_dir: scratch_dir, target_os: "linux", app_version: "1.2.0-beta")
+    end
+
+    assert_match(/--app-version is only written into macOS builds/, err)
+    assert_nil packager.instance_variable_get(:@app_version)
   end
 
   def test_without_app_version_a_package_keeps_the_old_default
