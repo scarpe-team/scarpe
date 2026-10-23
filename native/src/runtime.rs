@@ -121,6 +121,9 @@ pub struct Runtime {
     pub active_app: Option<Id>,
     /// Set when Rust should exit with this code.
     pub exit: Option<i32>,
+    /// Files the system asked the app to open (Finder's Open With, a double-click, a drop on
+    /// the Dock icon) that no window's `drop` block has heard yet (ledger H11).
+    pub opened: Vec<String>,
     /// Document changes arrived and their `flush` has not: windows wait for it
     /// rather than show half a batch.
     pub mid_batch: bool,
@@ -157,6 +160,7 @@ impl Runtime {
             clipboard,
             active_app: None,
             exit: None,
+            opened: Vec::new(),
             mid_batch: false,
             pending_frames: Vec::new(),
             stats,
@@ -226,6 +230,7 @@ impl Runtime {
                     }
                 }
             }
+            Incoming::Insert { id, text } => self.insert_text(id, &text),
             Incoming::ScrollTo { id, top } => {
                 if let Some(app) = self.doc.app_of(id) {
                     self.scroll_slot(app, id, top.max(0.0));
@@ -485,6 +490,9 @@ impl Runtime {
         for app in running {
             self.ensure_layout(app);
         }
+        // A batch ends here, with a `flush` or ahead of a request, and may have made the first
+        // `drop` block a file opened at launch waits for.
+        self.deliver_opened();
     }
 
     /// Text spans no text has named for longest, past limits::LOOSE_SPANS (Doc's span names).
@@ -677,7 +685,7 @@ fn changes_only_looks(kind: &Kind, key: &str) -> bool {
 
 /// Requests that act like a person at the keyboard or mouse.
 fn is_input(op: &Op) -> bool {
-    matches!(op, Op::Click { .. } | Op::Mouse { .. } | Op::Type { .. } | Op::Key { .. } | Op::Wheel { .. } | Op::A11yAction { .. })
+    matches!(op, Op::Click { .. } | Op::Mouse { .. } | Op::Type { .. } | Op::Key { .. } | Op::Wheel { .. } | Op::Drop { .. } | Op::Open { .. } | Op::A11yAction { .. })
 }
 
 /// The App's `width` and `height`, each finite, positive and at most limits::MAX_SIDE.

@@ -92,6 +92,25 @@ class TestControls < NienteTest
     SHOES_SPEC
   end
 
+  # Ledger G18: insert asks the display to put text in at the caret and returns the field.
+  def test_edit_box_and_edit_line_ask_the_display_to_insert
+    run_test_niente_code(<<~SHOES_APP, app_test_code: <<~SHOES_SPEC)
+      Shoes.app do
+        $inserted = []
+        Shoes::DisplayService.subscribe_to_event("insert", :any) do |text, event_target: nil, **_kw|
+          $inserted << [event_target, text]
+        end
+        @box = edit_box "ab"
+        @line = edit_line "cd"
+      end
+    SHOES_APP
+      assert_same edit_box.obj, edit_box.insert("![x](x.png)")
+      assert_same edit_line.obj, edit_line.insert(42)
+      assert_equal [[edit_box.linkable_id, "![x](x.png)"], [edit_line.linkable_id, "42"]], $inserted
+      assert_equal "ab", edit_box.text, "the display puts it in, not Lacci"
+    SHOES_SPEC
+  end
+
   # Ledger M5: text "returns a string of characters", and progress a decimal, from
   # the start (Shoes 3 gives "" and 0.0).
   def test_empty_inputs_start_empty_rather_than_nil

@@ -58,6 +58,18 @@ class ArtInputTest < Minitest::Test
     assert_match(/peek: no window 2 \(1 open\)/, run.stderr)
   end
 
+  def test_peek_drops_a_file
+    run = run_real(<<~APP, argv: ->(app) { ["peek", app, "--drop", "/tmp/notes.md", "--layout"] })
+      Shoes.app(width: 200, height: 100) do
+        @got = para "nothing yet"
+        drop { |path| @got.text = File.basename(path) }
+      end
+    APP
+    assert_clean_exit(run)
+    assert_match(%r{^drop /tmp/notes\.md$}, run.stdout)
+    assert_match(/Para [\d.,x ]+"notes\.md"$/, run.stdout)
+  end
+
   def test_peek_turns_the_wheel
     run = run_real(<<~APP, argv: ->(app) { ["peek", app, "--wheel", "30,50,40", "--layout"] })
       Shoes.app(width: 200, height: 200) do

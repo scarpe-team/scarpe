@@ -9,7 +9,7 @@ module Scarpe::Native
     BANNER = <<~USAGE
       Usage: scarpe peek APP.rb [--size WxH] [--scale 2] [--wait SECS] [--click TEXT | --click-at X,Y]
                                 [--drag X,Y,X,Y...] [--type TEXT] [--key NAME] [--wheel DY[,X,Y]]
-                                [--window N | --app ID] [--shot OUT.png] [--layout] [--a11y]
+                                [--drop PATH] [--window N | --app ID] [--shot OUT.png] [--layout] [--a11y]
       Steps run in the order given. --drag moves to the first point and presses there, moves
       through the rest a frame apart and releases at the last. --window N (counting from 1) or --app ID sends the
       steps after it to that window. --a11y prints what a screen reader meets. With no --shot, no
@@ -56,6 +56,7 @@ module Scarpe::Native
         opts.on("--type TEXT") { |text| @steps << [:type, text] }
         opts.on("--key NAME") { |name| @steps << [:key, name] }
         opts.on("--wheel DY[,X,Y]", Array) { |values| @steps << [:wheel, values.map { |n| Float(n) }] }
+        opts.on("--drop PATH") { |path| @steps << [:drop, File.expand_path(path, @origin)] }
         opts.on("--window N", Integer) { |n| @steps << [:window, n] }
         opts.on("--app ID", Integer) { |id| @steps << [:app, id] }
         opts.on("--shot OUT.png") { |path| @steps << [:shot, File.expand_path(path, @origin)] }
@@ -130,6 +131,11 @@ module Scarpe::Native
     def do_wheel((dy, x, y))
       automation.wheel(dy, x: x, y: y)
       puts "wheel #{number(dy)}#{" at #{number(x)},#{number(y)}" if x}"
+    end
+
+    def do_drop(path)
+      automation.drop(path)
+      puts "drop #{path}"
     end
 
     def do_window(n)

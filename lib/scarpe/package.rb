@@ -155,12 +155,15 @@ module Scarpe
       pp.rb prettyprint.rb tsort.rb cgi.rb
     ].freeze
 
-    def initialize(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false, minimal: false, target_os: nil, skip_webview_check: false, includes: [])
+    def initialize(app_file, name: nil, icon: nil, arch: nil, output_dir: nil, verbose: false, dev: false, sign: false, dmg: false, universal: false, minimal: false, target_os: nil, skip_webview_check: false, includes: [], opens: [])
       @app_file = File.expand_path(app_file)
       raise "App file not found: #{@app_file}" unless File.exist?(@app_file)
       raise "App file must be a .rb file: #{@app_file}" unless @app_file.end_with?(".rb")
 
       @includes = Array(includes)
+      @opens = Array(opens).map(&:to_s)
+      raise "--opens needs a type, like md or net.daringfireball.markdown" if @opens.any?(&:empty?)
+
       @name = sanitize_name(name || File.basename(app_file, ".rb"))
       @icon = icon ? File.expand_path(icon) : nil
       @arch = ARCH_MAP[arch || detect_arch] || raise("Unsupported architecture: #{arch}")
@@ -1090,6 +1093,7 @@ module Scarpe
             <key>NSSupportsAutomaticGraphicsSwitching</key>
             <true/>
             #{icon_plist_entry}
+            #{document_types_plist_entry}
         </dict>
         </plist>
       PLIST
@@ -1100,6 +1104,31 @@ module Scarpe
     # A name for an Info.plist <string>: a native package keeps the name it was given, "&" and all.
     def xml_escape(text)
       text.to_s.gsub("&", "&amp;").gsub("<", "&lt;").gsub(">", "&gt;")
+    end
+
+    # What Finder may open with the app (--opens): file types by UTI (net.daringfireball.markdown,
+    # public.plain-text) and by extension (md). A type with a dot is a UTI unless it starts with
+    # one, so an extension with dots in it is written with a leading dot (.tar.gz). macOS skips
+    # CFBundleTypeExtensions in an entry that names content types, so each kind gets an entry of
+    # its own. The app takes the files without becoming their default ("Alternate"), so Open
+    # With lists it and a double-click still opens whatever opened them before. The native
+    # display hands them to `drop` blocks.
+    def document_types_plist_entry
+      utis, extensions = @opens.partition { |type| type.include?(".") && !type.start_with?(".") }
+      extensions = extensions.map { |ext| ext.delete_prefix(".") }
+      entries = []
+      entries << ["LSItemContentTypes", utis] if utis.any?
+      entries << ["CFBundleTypeExtensions", extensions] if extensions.any?
+      return "" if entries.empty?
+
+      dicts = entries.map do |key, values|
+        strings = values.map { |value| "<string>#{xml_escape(value)}</string>" }.join
+        "<dict><key>CFBundleTypeName</key><string>#{xml_escape(@name)} document</string>" \
+          "<key>CFBundleTypeRole</key><string>Editor</string>" \
+          "<key>LSHandlerRank</key><string>Alternate</string>" \
+          "<key>#{key}</key><array>#{strings}</array></dict>"
+      end
+      "<key>CFBundleDocumentTypes</key>\n    <array>#{dicts.join}</array>"
     end
 
     def icon_plist_entry
@@ -2799,10 +2828,12 @@ module Scarpe
 
     # A native package when asked with --native, or when SCARPE_DISPLAY_SERVICE says the app runs native.
     def self.packager_for(options, env: ENV)
-      shared = options.slice(:name, :icon, :arch, :output_dir, :verbose, :dev, :sign, :dmg, :universal, :minimal, :target_os, :includes)
+      shared = options.slice(:name, :icon, :arch, :output_dir, :verbose, :dev, :sign, :dmg, :universal, :minimal, :target_os, :includes, :opens)
       if options[:native] || env["SCARPE_DISPLAY_SERVICE"] == "native"
         Native.new(options[:app_file], install_dir: options[:install_dir] || Native::INSTALL_DIR, bytecode: options.fetch(:bytecode, true), **shared)
       else
+        # A webview app is never told which file it was asked to open (ledger H11).
+        warn "⚠️  --opens needs --native: a webview app cannot take the files (ignored)" if shared.delete(:opens)
         new(options[:app_file], skip_webview_check: options[:skip_webview_check], **shared)
       end
     end
@@ -2871,6 +2902,10 @@ module Scarpe
         when "--include"
           (options[:includes] ||= []) << args[i + 1]
           i += 2
+        when "--opens"
+          # "" when no type follows, so the packager says so before it copies anything
+          (options[:opens] ||= []) << args[i + 1].to_s
+          i += 2
         when "--help", "-h"
           options[:help] = true
           i += 1
@@ -2925,6 +2960,9 @@ module Scarpe
               --install-dir DIR Where the app will be installed (default /Applications);
                                 its Ruby is precompiled for that place
               --no-bytecode     Skip precompiling Ruby to bytecode
+              --opens TYPE      Let Finder open this kind of file with the app (repeatable): a
+                                UTI (net.daringfireball.markdown) or an extension (md, or
+                                .tar.gz when it has dots). Each file reaches the drop blocks
 
           -h, --help            Show this help
 

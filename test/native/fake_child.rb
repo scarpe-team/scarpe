@@ -159,6 +159,7 @@ class FakeChild
     when "type" then [type(message["text"])]
     when "key" then [send_to_items("keypress", [wire_key(message["key"])])]
     when "wheel" then [send_to_items("wheel", [message["dy"], message["x"], message["y"]])]
+    when "drop" then [send_to_items("drop", [message["path"]])]
     when "snapshot" then [snapshot(message["path"])]
     when "pixel" then [[255, 255, 255, 255]]
     when "focused" then [@focused]

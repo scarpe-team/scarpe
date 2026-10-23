@@ -14,7 +14,7 @@
 # start is first draw, finish is drawable destroyed
 class Shoes::SubscriptionItem < Shoes::Drawable
   shoes_styles :shoes_api_name, :args, :stopped
-  shoes_events :animate, :every, :timer, :hover, :leave, :motion, :click, :release, :keypress, :wheel
+  shoes_events :animate, :every, :timer, :hover, :leave, :motion, :click, :release, :keypress, :wheel, :drop
 
   # animate, every and timer make a Shoes::Animation, Shoes::Every or Shoes::Timer
   # (manual 1877, 1989, 2111). Displays still see each as a SubscriptionItem.
@@ -99,6 +99,12 @@ class Shoes::SubscriptionItem < Shoes::Drawable
       # Also passes x, y coordinates of cursor position.
       @unsub_id = bind_self_event("wheel") do |delta, x, y, **_kwargs|
         @callback&.call(delta, x, y)
+      end
+    when "drop"
+      # A file dropped on the window: the block gets its full path, once for each file
+      # (EXT, ledger H11). Every drop block in the window hears it, as keypress does.
+      @unsub_id = bind_self_event("drop") do |path|
+        @callback&.call(path)
       end
     else
       raise "Unknown Shoes event #{shoes_api_name.inspect} passed to SubscriptionItem!"

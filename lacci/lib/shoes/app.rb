@@ -466,7 +466,7 @@ end
 end
 
 # A slot keeps one handler per event, so giving it another replaces the first (ledger H6).
-%i[motion hover leave click release keypress wheel].each do |event|
+%i[motion hover leave click release keypress wheel drop].each do |event|
   [Shoes::App, Shoes::Slot].each do |owner|
     owner.define_method(event) do |*args, &block|
       subscription_item(args:, shoes_api_name: event.to_s, &block).replace_earlier_handlers

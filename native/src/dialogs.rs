@@ -307,6 +307,8 @@ impl Runtime {
             self.effects.push(Effect::CloseWindow(app));
         } else {
             self.request_redraw(app);
+            // A file opened while the app waited on the dialog has waited for it too (ledger H11).
+            self.deliver_opened();
         }
     }
 

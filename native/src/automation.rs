@@ -105,6 +105,17 @@ impl Runtime {
                 self.wheel(app, dy, at);
                 Ok(Some(Value::Null))
             }
+            Op::Drop { path, app } => {
+                let app = self.app_for(app).ok_or_else(no_app)?;
+                // A real drop is input to that window, so it becomes the active one (window.rs).
+                self.active_app = Some(app);
+                self.drop_file(app, &path);
+                Ok(Some(Value::Null))
+            }
+            Op::Open { path } => {
+                self.open_documents(vec![path]);
+                Ok(Some(Value::Null))
+            }
             Op::Resize { app, w, h } => {
                 let app = self.app_for(app).ok_or_else(no_app)?;
                 let (Some(w), Some(h)) = (limits::side(w), limits::side(h)) else {

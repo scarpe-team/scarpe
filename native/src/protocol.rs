@@ -17,6 +17,8 @@ pub enum Incoming {
     Run { app: Option<Id> },
     Quit { app: Option<Id> },
     Focus { id: Id },
+    /// `edit_box.insert(text)`: put `text` in at the field's caret, over any selection (ledger G18).
+    Insert { id: Id, text: String },
     ScrollTo { id: Id, top: f32 },
     Font { path: String },
     /// How text is sized and set from now on (Lacci's `Shoes.text_mode`): "scarpe" or "shoes3".
@@ -81,6 +83,10 @@ pub enum Op {
     Type { text: String, app: Option<Id> },
     Key { key: String, app: Option<Id> },
     Wheel { dy: f32, x: Option<f32>, y: Option<f32>, app: Option<Id> },
+    /// A file dropped on the window from Finder or a file manager (ledger H11).
+    Drop { path: String, app: Option<Id> },
+    /// A file the system asked the app to open, as Finder's Open With does (ledger H11).
+    Open { path: String },
     Resize { app: Option<Id>, w: f32, h: f32 },
     Pixel { x: f32, y: f32, app: Option<Id> },
     Frames { n: u32, app: Option<Id> },
@@ -194,6 +200,7 @@ pub fn parse_line(line: &str) -> Result<Incoming, ParseError> {
         "run" => Incoming::Run { app: id(&obj, "app") },
         "quit" => Incoming::Quit { app: id(&obj, "app") },
         "focus" => Incoming::Focus { id: required(id(&obj, "id"), "id")? },
+        "insert" => Incoming::Insert { id: required(id(&obj, "id"), "id")?, text: required(s(&obj, "text"), "text")? },
         "scroll_to" => Incoming::ScrollTo { id: required(id(&obj, "id"), "id")?, top: f(&obj, "top").unwrap_or(0.0) },
         "font" => Incoming::Font { path: required(s(&obj, "path"), "path")? },
         "text_mode" => Incoming::TextMode { mode: required(s(&obj, "mode"), "mode")? },
@@ -242,6 +249,8 @@ fn op_fields(obj: &Map<String, Value>) -> Result<Op, ParseError> {
         "type" => Op::Type { text: required(s(obj, "text"), "text")?, app },
         "key" => Op::Key { key: required(s(obj, "key"), "key")?, app },
         "wheel" => Op::Wheel { dy: required(f(obj, "dy"), "dy")?, x: f(obj, "x"), y: f(obj, "y"), app },
+        "drop" => Op::Drop { path: required(s(obj, "path"), "path")?, app },
+        "open" => Op::Open { path: required(s(obj, "path"), "path")? },
         "resize" => Op::Resize { app, w: required(f(obj, "w"), "w")?, h: required(f(obj, "h"), "h")? },
         "pixel" => Op::Pixel { x: required(f(obj, "x"), "x")?, y: required(f(obj, "y"), "y")?, app },
         "frames" => Op::Frames { n: obj.get("n").and_then(Value::as_u64).unwrap_or(1).min(u32::MAX as u64) as u32, app },
@@ -426,6 +435,7 @@ mod tests {
         );
         assert_eq!(parse_line(r#"{"t":"run","app":1}"#).unwrap(), Incoming::Run { app: Some(1) });
         assert_eq!(parse_line(r#"{"t":"quit","app":null}"#).unwrap(), Incoming::Quit { app: None });
+        assert_eq!(parse_line(r#"{"t":"insert","id":9,"text":"![a](b.png)"}"#).unwrap(), Incoming::Insert { id: 9, text: "![a](b.png)".into() });
         assert_eq!(parse_line(r#"{"t":"focus","id":9}"#).unwrap(), Incoming::Focus { id: 9 });
         assert_eq!(parse_line(r#"{"t":"scroll_to","id":9,"top":40}"#).unwrap(), Incoming::ScrollTo { id: 9, top: 40.0 });
         assert_eq!(parse_line(r#"{"t":"font","path":"/a/b.ttf"}"#).unwrap(), Incoming::Font { path: "/a/b.ttf".into() });
@@ -468,6 +478,8 @@ mod tests {
         assert_eq!(op(r#"{"t":"req","req":1,"op":"type","text":"hi"}"#), Op::Type { text: "hi".into(), app: None });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"key","key":"left"}"#), Op::Key { key: "left".into(), app: None });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"wheel","dy":30}"#), Op::Wheel { dy: 30.0, x: None, y: None, app: None });
+        assert_eq!(op(r#"{"t":"req","req":1,"op":"drop","path":"/tmp/a b.md"}"#), Op::Drop { path: "/tmp/a b.md".into(), app: None });
+        assert_eq!(op(r#"{"t":"req","req":1,"op":"open","path":"/tmp/a.md"}"#), Op::Open { path: "/tmp/a.md".into() });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"resize","w":300,"h":200}"#), Op::Resize { app: None, w: 300.0, h: 200.0 });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"pixel","x":1,"y":2}"#), Op::Pixel { x: 1.0, y: 2.0, app: None });
         assert_eq!(op(r#"{"t":"req","req":1,"op":"frames","n":3}"#), Op::Frames { n: 3, app: None });

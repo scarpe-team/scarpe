@@ -19,6 +19,11 @@ module Scarpe::Webview
       bind_shoes_event(event_name: "focus") do
         html_element.focus
       end
+
+      # edit_line.insert: at the caret, then the input event that reports the change (ledger G18)
+      bind_shoes_event(event_name: "insert", target: shoes_linkable_id) do |text|
+        html_element.insert_text(text)
+      end
     end
 
     def properties_changed(changes)

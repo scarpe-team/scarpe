@@ -172,6 +172,7 @@ a control with no name there (`#15 check_box (unchecked)`) needs a text block be
 | `--type TEXT` | type into the focused field (click the field first) |
 | `--key NAME` | press one key: `a`, `A`, `space`, `enter`, `escape`, `tab`, `backspace`, `left`, `page_down`, `f1`, `control_a`, `shift_tab`, `alt_q`, `command_q` |
 | `--wheel DY[,X,Y]` | scroll at a point; positive DY scrolls down |
+| `--drop PATH` | drop a file on the window, as Finder would; a relative path is from the current folder |
 | `--wait SECS` | let timers and animations run, in real time |
 | `--window N`, `--app ID` | send the steps after it to another window |
 | `--layout` | print every laid-out node |
@@ -239,6 +240,7 @@ button("Save") { save }                              # Return or Space clicks a 
 @name = edit_line(width: 200) { |e| @hint.text = e.text }   # runs on every edit
 @name.finish = proc { |e| submit(e.text) }           # runs on Return in the field
 @notes = edit_box(width: 300, height: 120)
+@notes.insert "text"                                  # at the caret, over any selection, as a paste
 @done = check { |c| @hint.text = c.checked?.to_s }
 para "Done"                                          # the text beside a control names it for screen readers
 @done.checked = true                                 # ticks it without running its block
@@ -297,6 +299,7 @@ hover    { |slot| }
 leave    { |slot| }
 keypress { |key| }               # "a", "A", " ", "\n", :left, :escape, :tab, :f1, :control_s, :alt_q
 wheel    { |delta, x, y| }       # delta > 0 is up
+drop     { |path| }              # a file dropped on the window or opened from Finder, its full path; once a file
 @dot.click { |button, x, y| }    # art, images and text blocks take click and release too
 ```
 
@@ -513,6 +516,7 @@ The native test API:
 | `proxy.trigger_click`, `proxy.trigger_change(value)` | fire its click, or change a field's text or a list box's choice |
 | `click_on(proxy_or_text)`, `click_at(x, y)` | a real click, through layout and hit-testing |
 | `hover_at(x, y)`, `drag([x, y], [x, y], ...)`, `wheel(dy, x:, y:)` | pointer input; no time passes |
+| `drop_file(path)` | drop a file on the window, as Finder would |
 | `type_text("hi")`, `press_key("a")` | keys; names as for `--key`, or `"\n"` and `:left` |
 | `layout_of(proxy)` | a Rect with `x`, `y`, `w`, `h` in window points |
 | `layout_tree` | every laid-out node as a Hash (`:id`, `:kind`, `:x`, `:y`, `:w`, `:h`, `:visible`, `:text`) |
@@ -635,6 +639,10 @@ bundle exec ruby exe/scarpe package ~/my_app/my_app.rb --native --dmg \
   temp folder); and the `images`, `assets`, `fonts` and `sounds` folders. Anything else needs
   `--include PATH` (repeatable; a path relative to the app's folder), including other `.rb` files
   the app requires.
+- An app that opens files says which with `--opens` (repeatable): a UTI
+  (`net.daringfireball.markdown`, `public.plain-text`) or an extension (`md`). Without it Finder
+  says the app "cannot open files in the Markdown format". Each file reaches the app's `drop`
+  blocks, the one that launched the app included.
 - `--icon` takes a `.png` (turned into `.icns` with `sips` and `iconutil`) or an `.icns`. A
   path that does not exist is skipped without an error, so look for `Converted PNG to ICNS` in
   the output.

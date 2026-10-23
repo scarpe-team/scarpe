@@ -48,7 +48,7 @@ class TestReturnsSelf < NienteTest
         $anim = animate(10) { }
       end
     SHOES_APP
-      %i[click release hover leave motion keypress wheel start finish].each do |event|
+      %i[click release hover leave motion keypress wheel drop start finish].each do |event|
         assert_same $slot, $slot.public_send(event) { }, "\#{event} { } returns the slot"
       end
       assert_same Shoes.APPS.first, $app_click

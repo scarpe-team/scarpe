@@ -168,6 +168,55 @@ class PackageTest < Minitest::Test
     end
   end
 
+  # Finder said "cannot open files in the Markdown format" to an editor that declared no types.
+  def test_opens_declares_the_document_types_finder_offers
+    options = Scarpe::Package.parse_args([@app, "--native", "--opens", "net.daringfireball.markdown",
+      "--opens", ".md", "--opens", "txt", "--target", "macos", "--output", scratch_dir])
+    assert_equal ["net.daringfireball.markdown", ".md", "txt"], options[:opens]
+
+    packager = Scarpe::Package.packager_for(options, env: {})
+    FileUtils.mkdir_p(File.join(packager.app_path, "Contents"))
+    packager.send(:write_info_plist)
+    plist = File.join(packager.app_path, "Contents", "Info.plist")
+    written = File.read(plist)
+    assert_includes written, "<key>LSItemContentTypes</key><array><string>net.daringfireball.markdown</string></array>"
+    assert_includes written, "<key>CFBundleTypeExtensions</key><array><string>md</string><string>txt</string></array>"
+    if RUBY_PLATFORM.include?("darwin")
+      assert system("plutil", "-lint", "-s", plist), "Info.plist does not parse"
+      role, = Open3.capture2("plutil", "-extract", "CFBundleDocumentTypes.0.CFBundleTypeRole", "raw", "-o", "-", plist)
+      assert_equal "Editor", role.strip
+    end
+  end
+
+  def test_opens_reads_a_leading_dot_as_an_extension_and_wants_a_type
+    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, target_os: "macos",
+                                           opens: [".tar.gz", "public.archive"])
+    entry = packager.send(:document_types_plist_entry)
+    assert_includes entry, "<key>CFBundleTypeExtensions</key><array><string>tar.gz</string></array>"
+    assert_includes entry, "<key>LSItemContentTypes</key><array><string>public.archive</string></array>"
+
+    options = Scarpe::Package.parse_args([@app, "--native", "--target", "macos", "--opens"])
+    error = assert_raises(RuntimeError) { Scarpe::Package.packager_for(options, env: {}) }
+    assert_match(/--opens needs a type/, error.message)
+  end
+
+  def test_a_package_that_opens_nothing_declares_no_document_types
+    packager = Scarpe::Package::Native.new(@app, output_dir: scratch_dir, target_os: "macos")
+    FileUtils.mkdir_p(File.join(packager.app_path, "Contents"))
+    packager.send(:write_info_plist)
+
+    refute_includes File.read(File.join(packager.app_path, "Contents", "Info.plist")), "CFBundleDocumentTypes"
+  end
+
+  def test_opens_is_ignored_with_a_warning_for_a_webview_package
+    options = Scarpe::Package.parse_args([@app, "--opens", "md", "--target", "macos"])
+    packager = nil
+    _, err = capture_io { packager = Scarpe::Package.packager_for(options, env: {}) }
+
+    assert_match(/--opens needs --native/, err)
+    assert_empty packager.instance_variable_get(:@opens)
+  end
+
   # Builds share ~/.scarpe/packager-cache. Each used to stage its disk image in the same
   # dmg-staging folder and empty it first, under any other build still copying into it.
   def test_a_dmg_build_leaves_other_builds_staging_alone

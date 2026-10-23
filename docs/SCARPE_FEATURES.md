@@ -57,6 +57,40 @@ Shoes.app do
 end
 ```
 
+## Putting text in at the caret
+
+`edit_box.insert(text)` and `edit_line.insert(text)` put text in where the caret stands, over any
+selection, as a paste would: one undo step, and the change block runs once it is in (ledger G18).
+Proposed on 19 Oct 2026 and waiting on a maintainer's approval. With `drop`, below, a Markdown
+editor puts a dropped picture where the writer was typing:
+
+```ruby
+Shoes.app do
+  @notes = edit_box width: 400, height: 300
+  drop { |path| @notes.insert("![](#{path})") }
+end
+```
+
+## Dropping files on a window
+
+`drop { |path| }`, on the app or any slot, gets the full path of each file dropped on the window
+from Finder or a file manager, one call a file. Every `drop` block in the window hears it: the
+native display is not told where the file landed (ledger H11). Proposed on 16 Oct 2026 and waiting
+on a maintainer's approval. On the native display only; a webview never learns the path, so there
+the block hears nothing. `scarpe peek --drop PATH` and Shoes-Spec's `drop_file(path)` drop one
+without a window.
+
+A packaged app built with `--opens` (a UTI such as `net.daringfireball.markdown`, or an
+extension such as `md`) is offered by Finder's Open With for those files. Each file Finder hands
+it, the one that launched it included, reaches the same `drop` blocks.
+
+```ruby
+Shoes.app do
+  @name = para "Drop a file here"
+  drop { |path| @name.text = File.basename(path) }
+end
+```
+
 ## `Shoes.on_error`
 
 `Shoes.on_error { |err| }` hears every error a handler, a timer or the program's startup raises,

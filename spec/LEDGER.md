@@ -183,6 +183,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | G15 | Scarpe draws its own controls | EXT | | |
 | G16 | `edit_line.finish = proc` runs on Return | EXT | | |
 | G17 | Colours on edit lines and edit boxes | EXT | | |
+| G18 | `insert(text)` puts text in at a field's caret | EXT, proposed | | new 19 Oct |
 
 ### H. Events
 
@@ -198,6 +199,7 @@ Rows X1 to X20 are Lacci and Webview defects rather than disagreements about Sho
 | H8 | `start` and `finish` | MANUAL | | |
 | H9 | Slot event handlers survive `clear` | MANUAL | | |
 | H10 | Hotkeys the manual reserves for the console | MANUAL for Alt-/; OOS for the rest | | 28 Sep |
+| H11 | `drop` hears files dropped on the window, or opened from Finder | EXT, proposed | | new 16 Oct; opened 23 Oct |
 
 ### I to L. Timers, navigation, built-ins, loader
 
@@ -1143,6 +1145,17 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Spec:** `element.edit_line__colors` (native): `fill:` paints the box and `border_color:` its edge, on an edit line and an edit box; a field given no colours stays white with a blue halo; once `stroke:` colours the text, the focus halo and the caret take that colour instead of blue. Lacci's `test_fields_keep_their_colours` pins the styles.
 - **Native:** `edit_line::Colors` reads `fill` (default white), `border_color` (default #c7c7cc) and `stroke` (default the accent blue) for the box, its edge, and the focused edge, halo and caret, as CSS's caret-color follows currentColor. The windowed `ask` dialog keeps the plain field. Webview ignores them.
 
+### G18. `insert(text)` puts text in at a field's caret
+
+**Ruling: EXT**, proposed 19 Oct 2026 and waiting on Nick's word (`docs/SCARPE_FEATURES.md`). `edit_box.insert(text)` and `edit_line.insert(text)` put `text` in where the caret stands, over any selection, as a paste would, and return the field.
+
+- **Manual:** silent. A field's `text` is read and replaced whole (manual 1470-1475); nothing reports or moves the caret.
+- **Shoes 3:** nothing puts text in at the caret. An edit box has `append`, which adds at the end, and `scroll_to_end` (`s3t_edit_box.c:11-18`); an edit line has `to_end`, which moves its caret to the end (`s3t_edit_line.c:16`). Nothing reads where the caret is.
+- **Why:** an app that adds to what someone is writing (a dropped picture in a Markdown editor, H11; a snippet from a menu) had to put it at the end, since Ruby cannot see the caret. Rust can.
+- **Lacci today:** until 19 Oct no `insert`. Lacci sends an `insert` event to the display, which puts the text in and answers with the field's usual `change`, so `text` and the change block follow a moment later, not before `insert` returns. Niente has no caret and ignores it.
+- **Spec:** no case: the manual has no entry to hang one on. **Tests:** `tests/text_input.rs` (`insert_puts_text_in_at_the_caret_as_one_undo_step`), `lacci/test/test_controls.rb` (`test_edit_box_and_edit_line_ask_the_display_to_insert`) and `test/native/end_to_end_test.rb` (`test_insert_puts_text_in_at_the_caret`).
+- **Native:** the shim posts `{t: "insert", id, text}` (DESIGN 4.2); Rust pastes it into the field at its caret, focused or not, as one undo step of its own (`input.rs` `insert_text`), and sends `change`. A read-only or disabled field takes nothing. **Webview:** `setRangeText` at the textarea's selection, then an `input` event, which its `oninput` turns into `change`; not exercised by a test, since the webview tests cannot run its JavaScript.
+
 ## H. Events
 
 ### H1. `keypress` key values
@@ -1255,6 +1268,20 @@ X1 to X20 (Lacci and Webview defects) are one table. M1 to M40 (manual errata): 
 - **Scarpe until 28 Sep:** had no console window; nothing reserved these keys, so an app received them like any other.
 - **Native:** since 28 Sep (the w10 scarpe lane) Rust answers `:alt_/` (Cmd-/ on a Mac, Q5) with a `console` message before a focused field or a `keypress` block sees it (`input.rs` `key_input`, DESIGN 4.2 and 4.4), and the shim opens the console (`Shoes.show_console`). **Test:** `tests/protocol.rs` (`alt_slash_asks_for_the_console_and_the_app_never_hears_it`) and `test/native/errors_test.rb`.
 - **Spec:** no case; `events.keypress.reserved_hotkeys` stays in its `UNTESTABLE.md` (Alt-. and Alt-? are still out of scope), and `builtins.console_hotkey` is checked by `test/native/errors_test.rb`, since opening a second window is more than a spec case asserts.
+
+### H11. `drop` hears files dropped on the window, or opened from Finder
+
+**Ruling: EXT**, proposed 16 Oct 2026 and waiting on Nick's word (`docs/SCARPE_FEATURES.md`). `drop { |path| }` on the app or a slot gets the full path of each file dropped on the window, one call a file. Every `drop` block in the window hears it, as every `keypress` block hears a key.
+
+- **Manual:** silent; "drop" only ever means a list box's drop-down (manual 2043, 3168-3169).
+- **Shoes 3:** none. The Cocoa view handles mouse drags only (`s3_cocoa.m:201-212`) and registers for no dragged types; the GTK backend sets up no drop target.
+- **Shoes 4:** none in `shoes-core`'s DSL.
+- **Examples:** none.
+- **Lacci / WV today:** until 16 Oct no `drop` method on App or Slot. Lacci now has one, and a SubscriptionItem `drop` that hands its block the path. The webview never learns a dropped file's path, so there a `drop` block hears nothing.
+- **Why every block, not the one under the pointer:** winit 0.30's `WindowEvent::DroppedFile` carries the path and no position, so Rust cannot say which slot the file landed on. Once winit reports where a file lands, only the slots under that point should hear it, as `wheel` (H7) does.
+- **Opened from Finder, 23 Oct 2026:** a packaged Markdown editor got "cannot open files in the Markdown format" from Open With. Two things were missing. The Info.plist declared no document types, and nothing heard the files macOS hands an app: they come to the app delegate's `application:openURLs:` (not `argv`), the file that launched the app among them, and winit 0.30 does not implement it. Now `scarpe package --opens TYPE` declares them (role Editor, rank Alternate, so it never takes over as the default), and Rust adds the method to winit's delegate class before the loop runs. A file opened this way is the same news as a file dropped on the window, so it reaches the `drop` blocks rather than a new event: those of the window that had input last, else of the first window with one, once one exists. Shoes 3's own delegate implements `application:openFile:` and loads the file as a Shoes program (`s3_cocoa.m:56-64`), so a file handed to Shoes runs; no app ever hears one.
+- **Spec:** no case: the manual has no entry to hang one on. **Tests:** `tests/protocol.rs` (`a_dropped_file_reaches_every_drop_block`, `an_opened_file_waits_for_a_drop_block_then_arrives_as_a_drop`), `test/package/package_test.rb` (`test_opens_declares_the_document_types_finder_offers` and two more), `test/native/end_to_end_test.rb` (`test_drop_blocks_hear_each_dropped_file`) and `test/native/art_input_test.rb` (`test_peek_drops_a_file`).
+- **Native:** `DroppedFile` and `req drop {path}` send `drop` events `[path]` to every SubscriptionItem `drop` in the window (`input.rs` `drop_file`, DESIGN 4.1 and 4.3). A path that is not UTF-8 is logged and not sent. While an in-window `ask` or `ask_color` is up the app is waiting on it, so a drop goes nowhere, as a click beside the dialog does. `scarpe peek --drop PATH` and Shoes-Spec's `drop_file(path)` make one. `application:openURLs:` and `req open {path}` queue a file (`Runtime.opened`) that `open_documents` hands over as a drop to a running window with a `drop` block and no `ask` up, at the end of a batch (a `flush`, or ahead of a request) or when the `ask` is answered, never mid-batch.
 
 ## I. Timers
 

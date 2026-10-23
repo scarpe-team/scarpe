@@ -265,3 +265,46 @@ fn a_dialogs_own_window_keeps_to_itself() {
     rt.key_input(own, scarpe_native::input::KeyInput::named(scarpe_native::input::Named::Escape));
     assert_eq!(rt.views.len(), views - 1);
 }
+
+/// While an `ask` is up in the window the app waits on it, so a file dropped on the window goes
+/// nowhere, as a click beside the dialog does; once it is answered drops arrive again (ledger H11).
+#[test]
+fn a_drop_while_ask_is_up_goes_nowhere() {
+    let opts = Options { headless: false, scale: Some(1.0), fonts: FontMode::Bundled, trace: false };
+    let mut rt = Runtime::new(opts, Outbox::capture());
+    rt.clipboard = Clipboard::local();
+    let drop_block = json!({"t": "create", "id": 4, "kind": "SubscriptionItem", "parent": 2, "props": {"shoes_api_name": "drop"}});
+    for line in common::app(400, 300, &[drop_block]).lines() {
+        rt.handle_line(line);
+    }
+    rt.out.take_captured();
+    let drops = |msgs: &[Value]| msgs.iter().filter(|m| m["t"] == "event" && m["name"] == "drop").count();
+
+    send(&mut rt, json!({"t":"req","req":1,"op":"dialog","kind":"ask","message":"Name?","default":null}));
+    let msgs = send(&mut rt, json!({"t":"req","req":2,"op":"drop","path":"/tmp/a.md"}));
+    assert_eq!(drops(&msgs), 0, "the dialog is up");
+    send(&mut rt, json!({"t":"req","req":3,"op":"key","key":"escape"}));
+    let msgs = send(&mut rt, json!({"t":"req","req":4,"op":"drop","path":"/tmp/a.md"}));
+    assert_eq!(drops(&msgs), 1, "answered, the window hears drops again");
+}
+
+/// A file the system opens while the window's `ask` is up waits for the answer, then arrives,
+/// rather than being dropped behind the dialog (ledger H11).
+#[test]
+fn an_opened_file_waits_for_the_ask_to_be_answered() {
+    let opts = Options { headless: false, scale: Some(1.0), fonts: FontMode::Bundled, trace: false };
+    let mut rt = Runtime::new(opts, Outbox::capture());
+    rt.clipboard = Clipboard::local();
+    let drop_block = json!({"t": "create", "id": 4, "kind": "SubscriptionItem", "parent": 2, "props": {"shoes_api_name": "drop"}});
+    for line in common::app(400, 300, &[drop_block]).lines() {
+        rt.handle_line(line);
+    }
+    rt.out.take_captured();
+    let drops = |msgs: &[Value]| msgs.iter().filter(|m| m["t"] == "event" && m["name"] == "drop").count();
+
+    send(&mut rt, json!({"t":"req","req":1,"op":"dialog","kind":"ask","message":"Name?","default":null}));
+    let msgs = send(&mut rt, json!({"t":"req","req":2,"op":"open","path":"/tmp/a.md"}));
+    assert_eq!(drops(&msgs), 0, "the dialog is up");
+    let msgs = send(&mut rt, json!({"t":"req","req":3,"op":"key","key":"escape"}));
+    assert_eq!(drops(&msgs), 1, "answered, the file arrives");
+}

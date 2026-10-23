@@ -111,6 +111,7 @@ A line Rust cannot parse is answered with a `log` warning and otherwise ignored.
 | `run` | `app` (or null = the newest) | the app is complete enough to show: open its window (or headless canvas) |
 | `quit` | `app` (id or null = all) | close window(s); when none remain Rust exits 0 |
 | `focus` | `id` | give keyboard focus to a control, with a visible focus ring |
+| `insert` | `id`, `text` | put `text` in an edit line or edit box at its caret, over any selection, focused or not, as one undo step (as a paste is); answered by one `change` event. A read-only or disabled field takes nothing (ledger G18) |
 | `scroll_to` | `id`, `top` | set a scrollable slot's scroll offset (clamped at the next layout) |
 | `font` | `path` (absolute) | register a font file; family name(s) become usable |
 | `text_mode` | `mode` (`scarpe` or `shoes3`) | how text is sized and set from now on (Lacci's `Shoes.text_mode`, ledger M14): `shoes3` reads text sizes as points at 96 dpi and gives text blocks that name no face Arial; every window is laid out again. The shim sends it after `hello` when a program set it before its first window, and again whenever it changes |
@@ -130,6 +131,8 @@ that last ran or had input, else the first running one.
 | `type` | `text` | inserts text into the focused input as real key events, one character at a time |
 | `key` | `key` (a Shoes name, e.g. "left", "\n", "a", ":control_a"; also `command_`, `cmd_`, `super_`, `ctrl_`, `option_` prefixes) | synthesises a key press |
 | `wheel` | `dy`, `x`, `y` (optional) | wheel event, section 12 |
+| `drop` | `path` | a file dropped on the window, as Finder drops one: every SubscriptionItem `drop` in it hears `path` (ledger H11) |
+| `open` | `path` | a file the system asks the app to open, as `application:openURLs:` hands one over: queued, then sent as a `drop` (ledger H11) |
 | `resize` | `w`, `h` | resize the window/canvas; Rust answers with a `resize` message too |
 | `pixel` | `x`, `y` | `[r,g,b,a]` at logical point; error outside the window |
 | `frames` | `n` | reply after n frames have been laid out and painted (sync point); value = frames painted so far |
@@ -176,6 +179,8 @@ Rust processes `req`s after an implicit flush of everything received before them
 | SubscriptionItem `hover`/`leave` | same | item id | `[]` on entering/leaving the parent slot box |
 | SubscriptionItem `keypress` | `keypress` | item id | `[key]`, see 4.4. Not sent while a text input has focus, except escape and modified keys; not sent for keys a focused control used |
 | SubscriptionItem `wheel` | `wheel` | item id | `[delta, x, y]`, delta > 0 = up |
+| a file dropped on the window (winit `DroppedFile`), or `req drop` | `drop` | item id | `[path]`, the file's full path, to every SubscriptionItem `drop` in the window wherever its slot sits: winit 0.30 does not say where the file landed. Several files arrive one event each. A path that is not UTF-8 is logged and not sent, and while an in-window modal is up a drop goes nowhere (ledger H11) |
+| a file the system asks the app to open (macOS `application:openURLs:`: Finder's Open With, a double-click, the Dock icon), or `req open` | `drop` | item id | `[path]`, as for a dropped file, to the `drop` blocks of the window that had input last, else of the first window that has one. Only a running window with no modal up takes one. A file waits while none has a `drop` block (one that launched the app arrives before any window), while a batch is half applied, and while the window's `ask` is up; the end of a batch (`flush`, or ahead of a request) and the answer to the `ask` hand it over (`input.rs` `open_documents`). winit 0.30 does not implement the method, so `window/open_documents.rs` adds it to winit's app delegate class before the loop runs. The app must declare what it opens (`scarpe package --opens`) |
 
 A SubscriptionItem hears events only while its parent slot is laid out and its `stopped` prop is
 not true. Mouse buttons are 1 = left, 2 = middle, 3 = right (manual numbering).
@@ -578,7 +583,7 @@ src/window.rs      winit 0.30 ApplicationHandler; one Window + softbuffer Surfac
                    window/voiceover.rs reads a window as AppKit hands it to VoiceOver (a11y, `platform`)
 src/headless.rs    same Runtime with offscreen pixmaps; stdin read on its own thread too, so Rust
                    blocked writing to a Ruby that is not reading yet never stops Ruby writing
-src/automation.rs  req ops that synthesise input (click, mouse, type, key, wheel), layout dump, snapshot, pixel
+src/automation.rs  req ops that synthesise input (click, mouse, type, key, wheel, drop), layout dump, snapshot, pixel
 src/dialogs.rs     rfd message/file dialogs; the modal for `ask` and `ask_color`, in an app's window or its own
 src/a11y.rs        screen readers: the AccessKit tree built from Doc + Layout + view state, the actions a
                    screen reader asks for, the Mirror that sends a window only what changed, and the read
@@ -650,6 +655,7 @@ on top of the Niente-compatible finders and proxies (`button`, `para`, `edit_lin
 | `drag([x, y], [x, y], ...)` | press at the first point, move through the rest with the button down, release at the last |
 | `type_text(str)`, `press_key(name)` | keyboard into the focused widget / app |
 | `wheel(dy, x:, y:)` | scroll; without `x:`/`y:` at the middle of the first window |
+| `drop_file(path)` | drop a file on the window, as Finder would; the path need not exist |
 | `layout_of(proxy)` | `Rect(x, y, w, h)` in window coordinates |
 | `layout_tree` | array of hashes from `req layout`, Symbol keys |
 | `snapshot(name)` | writes `spec/results/snapshots/<name>.png` (or `SCARPE_NATIVE_SNAPSHOT_DIR`, or an absolute path), returns the path |
@@ -665,9 +671,9 @@ on top of the Niente-compatible finders and proxies (`button`, `para`, `edit_lin
 A handler that raises while test code is clicking or advancing fails the test instead of being logged.
 
 `scarpe peek APP.rb [--size WxH] [--scale 2] [--wait SECS] [--click TEXT | --click-at X,Y]
-[--drag X,Y,X,Y...] [--type TEXT] [--key NAME] [--wheel DY[,X,Y]] [--window N | --app ID]
+[--drag X,Y,X,Y...] [--type TEXT] [--key NAME] [--wheel DY[,X,Y]] [--drop PATH] [--window N | --app ID]
 [--shot OUT.png] [--layout] [--a11y]` runs an app headless, performs the steps in order once the
-first heartbeat has started the slots, prints one line per click, drag, wheel, window, shot,
+first heartbeat has started the slots, prints one line per click, drag, wheel, drop, window, shot,
 laid-out node and accessibility node (`--a11y`: `#5 text_input "Name" = "Nick" (focused)`, indented
 under its parent), and exits (1 when a step failed or no app started). With no `--shot`, `--layout`
 or `--a11y` it saves `peek.png` in the current directory. `--drag` presses at its first point and

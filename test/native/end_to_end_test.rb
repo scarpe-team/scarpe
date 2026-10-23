@@ -190,6 +190,26 @@ class EndToEndTest < Minitest::Test
     assert_spec_passed(run)
   end
 
+  def test_insert_puts_text_in_at_the_caret
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app do
+        $changes = 0
+        @notes = edit_box("Hello world") { $changes += 1 }
+        @other = edit_line
+      end
+    APP
+      click_on(edit_box)
+      press_key("home")
+      5.times { press_key("right") }
+      click_on(edit_line)
+      edit_box.insert(", big")
+      wait_frames
+      assert_equal "Hello, big world", edit_box.text, "at the caret, though the box lost focus"
+      assert_equal 1, $changes
+    TEST
+    assert_spec_passed(run)
+  end
+
   def test_dialogs_answer_from_stubs_and_never_open
     run = run_real(<<~APP, test_code: <<~TEST)
       Shoes.app do
@@ -289,6 +309,22 @@ class EndToEndTest < Minitest::Test
       $events.clear
       wheel(30, x: 10, y: 20)
       assert_includes $events, [:wheel, -30, 10, 20], "wheel delta is positive for up, so scrolling down is negative"
+    TEST
+    assert_spec_passed(run)
+  end
+
+  def test_drop_blocks_hear_each_dropped_file
+    run = run_real(<<~APP, test_code: <<~TEST)
+      Shoes.app(width: 400, height: 300) do
+        $dropped = []
+        stack(width: 100) { drop { |path| $dropped << [:slot, path] } }
+        drop { |path| $dropped << [:app, path] }
+      end
+    APP
+      drop_file("/Users/me/Notes/a b.md")
+      drop_file("/tmp/pic.png")
+      assert_equal [[:app, "/Users/me/Notes/a b.md"], [:app, "/tmp/pic.png"]], $dropped.select { |who, _| who == :app }
+      assert_equal 4, $dropped.size, "the slot's block hears both too, wherever it sits"
     TEST
     assert_spec_passed(run)
   end
